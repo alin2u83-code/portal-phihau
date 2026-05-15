@@ -87,7 +87,11 @@ export const useDataProvider = () => {
     const permissions = usePermissions(activeRoleContext);
     const { allowedClubs, loading: accessLoading } = useFetchAllowedClubs();
 
-    const attendanceData = useAttendanceData();
+    // Pentru ADMIN_CLUB și INSTRUCTOR, pasăm club_id-ul activ ca filtru defensive în memorie.
+    // View-ul vedere_cluburi_program_antrenamente filtrează deja prin get_active_club_id() la nivel DB,
+    // dar adăugăm filtrul și la nivel de hook pentru robustețe (race condition la login).
+    const attendanceClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
+    const attendanceData = useAttendanceData(attendanceClubId ?? undefined);
 
     // SUPER_ADMIN_FEDERATIE și ADMIN văd toate grupele; ceilalți văd doar grupele clubului lor
     const grupeClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);

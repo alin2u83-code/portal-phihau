@@ -706,22 +706,22 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
 
             <header className="mb-4 md:mb-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-                    <div>
-                        <h1 className="text-xl md:text-3xl font-bold text-white">Administrare Utilizatori & Roluri</h1>
-                        <p className="text-slate-400 text-sm">Gestionează conturile de acces și permisiunile pentru staff și sportivi.</p>
+                    <div className="min-w-0">
+                        <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-white leading-tight">Administrare Utilizatori & Roluri</h1>
+                        <p className="text-slate-400 text-xs sm:text-sm mt-0.5">Gestionează conturile de acces și permisiunile pentru staff și sportivi.</p>
                     </div>
-                    <div className="flex bg-slate-800/50 p-1 rounded-lg border border-slate-700 shrink-0">
-                        <button 
+                    <div className="flex bg-slate-800/50 p-1 rounded-lg border border-slate-700 shrink-0 self-start sm:self-auto">
+                        <button
                             onClick={() => setActiveTab('users')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-[#3D3D99] text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                            className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'users' ? 'bg-[#3D3D99] text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
                         >
                             Utilizatori
                         </button>
-                        <button 
+                        <button
                             onClick={() => setActiveTab('guide')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeTab === 'guide' ? 'bg-[#3D3D99] text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                            className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'guide' ? 'bg-[#3D3D99] text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
                         >
-                            Ghid Permisiuni
+                            Ghid
                         </button>
                     </div>
                 </div>
@@ -782,13 +782,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
                                 />
                             )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-4">
-                            <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
-                                <input type="checkbox" checked={filterNoRole} onChange={(e) => setFilterNoRole(e.target.checked)} />
+                        <div className="flex flex-wrap items-center gap-3">
+                            <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer min-h-[36px] touch-manipulation">
+                                <input type="checkbox" className="h-4 w-4 rounded border-slate-600 bg-slate-800" checked={filterNoRole} onChange={(e) => setFilterNoRole(e.target.checked)} />
                                 Fără roluri asignate
                             </label>
-                            <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
-                                <input type="checkbox" checked={filterNoAccount} onChange={(e) => setFilterNoAccount(e.target.checked)} />
+                            <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer min-h-[36px] touch-manipulation">
+                                <input type="checkbox" className="h-4 w-4 rounded border-slate-600 bg-slate-800" checked={filterNoAccount} onChange={(e) => setFilterNoAccount(e.target.checked)} />
                                 Fără cont de utilizator
                             </label>
                         </div>

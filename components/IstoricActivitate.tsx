@@ -296,7 +296,7 @@ export const IstoricActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) 
         <div className="space-y-4 animate-fade-in-down">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" onClick={onBack}>
+                <Button variant="secondary" size="sm" onClick={onBack}>
                     <ArrowLeftIcon className="h-4 w-4" />
                 </Button>
                 <div>
@@ -306,20 +306,20 @@ export const IstoricActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) 
             </div>
 
             {/* Sumar carduri */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
                 {(Object.keys(ETICHETE) as TipActivitate[]).map(tip => {
                     const Icon = ICOANE[tip];
                     return (
                         <button
                             key={tip}
                             onClick={() => setFiltruActiv(prev => prev === tip ? 'toate' : tip)}
-                            className={`rounded-xl p-3 border text-left transition-all ${CULORI[tip]} ${filtruActiv === tip ? 'ring-2 ring-white/30' : 'opacity-80 hover:opacity-100'}`}
+                            className={`rounded-xl p-2.5 sm:p-3 border text-left transition-all touch-manipulation ${CULORI[tip]} ${filtruActiv === tip ? 'ring-2 ring-white/30' : 'opacity-80 hover:opacity-100'}`}
                         >
-                            <div className="flex items-center gap-2 mb-1">
-                                <Icon className="h-4 w-4" />
-                                <span className="text-xs font-medium">{ETICHETE[tip]}</span>
+                            <div className="flex items-center gap-1.5 mb-1">
+                                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                                <span className="text-[10px] sm:text-xs font-medium leading-tight">{ETICHETE[tip]}</span>
                             </div>
-                            <div className="text-2xl font-bold">{loading ? '…' : (numerePerTip[tip] || 0)}</div>
+                            <div className="text-xl sm:text-2xl font-bold">{loading ? '…' : (numerePerTip[tip] || 0)}</div>
                         </button>
                     );
                 })}
@@ -327,37 +327,41 @@ export const IstoricActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) 
 
             {/* Controale */}
             <Card className="p-3">
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <input
-                            value={cautare}
-                            onChange={e => setCautare(e.target.value)}
-                            placeholder="Caută sportiv sau activitate..."
-                            className="w-full bg-slate-800 border border-slate-600 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                        />
+                <div className="flex flex-col gap-3">
+                    {/* Rândul 1: search + select zile */}
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input
+                                value={cautare}
+                                onChange={e => setCautare(e.target.value)}
+                                placeholder="Caută sportiv sau activitate..."
+                                className="w-full bg-slate-800 border border-slate-600 rounded-lg pl-9 pr-3 py-2.5 sm:py-2 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 touch-manipulation"
+                            />
+                        </div>
+                        <select
+                            value={limitaZile}
+                            onChange={e => setLimitaZile(Number(e.target.value))}
+                            className="bg-slate-800 border border-slate-600 rounded-lg px-2 sm:px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500 shrink-0"
+                        >
+                            <option value={7}>7 zile</option>
+                            <option value={30}>30 zile</option>
+                            <option value={90}>3 luni</option>
+                            <option value={365}>1 an</option>
+                        </select>
                     </div>
-                    <div className="flex gap-1.5 flex-wrap">
+                    {/* Rândul 2: filtre tip — scroll orizontal pe mobil */}
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
                         {FILTRE.map(f => (
                             <button
                                 key={f.value}
                                 onClick={() => setFiltruActiv(f.value)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filtruActiv === f.value ? 'bg-sky-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 touch-manipulation ${filtruActiv === f.value ? 'bg-sky-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
                             >
                                 {f.label}
                             </button>
                         ))}
                     </div>
-                    <select
-                        value={limitaZile}
-                        onChange={e => setLimitaZile(Number(e.target.value))}
-                        className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
-                    >
-                        <option value={7}>Ultimele 7 zile</option>
-                        <option value={30}>Ultimele 30 zile</option>
-                        <option value={90}>Ultimele 3 luni</option>
-                        <option value={365}>Ultimul an</option>
-                    </select>
                 </div>
             </Card>
 

@@ -5,6 +5,7 @@ import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { useNomenclatoare } from '../hooks/useNomenclatoare';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const emptyFormState: Omit<Grad, 'id'> = { nume: '', ordine: 1, varsta_minima: 7, timp_asteptare: "6 luni", grad_start_id: null };
 
@@ -78,6 +79,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
   const [gradToDelete, setGradToDelete] = useState<Grad | null>(null);
   const { showError } = useError();
   const { addGrade, updateGrade, deleteGrade, loading } = useNomenclatoare();
+  const isMobile = useIsMobile();
 
   const handleSaveGrad = async (gradData: Omit<Grad, 'id'>) => {
     if (gradToEdit) {
@@ -108,31 +110,74 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
         <h1 className="text-2xl md:text-3xl font-bold text-white">Management Grade</h1>
         {canEdit && <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grad</Button>}
       </div>
-      <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
-        <table className="w-full text-left min-w-[800px]">
-          <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Ordine</th><th className="p-4 font-semibold">Nume</th><th className="p-4 font-semibold">Vârstă Min.</th><th className="p-4 font-semibold">Timp Așteptare</th><th className="p-4 font-semibold">Grad Necesar</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
-          <tbody className="divide-y divide-slate-700">
-            {sortedGrade.map(grad => (
-              <tr key={grad.id}>
-                <td className="p-4 w-20">{grad.ordine}</td>
-                <td className="p-4 font-medium">{grad.nume}</td>
-                <td className="p-4">{grad.varsta_minima} ani</td>
-                <td className="p-4">{grad.timp_asteptare}</td>
-                <td className="p-4">{grade.find(g => g.id === grad.grad_start_id)?.nume || 'N/A'}</td>
-                <td className="p-4 text-right w-32">
-                    {canEdit && (
-                        <div className="flex items-center justify-end space-x-2">
-                            <Button onClick={() => handleOpenEdit(grad)} variant="primary" size="sm"><EditIcon /></Button>
-                            <Button onClick={() => setGradToDelete(grad)} variant="danger" size="sm"><TrashIcon /></Button>
-                        </div>
-                    )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {sortedGrade.length === 0 && <p className="p-4 text-center text-slate-400">Niciun grad definit.</p>}
-      </div>
+
+      {/* Mobil: card list */}
+      {isMobile ? (
+        <div className="space-y-3">
+          {sortedGrade.length === 0 && (
+            <p className="p-4 text-center text-slate-400">Niciun grad definit.</p>
+          )}
+          {sortedGrade.map(grad => (
+            <div key={grad.id} className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-bold bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">#{grad.ordine}</span>
+                    <span className="text-white font-semibold truncate">{grad.nume}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <div>
+                      <span className="text-slate-500 text-xs">Vârstă min.</span>
+                      <p className="text-slate-300">{grad.varsta_minima} ani</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-xs">Timp așteptare</span>
+                      <p className="text-slate-300">{grad.timp_asteptare}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-slate-500 text-xs">Grad necesar</span>
+                      <p className="text-slate-300">{grade.find(g => g.id === grad.grad_start_id)?.nume || 'Niciunul'}</p>
+                    </div>
+                  </div>
+                </div>
+                {canEdit && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button onClick={() => handleOpenEdit(grad)} variant="primary" size="sm"><EditIcon /></Button>
+                    <Button onClick={() => setGradToDelete(grad)} variant="danger" size="sm"><TrashIcon /></Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Desktop/tabletă: tabel cu scroll orizontal */
+        <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
+          <table className="w-full text-left min-w-[600px]">
+            <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Ordine</th><th className="p-4 font-semibold">Nume</th><th className="p-4 font-semibold">Vârstă Min.</th><th className="p-4 font-semibold">Timp Așteptare</th><th className="p-4 font-semibold">Grad Necesar</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
+            <tbody className="divide-y divide-slate-700">
+              {sortedGrade.map(grad => (
+                <tr key={grad.id}>
+                  <td className="p-4 w-20">{grad.ordine}</td>
+                  <td className="p-4 font-medium">{grad.nume}</td>
+                  <td className="p-4">{grad.varsta_minima} ani</td>
+                  <td className="p-4">{grad.timp_asteptare}</td>
+                  <td className="p-4">{grade.find(g => g.id === grad.grad_start_id)?.nume || 'N/A'}</td>
+                  <td className="p-4 text-right w-32">
+                      {canEdit && (
+                          <div className="flex items-center justify-end space-x-2">
+                              <Button onClick={() => handleOpenEdit(grad)} variant="primary" size="sm"><EditIcon /></Button>
+                              <Button onClick={() => setGradToDelete(grad)} variant="danger" size="sm"><TrashIcon /></Button>
+                          </div>
+                      )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {sortedGrade.length === 0 && <p className="p-4 text-center text-slate-400">Niciun grad definit.</p>}
+        </div>
+      )}
       <GradFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveGrad} grade={sortedGrade} gradToEdit={gradToEdit} />
       <ConfirmDeleteModal isOpen={!!gradToDelete} onClose={() => setGradToDelete(null)} onConfirm={() => { if(gradToDelete) confirmDelete(gradToDelete.id) }} tableName="Grade" isLoading={loading} />
     </div>

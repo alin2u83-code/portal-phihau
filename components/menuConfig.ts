@@ -49,7 +49,6 @@ export const adminMenu: MenuItem[] = [
         submenu: [
             { label: 'Sesiuni Examene', view: 'examene' },
             { label: 'Rapoarte Examen', view: 'rapoarte-examen' },
-            { label: 'Rapoarte', view: 'rapoarte' },
         ]
     },
     {
@@ -82,6 +81,7 @@ export const adminMenu: MenuItem[] = [
             { label: 'Înlănțuiri', view: 'inlantuiri-admin' },
         ]
     },
+    { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
     { label: 'Cereri Înscriere', icon: UserPlusIcon, view: 'cereri-inscriere' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
@@ -117,7 +117,6 @@ export const adminClubMenu: MenuItem[] = [
         submenu: [
             { label: 'Sesiuni Examene', view: 'examene' },
             { label: 'Rapoarte Examen', view: 'rapoarte-examen' },
-            { label: 'Rapoarte', view: 'rapoarte' },
         ]
     },
     {

@@ -10,7 +10,6 @@ interface ReportsDashboardProps {
 export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ onNavigate }) => {
     const reports = [
         { label: 'Raport Prezență', icon: ClipboardCheckIcon, view: 'raport-prezenta' },
-        { label: 'Raport Activitate', icon: FileTextIcon, view: 'raport-activitate' },
         { label: 'Raport Lunar Prezență', icon: CalendarDaysIcon, view: 'raport-lunar-prezenta' },
         { label: 'Raport Financiar', icon: ChartBarIcon, view: 'raport-financiar' },
         { label: 'Rapoarte Examen', icon: FileTextIcon, view: 'rapoarte-examen' },

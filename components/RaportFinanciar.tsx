@@ -365,7 +365,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         </button>
                         {filtersOpen && (
                             <div className="px-4 pb-4 border-t border-slate-800/60">
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-3">
                                     <Input label="De la" type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} />
                                     <Input label="Până la" type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />
                                     <Select label="Sportiv" name="sportivId" value={filters.sportivId} onChange={handleFilterChange} disabled={!!filters.familieId}>
@@ -418,36 +418,41 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     )}
 
                     {/* Total card + Export */}
-                    <div className="flex items-center justify-between bg-slate-800/60 border border-slate-700/50 rounded-xl px-5 py-4 gap-4">
-                        <div>
-                            <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Încasări</p>
-                            <p className="text-xs text-slate-500">{filteredIstoric.length} înregistrări</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 gap-3">
+                        <div className="flex items-center justify-between sm:contents gap-3">
+                            <div>
+                                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Încasări</p>
+                                <p className="text-xs text-slate-500">{filteredIstoric.length} înregistrări</p>
+                            </div>
+                            <p className={`text-2xl sm:hidden font-black ml-auto ${totalIncasari > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                {formatSum(totalIncasari)}
+                            </p>
                         </div>
-                        <div className="flex items-center gap-2 ml-auto">
+                        <div className="flex items-center gap-2 sm:ml-auto">
                             <button
                                 onClick={() => exportIncasariCSV(filteredIstoric)}
                                 disabled={filteredIstoric.length === 0}
                                 title="Export CSV"
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-300
+                                className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 text-xs font-semibold text-slate-300
                                            bg-slate-700/60 hover:bg-slate-700 border border-slate-600/50
-                                           rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                           rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
                             >
                                 <DownloadIcon className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">CSV</span>
+                                CSV
                             </button>
                             <button
                                 onClick={() => exportIncasariPDF(filteredIstoric, totalIncasari)}
                                 disabled={filteredIstoric.length === 0}
                                 title="Export PDF"
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white
+                                className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 text-xs font-semibold text-white
                                            bg-indigo-600/70 hover:bg-indigo-600 border border-indigo-500/50
-                                           rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                           rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
                             >
                                 <DocumentArrowDownIcon className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">PDF</span>
+                                PDF
                             </button>
                         </div>
-                        <p className={`text-2xl md:text-3xl font-black ${totalIncasari > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                        <p className={`hidden sm:block text-2xl md:text-3xl font-black ${totalIncasari > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
                             {formatSum(totalIncasari)}
                         </p>
                     </div>

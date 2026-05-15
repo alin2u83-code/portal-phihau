@@ -47,11 +47,18 @@ export const useFilteredData = ({
     locatii
 }: UseFilteredDataProps) => {
     return useMemo(() => {
+        // Filtrare defensivă în memorie: ADMIN_CLUB/INSTRUCTOR văd doar antrenamentele clubului lor.
+        // DB-ul filtrează deja prin get_active_club_id() pe view, dar dublăm protecția.
+        const isFederationRole = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'ADMIN';
+        const filteredAntrenamente = (!isFederationRole && activeClubId)
+            ? (antrenamente || []).filter(a => a.club_id === activeClubId)
+            : (antrenamente || []);
+
         return {
             sportivi: sportivi || [],
             sesiuniExamene: sesiuniExamene || [],
             inscrieriExamene: inscrieriExamene || [],
-            antrenamente: antrenamente || [],
+            antrenamente: filteredAntrenamente,
             grupe: grupe || [],
             plati: plati || [],
             tranzactii: tranzactii || [],
@@ -68,6 +75,8 @@ export const useFilteredData = ({
             locatii: locatii || [],
         };
     }, [
+        activeRole,
+        activeClubId,
         sportivi,
         sesiuniExamene,
         inscrieriExamene,

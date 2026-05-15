@@ -42,9 +42,15 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
             // Acum: 3 query-uri simple paralele + join în memorie React.
 
             // Query 1: antrenamentele din VIEW (fără join embedded)
+            // View-ul filtrează prin get_active_club_id() la nivel DB; adăugăm și filtrul explicit
+            // când clubId e disponibil ca a doua linie de apărare (robustețe față de race condition la login).
             let antrenamenteQuery = supabase
                 .from('vedere_cluburi_program_antrenamente')
                 .select('*');
+
+            if (clubId) {
+                antrenamenteQuery = antrenamenteQuery.eq('club_id', clubId);
+            }
 
             // Query 2: anunturi prezenta
             const anunturiQuery = supabase.from('anunturi_prezenta').select('*');

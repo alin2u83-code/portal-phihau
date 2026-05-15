@@ -25,15 +25,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
+        model: 'claude-haiku-4-5',
+        max_tokens: 2048,
         system: system || '',
         messages,
       }),
     });
 
+    if (!response.ok) {
+      const errBody = await response.text();
+      console.error('[claude-proxy] API error:', response.status, errBody);
+      return res.status(response.status).json({ error: `Eroare API Claude (${response.status}): ${errBody}` });
+    }
+
     const data = await response.json();
-    return res.status(response.status).json(data);
+    return res.status(200).json(data);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }

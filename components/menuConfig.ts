@@ -19,7 +19,7 @@ export interface SubMenuItem {
     view: View;
 }
 
-// Meniu complet pentru Adminii de Federație și de Club
+// Meniu complet pentru Adminii de Federație (fără Activitate Sală — doar cluburi)
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     {
@@ -32,16 +32,6 @@ export const adminMenu: MenuItem[] = [
             { label: 'Legitimații', view: 'legitimatii' },
             { label: 'Nomenclator Grade', view: 'grade' },
             { label: 'Administrare Staff', view: 'user-management' },
-        ]
-    },
-    {
-        label: 'Activitate Sală', icon: CalendarDaysIcon,
-        submenu: [
-            { label: 'Grupe & Orar', view: 'grupe' },
-            { label: 'Program Antrenamente', view: 'program-antrenamente' },
-            { label: 'Înregistrare Prezențe', view: 'prezenta' },
-            { label: 'Raport Prezențe', view: 'raport-prezenta' },
-            { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
         ]
     },
     {

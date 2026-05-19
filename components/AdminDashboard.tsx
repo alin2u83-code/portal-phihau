@@ -6,7 +6,7 @@ import { View } from '../types';
 import { Card } from './ui';
 import {
     UsersIcon, CreditCardIcon, BuildingOfficeIcon, TrophyIcon,
-    CalendarDaysIcon, ClipboardCheckIcon, BanknotesIcon, CogIcon,
+    BanknotesIcon, CogIcon,
     UserPlusIcon, ClockIcon, ChartBarIcon, FileTextIcon,
     BellIcon, SitemapIcon, BookOpenIcon, ClipboardListIcon,
     ArchiveBoxIcon,
@@ -102,16 +102,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 { label: 'Legitimații', view: 'legitimatii', icon: FileTextIcon, color: 'text-sky-400' },
                 { label: 'Nomenclator Grade', view: 'grade', icon: BookOpenIcon, color: 'text-sky-400' },
                 { label: 'Administrare Staff', view: 'user-management', icon: UserPlusIcon, color: 'text-sky-400' },
-            ],
-        },
-        {
-            title: 'Activitate Sală',
-            items: [
-                { label: 'Grupe & Orar', view: 'grupe', icon: CalendarDaysIcon, color: 'text-teal-400' },
-                { label: 'Program Antrenamente', view: 'program-antrenamente', icon: CalendarDaysIcon, color: 'text-teal-400' },
-                { label: 'Înregistrare Prezențe', view: 'prezenta', icon: ClipboardCheckIcon, color: 'text-teal-400' },
-                { label: 'Raport Prezențe', view: 'raport-prezenta', icon: ChartBarIcon, color: 'text-teal-400' },
-                { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta', icon: ChartBarIcon, color: 'text-teal-400' },
             ],
         },
         {

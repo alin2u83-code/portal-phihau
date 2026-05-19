@@ -6,7 +6,7 @@ import { View } from '../types';
 import { Card } from './ui';
 import {
     UsersIcon, CreditCardIcon, BuildingOfficeIcon, TrophyIcon,
-    BanknotesIcon, CogIcon,
+    CogIcon,
     UserPlusIcon, ClockIcon, ChartBarIcon, FileTextIcon,
     BellIcon, SitemapIcon, BookOpenIcon, ClipboardListIcon,
     ArchiveBoxIcon,
@@ -112,18 +112,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 { label: 'Competiții', view: 'competitii', icon: TrophyIcon, color: 'text-rose-400' },
                 { label: 'Rapoarte Examen', view: 'rapoarte-examen', icon: ChartBarIcon, color: 'text-indigo-400' },
                 { label: 'Rapoarte', view: 'rapoarte', icon: ChartBarIcon, color: 'text-indigo-400' },
-            ],
-        },
-        {
-            title: 'Financiar & Plăți',
-            items: [
-                { label: 'Facturi & Plăți', view: 'plati-scadente', icon: BanknotesIcon, color: 'text-emerald-400' },
-                { label: 'Jurnal Încasări', view: 'jurnal-incasari', icon: ClipboardListIcon, color: 'text-emerald-400' },
-                { label: 'Raport Financiar', view: 'raport-financiar', icon: ChartBarIcon, color: 'text-emerald-400' },
-                { label: 'Taxe Anuale', view: 'taxe-anuale', icon: CreditCardIcon, color: 'text-emerald-400' },
-                { label: 'Facturi Federale', view: 'deconturi-federatie', icon: FileTextIcon, color: 'text-emerald-400' },
-                { label: 'Config. Abonamente', view: 'tipuri-abonament', icon: CogIcon, color: 'text-emerald-400' },
-                { label: 'Configurare Prețuri', view: 'configurare-preturi', icon: CogIcon, color: 'text-emerald-400' },
             ],
         },
         {

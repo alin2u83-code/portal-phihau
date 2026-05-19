@@ -49,18 +49,6 @@ export const adminMenu: MenuItem[] = [
         ]
     },
     {
-        label: 'Financiar & Plăți', icon: BanknotesIcon,
-        submenu: [
-            { label: 'Facturi & Plăți', view: 'plati-scadente' },
-            { label: 'Jurnal Încasări', view: 'jurnal-incasari' },
-            { label: 'Raport Financiar', view: 'raport-financiar' },
-            { label: 'Taxe Anuale', view: 'taxe-anuale' },
-            { label: 'Facturi Federale', view: 'deconturi-federatie' },
-            { label: 'Config. Abonamente', view: 'tipuri-abonament' },
-            { label: 'Configurare Prețuri', view: 'configurare-preturi' },
-        ]
-    },
-    {
         label: 'Setări & Admin', icon: CogIcon,
         submenu: [
             { label: 'Gestiune Cluburi', view: 'cluburi' },

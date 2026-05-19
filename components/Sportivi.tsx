@@ -636,7 +636,7 @@ export const Sportivi: React.FC<{
                             onClick={() => setIsImportModalOpen(true)}
                             style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
                         >
-                            <UploadCloudIcon className="w-4 h-4 mr-1"/> Import CSV
+                            <UploadCloudIcon className="w-4 h-4 mr-1"/> Import
                         </Button>
                         <Button
                             variant="primary"

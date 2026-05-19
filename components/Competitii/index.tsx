@@ -345,6 +345,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [probaFormOpen, setProbaFormOpen] = useState(false);
   // Task 1: vizualizare sportivi înscriși per categorie
   const [viewInscrieriCatId, setViewInscrieriCatId] = useState<string | null>(null);
+  // Task 5: expand/collapse tabele per categorie (tab Categorii)
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
 
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
   const isClubAdmin = permissions.isAdminClub;
@@ -364,7 +366,9 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
       supabase.from('echipe_competitie').select('*, club:cluburi(id, nume), echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume, club_id, cluburi(id, nume)))').eq('competitie_id', competitie.id),
     ]);
     setProbe((probeRes.data || []) as ProbaCompetitie[]);
-    setCategorii((catRes.data || []) as CategorieCompetitie[]);
+    const loadedCats = (catRes.data || []) as CategorieCompetitie[];
+    setCategorii(loadedCats);
+    setExpandedCats(new Set(loadedCats.map(c => c.id)));
     setInscrieri((inRes.data || []) as InscriereCompetitie[]);
     setEchipe((echRes.data || []) as EchipaCompetitie[]);
     setLoading(false);
@@ -597,7 +601,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                             <span className="text-xs text-slate-500 w-5 shrink-0">{idx + 1}.</span>
                                             <div className="flex-1 min-w-0">
                                               <span className="text-sm text-white font-medium uppercase">
-                                                {sp ? `${sp.nume} ${sp.prenume}` : ins.sportiv_id}
+                                                {sp ? `${sp.prenume} ${sp.nume}` : ins.sportiv_id}
                                               </span>
                                               {numeClub && (
                                                 <span className="ml-2 text-[10px] text-slate-400 font-normal normal-case">{numeClub}</span>
@@ -629,7 +633,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                                 const numeClubMembru = ms.sportiv?.cluburi?.nume || null;
                                                 return (
                                                 <span key={ms.sportiv_id} className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">
-                                                  <span className="uppercase">{ms.sportiv ? `${ms.sportiv.nume} ${ms.sportiv.prenume}` : ms.sportiv_id}</span>
+                                                  <span className="uppercase">{ms.sportiv ? `${ms.sportiv.prenume} ${ms.sportiv.nume}` : ms.sportiv_id}</span>
                                                   {numeClubMembru && <span className="text-slate-500 ml-1 normal-case">({numeClubMembru})</span>}
                                                   {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">[R]</span>}
                                                 </span>
@@ -671,6 +675,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 clubId={myClubId || ''}
                 numeClub={currentUser?.cluburi?.nume ?? ''}
                 vizeSportivi={vizeSportivi}
+                myClubId={myClubId}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}
               />
@@ -726,7 +731,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                         <tr key={r.id} className="border-b border-slate-800 hover:bg-slate-800/40">
                           <td className="p-2 text-slate-500">{idx + 1}</td>
                           <td className="p-2 font-medium text-white">
-                            <span className="uppercase">{r.sportiv ? `${r.sportiv.nume} ${r.sportiv.prenume}` : '—'}</span>
+                            <span className="uppercase">{r.sportiv ? `${r.sportiv.prenume} ${r.sportiv.nume}` : '—'}</span>
                           </td>
                           <td className="p-2 text-slate-400">{r.probe || '—'}</td>
                           <td className="p-2">
@@ -1244,6 +1249,144 @@ const SolicitariEchipePanel: React.FC<{
 };
 
 // -----------------------------------------------
+// GENERARE ȘABLOANE MODAL
+// -----------------------------------------------
+interface GenerareSabloaneModalProps {
+  competitie: Competitie;
+  probe: ProbaCompetitie[];
+  categoriiExistente: CategorieCompetitie[];
+  onClose: () => void;
+  onGenerated: (cats: CategorieCompetitie[]) => void;
+}
+
+const GenerareSabloaneModal: React.FC<GenerareSabloaneModalProps> = ({
+  competitie, probe, categoriiExistente, onClose, onGenerated,
+}) => {
+  const { showError } = useError();
+  const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
+  const templates = useMemo<TemplateCategorieInput[]>(() => {
+    if (competitie.tip === 'tehnica') return generateTemplateTehnnica();
+    if (competitie.tip === 'giao_dau') return generateTemplateGiaoDau();
+    if (competitie.tip === 'cvd') return generateTemplateCVD();
+    return [];
+  }, [competitie.tip]);
+
+  const probeMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const p of probe) m[p.tip_proba] = p.id;
+    return m;
+  }, [probe]);
+
+  const handleToggle = (idx: number) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    setSelected(new Set(templates.map((_, i) => i)));
+  };
+
+  const handleGenerate = async () => {
+    const toInsert = templates.filter((_, i) => selected.has(i));
+    if (toInsert.length === 0) return;
+    setLoading(true);
+    try {
+      const nextNr = Math.max(0, ...categoriiExistente.map(c => c.numar_categorie ?? 0));
+      const payload = toInsert.map((cat, i) => ({
+        competitie_id: competitie.id,
+        proba_id: probeMap[cat.tip_proba] || null,
+        numar_categorie: nextNr + i + 1,
+        denumire: buildCategorieDenumire(cat),
+        varsta_min: cat.varsta_min,
+        varsta_max: cat.varsta_max ?? null,
+        gen: cat.gen,
+        grad_min_ordine: cat.grad_min_ordine ?? null,
+        grad_max_ordine: cat.grad_max_ordine ?? null,
+        tip_participare: cat.tip_participare ?? 'individual',
+        sportivi_per_echipa_min: cat.sportivi_per_echipa_min ?? 1,
+        sportivi_per_echipa_max: cat.sportivi_per_echipa_max ?? 1,
+        rezerve_max: cat.rezerve_max ?? 0,
+        max_echipe_per_club: cat.max_echipe_per_club ?? 1,
+        min_participanti_start: cat.min_participanti_start ?? 3,
+        ordine_afisare: cat.numar_categorie ?? (nextNr + i + 1),
+      }));
+      const { data, error } = await supabase.from('categorii_competitie').insert(payload).select();
+      if (error) throw error;
+      onGenerated((data || []) as CategorieCompetitie[]);
+    } catch (err: any) {
+      showError('Eroare generare', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Grupare template-uri pe tip probă
+  const grupeTemplate = useMemo(() => {
+    const map = new Map<string, { idx: number; cat: TemplateCategorieInput }[]>();
+    templates.forEach((cat, idx) => {
+      const key = cat.tip_proba ?? 'necunoscut';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push({ idx, cat });
+    });
+    return Array.from(map.entries());
+  }, [templates]);
+
+  return (
+    <Modal isOpen={true} onClose={onClose} title="Generează categorii din șabloane">
+      <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+        {templates.length === 0 ? (
+          <div className="text-slate-500 text-sm text-center py-6 italic">
+            Niciun șablon disponibil pentru tipul de competiție "{competitie.tip}".
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-400">{selected.size}/{templates.length} selectate</span>
+              <button onClick={handleSelectAll} className="text-xs text-brand-primary hover:underline">Selectează toate</button>
+            </div>
+            {grupeTemplate.map(([tipProba, items]) => (
+              <div key={tipProba} className="space-y-1">
+                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide px-1">
+                  {TIP_PROBA_LABELS[tipProba as keyof typeof TIP_PROBA_LABELS] ?? tipProba}
+                </div>
+                {items.map(({ idx, cat }) => (
+                  <label key={idx} className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${selected.has(idx) ? 'bg-brand-primary/10 border border-brand-primary/30' : 'hover:bg-slate-700/40 border border-transparent'}`}>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(idx)}
+                      onChange={() => handleToggle(idx)}
+                      className="w-4 h-4 rounded accent-brand-primary"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-white font-medium">{buildCategorieDenumire(cat)}</div>
+                      <div className="text-[11px] text-slate-500">
+                        {cat.varsta_min}–{cat.varsta_max ?? '∞'} ani · {cat.gen}
+                        {cat.grad_min_ordine ? ` · Grad ${cat.grad_min_ordine}+` : ''}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+      <div className="flex justify-end gap-2 pt-3 border-t border-slate-700 mt-3">
+        <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+        <Button variant="success" onClick={handleGenerate} disabled={loading || selected.size === 0}>
+          {loading ? 'Se generează...' : `Generează ${selected.size} categorii`}
+        </Button>
+      </div>
+    </Modal>
+  );
+};
+
+// -----------------------------------------------
 // ADMIN PANEL — category + probe management + statistics
 // -----------------------------------------------
 interface AdminPanelProps {
@@ -1272,6 +1415,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
 }) => {
   const { showError } = useError();
   const [adminSection, setAdminSection] = useState<'stats' | 'probe' | 'categorii' | 'fuzionari' | 'echipe_incomplete'>('stats');
+  // Expand/collapse detalii per categorie în tab Categorii din Admin
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
+  const [generareOpen, setGenerareOpen] = useState(false);
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
 
   const inscrieriCount = (catId: string) =>
@@ -1407,11 +1553,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
       {/* CATEGORII */}
       {adminSection === 'categorii' && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <span className="text-sm text-slate-400">{categorii.length} categorii definite</span>
-            <Button variant="success" size="sm" onClick={() => { setCatToEdit(null); setCatFormOpen(true); }}>
-              <PlusIcon className="w-4 h-4 mr-1" /> Adaugă Categorie
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="secondary" size="sm" onClick={() => setGenerareOpen(true)}>
+                Generează din șabloane
+              </Button>
+              <Button variant="success" size="sm" onClick={() => { setCatToEdit(null); setCatFormOpen(true); }}>
+                <PlusIcon className="w-4 h-4 mr-1" /> Adaugă Categorie
+              </Button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-slate-300">
@@ -1429,8 +1580,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 {categorii.map(cat => {
                   const proba = probe.find(p => p.id === cat.proba_id);
                   const cnt = inscrieriCount(cat.id);
+                  const isCatExpanded = expandedCats.has(cat.id);
+                  const toggleCat = () => setExpandedCats(prev => {
+                    const next = new Set(prev);
+                    if (next.has(cat.id)) next.delete(cat.id); else next.add(cat.id);
+                    return next;
+                  });
                   return (
-                    <tr key={cat.id} className="hover:bg-slate-800/50">
+                    <React.Fragment key={cat.id}>
+                    <tr className="hover:bg-slate-800/50">
                       <td className="p-2 text-slate-500 text-xs">{cat.numar_categorie}</td>
                       <td className="p-2">
                         <div className="text-white text-xs font-medium">{cat.denumire}</div>
@@ -1449,6 +1607,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                       </td>
                       <td className="p-2 text-right">
                         <div className="flex gap-1 justify-end">
+                          <button
+                            onClick={toggleCat}
+                            className="p-1 text-slate-400 hover:text-white transition-colors"
+                            title={isCatExpanded ? 'Restrânge' : 'Extinde'}
+                          >
+                            {isCatExpanded ? '▲' : '▼'}
+                          </button>
                           <Button size="sm" variant="secondary" className="!p-1.5" onClick={() => { setCatToEdit(cat); setCatFormOpen(true); }}>
                             <EditIcon className="w-3 h-3" />
                           </Button>
@@ -1460,6 +1625,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                         </div>
                       </td>
                     </tr>
+                    {isCatExpanded && (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-2 bg-slate-800/30 text-xs text-slate-400">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            <div><span className="text-slate-500">Vârstă:</span> {cat.varsta_min ?? '?'}–{cat.varsta_max ?? '∞'}</div>
+                            <div><span className="text-slate-500">Gen:</span> {cat.gen ?? '-'}</div>
+                            <div><span className="text-slate-500">Grad:</span> {cat.grad_min_ordine ?? '0'}–{cat.grad_max_ordine ?? '∞'}</div>
+                            <div><span className="text-slate-500">Min start:</span> {cat.min_participanti_start}</div>
+                            {cat.tip_participare !== 'individual' && (
+                              <div><span className="text-slate-500">Sportivi/echipă:</span> {cat.sportivi_per_echipa_min}–{cat.sportivi_per_echipa_max}</div>
+                            )}
+                            <div><span className="text-slate-500">Max echipe/club:</span> {cat.max_echipe_per_club}</div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
@@ -1471,6 +1653,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
               probe={probe}
               grade={grade}
               categorie={catToEdit}
+              nextNumarCategorie={catToEdit ? undefined : Math.max(0, ...categorii.map(c => c.numar_categorie ?? 0)) + 1}
               onClose={() => { setCatFormOpen(false); setCatToEdit(null); }}
               onSaved={(cat) => {
                 if (catToEdit) {
@@ -1480,6 +1663,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 }
                 setCatFormOpen(false); setCatToEdit(null);
               }}
+            />
+          )}
+          {generareOpen && (
+            <GenerareSabloaneModal
+              competitie={competitie}
+              probe={probe}
+              categoriiExistente={categorii}
+              onClose={() => setGenerareOpen(false)}
+              onGenerated={(cats) => { setCategorii(prev => [...prev, ...cats]); setGenerareOpen(false); }}
             />
           )}
         </div>
@@ -1564,20 +1756,23 @@ interface CategorieFormProps {
   probe: ProbaCompetitie[];
   grade: Grad[];
   categorie: CategorieCompetitie | null;
+  nextNumarCategorie?: number;
   onClose: () => void;
   onSaved: (c: CategorieCompetitie) => void;
 }
 
 const VARSTE_OPTIUNI = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,30,35,40];
 
-const VARSTE_OPTIONS = VARSTE_OPTIUNI.map(v => ({ value: String(v), label: `${v} ani` }));
+const VARSTE_OPTIONS = VARSTE_OPTIUNI.map(v => ({ value: String(v), label: String(v) }));
 
-const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, grade, categorie, onClose, onSaved }) => {
+const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, grade, categorie, onClose, onSaved, nextNumarCategorie }) => {
   const { showError } = useError();
   const [loading, setLoading] = useState(false);
+  const numRef = useRef<HTMLInputElement>(null);
+  const denumireRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     proba_id: categorie?.proba_id || probe[0]?.id || '',
-    numar_categorie: String(categorie?.numar_categorie ?? ''),
+    numar_categorie: categorie ? String(categorie.numar_categorie ?? '') : String(nextNumarCategorie ?? ''),
     denumire: categorie?.denumire || '',
     varsta_min: String(categorie?.varsta_min ?? '7'),
     varsta_max: String(categorie?.varsta_max ?? ''),
@@ -1596,10 +1791,39 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, grad
   const f = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(p => ({ ...p, [field]: e.target.value }));
 
+  // Auto tip_participare din tip probă
+  useEffect(() => {
+    const proba = probe.find(p => p.id === form.proba_id);
+    if (!proba) return;
+    const map: Record<string, 'individual' | 'pereche' | 'echipa'> = {
+      thao_quyen_individual: 'individual',
+      thao_lo_individual: 'individual',
+      sincron: 'echipa',
+      song_luyen: 'pereche',
+      giao_dau: 'echipa',
+    };
+    const tp = map[proba.tip_proba];
+    if (tp) setForm(p => ({ ...p, tip_participare: tp }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.proba_id]);
+
+  // Auto max membri din tip participare / proba
+  useEffect(() => {
+    const proba = probe.find(p => p.id === form.proba_id);
+    if (proba?.tip_proba === 'sincron') {
+      setForm(p => ({ ...p, sportivi_per_echipa_min: '3', sportivi_per_echipa_max: '3' }));
+    } else if (form.tip_participare === 'pereche') {
+      setForm(p => ({ ...p, sportivi_per_echipa_min: '2', sportivi_per_echipa_max: '2' }));
+    } else if (form.tip_participare === 'individual') {
+      setForm(p => ({ ...p, sportivi_per_echipa_min: '1', sportivi_per_echipa_max: '1' }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.tip_participare, form.proba_id]);
+
   const gradeOptions = useMemo(
     () => [...grade].sort((a, b) => a.ordine - b.ordine).map(g => ({
       value: String(g.ordine),
-      label: `${g.ordine}. ${g.nume}`,
+      label: g.nume,
     })),
     [grade]
   );
@@ -1645,13 +1869,26 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, grad
     <Modal isOpen={true} onClose={onClose} title={categorie ? 'Editează Categorie' : 'Adaugă Categorie'}>
       <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input label="Nr. Categorie" type="number" value={form.numar_categorie} onChange={f('numar_categorie')} />
+          <Input
+            ref={numRef}
+            label="Nr. Categorie"
+            type="number"
+            value={form.numar_categorie}
+            onChange={f('numar_categorie')}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); denumireRef.current?.focus(); } }}
+          />
           <Select label="Probă" value={form.proba_id} onChange={f('proba_id')}>
             <option value="">Fără probă</option>
             {probe.map(p => <option key={p.id} value={p.id}>{p.denumire}</option>)}
           </Select>
         </div>
-        <Input label="Denumire (auto sau personalizată)" value={form.denumire} onChange={f('denumire')} />
+        <Input
+          ref={denumireRef}
+          label="Denumire (auto sau personalizată)"
+          value={form.denumire}
+          onChange={f('denumire')}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); /* focus next native input */ } }}
+        />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <SearchableSelect
             label="Vârstă Min"
@@ -1743,6 +1980,8 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
   const { showError } = useError();
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
   const [echipeRetraseLocal, setEchipeRetraseLocal] = useState<Set<string>>(new Set());
+  // Expand/collapse secțiuni per probă în tab Înscrieri
+  const [expandedProbe, setExpandedProbe] = useState<Set<string>>(new Set(['__individual__', '__echipe__', ...probe.map(p => p.id)]));
 
   const canSeeAll = isAdmin || isClubAdmin;
   const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1 };
@@ -1754,6 +1993,14 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
     .filter(e => e.status?.toLowerCase() !== 'retrasa')
     .filter(e => !echipeRetraseLocal.has((e as any).id));
 
+  const toggleProba = (key: string) => {
+    setExpandedProbe(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
   const handleRetrage = async (id: string, type: 'inscris' | 'echipa') => {
     const table = type === 'inscris' ? 'inscrieri_competitie' : 'echipe_competitie';
     const statusRetras = type === 'inscris' ? 'retras' : 'retrasa';
@@ -1763,14 +2010,27 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
     onRefresh();
   };
 
+  const individualExpanded = expandedProbe.has('__individual__');
+  const echipeExpanded = expandedProbe.has('__echipe__');
+
   return (
     <div className="space-y-6">
       {/* Individual */}
       {filteredInscrieri.length > 0 && (
         <div>
-          <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2">
-            Înregistrări Individuale ({filteredInscrieri.length})
-          </h3>
+          <button
+            onClick={() => toggleProba('__individual__')}
+            style={{ touchAction: 'manipulation' }}
+            className="w-full flex items-center justify-between mb-2 group"
+          >
+            <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+              Înregistrări Individuale ({filteredInscrieri.length})
+            </h3>
+            <svg className={`w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-transform ${individualExpanded ? '' : '-rotate-90'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {individualExpanded && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-slate-300">
               <thead>
@@ -1792,7 +2052,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                       <td className="p-2">
                         <div className="flex items-center gap-1 flex-wrap">
                           <span className="font-medium text-white uppercase">
-                            {sportiv?.nume} {sportiv?.prenume}
+                            {sportiv?.prenume} {sportiv?.nume}
                           </span>
                           {canSeeAll && (sportiv as any)?.cluburi?.nume && (
                             <span className="text-[10px] text-slate-400 normal-case">{(sportiv as any).cluburi.nume}</span>
@@ -1836,15 +2096,26 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
 
       {/* Echipe */}
       {filteredEchipe.length > 0 && (
         <div>
-          <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2">
-            Echipe ({filteredEchipe.length})
-          </h3>
+          <button
+            onClick={() => toggleProba('__echipe__')}
+            style={{ touchAction: 'manipulation' }}
+            className="w-full flex items-center justify-between mb-2 group"
+          >
+            <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+              Echipe ({filteredEchipe.length})
+            </h3>
+            <svg className={`w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-transform ${echipeExpanded ? '' : '-rotate-90'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {echipeExpanded && (
           <div className="space-y-2">
             {filteredEchipe.map(ec => {
               const cat = categorii.find(c => c.id === ec.categorie_id);
@@ -1862,7 +2133,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                           const faraViza = ms.sportiv && !areVizaFRAM(ms.sportiv.id, anCompetitie, vizeSportivi);
                           return (
                             <span key={ms.sportiv_id} className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${faraViza ? 'bg-yellow-900/40 text-yellow-200 border border-yellow-700/50' : 'bg-slate-700 text-slate-300'}`}>
-                              <span className="uppercase">{ms.sportiv?.nume} {ms.sportiv?.prenume}</span>
+                              <span className="uppercase">{ms.sportiv?.prenume} {ms.sportiv?.nume}</span>
                               {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">(R)</span>}
                               {faraViza && <span title="Fără viză FRAM">⚠</span>}
                             </span>
@@ -1886,6 +2157,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
               );
             })}
           </div>
+          )}
         </div>
       )}
 
@@ -2159,7 +2431,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-sm text-white font-medium uppercase">{sportiv.nume} {sportiv.prenume}</span>
+            <span className="text-sm text-white font-medium uppercase">{sportiv.prenume} {sportiv.nume}</span>
             {deja && (
               <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-2 py-0.5">
                 Inscris
@@ -2205,7 +2477,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           className="w-4 h-4" />
         <div className="flex-1">
           <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-sm text-white uppercase">{sportiv.nume} {sportiv.prenume}</span>
+            <span className="text-sm text-white uppercase">{sportiv.prenume} {sportiv.nume}</span>
             {deja && (
               <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-1.5 py-0.5">
                 In echipă
@@ -2385,7 +2657,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                                 {faraGen.map(({ sportiv }) => (
                                   <div key={sportiv.id} className="flex items-center gap-2 p-2 rounded border border-amber-800/40 bg-amber-900/10 opacity-70">
                                     <input type="checkbox" disabled className="w-4 h-4 opacity-40" />
-                                    <span className="text-xs text-amber-300 uppercase">{sportiv.nume} {sportiv.prenume}</span>
+                                    <span className="text-xs text-amber-300 uppercase">{sportiv.prenume} {sportiv.nume}</span>
                                     <span className="text-[9px] text-amber-500 ml-auto">fara gen</span>
                                   </div>
                                 ))}
@@ -2480,7 +2752,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                           disabled={isTitular}
                           onChange={() => toggleRezerva(sportiv.id)}
                           className="w-3 h-3" />
-                        <span className="text-slate-300 uppercase">{sportiv.nume} {sportiv.prenume}</span>
+                        <span className="text-slate-300 uppercase">{sportiv.prenume} {sportiv.nume}</span>
                       </label>
                     );
                   })}

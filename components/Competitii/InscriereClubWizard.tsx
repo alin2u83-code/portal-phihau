@@ -496,6 +496,7 @@ interface Pas1Props {
   inscrieri: InscriereCompetitie[];
   vizeSportivi: VizaSportiv[];
   selected: Set<string>;
+  myClubId?: string;
   onToggle: (id: string) => void;
   onContinua: () => void;
   onBack: () => void;
@@ -503,7 +504,7 @@ interface Pas1Props {
 
 const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   competitie, sportivi, grade, categorii, inscrieri, vizeSportivi,
-  selected, onToggle, onContinua, onBack,
+  selected, myClubId, onToggle, onContinua, onBack,
 }) => {
   const [search, setSearch] = useState('');
   // Filtre avansate
@@ -518,8 +519,8 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   const dejaInscrisiSet = useMemo(() => buildDejaInscrisiSet(inscrieri), [inscrieri]);
 
   const sportiviActivi = useMemo(
-    () => sportivi.filter(s => s.status === 'Activ'),
-    [sportivi]
+    () => sportivi.filter(s => s.status === 'Activ' && (!myClubId || s.club_id === myClubId)),
+    [sportivi, myClubId]
   );
 
   // Grade unice existente la sportivii activi (pentru filtrul de grade)
@@ -891,7 +892,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
       )}
 
       {/* Footer fix pe mobil / inline pe desktop */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-slate-400">
             {selected.size > 0
@@ -1362,11 +1363,15 @@ interface VederePerCategorieProps {
   inscrieri: InscriereCompetitie[];
   indivPicks: IndivPicks;
   categorii: CategorieCompetitie[];
+  probe?: ProbaCompetitie[];
+  probeSkipped?: Set<string>;
   onToggleCategorie: (sportivId: string, catId: string) => void;
+  onToggleProbaSkipped?: (probaId: string) => void;
 }
 
 const VederePerCategorie: React.FC<VederePerCategorieProps> = ({
-  sportiviSelectati, eligibilePerSportiv, inscrieri, indivPicks, categorii, onToggleCategorie,
+  sportiviSelectati, eligibilePerSportiv, inscrieri, indivPicks, categorii,
+  probe, probeSkipped, onToggleCategorie, onToggleProbaSkipped,
 }) => {
   // Construim un map: categorieId → sportivi eligibili pentru ea (din cei selectați)
   const categoriiCuSportivi = useMemo(() => {
@@ -1386,6 +1391,20 @@ const VederePerCategorie: React.FC<VederePerCategorieProps> = ({
     );
   }, [sportiviSelectati, eligibilePerSportiv]);
 
+  // Grupare pe proba_id pentru butonul "Nu avem concurenți"
+  const grupe = useMemo(() => {
+    const map = new Map<string | null, { proba: ProbaCompetitie | null; items: typeof categoriiCuSportivi }>();
+    for (const item of categoriiCuSportivi) {
+      const pid = item.categorie.proba_id ?? null;
+      if (!map.has(pid)) {
+        const proba = probe?.find(p => p.id === pid) ?? null;
+        map.set(pid, { proba, items: [] });
+      }
+      map.get(pid)!.items.push(item);
+    }
+    return Array.from(map.values());
+  }, [categoriiCuSportivi, probe]);
+
   if (categoriiCuSportivi.length === 0) {
     return (
       <div className="text-center text-slate-500 py-12 italic text-sm">
@@ -1395,8 +1414,30 @@ const VederePerCategorie: React.FC<VederePerCategorieProps> = ({
   }
 
   return (
-    <div className="space-y-3">
-      {categoriiCuSportivi.map(({ categorie, sportivi: sportiviFiltrati }) => {
+    <div className="space-y-4">
+      {grupe.map(({ proba, items }) => {
+        const isSkipped = proba ? (probeSkipped?.has(proba.id) ?? false) : false;
+        return (
+          <div key={proba?.id ?? 'fara-proba'} className="space-y-2">
+            {proba && (
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{proba.denumire}</span>
+                {onToggleProbaSkipped && (
+                  <button
+                    onClick={() => onToggleProbaSkipped(proba.id)}
+                    className={`text-xs border rounded px-2 py-0.5 transition-colors ${isSkipped ? 'border-yellow-600 text-yellow-400 hover:border-yellow-400' : 'border-slate-600 text-slate-400 hover:text-yellow-400 hover:border-yellow-600'}`}
+                  >
+                    {isSkipped ? '↩ Reactivează' : 'Nu avem concurenți'}
+                  </button>
+                )}
+              </div>
+            )}
+            {isSkipped ? (
+              <div className="flex items-center gap-2 px-3 py-2 bg-yellow-900/20 border border-yellow-700/40 rounded-lg">
+                <span className="text-xs text-yellow-500 italic">Probă sărită — categoriile nu vor fi incluse în sumar</span>
+              </div>
+            ) : (
+              items.map(({ categorie, sportivi: sportiviFiltrati }) => {
         const nrBifati = sportiviFiltrati.filter(e => {
           const picks = indivPicks.get(e.sportiv.id);
           return picks?.has(categorie.id);
@@ -1472,6 +1513,10 @@ const VederePerCategorie: React.FC<VederePerCategorieProps> = ({
                 );
               })}
             </div>
+          </div>
+          );
+        })
+        )}
           </div>
         );
       })}
@@ -1631,7 +1676,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
         <div className="text-center text-slate-500 py-10 italic text-sm">
           Niciun sportiv cu categorie individuală auto-asignată.
         </div>
-        <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4 flex justify-end">
+        <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4 flex justify-end">
           <Button variant="success" onClick={onContinua} className="min-w-[140px]">Continuă</Button>
         </div>
       </div>
@@ -1814,7 +1859,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
       )}
 
       {/* Footer */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-slate-400">
             {nrComplet}/{sportiviDate.length} sportivi cu înlănțuire completă
@@ -1841,18 +1886,19 @@ interface Pas2Props {
   sportivi: Sportiv[];
   grade: Grad[];
   categorii: CategorieCompetitie[];
+  probe: ProbaCompetitie[];
   inscrieri: InscriereCompetitie[];
   selectedSportivi: Set<string>;
   genOverrides: Record<string, 'Masculin' | 'Feminin'>;
   onSetGen: (id: string, gen: 'Masculin' | 'Feminin') => void;
   indivPicks: IndivPicks;
   onUpdateIndivPicks: (next: IndivPicks) => void;
-  onContinua: (echipaPicks: string[]) => void;
+  onContinua: (echipaPicks: string[], probeSkipped: Set<string>) => void;
   onBack: () => void;
 }
 
 const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
-  competitie, sportivi, grade, categorii, inscrieri,
+  competitie, sportivi, grade, categorii, probe, inscrieri,
   selectedSportivi, genOverrides, onSetGen, indivPicks, onUpdateIndivPicks, onContinua, onBack,
 }) => {
   const { showError } = useError();
@@ -2091,6 +2137,15 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
 
   // Vedere: per_sportiv (default) sau per_categorie (bulk assignment)
   const [vedere, setVedere] = useState<'per_sportiv' | 'per_categorie'>('per_sportiv');
+  // Task 6: probe sărite (nu avem concurenți)
+  const [probeSkipped, setProbeSkipped] = useState<Set<string>>(new Set());
+  const handleToggleProbaSkipped = useCallback((probaId: string) => {
+    setProbeSkipped(prev => {
+      const next = new Set(prev);
+      if (next.has(probaId)) next.delete(probaId); else next.add(probaId);
+      return next;
+    });
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -2178,7 +2233,10 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
           inscrieri={inscrieri}
           indivPicks={indivPicks}
           categorii={categorii}
+          probe={probe}
+          probeSkipped={probeSkipped}
           onToggleCategorie={handleToggleCategorie}
+          onToggleProbaSkipped={handleToggleProbaSkipped}
         />
       )}
 
@@ -2194,7 +2252,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <div className="text-xs text-slate-400">
             {echipaPicks.length > 0 && (
@@ -2206,7 +2264,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
           <Button
             variant="success"
             disabled={!poateContinua || loadingDrepturi}
-            onClick={() => onContinua(echipaPicks)}
+            onClick={() => onContinua(echipaPicks, probeSkipped)}
             className="min-w-[140px]"
           >
             Continua
@@ -2573,6 +2631,10 @@ interface Pas3Props {
   onUpdateEchipe: (next: EchipaFormata[]) => void;
   onContinua: () => void;
   onBack: () => void;
+  /** Echipe deja salvate în DB pentru această competiție (pentru validare limită per club) */
+  echipeDB?: EchipaCompetitie[];
+  /** ID-ul clubului curent — necesar pentru validarea limitei per club */
+  myClubId?: string;
 }
 
 const Pas3FormareEchipe: React.FC<Pas3Props> = ({
@@ -2580,6 +2642,8 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   selectedSportivi,
   numeClub, echipeFormate, onUpdateEchipe,
   onContinua, onBack,
+  echipeDB = [],
+  myClubId,
 }) => {
   const { showError } = useError();
   const [dreptUri, setDreptUri] = useState<Map<string, Inlantuire[]>>(new Map());
@@ -2670,10 +2734,36 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     );
   };
 
+  // Item 3: calcul echipe active ale clubului curent per categorie (din DB)
+  const echipeActiveClubPerCategorie = useMemo<Map<string, number>>(() => {
+    if (!myClubId) return new Map();
+    const m = new Map<string, number>();
+    for (const e of echipeDB) {
+      if (e.club_id !== myClubId) continue;
+      if (e.status?.toLowerCase() === 'retrasa') continue;
+      m.set(e.categorie_id, (m.get(e.categorie_id) ?? 0) + 1);
+    }
+    return m;
+  }, [echipeDB, myClubId]);
+
+  // Categorii pentru care clubul a atins limita de echipe
+  const categoriiLimitaAtinsa = useMemo<Set<string>>(() => {
+    const s = new Set<string>();
+    for (const cat of categoriiEchipa) {
+      const limita = cat.max_echipe_per_club ?? 1;
+      const existente = echipeActiveClubPerCategorie.get(cat.id) ?? 0;
+      if (existente >= limita) s.add(cat.id);
+    }
+    return s;
+  }, [categoriiEchipa, echipeActiveClubPerCategorie]);
+
   // Validare per categorie
   const eroriPerCategorie = useMemo<Map<string, string>>(() => {
     const erori = new Map<string, string>();
     for (const cat of categoriiEchipa) {
+      // Sari categoriile blocate de limita per club — nu e eroare, e limită
+      if (categoriiLimitaAtinsa.has(cat.id)) continue;
+
       const echipa = getEchipa(cat.id);
       const isPereche = cat.tip_participare === 'pereche';
       const titMin = isPereche ? 2 : cat.sportivi_per_echipa_min;
@@ -2690,7 +2780,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     }
     return erori;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [echipeFormate, categoriiEchipa]);
+  }, [echipeFormate, categoriiEchipa, categoriiLimitaAtinsa]);
 
   const poateContinua = eroriPerCategorie.size === 0;
 
@@ -2725,6 +2815,33 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
           const disponibili = sportiviDisponibiliPerCategorie.get(cat.id) ?? [];
           const echipa = getEchipa(cat.id);
           const erroare = eroriPerCategorie.get(cat.id) ?? null;
+          const limita = cat.max_echipe_per_club ?? 1;
+          const limitaAtinsa = categoriiLimitaAtinsa.has(cat.id);
+
+          // Dacă limita e atinsă pentru această categorie — afișează banner blocat în loc de form
+          if (limitaAtinsa) {
+            const existente = echipeActiveClubPerCategorie.get(cat.id) ?? 0;
+            return (
+              <div key={cat.id} className="rounded-xl border border-slate-700 bg-slate-800/20 overflow-hidden opacity-70">
+                <div className="px-4 py-3 bg-slate-800/50 border-b border-slate-700">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm text-slate-400 leading-tight">
+                      {cat.denumire ?? `Categoria ${cat.numar_categorie}`}
+                    </span>
+                    <BadgeTipParticipare tip={cat.tip_participare} />
+                  </div>
+                </div>
+                <div className="px-4 py-3 flex items-center gap-2 text-xs text-slate-400">
+                  <svg className="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span>
+                    Limita de {limita} echip{limita === 1 ? 'a' : 'e'} per club atinsa ({existente} echip{existente === 1 ? 'a' : 'e'} inscrise).
+                  </span>
+                </div>
+              </div>
+            );
+          }
 
           return (
             <SectiuneEchipaCategorie
@@ -2760,7 +2877,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs text-slate-400">
             {poateContinua
@@ -2794,6 +2911,7 @@ interface Pas4Props {
   autoCategorie: Map<string, CategorieCompetitie>;
   quyenAles: QuyenAlesMap;
   echipeFormate: EchipaFormata[];
+  probeSkipped: Set<string>;
   clubId: string;
   numeClub: string;
   onBack: () => void;
@@ -2825,7 +2943,7 @@ function calculeazaTaxaEchipa(cat: CategorieCompetitie, competitie: Competitie):
 const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   competitie, sportivi, grade, categorii,
   selectedSportivi, autoCategorie, quyenAles, echipeFormate,
-  clubId, numeClub, onBack, onSaved,
+  probeSkipped, clubId, numeClub, onBack, onSaved,
 }) => {
   const { showError, showSuccess } = useError();
   const [saving, setSaving] = useState(false);
@@ -2858,6 +2976,8 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
     for (const sportivId of Array.from(selectedSportivi)) {
       const cat = autoCategorie.get(sportivId);
       if (!cat) continue;
+      // Excludem categoriile care aparțin probelor sărite
+      if (cat.proba_id && probeSkipped.has(cat.proba_id)) continue;
       const sportiv = sportivi.find(s => s.id === sportivId);
       if (!sportiv) continue;
       const varsta = sportiv.data_nasterii
@@ -2874,7 +2994,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       });
     }
     return rezultat;
-  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie]);
+  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped]);
 
   // Rânduri echipe pentru sumar
   interface RandEchipa {
@@ -2902,8 +3022,13 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         titulariNume: echipa.titulari.map(getNumeSportiv),
         rezerveNume: echipa.rezerve.map(getNumeSportiv),
       };
-    }).filter(r => r.categorie !== undefined);
-  }, [echipeFormate, categorii, competitie, sportivi]);
+    }).filter(r => {
+      if (!r.categorie) return false;
+      // Excludem echipele ale căror categorii aparțin probelor sărite
+      if (r.categorie.proba_id && probeSkipped.has(r.categorie.proba_id)) return false;
+      return true;
+    });
+  }, [echipeFormate, categorii, competitie, sportivi, probeSkipped]);
 
   const totalIndividual = useMemo(
     () => randuriIndividuale.reduce((acc, r) => acc + r.taxa, 0),
@@ -2971,6 +3096,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
 
     try {
       // 1. Insert/reactivare înscrieri individuale
+      let skippedCount = 0;
       for (const rand of randuriIndividuale) {
         const catName = rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`;
         const sportivName = `${rand.sportiv.prenume} ${rand.sportiv.nume}`;
@@ -2983,8 +3109,22 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           .eq('categorie_id', rand.categorie.id)
           .maybeSingle();
 
-        if (existent && existent.status?.toLowerCase() !== 'retras') {
-          throw new Error(`Sportivul ${sportivName} este deja inscris la categoria "${catName}".`);
+        if (existent) {
+          if (existent.status?.toLowerCase() !== 'retras') {
+            skippedCount++;
+            continue;
+          }
+          // Re-activare sportiv retras
+          const { error: updErr } = await supabase
+            .from('inscrieri_competitie')
+            .update({
+              status: 'inscris',
+              inlantuire_id: rand.inlantuire_id ?? null,
+              inlantuire_id_2: rand.inlantuire_id_2 ?? null,
+            })
+            .eq('id', existent.id);
+          if (updErr) throw updErr;
+          continue;
         }
 
         const payload = {
@@ -2994,12 +3134,8 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           taxa_achitata: false,
         };
 
-        if (existent) {
-          const { error } = await supabase
-            .from('inscrieri_competitie')
-            .update(payload)
-            .eq('id', existent.id);
-          if (error) throw new Error(error.message);
+        if (false) {
+          // bloc mort — păstrat pentru structură
         } else {
           const { error } = await supabase.from('inscrieri_competitie').insert({
             competitie_id: competitie.id,
@@ -3073,6 +3209,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
 
       setSuccessMsg('Inscrierea a fost finalizata cu succes!');
       setConfirmOpen(false);
+      if (skippedCount > 0) showSuccess('Info', `${skippedCount} sportivi ignorați (deja înscriși activ).`);
       showSuccess('Inscriere finalizata', `Inscrierea la ${competitie.denumire} a fost trimisa.`);
       setTimeout(() => onSaved(), 1200);
     } catch (err: unknown) {
@@ -3297,7 +3434,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         {/* Butoane export PDF */}
         <div className="flex flex-wrap gap-2 mb-2">
           <Button
@@ -3432,13 +3569,14 @@ export interface InscriereClubWizardProps {
   clubId: string;
   numeClub: string;
   vizeSportivi: VizaSportiv[];
+  myClubId?: string;
   onBack: () => void;
   onSaved: () => void;
 }
 
 const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   competitie, probe, categorii, sportivi, grade,
-  inscrieri, echipe, clubId, numeClub, vizeSportivi, onBack, onSaved,
+  inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [selectedSportivi, setSelectedSportivi] = useState<Set<string>>(new Set());
@@ -3449,6 +3587,14 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
 
   // Pas3: echipe formate
   const [echipeFormate, setEchipeFormate] = useState<EchipaFormata[]>([]);
+
+  // Pas2: probe sărite (nu avem concurenți) — propagate la Pas4 pentru filtrare sumar
+  const [probeSkippedWizard, setProbeSkippedWizard] = useState<Set<string>>(new Set());
+
+  // Item 9: ref pentru a urmări ultimul set de sportivi pentru care s-a calculat autoCategorie
+  // Astfel, dacă userul merge Înapoi din Pas2 la Pas1 fără să schimbe selecțiile,
+  // autoCategorie NU se recalculează și quyenAles rămâne intact.
+  const lastComputedSportiviRef = React.useRef<string>('');
 
   // Categorii echipă existente în competiție
   const areEchipe = useMemo(
@@ -3480,7 +3626,13 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   }, [selectedSportivi, sportivi, categorii, grade, competitie.data_inceput]);
 
   const handlePas1Continua = () => {
-    computeAutoCategorie();
+    // Item 9: recalculăm autoCategorie doar dacă selecția s-a schimbat față de ultima calcul.
+    // Astfel quyenAles este păstrat intact când userul merge Înapoi și Înainte fără să schimbe selecțiile.
+    const currentKey = Array.from(selectedSportivi).sort().join(',');
+    if (currentKey !== lastComputedSportiviRef.current) {
+      computeAutoCategorie();
+      lastComputedSportiviRef.current = currentKey;
+    }
     setStep(2);
   };
 
@@ -3494,6 +3646,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         inscrieri={inscrieri}
         vizeSportivi={vizeSportivi}
         selected={selectedSportivi}
+        myClubId={myClubId}
         onToggle={handleToggle}
         onContinua={handlePas1Continua}
         onBack={onBack}
@@ -3530,6 +3683,8 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onUpdateEchipe={setEchipeFormate}
         onContinua={() => setStep(4)}
         onBack={() => setStep(2)}
+        echipeDB={echipe}
+        myClubId={myClubId}
       />
     );
   }
@@ -3544,6 +3699,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       autoCategorie={autoCategorie}
       quyenAles={quyenAles}
       echipeFormate={echipeFormate}
+      probeSkipped={probeSkippedWizard}
       clubId={clubId}
       numeClub={numeClub}
       onBack={() => setStep(areEchipe ? 3 : 2)}

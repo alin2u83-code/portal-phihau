@@ -276,7 +276,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     };
 
     return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-slate-400">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({rezultate.length})</h4>
-    <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{(rezultate || []).map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.nume} {s?.prenume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{(rezultate || []).length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
+    <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{(rezultate || []).map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.prenume} {s?.nume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{(rezultate || []).length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
     <Card className="bg-slate-900/50">
         <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Participant</h5>
         <form onSubmit={handleAddParticipant} className="space-y-4">
@@ -292,8 +292,8 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                     <div className="absolute z-10 w-full mt-1 bg-slate-900 border border-slate-700 rounded-xl shadow-lg max-h-60 overflow-y-auto">
                         {sportiviFiltered.length > 0 ? sportiviFiltered.map(s => (
                             <button key={s.id} type="button" className="w-full text-left px-4 py-2 hover:bg-slate-800 text-white"
-                                onClick={() => { setFormState(p => ({ ...p, sportivId: s.id })); setSearchSportiv(`${s.nume} ${s.prenume}`); setIsSportivDropdownOpen(false); }}>
-                                {s.nume} {s.prenume}
+                                onClick={() => { setFormState(p => ({ ...p, sportivId: s.id })); setSearchSportiv(`${s.prenume} ${s.nume}`); setIsSportivDropdownOpen(false); }}>
+                                {s.prenume} {s.nume}
                             </button>
                         )) : (
                             <div className="px-4 py-2 text-slate-500">Nu am găsit sportivi.</div>

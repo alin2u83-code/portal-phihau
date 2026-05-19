@@ -3,6 +3,7 @@ import { Card, Button } from './ui';
 import { parseCSVWithEncoding, generateEmail, isSimilar } from '../utils/csv';
 import { normalizeDate } from '../utils/date';
 import { supabase } from '../supabaseClient';
+import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 
 type ImportStep = 0 | 1 | 2;
@@ -113,31 +114,54 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         return isoDate;
     };
 
+    const parseFileData = (file: File): Promise<any[]> => {
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        if (ext === 'xlsx' || ext === 'xls') {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const wb = XLSX.read(ev.target?.result, { type: 'array', cellDates: true });
+                        const ws = wb.Sheets[wb.SheetNames[0]];
+                        const data = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false }) as any[];
+                        resolve(data);
+                    } catch (err: any) { reject(err); }
+                };
+                reader.onerror = (err) => reject(err);
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        return new Promise((resolve, reject) => {
+            parseCSVWithEncoding(file, { header: true, skipEmptyLines: true },
+                (results) => resolve(results.data as any[]),
+                (err) => reject(err)
+            );
+        });
+    };
+
     const handleAnalyze = async () => {
         if (!file) {
-            toast.error("Te rugam sa selectezi un fisier CSV mai intai.");
+            toast.error("Te rugam sa selectezi un fisier mai intai.");
             return;
         }
         console.log("Incepere analiza fisier:", file.name);
         setImporting(true);
 
-        parseCSVWithEncoding(
-            file,
-            { header: true, skipEmptyLines: true },
-            async (results) => {
-                console.log("Parsare CSV finalizata. Randuri gasite:", results.data.length);
+        try {
+            const rows = await parseFileData(file);
+            console.log("Parsare finalizata. Randuri gasite:", rows.length);
 
-                try {
-                    const duplicates: any[] = [];
-                    const uniques: any[] = [];
+            {
+                const duplicates: any[] = [];
+                const uniques: any[] = [];
 
-                    if (results.data.length === 0) {
-                        toast.error("Fisierul CSV este gol sau nu are formatul corect.");
+                    if (rows.length === 0) {
+                        toast.error("Fisierul este gol sau nu are formatul corect.");
                         setImporting(false);
                         return;
                     }
 
-                    results.data.forEach((row: any, index: number) => {
+                    rows.forEach((row: any, index: number) => {
                         const numeCSV = row['NUME SPORTIV']?.trim();
                         const prenumeCSV = row['PRENUME SPORTIV']?.trim();
 
@@ -206,19 +230,13 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                     setExcludedStrictIndices(new Set());
                     setExpandedRows(new Set());
                     setStep(1);
-                } catch (err: any) {
-                    console.error("Eroare in timpul procesarii datelor CSV:", err);
-                    toast.error("A aparut o eroare la procesarea datelor. Verifica consola pentru detalii.");
-                } finally {
-                    setImporting(false);
-                }
-            },
-            (error) => {
-                console.error("Eroare PapaParse:", error);
-                toast.error("Eroare la citirea fisierului CSV: " + error.message);
-                setImporting(false);
             }
-        );
+        } catch (err: any) {
+            console.error("Eroare la procesarea fisierului:", err);
+            toast.error("A aparut o eroare la procesarea fisierului. Verifica consola pentru detalii.");
+        } finally {
+            setImporting(false);
+        }
     };
 
     const handleExecuteImport = async () => {
@@ -911,12 +929,12 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                     <div className="flex-1 relative">
                         <input
                             type="file"
-                            accept=".csv"
+                            accept=".csv,.xlsx,.xls"
                             onChange={handleFileChange}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         />
                         <div className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-400 flex items-center justify-between h-full">
-                            <span>{file ? file.name : 'Selecteaza fisier CSV...'}</span>
+                            <span>{file ? file.name : 'Selecteaza fisier CSV sau Excel...'}</span>
                             <Button size="sm" variant="secondary" type="button">Cauta</Button>
                         </div>
                     </div>

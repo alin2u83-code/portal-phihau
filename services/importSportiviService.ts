@@ -173,3 +173,6 @@ export const importSportivi = async (
 
   return report;
 };
+
+// Alias pentru import cu mapare câmpuri aplicată înainte de apel
+export const importSportiviMapped = importSportivi;

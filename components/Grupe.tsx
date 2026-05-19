@@ -17,6 +17,7 @@ import { AdaugaSportiviModal } from './Grupe/AdaugaSportiviModal';
 import { OrarEditorModal } from './Grupe/OrarEditorModal';
 import { OrarModificareModal } from './Grupe/OrarModificareModal';
 import { GrupeSecundareModal } from './Grupe/GrupeSecundareModal';
+import { GenerareAntrenamenteModal } from './Grupe/GenerareAntrenamenteModal';
 import { TourOverlay, TourButton, TOURS } from './GhidUtilizator';
 
 // Interfață extinsă pentru datele aduse din Supabase
@@ -48,6 +49,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
     const [grupaForOrar, setGrupaForOrar] = useState<GrupaWithDetails | null>(null);
     const [grupaForModificareOrar, setGrupaForModificareOrar] = useState<GrupaWithDetails | null>(null);
     const [grupaForSecundari, setGrupaForSecundari] = useState<GrupaWithDetails | null>(null);
+    const [grupaForGenerare, setGrupaForGenerare] = useState<GrupaWithDetails | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const { showError, showSuccess } = useError();
     const queryClient = useQueryClient();
@@ -236,7 +238,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             {grupe.length > 0 ? (
                 <div data-tour="grupe-lista" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {(grupe as GrupaWithDetails[]).map(grupa => (
-                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} onConfigurareOrar={setGrupaForOrar} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} />
+                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} onConfigurareOrar={setGrupaForOrar} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} onGenerareAntrenamente={setGrupaForGenerare} />
                     ))}
                 </div>
             ) : (
@@ -285,6 +287,13 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                     totiSportivii={sportivi as Sportiv[]}
                     toateGrupele={grupe as GrupaWithDetails[]}
                     onChanged={handleRefresh}
+                />
+            )}
+            {grupaForGenerare && (
+                <GenerareAntrenamenteModal
+                    isOpen={!!grupaForGenerare}
+                    onClose={() => setGrupaForGenerare(null)}
+                    grupa={grupaForGenerare}
                 />
             )}
         </div>

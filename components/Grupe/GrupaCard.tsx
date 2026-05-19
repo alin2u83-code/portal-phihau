@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Grupa as GrupaType, ProgramItem } from '../../types';
 import { Button, Card } from '../ui';
-import { TrashIcon, UsersIcon, UserPlusIcon, CogIcon, CalendarIcon, ExclamationTriangleIcon } from '../icons';
+import { TrashIcon, UsersIcon, UserPlusIcon, CogIcon, CalendarIcon, ExclamationTriangleIcon, SparklesIcon } from '../icons';
 import { sortProgram } from './ProgramEditor';
 import { formatTime } from '../../utils/date';
 import { supabase } from '../../supabaseClient';
@@ -48,6 +48,7 @@ export const GrupaCard: React.FC<{
     onConfigurareOrar: (g: GrupaWithDetails) => void;
     onModificareOrar?: (g: GrupaWithDetails) => void;
     onGestionareSecundari?: (g: GrupaWithDetails) => void;
+    onGenerareAntrenamente?: (g: GrupaWithDetails) => void;
     nrSecundari?: number;
 }> = ({
     grupa,
@@ -57,6 +58,7 @@ export const GrupaCard: React.FC<{
     onConfigurareOrar,
     onModificareOrar,
     onGestionareSecundari,
+    onGenerareAntrenamente,
     nrSecundari,
 }) => {
     const sportiviCount = grupa.sportivi?.[0]?.count ?? 0;
@@ -159,6 +161,18 @@ export const GrupaCard: React.FC<{
                     >
                         <CalendarIcon className="w-4 h-4 mr-1.5" />
                         Modifică Program
+                    </Button>
+                )}
+                {onGenerareAntrenamente && (
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => onGenerareAntrenamente(grupa)}
+                        className="border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-400"
+                        title="Generează antrenamente pe o perioadă din orarul săptămânal"
+                    >
+                        <SparklesIcon className="w-4 h-4 mr-1.5" />
+                        Generează
                     </Button>
                 )}
                 <Button size="sm" variant="primary" onClick={() => onEdit(grupa)}>Gestionează</Button>

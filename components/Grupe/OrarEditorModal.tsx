@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Grupa, ProgramItem } from '../../types';
 import { Button, Modal, Input } from '../ui';
 import { CogIcon, PlusIcon, TrashIcon, CheckCircleIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
+import { clearCache } from '../../utils/cache';
 
 interface GrupaWithDetails extends Grupa {
     sportivi: { count: number }[];
@@ -21,6 +23,7 @@ export const OrarEditorModal: React.FC<OrarEditorModalProps> = ({ isOpen, onClos
     const [program, setProgram] = useState<ProgramItem[]>(grupa.program || []);
     const [loading, setLoading] = useState(false);
     const { showError, showSuccess } = useError();
+    const queryClient = useQueryClient();
     const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
     // Resetăm programul când se deschide modalul sau se schimbă grupa
@@ -46,6 +49,11 @@ export const OrarEditorModal: React.FC<OrarEditorModalProps> = ({ isOpen, onClos
             setGrupe((prev: GrupaWithDetails[]) =>
                 prev.map(g => g.id === grupa.id ? { ...g, program } : g)
             );
+            // Invalidează React Query cache + localStorage pentru a forța re-fetch la reload
+            Object.keys(localStorage)
+                .filter(k => k.startsWith('cache_grupe_'))
+                .forEach(k => clearCache(k));
+            await queryClient.invalidateQueries({ queryKey: ['grupe'] });
             showSuccess('Succes', 'Orarul a fost salvat.');
             onClose();
         } catch (error: any) {

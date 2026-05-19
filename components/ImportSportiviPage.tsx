@@ -865,27 +865,27 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 </div>
 
                 {/* Actiuni */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 mt-4">
                     {showConfirm ? (
                         <div className="bg-violet-900/20 border border-violet-500/50 p-4 rounded-lg">
                             <p className="text-zinc-200 mb-4">
                                 Esti pe cale sa adaugi <strong className="text-white">{validNouCount}</strong> sportivi noi si sa actualizezi <strong className="text-white">{activeAutoUpdates + selectedLooseCount}</strong> existenti. Esti sigur?
                             </p>
-                            <div className="flex gap-3 flex-wrap">
-                                <Button onClick={() => handleExecuteImport()} isLoading={importing}>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <Button onClick={() => handleExecuteImport()} isLoading={importing} className="w-full sm:w-auto touch-manipulation">
                                     Da, Importa acum
                                 </Button>
-                                <Button variant="secondary" onClick={() => setShowConfirm(false)}>
+                                <Button variant="secondary" onClick={() => setShowConfirm(false)} className="w-full sm:w-auto touch-manipulation">
                                     Anuleaza
                                 </Button>
                             </div>
                         </div>
                     ) : (
-                        <div className="flex gap-3 flex-wrap">
-                            <Button onClick={() => handleExecuteImport()} isLoading={importing}>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <Button onClick={() => handleExecuteImport()} isLoading={importing} className="w-full sm:w-auto touch-manipulation">
                                 Finalizeaza Import ({seVaImporta} sportivi)
                             </Button>
-                            <Button variant="secondary" onClick={() => setStep(0)}>
+                            <Button variant="secondary" onClick={() => setStep(0)} className="w-full sm:w-auto touch-manipulation">
                                 Inapoi la incarcare
                             </Button>
                         </div>
@@ -923,28 +923,28 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                    <Button onClick={() => downloadTemplate()} variant="secondary" className="flex-1">
+                    <Button onClick={() => downloadTemplate()} variant="secondary" className="w-full sm:flex-1 touch-manipulation">
                         Descarca Template CSV
                     </Button>
-                    <div className="flex-1 relative">
+                    <div className="flex-1 relative min-h-[44px]">
                         <input
                             type="file"
                             accept=".csv,.xlsx,.xls"
                             onChange={handleFileChange}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 touch-manipulation"
                         />
-                        <div className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-400 flex items-center justify-between h-full">
-                            <span>{file ? file.name : 'Selecteaza fisier CSV sau Excel...'}</span>
-                            <Button size="sm" variant="secondary" type="button">Cauta</Button>
+                        <div className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-400 flex items-center justify-between h-full min-h-[44px]">
+                            <span className="truncate mr-2">{file ? file.name : 'Selecteaza fisier CSV sau Excel...'}</span>
+                            <Button size="sm" variant="secondary" type="button" className="shrink-0 touch-manipulation">Cauta</Button>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex gap-4 pt-4 border-t border-slate-700 flex-wrap">
-                    <Button onClick={() => handleAnalyze()} isLoading={importing} className="flex-1" disabled={!file}>
+                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-700">
+                    <Button onClick={() => handleAnalyze()} isLoading={importing} className="w-full sm:flex-1 touch-manipulation" disabled={!file}>
                         {importing ? 'Se analizeaza...' : 'Analizeaza Fisier'}
                     </Button>
-                    <Button variant="secondary" onClick={() => onBack()}>Inapoi</Button>
+                    <Button variant="secondary" onClick={() => onBack()} className="w-full sm:w-auto touch-manipulation">Inapoi</Button>
                 </div>
             </div>
         </Card>

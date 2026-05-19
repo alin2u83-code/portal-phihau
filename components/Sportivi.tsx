@@ -627,6 +627,7 @@ export const Sportivi: React.FC<{
                             size="sm"
                             onClick={() => setIsExportTableOpen(true)}
                             style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
+                            className="touch-manipulation min-h-[40px]"
                         >
                             Export / Editare
                         </Button>
@@ -635,6 +636,7 @@ export const Sportivi: React.FC<{
                             size="sm"
                             onClick={() => setIsImportModalOpen(true)}
                             style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
+                            className="touch-manipulation min-h-[40px]"
                         >
                             <UploadCloudIcon className="w-4 h-4 mr-1"/> Import
                         </Button>
@@ -644,6 +646,7 @@ export const Sportivi: React.FC<{
                             onClick={handleOpenAddSportiv}
                             style={{ backgroundColor: currentUser?.cluburi?.theme_config?.accent_color, color: '#ffffff' }}
                             data-tour="sportivi-adauga"
+                            className="touch-manipulation min-h-[40px]"
                         >
                             <PlusIcon className="w-4 h-4 mr-1"/> Adaugă Sportiv
                         </Button>

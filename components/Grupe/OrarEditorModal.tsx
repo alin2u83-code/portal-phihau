@@ -89,7 +89,7 @@ export const OrarEditorModal: React.FC<OrarEditorModalProps> = ({ isOpen, onClos
                     <span>Definește șablonul recurent al antrenamentelor pentru această grupă.</span>
                 </div>
 
-                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-1">
+                <div className="space-y-6 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-1">
                     {zileSaptamana.map(zi => (
                         <div key={zi} className="group">
                             <div className="flex items-center justify-between mb-3 border-b border-slate-700/50 pb-2">
@@ -101,7 +101,7 @@ export const OrarEditorModal: React.FC<OrarEditorModalProps> = ({ isOpen, onClos
                                     variant="secondary"
                                     size="sm"
                                     onClick={() => handleAddItem(zi)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-manipulation min-h-[36px]"
                                 >
                                     <PlusIcon className="w-3 h-3 mr-1" /> Adaugă Interval
                                 </Button>
@@ -159,11 +159,11 @@ export const OrarEditorModal: React.FC<OrarEditorModalProps> = ({ isOpen, onClos
                     ))}
                 </div>
 
-                <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
-                    <Button variant="secondary" onClick={onClose} disabled={loading}>
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t border-slate-700">
+                    <Button variant="secondary" onClick={onClose} disabled={loading} className="w-full sm:w-auto touch-manipulation">
                         Anulează
                     </Button>
-                    <Button variant="success" onClick={handleSave} isLoading={loading}>
+                    <Button variant="success" onClick={handleSave} isLoading={loading} className="w-full sm:w-auto touch-manipulation">
                         <CheckCircleIcon className="w-4 h-4 mr-2" /> Salvează Orar
                     </Button>
                 </div>

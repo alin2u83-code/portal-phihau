@@ -138,14 +138,14 @@ export const GrupaCard: React.FC<{
                     {grupa.program.length === 0 && <p className="text-xs italic text-slate-500">Niciun program.</p>}
                 </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-slate-700 flex items-center justify-end gap-2">
+            <div className="mt-6 pt-4 border-t border-slate-700 flex items-center justify-end flex-wrap gap-2">
                 {/* Butoane principale — mereu vizibile */}
-                <Button size="sm" variant="primary" onClick={() => onEdit(grupa)}>Gestionează</Button>
-                <Button size="sm" variant="info" onClick={() => onAdaugaSportivi(grupa)}>
+                <Button size="sm" variant="primary" onClick={() => onEdit(grupa)} className="min-h-[40px] touch-manipulation">Gestionează</Button>
+                <Button size="sm" variant="info" onClick={() => onAdaugaSportivi(grupa)} className="min-h-[40px] touch-manipulation">
                     <UserPlusIcon className="w-4 h-4 mr-1.5" />
                     Sportivi
                 </Button>
-                <Button size="sm" variant="secondary" onClick={() => onConfigurareOrar(grupa)}>
+                <Button size="sm" variant="secondary" onClick={() => onConfigurareOrar(grupa)} className="min-h-[40px] touch-manipulation">
                     <CogIcon className="w-4 h-4 mr-1.5" />
                     Orar
                 </Button>
@@ -157,7 +157,7 @@ export const GrupaCard: React.FC<{
                         variant="secondary"
                         onClick={() => setIsMenuOpen(prev => !prev)}
                         title="Mai multe acțiuni"
-                        className="px-2"
+                        className="px-2 min-h-[40px] min-w-[40px] touch-manipulation"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
                             <circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" />
@@ -165,11 +165,11 @@ export const GrupaCard: React.FC<{
                     </Button>
 
                     {isMenuOpen && (
-                        <div className="absolute right-0 bottom-full mb-1 z-50 min-w-[200px] bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
+                        <div className="absolute right-0 bottom-full mb-1 z-50 min-w-[200px] max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
                             {onModificareOrar && (
                                 <button
                                     onClick={() => { setIsMenuOpen(false); onModificareOrar(grupa); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-amber-400 hover:bg-slate-700 transition-colors text-left"
+                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-amber-400 hover:bg-slate-700 transition-colors text-left min-h-[44px] touch-manipulation"
                                     title="Înregistrează o excepție sau schimbare permanentă de orar"
                                 >
                                     <CalendarIcon className="w-4 h-4 shrink-0" />
@@ -179,7 +179,7 @@ export const GrupaCard: React.FC<{
                             {onGenerareAntrenamente && (
                                 <button
                                     onClick={() => { setIsMenuOpen(false); onGenerareAntrenamente(grupa); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-emerald-400 hover:bg-slate-700 transition-colors text-left"
+                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-emerald-400 hover:bg-slate-700 transition-colors text-left min-h-[44px] touch-manipulation"
                                     title="Generează antrenamente pe o perioadă din orarul săptămânal"
                                 >
                                     <SparklesIcon className="w-4 h-4 shrink-0" />
@@ -189,7 +189,7 @@ export const GrupaCard: React.FC<{
                             {onGestionareSecundari && (
                                 <button
                                     onClick={() => { setIsMenuOpen(false); onGestionareSecundari(grupa); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-purple-400 hover:bg-slate-700 transition-colors text-left"
+                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-purple-400 hover:bg-slate-700 transition-colors text-left min-h-[44px] touch-manipulation"
                                     title="Gestionează sportivii secundari"
                                 >
                                     <UsersIcon className="w-4 h-4 shrink-0" />
@@ -204,7 +204,7 @@ export const GrupaCard: React.FC<{
                             <div className="border-t border-slate-700 my-0.5" />
                             <button
                                 onClick={() => { setIsMenuOpen(false); onDelete(grupa); }}
-                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors text-left"
+                                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors text-left min-h-[44px] touch-manipulation"
                             >
                                 <TrashIcon className="w-4 h-4 shrink-0" />
                                 Șterge Grupa

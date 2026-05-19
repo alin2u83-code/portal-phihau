@@ -323,7 +323,7 @@ export const GenerareAntrenamenteModal: React.FC<GenerareAntrenamenteModalProps>
                                 Niciun antrenament de generat în intervalul selectat.
                             </div>
                         ) : (
-                            <div className="max-h-[40vh] overflow-y-auto rounded-xl border border-slate-700/50">
+                            <div className="max-h-[35vh] sm:max-h-[40vh] overflow-y-auto rounded-xl border border-slate-700/50">
                                 <table className="w-full text-sm">
                                     <thead className="sticky top-0 bg-slate-800 z-10">
                                         <tr>

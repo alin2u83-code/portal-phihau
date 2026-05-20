@@ -1548,11 +1548,14 @@ interface Pas2QuyenProps {
   onUpdateQuyenAles: (next: QuyenAlesMap) => void;
   onContinua: () => void;
   onBack: () => void;
+  excludedFromIndividual: Set<string>;
+  onToggleExclus: (sportivId: string) => void;
 }
 
 const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
   competitie, sportivi, grade, selectedSportivi,
   autoCategorie, quyenAles, onUpdateQuyenAles, onContinua, onBack,
+  excludedFromIndividual, onToggleExclus,
 }) => {
   const { showError } = useError();
   const [dreptMap, setDreptMap] = useState<Map<string, Map<string, Inlantuire[]>>>(new Map());
@@ -1740,6 +1743,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
             <table className="w-full text-sm" style={{ minWidth: `${300 + maxOpts * 120}px` }}>
               <thead>
                 <tr className="bg-slate-800 border-b border-slate-700">
+                  <th className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide w-24">Participă</th>
                   <th className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Sportiv</th>
                   <th className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Categorie</th>
                   <th className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Grad</th>
@@ -1764,9 +1768,21 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
                     }`;
 
                   if (!is2Q) {
+                    const isExclus = excludedFromIndividual.has(sportiv.id);
                     return (
-                      <tr key={sportiv.id} className={q.q1 ? 'bg-green-900/5' : 'bg-red-900/5'}>
-                        <td className="p-3 text-white font-medium whitespace-nowrap">
+                      <tr key={sportiv.id} className={`${q.q1 ? 'bg-green-900/5' : 'bg-red-900/5'} ${isExclus ? 'opacity-40' : ''}`}>
+                        <td className="p-3 w-24">
+                          <label className="flex items-center gap-2 cursor-pointer" title="Bifat = participă la Thao Quyen">
+                            <input
+                              type="checkbox"
+                              checked={!isExclus}
+                              onChange={() => onToggleExclus(sportiv.id)}
+                              className="w-4 h-4 rounded accent-brand-primary cursor-pointer"
+                            />
+                            <span className="text-xs text-slate-400">Da</span>
+                          </label>
+                        </td>
+                        <td className={`p-3 font-medium whitespace-nowrap ${isExclus ? 'text-slate-500' : 'text-white'}`}>
                           {sportiv.nume} {sportiv.prenume}
                         </td>
                         <td className="p-3 text-slate-400 text-xs">{autoCat.denumire ?? `Cat ${autoCat.numar_categorie}`}</td>
@@ -1776,8 +1792,8 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
                           return (
                             <td
                               key={i}
-                              onClick={() => opt && handlePickQ1(sportiv.id, opt.id)}
-                              className={cellCls(opt, q.q1 === opt?.id)}
+                              onClick={() => !isExclus && opt && handlePickQ1(sportiv.id, opt.id)}
+                              className={isExclus ? 'p-3 text-xs text-slate-700 cursor-not-allowed' : cellCls(opt, q.q1 === opt?.id)}
                             >
                               {opt?.denumire ?? '—'}
                             </td>
@@ -2308,6 +2324,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
 /** O echipă formată pentru o categorie de tip echipă/pereche. */
 export interface EchipaFormata {
   categorieId: string;
+  dbId?: string; // id din echipe_competitie — UPDATE dacă există
   numeEchipa: string;
   titulari: string[];  // sportivId[]
   rezerve: string[];   // sportivId[]
@@ -2383,6 +2400,7 @@ interface SectiuneEchipaCategorieProps {
   echipa: EchipaFormata;
   onUpdateEchipa: (update: Partial<EchipaFormata>) => void;
   erroare: string | null;
+  dbId?: string;
 }
 
 function canAddToTitulari(cat: CategorieCompetitie, athGen: string | undefined | null, titulari: string[], sportiviPool: Sportiv[]): boolean {
@@ -2396,7 +2414,7 @@ function canAddToTitulari(cat: CategorieCompetitie, athGen: string | undefined |
 }
 
 const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
-  cat, sportiviDisponibili, grade, dreptUri, numeClub, echipa, onUpdateEchipa, erroare,
+  cat, sportiviDisponibili, grade, dreptUri, numeClub, echipa, onUpdateEchipa, erroare, dbId,
 }) => {
   const isPereche = cat.tip_participare === 'pereche';
   const titulariMax = isPereche ? 2 : cat.sportivi_per_echipa_max;
@@ -2471,6 +2489,11 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
                 {cat.denumire ?? `Categoria ${cat.numar_categorie}`}
               </span>
               <BadgeTipParticipare tip={cat.tip_participare} />
+              {dbId && (
+                <span className="text-[10px] font-bold text-sky-400 bg-sky-900/30 border border-sky-700/50 rounded-full px-2 py-0.5 shrink-0">
+                  Editare
+                </span>
+              )}
             </div>
             <div className="text-[11px] text-slate-500 mt-0.5">
               {descrieTipEchipa(cat)} {isMixt && `· Mixt (${nM}M+${nF}F)`}
@@ -2859,6 +2882,36 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
       {/* Progress */}
       <WizardProgress step={3} total={4} />
 
+      {/* Banner skip toate probele */}
+      {categoriiEchipa.length > 0 && (() => {
+        const nrSkipped = echipeFormate.filter(e => e.echipaSkip).length;
+        const toateSkipped = categoriiEchipa.length > 0 && nrSkipped === categoriiEchipa.length;
+        const handleToggleToateSkip = () => {
+          onUpdateEchipe(echipeFormate.map(e => ({ ...e, echipaSkip: !toateSkipped })));
+        };
+        return (
+          <div className="flex items-center justify-between p-3 rounded-lg border border-slate-700 bg-slate-800/40">
+            <span className="text-sm text-slate-400">
+              {toateSkipped
+                ? 'Toate probele marcate ca "Nu participăm"'
+                : nrSkipped > 0
+                  ? `${nrSkipped} din ${categoriiEchipa.length} probe sărite`
+                  : 'Marchează toate probele ca neparticipate'}
+            </span>
+            <button
+              onClick={handleToggleToateSkip}
+              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                toateSkipped
+                  ? 'border-brand-primary text-brand-primary hover:bg-brand-primary/10'
+                  : 'border-slate-600 text-slate-400 hover:border-yellow-600 hover:text-yellow-400'
+              }`}
+            >
+              {toateSkipped ? 'Reactivează toate' : 'Nu participăm la nicio probă'}
+            </button>
+          </div>
+        );
+      })()}
+
       {/* Grid categorii — responsive */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-4">
         {categoriiEchipa.map(cat => {
@@ -2904,6 +2957,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
               echipa={echipa}
               onUpdateEchipa={update => handleUpdateEchipa(cat.id, update)}
               erroare={erroare}
+              dbId={echipa.dbId}
             />
           );
         })}
@@ -2962,6 +3016,7 @@ interface Pas4Props {
   quyenAles: QuyenAlesMap;
   echipeFormate: EchipaFormata[];
   probeSkipped: Set<string>;
+  excludedFromIndividual: Set<string>;
   clubId: string;
   numeClub: string;
   onBack: () => void;
@@ -2993,7 +3048,7 @@ function calculeazaTaxaEchipa(cat: CategorieCompetitie, competitie: Competitie):
 const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   competitie, sportivi, grade, categorii,
   selectedSportivi, autoCategorie, quyenAles, echipeFormate,
-  probeSkipped, clubId, numeClub, onBack, onSaved,
+  probeSkipped, excludedFromIndividual, clubId, numeClub, onBack, onSaved,
 }) => {
   const { showError, showSuccess } = useError();
   const [saving, setSaving] = useState(false);
@@ -3024,6 +3079,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   const randuriIndividuale = useMemo<RandIndividual[]>(() => {
     const rezultat: RandIndividual[] = [];
     for (const sportivId of Array.from(selectedSportivi)) {
+      if (excludedFromIndividual.has(sportivId)) continue;
       const cat = autoCategorie.get(sportivId);
       if (!cat) continue;
       // Excludem categoriile care aparțin probelor sărite
@@ -3044,7 +3100,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       });
     }
     return rezultat;
-  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped]);
+  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped, excludedFromIndividual]);
 
   // Rânduri echipe pentru sumar
   interface RandEchipa {
@@ -3201,60 +3257,83 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         }
       }
 
-      // 2. Insert echipe și sportivii lor
+      // 2. Insert/update echipe și sportivii lor
       for (const rand of randuriEchipe) {
-        const { data: echipaDB, error: errEchipa } = await supabase
-          .from('echipe_competitie')
-          .insert({
-            competitie_id: competitie.id,
-            categorie_id: rand.echipa.categorieId,
-            club_id: clubId,
-            denumire_echipa: numeClub + (rand.echipa.numeEchipa ? ' — ' + rand.echipa.numeEchipa : ''),
-            status: 'inscrisa',
-            taxa_achitata: false,
-            echipa_incompleta: rand.echipa.echipaIncompleta ?? false,
-            inlantuire_id: rand.echipa.program ?? null,
-          })
-          .select()
-          .single();
-
-        if (errEchipa) {
-          throw new Error(errEchipa.message);
-        }
-
-        if (echipaDB) {
+        const denEchipa = numeClub + (rand.echipa.numeEchipa ? ' — ' + rand.echipa.numeEchipa : '');
+        if (rand.echipa.dbId) {
+          // UPDATE echipă existentă
+          const { error: updErr } = await supabase
+            .from('echipe_competitie')
+            .update({
+              denumire_echipa: denEchipa,
+              echipa_incompleta: rand.echipa.echipaIncompleta ?? false,
+              inlantuire_id: rand.echipa.program ?? null,
+            })
+            .eq('id', rand.echipa.dbId);
+          if (updErr) throw new Error(updErr.message);
+          // Re-sync membri
+          await supabase.from('echipa_sportivi').delete().eq('echipa_id', rand.echipa.dbId);
           const sportiviEchipa = [
-            ...rand.echipa.titulari.map(id => ({
-              echipa_id: echipaDB.id,
-              sportiv_id: id,
-              rol: 'titular' as const,
-            })),
-            ...rand.echipa.rezerve.map(id => ({
-              echipa_id: echipaDB.id,
-              sportiv_id: id,
-              rol: 'rezerva' as const,
-            })),
+            ...rand.echipa.titulari.map(id => ({ echipa_id: rand.echipa.dbId!, sportiv_id: id, rol: 'titular' as const })),
+            ...rand.echipa.rezerve.map(id => ({ echipa_id: rand.echipa.dbId!, sportiv_id: id, rol: 'rezerva' as const })),
           ];
-
           if (sportiviEchipa.length > 0) {
-            const { error: errSportivi } = await supabase
-              .from('echipa_sportivi')
-              .insert(sportiviEchipa);
-
-            if (errSportivi) {
-              throw new Error(errSportivi.message);
-            }
+            const { error: errSp } = await supabase.from('echipa_sportivi').insert(sportiviEchipa);
+            if (errSp) throw new Error(errSp.message);
           }
-
-          // Dacă e echipă incompletă → creează solicitare inter-club
           if (rand.echipa.echipaIncompleta) {
-            await supabase.from('solicitari_echipe_incomplete').insert({
+            await supabase.from('solicitari_echipe_incomplete').upsert({
               competitie_id: competitie.id,
               categorie_id: rand.echipa.categorieId,
               club_solicitant_id: clubId,
               sportivi_disponibili: rand.echipa.titulari,
               status: 'deschisa',
-            });
+            }, { onConflict: 'competitie_id,categorie_id,club_solicitant_id' });
+          }
+        } else {
+          // INSERT echipă nouă
+          const { data: echipaDB, error: errEchipa } = await supabase
+            .from('echipe_competitie')
+            .insert({
+              competitie_id: competitie.id,
+              categorie_id: rand.echipa.categorieId,
+              club_id: clubId,
+              denumire_echipa: denEchipa,
+              status: 'inscrisa',
+              taxa_achitata: false,
+              echipa_incompleta: rand.echipa.echipaIncompleta ?? false,
+              inlantuire_id: rand.echipa.program ?? null,
+            })
+            .select()
+            .single();
+          if (errEchipa) throw new Error(errEchipa.message);
+          if (echipaDB) {
+            const sportiviEchipa = [
+              ...rand.echipa.titulari.map(id => ({
+                echipa_id: echipaDB.id,
+                sportiv_id: id,
+                rol: 'titular' as const,
+              })),
+              ...rand.echipa.rezerve.map(id => ({
+                echipa_id: echipaDB.id,
+                sportiv_id: id,
+                rol: 'rezerva' as const,
+              })),
+            ];
+            if (sportiviEchipa.length > 0) {
+              const { error: errSportivi } = await supabase.from('echipa_sportivi').insert(sportiviEchipa);
+              if (errSportivi) throw new Error(errSportivi.message);
+            }
+            // Dacă e echipă incompletă → creează solicitare inter-club
+            if (rand.echipa.echipaIncompleta) {
+              await supabase.from('solicitari_echipe_incomplete').insert({
+                competitie_id: competitie.id,
+                categorie_id: rand.echipa.categorieId,
+                club_solicitant_id: clubId,
+                sportivi_disponibili: rand.echipa.titulari,
+                status: 'deschisa',
+              });
+            }
           }
         }
       }
@@ -3649,6 +3728,53 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   // Pas2: probe sărite (nu avem concurenți) — propagate la Pas4 pentru filtrare sumar
   const [probeSkippedWizard, setProbeSkippedWizard] = useState<Set<string>>(new Set());
 
+  // Feature 2: sportivi excluși de la Thao Quyen individual
+  const [excludedFromIndividual, setExcludedFromIndividual] = useState<Set<string>>(new Set());
+
+  const handleToggleExclus = useCallback((sportivId: string) => {
+    setExcludedFromIndividual(prev => {
+      const next = new Set(prev);
+      if (next.has(sportivId)) next.delete(sportivId);
+      else next.add(sportivId);
+      return next;
+    });
+  }, []);
+
+  // Feature 3: fetch echipe salvate în BD la mount pentru editare
+  useEffect(() => {
+    if (!clubId || !competitie?.id) return;
+    (async () => {
+      const { data: echipeDB } = await supabase
+        .from('echipe_competitie')
+        .select('id, categorie_id, denumire_echipa, inlantuire_id, echipa_incompleta, echipa_sportivi(sportiv_id, rol)')
+        .eq('competitie_id', competitie.id)
+        .eq('club_id', clubId)
+        .neq('status', 'retrasa');
+      if (!echipeDB || echipeDB.length === 0) return;
+      const initiale: EchipaFormata[] = (echipeDB as any[]).map(e => ({
+        categorieId: e.categorie_id,
+        dbId: e.id,
+        numeEchipa: e.denumire_echipa
+          ? e.denumire_echipa.replace(numeClub + ' — ', '').replace(numeClub, '').trim()
+          : '',
+        titulari: (e.echipa_sportivi ?? []).filter((m: any) => m.rol === 'titular').map((m: any) => m.sportiv_id),
+        rezerve: (e.echipa_sportivi ?? []).filter((m: any) => m.rol === 'rezerva').map((m: any) => m.sportiv_id),
+        program: e.inlantuire_id ?? undefined,
+        echipaIncompleta: e.echipa_incompleta ?? false,
+        echipaSkip: false,
+      }));
+      setEchipeFormate(initiale);
+      const sportiviDinEchipe = new Set<string>();
+      initiale.forEach(e => {
+        e.titulari.forEach(id => sportiviDinEchipe.add(id));
+        e.rezerve.forEach(id => sportiviDinEchipe.add(id));
+      });
+      if (sportiviDinEchipe.size > 0) {
+        setSelectedSportivi(prev => new Set([...prev, ...sportiviDinEchipe]));
+      }
+    })();
+  }, []); // run once on mount
+
   // Item 9: ref pentru a urmări ultimul set de sportivi pentru care s-a calculat autoCategorie
   // Astfel, dacă userul merge Înapoi din Pas2 la Pas1 fără să schimbe selecțiile,
   // autoCategorie NU se recalculează și quyenAles rămâne intact.
@@ -3725,6 +3851,8 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onUpdateQuyenAles={setQuyenAles}
         onContinua={() => areEchipe ? setStep(3) : setStep(4)}
         onBack={() => setStep(1)}
+        excludedFromIndividual={excludedFromIndividual}
+        onToggleExclus={handleToggleExclus}
       />
     );
   }
@@ -3758,6 +3886,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       quyenAles={quyenAles}
       echipeFormate={echipeFormate}
       probeSkipped={probeSkippedWizard}
+      excludedFromIndividual={excludedFromIndividual}
       clubId={clubId}
       numeClub={numeClub}
       onBack={() => setStep(areEchipe ? 3 : 2)}

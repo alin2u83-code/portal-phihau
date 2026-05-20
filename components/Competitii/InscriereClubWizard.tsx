@@ -18,6 +18,7 @@ import { ArrowLeftIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { calculeazaVarstaLaData, verificaEligibilitate } from '../../utils/eligibilitateCompetitie';
 import { exportFisaParticipare, exportBorderoClub, RandIndividualPDF, RandEchipaPDF } from '../../utils/exportPDFCompetitie';
+import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/taxeCompetitie';
 
 // -----------------------------------------------
 // HELPERS INTERNI
@@ -3043,27 +3044,6 @@ interface Pas4Props {
   onSaved: () => void;
 }
 
-function calculeazaTaxaIndividuala(competitie: Competitie, cat?: CategorieCompetitie): number {
-  const ct = competitie.config_taxe;
-  if (ct) {
-    return cat?.arma ? (ct.individual_cvd ?? 80) : (ct.individual_tehnica ?? 80);
-  }
-  return competitie.taxa_individual ?? 80;
-}
-
-function calculeazaTaxaEchipa(cat: CategorieCompetitie, competitie: Competitie): number {
-  const ct = competitie.config_taxe;
-  if (ct) {
-    if (cat.arma) return ct.cvd_echipa ?? 80;
-    const esteJuniori = cat.varsta_max !== null && cat.varsta_max <= 17;
-    return esteJuniori ? (ct.echipa_juniori ?? 150) : (ct.echipa_seniori ?? 120);
-  }
-  const esteJuniori = cat.varsta_max !== null && cat.varsta_max <= 17;
-  if (esteJuniori) {
-    return competitie.taxa_echipa ?? 150;
-  }
-  return competitie.taxa_echipa ?? 120;
-}
 
 const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   competitie, sportivi, grade, categorii,

@@ -2510,17 +2510,20 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
         />
       </div>
 
-      {/* Toggle "Nu participam" */}
+      {/* Toggle "Nu participam" — buton mare, touch-friendly */}
       <div className="px-4 py-2.5 border-b border-slate-700/40">
-        <label className="flex items-center gap-2.5 cursor-pointer min-h-[40px]" style={{ touchAction: 'manipulation' }}>
-          <input
-            type="checkbox"
-            checked={echipa.echipaSkip ?? false}
-            onChange={e => onUpdateEchipa({ echipaSkip: e.target.checked, titulari: [], rezerve: [] })}
-            className="w-4 h-4 rounded accent-slate-400 cursor-pointer"
-          />
-          <span className="text-xs text-slate-400 font-medium">Nu participăm la această probă</span>
-        </label>
+        <button
+          type="button"
+          onClick={() => onUpdateEchipa({ echipaSkip: !(echipa.echipaSkip ?? false), titulari: [], rezerve: [] })}
+          style={{ touchAction: 'manipulation' }}
+          className={`w-full py-2.5 rounded-lg text-sm font-semibold border transition-colors ${
+            echipa.echipaSkip
+              ? 'bg-slate-700 border-brand-primary text-brand-primary'
+              : 'bg-slate-800/60 border-slate-600 text-slate-400 active:border-yellow-600 active:text-yellow-400'
+          }`}
+        >
+          {echipa.echipaSkip ? '✓ Nu participăm — apasă pentru a reactiva' : 'Nu participăm la această probă'}
+        </button>
       </div>
 
       {!echipa.echipaSkip && (
@@ -2569,55 +2572,58 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
             const rezerveBlocate = echipa.rezerve.length >= rezerveMax && rolCurent !== 'rezerva';
 
             return (
-              <div key={sportiv.id} className="flex items-center gap-3 px-4 py-3 flex-wrap">
-                <div className="flex-1 min-w-0">
+              <div key={sportiv.id} className="px-4 py-3 space-y-2">
+                {/* Nume sportiv */}
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-white">{sportiv.nume} {sportiv.prenume}</span>
                   {genderBlocat && (
-                    <span className="ml-2 text-[10px] font-semibold text-yellow-400">
+                    <span className="text-[10px] font-semibold text-yellow-400">
                       🔒 {sportiv.gen === 'Masculin' ? 'Trebuie fată mai întâi' : 'Trebuie băiat mai întâi'}
                     </span>
                   )}
                 </div>
-
-                <div className="flex flex-row gap-1.5 shrink-0 flex-wrap">
+                {/* Butoane rol — full-width pe mobil, inline pe desktop */}
+                <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => handleRolChange(sportiv.id, rolCurent === 'titular' ? 'nu_participa' : 'titular')}
                     disabled={titulariBlocati}
-                    title={genderBlocat ? 'Adaugă celălalt gen mai întâi' : undefined}
                     style={{ touchAction: 'manipulation' }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors min-w-[44px] min-h-[44px] ${
+                    className={`flex-1 sm:flex-none sm:min-w-[80px] py-2.5 rounded-lg text-xs font-semibold border transition-colors ${
                       rolCurent === 'titular'
                         ? 'bg-green-700 border-green-500 text-white'
                         : titulariBlocati
                           ? 'opacity-30 bg-slate-700 border-slate-600 text-slate-500 cursor-not-allowed'
-                          : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-green-900/40 hover:border-green-600 hover:text-green-300'
+                          : 'bg-slate-700 border-slate-600 text-slate-300 active:bg-green-900/60'
                     }`}
                   >
-                    + T
+                    {rolCurent === 'titular' ? '✓ Titular' : '+ Titular'}
                   </button>
 
                   {!isPereche && rezerveMax > 0 && (
                     <button
+                      type="button"
                       onClick={() => handleRolChange(sportiv.id, rolCurent === 'rezerva' ? 'nu_participa' : 'rezerva')}
                       disabled={rezerveBlocate}
                       style={{ touchAction: 'manipulation' }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors min-w-[44px] min-h-[44px] ${
+                      className={`flex-1 sm:flex-none sm:min-w-[80px] py-2.5 rounded-lg text-xs font-semibold border transition-colors ${
                         rolCurent === 'rezerva'
                           ? 'bg-sky-700 border-sky-500 text-white'
                           : rezerveBlocate
                             ? 'opacity-30 bg-slate-700 border-slate-600 text-slate-500 cursor-not-allowed'
-                            : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-sky-900/40 hover:border-sky-600 hover:text-sky-300'
+                            : 'bg-slate-700 border-slate-600 text-slate-300 active:bg-sky-900/60'
                       }`}
                     >
-                      + R
+                      {rolCurent === 'rezerva' ? '✓ Rezervă' : '+ Rezervă'}
                     </button>
                   )}
 
                   {rolCurent !== 'nu_participa' && (
                     <button
+                      type="button"
                       onClick={() => handleRolChange(sportiv.id, 'nu_participa')}
                       style={{ touchAction: 'manipulation' }}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-600 bg-slate-800 text-slate-500 hover:text-red-400 hover:border-red-700/50 transition-colors min-w-[44px] min-h-[44px]"
+                      className="flex-none px-3 py-2.5 rounded-lg text-xs font-semibold border border-slate-600 bg-slate-800 text-slate-500 active:text-red-400 active:border-red-700/50 transition-colors"
                     >
                       Scoate
                     </button>
@@ -2775,21 +2781,23 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     return map;
   }, [categoriiEchipa, sportiviSelectati]);
 
-  // Inițializare echipeFormate dacă sunt goale
+  // Asigură că toate categoriile au entry în echipeFormate (inclusiv după DB fetch)
   useEffect(() => {
-    if (echipeFormate.length === 0 && categoriiEchipa.length > 0) {
-      const initiale: EchipaFormata[] = categoriiEchipa.map(cat => ({
+    if (categoriiEchipa.length === 0) return;
+    const existingIds = new Set(echipeFormate.map(e => e.categorieId));
+    const lipsesc = categoriiEchipa.filter(cat => !existingIds.has(cat.id));
+    if (lipsesc.length > 0) {
+      const noi: EchipaFormata[] = lipsesc.map(cat => ({
         categorieId: cat.id,
         numeEchipa: '',
         titulari: [],
         rezerve: [],
         echipaIncompleta: false,
       }));
-      onUpdateEchipe(initiale);
+      onUpdateEchipe([...echipeFormate, ...noi]);
     }
-    // Rulat o singură dată la mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [categoriiEchipa.length, echipeFormate.length]);
 
   const getEchipa = (catId: string): EchipaFormata => {
     return echipeFormate.find(e => e.categorieId === catId) ?? {
@@ -2802,11 +2810,19 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   };
 
   const handleUpdateEchipa = (catId: string, update: Partial<EchipaFormata>) => {
-    onUpdateEchipe(
-      echipeFormate.map(e =>
-        e.categorieId === catId ? { ...e, ...update } : e
-      )
-    );
+    const exists = echipeFormate.some(e => e.categorieId === catId);
+    if (exists) {
+      onUpdateEchipe(echipeFormate.map(e => e.categorieId === catId ? { ...e, ...update } : e));
+    } else {
+      onUpdateEchipe([...echipeFormate, {
+        categorieId: catId,
+        numeEchipa: '',
+        titulari: [],
+        rezerve: [],
+        echipaIncompleta: false,
+        ...update,
+      }]);
+    }
   };
 
   // Item 3: calcul echipe active ale clubului curent per categorie (din DB)

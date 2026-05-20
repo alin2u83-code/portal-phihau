@@ -892,7 +892,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
       )}
 
       {/* Footer fix pe mobil / inline pe desktop */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-slate-400">
             {selected.size > 0
@@ -1679,7 +1679,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
         <div className="text-center text-slate-500 py-10 italic text-sm">
           Niciun sportiv cu categorie individuală auto-asignată.
         </div>
-        <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4 flex justify-end" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
+        <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4 flex justify-end">
           <Button variant="success" onClick={onContinua} className="min-w-[140px]">Continuă</Button>
         </div>
       </div>
@@ -1875,7 +1875,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
       )}
 
       {/* Footer */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-slate-400">
             {nrComplet}/{sportiviDate.length} sportivi cu înlănțuire completă
@@ -2294,7 +2294,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <div className="text-xs text-slate-400">
             {echipaPicks.length > 0 && (
@@ -3001,7 +3001,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs text-slate-400">
             {poateContinua
@@ -3585,14 +3585,14 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         {/* Butoane export PDF */}
         <div className="flex flex-wrap gap-2 mb-2">
           <Button
             variant="secondary"
             size="sm"
             onClick={handleExportFisa}
-            className="text-xs w-full sm:w-auto"
+            className="text-xs"
           >
             Export fisa participare
           </Button>
@@ -3600,7 +3600,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             variant="secondary"
             size="sm"
             onClick={handleExportBorderou}
-            className="text-xs w-full sm:w-auto"
+            className="text-xs"
           >
             Export borderou club
           </Button>
@@ -3613,7 +3613,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             variant="success"
             onClick={() => setConfirmOpen(true)}
             disabled={saving || !!successMsg}
-            className="w-full sm:w-auto sm:min-w-[180px] sm:ml-auto"
+            className="min-w-[180px] ml-auto"
           >
             Finalizeaza inscrierea
           </Button>

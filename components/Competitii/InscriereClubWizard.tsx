@@ -892,7 +892,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
       )}
 
       {/* Footer fix pe mobil / inline pe desktop */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-slate-400">
             {selected.size > 0
@@ -1679,7 +1679,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
         <div className="text-center text-slate-500 py-10 italic text-sm">
           Niciun sportiv cu categorie individuală auto-asignată.
         </div>
-        <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4 flex justify-end">
+        <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4 flex justify-end" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
           <Button variant="success" onClick={onContinua} className="min-w-[140px]">Continuă</Button>
         </div>
       </div>
@@ -1739,8 +1739,8 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
           </button>
 
           {/* Tabel înlănțuiri */}
-          <div className="overflow-x-auto rounded-lg border border-slate-700">
-            <table className="w-full text-sm" style={{ minWidth: `${300 + maxOpts * 120}px` }}>
+          <div className="overflow-x-auto rounded-lg border border-slate-700" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <table className="w-full text-sm" style={{ minWidth: `${Math.max(480, 300 + maxOpts * 120)}px` }}>
               <thead>
                 <tr className="bg-slate-800 border-b border-slate-700">
                   <th className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide w-24">Participă</th>
@@ -1875,7 +1875,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
       )}
 
       {/* Footer */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-slate-400">
             {nrComplet}/{sportiviDate.length} sportivi cu înlănțuire completă
@@ -2294,7 +2294,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
         <div className="flex items-center justify-between gap-3">
           <div className="text-xs text-slate-400">
             {echipaPicks.length > 0 && (
@@ -2512,7 +2512,7 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
 
       {/* Toggle "Nu participam" */}
       <div className="px-4 py-2.5 border-b border-slate-700/40">
-        <label className="flex items-center gap-2.5 cursor-pointer">
+        <label className="flex items-center gap-2.5 cursor-pointer min-h-[40px]" style={{ touchAction: 'manipulation' }}>
           <input
             type="checkbox"
             checked={echipa.echipaSkip ?? false}
@@ -2569,7 +2569,7 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
             const rezerveBlocate = echipa.rezerve.length >= rezerveMax && rolCurent !== 'rezerva';
 
             return (
-              <div key={sportiv.id} className="flex items-center gap-3 px-4 py-3">
+              <div key={sportiv.id} className="flex items-center gap-3 px-4 py-3 flex-wrap">
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-medium text-white">{sportiv.nume} {sportiv.prenume}</span>
                   {genderBlocat && (
@@ -2579,12 +2579,13 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
                   )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-1.5 shrink-0">
+                <div className="flex flex-row gap-1.5 shrink-0 flex-wrap">
                   <button
                     onClick={() => handleRolChange(sportiv.id, rolCurent === 'titular' ? 'nu_participa' : 'titular')}
                     disabled={titulariBlocati}
                     title={genderBlocat ? 'Adaugă celălalt gen mai întâi' : undefined}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors min-w-[76px] ${
+                    style={{ touchAction: 'manipulation' }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors min-w-[44px] min-h-[44px] ${
                       rolCurent === 'titular'
                         ? 'bg-green-700 border-green-500 text-white'
                         : titulariBlocati
@@ -2599,7 +2600,8 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
                     <button
                       onClick={() => handleRolChange(sportiv.id, rolCurent === 'rezerva' ? 'nu_participa' : 'rezerva')}
                       disabled={rezerveBlocate}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors min-w-[76px] ${
+                      style={{ touchAction: 'manipulation' }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors min-w-[44px] min-h-[44px] ${
                         rolCurent === 'rezerva'
                           ? 'bg-sky-700 border-sky-500 text-white'
                           : rezerveBlocate
@@ -2614,7 +2616,8 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
                   {rolCurent !== 'nu_participa' && (
                     <button
                       onClick={() => handleRolChange(sportiv.id, 'nu_participa')}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-600 bg-slate-800 text-slate-500 hover:text-red-400 hover:border-red-700/50 transition-colors min-w-[76px]"
+                      style={{ touchAction: 'manipulation' }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-600 bg-slate-800 text-slate-500 hover:text-red-400 hover:border-red-700/50 transition-colors min-w-[44px] min-h-[44px]"
                     >
                       Scoate
                     </button>
@@ -2637,7 +2640,7 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
           ) : (
             <div className="flex flex-col gap-1.5">
               {programOptions.map(il => (
-                <label key={il.id} className="flex items-center gap-2 cursor-pointer">
+                <label key={il.id} className="flex items-center gap-2 cursor-pointer min-h-[36px]" style={{ touchAction: 'manipulation' }}>
                   <input
                     type="radio"
                     name={`program-${cat.id}`}
@@ -2662,15 +2665,15 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
         <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
           Nume echipă
         </label>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-white font-medium whitespace-nowrap">{numeClub}</span>
-          <span className="text-slate-600">—</span>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
+          <span className="text-sm text-white font-medium truncate max-w-[160px] sm:max-w-[200px] shrink-0">{numeClub}</span>
+          <span className="hidden sm:inline text-slate-600">—</span>
           <input
             type="text"
             value={echipa.numeEchipa}
             onChange={e => onUpdateEchipa({ numeEchipa: e.target.value })}
             placeholder="suffix opțional..."
-            className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary"
+            className="w-full sm:flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary"
           />
         </div>
         <p className="text-[11px] text-slate-600 mt-1">Clubul este adăugat automat ca prefix</p>
@@ -2890,7 +2893,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
           onUpdateEchipe(echipeFormate.map(e => ({ ...e, echipaSkip: !toateSkipped })));
         };
         return (
-          <div className="flex items-center justify-between p-3 rounded-lg border border-slate-700 bg-slate-800/40">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-3 rounded-lg border border-slate-700 bg-slate-800/40">
             <span className="text-sm text-slate-400">
               {toateSkipped
                 ? 'Toate probele marcate ca "Nu participăm"'
@@ -2900,7 +2903,8 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
             </span>
             <button
               onClick={handleToggleToateSkip}
-              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+              style={{ touchAction: 'manipulation' }}
+              className={`w-full sm:w-auto text-xs px-3 py-2 rounded-lg border transition-colors min-h-[40px] ${
                 toateSkipped
                   ? 'border-brand-primary text-brand-primary hover:bg-brand-primary/10'
                   : 'border-slate-600 text-slate-400 hover:border-yellow-600 hover:text-yellow-400'
@@ -2981,7 +2985,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs text-slate-400">
             {poateContinua
@@ -3565,14 +3569,14 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       )}
 
       {/* Footer sticky */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
         {/* Butoane export PDF */}
         <div className="flex flex-wrap gap-2 mb-2">
           <Button
             variant="secondary"
             size="sm"
             onClick={handleExportFisa}
-            className="text-xs"
+            className="text-xs w-full sm:w-auto"
           >
             Export fisa participare
           </Button>
@@ -3580,7 +3584,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             variant="secondary"
             size="sm"
             onClick={handleExportBorderou}
-            className="text-xs"
+            className="text-xs w-full sm:w-auto"
           >
             Export borderou club
           </Button>
@@ -3593,7 +3597,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             variant="success"
             onClick={() => setConfirmOpen(true)}
             disabled={saving || !!successMsg}
-            className="min-w-[180px] ml-auto"
+            className="w-full sm:w-auto sm:min-w-[180px] sm:ml-auto"
           >
             Finalizeaza inscrierea
           </Button>

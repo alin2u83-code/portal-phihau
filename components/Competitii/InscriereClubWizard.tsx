@@ -376,7 +376,7 @@ const CardSportiv: React.FC<CardSportivProps> = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`font-semibold text-sm ${isDisabled ? 'text-slate-400' : 'text-white'}`}>
-            {sportiv.prenume} {sportiv.nume}
+            {sportiv.nume} {sportiv.prenume}
           </span>
           {isDejaInscris && (
             <span className="inline-flex items-center text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-2 py-0.5 shrink-0">
@@ -453,7 +453,7 @@ const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
       <td className="p-3">
         <div className="flex items-center gap-2">
           <span className={`font-medium text-sm ${isDisabled ? 'text-slate-400' : 'text-white'}`}>
-            {sportiv.prenume} {sportiv.nume}
+            {sportiv.nume} {sportiv.prenume}
           </span>
           {isDejaInscris && (
             <span className="inline-flex items-center text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-1.5 py-0.5 shrink-0">
@@ -571,7 +571,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
     const varstaMax = filterVarstaMax ? parseInt(filterVarstaMax) : null;
 
     return sportiviActivi.filter(s => {
-      if (q && !`${s.prenume} ${s.nume}`.toLowerCase().includes(q)) return false;
+      if (q && !`${s.nume} ${s.prenume}`.toLowerCase().includes(q)) return false;
       if (filterGen && s.gen !== filterGen) return false;
       if (filterGradeIds.size > 0 && (!s.grad_actual_id || !filterGradeIds.has(s.grad_actual_id))) return false;
       if ((varstaMin !== null || varstaMax !== null) && s.data_nasterii) {
@@ -1239,7 +1239,7 @@ const CardSportivCategorii: React.FC<CardSportivCategoriiProps> = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-sm text-white">
-              {sportiv.prenume} {sportiv.nume}
+              {sportiv.nume} {sportiv.prenume}
             </span>
             {!esteMajor && (
               <span className="text-[10px] font-bold text-amber-400 bg-amber-900/30 border border-amber-700/50 rounded-full px-2 py-0.5">
@@ -1498,7 +1498,7 @@ const VederePerCategorie: React.FC<VederePerCategorieProps> = ({
                       className="w-4 h-4 rounded accent-brand-primary"
                     />
                     <div className="flex-1 min-w-0">
-                      <span className="text-sm text-white">{sportiv.prenume} {sportiv.nume}</span>
+                      <span className="text-sm text-white">{sportiv.nume} {sportiv.prenume}</span>
                       <span className="text-xs text-slate-500 ml-2">{varsta} ani{gradNume ? ` · ${gradNume}` : ''}</span>
                     </div>
                     {dejaInscrisActiv && (
@@ -1767,7 +1767,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
                     return (
                       <tr key={sportiv.id} className={q.q1 ? 'bg-green-900/5' : 'bg-red-900/5'}>
                         <td className="p-3 text-white font-medium whitespace-nowrap">
-                          {sportiv.prenume} {sportiv.nume}
+                          {sportiv.nume} {sportiv.prenume}
                         </td>
                         <td className="p-3 text-slate-400 text-xs">{autoCat.denumire ?? `Cat ${autoCat.numar_categorie}`}</td>
                         <td className="p-3 text-slate-400 text-xs whitespace-nowrap">{grad?.nume ?? '—'}</td>
@@ -1792,7 +1792,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
                     <React.Fragment key={sportiv.id}>
                       <tr className="bg-green-900/5">
                         <td rowSpan={2} className="p-3 text-white font-medium whitespace-nowrap border-r border-slate-700/50">
-                          {sportiv.prenume} {sportiv.nume}
+                          {sportiv.nume} {sportiv.prenume}
                           <span className="ml-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-900/40 border border-emerald-700/50 rounded-full px-1.5 py-0.5">2Q</span>
                         </td>
                         <td rowSpan={2} className="p-3 text-slate-400 text-xs border-r border-slate-700/50">
@@ -2090,9 +2090,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
         return cat && !esteEchipaSauPereche(cat);
       });
 
-      if (catIndivBifate.length === 0 && eligibile.some(c => !esteEchipaSauPereche(c))) {
-        erori.push(`${sportiv.prenume} ${sportiv.nume}: nicio categorie individuala selectata`);
-      }
+      // NB: sportiv fără nicio categorie individuală NU mai blochează continuarea — devine warning (sportivifaraCategorie)
 
       // inlantuire_id obligatoriu dacă există drepturi pentru gradul sportivului
       for (const catId of catIndivBifate) {
@@ -2104,7 +2102,7 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
         if (drept && drept.inlantuiri.length > 0) {
           const pick = sportivPicks.get(catId);
           if (!pick?.inlantuire_id) {
-            erori.push(`${sportiv.prenume} ${sportiv.nume}: alege inlantuirea pentru ${cat.denumire ?? 'Thao Quyen'}`);
+            erori.push(`${sportiv.nume} ${sportiv.prenume}: alege inlantuirea pentru ${cat.denumire ?? 'Thao Quyen'}`);
           }
         }
       }
@@ -2113,12 +2111,30 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
       if (varsta < 18 && catIndivBifate.length > 0) {
         const acord = sportivPicks.get('__acord__');
         if (!acord?.acord_parental) {
-          erori.push(`${sportiv.prenume} ${sportiv.nume}: acord parental obligatoriu`);
+          erori.push(`${sportiv.nume} ${sportiv.prenume}: acord parental obligatoriu`);
         }
       }
     }
     return erori;
   }, [sportiviSelectati, eligibilePerSportiv, indivPicks, categorii, grade, drepturi]);
+
+  // Warning: sportivi fără nicio categorie individuală selectată (nu blochează continuarea)
+  const sportivifaraCategorie = useMemo<string[]>(() => {
+    const lista: string[] = [];
+    for (const { sportiv } of sportiviSelectati) {
+      const eligibile = eligibilePerSportiv.get(sportiv.id) ?? [];
+      const sportivPicks = indivPicks.get(sportiv.id) ?? new Map<string, PickCategorie>();
+      const catBifate = [...sportivPicks.keys()].filter(k => k !== '__acord__');
+      const catIndivBifate = catBifate.filter(catId => {
+        const cat = categorii.find(c => c.id === catId);
+        return cat && !esteEchipaSauPereche(cat);
+      });
+      if (catIndivBifate.length === 0 && eligibile.some(c => !esteEchipaSauPereche(c))) {
+        lista.push(`${sportiv.nume} ${sportiv.prenume}`);
+      }
+    }
+    return lista;
+  }, [sportiviSelectati, eligibilePerSportiv, indivPicks, categorii]);
 
   // Categoriile de tip echipă bifate de orice sportiv → Pasul 3
   const echipaPicks = useMemo<string[]>(() => {
@@ -2251,6 +2267,16 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
         </div>
       )}
 
+      {/* Warning: sportivi fără categorii individuale — nu blochează continuarea */}
+      {sportivifaraCategorie.length > 0 && (
+        <div className="rounded-lg border border-yellow-700/50 bg-yellow-900/20 px-4 py-3 space-y-1">
+          <p className="text-xs text-yellow-400 font-semibold">
+            ⚠ {sportivifaraCategorie.length} sportiv{sportivifaraCategorie.length !== 1 ? 'i' : ''} fără categorii selectate — vor fi incluși în competiție fără probe individuale:
+          </p>
+          <p className="text-xs text-yellow-400/80">{sportivifaraCategorie.join(', ')}</p>
+        </div>
+      )}
+
       {/* Footer sticky */}
       <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
@@ -2287,6 +2313,7 @@ export interface EchipaFormata {
   rezerve: string[];   // sportivId[]
   program?: string;    // program ales (SL/Sincron)
   echipaIncompleta?: boolean; // solicitare partener inter-club
+  echipaSkip?: boolean; // nu participam la aceasta proba
 }
 
 // -----------------------------------------------
@@ -2460,6 +2487,21 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
         />
       </div>
 
+      {/* Toggle "Nu participam" */}
+      <div className="px-4 py-2.5 border-b border-slate-700/40">
+        <label className="flex items-center gap-2.5 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={echipa.echipaSkip ?? false}
+            onChange={e => onUpdateEchipa({ echipaSkip: e.target.checked, titulari: [], rezerve: [] })}
+            className="w-4 h-4 rounded accent-slate-400 cursor-pointer"
+          />
+          <span className="text-xs text-slate-400 font-medium">Nu participăm la această probă</span>
+        </label>
+      </div>
+
+      {!echipa.echipaSkip && (
+      <>
       {/* Banner gender locking Mixt */}
       {isMixt && (masculinBlocat || femininBlocat) && (
         <div className="mx-4 mt-3 rounded-lg border border-yellow-600/50 bg-yellow-900/20 px-3 py-2">
@@ -2506,7 +2548,7 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
             return (
               <div key={sportiv.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-white">{sportiv.prenume} {sportiv.nume}</span>
+                  <span className="text-sm font-medium text-white">{sportiv.nume} {sportiv.prenume}</span>
                   {genderBlocat && (
                     <span className="ml-2 text-[10px] font-semibold text-yellow-400">
                       🔒 {sportiv.gen === 'Masculin' ? 'Trebuie fată mai întâi' : 'Trebuie băiat mai întâi'}
@@ -2595,15 +2637,20 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
       {/* Câmp nume echipă */}
       <div className="px-4 py-3 border-t border-slate-700/60 bg-slate-800/20">
         <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
-          Nume echipa (optional)
+          Nume echipă
         </label>
-        <input
-          type="text"
-          value={echipa.numeEchipa}
-          onChange={e => onUpdateEchipa({ numeEchipa: e.target.value })}
-          placeholder={numeClub}
-          className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary"
-        />
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-white font-medium whitespace-nowrap">{numeClub}</span>
+          <span className="text-slate-600">—</span>
+          <input
+            type="text"
+            value={echipa.numeEchipa}
+            onChange={e => onUpdateEchipa({ numeEchipa: e.target.value })}
+            placeholder="suffix opțional..."
+            className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary"
+          />
+        </div>
+        <p className="text-[11px] text-slate-600 mt-1">Clubul este adăugat automat ca prefix</p>
       </div>
 
       {/* Eroare validare */}
@@ -2613,6 +2660,8 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
             {erroare}
           </p>
         </div>
+      )}
+      </>
       )}
     </div>
   );
@@ -2705,7 +2754,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     if (echipeFormate.length === 0 && categoriiEchipa.length > 0) {
       const initiale: EchipaFormata[] = categoriiEchipa.map(cat => ({
         categorieId: cat.id,
-        numeEchipa: numeClub,
+        numeEchipa: '',
         titulari: [],
         rezerve: [],
         echipaIncompleta: false,
@@ -2719,7 +2768,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   const getEchipa = (catId: string): EchipaFormata => {
     return echipeFormate.find(e => e.categorieId === catId) ?? {
       categorieId: catId,
-      numeEchipa: numeClub,
+      numeEchipa: '',
       titulari: [],
       rezerve: [],
       echipaIncompleta: false,
@@ -2768,6 +2817,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
       const isPereche = cat.tip_participare === 'pereche';
       const titMin = isPereche ? 2 : cat.sportivi_per_echipa_min;
 
+      if (echipa.echipaSkip) continue; // nu participam → skip validare
       if (echipa.echipaIncompleta) continue; // inter-club → permis
 
       if (echipa.titulari.length < titMin) {
@@ -3012,7 +3062,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       const taxa = cat ? calculeazaTaxaEchipa(cat, competitie) : (competitie.config_taxe?.echipa_seniori ?? competitie.taxa_echipa ?? 120);
       const getNumeSportiv = (id: string) => {
         const s = sportivi.find(sp => sp.id === id);
-        return s ? `${s.prenume} ${s.nume}` : id;
+        return s ? `${s.nume} ${s.prenume}` : id;
       };
       return {
         echipa,
@@ -3026,6 +3076,8 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       if (!r.categorie) return false;
       // Excludem echipele ale căror categorii aparțin probelor sărite
       if (r.categorie.proba_id && probeSkipped.has(r.categorie.proba_id)) return false;
+      // Excludem echipele marcate cu "nu participam"
+      if (r.echipa?.echipaSkip) return false;
       return true;
     });
   }, [echipeFormate, categorii, competitie, sportivi, probeSkipped]);
@@ -3058,7 +3110,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
     randuriIndividuale.map(r => {
       const gradEntry = grade.find(g => g.id === r.sportiv.grad_actual_id);
       return {
-        numeComplet: `${r.sportiv.prenume} ${r.sportiv.nume}`,
+        numeComplet: `${r.sportiv.nume} ${r.sportiv.prenume}`,
         categorie: r.categorie.denumire ?? `Categoria ${r.categorie.numar_categorie}`,
         proba: r.categorie.proba?.denumire ?? '—',
         inlantuireArma: (r.inlantuire_id ? inlantuiriById.get(r.inlantuire_id)?.denumire : null) ?? '—',
@@ -3071,7 +3123,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
 
   const randuriEchipePDF = useMemo<RandEchipaPDF[]>(() =>
     randuriEchipe.map(r => ({
-      numeEchipa: r.echipa.numeEchipa || numeClub,
+      numeEchipa: numeClub + (r.echipa.numeEchipa ? ' — ' + r.echipa.numeEchipa : ''),
       categorie: r.categorie.denumire ?? `Categoria ${r.categorie.numar_categorie}`,
       titulari: r.titulariNume.join(', '),
       rezerve: r.rezerveNume.join(', '),
@@ -3099,7 +3151,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       let skippedCount = 0;
       for (const rand of randuriIndividuale) {
         const catName = rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`;
-        const sportivName = `${rand.sportiv.prenume} ${rand.sportiv.nume}`;
+        const sportivName = `${rand.sportiv.nume} ${rand.sportiv.prenume}`;
 
         const { data: existent } = await supabase
           .from('inscrieri_competitie')
@@ -3157,7 +3209,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             competitie_id: competitie.id,
             categorie_id: rand.echipa.categorieId,
             club_id: clubId,
-            denumire_echipa: rand.echipa.numeEchipa || numeClub,
+            denumire_echipa: numeClub + (rand.echipa.numeEchipa ? ' — ' + rand.echipa.numeEchipa : ''),
             status: 'inscrisa',
             taxa_achitata: false,
             echipa_incompleta: rand.echipa.echipaIncompleta ?? false,
@@ -3270,7 +3322,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                 {randuriIndividuale.map(rand => (
                   <tr key={rand.sportiv.id} className="bg-slate-800/10 hover:bg-slate-800/40 transition-colors">
                     <td className="px-4 py-2.5 font-medium text-white whitespace-nowrap">
-                      {rand.sportiv.prenume} {rand.sportiv.nume}
+                      {rand.sportiv.nume} {rand.sportiv.prenume}
                     </td>
                     <td className="px-4 py-2.5 text-sm text-slate-300">
                       {rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}
@@ -3301,7 +3353,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
               <div key={rand.sportiv.id} className="px-4 py-3 space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-sm text-white">
-                    {rand.sportiv.prenume} {rand.sportiv.nume}
+                    {rand.sportiv.nume} {rand.sportiv.prenume}
                   </span>
                   <span className="text-sm font-semibold text-green-400">{rand.taxa} lei</span>
                 </div>
@@ -3343,7 +3395,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-sm text-white">
-                        {rand.echipa.numeEchipa || numeClub}
+                        {numeClub + (rand.echipa.numeEchipa ? ' — ' + rand.echipa.numeEchipa : '')}
                       </span>
                       {rand.incompleta && (
                         <span className="text-[10px] font-bold text-amber-400 bg-amber-900/30 border border-amber-700/50 rounded-full px-1.5 py-0.5 whitespace-nowrap">
@@ -3461,7 +3513,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           <Button
             variant="success"
             onClick={() => setConfirmOpen(true)}
-            disabled={saving || !!successMsg || (randuriIndividuale.length === 0 && randuriEchipe.length === 0)}
+            disabled={saving || !!successMsg}
             className="min-w-[180px] ml-auto"
           >
             Finalizeaza inscrierea
@@ -3521,6 +3573,12 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             <p className="text-xs text-slate-500 italic">
               Dupa finalizare, inscrierea va fi trimisa organizatorilor. Poti retrage individual sportivii ulterior.
             </p>
+
+            {randuriIndividuale.length === 0 && randuriEchipe.length === 0 && (
+              <p className="text-xs text-amber-400 bg-amber-900/20 border border-amber-700/40 rounded-lg px-3 py-2">
+                ⚠ Nu ai adăugat nicio înscriere. Dorești să continui fără a înscrie sportivi?
+              </p>
+            )}
 
             {/* Actiuni */}
             <div className="flex gap-3 pt-1">

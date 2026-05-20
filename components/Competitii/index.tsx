@@ -601,7 +601,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                             <span className="text-xs text-slate-500 w-5 shrink-0">{idx + 1}.</span>
                                             <div className="flex-1 min-w-0">
                                               <span className="text-sm text-white font-medium uppercase">
-                                                {sp ? `${sp.prenume} ${sp.nume}` : ins.sportiv_id}
+                                                {sp ? `${sp.nume} ${sp.prenume}` : ins.sportiv_id}
                                               </span>
                                               {numeClub && (
                                                 <span className="ml-2 text-[10px] text-slate-400 font-normal normal-case">{numeClub}</span>
@@ -633,7 +633,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                                                 const numeClubMembru = ms.sportiv?.cluburi?.nume || null;
                                                 return (
                                                 <span key={ms.sportiv_id} className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">
-                                                  <span className="uppercase">{ms.sportiv ? `${ms.sportiv.prenume} ${ms.sportiv.nume}` : ms.sportiv_id}</span>
+                                                  <span className="uppercase">{ms.sportiv ? `${ms.sportiv.nume} ${ms.sportiv.prenume}` : ms.sportiv_id}</span>
                                                   {numeClubMembru && <span className="text-slate-500 ml-1 normal-case">({numeClubMembru})</span>}
                                                   {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">[R]</span>}
                                                 </span>
@@ -731,7 +731,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                         <tr key={r.id} className="border-b border-slate-800 hover:bg-slate-800/40">
                           <td className="p-2 text-slate-500">{idx + 1}</td>
                           <td className="p-2 font-medium text-white">
-                            <span className="uppercase">{r.sportiv ? `${r.sportiv.prenume} ${r.sportiv.nume}` : '—'}</span>
+                            <span className="uppercase">{r.sportiv ? `${r.sportiv.nume} ${r.sportiv.prenume}` : '—'}</span>
                           </td>
                           <td className="p-2 text-slate-400">{r.probe || '—'}</td>
                           <td className="p-2">
@@ -2052,7 +2052,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                       <td className="p-2">
                         <div className="flex items-center gap-1 flex-wrap">
                           <span className="font-medium text-white uppercase">
-                            {sportiv?.prenume} {sportiv?.nume}
+                            {sportiv?.nume} {sportiv?.prenume}
                           </span>
                           {canSeeAll && (sportiv as any)?.cluburi?.nume && (
                             <span className="text-[10px] text-slate-400 normal-case">{(sportiv as any).cluburi.nume}</span>
@@ -2133,7 +2133,7 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                           const faraViza = ms.sportiv && !areVizaFRAM(ms.sportiv.id, anCompetitie, vizeSportivi);
                           return (
                             <span key={ms.sportiv_id} className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${faraViza ? 'bg-yellow-900/40 text-yellow-200 border border-yellow-700/50' : 'bg-slate-700 text-slate-300'}`}>
-                              <span className="uppercase">{ms.sportiv?.prenume} {ms.sportiv?.nume}</span>
+                              <span className="uppercase">{ms.sportiv?.nume} {ms.sportiv?.prenume}</span>
                               {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">(R)</span>}
                               {faraViza && <span title="Fără viză FRAM">⚠</span>}
                             </span>
@@ -2431,7 +2431,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-sm text-white font-medium uppercase">{sportiv.prenume} {sportiv.nume}</span>
+            <span className="text-sm text-white font-medium uppercase">{sportiv.nume} {sportiv.prenume}</span>
             {deja && (
               <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-2 py-0.5">
                 Inscris
@@ -2477,7 +2477,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           className="w-4 h-4" />
         <div className="flex-1">
           <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-sm text-white uppercase">{sportiv.prenume} {sportiv.nume}</span>
+            <span className="text-sm text-white uppercase">{sportiv.nume} {sportiv.prenume}</span>
             {deja && (
               <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-1.5 py-0.5">
                 In echipă
@@ -2657,7 +2657,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                                 {faraGen.map(({ sportiv }) => (
                                   <div key={sportiv.id} className="flex items-center gap-2 p-2 rounded border border-amber-800/40 bg-amber-900/10 opacity-70">
                                     <input type="checkbox" disabled className="w-4 h-4 opacity-40" />
-                                    <span className="text-xs text-amber-300 uppercase">{sportiv.prenume} {sportiv.nume}</span>
+                                    <span className="text-xs text-amber-300 uppercase">{sportiv.nume} {sportiv.prenume}</span>
                                     <span className="text-[9px] text-amber-500 ml-auto">fara gen</span>
                                   </div>
                                 ))}
@@ -2752,7 +2752,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                           disabled={isTitular}
                           onChange={() => toggleRezerva(sportiv.id)}
                           className="w-3 h-3" />
-                        <span className="text-slate-300 uppercase">{sportiv.prenume} {sportiv.nume}</span>
+                        <span className="text-slate-300 uppercase">{sportiv.nume} {sportiv.prenume}</span>
                       </label>
                     );
                   })}

@@ -699,6 +699,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                   isClubAdmin={isClubAdmin}
                   myClubId={myClubId || null}
                   vizeSportivi={vizeSportivi}
+                  sportivi={filteredData.sportivi.filter((s: Sportiv) => s.status === 'Activ')}
                   onRefresh={fetchData}
                 />
               </div>
@@ -2152,6 +2153,137 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, probe, grad
 };
 
 // -----------------------------------------------
+// ECHIPA EDIT MODAL
+// -----------------------------------------------
+interface EchipaEditModalProps {
+  echipa: EchipaCompetitie;
+  categorie: CategorieCompetitie | null;
+  sportivi: Sportiv[];
+  onClose: () => void;
+  onSaved: (echipa: EchipaCompetitie) => void;
+}
+
+const EchipaEditModal: React.FC<EchipaEditModalProps> = ({
+  echipa, categorie, sportivi, onClose, onSaved,
+}) => {
+  const { showError } = useError();
+  const [loading, setLoading] = useState(false);
+
+  const existingMembers: Array<{ sportiv_id: string; rol: string }> =
+    (echipa as any).echipa_sportivi || [];
+
+  const [titulari, setTitulari] = useState<string[]>(
+    existingMembers.filter(m => m.rol === 'titular').map(m => m.sportiv_id)
+  );
+  const [rezerve, setRezeve] = useState<string[]>(
+    existingMembers.filter(m => m.rol === 'rezerva').map(m => m.sportiv_id)
+  );
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await supabase.from('echipa_sportivi').delete().eq('echipa_id', echipa.id);
+
+      const members = [
+        ...titulari.map(id => ({ echipa_id: echipa.id, sportiv_id: id, rol: 'titular' })),
+        ...rezerve.map(id => ({ echipa_id: echipa.id, sportiv_id: id, rol: 'rezerva' })),
+      ];
+      if (members.length > 0) {
+        const { error } = await supabase.from('echipa_sportivi').insert(members);
+        if (error) throw error;
+      }
+
+      const { data, error: fetchErr } = await supabase
+        .from('echipe_competitie')
+        .select('*, echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume))')
+        .eq('id', echipa.id)
+        .single();
+      if (fetchErr) throw fetchErr;
+
+      onSaved(data as EchipaCompetitie);
+    } catch (err: any) {
+      showError('Eroare', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleTitular = (id: string) => {
+    if (titulari.includes(id)) {
+      setTitulari(prev => prev.filter(x => x !== id));
+    } else {
+      setTitulari(prev => [...prev, id]);
+      setRezeve(prev => prev.filter(x => x !== id));
+    }
+  };
+
+  const toggleRezeva = (id: string) => {
+    if (rezerve.includes(id)) {
+      setRezeve(prev => prev.filter(x => x !== id));
+    } else {
+      setRezeve(prev => [...prev, id]);
+      setTitulari(prev => prev.filter(x => x !== id));
+    }
+  };
+
+  return (
+    <Modal isOpen={true} onClose={onClose} title={`Editează componența: ${echipa.denumire_echipa}`}>
+      <div className="space-y-4">
+        {categorie && (
+          <p className="text-xs text-slate-400">Categorie: <span className="text-white">{categorie.denumire}</span></p>
+        )}
+        <div className="max-h-[55vh] overflow-y-auto space-y-1 pr-1">
+          {sportivi.map(s => {
+            const isTitular = titulari.includes(s.id);
+            const isRezeva = rezerve.includes(s.id);
+            return (
+              <div key={s.id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-slate-800/60">
+                <span className="text-sm text-white">{s.nume} {s.prenume}</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleTitular(s.id)}
+                    style={{ touchAction: 'manipulation' }}
+                    className={`text-xs px-3 py-1.5 rounded border transition-colors min-h-[34px] ${
+                      isTitular
+                        ? 'border-brand-primary bg-brand-primary/20 text-white'
+                        : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                    }`}
+                  >
+                    {isTitular ? '✓ Titular' : 'Titular'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleRezeva(s.id)}
+                    style={{ touchAction: 'manipulation' }}
+                    className={`text-xs px-3 py-1.5 rounded border transition-colors min-h-[34px] ${
+                      isRezeva
+                        ? 'border-yellow-500 bg-yellow-900/20 text-yellow-300'
+                        : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                    }`}
+                  >
+                    {isRezeva ? '✓ Rezervă' : 'Rezervă'}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="text-xs text-slate-400">
+          {titulari.length} titulari · {rezerve.length} rezerve
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+          <Button variant="success" onClick={handleSave} disabled={loading}>
+            {loading ? 'Se salvează...' : 'Salvează'}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+// -----------------------------------------------
 // INSCRIERI VIEW
 // -----------------------------------------------
 interface InscrieriViewProps {
@@ -2165,25 +2297,30 @@ interface InscrieriViewProps {
   isClubAdmin: boolean;
   myClubId: string | null;
   vizeSportivi: VizaSportiv[];
+  sportivi: Sportiv[];
   onRefresh: () => void;
 }
 
 const InscrieriView: React.FC<InscrieriViewProps> = ({
-  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, myClubId, vizeSportivi, onRefresh
+  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, myClubId, vizeSportivi, sportivi, onRefresh
 }) => {
   const { showError } = useError();
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
   const [echipeRetraseLocal, setEchipeRetraseLocal] = useState<Set<string>>(new Set());
   // Expand/collapse secțiuni per probă în tab Înscrieri
   const [expandedProbe, setExpandedProbe] = useState<Set<string>>(new Set(['__individual__', '__echipe__', ...probe.map(p => p.id)]));
+  const [echipaToEdit, setEchipaToEdit] = useState<EchipaCompetitie | null>(null);
+  const [echipeLocale, setEchipeLocale] = useState<EchipaCompetitie[]>(echipe);
 
-  const canSeeAll = isAdmin || isClubAdmin;
+  useEffect(() => { setEchipeLocale(echipe); }, [echipe]);
+
+  const canSeeAll = isAdmin;
   const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1 };
   const filteredInscrieri = (canSeeAll ? inscrieri : inscrieri.filter(i => i.club_id === myClubId))
     .filter(i => i.status?.toLowerCase() !== 'retras')
     .slice()
     .sort((a, b) => (statusOrdine[a.status] ?? 9) - (statusOrdine[b.status] ?? 9));
-  const filteredEchipe = (canSeeAll ? echipe : echipe.filter(e => e.club_id === myClubId))
+  const filteredEchipe = (canSeeAll ? echipeLocale : echipeLocale.filter(e => e.club_id === myClubId))
     .filter(e => e.status?.toLowerCase() !== 'retrasa')
     .filter(e => !echipeRetraseLocal.has((e as any).id));
 
@@ -2341,6 +2478,16 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
                         ec.status === 'retrasa' ? 'bg-red-800 text-red-200' :
                         'bg-slate-700 text-slate-300'
                       }`}>{ec.status}</span>
+                      {(isAdmin || (isClubAdmin && ec.club_id === myClubId)) && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => setEchipaToEdit(ec)}
+                          style={{ touchAction: 'manipulation' }}
+                        >
+                          Editează componența
+                        </Button>
+                      )}
                       {ec.status === 'inscrisa' && (isAdmin || ec.club_id === myClubId) && (
                         <Button size="sm" variant="danger" className="text-xs !py-1"
                           onClick={() => handleRetrage(ec.id, 'echipa')}>Retrage</Button>
@@ -2359,6 +2506,18 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
         <div className="text-center text-slate-500 py-12 italic">
           {canSeeAll ? 'Nicio înscriere înregistrată.' : 'Clubul tău nu are sportivi înscriși la această competiție.'}
         </div>
+      )}
+      {echipaToEdit && (
+        <EchipaEditModal
+          echipa={echipaToEdit}
+          categorie={categorii.find(c => c.id === echipaToEdit.categorie_id) ?? null}
+          sportivi={sportivi.filter(s => s.club_id === (isAdmin ? (echipaToEdit as any).club_id : myClubId))}
+          onClose={() => setEchipaToEdit(null)}
+          onSaved={(updated) => {
+            setEchipeLocale(prev => prev.map(e => e.id === updated.id ? updated : e));
+            setEchipaToEdit(null);
+          }}
+        />
       )}
     </div>
   );

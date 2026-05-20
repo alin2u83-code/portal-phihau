@@ -312,6 +312,156 @@ const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSave
 };
 
 // -----------------------------------------------
+// RAPORT INSCRIERI COMPONENT
+// -----------------------------------------------
+interface RaportInscrieriProps {
+  competitie: Competitie;
+  categorii: CategorieCompetitie[];
+  probe: ProbaCompetitie[];
+  inscrieri: InscriereCompetitie[];
+  echipe: EchipaCompetitie[];
+  isAdmin: boolean;
+  myClubId: string | null;
+}
+
+const RaportInscrieri: React.FC<RaportInscrieriProps> = ({
+  competitie, categorii, probe, inscrieri, echipe, isAdmin, myClubId,
+}) => {
+  interface ParticipareRaport {
+    tip: 'individual' | 'echipa';
+    probaDenumire: string;
+    categorieDenumire: string;
+    rol?: string;
+    numeEchipa?: string;
+  }
+  interface SportivRaport {
+    id: string;
+    nume: string;
+    prenume: string;
+    clubNume: string;
+    participari: ParticipareRaport[];
+  }
+
+  const filteredIns = inscrieri.filter(i =>
+    i.status?.toLowerCase() !== 'retras' && (isAdmin || i.club_id === myClubId)
+  );
+  const filteredEc = echipe.filter(e =>
+    e.status?.toLowerCase() !== 'retrasa' && (isAdmin || e.club_id === myClubId)
+  );
+
+  const raport = useMemo<SportivRaport[]>(() => {
+    const map = new Map<string, SportivRaport>();
+
+    for (const ins of filteredIns) {
+      const sp = ins.sportiv as any;
+      if (!sp) continue;
+      const cat = categorii.find(c => c.id === ins.categorie_id);
+      const proba = probe.find(p => p.id === cat?.proba_id);
+      if (!map.has(sp.id)) {
+        map.set(sp.id, { id: sp.id, nume: sp.nume, prenume: sp.prenume, clubNume: sp.cluburi?.nume ?? '', participari: [] });
+      }
+      map.get(sp.id)!.participari.push({
+        tip: 'individual',
+        probaDenumire: proba?.denumire ?? cat?.denumire ?? 'Probă',
+        categorieDenumire: cat?.denumire ?? 'Categorie',
+      });
+    }
+
+    for (const ec of filteredEc) {
+      const cat = categorii.find(c => c.id === ec.categorie_id);
+      const proba = probe.find(p => p.id === cat?.proba_id);
+      const membri = (ec as any).echipa_sportivi || [];
+      for (const m of membri) {
+        const sp = m.sportiv as any;
+        if (!sp) continue;
+        if (!map.has(sp.id)) {
+          map.set(sp.id, { id: sp.id, nume: sp.nume, prenume: sp.prenume, clubNume: (ec as any).club?.nume ?? '', participari: [] });
+        }
+        map.get(sp.id)!.participari.push({
+          tip: 'echipa',
+          probaDenumire: proba?.denumire ?? cat?.denumire ?? 'Probă',
+          categorieDenumire: cat?.denumire ?? 'Categorie',
+          rol: m.rol,
+          numeEchipa: (ec as any).denumire_echipa ?? '',
+        });
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => a.nume.localeCompare(b.nume) || a.prenume.localeCompare(b.prenume));
+  }, [filteredIns, filteredEc, categorii, probe]);
+
+  const handlePrint = () => window.print();
+
+  if (raport.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+        <p className="text-sm">Niciun sportiv înscris momentan.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-base font-semibold text-white">Raport Înscrieri</h3>
+          <span className="text-xs text-slate-400 bg-slate-700 px-2 py-0.5 rounded-full">{raport.length} sportivi</span>
+        </div>
+        <button
+          onClick={handlePrint}
+          style={{ touchAction: 'manipulation' }}
+          className="text-xs px-3 py-2 rounded-lg border border-slate-600 text-slate-400 hover:text-white hover:border-slate-500 transition-colors min-h-[36px]"
+        >
+          Imprimă
+        </button>
+      </div>
+
+      <div className="border border-slate-700 rounded-xl overflow-hidden">
+        <div className="divide-y divide-slate-700/50">
+          {raport.map((sp) => (
+            <div key={sp.id} className="px-4 py-3">
+              <div className="flex items-start justify-between gap-2 flex-wrap">
+                <div>
+                  <span className="text-sm font-semibold text-white">{sp.nume} {sp.prenume}</span>
+                  {isAdmin && sp.clubNume && (
+                    <span className="ml-2 text-xs text-slate-400">{sp.clubNume}</span>
+                  )}
+                </div>
+                <span className="text-xs text-slate-500 shrink-0">
+                  {sp.participari.length} prob{sp.participari.length === 1 ? 'ă' : 'e'}
+                </span>
+              </div>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {sp.participari.map((p, i) => (
+                  <span
+                    key={i}
+                    className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border ${
+                      p.tip === 'individual'
+                        ? 'border-brand-primary/40 bg-brand-primary/10 text-brand-primary'
+                        : p.rol === 'titular'
+                          ? 'border-green-700/40 bg-green-900/20 text-green-300'
+                          : 'border-yellow-700/40 bg-yellow-900/20 text-yellow-300'
+                    }`}
+                  >
+                    {p.probaDenumire}
+                    {p.tip === 'echipa' && p.numeEchipa && (
+                      <span className="text-slate-500 ml-0.5">· {p.numeEchipa}</span>
+                    )}
+                    {p.tip === 'echipa' && (
+                      <span className="text-[10px] opacity-60">({p.rol})</span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// -----------------------------------------------
 // COMPETITION DETAIL (categories + registrations view)
 // -----------------------------------------------
 interface CompetitieDetailProps {
@@ -330,9 +480,9 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [inscrieri, setInscrieri] = useState<InscriereCompetitie[]>([]);
   const [echipe, setEchipe] = useState<EchipaCompetitie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'admin' | 'rezultate_legacy'>(() => {
+  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy'>(() => {
     const saved = ssGet(SS_KEY_TAB);
-    if (saved === 'categorii' || saved === 'inscrieri' || saved === 'admin' || saved === 'rezultate_legacy') return saved;
+    if (saved === 'categorii' || saved === 'inscrieri' || saved === 'raport' || saved === 'admin' || saved === 'rezultate_legacy') return saved;
     return 'inscrieri';
   });
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -352,7 +502,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const isClubAdmin = permissions.isAdminClub;
 
   // Persistă tab-ul activ în sessionStorage la fiecare schimbare
-  const handleSetActiveTab = useCallback((tab: 'categorii' | 'inscrieri' | 'admin' | 'rezultate_legacy') => {
+  const handleSetActiveTab = useCallback((tab: 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy') => {
     setActiveTab(tab);
     ssSet(SS_KEY_TAB, tab);
   }, []);
@@ -460,8 +610,26 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
-          <span>Înscrieri <span className="text-sm font-normal opacity-75">({inscrieri.length + echipe.length})</span></span>
+          <span>Înscrieri <span className="text-sm font-normal opacity-75">({
+            isAdmin
+              ? inscrieri.length + echipe.length
+              : inscrieri.filter(i => i.club_id === myClubId && i.status?.toLowerCase() !== 'retras').length
+                + echipe.filter(e => e.club_id === myClubId && e.status?.toLowerCase() !== 'retrasa').length
+          })</span></span>
         </button>
+        {(isAdmin || isClubAdmin) && (
+          <button
+            onClick={() => handleSetActiveTab('raport')}
+            style={{ touchAction: 'manipulation' }}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+              activeTab === 'raport'
+                ? 'bg-brand-primary text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-700'
+            }`}
+          >
+            Raport
+          </button>
+        )}
         <button onClick={() => handleSetActiveTab('categorii')} style={{ touchAction: 'manipulation' }}
           className={`flex-1 min-w-[120px] h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'categorii' ? 'bg-slate-600 text-white shadow-lg' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
           <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -705,6 +873,19 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 />
               </div>
             )
+          )}
+
+          {/* RAPORT TAB */}
+          {activeTab === 'raport' && (isAdmin || isClubAdmin) && (
+            <RaportInscrieri
+              competitie={competitie}
+              categorii={categorii}
+              probe={probe}
+              inscrieri={inscrieri}
+              echipe={echipe}
+              isAdmin={isAdmin}
+              myClubId={myClubId || null}
+            />
           )}
 
           {/* REZULTATE LEGACY TAB */}
@@ -2185,8 +2366,6 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
   const [expandedProbe, setExpandedProbe] = useState<Set<string>>(new Set(['__individual__', '__echipe__', ...probe.map(p => p.id)]));
   const [editEchipaCategorie, setEditEchipaCategorie] = useState<CategorieCompetitie | null>(null);
   const [editEchipaClubId, setEditEchipaClubId] = useState<string>('');
-  const [raportOpen, setRaportOpen] = useState(false);
-
   const canSeeAll = isAdmin;
   const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1 };
   const filteredInscrieri = (canSeeAll ? inscrieri : inscrieri.filter(i => i.club_id === myClubId))
@@ -2216,75 +2395,6 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
 
   const individualExpanded = expandedProbe.has('__individual__');
   const echipeExpanded = expandedProbe.has('__echipe__');
-
-  interface ParticipareRaport {
-    tip: 'individual' | 'echipa';
-    probaDenumire: string;
-    categorieDenumire: string;
-    rol?: string;
-    numeEchipa?: string;
-  }
-  interface SportivRaport {
-    id: string;
-    nume: string;
-    prenume: string;
-    clubNume: string;
-    participari: ParticipareRaport[];
-  }
-  const raport = useMemo((): SportivRaport[] => {
-    const map = new Map<string, SportivRaport>();
-
-    for (const ins of filteredInscrieri) {
-      const sp = ins.sportiv as any;
-      if (!sp) continue;
-      const cat = categorii.find(c => c.id === ins.categorie_id);
-      const proba = probe.find(p => p.id === cat?.proba_id);
-      if (!map.has(sp.id)) {
-        map.set(sp.id, {
-          id: sp.id,
-          nume: sp.nume,
-          prenume: sp.prenume,
-          clubNume: sp.cluburi?.nume ?? '',
-          participari: [],
-        });
-      }
-      map.get(sp.id)!.participari.push({
-        tip: 'individual',
-        probaDenumire: proba?.denumire ?? 'Probă necunoscută',
-        categorieDenumire: cat?.denumire ?? 'Categorie necunoscută',
-      });
-    }
-
-    for (const ec of filteredEchipe) {
-      const cat = categorii.find(c => c.id === ec.categorie_id);
-      const proba = probe.find(p => p.id === cat?.proba_id);
-      const membri = (ec as any).echipa_sportivi || [];
-      for (const m of membri) {
-        const sp = m.sportiv as any;
-        if (!sp) continue;
-        if (!map.has(sp.id)) {
-          map.set(sp.id, {
-            id: sp.id,
-            nume: sp.nume,
-            prenume: sp.prenume,
-            clubNume: (ec as any).club?.nume ?? '',
-            participari: [],
-          });
-        }
-        map.get(sp.id)!.participari.push({
-          tip: 'echipa',
-          probaDenumire: proba?.denumire ?? 'Probă necunoscută',
-          categorieDenumire: cat?.denumire ?? 'Categorie necunoscută',
-          rol: m.rol,
-          numeEchipa: (ec as any).denumire_echipa ?? '',
-        });
-      }
-    }
-
-    return Array.from(map.values()).sort((a, b) =>
-      a.nume.localeCompare(b.nume) || a.prenume.localeCompare(b.prenume)
-    );
-  }, [filteredInscrieri, filteredEchipe, categorii, probe]);
 
   return (
     <div className="space-y-6">
@@ -2453,78 +2563,6 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
       {filteredInscrieri.length === 0 && filteredEchipe.length === 0 && (
         <div className="text-center text-slate-500 py-12 italic">
           {canSeeAll ? 'Nicio înscriere înregistrată.' : 'Clubul tău nu are sportivi înscriși la această competiție.'}
-        </div>
-      )}
-
-      {/* RAPORT ÎNSCRIERI */}
-      {(filteredInscrieri.length > 0 || filteredEchipe.length > 0) && (
-        <div className="mt-6">
-          <button
-            onClick={() => setRaportOpen(prev => !prev)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-slate-800/60 border border-slate-700 rounded-xl hover:border-slate-500 transition-colors"
-            style={{ touchAction: 'manipulation' }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-white">Raport Înscrieri</span>
-              <span className="text-xs text-slate-400 bg-slate-700 px-2 py-0.5 rounded-full">
-                {raport.length} sportivi
-              </span>
-            </div>
-            <svg
-              className={`w-4 h-4 text-slate-400 transition-transform ${raportOpen ? 'rotate-180' : ''}`}
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          {raportOpen && (
-            <div className="mt-2 border border-slate-700 rounded-xl overflow-hidden">
-              {raport.length === 0 ? (
-                <div className="px-4 py-6 text-sm text-slate-500 text-center">Niciun sportiv înscris.</div>
-              ) : (
-                <div className="divide-y divide-slate-700/50">
-                  {raport.map((sp) => (
-                    <div key={sp.id} className="px-4 py-3">
-                      <div className="flex items-start justify-between gap-2 flex-wrap">
-                        <div>
-                          <span className="text-sm font-semibold text-white">
-                            {sp.nume} {sp.prenume}
-                          </span>
-                          {isAdmin && sp.clubNume && (
-                            <span className="ml-2 text-xs text-slate-400">{sp.clubNume}</span>
-                          )}
-                        </div>
-                        <span className="text-xs text-slate-500 shrink-0">
-                          {sp.participari.length} prob{sp.participari.length === 1 ? 'ă' : 'e'}
-                        </span>
-                      </div>
-                      <div className="mt-1.5 flex flex-wrap gap-1.5">
-                        {sp.participari.map((p, i) => (
-                          <span
-                            key={i}
-                            className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border ${
-                              p.tip === 'individual'
-                                ? 'border-brand-primary/40 bg-brand-primary/10 text-brand-primary'
-                                : p.rol === 'titular'
-                                  ? 'border-green-700/40 bg-green-900/20 text-green-300'
-                                  : 'border-yellow-700/40 bg-yellow-900/20 text-yellow-300'
-                            }`}
-                          >
-                            {p.tip === 'individual' ? '⚡' : p.rol === 'titular' ? '👤' : '🔄'}
-                            {p.probaDenumire}
-                            {p.tip === 'echipa' && p.numeEchipa && (
-                              <span className="text-slate-500"> · {p.numeEchipa}</span>
-                            )}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
 

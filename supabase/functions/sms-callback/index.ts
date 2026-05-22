@@ -10,7 +10,15 @@ Deno.serve(async (req) => {
     })
   }
 
-  const body = await req.json()
+  let body: Record<string, unknown>
+  try {
+    body = await req.json()
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
   // android-sms-gateway callback format:
   // { id: string, state: 'Delivered'|'Failed'|'Sent', results: [{phoneNumber, state, error?}] }
   // sau format simplificat: { queue_id: string, status: 'delivered'|'failed', delivered_at?: string, error?: string }

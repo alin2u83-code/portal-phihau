@@ -175,8 +175,10 @@ export const SMSLog: React.FC<SMSLogProps> = ({ clubId }) => {
             >
               <option value="all">Toate</option>
               <option value="pending">pending</option>
+              <option value="sending">Se trimite</option>
               <option value="sent">sent</option>
               <option value="failed">failed</option>
+              <option value="cancelled">Anulat</option>
             </Select>
           </div>
           <div className="w-48">

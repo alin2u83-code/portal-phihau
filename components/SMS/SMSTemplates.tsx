@@ -153,19 +153,26 @@ export const SMSTemplates: React.FC<SMSTemplatesProps> = ({ clubId }) => {
     }
     setSaving(true);
     try {
-      const payload = {
-        club_id: clubId,
-        tip: form.tip,
-        titlu: form.titlu,
-        continut: form.continut,
-        activ: form.activ,
-        ...(editingId ? { id: editingId } : {}),
-      };
-      const { error } = await supabase
-        .from('sms_templates')
-        .upsert(payload, { onConflict: 'club_id,tip' });
-
-      if (error) throw error;
+      if (editingId) {
+        const { error } = await supabase
+          .from('sms_templates')
+          .update({
+            tip: form.tip,
+            titlu: form.titlu,
+            continut: form.continut,
+            activ: form.activ,
+          })
+          .eq('id', editingId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('sms_templates')
+          .upsert(
+            { club_id: clubId, tip: form.tip, titlu: form.titlu, continut: form.continut, activ: form.activ },
+            { onConflict: 'club_id,tip' }
+          )
+        if (error) throw error
+      }
       showSuccess('Salvat', 'Template-ul a fost salvat cu succes.');
       closeForm();
       await fetchTemplates();

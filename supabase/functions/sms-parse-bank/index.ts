@@ -144,13 +144,17 @@ Deno.serve(async (req) => {
       suma_detectata: parsed?.suma ?? null,
       platitor_detectat: parsed?.platitor ?? null,
       referinta: parsed?.ref ?? null,
-      status: parsed?.suma ? 'processing' : 'ignored',
+      status: (parsed?.suma && parsed?.platitor) ? 'processing' : 'ignored',
     })
     .select('id')
     .single()
 
-  if (logError) {
-    console.error('[sms-parse-bank] failed to log incoming SMS:', logError.message)
+  if (logError || !incoming) {
+    console.error('Failed to log SMS:', logError?.message)
+    return new Response(JSON.stringify({ error: 'internal error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   if (!parsed?.suma || !parsed?.platitor) {

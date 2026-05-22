@@ -43,6 +43,7 @@ Deno.serve(async (_req) => {
     provider: string
     gateway_url: string | null
     api_key: string | null
+    api_secret: string | null  // username pentru Basic Auth (legacy local mode)
     rate_limit_per_hour: number
     activ: boolean
   } | null> = {}
@@ -65,7 +66,7 @@ Deno.serve(async (_req) => {
     if (!(item.club_id in configCache)) {
       const { data: cfg } = await supabase
         .from('sms_config')
-        .select('provider, gateway_url, api_key, rate_limit_per_hour, activ')
+        .select('provider, gateway_url, api_key, api_secret, rate_limit_per_hour, activ')
         .eq('club_id', item.club_id)
         .single()
       configCache[item.club_id] = cfg ?? null
@@ -112,6 +113,7 @@ Deno.serve(async (_req) => {
         provider: config.provider,
         gatewayUrl: config.gateway_url ?? undefined,
         token: config.api_key ?? undefined,
+        username: config.api_secret ?? undefined, // Basic Auth username (legacy local mode)
       })
     } catch (err) {
       console.error(`[sms-process-queue] cannot create provider for club ${item.club_id}:`, err)

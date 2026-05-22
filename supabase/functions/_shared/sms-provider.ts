@@ -33,26 +33,30 @@ export class AndroidGatewayProvider implements SmsProvider {
   ) {}
 
   async send(msg: SmsMessage): Promise<SmsResult> {
-    const res = await fetch(`${this.gatewayUrl}/v1/message`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.token}`,
-      },
-      body: JSON.stringify({
-        phoneNumbers: [msg.to],
-        message: msg.body,
-        withDeliveryReport: true,
-      }),
-    })
+    try {
+      const res = await fetch(`${this.gatewayUrl}/v1/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`,
+        },
+        body: JSON.stringify({
+          phoneNumbers: [msg.to],
+          message: msg.body,
+          withDeliveryReport: true,
+        }),
+      })
 
-    if (!res.ok) {
-      const text = await res.text()
-      return { success: false, error: `HTTP ${res.status}: ${text}` }
+      if (!res.ok) {
+        const text = await res.text()
+        return { success: false, error: `HTTP ${res.status}: ${text}` }
+      }
+
+      const data = await res.json()
+      return { success: true, externalId: data.id ?? data.message_id }
+    } catch (err) {
+      return { success: false, error: `network error: ${err instanceof Error ? err.message : String(err)}` }
     }
-
-    const data = await res.json()
-    return { success: true, externalId: data.id ?? data.message_id }
   }
 }
 
@@ -71,24 +75,32 @@ export class SMSLinkProvider implements SmsProvider {
   ) {}
 
   async send(msg: SmsMessage): Promise<SmsResult> {
-    const params = new URLSearchParams({
-      connection_id: this.connectionId,
-      password: this.password,
-      to: msg.to,
-      message: msg.body,
-    })
+    try {
+      const params = new URLSearchParams({
+        connection_id: this.connectionId,
+        password: this.password,
+        to: msg.to,
+        message: msg.body,
+      })
 
-    const res = await fetch(
-      `https://secure.smslink.ro/sms/gateway/communicate/index.php?${params}`,
-    )
-    const text = (await res.text()).trim()
+      const res = await fetch(
+        `https://secure.smslink.ro/sms/gateway/communicate/index.php?${params}`,
+      )
+      const text = (await res.text()).trim()
 
-    // Răspuns numeric pozitiv = ID mesaj (succes)
-    if (/^\d+$/.test(text)) {
-      return { success: true, externalId: text }
+      if (!res.ok) {
+        return { success: false, error: `HTTP ${res.status}: ${text}` }
+      }
+
+      // Răspuns numeric pozitiv = ID mesaj (succes)
+      if (/^\d+$/.test(text)) {
+        return { success: true, externalId: text }
+      }
+
+      return { success: false, error: `smslink error: ${text}` }
+    } catch (err) {
+      return { success: false, error: `network error: ${err instanceof Error ? err.message : String(err)}` }
     }
-
-    return { success: false, error: `smslink error: ${text}` }
   }
 }
 
@@ -96,7 +108,7 @@ export class SMSLinkProvider implements SmsProvider {
 // Factory
 // ---------------------------------------------------------------------------
 
-interface SmsProviderConfig {
+export interface SmsProviderConfig {
   provider: string
   gatewayUrl?: string
   token?: string

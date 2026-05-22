@@ -187,6 +187,11 @@ CREATE TRIGGER trg_sms_queue_updated_at
   BEFORE UPDATE ON public.sms_queue
   FOR EACH ROW EXECUTE FUNCTION public.update_sms_queue_timestamp();
 
+DROP TRIGGER IF EXISTS trg_sms_config_updated_at ON sms_config;
+CREATE TRIGGER trg_sms_config_updated_at
+  BEFORE UPDATE ON sms_config
+  FOR EACH ROW EXECUTE FUNCTION update_sms_queue_timestamp();
+
 -- ============================================================
 -- FUNCȚIE: add_sms_to_queue()
 -- Render template + inserare în coadă pentru un sportiv.
@@ -204,6 +209,11 @@ DECLARE
   v_mesaj     TEXT;
   v_queue_id  UUID;
 BEGIN
+  -- Verifică că utilizatorul curent are acces la club
+  IF NOT public.has_access_to_club(p_club_id) THEN
+    RAISE EXCEPTION 'Access denied to club %', p_club_id;
+  END IF;
+
   -- Fetch template activ pentru tipul cerut
   SELECT * INTO v_template
   FROM public.sms_templates
@@ -281,7 +291,7 @@ BEGIN
       'reminder_24h',
       jsonb_build_object(
         'hour', to_char(v_rec.ora_start, 'HH24:MI'),
-        'name', (SELECT nume || ' ' || prenume FROM public.sportivi WHERE id = v_rec.sportiv_id),
+        'name', s.nume || ' ' || s.prenume,
         'antrenament_id', v_rec.antrenament_id::text
       )
     );
@@ -294,8 +304,10 @@ BEGIN
     SELECT DISTINCT ON (p.sportiv_id)
       p.club_id,
       p.sportiv_id,
-      p.data + INTERVAL '30 days' AS data_expirare
+      p.data + INTERVAL '30 days' AS data_expirare,
+      s.nume || ' ' || s.prenume AS sportiv_name
     FROM public.plati p
+    JOIN public.sportivi s ON s.id = p.sportiv_id
     WHERE p.tip = 'abonament'
       AND p.status = 'achitat'
       AND (p.data + INTERVAL '30 days') BETWEEN CURRENT_DATE + INTERVAL '6 days'
@@ -315,7 +327,7 @@ BEGIN
       'expirare_abonament',
       jsonb_build_object(
         'days', '7',
-        'name', (SELECT nume || ' ' || prenume FROM public.sportivi WHERE id = v_rec.sportiv_id)
+        'name', v_rec.sportiv_name
       )
     );
   END LOOP;
@@ -331,7 +343,7 @@ GRANT EXECUTE ON FUNCTION public.schedule_training_reminders() TO service_role;
 CREATE OR REPLACE FUNCTION public.trg_plata_confirmare_sms()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-  IF NEW.status = 'achitat' AND (OLD IS NULL OR OLD.status != 'achitat') THEN
+  IF NEW.status = 'achitat' AND (TG_OP = 'INSERT' OR OLD.status IS DISTINCT FROM 'achitat') THEN
     PERFORM public.add_sms_to_queue(
       NEW.club_id,
       NEW.sportiv_id,

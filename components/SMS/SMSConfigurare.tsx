@@ -138,6 +138,12 @@ export const SMSConfigurare: React.FC<SMSConfigurareProps> = ({
     fetchConfig(selectedClubId);
   }, [selectedClubId, fetchConfig]);
 
+  useEffect(() => {
+    if (!permissions.isSuperAdmin) {
+      setSelectedClubId(initialClubId)
+    }
+  }, [initialClubId, permissions.isSuperAdmin])
+
   // ── Handlers ────────────────────────────────────────────────────────────────
 
   const handleChange = (
@@ -170,23 +176,16 @@ export const SMSConfigurare: React.FC<SMSConfigurareProps> = ({
         activ: config.activ,
       };
 
-      if (config.id) {
-        // UPDATE
-        const { error } = await supabase
-          .from('sms_config')
-          .update(payload)
-          .eq('id', config.id);
-        if (error) throw error;
-      } else {
-        // INSERT
-        const { data, error } = await supabase
-          .from('sms_config')
-          .insert(payload)
-          .select()
-          .single();
-        if (error) throw error;
-        setConfig(prev => ({ ...prev, id: data.id }));
-      }
+      const { data: upserted, error: saveError } = await supabase
+        .from('sms_config')
+        .upsert(
+          { ...payload, ...(config.id ? { id: config.id } : {}) },
+          { onConflict: 'club_id' }
+        )
+        .select()
+        .single()
+      if (saveError) throw saveError
+      setConfig(prev => ({ ...prev, id: upserted.id }))
 
       showSuccess('Salvat', 'Configurarea SMS a fost salvată cu succes.');
     } catch (err: any) {
@@ -197,6 +196,7 @@ export const SMSConfigurare: React.FC<SMSConfigurareProps> = ({
   };
 
   const handleTest = async () => {
+    if (!testPhone.trim()) return
     if (!selectedClubId) return;
     setTesting(true);
     setTestResult(null);

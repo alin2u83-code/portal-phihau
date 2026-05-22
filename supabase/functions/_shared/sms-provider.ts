@@ -24,26 +24,39 @@ export interface SmsProvider {
 // Auth: Bearer token
 // ---------------------------------------------------------------------------
 
+// android-sms-gateway v2+ API (docs.sms-gate.app)
+// Local mode (ngrok): POST /3rdparty/v1/messages + Bearer JWT
+// Local legacy:       POST /message + Basic Auth (username:password)
 export class AndroidGatewayProvider implements SmsProvider {
   readonly name = 'android_gateway'
 
   constructor(
     private readonly gatewayUrl: string,
     private readonly token: string,
+    private readonly username?: string, // set for Basic Auth (legacy local mode)
   ) {}
 
   async send(msg: SmsMessage): Promise<SmsResult> {
     try {
-      const res = await fetch(`${this.gatewayUrl}/v1/message`, {
+      // Local legacy mode uses /message + Basic Auth; new API uses /3rdparty/v1/messages + JWT
+      const isLegacyLocal = !!this.username
+      const url = isLegacyLocal
+        ? `${this.gatewayUrl}/message`
+        : `${this.gatewayUrl}/3rdparty/v1/messages`
+
+      const authHeader = isLegacyLocal
+        ? `Basic ${btoa(`${this.username}:${this.token}`)}`
+        : `Bearer ${this.token}`
+
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`,
+          'Authorization': authHeader,
         },
         body: JSON.stringify({
           phoneNumbers: [msg.to],
-          message: msg.body,
-          withDeliveryReport: true,
+          textMessage: { text: msg.body },
         }),
       })
 
@@ -53,7 +66,7 @@ export class AndroidGatewayProvider implements SmsProvider {
       }
 
       const data = await res.json()
-      return { success: true, externalId: data.id ?? data.message_id }
+      return { success: true, externalId: data.id }
     } catch (err) {
       return { success: false, error: `network error: ${err instanceof Error ? err.message : String(err)}` }
     }
@@ -111,7 +124,8 @@ export class SMSLinkProvider implements SmsProvider {
 export interface SmsProviderConfig {
   provider: string
   gatewayUrl?: string
-  token?: string
+  token?: string       // JWT Bearer (new API) sau password (legacy Basic Auth)
+  username?: string    // setat doar pentru legacy Basic Auth
   connectionId?: string
   password?: string
 }
@@ -122,7 +136,7 @@ export function createSmsProvider(config: SmsProviderConfig): SmsProvider {
       if (!config.gatewayUrl || !config.token) {
         throw new Error('android_gateway requires gatewayUrl and token')
       }
-      return new AndroidGatewayProvider(config.gatewayUrl, config.token)
+      return new AndroidGatewayProvider(config.gatewayUrl, config.token, config.username)
 
     case 'smslink':
       if (!config.connectionId || !config.password) {

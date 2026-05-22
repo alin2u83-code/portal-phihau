@@ -85,9 +85,13 @@ Deno.serve(async (req) => {
   }
 
   // 2. Parse body
-  let body: { device_id: string; phone_number: string; message: string; received_at?: string }
+  // android-sms-gateway v2 webhook format (sms:received event):
+  // { deviceId, event, id, webhookId, payload: { messageId, sender, phoneNumber, simNumber, receivedAt } }
+  // v2 nu include textul mesajului în webhook → trebuie fetch din inbox API
+  // Format alternativ legacy (v1): { device_id, phone_number, message, received_at }
+  let rawBody: Record<string, unknown>
   try {
-    body = await req.json()
+    rawBody = await req.json()
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
       status: 400,
@@ -95,7 +99,64 @@ Deno.serve(async (req) => {
     })
   }
 
-  const { device_id, phone_number, message } = body
+  // Normalizare: suportă atât v1 (legacy) cât și v2 (sms:received event)
+  let device_id: string
+  let phone_number: string
+  let message: string
+
+  if (rawBody.event === 'sms:received') {
+    // Format v2
+    const payload = rawBody.payload as Record<string, string> | undefined
+    device_id = rawBody.deviceId as string
+    phone_number = payload?.sender ?? payload?.phoneNumber ?? ''
+    // v2 nu include textul — trebuie fetch din gateway inbox
+    const messageId = payload?.messageId
+    if (!messageId || !device_id) {
+      return new Response(JSON.stringify({ ok: true, message: 'missing messageId or deviceId' }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    // Fetch text din sms_config pentru gateway_url + api_key
+    const supabaseTmp = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    )
+    const { data: cfgTmp } = await supabaseTmp
+      .from('sms_config')
+      .select('club_id, gateway_url, api_key')
+      .eq('gateway_device_id', device_id)
+      .single()
+
+    if (!cfgTmp?.gateway_url || !cfgTmp?.api_key) {
+      return new Response(JSON.stringify({ ok: true, message: 'device not configured' }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    try {
+      const msgRes = await fetch(
+        `${cfgTmp.gateway_url}/3rdparty/v1/messages/${messageId}`,
+        { headers: { 'Authorization': `Bearer ${cfgTmp.api_key}` } },
+      )
+      if (!msgRes.ok) {
+        return new Response(JSON.stringify({ ok: true, message: 'could not fetch message text' }), {
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      const msgData = await msgRes.json()
+      message = msgData.message ?? msgData.text ?? msgData.textMessage?.text ?? ''
+    } catch {
+      return new Response(JSON.stringify({ ok: true, message: 'gateway fetch error' }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+  } else {
+    // Format v1 legacy
+    device_id = rawBody.device_id as string
+    phone_number = rawBody.phone_number as string
+    message = rawBody.message as string
+  }
+
   if (!device_id || !message) {
     return new Response(JSON.stringify({ error: 'Missing device_id or message' }), {
       status: 400,

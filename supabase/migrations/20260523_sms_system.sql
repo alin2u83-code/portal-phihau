@@ -271,7 +271,8 @@ BEGIN
       pa.club_id,
       pre.sportiv_id,
       pa.id AS antrenament_id,
-      pa.ora_start
+      pa.ora_start,
+      s.nume || ' ' || s.prenume AS sportiv_name
     FROM public.program_antrenamente pa
     JOIN public.prezenta_antrenament pre ON pre.antrenament_id = pa.id
     JOIN public.sportivi s ON s.id = pre.sportiv_id
@@ -291,7 +292,7 @@ BEGIN
       'reminder_24h',
       jsonb_build_object(
         'hour', to_char(v_rec.ora_start, 'HH24:MI'),
-        'name', s.nume || ' ' || s.prenume,
+        'name', v_rec.sportiv_name,
         'antrenament_id', v_rec.antrenament_id::text
       )
     );

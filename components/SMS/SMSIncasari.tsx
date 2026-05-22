@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../supabaseClient';
-import { Button, Card, Select } from '../ui';
+import { Button, Card } from '../ui';
 import { useError } from '../ErrorProvider';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

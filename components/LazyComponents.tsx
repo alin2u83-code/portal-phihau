@@ -58,3 +58,4 @@ export const DeduplicareSportivi = lazy(() => import('./DeduplicareSportivi').th
 export const CereriInscriere = lazy(() => import('./CereriInscriere').then(m => ({ default: m.CereriInscriere })));
 export const ActivitatiNationale = lazy(() => import('./ActivitatiNationale').then(m => ({ default: m.ActivitatiNationale })));
 export const InlantuciriAdmin = lazy(() => import('./InlantuciriAdmin').then(m => ({ default: m.InlantuciriAdmin })));
+export const AdminSMS = lazy(() => import('./SMS/AdminSMS').then(m => ({ default: m.AdminSMS })));

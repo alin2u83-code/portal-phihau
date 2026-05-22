@@ -4,7 +4,7 @@ import {
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon,
     ClipboardCheckIcon, CogIcon, SitemapIcon, ArchiveBoxIcon, FileTextIcon,
     ChartBarIcon, UserPlusIcon, BookOpenIcon, BookMarkedIcon, WalletIcon,
-    ClockIcon, ClipboardListIcon,
+    ClockIcon, ClipboardListIcon, MessageSquareIcon,
 } from './icons';
 
 export interface MenuItem {
@@ -61,6 +61,7 @@ export const adminMenu: MenuItem[] = [
     },
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
+    { label: 'SMS', icon: MessageSquareIcon, view: 'admin-sms' },
     { label: 'Cereri Înscriere', icon: UserPlusIcon, view: 'cereri-inscriere' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
 ];
@@ -123,6 +124,7 @@ export const adminClubMenu: MenuItem[] = [
         ]
     },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
+    { label: 'SMS', icon: MessageSquareIcon, view: 'admin-sms' },
     { label: 'Cereri Înscriere', icon: UserPlusIcon, view: 'cereri-inscriere' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
 ];

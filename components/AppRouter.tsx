@@ -170,6 +170,13 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.ActivitatiNationale onNavigate={setActiveView} onBack={handleBackToDashboard} />, permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
                             case 'inlantuiri-admin':
                                 return renderProtected(<Lazy.InlantuciriAdmin onBack={handleBackToDashboard} permissions={permissions} />, isFederationAdmin);
+                            case 'admin-sms': {
+                                const smsClubId = activeRoleContext?.club_id || activeRoleContext?.club?.id || currentUser?.club_id || '';
+                                return renderProtected(
+                                    <Lazy.AdminSMS activeClubId={smsClubId} activeRoleContext={activeRoleContext} />,
+                                    isAtLeastClubAdmin
+                                );
+                            }
                             case 'prezenta':
                                 return renderProtected(<Lazy.PrezentaManagement onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
                             case 'prezenta-instructor':

@@ -227,10 +227,10 @@ BEGIN
   v_mesaj := replace(v_mesaj, '{{amount}}', COALESCE(p_variabile->>'amount', ''));
 
   INSERT INTO public.sms_queue (
-    club_id, sportiv_id, telefon, mesaj, tip, template_id, scheduled_at
+    club_id, sportiv_id, telefon, mesaj, tip, template_id, scheduled_at, metadata
   )
   VALUES (
-    p_club_id, p_sportiv_id, v_telefon, v_mesaj, p_tip, v_template.id, now()
+    p_club_id, p_sportiv_id, v_telefon, v_mesaj, p_tip, v_template.id, now(), p_variabile
   )
   RETURNING id INTO v_queue_id;
 
@@ -285,15 +285,6 @@ BEGIN
         'antrenament_id', v_rec.antrenament_id::text
       )
     );
-
-    -- Stocăm antrenament_id în metadata pentru deduplicare
-    UPDATE public.sms_queue
-    SET metadata = metadata || jsonb_build_object('antrenament_id', v_rec.antrenament_id::text)
-    WHERE sportiv_id = v_rec.sportiv_id
-      AND tip = 'reminder_24h'
-      AND scheduled_at >= now() - INTERVAL '1 minute'
-    ORDER BY created_at DESC
-    LIMIT 1;
   END LOOP;
 
   -- ---- Expirare abonament (7 zile) ----

@@ -93,14 +93,15 @@ Deno.serve(async (_req) => {
     }
 
     // 4. Marchează optimist ca 'sending'
-    const { error: markSendingErr } = await supabase
+    const { data: lockResult } = await supabase
       .from('sms_queue')
       .update({ status: 'sending' })
       .eq('id', item.id)
-      .eq('status', item.status) // guard: nu suprascrie dacă alt worker l-a preluat
+      .eq('status', item.status)
+      .select('id')
 
-    if (markSendingErr) {
-      console.warn(`[sms-process-queue] could not mark item ${item.id} as sending:`, markSendingErr.message)
+    if (!lockResult?.length) {
+      // Alt worker a preluat item-ul deja
       continue
     }
 
@@ -122,52 +123,62 @@ Deno.serve(async (_req) => {
       continue
     }
 
-    const result = await provider.send({
-      to: item.telefon,
-      body: item.mesaj,
-      queueId: item.id,
-    })
-
-    if (result.success) {
-      // 6a. Succes: marchează sent + log rate
-      await supabase
-        .from('sms_queue')
-        .update({
-          status: 'sent',
-          sent_at: new Date().toISOString(),
-          external_id: result.externalId ?? null,
-          error_message: null,
-        })
-        .eq('id', item.id)
-
-      await supabase
-        .from('sms_rate_log')
-        .insert({ club_id: item.club_id })
-
-      processed++
-      console.log(`[sms-process-queue] sent item ${item.id} via ${provider.name}, external_id=${result.externalId}`)
-    } else {
-      // 6b. Eșec: exponential backoff + incrementare retry_count
-      const newRetryCount = item.retry_count + 1
-      const backoffMinutes = newRetryCount * 5
-      const nextScheduledAt = new Date(Date.now() + backoffMinutes * 60 * 1000).toISOString()
-      const newStatus = newRetryCount < item.max_retries ? 'pending' : 'failed'
-
-      await supabase
-        .from('sms_queue')
-        .update({
-          status: newStatus,
-          retry_count: newRetryCount,
-          scheduled_at: nextScheduledAt,
-          error_message: result.error ?? 'Unknown error',
-        })
-        .eq('id', item.id)
-
-      console.warn(`[sms-process-queue] failed item ${item.id}: ${result.error} → ${newStatus} (retry ${newRetryCount}/${item.max_retries}, next at ${nextScheduledAt})`)
+    // 7. Pauză 2 secunde între SMS pentru a evita flood la gateway (skip primul)
+    if (processed > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
     }
 
-    // 7. Pauză 2 secunde între SMS pentru a evita flood la gateway
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      const result = await provider.send({
+        to: item.telefon,
+        body: item.mesaj,
+        queueId: item.id,
+      })
+
+      if (result.success) {
+        // 6a. Succes: marchează sent + log rate
+        await supabase
+          .from('sms_queue')
+          .update({
+            status: 'sent',
+            sent_at: new Date().toISOString(),
+            external_id: result.externalId ?? null,
+            error_message: null,
+          })
+          .eq('id', item.id)
+
+        await supabase
+          .from('sms_rate_log')
+          .insert({ club_id: item.club_id })
+
+        processed++
+        console.log(`[sms-process-queue] sent item ${item.id} via ${provider.name}, external_id=${result.externalId}`)
+      } else {
+        // 6b. Eșec: exponential backoff + incrementare retry_count
+        const newRetryCount = item.retry_count + 1
+        const backoffMinutes = Math.pow(2, newRetryCount - 1) * 5  // 5, 10, 20, 40 min
+        const nextScheduledAt = new Date(Date.now() + backoffMinutes * 60 * 1000).toISOString()
+        const newStatus = newRetryCount < item.max_retries ? 'pending' : 'failed'
+
+        await supabase
+          .from('sms_queue')
+          .update({
+            status: newStatus,
+            retry_count: newRetryCount,
+            scheduled_at: nextScheduledAt,
+            error_message: result.error ?? 'Unknown error',
+          })
+          .eq('id', item.id)
+
+        console.warn(`[sms-process-queue] failed item ${item.id}: ${result.error} → ${newStatus} (retry ${newRetryCount}/${item.max_retries}, next at ${nextScheduledAt})`)
+      }
+    } catch (err) {
+      // Provider threw unexpectedly — revert to pending
+      await supabase.from('sms_queue').update({
+        status: 'pending',
+        error_message: `provider exception: ${err instanceof Error ? err.message : String(err)}`,
+      }).eq('id', item.id)
+    }
   }
 
   return new Response(

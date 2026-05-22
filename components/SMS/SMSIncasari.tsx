@@ -38,8 +38,7 @@ type FilterTab = 'toate' | 'nerecunoscute' | 'potrivite';
 
 interface SMSIncasariProps {
   clubId: string;
-  /** Număr badge unmatched transmis din exterior (opțional — dacă lipsește, se calculează local) */
-  unmatchedCount?: number;
+  /** Callback apelat după fiecare fetch cu numărul de SMS-uri unmatched, pentru badge extern */
   onUnmatchedCountChange?: (count: number) => void;
 }
 
@@ -67,12 +66,12 @@ function formatCurrency(n: number | null): string {
 
 const BancaBadge: React.FC<{ banca: string | null }> = ({ banca }) => {
   const map: Record<string, { cls: string; label: string }> = {
-    ING: { cls: 'bg-orange-500/20 text-orange-400 border border-orange-500/30', label: 'ING' },
-    BCR: { cls: 'bg-blue-500/20 text-blue-400 border border-blue-500/30', label: 'BCR' },
-    BRD: { cls: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30', label: 'BRD' },
-    Raiffeisen: { cls: 'bg-amber-500/20 text-amber-400 border border-amber-500/30', label: 'Raiffeisen' },
+    ing: { cls: 'bg-orange-500/20 text-orange-400 border border-orange-500/30', label: 'ING' },
+    bcr: { cls: 'bg-blue-500/20 text-blue-400 border border-blue-500/30', label: 'BCR' },
+    brd: { cls: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30', label: 'BRD' },
+    raiffeisen: { cls: 'bg-amber-500/20 text-amber-400 border border-amber-500/30', label: 'Raiffeisen' },
   };
-  const key = banca ?? '';
+  const key = (banca ?? '').toLowerCase();
   const { cls, label } = map[key] ?? {
     cls: 'bg-slate-700/60 text-slate-400 border border-slate-600/40',
     label: 'Necunoscut',
@@ -331,19 +330,23 @@ export const SMSIncasari: React.FC<SMSIncasariProps> = ({
 
   const handleConfirm = async (smsId: string, plataId: string) => {
     try {
-      // Update plata → Achitat
+      // Pasul 1: marchează plata ca achitată
       const { error: errPlata } = await supabase
         .from('plati')
         .update({ status: 'Achitat' })
         .eq('id', plataId);
       if (errPlata) throw errPlata;
 
-      // Update sms → manual_matched
+      // Pasul 2: marchează SMS ca manual_matched
       const { error: errSms } = await supabase
         .from('sms_incoming')
         .update({ status: 'manual_matched', plata_id: plataId })
         .eq('id', smsId);
-      if (errSms) throw errSms;
+      if (errSms) {
+        // Rollback: revert plata înapoi la Neachitat dacă SMS update eșuează
+        await supabase.from('plati').update({ status: 'Neachitat' }).eq('id', plataId);
+        throw errSms;
+      }
 
       showSuccess('Confirmat', 'Plata a fost marcată ca achitată și SMS-ul potrivit.');
       setExpandedId(null);

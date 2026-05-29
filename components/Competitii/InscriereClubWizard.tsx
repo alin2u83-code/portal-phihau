@@ -703,7 +703,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                     key={g}
                     onClick={() => setFilterGen(g)}
                     style={{ touchAction: 'manipulation' }}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors min-h-[36px] ${
+                    className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors min-h-[44px] ${
                       filterGen === g
                         ? 'border-brand-primary bg-brand-primary/20 text-white'
                         : 'border-slate-600 text-slate-400 hover:border-slate-500'

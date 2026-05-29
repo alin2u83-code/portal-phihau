@@ -742,7 +742,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                         }}
                         title={outsideCascade ? `${g.nume} — în afara intervalului de vârstă selectat` : undefined}
                         style={{ touchAction: 'manipulation' }}
-                        className={`px-2.5 py-2 rounded-lg text-xs font-medium border transition-colors min-h-[36px] ${
+                        className={`px-2.5 py-2 rounded-lg text-xs font-medium border transition-colors min-h-[44px] ${
                           outsideCascade
                             ? 'border-slate-700 text-slate-600 opacity-40 cursor-not-allowed'
                             : filterGradeIds.has(g.id)
@@ -761,25 +761,42 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
             {/* Vârstă */}
             <div>
               <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Vârstă la competiție</p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={filterVarstaMin}
-                  onChange={e => setFilterVarstaMin(e.target.value)}
-                  placeholder="Min"
-                  min={0}
-                  className="w-20 bg-slate-900 border border-slate-600 rounded-lg px-2 py-1.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary"
-                />
-                <span className="text-slate-500 text-xs">—</span>
-                <input
-                  type="number"
-                  value={filterVarstaMax}
-                  onChange={e => setFilterVarstaMax(e.target.value)}
-                  placeholder="Max"
-                  min={0}
-                  className="w-20 bg-slate-900 border border-slate-600 rounded-lg px-2 py-1.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary"
-                />
-                <span className="text-xs text-slate-500">ani</span>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: 'Copii', min: 4, max: 8 },
+                  { label: 'Jun. Mici', min: 9, max: 12 },
+                  { label: 'Jun. 2', min: 13, max: 15 },
+                  { label: 'Jun. 1', min: 16, max: 17 },
+                  { label: 'Seniori', min: 18, max: 39 },
+                  { label: 'Veterani', min: 40, max: 99 },
+                ].map(cat => {
+                  const isActive =
+                    filterVarstaMin === String(cat.min) && filterVarstaMax === String(cat.max);
+                  return (
+                    <button
+                      key={cat.label}
+                      type="button"
+                      onClick={() => {
+                        if (isActive) {
+                          setFilterVarstaMin('');
+                          setFilterVarstaMax('');
+                        } else {
+                          setFilterVarstaMin(String(cat.min));
+                          setFilterVarstaMax(String(cat.max));
+                        }
+                      }}
+                      style={{ touchAction: 'manipulation' }}
+                      className={`px-2.5 py-2 rounded-lg text-xs font-medium border transition-colors min-h-[44px] ${
+                        isActive
+                          ? 'border-emerald-500 bg-emerald-900/30 text-emerald-300'
+                          : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                      }`}
+                    >
+                      {cat.label}
+                      <span className="block text-[10px] opacity-70">{cat.min === 40 ? '40+' : `${cat.min}–${cat.max}`}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

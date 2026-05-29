@@ -2929,14 +2929,20 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
       // Block continue if any titular is ineligible
       const ineligibiliInEchipa = echipa.titulari.filter(id => {
         const elig = eligibilitateMap.get(cat.id)?.get(id);
-        return elig && !elig.eligibil;
+        if (elig === undefined) {
+          // not in eligible pool (e.g. wrong gen) → fallback direct check
+          const sportivObj = sportiviSelectati.find(s => s.id === id);
+          if (!sportivObj) return true; // id necunoscut → blochează
+          return !verificaEligibilitate(sportivObj, cat, grade, dataCompetitie).eligibil;
+        }
+        return !elig.eligibil;
       });
       if (ineligibiliInEchipa.length > 0) {
         erori.set(cat.id, `${ineligibiliInEchipa.length} titular${ineligibiliInEchipa.length !== 1 ? 'i' : ''} ineligibil${ineligibiliInEchipa.length !== 1 ? 'i' : ''} — scoateți-i din echipă`);
       }
     }
     return erori;
-  }, [echipeFormate, categoriiEchipa, categoriiLimitaAtinsa, eligibilitateMap]);
+  }, [echipeFormate, categoriiEchipa, categoriiLimitaAtinsa, eligibilitateMap, sportiviSelectati, grade, dataCompetitie, getEchipa]);
 
   const poateContinua = eroriPerCategorie.size === 0;
 

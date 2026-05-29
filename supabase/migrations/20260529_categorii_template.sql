@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS public.categorii_template (
   max_echipe_per_club     INTEGER NOT NULL DEFAULT 1,
   activ                   BOOLEAN NOT NULL DEFAULT true,
   ordine_afisare          INTEGER NOT NULL DEFAULT 0,
-  created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (denumire)
 );
 
 ALTER TABLE public.categorii_template ENABLE ROW LEVEL SECURITY;
@@ -45,7 +46,15 @@ CREATE POLICY "categorii_template_insert" ON public.categorii_template
   );
 
 CREATE POLICY "categorii_template_update" ON public.categorii_template
-  FOR UPDATE TO authenticated USING (
+  FOR UPDATE TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.utilizator_roluri_multicont
+      WHERE user_id = auth.uid()
+        AND rol_denumire = 'SUPER_ADMIN_FEDERATIE'
+    )
+  )
+  WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.utilizator_roluri_multicont
       WHERE user_id = auth.uid()
@@ -144,7 +153,8 @@ INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_m
 ('15 ani / Feminin / 2 Cap Albastru', 'thao_quyen_individual', 15, 15, 'Feminin', 16, 16, NULL, 'individual', 1, 1, 0, 1, 109),
 ('15 ani / Masculin / 2 Cap Albastru', 'thao_quyen_individual', 15, 15, 'Masculin', 16, 16, NULL, 'individual', 1, 1, 0, 1, 110),
 ('15 ani / Feminin / 3-4 Cap Albastru', 'thao_quyen_individual', 15, 15, 'Feminin', 17, 18, NULL, 'individual', 1, 1, 0, 1, 111),
-('15 ani / Masculin / 3-4 Cap Albastru', 'thao_quyen_individual', 15, 15, 'Masculin', 17, 18, NULL, 'individual', 1, 1, 0, 1, 112);
+('15 ani / Masculin / 3-4 Cap Albastru', 'thao_quyen_individual', 15, 15, 'Masculin', 17, 18, NULL, 'individual', 1, 1, 0, 1, 112)
+ON CONFLICT (denumire) DO NOTHING;
 
 -- SINCRON (18)
 INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_max, gen, grad_min_ordine, grad_max_ordine, arma, tip_participare, sportivi_per_echipa_min, sportivi_per_echipa_max, rezerve_max, max_echipe_per_club, ordine_afisare) VALUES
@@ -165,7 +175,8 @@ INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_m
 ('18-39 ani / Mixt / Sincron', 'sincron', 18, 39, 'Mixt', 1, NULL, NULL, 'pereche', 2, 2, 0, 1, 127),
 ('Peste 40 ani / Feminin / Sincron', 'sincron', 40, NULL, 'Feminin', 1, NULL, NULL, 'pereche', 2, 2, 0, 1, 128),
 ('Peste 40 ani / Masculin / Sincron', 'sincron', 40, NULL, 'Masculin', 1, NULL, NULL, 'pereche', 2, 2, 0, 1, 129),
-('Peste 40 ani / Mixt / Sincron', 'sincron', 40, NULL, 'Mixt', 1, NULL, NULL, 'pereche', 2, 2, 0, 1, 130);
+('Peste 40 ani / Mixt / Sincron', 'sincron', 40, NULL, 'Mixt', 1, NULL, NULL, 'pereche', 2, 2, 0, 1, 130)
+ON CONFLICT (denumire) DO NOTHING;
 
 -- SONG LUYEN Tehnica (18)
 INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_max, gen, grad_min_ordine, grad_max_ordine, arma, tip_participare, sportivi_per_echipa_min, sportivi_per_echipa_max, rezerve_max, max_echipe_per_club, ordine_afisare) VALUES
@@ -186,7 +197,8 @@ INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_m
 ('18-39 ani / Mixt / Song Luyen', 'song_luyen', 18, 39, 'Mixt', 1, NULL, NULL, 'pereche', 2, 2, 0, 1, 145),
 ('Peste 40 ani / Feminin / Song Luyen', 'song_luyen', 40, NULL, 'Feminin', 1, NULL, NULL, 'pereche', 2, 2, 0, 1, 146),
 ('Peste 40 ani / Masculin / Song Luyen', 'song_luyen', 40, NULL, 'Masculin', 1, NULL, NULL, 'pereche', 2, 2, 0, 1, 147),
-('Peste 40 ani / Mixt / Song Luyen', 'song_luyen', 40, NULL, 'Mixt', 1, NULL, NULL, 'pereche', 2, 2, 0, 1, 148);
+('Peste 40 ani / Mixt / Song Luyen', 'song_luyen', 40, NULL, 'Mixt', 1, NULL, NULL, 'pereche', 2, 2, 0, 1, 148)
+ON CONFLICT (denumire) DO NOTHING;
 
 -- GIAO DAU CN Copii si Juniori (20)
 INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_max, gen, grad_min_ordine, grad_max_ordine, arma, tip_participare, sportivi_per_echipa_min, sportivi_per_echipa_max, rezerve_max, max_echipe_per_club, ordine_afisare) VALUES
@@ -209,7 +221,8 @@ INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_m
 ('13-15 ani / Feminin / grad 1 / Giao Dau', 'giao_dau', 13, 15, 'Feminin', 1, 1, NULL, 'pereche', 2, 2, 2, 1, 216),
 ('13-15 ani / Masculin / grad 1 / Giao Dau', 'giao_dau', 13, 15, 'Masculin', 1, 1, NULL, 'pereche', 2, 2, 2, 1, 217),
 ('13-15 ani / Feminin / grad 2-4 / Giao Dau', 'giao_dau', 13, 15, 'Feminin', 2, 4, NULL, 'pereche', 2, 2, 2, 1, 218),
-('13-15 ani / Masculin / grad 2-4 / Giao Dau', 'giao_dau', 13, 15, 'Masculin', 2, 4, NULL, 'pereche', 2, 2, 2, 1, 219);
+('13-15 ani / Masculin / grad 2-4 / Giao Dau', 'giao_dau', 13, 15, 'Masculin', 2, 4, NULL, 'pereche', 2, 2, 2, 1, 219)
+ON CONFLICT (denumire) DO NOTHING;
 
 -- THAO LO INDIVIDUAL Grade (18)
 INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_max, gen, grad_min_ordine, grad_max_ordine, arma, tip_participare, sportivi_per_echipa_min, sportivi_per_echipa_max, rezerve_max, max_echipe_per_club, ordine_afisare) VALUES
@@ -230,7 +243,8 @@ INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_m
 ('18-39 ani / Feminin / grad 1-4 / Long Gian / Song Cot / Moc Can', 'thao_lo_individual', 18, 39, 'Feminin', 1, 4, 'Long Gian / Song Cot / Moc Can', 'individual', 1, 1, 0, 99, 314),
 ('18-39 ani / Masculin / grad 1-4 / Long Gian / Song Cot / Moc Can', 'thao_lo_individual', 18, 39, 'Masculin', 1, 4, 'Long Gian / Song Cot / Moc Can', 'individual', 1, 1, 0, 99, 315),
 ('Peste 40 ani / Feminin / grad 1-4 / Bong / Long Gian / Song Cot / Moc Can', 'thao_lo_individual', 40, NULL, 'Feminin', 1, 4, 'Bong / Long Gian / Song Cot / Moc Can', 'individual', 1, 1, 0, 99, 316),
-('Peste 40 ani / Masculin / grad 1-4 / Bong / Long Gian / Song Cot / Moc Can', 'thao_lo_individual', 40, NULL, 'Masculin', 1, 4, 'Bong / Long Gian / Song Cot / Moc Can', 'individual', 1, 1, 0, 99, 317);
+('Peste 40 ani / Masculin / grad 1-4 / Bong / Long Gian / Song Cot / Moc Can', 'thao_lo_individual', 40, NULL, 'Masculin', 1, 4, 'Bong / Long Gian / Song Cot / Moc Can', 'individual', 1, 1, 0, 99, 317)
+ON CONFLICT (denumire) DO NOTHING;
 
 -- SONG LUYEN CVD Grade (12)
 INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_max, gen, grad_min_ordine, grad_max_ordine, arma, tip_participare, sportivi_per_echipa_min, sportivi_per_echipa_max, rezerve_max, max_echipe_per_club, ordine_afisare) VALUES
@@ -245,7 +259,8 @@ INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_m
 ('18-39 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD', 'song_luyen', 18, 39, 'Mixt', 1, 4, 'Bong / Song Cot / Moc Can', 'pereche', 2, 2, 0, 1, 328),
 ('Peste 40 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD', 'song_luyen', 40, NULL, 'Feminin', 1, 4, 'Bong / Song Cot / Moc Can', 'pereche', 2, 2, 0, 1, 329),
 ('Peste 40 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD', 'song_luyen', 40, NULL, 'Masculin', 1, 4, 'Bong / Song Cot / Moc Can', 'pereche', 2, 2, 0, 1, 330),
-('Peste 40 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD', 'song_luyen', 40, NULL, 'Mixt', 1, 4, 'Bong / Song Cot / Moc Can', 'pereche', 2, 2, 0, 1, 331);
+('Peste 40 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD', 'song_luyen', 40, NULL, 'Mixt', 1, 4, 'Bong / Song Cot / Moc Can', 'pereche', 2, 2, 0, 1, 331)
+ON CONFLICT (denumire) DO NOTHING;
 
 -- THAO LO INDIVIDUAL CN (26)
 INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_max, gen, grad_min_ordine, grad_max_ordine, arma, tip_participare, sportivi_per_echipa_min, sportivi_per_echipa_max, rezerve_max, max_echipe_per_club, ordine_afisare) VALUES
@@ -274,7 +289,8 @@ INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_m
 ('Peste 50 ani / Feminin / CN 5-10 Dang / Bong / Long Gian / Song Cot / Moc Guom', 'thao_lo_individual', 50, NULL, 'Feminin', 5, 10, 'Bong / Long Gian / Song Cot / Moc Guom', 'individual', 1, 1, 0, 99, 362),
 ('Peste 50 ani / Masculin / CN 5-10 Dang / Bong / Long Gian / Song Cot / Moc Guom', 'thao_lo_individual', 50, NULL, 'Masculin', 5, 10, 'Bong / Long Gian / Song Cot / Moc Guom', 'individual', 1, 1, 0, 99, 363),
 ('Peste 50 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate', 'thao_lo_individual', 50, NULL, 'Feminin', 5, 10, 'Arme cu lama si articulate', 'individual', 1, 1, 0, 99, 364),
-('Peste 50 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate', 'thao_lo_individual', 50, NULL, 'Masculin', 5, 10, 'Arme cu lama si articulate', 'individual', 1, 1, 0, 99, 365);
+('Peste 50 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate', 'thao_lo_individual', 50, NULL, 'Masculin', 5, 10, 'Arme cu lama si articulate', 'individual', 1, 1, 0, 99, 365)
+ON CONFLICT (denumire) DO NOTHING;
 
 -- SONG LUYEN CVD CN (12)
 INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_max, gen, grad_min_ordine, grad_max_ordine, arma, tip_participare, sportivi_per_echipa_min, sportivi_per_echipa_max, rezerve_max, max_echipe_per_club, ordine_afisare) VALUES
@@ -289,7 +305,8 @@ INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_m
 ('Peste 40 ani / Mixt / CN 5-10 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD', 'song_luyen', 40, NULL, 'Mixt', 5, 10, 'Bong / Song Cot / Moc Can', 'pereche', 2, 2, 0, 1, 378),
 ('Peste 40 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD', 'song_luyen', 40, NULL, 'Feminin', 5, 10, 'Arme cu lama si articulate', 'pereche', 2, 2, 0, 1, 379),
 ('Peste 40 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD', 'song_luyen', 40, NULL, 'Masculin', 5, 10, 'Arme cu lama si articulate', 'pereche', 2, 2, 0, 1, 380),
-('Peste 40 ani / Mixt / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD', 'song_luyen', 40, NULL, 'Mixt', 5, 10, 'Arme cu lama si articulate', 'pereche', 2, 2, 0, 1, 381);
+('Peste 40 ani / Mixt / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD', 'song_luyen', 40, NULL, 'Mixt', 5, 10, 'Arme cu lama si articulate', 'pereche', 2, 2, 0, 1, 381)
+ON CONFLICT (denumire) DO NOTHING;
 
 -- GIAO DAU CVD Grade (12)
 INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_max, gen, grad_min_ordine, grad_max_ordine, arma, tip_participare, sportivi_per_echipa_min, sportivi_per_echipa_max, rezerve_max, max_echipe_per_club, ordine_afisare) VALUES
@@ -304,7 +321,8 @@ INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_m
 ('18-39 ani / Feminin / grad 2-4 / Giao Dau CVD', 'giao_dau', 18, 39, 'Feminin', 2, 4, NULL, 'individual', 1, 1, 0, 99, 408),
 ('18-39 ani / Masculin / grad 2-4 / Giao Dau CVD', 'giao_dau', 18, 39, 'Masculin', 2, 4, NULL, 'individual', 1, 1, 0, 99, 409),
 ('40-49 ani / Feminin / grad 2-4 / Giao Dau CVD', 'giao_dau', 40, 49, 'Feminin', 2, 4, NULL, 'individual', 1, 1, 0, 99, 410),
-('40-49 ani / Masculin / grad 2-4 / Giao Dau CVD', 'giao_dau', 40, 49, 'Masculin', 2, 4, NULL, 'individual', 1, 1, 0, 99, 411);
+('40-49 ani / Masculin / grad 2-4 / Giao Dau CVD', 'giao_dau', 40, 49, 'Masculin', 2, 4, NULL, 'individual', 1, 1, 0, 99, 411)
+ON CONFLICT (denumire) DO NOTHING;
 
 -- GIAO DAU CVD CN (8)
 INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_max, gen, grad_min_ordine, grad_max_ordine, arma, tip_participare, sportivi_per_echipa_min, sportivi_per_echipa_max, rezerve_max, max_echipe_per_club, ordine_afisare) VALUES
@@ -315,7 +333,8 @@ INSERT INTO public.categorii_template (denumire, tip_proba, varsta_min, varsta_m
 ('40-49 ani / Feminin / CN 5-10 Dang / Giao Dau CVD', 'giao_dau', 40, 49, 'Feminin', 5, 10, NULL, 'individual', 1, 1, 0, 99, 424),
 ('40-49 ani / Masculin / CN 5-10 Dang / Giao Dau CVD', 'giao_dau', 40, 49, 'Masculin', 5, 10, NULL, 'individual', 1, 1, 0, 99, 425),
 ('50-59 ani / Feminin / CN 5-10 Dang / Giao Dau CVD', 'giao_dau', 50, 59, 'Feminin', 5, 10, NULL, 'individual', 1, 1, 0, 99, 426),
-('50-59 ani / Masculin / CN 5-10 Dang / Giao Dau CVD', 'giao_dau', 50, 59, 'Masculin', 5, 10, NULL, 'individual', 1, 1, 0, 99, 427);
+('50-59 ani / Masculin / CN 5-10 Dang / Giao Dau CVD', 'giao_dau', 50, 59, 'Masculin', 5, 10, NULL, 'individual', 1, 1, 0, 99, 427)
+ON CONFLICT (denumire) DO NOTHING;
 
 NOTIFY pgrst, 'reload schema';
 

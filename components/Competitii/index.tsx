@@ -1189,7 +1189,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 <div className="text-center text-slate-500 py-8 italic">Nicio înregistrare găsită în sistemul vechi.</div>
               ) : (
                 <div className="-mx-4 sm:mx-0 overflow-x-auto">
-                  <table className="w-full text-sm text-slate-300 min-w-[400px]">
+                  <table className="w-full text-sm text-slate-300 min-w-[480px]">
                     <thead>
                       <tr className="border-b border-slate-700 text-slate-500 text-xs uppercase">
                         <th className="p-2 text-left">#</th>

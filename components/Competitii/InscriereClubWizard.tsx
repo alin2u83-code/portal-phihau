@@ -2404,6 +2404,7 @@ interface SectiuneEchipaCategorieProps {
   dbId?: string;
   dataCompetitie: string;
   onOpenEditEchipa?: (categorieId: string) => void;
+  eligibilitateMapCategorie?: Map<string, { eligibil: boolean; motive: string[] }>;
 }
 
 function canAddToTitulari(cat: CategorieCompetitie, athGen: string | undefined | null, titulari: string[], sportiviPool: Sportiv[]): boolean {
@@ -2418,7 +2419,7 @@ function canAddToTitulari(cat: CategorieCompetitie, athGen: string | undefined |
 
 const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
   cat, sportiviDisponibili, grade, dreptUri, numeClub, echipa, onUpdateEchipa, erroare, dbId,
-  onOpenEditEchipa, dataCompetitie,
+  onOpenEditEchipa, dataCompetitie, eligibilitateMapCategorie,
 }) => {
   const isPereche = cat.tip_participare === 'pereche';
   const titulariMax = isPereche ? 2 : cat.sportivi_per_echipa_max;
@@ -2572,7 +2573,8 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
             const rolCurent = getRolSportiv(sportiv.id);
             const titulariFull = echipa.titulari.length >= titulariMax && rolCurent !== 'titular';
             const genderBlocat = rolCurent !== 'titular' && !canAddToTitulari(cat, sportiv.gen, echipa.titulari, sportiviDisponibili);
-            const eligibilitate = verificaEligibilitate(sportiv, cat, grade, dataCompetitie);
+            const eligibilitate = eligibilitateMapCategorie?.get(sportiv.id)
+              ?? verificaEligibilitate(sportiv, cat, grade, dataCompetitie);
             const ineligibil = !eligibilitate.eligibil;
             // Titular blocat dacă: capacitate depășită, gen blocat, sau ineligibil (vârstă/grad)
             const titulariBlocati = titulariFull || genderBlocat || (ineligibil && rolCurent !== 'titular');
@@ -2820,6 +2822,20 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     return map;
   }, [categoriiEchipa, sportiviSelectati]);
 
+  // Precompute eligibility for all sportivi × categorii (avoids 60-80 inline calls per render)
+  const eligibilitateMap = useMemo<Map<string, Map<string, { eligibil: boolean; motive: string[] }>>>(() => {
+    const outer = new Map<string, Map<string, { eligibil: boolean; motive: string[] }>>();
+    for (const cat of categoriiEchipa) {
+      const inner = new Map<string, { eligibil: boolean; motive: string[] }>();
+      const sportivii = sportiviDisponibiliPerCategorie.get(cat.id) ?? [];
+      for (const s of sportivii) {
+        inner.set(s.id, verificaEligibilitate(s, cat, grade, dataCompetitie));
+      }
+      outer.set(cat.id, inner);
+    }
+    return outer;
+  }, [categoriiEchipa, sportiviDisponibiliPerCategorie, grade, dataCompetitie]);
+
   // Asigură că toate categoriile au entry în echipeFormate (inclusiv după DB fetch)
   useEffect(() => {
     if (categoriiEchipa.length === 0) return;
@@ -2907,11 +2923,20 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
           cat.id,
           `Lipsesc ${necesar} titular${necesar !== 1 ? 'i' : ''} (minim ${titMin} necesari pentru start)`
         );
+        continue;
+      }
+
+      // Block continue if any titular is ineligible
+      const ineligibiliInEchipa = echipa.titulari.filter(id => {
+        const elig = eligibilitateMap.get(cat.id)?.get(id);
+        return elig && !elig.eligibil;
+      });
+      if (ineligibiliInEchipa.length > 0) {
+        erori.set(cat.id, `${ineligibiliInEchipa.length} titular${ineligibiliInEchipa.length !== 1 ? 'i' : ''} ineligibil${ineligibiliInEchipa.length !== 1 ? 'i' : ''} — scoateți-i din echipă`);
       }
     }
     return erori;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [echipeFormate, categoriiEchipa, categoriiLimitaAtinsa]);
+  }, [echipeFormate, categoriiEchipa, categoriiLimitaAtinsa, eligibilitateMap]);
 
   const poateContinua = eroriPerCategorie.size === 0;
 
@@ -3018,6 +3043,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
               erroare={erroare}
               dbId={echipa.dbId}
               dataCompetitie={dataCompetitie}
+              eligibilitateMapCategorie={eligibilitateMap.get(cat.id)}
             />
           );
         })}

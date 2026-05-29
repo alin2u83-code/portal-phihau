@@ -12,6 +12,7 @@ import {
 } from '../../utils/competitiiTemplates';
 import { useTipuriCompetitie } from '../../hooks/useTipuriCompetitie';
 import { filtreazaSportiviEligibili, calculeazaVarstaLaData } from '../../utils/eligibilitateCompetitie';
+import CategoriiTemplateManager from './CategoriiTemplateManager';
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/taxeCompetitie';
 import { VizaSportiv } from '../../types';
 import InscriereClubWizard from './InscriereClubWizard';
@@ -756,7 +757,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [inscrieri, setInscrieri] = useState<InscriereCompetitie[]>([]);
   const [echipe, setEchipe] = useState<EchipaCompetitie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar'>(() => {
+  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template'>(() => {
     const saved = ssGet(SS_KEY_TAB);
     if (saved === 'categorii' || saved === 'inscrieri' || saved === 'raport' || saved === 'admin' || saved === 'rezultate_legacy' || saved === 'financiar') return saved;
     return 'inscrieri';
@@ -778,7 +779,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const isClubAdmin = permissions.isAdminClub;
 
   // Persistă tab-ul activ în sessionStorage la fiecare schimbare
-  const handleSetActiveTab = useCallback((tab: 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar') => {
+  const handleSetActiveTab = useCallback((tab: 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template') => {
     setActiveTab(tab);
     ssSet(SS_KEY_TAB, tab);
   }, []);
@@ -934,6 +935,19 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             }`}
           >
             Financiar
+          </button>
+        )}
+        {isAdmin && (
+          <button
+            onClick={() => handleSetActiveTab('template')}
+            style={{ touchAction: 'manipulation' }}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+              activeTab === 'template'
+                ? 'bg-emerald-700 text-white'
+                : 'text-emerald-400 hover:text-white hover:bg-slate-700'
+            }`}
+          >
+            Template-uri
           </button>
         )}
         {competitie.legacy_eveniment_id && (
@@ -1258,6 +1272,16 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 </div>
               )}
             </div>
+          )}
+
+          {activeTab === 'template' && isAdmin && (
+            <CategoriiTemplateManager
+              permissions={permissions}
+              competitieId={competitie.id}
+              probe={probe}
+              categoriiExistente={categorii}
+              onImported={(cats) => setCategorii(prev => [...prev, ...cats])}
+            />
           )}
         </>
       )}

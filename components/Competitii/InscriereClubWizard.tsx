@@ -19,6 +19,88 @@ import { useError } from '../ErrorProvider';
 import { calculeazaVarstaLaData, verificaEligibilitate } from '../../utils/eligibilitateCompetitie';
 import { exportFisaParticipare, exportBorderoClub, RandIndividualPDF, RandEchipaPDF } from '../../utils/exportPDFCompetitie';
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/taxeCompetitie';
+import { TIP_PROBA_LABELS } from '../../utils/competitiiTemplates';
+
+// -----------------------------------------------
+// PROBA HEADER — constante și componentă
+// -----------------------------------------------
+
+const PROBA_INFO: Record<string, { title: string; color: string; instructions: string[] }> = {
+  thao_quyen_individual: {
+    title: 'THAO QUYEN INDIVIDUAL',
+    color: 'amber',
+    instructions: [
+      'Fiecare sportiv concurează individual cu programul propriu.',
+      'Selectează câte un sportiv per categorie de vârstă/gen/grad.',
+      'Verifică că gradul sportivului corespunde categoriei selectate.',
+    ],
+  },
+  song_luyen: {
+    title: 'SONG LUYEN',
+    color: 'indigo',
+    instructions: [
+      'Probă în perechi — obligatoriu 2 titulari, maxim 1 rezervă.',
+      'Perechea se formează din sportivi cu grade compatibile.',
+      'Programul se alege automat după gradul minim din pereche.',
+    ],
+  },
+  sincron: {
+    title: 'SINCRON',
+    color: 'emerald',
+    instructions: [
+      'Probă în grup — minim 3 titulari, maxim 5.',
+      'Toți membrii echipei trebuie să aibă același program.',
+      'Gradul minim din echipă determină categoria.',
+    ],
+  },
+  giao_dau: {
+    title: 'GIAO DAU',
+    color: 'rose',
+    instructions: [
+      'Probă de contact — fiecare sportiv concurează individual.',
+      'Greutatea și vârsta determină categoria exactă.',
+      'Echipamentul de protecție obligatoriu la competiție.',
+    ],
+  },
+  thao_lo_individual: {
+    title: 'THAO LO / CVD',
+    color: 'cyan',
+    instructions: [
+      'Probă cu armă — tipul armei determină categoria.',
+      'Selectează arma corectă în câmpul "Armă" al categoriei.',
+      'Fiecare sportiv concurează individual.',
+    ],
+  },
+};
+
+const PROBA_COLOR_CLASSES: Record<string, { bg: string; border: string; text: string; badge: string }> = {
+  amber:   { bg: 'bg-amber-950/40',   border: 'border-amber-700/60',   text: 'text-amber-300',   badge: 'bg-amber-900/60 text-amber-200' },
+  indigo:  { bg: 'bg-indigo-950/40',  border: 'border-indigo-700/60',  text: 'text-indigo-300',  badge: 'bg-indigo-900/60 text-indigo-200' },
+  emerald: { bg: 'bg-emerald-950/40', border: 'border-emerald-700/60', text: 'text-emerald-300', badge: 'bg-emerald-900/60 text-emerald-200' },
+  rose:    { bg: 'bg-rose-950/40',    border: 'border-rose-700/60',    text: 'text-rose-300',    badge: 'bg-rose-900/60 text-rose-200' },
+  cyan:    { bg: 'bg-cyan-950/40',    border: 'border-cyan-700/60',    text: 'text-cyan-300',    badge: 'bg-cyan-900/60 text-cyan-200' },
+};
+
+const ProbaHeader: React.FC<{ tipProba: string }> = ({ tipProba }) => {
+  const info = PROBA_INFO[tipProba];
+  if (!info) return null;
+  const colors = PROBA_COLOR_CLASSES[info.color] ?? PROBA_COLOR_CLASSES.amber;
+  return (
+    <div className={`rounded-xl border ${colors.bg} ${colors.border} p-3 sm:p-4 mb-4`}>
+      <h2 className={`text-xl sm:text-2xl font-bold tracking-wide ${colors.text} mb-2`}>
+        {info.title}
+      </h2>
+      <ul className="space-y-1">
+        {info.instructions.map((line, i) => (
+          <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+            <span className={`mt-0.5 text-xs font-bold px-1.5 py-0.5 rounded ${colors.badge}`}>{i + 1}</span>
+            {line}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
 
 // -----------------------------------------------
 // HELPERS INTERNI
@@ -2189,6 +2271,22 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
   const [vedere, setVedere] = useState<'per_sportiv' | 'per_categorie'>('per_sportiv');
   // Task 6: probe sărite (nu avem concurenți)
   const [probeSkipped, setProbeSkipped] = useState<Set<string>>(new Set());
+
+  // 7b: tipuri de probe unice disponibile în competiție (din probe prop)
+  const tipProbeUnice = useMemo<string[]>(() => {
+    const vazute = new Set<string>();
+    const lista: string[] = [];
+    for (const p of probe) {
+      if (p.tip_proba && !vazute.has(p.tip_proba)) {
+        vazute.add(p.tip_proba);
+        lista.push(p.tip_proba);
+      }
+    }
+    return lista;
+  }, [probe]);
+
+  // 7b: tab activ pentru tipul de probă în Pasul 2
+  const [probaActivaTab, setProbaActivaTab] = useState<string>(() => probe[0]?.tip_proba ?? '');
   const handleToggleProbaSkipped = useCallback((probaId: string) => {
     setProbeSkipped(prev => {
       const next = new Set(prev);
@@ -2219,6 +2317,28 @@ const Pas2CategoriiPerSportiv: React.FC<Pas2Props> = ({
 
       {/* Progress */}
       <WizardProgress step={2} total={4} />
+
+      {/* 7a: Header colorat per tip probă activ */}
+      {probaActivaTab && <ProbaHeader tipProba={probaActivaTab} />}
+
+      {/* 7b: Tabs per tip probă — afișate doar dacă există mai mult de un tip */}
+      {tipProbeUnice.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+          {tipProbeUnice.map(tip => (
+            <button
+              key={tip}
+              onClick={() => setProbaActivaTab(tip)}
+              className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors min-h-[36px] ${
+                probaActivaTab === tip
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+              }`}
+            >
+              {TIP_PROBA_LABELS[tip as keyof typeof TIP_PROBA_LABELS] ?? tip}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Toggle vedere */}
       <div className="flex items-center gap-1 p-1 bg-slate-800/60 rounded-lg border border-slate-700 w-fit">
@@ -2772,6 +2892,8 @@ interface Pas3Props {
   onOpenEditEchipa?: (categorieId: string) => void;
   /** Data de start a competiției — pentru calculul vârstei la eligibilitate */
   dataCompetitie: string;
+  /** Probe ale competiției — pentru grupare tabs per tip probă */
+  probe: ProbaCompetitie[];
 }
 
 const Pas3FormareEchipe: React.FC<Pas3Props> = ({
@@ -2783,6 +2905,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   myClubId,
   onOpenEditEchipa,
   dataCompetitie,
+  probe,
 }) => {
   const { showError } = useError();
   const [dreptUri, setDreptUri] = useState<Map<string, Inlantuire[]>>(new Map());
@@ -2963,6 +3086,33 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
 
   const poateContinua = eroriPerCategorie.size === 0;
 
+  // 7b: tipuri de probe unice pentru echipe (lookup prin probe prop)
+  const tipProbeUniceEchipe = useMemo<string[]>(() => {
+    const vazute = new Set<string>();
+    const lista: string[] = [];
+    for (const cat of categoriiEchipa) {
+      const tip = probe.find(p => p.id === cat.proba_id)?.tip_proba;
+      if (tip && !vazute.has(tip)) {
+        vazute.add(tip);
+        lista.push(tip);
+      }
+    }
+    return lista;
+  }, [categoriiEchipa, probe]);
+
+  // 7b: tab activ echipe
+  const [probaActivaTabEchipe, setProbaActivaTabEchipe] = useState<string>(() => {
+    return probe[0]?.tip_proba ?? '';
+  });
+
+  // 7b: categorii echipă filtrate după tab activ
+  const categoriiEchipaFiltrate = useMemo<CategorieCompetitie[]>(() => {
+    if (!probaActivaTabEchipe) return categoriiEchipa;
+    return categoriiEchipa.filter(cat =>
+      probe.find(p => p.id === cat.proba_id)?.tip_proba === probaActivaTabEchipe
+    );
+  }, [categoriiEchipa, probaActivaTabEchipe, probe]);
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -2987,6 +3137,28 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
 
       {/* Progress */}
       <WizardProgress step={3} total={4} />
+
+      {/* 7a: Header colorat per tip probă activ echipe */}
+      {probaActivaTabEchipe && <ProbaHeader tipProba={probaActivaTabEchipe} />}
+
+      {/* 7b: Tabs per tip probă echipe — afișate doar dacă există mai mult de un tip */}
+      {tipProbeUniceEchipe.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+          {tipProbeUniceEchipe.map(tip => (
+            <button
+              key={tip}
+              onClick={() => setProbaActivaTabEchipe(tip)}
+              className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors min-h-[36px] ${
+                probaActivaTabEchipe === tip
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+              }`}
+            >
+              {TIP_PROBA_LABELS[tip as keyof typeof TIP_PROBA_LABELS] ?? tip}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Banner skip toate probele */}
       {categoriiEchipa.length > 0 && (() => {
@@ -3021,7 +3193,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
 
       {/* Grid categorii — responsive */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-4">
-        {categoriiEchipa.map(cat => {
+        {categoriiEchipaFiltrate.map(cat => {
           const disponibili = sportiviDisponibiliPerCategorie.get(cat.id) ?? [];
           const echipa = getEchipa(cat.id);
           const erroare = eroriPerCategorie.get(cat.id) ?? null;
@@ -3962,6 +4134,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         echipeDB={echipe}
         myClubId={myClubId}
         dataCompetitie={competitie.data_inceput}
+        probe={probe}
       />
     );
   }

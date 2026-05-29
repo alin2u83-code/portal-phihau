@@ -2523,8 +2523,8 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
           style={{ touchAction: 'manipulation' }}
           className={`w-full py-2.5 rounded-lg text-sm font-semibold border transition-colors ${
             echipa.echipaSkip
-              ? 'bg-slate-700 border-brand-primary text-brand-primary'
-              : 'bg-slate-800/60 border-slate-600 text-slate-400 active:border-yellow-600 active:text-yellow-400'
+              ? 'bg-orange-950/40 border-orange-500 text-orange-300 font-semibold hover:bg-orange-950/60'
+              : 'bg-slate-900 border-slate-500 text-slate-300 hover:border-orange-500/50 hover:text-orange-300'
           }`}
         >
           {echipa.echipaSkip ? '✓ Nu participăm — apasă pentru a reactiva' : 'Nu participăm la această probă'}
@@ -2659,7 +2659,7 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
                       type="button"
                       onClick={() => handleRolChange(sportiv.id, 'nu_participa')}
                       style={{ touchAction: 'manipulation' }}
-                      className="flex-none px-3 py-2.5 rounded-lg text-xs font-semibold border border-slate-600 bg-slate-800 text-slate-500 active:text-red-400 active:border-red-700/50 transition-colors"
+                      className="flex-none px-3 py-2.5 rounded-lg text-xs font-semibold border border-slate-600 bg-slate-800 text-slate-300 hover:text-red-400 hover:border-red-500/50 active:text-red-400 active:border-red-700/50 transition-colors"
                     >
                       Scoate
                     </button>

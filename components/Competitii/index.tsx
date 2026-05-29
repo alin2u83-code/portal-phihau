@@ -880,7 +880,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scroll-smooth scrollbar-hide">
         <button onClick={() => handleSetActiveTab('inscrieri')} style={{ touchAction: 'manipulation' }}
           className={`flex-1 min-w-[120px] h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'inscrieri' ? 'bg-brand-primary text-white shadow-lg' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
           <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -973,8 +973,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
               )}
 
               {/* Category list */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-slate-300">
+              <div className="-mx-4 sm:mx-0 overflow-x-auto">
+                <table className="w-full text-sm text-slate-300 min-w-[480px]">
                   <thead>
                     <tr className="border-b border-slate-700">
                       <th className="p-2 text-left w-10">#</th>
@@ -1188,8 +1188,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
               ) : rezultateLegacy.length === 0 ? (
                 <div className="text-center text-slate-500 py-8 italic">Nicio înregistrare găsită în sistemul vechi.</div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-slate-300">
+                <div className="-mx-4 sm:mx-0 overflow-x-auto">
+                  <table className="w-full text-sm text-slate-300 min-w-[400px]">
                     <thead>
                       <tr className="border-b border-slate-700 text-slate-500 text-xs uppercase">
                         <th className="p-2 text-left">#</th>

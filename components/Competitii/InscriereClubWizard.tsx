@@ -1740,7 +1740,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
           </button>
 
           {/* Tabel înlănțuiri */}
-          <div className="overflow-x-auto rounded-lg border border-slate-700" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="overflow-x-auto max-w-full rounded-lg border border-slate-700" style={{ WebkitOverflowScrolling: 'touch' }}>
             <table className="w-full text-sm" style={{ minWidth: `${Math.max(480, 300 + maxOpts * 120)}px` }}>
               <thead>
                 <tr className="bg-slate-800 border-b border-slate-700">
@@ -2708,7 +2708,7 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
           Nume echipă
         </label>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
-          <span className="text-sm text-white font-medium truncate max-w-[160px] sm:max-w-[200px] shrink-0">{numeClub}</span>
+          <span className="text-sm text-white font-medium truncate max-w-[140px] sm:max-w-[200px] md:max-w-[240px] shrink-0">{numeClub}</span>
           <span className="hidden sm:inline text-slate-600">—</span>
           <input
             type="text"

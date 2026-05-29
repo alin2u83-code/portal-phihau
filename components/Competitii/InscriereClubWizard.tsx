@@ -2402,6 +2402,8 @@ interface SectiuneEchipaCategorieProps {
   onUpdateEchipa: (update: Partial<EchipaFormata>) => void;
   erroare: string | null;
   dbId?: string;
+  dataCompetitie: string;
+  onOpenEditEchipa?: (categorieId: string) => void;
 }
 
 function canAddToTitulari(cat: CategorieCompetitie, athGen: string | undefined | null, titulari: string[], sportiviPool: Sportiv[]): boolean {
@@ -2416,6 +2418,7 @@ function canAddToTitulari(cat: CategorieCompetitie, athGen: string | undefined |
 
 const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
   cat, sportiviDisponibili, grade, dreptUri, numeClub, echipa, onUpdateEchipa, erroare, dbId,
+  onOpenEditEchipa, dataCompetitie,
 }) => {
   const isPereche = cat.tip_participare === 'pereche';
   const titulariMax = isPereche ? 2 : cat.sportivi_per_echipa_max;
@@ -2569,26 +2572,55 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
             const rolCurent = getRolSportiv(sportiv.id);
             const titulariFull = echipa.titulari.length >= titulariMax && rolCurent !== 'titular';
             const genderBlocat = rolCurent !== 'titular' && !canAddToTitulari(cat, sportiv.gen, echipa.titulari, sportiviDisponibili);
-            const titulariBlocati = titulariFull || genderBlocat;
-            const rezerveBlocate = echipa.rezerve.length >= rezerveMax && rolCurent !== 'rezerva';
+            const eligibilitate = verificaEligibilitate(sportiv, cat, grade, dataCompetitie);
+            const ineligibil = !eligibilitate.eligibil;
+            // Titular blocat dacă: capacitate depășită, gen blocat, sau ineligibil (vârstă/grad)
+            const titulariBlocati = titulariFull || genderBlocat || (ineligibil && rolCurent !== 'titular');
+            const rezerveBlocate = (echipa.rezerve.length >= rezerveMax && rolCurent !== 'rezerva') || (ineligibil && rolCurent !== 'rezerva');
+            // Sportiv deja titular dar ineligibil (edge case: categoria s-a schimbat)
+            const titularIneligibil = rolCurent === 'titular' && ineligibil;
+            const rezervaIneligibil = rolCurent === 'rezerva' && ineligibil;
 
             return (
               <div key={sportiv.id} className="px-4 py-3 space-y-2">
-                {/* Nume sportiv */}
+                {/* Nume sportiv + badge ineligibil */}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-white">{sportiv.nume} {sportiv.prenume}</span>
-                  {genderBlocat && (
+                  <span className="text-sm font-medium text-white">{sportiv.prenume} {sportiv.nume}</span>
+                  {ineligibil && (
+                    <span
+                      className="text-[10px] font-semibold text-orange-400 bg-orange-900/30 border border-orange-700/50 rounded-full px-2 py-0.5"
+                      title={eligibilitate.motive.join(' · ')}
+                    >
+                      ⚠ Ineligibil
+                    </span>
+                  )}
+                  {genderBlocat && !ineligibil && (
                     <span className="text-[10px] font-semibold text-yellow-400">
                       🔒 {sportiv.gen === 'Masculin' ? 'Trebuie fată mai întâi' : 'Trebuie băiat mai întâi'}
                     </span>
                   )}
                 </div>
+                {/* Motiv ineligibilitate detaliat (vizibil dacă ineligibil și nu e deja în echipă) */}
+                {ineligibil && rolCurent === 'nu_participa' && (
+                  <p className="text-[10px] text-orange-400/80 leading-snug">
+                    {eligibilitate.motive.join(' · ')}
+                  </p>
+                )}
+                {/* Warning vizibil dacă titular/rezervă ineligibil (edge case categoria schimbată) */}
+                {(titularIneligibil || rezervaIneligibil) && (
+                  <div className="rounded-md border border-orange-700/40 bg-orange-900/20 px-2 py-1.5">
+                    <p className="text-[10px] text-orange-300 leading-snug">
+                      ⚠ Sportiv ineligibil in echipa curenta: {eligibilitate.motive.join(' · ')}
+                    </p>
+                  </div>
+                )}
                 {/* Butoane rol — full-width pe mobil, inline pe desktop */}
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => handleRolChange(sportiv.id, rolCurent === 'titular' ? 'nu_participa' : 'titular')}
                     disabled={titulariBlocati}
+                    title={ineligibil && rolCurent !== 'titular' ? eligibilitate.motive.join(' · ') : undefined}
                     style={{ touchAction: 'manipulation' }}
                     className={`flex-1 sm:flex-none sm:min-w-[80px] py-2.5 rounded-lg text-xs font-semibold border transition-colors ${
                       rolCurent === 'titular'
@@ -2606,6 +2638,7 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
                       type="button"
                       onClick={() => handleRolChange(sportiv.id, rolCurent === 'rezerva' ? 'nu_participa' : 'rezerva')}
                       disabled={rezerveBlocate}
+                      title={ineligibil && rolCurent !== 'rezerva' ? eligibilitate.motive.join(' · ') : undefined}
                       style={{ touchAction: 'manipulation' }}
                       className={`flex-1 sm:flex-none sm:min-w-[80px] py-2.5 rounded-lg text-xs font-semibold border transition-colors ${
                         rolCurent === 'rezerva'
@@ -2717,6 +2750,9 @@ interface Pas3Props {
   echipeDB?: EchipaCompetitie[];
   /** ID-ul clubului curent — necesar pentru validarea limitei per club */
   myClubId?: string;
+  onOpenEditEchipa?: (categorieId: string) => void;
+  /** Data de start a competiției — pentru calculul vârstei la eligibilitate */
+  dataCompetitie: string;
 }
 
 const Pas3FormareEchipe: React.FC<Pas3Props> = ({
@@ -2726,6 +2762,8 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   onContinua, onBack,
   echipeDB = [],
   myClubId,
+  onOpenEditEchipa,
+  dataCompetitie,
 }) => {
   const { showError } = useError();
   const [dreptUri, setDreptUri] = useState<Map<string, Inlantuire[]>>(new Map());
@@ -2979,6 +3017,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
               onUpdateEchipa={update => handleUpdateEchipa(cat.id, update)}
               erroare={erroare}
               dbId={echipa.dbId}
+              dataCompetitie={dataCompetitie}
             />
           );
         })}
@@ -3709,11 +3748,13 @@ export interface InscriereClubWizardProps {
   myClubId?: string;
   onBack: () => void;
   onSaved: () => void;
+  onOpenEditEchipa?: (categorieId: string) => void;
 }
 
 const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   competitie, probe, categorii, sportivi, grade,
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
+  onOpenEditEchipa,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [selectedSportivi, setSelectedSportivi] = useState<Set<string>>(new Set());
@@ -3871,6 +3912,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onBack={() => setStep(2)}
         echipeDB={echipe}
         myClubId={myClubId}
+        dataCompetitie={competitie.data_inceput}
       />
     );
   }

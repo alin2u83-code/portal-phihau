@@ -2240,8 +2240,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
               </Button>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-slate-300">
+          <div className="-mx-4 sm:mx-0 overflow-x-auto">
+            <table className="w-full text-sm text-slate-300 min-w-[480px]">
               <thead>
                 <tr className="border-b border-slate-700">
                   <th className="p-2 text-left w-10">#</th>
@@ -2713,8 +2713,8 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
             </svg>
           </button>
           {individualExpanded && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-slate-300">
+          <div className="-mx-4 sm:mx-0 overflow-x-auto">
+            <table className="w-full text-sm text-slate-300 min-w-[480px]">
               <thead>
                 <tr className="border-b border-slate-700">
                   <th className="p-2 text-left">Sportiv</th>

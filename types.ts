@@ -343,7 +343,7 @@ export interface Antrenament {
   ziua: ProgramItem['ziua'] | null;
   is_recurent: boolean;
   is_activ?: boolean;
-  prezenta: { sportiv_id: string; status: string | null }[];
+  prezenta: { sportiv_id: string; status_id?: string | null; status: { este_prezent: boolean; denumire: string } | null }[];
   orar_id?: string | null;
   // New fields from view
   nume_grupa?: string;

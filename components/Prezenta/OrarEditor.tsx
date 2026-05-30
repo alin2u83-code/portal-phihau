@@ -14,7 +14,7 @@ export const OrarEditor: React.FC<{
     const [program, setProgram] = useState<ProgramItem[]>(grupa.program || []);
     const [loading, setLoading] = useState(false);
     const { showError, showSuccess } = useError();
-    const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'MarÈ›i', 'Miercuri', 'Joi', 'Vineri', 'SÃ¢mbÄƒtÄƒ', 'DuminicÄƒ'];
+    const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
     
     const handleSave = async () => {
         setLoading(true);

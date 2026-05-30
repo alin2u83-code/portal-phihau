@@ -142,7 +142,7 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
             // Format corect PostgREST pentru NOT IN: (SPORTIV,INSTRUCTOR) — fără single quotes.
             const denumiriDeReținut = finalRoleIds
                 .map(id => allRoles.find(r => r.id === id)?.nume)
-                .filter((n): n is string => Boolean(n));
+                .filter((n): n is Rol['nume'] => n !== undefined);
 
             if (denumiriDeReținut.length > 0) {
                 const { error: deleteError } = await supabase

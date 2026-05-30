@@ -49,7 +49,7 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                 const toateTipurile: TipAbonament[] = tipuriRes.data || [];
                 setState({
                     familie: familieRes.data || null,
-                    membri: membriiRes.data || [],
+                    membri: (membriiRes.data || []) as Sportiv[],
                     tipuriFamilie: toateTipurile.filter(t => t.numar_membri >= 2),
                     tipuriIndividuale: toateTipurile.filter(t => t.numar_membri < 2),
                 });

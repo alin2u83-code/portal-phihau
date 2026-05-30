@@ -67,7 +67,7 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
 
     const totalRestante = useMemo(() => {
         return plati
-            .filter(p => (p.sportiv_id === currentUser.id || (p.familie_id && p.familie_id === currentUser.familie_id)) && (p.status === 'Neachitat' || p.status === 'Achitat ParÈ›ial'))
+            .filter(p => (p.sportiv_id === currentUser.id || (p.familie_id && p.familie_id === currentUser.familie_id)) && (p.status === 'Neachitat' || p.status === 'Achitat Parțial'))
             .reduce((sum, p) => sum + p.suma, 0);
     }, [currentUser, plati]);
 

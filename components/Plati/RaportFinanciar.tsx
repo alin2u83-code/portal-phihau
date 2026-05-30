@@ -1,17 +1,17 @@
-import React, { useMemo, useState } from 'react';
-import { IstoricPlataDetaliat, Sportiv, Familie, Plata, Tranzactie } from '../types';
-import { Card, Input, Select, Button } from './ui';
-import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon, ExclamationTriangleIcon, CheckCircleIcon, WalletIcon, XIcon, TrendingUpIcon, UsersIcon, DownloadIcon, DocumentArrowDownIcon } from './icons';
+﻿import React, { useMemo, useState } from 'react';
+import { IstoricPlataDetaliat, Sportiv, Familie, Plata, Tranzactie } from '../../types';
+import { Card, Input, Select, Button } from '../ui';
+import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon, ExclamationTriangleIcon, CheckCircleIcon, WalletIcon, XIcon, TrendingUpIcon, UsersIcon, DownloadIcon, DocumentArrowDownIcon } from '../icons';
 import { RevenueBarChart } from './RevenueBarChart';
 import { PaymentTypePieChart } from './PaymentTypePieChart';
 import { AgingReport } from './AgingReport';
 import { FamilyPaymentCard } from './FamilyPaymentCard';
-import { exportIncasariCSV, exportIncasariPDF } from '../utils/exportFinanciar';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { supabase } from '../supabaseClient';
-import { useData } from '../contexts/DataContext';
-import { useError } from './ErrorProvider';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../utils/paymentStatus';
+import { exportIncasariCSV, exportIncasariPDF } from '../../utils/exportFinanciar';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { supabase } from '../../supabaseClient';
+import { useData } from '../../contexts/DataContext';
+import { useError } from '../ErrorProvider';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
 
 interface RaportFinanciarProps {

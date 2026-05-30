@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { Plata, Tranzactie, Sportiv, Familie } from '../types';
-import { Card, Button, Select, Input } from './ui';
-import { ArrowLeftIcon, BanknotesIcon, UsersIcon, ExclamationTriangleIcon } from './icons';
+﻿import React, { useState, useMemo } from 'react';
+import { Plata, Tranzactie, Sportiv, Familie } from '../../types';
+import { Card, Button, Select, Input } from '../ui';
+import { ArrowLeftIcon, BanknotesIcon, UsersIcon, ExclamationTriangleIcon } from '../icons';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 interface FinancialDashboardProps {

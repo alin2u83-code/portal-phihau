@@ -1,4 +1,4 @@
-/**
+﻿/**
  * FacturaChitantaModal.tsx
  *
  * Modal cu două moduri:
@@ -8,9 +8,9 @@
  * Se poate extinde cu export PDF via jspdf + jspdf-autotable.
  */
 import React, { useRef } from 'react';
-import { Plata, IstoricPlataDetaliat, Sportiv, Familie } from '../types';
-import { XIcon, PrinterIcon, CheckCircleIcon, ExclamationTriangleIcon, FileTextIcon } from './icons';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../utils/paymentStatus';
+import { Plata, IstoricPlataDetaliat, Sportiv, Familie } from '../../types';
+import { XIcon, PrinterIcon, CheckCircleIcon, ExclamationTriangleIcon, FileTextIcon } from '../icons';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

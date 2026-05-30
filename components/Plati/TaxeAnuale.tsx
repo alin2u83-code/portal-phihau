@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from 'react';
-import { supabase } from '../supabaseClient';
-import { User, Sportiv, Plata, TaxaAnualeConfig, VizaSportiv, DecontSportiv, DecontFederatie } from '../types';
-import { Button, Card, Input, Modal, Select } from './ui';
-import { ArrowLeftIcon, CogIcon, BanknotesIcon, PlusIcon, CheckCircleIcon, XCircleIcon, SearchIcon, TrashIcon, CalendarIcon, DownloadIcon, PrinterIcon } from './icons';
-import { useError } from './ErrorProvider';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { useData } from '../contexts/DataContext';
-import { ResponsiveTable } from './ResponsiveTable';
+﻿import React, { useState, useMemo } from 'react';
+import { supabase } from '../../supabaseClient';
+import { User, Sportiv, Plata, TaxaAnualeConfig, VizaSportiv, DecontSportiv, DecontFederatie } from '../../types';
+import { Button, Card, Input, Modal, Select } from '../ui';
+import { ArrowLeftIcon, CogIcon, BanknotesIcon, PlusIcon, CheckCircleIcon, XCircleIcon, SearchIcon, TrashIcon, CalendarIcon, DownloadIcon, PrinterIcon } from '../icons';
+import { useError } from '../ErrorProvider';
+import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
+import { useData } from '../../contexts/DataContext';
+import { ResponsiveTable } from '../ResponsiveTable';
 
 interface TaxeAnualeProps {
     onBack: () => void;

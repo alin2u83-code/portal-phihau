@@ -1,14 +1,14 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie, Reducere, TipPlata, User, Permissions } from '../types';
-import { Button, Input, Select, Card, Modal } from './ui';
-import { getPretValabil, getPretProdus } from '../utils/pricing';
-import { ArrowLeftIcon, PlusIcon, TrashIcon } from './icons';
-import { supabase } from '../supabaseClient';
-import { useError } from './ErrorProvider';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { useData } from '../contexts/DataContext';
-import { sendNotification } from '../utils/notifications';
-import { ResponsiveTable, Column } from './ResponsiveTable';
+﻿import React, { useState, useMemo, useEffect } from 'react';
+import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie, Reducere, TipPlata, User, Permissions } from '../../types';
+import { Button, Input, Select, Card, Modal } from '../ui';
+import { getPretValabil, getPretProdus } from '../../utils/pricing';
+import { ArrowLeftIcon, PlusIcon, TrashIcon } from '../icons';
+import { supabase } from '../../supabaseClient';
+import { useError } from '../ErrorProvider';
+import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
+import { useData } from '../../contexts/DataContext';
+import { sendNotification } from '../../utils/notifications';
+import { ResponsiveTable, Column } from '../ResponsiveTable';
 
 const QuickAddTipPlataModal: React.FC<{ 
   isOpen: boolean; 

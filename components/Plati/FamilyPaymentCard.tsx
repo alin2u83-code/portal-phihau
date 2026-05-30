@@ -1,4 +1,4 @@
-/**
+﻿/**
  * FamilyPaymentCard.tsx
  * Card consolidat solduri familie:
  *  - Membrii cu indicator restanță
@@ -6,9 +6,9 @@
  *  - Lista plăților restante cu status aging
  */
 import React from 'react';
-import { Familie, Sportiv, Plata } from '../types';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../utils/paymentStatus';
-import { UsersIcon, CheckCircleIcon, ExclamationTriangleIcon } from './icons';
+import { Familie, Sportiv, Plata } from '../../types';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
+import { UsersIcon, CheckCircleIcon, ExclamationTriangleIcon } from '../icons';
 
 interface Props {
     familie: Familie;

@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
-import { User, Plata, Tranzactie, IstoricPlataDetaliat } from '../types';
-import { Button, Card } from './ui';
-import { ArrowLeftIcon, DownloadIcon } from './icons';
+﻿import React, { useMemo } from 'react';
+import { User, Plata, Tranzactie, IstoricPlataDetaliat } from '../../types';
+import { Button, Card } from '../ui';
+import { ArrowLeftIcon, DownloadIcon } from '../icons';
 
 interface IstoricPlatiProps {
     viewedUser: User;

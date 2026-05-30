@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { supabase } from '../supabaseClient';
-import { Grad } from '../types';
-import { Button, Card, Input } from './ui';
-import { ArrowLeftIcon, EditIcon, SaveIcon, XIcon } from './icons';
-import { useError } from './ErrorProvider';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { supabase } from '../../supabaseClient';
+import { Grad } from '../../types';
+import { Button, Card, Input } from '../ui';
+import { ArrowLeftIcon, EditIcon, SaveIcon, XIcon } from '../icons';
+import { useError } from '../ErrorProvider';
 
 interface RawGradePrice {
     id: string;

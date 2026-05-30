@@ -1,4 +1,4 @@
-/**
+﻿/**
  * RevenueBarChart.tsx
  * Bar chart — încasări lunare pe ultimele 12 luni.
  * Folosit în tab-ul "Grafice" din RaportFinanciar.
@@ -8,7 +8,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, Cell,
 } from 'recharts';
-import { IstoricPlataDetaliat } from '../types';
+import { IstoricPlataDetaliat } from '../../types';
 
 interface Props {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];

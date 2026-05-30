@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Reducere } from '../types';
-import { Button, Input, Card, Select } from './ui';
-import { PlusIcon, TrashIcon, ArrowLeftIcon, EditIcon } from './icons';
-import { supabase } from '../supabaseClient';
-import { useError } from './ErrorProvider';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+﻿import React, { useState } from 'react';
+import { Reducere } from '../../types';
+import { Button, Input, Card, Select } from '../ui';
+import { PlusIcon, TrashIcon, ArrowLeftIcon, EditIcon } from '../icons';
+import { supabase } from '../../supabaseClient';
+import { useError } from '../ErrorProvider';
+import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 
 interface ReduceriManagementProps {
     reduceri: Reducere[];

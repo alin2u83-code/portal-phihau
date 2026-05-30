@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { Familie, Sportiv, TipAbonament, User, Grupa } from '../types';
-import { Button, Input, Card, Select } from './ui';
-import { PlusIcon, TrashIcon, ArrowLeftIcon, EditIcon } from './icons';
-import { supabase } from '../supabaseClient';
-import { useError } from './ErrorProvider';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { useFamilyManager } from '../hooks/useFamilyManager';
+﻿import React, { useState, useMemo } from 'react';
+import { Familie, Sportiv, TipAbonament, User, Grupa } from '../../types';
+import { Button, Input, Card, Select } from '../ui';
+import { PlusIcon, TrashIcon, ArrowLeftIcon, EditIcon } from '../icons';
+import { supabase } from '../../supabaseClient';
+import { useError } from '../ErrorProvider';
+import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
+import { useFamilyManager } from '../../hooks/useFamilyManager';
 
 interface FamiliiManagementProps {
     familii: Familie[];

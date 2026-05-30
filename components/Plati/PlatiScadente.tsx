@@ -1,15 +1,15 @@
-import React, { useState, useMemo } from 'react';
-import { Plata, Sportiv, Permissions, Club } from '../types';
-import { Button, Input, Select, Card, Modal, SearchInput, ClubSelect } from './ui';
-import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon } from './icons';
-import { supabase } from '../supabaseClient';
-import { useError } from './ErrorProvider';
-import { sendBulkNotifications } from '../utils/notifications';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
-import { useData } from '../contexts/DataContext';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../utils/paymentStatus';
+﻿import React, { useState, useMemo } from 'react';
+import { Plata, Sportiv, Permissions, Club } from '../../types';
+import { Button, Input, Select, Card, Modal, SearchInput, ClubSelect } from '../ui';
+import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon } from '../icons';
+import { supabase } from '../../supabaseClient';
+import { useError } from '../ErrorProvider';
+import { sendBulkNotifications } from '../../utils/notifications';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
+import { FEDERATIE_ID, FEDERATIE_NAME } from '../../constants';
+import { useData } from '../../contexts/DataContext';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
 
 interface PlatiScadenteProps { 
     onIncaseazaMultiple: (plati: Plata[]) => void;

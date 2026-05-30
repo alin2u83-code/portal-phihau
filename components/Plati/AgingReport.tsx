@@ -1,10 +1,10 @@
-/**
+﻿/**
  * AgingReport.tsx
  * Raport AR Aging: distribuție restanțe pe intervale de zile.
  * Heat map: verde (curent) → galben → portocaliu → roșu (critic >90 zile).
  */
 import React, { useMemo } from 'react';
-import { Plata, Sportiv, Familie } from '../types';
+import { Plata, Sportiv, Familie } from '../../types';
 
 interface Props {
     plati: Plata[];

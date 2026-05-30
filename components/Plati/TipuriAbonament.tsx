@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { TipAbonament, User, Club, Permissions } from '../types';
-import { Button, Input, Card, Select } from './ui';
-import { PlusIcon, TrashIcon, ArrowLeftIcon } from './icons';
-import { supabase } from '../supabaseClient';
-import { useError } from './ErrorProvider';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { useIsMobile } from '../hooks/useIsMobile';
+﻿import React, { useState } from 'react';
+import { TipAbonament, User, Club, Permissions } from '../../types';
+import { Button, Input, Card, Select } from '../ui';
+import { PlusIcon, TrashIcon, ArrowLeftIcon } from '../icons';
+import { supabase } from '../../supabaseClient';
+import { useError } from '../ErrorProvider';
+import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface TipuriAbonamentManagementProps {
     tipuriAbonament: TipAbonament[];

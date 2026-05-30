@@ -1,14 +1,14 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Plata, Sportiv, User, TipPlata, Familie, Tranzactie, Reducere, PretConfig, TipAbonament } from '../types';
-import { Button, Card, Input, Select, Modal, SearchInput } from './ui';
-import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, WalletIcon, CheckCircleIcon } from './icons';
-import { supabase } from '../supabaseClient';
-import { useError } from './ErrorProvider';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { ResponsiveTable, Column } from './ResponsiveTable';
-import { useData } from '../contexts/DataContext';
-import { getPretValabil, getPretProdus } from '../utils/pricing';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../utils/paymentStatus';
+﻿import React, { useState, useMemo, useEffect } from 'react';
+import { Plata, Sportiv, User, TipPlata, Familie, Tranzactie, Reducere, PretConfig, TipAbonament } from '../../types';
+import { Button, Card, Input, Select, Modal, SearchInput } from '../ui';
+import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, WalletIcon, CheckCircleIcon } from '../icons';
+import { supabase } from '../../supabaseClient';
+import { useError } from '../ErrorProvider';
+import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
+import { ResponsiveTable, Column } from '../ResponsiveTable';
+import { useData } from '../../contexts/DataContext';
+import { getPretValabil, getPretProdus } from '../../utils/pricing';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
 
 interface GestiuneFacturiProps {
     onBack: () => void;

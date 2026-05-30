@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PaymentTypePieChart.tsx
  * Donut chart — distribuție metodă de plată (Cash vs Transfer Bancar).
  * Folosit în tab-ul "Grafice" din RaportFinanciar.
@@ -7,7 +7,7 @@ import React, { useMemo } from 'react';
 import {
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { IstoricPlataDetaliat } from '../types';
+import { IstoricPlataDetaliat } from '../../types';
 
 interface Props {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];

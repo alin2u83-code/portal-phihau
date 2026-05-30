@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Button } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon } from '../icons';
-import { SportivProgressChart, ChartDataPoint } from '../SportivProgressChart';
+import { SportivProgressChart, ChartDataPoint } from '../Sportivi/SportivProgressChart';
 import { ExamHistory } from './ExamHistory';
 import { Sportiv, InscriereExamen, SesiuneExamen, Grad } from '../../types';
 

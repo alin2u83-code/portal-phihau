@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
 import { GradBadge } from '../utils/grades';
 import { AntrenamenteViitoare } from './AntrenamenteViitoare';
 import { UpcomingTrainingsWidget } from './UpcomingTrainingsWidget';
-import { SportivProgressChart } from './SportivProgressChart';
+import { SportivProgressChart } from './Sportivi/SportivProgressChart';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Cell } from 'recharts';
 import { useDataProvider } from '../hooks/useDataProvider';
 import { useAttendanceStats } from '../hooks/useAttendanceStats';
@@ -19,7 +19,7 @@ import { TrainingActionCard, AnuntStatus } from './SportivDashboard/TrainingActi
 import { HistoryModal } from './SportivDashboard/HistoryModal';
 import { FamilieWidget } from './SportivDashboard/FamilieWidget';
 import { EvenimenteWidget } from './EvenimenteWidget';
-import { SportivPassport } from './SportivPassport';
+import { SportivPassport } from './Sportivi/SportivPassport';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) =>
     gradId ? allGrades.find(g => g.id === gradId) ?? null : null;

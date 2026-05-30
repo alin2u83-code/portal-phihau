@@ -7,13 +7,13 @@ import { useError } from './ErrorProvider';
 import { SportivFormModal } from './Sportivi/SportivFormModal';
 import { SportivWallet } from './Sportivi/SportivWallet';
 import { DeleteAuditModal } from './Sportivi/DeleteAuditModal';
-import { SportivFeedbackReport } from './SportivFeedbackReport';
-import { SportivProgressChart, ChartDataPoint } from './SportivProgressChart';
+import { SportivFeedbackReport } from './Sportivi/SportivFeedbackReport';
+import { SportivProgressChart, ChartDataPoint } from './Sportivi/SportivProgressChart';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { AddGradeModal } from './Grade/AddGradeModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { GradBadge } from '../utils/grades';
-import { SportivAvatarEditor } from './SportivAvatarEditor';
+import { SportivAvatarEditor } from './Sportivi/SportivAvatarEditor';
 import { useData } from '../contexts/DataContext';
 
 import { AttendanceIndicator } from './UserProfile/AttendanceIndicator';

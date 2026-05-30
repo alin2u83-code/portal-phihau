@@ -36,7 +36,7 @@ export const FederationInvoices = lazy(() => import('./FederationInvoices').then
 export const MartialAttendance = lazy(() => import('./Prezenta/MartialAttendance').then(m => ({ default: m.MartialAttendance })));
 export const AccountSettings = lazy(() => import('./AccountSettings').then(m => ({ default: m.AccountSettings })));
 export const FederationDashboard = lazy(() => import('./FederationDashboard').then(m => ({ default: m.FederationDashboard })));
-export const FisaDigitalaSportiv = lazy(() => import('./FisaDigitalaSportiv').then(m => ({ default: m.FisaDigitalaSportiv })));
+export const FisaDigitalaSportiv = lazy(() => import('./Sportivi/FisaDigitalaSportiv').then(m => ({ default: m.FisaDigitalaSportiv })));
 export const FisaCompetitie = lazy(() => import('./FisaCompetitie').then(m => ({ default: m.FisaCompetitie })));
 export const InstructorPrezentaPage = lazy(() => import('./Prezenta/InstructorPrezentaPage').then(m => ({ default: m.InstructorPrezentaPage })));
 export const RaportActivitate = lazy(() => import('./RaportActivitate').then(m => ({ default: m.RaportActivitate })));
@@ -52,10 +52,10 @@ export const DebugPage = lazy(() => import('./DebugPage').then(m => ({ default: 
 export const AdminDashboard = lazy(() => import('./AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 export const ReportsDashboard = lazy(() => import('./ReportsDashboard').then(m => ({ default: m.ReportsDashboard })));
 export const LegitimatiiPage = lazy(() => import('./LegitimatiiPage').then(m => ({ default: m.LegitimatiiPage })));
-export const ImportSportiviPage = lazy(() => import('./ImportSportiviPage').then(m => ({ default: m.ImportSportiviPage })));
+export const ImportSportiviPage = lazy(() => import('./Sportivi/ImportSportiviPage').then(m => ({ default: m.ImportSportiviPage })));
 export const IstoricActivitate = lazy(() => import('./IstoricActivitate').then(m => ({ default: m.IstoricActivitate })));
-export const DeduplicareSportivi = lazy(() => import('./DeduplicareSportivi').then(m => ({ default: m.DeduplicareSportivi })));
-export const CereriInscriere = lazy(() => import('./CereriInscriere').then(m => ({ default: m.CereriInscriere })));
+export const DeduplicareSportivi = lazy(() => import('./Sportivi/DeduplicareSportivi').then(m => ({ default: m.DeduplicareSportivi })));
+export const CereriInscriere = lazy(() => import('./Sportivi/CereriInscriere').then(m => ({ default: m.CereriInscriere })));
 export const ActivitatiNationale = lazy(() => import('./ActivitatiNationale').then(m => ({ default: m.ActivitatiNationale })));
 export const InlantuciriAdmin = lazy(() => import('./Grade/InlantuciriAdmin').then(m => ({ default: m.InlantuciriAdmin })));
 export const AdminSMS = lazy(() => import('./SMS/AdminSMS').then(m => ({ default: m.AdminSMS })));

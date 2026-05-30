@@ -1,10 +1,10 @@
-/**
- * TipuriCompetitieAdmin — wrapper peste TipuriNomenclatorAdmin
- * pentru gestionarea tipurilor de competiție.
+﻿/**
+ * TipuriCompetitieAdmin â€” wrapper peste TipuriNomenclatorAdmin
+ * pentru gestionarea tipurilor de competiÈ›ie.
  */
 import React from 'react';
-import { Permissions } from '../types';
-import { TipuriNomenclatorAdmin } from './Grade/TipuriNomenclatorAdmin';
+import { Permissions } from '../../types';
+import { TipuriNomenclatorAdmin } from '../Grade/TipuriNomenclatorAdmin';
 
 interface Props {
   permissions: Permissions;
@@ -17,3 +17,4 @@ export const TipuriCompetitieAdmin: React.FC<Props> = ({ permissions }) => (
     title="Denumiri tipuri competitie"
   />
 );
+

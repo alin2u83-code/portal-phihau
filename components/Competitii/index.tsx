@@ -16,7 +16,7 @@ import CategoriiTemplateManager from './CategoriiTemplateManager';
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/taxeCompetitie';
 import { VizaSportiv } from '../../types';
 import InscriereClubWizard from './InscriereClubWizard';
-import { TipuriCompetitieAdmin } from '../TipuriCompetitieAdmin';
+import { TipuriCompetitieAdmin } from './TipuriCompetitieAdmin';
 
 // -----------------------------------------------
 // HELPERS persistare stare în sessionStorage

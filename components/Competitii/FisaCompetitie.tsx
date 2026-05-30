@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
-import { User, Grad, InscriereExamen, Examen } from '../types';
-import { Button, Card } from './ui';
-import { ArrowLeftIcon, FileTextIcon, DocumentArrowDownIcon } from './icons';
+﻿import React, { useMemo } from 'react';
+import { User, Grad, InscriereExamen, Examen } from '../../types';
+import { Button, Card } from '../ui';
+import { ArrowLeftIcon, FileTextIcon, DocumentArrowDownIcon } from '../icons';
 
 // Helper to get age in full years
 const getAge = (dateString: string): number => {
@@ -52,7 +52,7 @@ export const FisaCompetitie: React.FC<FisaCompetitieProps> = ({ currentUser, gra
 
         const age = getAge(currentUser.data_nasterii);
         
-        let category = 'Categorie Indisponibilă';
+        let category = 'Categorie IndisponibilÄƒ';
         if (age <= 12) category = 'Copii';
         else if (age <= 17) category = 'Juniori';
         else category = 'Seniori';
@@ -62,7 +62,7 @@ export const FisaCompetitie: React.FC<FisaCompetitieProps> = ({ currentUser, gra
             prenume: currentUser.prenume.toUpperCase(),
             varsta_exacta: age,
             categorie_concurs: category,
-            grad: currentGrad?.nume || 'Începător',
+            grad: currentGrad?.nume || 'ÃŽncepÄƒtor',
             data_ultima_promovare: lastExam?.data || currentUser.data_inscrierii,
         };
     }, [currentUser, grade, participari, examene]);
@@ -88,13 +88,13 @@ export const FisaCompetitie: React.FC<FisaCompetitieProps> = ({ currentUser, gra
                     <div>
                         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                             <FileTextIcon className="w-8 h-8 text-brand-secondary" />
-                            Fișă de Competiție
+                            FiÈ™Äƒ de CompetiÈ›ie
                         </h1>
-                        <p className="text-slate-400 mt-1">Aceste date sunt formatate pentru înscrierea la competițiile FRQK.</p>
+                        <p className="text-slate-400 mt-1">Aceste date sunt formatate pentru Ã®nscrierea la competiÈ›iile FRQK.</p>
                     </div>
                     <Button onClick={handleDownloadJson} variant="primary" className="bg-green-600 hover:bg-green-700">
                         <DocumentArrowDownIcon className="w-5 h-5 mr-2" />
-                        Descarcă JSON
+                        DescarcÄƒ JSON
                     </Button>
                 </div>
             </Card>
@@ -102,10 +102,10 @@ export const FisaCompetitie: React.FC<FisaCompetitieProps> = ({ currentUser, gra
             <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <DataField label="Nume" value={competitionData.nume} />
                 <DataField label="Prenume" value={competitionData.prenume} />
-                <DataField label="Vârsta Exactă" value={competitionData.varsta_exacta} />
+                <DataField label="VÃ¢rsta ExactÄƒ" value={competitionData.varsta_exacta} />
                 <DataField label="Categoria de Concurs (Exemplu)" value={competitionData.categorie_concurs} isPlaceholder />
                 <DataField label="Grad Actual" value={competitionData.grad} />
-                <DataField label="Data Ultimei Promovări" value={new Date(competitionData.data_ultima_promovare).toLocaleDateString('ro-RO')} />
+                <DataField label="Data Ultimei PromovÄƒri" value={new Date(competitionData.data_ultima_promovare).toLocaleDateString('ro-RO')} />
             </dl>
         </div>
     );

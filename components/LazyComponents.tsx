@@ -9,8 +9,8 @@ export const GradeManagement = lazy(() => import('./Grade/Grade').then(m => ({ d
 export const PrezentaManagement = lazy(() => import('./Prezenta').then(m => ({ default: m.Prezenta })));
 export const GrupeManagement = lazy(() => import('./Grupe').then(m => ({ default: m.Grupe })));
 export const RaportPrezenta = lazy(() => import('./Prezenta/RaportPrezenta').then(m => ({ default: m.RaportPrezenta })));
-export const StagiiManagement = lazy(() => import('./StagiiManagement').then(m => ({ default: m.StagiiManagement })));
-export const CompetitiiManagement = lazy(() => import('./CompetitiiManagement').then(m => ({ default: m.CompetitiiManagement })));
+export const StagiiManagement = lazy(() => import('./Competitii/StagiiManagement').then(m => ({ default: m.StagiiManagement })));
+export const CompetitiiManagement = lazy(() => import('./Competitii').then(m => ({ default: m.CompetitiiManagement })));
 export const PlatiScadente = lazy(() => import('./Plati/PlatiScadente').then(m => ({ default: m.PlatiScadente })));
 export const JurnalIncasari = lazy(() => import('./Plati/JurnalIncasari').then(m => ({ default: m.JurnalIncasari })));
 export const TipuriAbonamentManagement = lazy(() => import('./Plati/TipuriAbonament').then(m => ({ default: m.TipuriAbonamentManagement })));
@@ -37,7 +37,7 @@ export const MartialAttendance = lazy(() => import('./Prezenta/MartialAttendance
 export const AccountSettings = lazy(() => import('./AccountSettings').then(m => ({ default: m.AccountSettings })));
 export const FederationDashboard = lazy(() => import('./FederationDashboard').then(m => ({ default: m.FederationDashboard })));
 export const FisaDigitalaSportiv = lazy(() => import('./Sportivi/FisaDigitalaSportiv').then(m => ({ default: m.FisaDigitalaSportiv })));
-export const FisaCompetitie = lazy(() => import('./FisaCompetitie').then(m => ({ default: m.FisaCompetitie })));
+export const FisaCompetitie = lazy(() => import('./Competitii/FisaCompetitie').then(m => ({ default: m.FisaCompetitie })));
 export const InstructorPrezentaPage = lazy(() => import('./Prezenta/InstructorPrezentaPage').then(m => ({ default: m.InstructorPrezentaPage })));
 export const RaportActivitate = lazy(() => import('./RaportActivitate').then(m => ({ default: m.RaportActivitate })));
 export const BackdoorCheck = lazy(() => import('./BackdoorCheck').then(m => ({ default: m.BackdoorCheck })));

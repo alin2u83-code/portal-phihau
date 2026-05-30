@@ -1,13 +1,13 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Eveniment, Rezultat, Sportiv, Plata, PretConfig, InscriereExamen, Examen, Grad, User, Permissions, Locatie, StagiuCVDParticipare, ARME_CVD_INDIVIDUALE } from '../types';
-import { Button, Modal, Input, Select, Card, Switch } from './ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from './icons';
-import { getPretValabil } from '../utils/pricing';
-import { supabase } from '../supabaseClient';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { useError } from './ErrorProvider';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { useData } from '../contexts/DataContext';
+﻿import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Eveniment, Rezultat, Sportiv, Plata, PretConfig, InscriereExamen, Examen, Grad, User, Permissions, Locatie, StagiuCVDParticipare, ARME_CVD_INDIVIDUALE } from '../../types';
+import { Button, Modal, Input, Select, Card, Switch } from '../ui';
+import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from '../icons';
+import { getPretValabil } from '../../utils/pricing';
+import { supabase } from '../../supabaseClient';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useError } from '../ErrorProvider';
+import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
+import { useData } from '../../contexts/DataContext';
 
 const formatDateRange = (start: string) => {
     return new Date(start).toLocaleDateString('ro-RO');
@@ -24,7 +24,7 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
     const [loading, setLoading] = useState(false);
     const [isFederationEvent, setIsFederationEvent] = useState(false);
     
-    // Încarcă tipuri stagii o singură dată la mount dacă tipul e Stagiu
+    // ÃŽncarcÄƒ tipuri stagii o singurÄƒ datÄƒ la mount dacÄƒ tipul e Stagiu
     React.useEffect(() => {
         if (type !== 'Stagiu') return;
         supabase
@@ -36,7 +36,7 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
                 if (data && data.length > 0) {
                     setTipuriStagii(data as TipStagiuOpt[]);
                 } else {
-                    // Fallback hardcodat dacă tabela nu există încă
+                    // Fallback hardcodat dacÄƒ tabela nu existÄƒ Ã®ncÄƒ
                     setTipuriStagii([
                         { cod: 'qkd', denumire: 'Stagiu Qwan Ki Do' },
                         { cod: 'cvd', denumire: 'Stagiu Co Vo Dao' },
@@ -85,9 +85,9 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
         onClose();
     };
 
-    return ( <Modal isOpen={isOpen} onClose={onClose} title={evToEdit ? `Editează ${type}` : `Adaugă ${type} Nou`}> <form onSubmit={handleSubmit} className="space-y-4"> <Input label="Denumire" name="denumire" value={formState.denumire} onChange={handleChange} required /> <div className="grid grid-cols-2 gap-4"> <Input label="Data Început" name="data" type="date" value={formState.data} onChange={handleChange} required /> <Input label="Data Sfârșit" name="data_sfarsit" type="date" value={formState.data_sfarsit} onChange={handleChange} required /> </div>
-    <Select label="Locație" name="locatie" value={formState.locatie} onChange={handleChange}>
-        <option value="">Selectează locație...</option>
+    return ( <Modal isOpen={isOpen} onClose={onClose} title={evToEdit ? `EditeazÄƒ ${type}` : `AdaugÄƒ ${type} Nou`}> <form onSubmit={handleSubmit} className="space-y-4"> <Input label="Denumire" name="denumire" value={formState.denumire} onChange={handleChange} required /> <div className="grid grid-cols-2 gap-4"> <Input label="Data ÃŽnceput" name="data" type="date" value={formState.data} onChange={handleChange} required /> <Input label="Data SfÃ¢rÈ™it" name="data_sfarsit" type="date" value={formState.data_sfarsit} onChange={handleChange} required /> </div>
+    <Select label="LocaÈ›ie" name="locatie" value={formState.locatie} onChange={handleChange}>
+        <option value="">SelecteazÄƒ locaÈ›ie...</option>
         {locatii.map(l => <option key={l.id} value={l.nume}>{l.nume}</option>)}
     </Select>
     <Input label="Organizator" name="organizator" value={formState.organizator} onChange={handleChange} />
@@ -106,18 +106,18 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
             </Select>
         </div>
     )}
-    {type === 'Competitie' && ( <Input label="Probe Competiție (separate prin virgulă)" name="probe" value={probeStr} onChange={(e) => setProbeStr(e.target.value)} placeholder="Ex: Quyen, Song Dau, Arme" /> )}
+    {type === 'Competitie' && ( <Input label="Probe CompetiÈ›ie (separate prin virgulÄƒ)" name="probe" value={probeStr} onChange={(e) => setProbeStr(e.target.value)} placeholder="Ex: Quyen, Song Dau, Arme" /> )}
     {(permissions.isFederationAdmin || permissions.isSuperAdmin) && (
         <div className="pt-2">
             <Switch 
-                label="Eveniment de Federație (vizibil tuturor cluburilor)" 
+                label="Eveniment de FederaÈ›ie (vizibil tuturor cluburilor)" 
                 name="isFederation"
                 checked={isFederationEvent}
                 onChange={(e) => setIsFederationEvent(e.target.checked)}
             />
         </div>
     )}
-    <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div> </form> </Modal> );
+    <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>AnuleazÄƒ</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salveazÄƒ...' : 'SalveazÄƒ'}</Button></div> </form> </Modal> );
 };
 
 interface EvenimentDetailProps { eveniment: Eveniment; }
@@ -140,10 +140,10 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     const [searchSportiv, setSearchSportiv] = useState('');
     const [isSportivDropdownOpen, setIsSportivDropdownOpen] = useState(false);
 
-    // CVD arm tracking — activ doar pentru stagii naționale
+    // CVD arm tracking â€” activ doar pentru stagii naÈ›ionale
     const esteStaguNationalCVD = eveniment.tip === 'Stagiu' && eveniment.tip_eveniment === 'FEDERATIE';
     const [stagiiCVD, setStagiiCVD] = useState<StagiuCVDParticipare[]>([]);
-    const [armePick, setArmePick] = useState<Record<string, string>>({}); // sportivId → arma
+    const [armePick, setArmePick] = useState<Record<string, string>>({}); // sportivId â†’ arma
     const [savingArma, setSavingArma] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
@@ -193,9 +193,9 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                 if (error) throw error;
                 setStagiiCVD(prev => [...prev, data as StagiuCVDParticipare]);
             }
-            showSuccess('CVD', 'Arma salvată.');
+            showSuccess('CVD', 'Arma salvatÄƒ.');
         } catch (err) {
-            showError('Salvare armă CVD', err);
+            showError('Salvare armÄƒ CVD', err);
         } finally {
             setSavingArma(p => ({ ...p, [sportivIdTarget]: false }));
         }
@@ -205,7 +205,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
         const existing = armaPerSportiv.get(sportivIdTarget);
         if (!existing) return;
         const { error } = await supabase.from('stagii_cvd_participare').delete().eq('id', existing.id);
-        if (error) { showError('Ștergere armă CVD', error); return; }
+        if (error) { showError('È˜tergere armÄƒ CVD', error); return; }
         setStagiiCVD(prev => prev.filter(s => s.id !== existing.id));
         setArmePick(p => { const next = { ...p }; delete next[sportivIdTarget]; return next; });
     }, [armaPerSportiv, showError]);
@@ -220,7 +220,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formState.sportivId) { showError("Date incomplete", "Vă rugăm selectați un sportiv."); return; }
+        if (!formState.sportivId) { showError("Date incomplete", "VÄƒ rugÄƒm selectaÈ›i un sportiv."); return; }
 
         const sportiv = sportivi.find(s => s.id === formState.sportivId);
         if(!sportiv) return;
@@ -237,16 +237,16 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
             setRezultate(prev => [...prev, data as Rezultat]);
 
             if (taxaConfig) {
-                const newPlata: Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null } = { sportiv_id: sportiv.id, familie_id: sportiv.familie_id, club_id: sportiv.club_id, suma: taxaConfig.suma, data: eveniment.data, status: 'Neachitat', descriere: `Taxa ${eveniment.tip}: ${eveniment.denumire}`, tip: eveniment.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere.' };
+                const newPlata: Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null } = { sportiv_id: sportiv.id, familie_id: sportiv.familie_id, club_id: sportiv.club_id, suma: taxaConfig.suma, data: eveniment.data, status: 'Neachitat', descriere: `Taxa ${eveniment.tip}: ${eveniment.denumire}`, tip: eveniment.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la Ã®nscriere.' };
                 const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
                 if(plataError) throw plataError;
                 setPlati(prev => [...prev, plataData as Plata]);
             }
-            showSuccess("Succes", `Sportivul a fost înscris${taxaConfig ? ' și taxa generată' : ''}.`);
+            showSuccess("Succes", `Sportivul a fost Ã®nscris${taxaConfig ? ' È™i taxa generatÄƒ' : ''}.`);
             setFormState({ sportivId: '', rezultat: 'Participare', probe: [] });
         } catch (err) {
             console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
-            showError("Eroare la înscriere", err);
+            showError("Eroare la Ã®nscriere", err);
         }
     };
     
@@ -255,9 +255,9 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
         const { error } = await supabase.from('rezultate').delete().eq('id', rezultatId);
         if (error) {
             console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
-            showError("Eroare la ștergere", error);
+            showError("Eroare la È™tergere", error);
         }
-        else { setRezultate(prev => prev.filter(r => r.id !== rezultatId)); showSuccess("Succes", "Înscrierea a fost ștearsă."); }
+        else { setRezultate(prev => prev.filter(r => r.id !== rezultatId)); showSuccess("Succes", "ÃŽnscrierea a fost È™tearsÄƒ."); }
         setIsDeletingRezultat(false);
         setRezultatToDelete(null);
     };
@@ -275,14 +275,14 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
         return grade.find(g => g.id === admittedParticipations[0]?.grad_sustinut_id);
     };
 
-    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-slate-400">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({rezultate.length})</h4>
-    <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{(rezultate || []).map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.prenume} {s?.nume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{(rezultate || []).length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
+    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-slate-400">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">ParticipanÈ›i ÃŽnscriÈ™i ({rezultate.length})</h4>
+    <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{(rezultate || []).map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.prenume} {s?.nume}</p><p className="text-xs text-slate-400">{g?.nume || 'ÃŽncepÄƒtor'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{(rezultate || []).length === 0 && <p className="text-slate-400">Niciun participant Ã®nscris.</p>}</div>
     <Card className="bg-slate-900/50">
-        <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Participant</h5>
+        <h5 className="text-lg font-semibold mb-4 text-white">ÃŽnscrie Participant</h5>
         <form onSubmit={handleAddParticipant} className="space-y-4">
             <div className="relative">
                 <Input
-                    label="Caută Sportiv"
+                    label="CautÄƒ Sportiv"
                     value={searchSportiv}
                     onChange={e => { setSearchSportiv(e.target.value); setIsSportivDropdownOpen(true); if (!e.target.value) setFormState(p => ({ ...p, sportivId: '' })); }}
                     onFocus={() => setIsSportivDropdownOpen(true)}
@@ -296,7 +296,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                                 {s.prenume} {s.nume}
                             </button>
                         )) : (
-                            <div className="px-4 py-2 text-slate-500">Nu am găsit sportivi.</div>
+                            <div className="px-4 py-2 text-slate-500">Nu am gÄƒsit sportivi.</div>
                         )}
                     </div>
                 )}
@@ -305,17 +305,17 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
             {eveniment.tip === 'Competitie' && eveniment.probe_disponibile && eveniment.probe_disponibile.length > 0 && (
                 <div><label className="block text-sm font-medium text-slate-300 mb-2">Probe</label><div className="flex flex-wrap gap-x-4 gap-y-2">{(eveniment.probe_disponibile || []).map(proba => (<label key={proba} className="flex items-center space-x-2 text-sm"><input type="checkbox" checked={formState.probe.includes(proba)} onChange={e => handleProbeChange(proba, e.target.checked)} className="h-4 w-4 rounded" /><span>{proba}</span></label>))}</div></div>
             )}
-            <div className="flex justify-end pt-2"><Button type="submit" variant="info">Înscrie</Button></div>
+            <div className="flex justify-end pt-2"><Button type="submit" variant="info">ÃŽnscrie</Button></div>
         </form>
     </Card>
 
-    {/* Secțiune CVD — arme per participant, vizibilă doar la stagii naționale */}
+    {/* SecÈ›iune CVD â€” arme per participant, vizibilÄƒ doar la stagii naÈ›ionale */}
     {esteStaguNationalCVD && rezultate.length > 0 && (
         <div className="mt-6 border-t border-slate-700 pt-6">
             <h4 className="text-lg font-semibold mb-1 text-amber-400">Arme CVD practiciate</h4>
             <p className="text-xs text-slate-500 mb-4">
-                Înregistrează arma practicată de fiecare sportiv la acest stagiu național.
-                Datele sunt folosite la validarea înscrierii în competiții CVD.
+                ÃŽnregistreazÄƒ arma practicatÄƒ de fiecare sportiv la acest stagiu naÈ›ional.
+                Datele sunt folosite la validarea Ã®nscrierii Ã®n competiÈ›ii CVD.
             </p>
             <div className="space-y-2">
                 {rezultate.map(r => {
@@ -339,7 +339,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                                 onChange={e => setArmePick(p => ({ ...p, [r.sportiv_id]: e.target.value }))}
                                 className="bg-slate-800 border border-slate-600 text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500"
                             >
-                                <option value="">Selectează armă...</option>
+                                <option value="">SelecteazÄƒ armÄƒ...</option>
                                 {ARME_CVD_INDIVIDUALE.map(a => (
                                     <option key={a} value={a}>{a}</option>
                                 ))}
@@ -350,7 +350,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                                 disabled={!selectat || saving}
                                 onClick={() => handleSalveazaArma(r.sportiv_id)}
                             >
-                                {saving ? '...' : 'Salvează'}
+                                {saving ? '...' : 'SalveazÄƒ'}
                             </Button>
                             {existenta && (
                                 <Button
@@ -367,10 +367,10 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
             </div>
         </div>
     )}
-</div><ConfirmDeleteModal isOpen={!!rezultatToDelete} onClose={() => setRezultatToDelete(null)} onConfirm={() => { if(rezultatToDelete) confirmDeleteRezultat(rezultatToDelete.id) }} tableName="înscriere" isLoading={isDeletingRezultat} /> </Card> );
+</div><ConfirmDeleteModal isOpen={!!rezultatToDelete} onClose={() => setRezultatToDelete(null)} onConfirm={() => { if(rezultatToDelete) confirmDeleteRezultat(rezultatToDelete.id) }} tableName="Ã®nscriere" isLoading={isDeletingRezultat} /> </Card> );
 };
 
-// --- Componenta Principală ---
+// --- Componenta PrincipalÄƒ ---
 interface StagiiCompetitiiProps { type: 'Stagiu' | 'Competitie'; onBack: () => void; permissions: Permissions; }
 export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ type, onBack, permissions }) => {
     const {
@@ -404,8 +404,8 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
             const { data, error } = await supabase.from('evenimente').insert(evData).select().maybeSingle();
             if (error) { 
                 console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
-                showError("Eroare la adăugare", error); 
-            } else if (data) { setEvenimente(prev => [...prev, data]); showSuccess("Succes", `${type} adăugat.`); }
+                showError("Eroare la adÄƒugare", error); 
+            } else if (data) { setEvenimente(prev => [...prev, data]); showSuccess("Succes", `${type} adÄƒugat.`); }
         }
     };
     
@@ -416,10 +416,10 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
             await supabase.from('evenimente').delete().eq('id', id);
             setEvenimente(prev => prev.filter(e => e.id !== id));
             if (selectedEvenimentId === id) setSelectedEvenimentId(null);
-            showSuccess("Succes", `${type} și înscrierile asociate au fost șterse.`);
+            showSuccess("Succes", `${type} È™i Ã®nscrierile asociate au fost È™terse.`);
         } catch(err) { 
             console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
-            showError("Eroare la ștergere", err); 
+            showError("Eroare la È™tergere", err); 
         }
         finally { setIsDeleting(false); setEvToDelete(null); }
     };
@@ -428,7 +428,7 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
         return (
             <div>
                 <Button onClick={() => setSelectedEvenimentId(null)} className="mb-4" variant="secondary">
-                    <ArrowLeftIcon /> Înapoi la listă
+                    <ArrowLeftIcon /> ÃŽnapoi la listÄƒ
                 </Button>
                 <EvenimentDetail eveniment={selectedEveniment} />
             </div>
@@ -449,10 +449,10 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <h1 className="text-2xl sm:text-3xl font-bold text-white">
-                    Gestiune {type === 'Stagiu' ? 'Stagii' : 'Competiții'}
+                    Gestiune {type === 'Stagiu' ? 'Stagii' : 'CompetiÈ›ii'}
                 </h1>
                 <Button onClick={() => { setEvToEdit(null); setIsFormOpen(true); }} variant="info" className="w-full sm:w-auto justify-center">
-                    <PlusIcon className="w-5 h-5 mr-2" /> Adaugă {type}
+                    <PlusIcon className="w-5 h-5 mr-2" /> AdaugÄƒ {type}
                 </Button>
             </div>
 
@@ -461,10 +461,10 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
                 <table className="w-full text-left">
                     <thead className="bg-slate-700">
                         <tr>
-                            <th className="p-4 font-semibold">Perioadă</th>
+                            <th className="p-4 font-semibold">PerioadÄƒ</th>
                             <th className="p-4 font-semibold">Denumire</th>
-                            <th className="p-4 font-semibold">Înscriși</th>
-                            <th className="p-4 font-semibold text-right">Acțiuni</th>
+                            <th className="p-4 font-semibold">ÃŽnscriÈ™i</th>
+                            <th className="p-4 font-semibold text-right">AcÈ›iuni</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-700">
@@ -508,21 +508,21 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
                                 <div className="min-w-0">
                                     <p className="text-white font-semibold truncate">{ev.denumire}</p>
                                     <p className="text-slate-400 text-sm mt-0.5">
-                                        {formatDateRange(ev.data)} — {formatDateRange(ev.data_sfarsit)}
+                                        {formatDateRange(ev.data)} â€” {formatDateRange(ev.data_sfarsit)}
                                     </p>
                                     {ev.locatie && <p className="text-slate-500 text-xs mt-0.5 truncate">{ev.locatie}</p>}
                                 </div>
                                 <span className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
-                                    {nrInscrisi} înscriși
+                                    {nrInscrisi} Ã®nscriÈ™i
                                 </span>
                             </div>
                             {canEdit(ev) && (
                                 <div className="flex gap-2 mt-3" onClick={e => e.stopPropagation()}>
                                     <Button onClick={() => { setEvToEdit(ev); setIsFormOpen(true); }} variant="primary" size="sm" className="flex-1 justify-center">
-                                        <EditIcon className="w-4 h-4 mr-1" /> Editează
+                                        <EditIcon className="w-4 h-4 mr-1" /> EditeazÄƒ
                                     </Button>
                                     <Button onClick={() => setEvToDelete(ev)} variant="danger" size="sm" className="flex-1 justify-center">
-                                        <TrashIcon className="w-4 h-4 mr-1" /> Șterge
+                                        <TrashIcon className="w-4 h-4 mr-1" /> È˜terge
                                     </Button>
                                 </div>
                             )}

@@ -1,10 +1,10 @@
-/**
- * TipuriStagiiAdmin — wrapper peste TipuriNomenclatorAdmin
+﻿/**
+ * TipuriStagiiAdmin â€” wrapper peste TipuriNomenclatorAdmin
  * pentru gestionarea tipurilor de stagiu.
  */
 import React from 'react';
-import { Permissions } from '../types';
-import { TipuriNomenclatorAdmin } from './Grade/TipuriNomenclatorAdmin';
+import { Permissions } from '../../types';
+import { TipuriNomenclatorAdmin } from '../Grade/TipuriNomenclatorAdmin';
 
 interface Props {
   permissions: Permissions;
@@ -17,3 +17,4 @@ export const TipuriStagiiAdmin: React.FC<Props> = ({ permissions }) => (
     title="Denumiri tipuri stagiu"
   />
 );
+

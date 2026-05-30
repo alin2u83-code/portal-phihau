@@ -7,7 +7,7 @@ import { useError } from '../ErrorProvider';
 import { ListaPrezentaAntrenament, FormularPrezenta } from './ListaPrezentaAntrenament';
 import { useAttendance } from '../../hooks/useAttendance';
 import { useStatusePrezenta } from '../../hooks/useStatusePrezenta';
-import { GeneratorProgramMasiv } from '../GeneratorProgramMasiv';
+import { GeneratorProgramMasiv } from '../Grupe/GeneratorProgramMasiv';
 import { useData } from '../../contexts/DataContext';
 
 import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';

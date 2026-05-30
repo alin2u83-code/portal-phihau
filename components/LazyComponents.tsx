@@ -44,7 +44,7 @@ export const BackdoorCheck = lazy(() => import('./BackdoorCheck').then(m => ({ d
 export const BackdoorTest = lazy(() => import('./BackdoorTest').then(m => ({ default: m.BackdoorTest })));
 export const AdminConsole = lazy(() => import('./AdminConsole').then(m => ({ default: m.AdminConsole })));
 export const ArhivaPrezente = lazy(() => import('./Prezenta/ArhivaPrezente').then(m => ({ default: m.ArhivaPrezente })));
-export const ProgramAntrenamenteManagement = lazy(() => import('./ProgramAntrenamenteManagement').then(m => ({ default: m.ProgramAntrenamenteManagement })));
+export const ProgramAntrenamenteManagement = lazy(() => import('./Grupe/ProgramAntrenamenteManagement').then(m => ({ default: m.ProgramAntrenamenteManagement })));
 export const AdminMasterMap = lazy(() => import('./AdminMasterMap').then(m => ({ default: m.AdminMasterMap })));
 export const SportivDashboard = lazy(() => import('./SportivDashboard').then(m => ({ default: m.SportivDashboard })));
 export const RaportLunarPrezenta = lazy(() => import('./Prezenta/RaportLunarPrezenta').then(m => ({ default: m.RaportLunarPrezenta })));

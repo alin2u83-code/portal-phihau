@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Inlantuire } from '../types';
-import { Modal, Button, Input } from './ui';
+﻿import React, { useState, useEffect } from 'react';
+import { Inlantuire } from '../../types';
+import { Modal, Button, Input } from '../ui';
 
 interface Props {
   inlantuire?: Inlantuire;
@@ -47,7 +47,7 @@ export const InlantuireFormModal: React.FC<Props> = ({ inlantuire, onSave, onClo
     <Modal
       isOpen
       onClose={onClose}
-      title={inlantuire ? 'Editare înlănțuire' : 'Adaugă înlănțuire'}
+      title={inlantuire ? 'Editare Ã®nlÄƒnÈ›uire' : 'AdaugÄƒ Ã®nlÄƒnÈ›uire'}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
@@ -58,7 +58,7 @@ export const InlantuireFormModal: React.FC<Props> = ({ inlantuire, onSave, onClo
           required
         />
         <Input
-          label="Ordine afișare"
+          label="Ordine afiÈ™are"
           type="number"
           value={String(ordine)}
           onChange={e => setOrdine(Number(e.target.value))}
@@ -70,18 +70,19 @@ export const InlantuireFormModal: React.FC<Props> = ({ inlantuire, onSave, onClo
             onChange={e => setActiv(e.target.checked)}
             className="w-4 h-4 accent-emerald-500"
           />
-          <span className="text-sm text-slate-300">Activ (vizibil în wizard)</span>
+          <span className="text-sm text-slate-300">Activ (vizibil Ã®n wizard)</span>
         </label>
         {err && <p className="text-red-400 text-xs">{err}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose} disabled={saving}>
-            Anulează
+            AnuleazÄƒ
           </Button>
           <Button type="submit" disabled={saving}>
-            {saving ? 'Salvare...' : 'Salvează'}
+            {saving ? 'Salvare...' : 'SalveazÄƒ'}
           </Button>
         </div>
       </form>
     </Modal>
   );
 };
+

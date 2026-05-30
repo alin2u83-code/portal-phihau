@@ -5,7 +5,7 @@ export const SportiviManagement = lazy(() => import('./Sportivi').then(m => ({ d
 export const UserProfile = lazy(() => import('./UserProfile').then(m => ({ default: m.UserProfile })));
 export const GestiuneExamene = lazy(() => import('./GestiuneExamene').then(m => ({ default: m.GestiuneExamene })));
 export const ExameneManagement = lazy(() => import('./GestiuneExamene').then(m => ({ default: m.ExameneManagement })));
-export const GradeManagement = lazy(() => import('./Grade').then(m => ({ default: m.GradeManagement })));
+export const GradeManagement = lazy(() => import('./Grade/Grade').then(m => ({ default: m.GradeManagement })));
 export const PrezentaManagement = lazy(() => import('./Prezenta').then(m => ({ default: m.Prezenta })));
 export const GrupeManagement = lazy(() => import('./Grupe').then(m => ({ default: m.Grupe })));
 export const RaportPrezenta = lazy(() => import('./Prezenta/RaportPrezenta').then(m => ({ default: m.RaportPrezenta })));
@@ -24,7 +24,7 @@ export const ClubSettings = lazy(() => import('./ClubSettings').then(m => ({ def
 export const ReduceriManagement = lazy(() => import('./Plati/Reduceri').then(m => ({ default: m.ReduceriManagement })));
 export const Notificari = lazy(() => import('./Notificari').then(m => ({ default: m.Notificari })));
 export const TaxeAnuale = lazy(() => import('./Plati/TaxeAnuale').then(m => ({ default: m.TaxeAnuale })));
-export const GestionareNomenclatoare = lazy(() => import('./GestionareNomenclatoare').then(m => ({ default: m.GestionareNomenclatoare })));
+export const GestionareNomenclatoare = lazy(() => import('./Grade/GestionareNomenclatoare').then(m => ({ default: m.GestionareNomenclatoare })));
 export const FinancialDashboard = lazy(() => import('./Plati/FinancialDashboard').then(m => ({ default: m.FinancialDashboard })));
 export const GestiuneFacturi = lazy(() => import('./Plati/GestiuneFacturi').then(m => ({ default: m.GestiuneFacturi })));
 export const IstoricPlati = lazy(() => import('./Plati/FacturiPersonale').then(m => ({ default: m.IstoricPlati })));
@@ -57,5 +57,5 @@ export const IstoricActivitate = lazy(() => import('./IstoricActivitate').then(m
 export const DeduplicareSportivi = lazy(() => import('./DeduplicareSportivi').then(m => ({ default: m.DeduplicareSportivi })));
 export const CereriInscriere = lazy(() => import('./CereriInscriere').then(m => ({ default: m.CereriInscriere })));
 export const ActivitatiNationale = lazy(() => import('./ActivitatiNationale').then(m => ({ default: m.ActivitatiNationale })));
-export const InlantuciriAdmin = lazy(() => import('./InlantuciriAdmin').then(m => ({ default: m.InlantuciriAdmin })));
+export const InlantuciriAdmin = lazy(() => import('./Grade/InlantuciriAdmin').then(m => ({ default: m.InlantuciriAdmin })));
 export const AdminSMS = lazy(() => import('./SMS/AdminSMS').then(m => ({ default: m.AdminSMS })));

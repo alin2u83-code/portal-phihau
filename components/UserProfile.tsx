@@ -10,7 +10,7 @@ import { DeleteAuditModal } from './Sportivi/DeleteAuditModal';
 import { SportivFeedbackReport } from './SportivFeedbackReport';
 import { SportivProgressChart, ChartDataPoint } from './SportivProgressChart';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
-import { AddGradeModal } from './AddGradeModal';
+import { AddGradeModal } from './Grade/AddGradeModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { GradBadge } from '../utils/grades';
 import { SportivAvatarEditor } from './SportivAvatarEditor';

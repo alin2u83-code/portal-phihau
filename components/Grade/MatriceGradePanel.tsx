@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { Grad, Inlantuire } from '../types';
-import { useInlantuiriPivot } from '../hooks/useInlantuiriPivot';
-import { useError } from './ErrorProvider';
+﻿import React, { useState, useMemo } from 'react';
+import { Grad, Inlantuire } from '../../types';
+import { useInlantuiriPivot } from '../../hooks/useInlantuiriPivot';
+import { useError } from '../ErrorProvider';
 
 // ---------------------------------------------------------------------------
 // Constante
@@ -38,7 +38,7 @@ const GRADE_GRUPURI: GrupGrade[] = [
     colorHeader: 'bg-yellow-900/40 text-yellow-300 border-yellow-700/50',
   },
   {
-    label: 'Grade Roșii',
+    label: 'Grade RoÈ™ii',
     ordineMin: 6,  ordineMax: 9,
     colorChip:   'bg-red-700 border-red-600 text-white hover:bg-red-800',
     colorHeader: 'bg-red-900/40 text-red-300 border-red-700/50',
@@ -145,8 +145,8 @@ const SubTabelGrup: React.FC<SubTabelProps> = ({
                           onClick={() => onToggle(grad.id, col.id)}
                           disabled={isBusy}
                           title={active
-                            ? `Dezactivează ${col.denumire} pentru ${grad.nume}`
-                            : `Activează ${col.denumire} pentru ${grad.nume}`}
+                            ? `DezactiveazÄƒ ${col.denumire} pentru ${grad.nume}`
+                            : `ActiveazÄƒ ${col.denumire} pentru ${grad.nume}`}
                           className={`w-6 h-6 rounded border transition-colors flex items-center justify-center mx-auto ${
                             isBusy
                               ? 'opacity-40 cursor-wait border-slate-500 bg-slate-700'
@@ -160,7 +160,7 @@ const SubTabelGrup: React.FC<SubTabelProps> = ({
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
                           ) : !active && !isBusy ? (
-                            <span className="text-slate-500 text-xs leading-none select-none">—</span>
+                            <span className="text-slate-500 text-xs leading-none select-none">â€”</span>
                           ) : null}
                         </button>
                       ) : (
@@ -172,7 +172,7 @@ const SubTabelGrup: React.FC<SubTabelProps> = ({
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
                           ) : (
-                            <span className="text-slate-500 text-xs leading-none select-none">—</span>
+                            <span className="text-slate-500 text-xs leading-none select-none">â€”</span>
                           )}
                         </div>
                       )}
@@ -189,7 +189,7 @@ const SubTabelGrup: React.FC<SubTabelProps> = ({
 };
 
 // ---------------------------------------------------------------------------
-// Componenta principală
+// Componenta principalÄƒ
 // ---------------------------------------------------------------------------
 
 export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
@@ -216,13 +216,13 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
 
   const clearFiltre = () => setSelectedGradeIds(new Set());
 
-  // Coloane filtrate după armă (doar pentru Thao Lo)
+  // Coloane filtrate dupÄƒ armÄƒ (doar pentru Thao Lo)
   const coloaneBaza: Inlantuire[] = useMemo(() => {
     if (tab !== 'thao_lo' || filtruArma === 'toate') return inlantuiri;
     return inlantuiri.filter(i => i.categorie === filtruArma);
   }, [inlantuiri, tab, filtruArma]);
 
-  // Construiește datele per grup
+  // ConstruieÈ™te datele per grup
   const grupuriDate = useMemo(() => {
     return GRADE_GRUPURI.map(grup => {
       // Toate gradele din acest grup
@@ -230,13 +230,13 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
         g => g.ordine >= grup.ordineMin && g.ordine <= grup.ordineMax
       );
 
-      // Dacă există selecție, filtrează rândurile
+      // DacÄƒ existÄƒ selecÈ›ie, filtreazÄƒ rÃ¢ndurile
       const gradeVizibile = selectedGradeIds.size === 0
         ? gradeInGrup
         : gradeInGrup.filter(g => selectedGradeIds.has(g.id));
 
-      // Coloane: înlănțuirile care au cel puțin o asociere activă pentru gradele vizibile
-      // (dacă nu e filtrare, bazat pe toate gradele din grup)
+      // Coloane: Ã®nlÄƒnÈ›uirile care au cel puÈ›in o asociere activÄƒ pentru gradele vizibile
+      // (dacÄƒ nu e filtrare, bazat pe toate gradele din grup)
       const bazaColoane = selectedGradeIds.size === 0 ? gradeInGrup : gradeVizibile;
       const coloane = coloaneBaza.filter(inl =>
         bazaColoane.some(g => isActive(g.id, inl.id))
@@ -244,7 +244,7 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
 
       return { grup, gradeVizibile, coloane };
     }).filter(({ gradeVizibile }) => {
-      // Când e filtrare activă: ascunde grupurile fără grade selectate
+      // CÃ¢nd e filtrare activÄƒ: ascunde grupurile fÄƒrÄƒ grade selectate
       if (selectedGradeIds.size > 0) return gradeVizibile.length > 0;
       return true;
     });
@@ -262,7 +262,7 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16 text-slate-400 text-sm">
-        Se încarcă matricea...
+        Se Ã®ncarcÄƒ matricea...
       </div>
     );
   }
@@ -271,10 +271,10 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
     <div className="space-y-4">
       {/* Filtre */}
       <div className="space-y-2">
-        {/* Filtru armă (doar Thao Lo) */}
+        {/* Filtru armÄƒ (doar Thao Lo) */}
         {tab === 'thao_lo' && (
           <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-400 whitespace-nowrap">Armă:</label>
+            <label className="text-xs text-slate-400 whitespace-nowrap">ArmÄƒ:</label>
             <select
               value={filtruArma}
               onChange={e => setFiltruArma(e.target.value)}
@@ -294,7 +294,7 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
               onClick={clearFiltre}
               className="text-xs px-2 py-1 rounded border border-slate-600 bg-slate-800 text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
             >
-              ✕ Toate
+              âœ• Toate
             </button>
           )}
           {grade.map(g => {
@@ -341,10 +341,11 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
         ))}
         {grupuriDate.length === 0 && (
           <div className="text-slate-400 text-sm py-8 text-center italic">
-            Niciun grad pentru selecția curentă.
+            Niciun grad pentru selecÈ›ia curentÄƒ.
           </div>
         )}
       </div>
     </div>
   );
 };
+

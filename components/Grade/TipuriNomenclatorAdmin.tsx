@@ -1,14 +1,14 @@
-/**
- * TipuriNomenclatorAdmin — componentă generică pentru editarea denumirilor
+﻿/**
+ * TipuriNomenclatorAdmin â€” componentÄƒ genericÄƒ pentru editarea denumirilor
  * din tabele de nomenclator (tipuri_competitie, tipuri_stagii etc.)
- * Vizibil și funcțional DOAR pentru SUPER_ADMIN_FEDERATIE / ADMIN.
+ * Vizibil È™i funcÈ›ional DOAR pentru SUPER_ADMIN_FEDERATIE / ADMIN.
  */
 import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../supabaseClient';
-import { Permissions } from '../types';
-import { Button, Input, Modal } from './ui';
-import { EditIcon } from './icons';
-import { useError } from './ErrorProvider';
+import { supabase } from '../../supabaseClient';
+import { Permissions } from '../../types';
+import { Button, Input, Modal } from '../ui';
+import { EditIcon } from '../icons';
+import { useError } from '../ErrorProvider';
 
 interface TipNomenclator {
   id: string;
@@ -181,3 +181,4 @@ export const TipuriNomenclatorAdmin: React.FC<Props> = ({ permissions, tableName
     </>
   );
 };
+

@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { Permissions } from '../types';
-import { TipuriNomenclatorAdmin } from './TipuriNomenclatorAdmin';
+import { TipuriNomenclatorAdmin } from './Grade/TipuriNomenclatorAdmin';
 
 interface Props {
   permissions: Permissions;

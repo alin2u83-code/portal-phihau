@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
-import { Grad } from '../types';
-import { useInlantuiriGrade } from '../hooks/useInlantuiriGrade';
-import { useError } from './ErrorProvider';
+﻿import React, { useState, useEffect } from 'react';
+import { supabase } from '../../supabaseClient';
+import { Grad } from '../../types';
+import { useInlantuiriGrade } from '../../hooks/useInlantuiriGrade';
+import { useError } from '../ErrorProvider';
 
 const TIP_PROBE: { cod: string; label: string }[] = [
   { cod: 'thao_quyen_individual', label: 'Thao Quyen' },
@@ -41,7 +41,7 @@ export const InlantuireGradePanel: React.FC<Props> = ({ inlantuireId }) => {
   };
 
   if (loading) {
-    return <div className="text-slate-400 text-xs py-2">Se încarcă asocierile...</div>;
+    return <div className="text-slate-400 text-xs py-2">Se Ã®ncarcÄƒ asocierile...</div>;
   }
 
   return (
@@ -70,7 +70,7 @@ export const InlantuireGradePanel: React.FC<Props> = ({ inlantuireId }) => {
                     <button
                       onClick={() => handleToggle(g.id, tp.cod)}
                       disabled={busy}
-                      title={active ? 'Dezactivează' : 'Activează'}
+                      title={active ? 'DezactiveazÄƒ' : 'ActiveazÄƒ'}
                       className={`w-5 h-5 rounded border transition-colors ${
                         busy
                           ? 'opacity-40 cursor-wait border-slate-500'
@@ -95,3 +95,4 @@ export const InlantuireGradePanel: React.FC<Props> = ({ inlantuireId }) => {
     </div>
   );
 };
+

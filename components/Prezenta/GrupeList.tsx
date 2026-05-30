@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Grupa } from '../../types';
 import { Button, Card } from '../ui';
 import { CalendarDaysIcon, UsersIcon, CogIcon } from '../icons';
@@ -12,8 +12,8 @@ export const GrupeList: React.FC<{
     <div className="space-y-4 md:space-y-8 animate-fade-in">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">Management Prezență</h1>
-                <p className="text-slate-400 mt-1 text-sm">Gestionează orarul, calendarul și prezența sportivilor pe grupe.</p>
+                <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">Management PrezenÈ›Äƒ</h1>
+                <p className="text-slate-400 mt-1 text-sm">GestioneazÄƒ orarul, calendarul È™i prezenÈ›a sportivilor pe grupe.</p>
             </div>
             <Button variant="secondary" size="sm" onClick={onGlobalHistory} className="shrink-0">
                 <CalendarDaysIcon className="w-4 h-4 mr-2 text-indigo-400" />
@@ -42,12 +42,12 @@ export const GrupeList: React.FC<{
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 text-sm text-slate-400">
                                 <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                                <span>{g.sala || 'Sală nespecificată'}</span>
+                                <span>{g.sala || 'SalÄƒ nespecificatÄƒ'}</span>
                             </div>
                             {g.program && g.program.length > 0 && (
                                 <div className="flex items-center gap-2 text-sm text-slate-500">
                                     <CalendarDaysIcon className="w-3.5 h-3.5" />
-                                    <span>{g.program.length} intervale săptămânale</span>
+                                    <span>{g.program.length} intervale sÄƒptÄƒmÃ¢nale</span>
                                 </div>
                             )}
                         </div>
@@ -59,7 +59,7 @@ export const GrupeList: React.FC<{
                             className="w-full justify-between group/btn shadow-lg shadow-emerald-900/20" 
                             onClick={() => onSelectToday(g.id)}
                         >
-                            <span>Prezență Azi</span>
+                            <span>PrezenÈ›Äƒ Azi</span>
                             <span className="group-hover/btn:translate-x-1 transition-transform">&rarr;</span>
                         </Button>
                         <Button 
@@ -76,3 +76,4 @@ export const GrupeList: React.FC<{
         </div>
     </div>
 );
+

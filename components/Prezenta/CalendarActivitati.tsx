@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Grupa, Eveniment } from '../../types';
 import { Button, Card } from '../ui';
 import { ArrowLeftIcon, CalendarDaysIcon } from '../icons';
@@ -8,9 +8,9 @@ import { supabase } from '../../supabaseClient';
 import { Input } from '../ui';
 import { formatTime } from '../../utils/date';
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-const ZILE_SCURTE = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
+const ZILE_SCURTE = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'SÃ¢', 'Du'];
 
 /** Returns YYYY-MM-DD for the given year/month/day (1-based). */
 function ymd(year: number, month: number, day: number): string {
@@ -20,9 +20,9 @@ function ymd(year: number, month: number, day: number): string {
 /** Build an array of calendar cells (null = empty padding, string = YYYY-MM-DD). */
 function buildCalendarGrid(year: number, month: number): (string | null)[] {
     const firstDay = new Date(year, month - 1, 1);
-    // getDay() → 0=Sun … 6=Sat; we want Mon=0 … Sun=6
+    // getDay() â†’ 0=Sun â€¦ 6=Sat; we want Mon=0 â€¦ Sun=6
     let startPad = firstDay.getDay() - 1;
-    if (startPad < 0) startPad = 6; // Sunday → last column
+    if (startPad < 0) startPad = 6; // Sunday â†’ last column
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const cells: (string | null)[] = [];
@@ -37,14 +37,14 @@ function monthLabel(year: number, month: number): string {
     return new Date(year, month - 1, 1).toLocaleString('ro-RO', { month: 'long', year: 'numeric' });
 }
 
-// ─── sub-components ──────────────────────────────────────────────────────────
+// â”€â”€â”€ sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface DotProps { color: string }
 const Dot: React.FC<DotProps> = ({ color }) => (
     <span className={`inline-block w-1.5 h-1.5 rounded-full ${color}`} />
 );
 
-// ─── main component ───────────────────────────────────────────────────────────
+// â”€â”€â”€ main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const CalendarActivitati: React.FC<{
     grupa: Grupa; onSelect: (id: string) => void; onBack: () => void; grupe: Grupa[]
@@ -61,7 +61,7 @@ export const CalendarActivitati: React.FC<{
         handleSaveCustom
     } = useCalendarView(grupa.id);
 
-    // ── parse current month from `date` ───────────────────────────────────────
+    // â”€â”€ parse current month from `date` â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const [year, month] = useMemo(() => {
         const parts = date.split('-');
         return [parseInt(parts[0]), parseInt(parts[1])];
@@ -73,7 +73,7 @@ export const CalendarActivitati: React.FC<{
         [year, month]
     );
 
-    // ── eventi fetch ──────────────────────────────────────────────────────────
+    // â”€â”€ eventi fetch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const [evenimente, setEvenimente] = useState<Eveniment[]>([]);
     useEffect(() => {
         supabase
@@ -84,10 +84,10 @@ export const CalendarActivitati: React.FC<{
             .then(({ data }) => setEvenimente((data as Eveniment[]) || []));
     }, [startOfMonth, endOfMonth]);
 
-    // ── calendar grid ─────────────────────────────────────────────────────────
+    // â”€â”€ calendar grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const cells = useMemo(() => buildCalendarGrid(year, month), [year, month]);
 
-    // map date → list of trainings / events for quick lookup
+    // map date â†’ list of trainings / events for quick lookup
     const antrenamenteByDate = useMemo(() => {
         const map: Record<string, typeof antrenamente> = {};
         for (const a of antrenamente) {
@@ -106,7 +106,7 @@ export const CalendarActivitati: React.FC<{
         return map;
     }, [evenimente]);
 
-    // ── month navigation ──────────────────────────────────────────────────────
+    // â”€â”€ month navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const goToPrevMonth = () => {
         const d = new Date(year, month - 2, 1); // month-2 because JS months are 0-indexed
         setDate(d.toLocaleDateString('sv-SE'));
@@ -118,15 +118,15 @@ export const CalendarActivitati: React.FC<{
         setSelectedDate(null);
     };
 
-    // ── selected day data ─────────────────────────────────────────────────────
+    // â”€â”€ selected day data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const selectedAntrenamente = selectedDate ? (antrenamenteByDate[selectedDate] || []) : [];
     const selectedEvenimente = selectedDate ? (evenimenteByDate[selectedDate] || []) : [];
 
-    // ── render ────────────────────────────────────────────────────────────────
+    // â”€â”€ render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     return (
         <div className="space-y-6 animate-fade-in">
             <Button onClick={onBack} variant="secondary" size="sm">
-                <ArrowLeftIcon className="w-4 h-4 mr-2" /> Înapoi la Orar
+                <ArrowLeftIcon className="w-4 h-4 mr-2" /> ÃŽnapoi la Orar
             </Button>
 
             <Card className="overflow-hidden border-none shadow-xl bg-slate-900/40 backdrop-blur-sm">
@@ -134,38 +134,38 @@ export const CalendarActivitati: React.FC<{
                 <div className="p-4 md:p-6 border-b border-slate-800 bg-slate-800/30">
                     <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
                         <CalendarDaysIcon className="w-6 h-6 text-indigo-400" />
-                        Calendar Activități: <span className="text-indigo-300">{grupa.denumire}</span>
+                        Calendar ActivitÄƒÈ›i: <span className="text-indigo-300">{grupa.denumire}</span>
                     </h2>
-                    <p className="text-slate-400 mt-1">Gestionează instanțele reale de antrenament și prezența.</p>
+                    <p className="text-slate-400 mt-1">GestioneazÄƒ instanÈ›ele reale de antrenament È™i prezenÈ›a.</p>
                 </div>
 
                 <div className="p-4 md:p-6 space-y-6">
                     {/* controls row */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
                         <Input
-                            label="Zile în avans"
+                            label="Zile Ã®n avans"
                             type="number"
                             value={daysToGenerate}
                             onChange={e => setDaysToGenerate(parseInt(e.target.value) || 0)}
                         />
                         <Button onClick={handleGenerate} isLoading={loading} className="w-full">
-                            Generează Calendar
+                            GenereazÄƒ Calendar
                         </Button>
                         <Button variant="info" onClick={() => setIsFormOpen(true)} className="w-full">
-                            + Adaugă Antrenament
+                            + AdaugÄƒ Antrenament
                         </Button>
                     </div>
 
-                    {/* ── monthly calendar grid ─────────────────────────────── */}
+                    {/* â”€â”€ monthly calendar grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                     <div className="bg-slate-800/20 rounded-2xl border border-slate-700/30 overflow-hidden">
                         {/* month navigation */}
                         <div className="flex items-center justify-between px-4 py-3 bg-slate-800/40 border-b border-slate-700/30">
                             <button
                                 onClick={goToPrevMonth}
                                 className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-300 hover:text-white transition-colors"
-                                aria-label="Luna anterioară"
+                                aria-label="Luna anterioarÄƒ"
                             >
-                                ‹
+                                â€¹
                             </button>
                             <h3 className="text-base font-semibold text-white capitalize">
                                 {monthLabel(year, month)}
@@ -173,9 +173,9 @@ export const CalendarActivitati: React.FC<{
                             <button
                                 onClick={goToNextMonth}
                                 className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-300 hover:text-white transition-colors"
-                                aria-label="Luna următoare"
+                                aria-label="Luna urmÄƒtoare"
                             >
-                                ›
+                                â€º
                             </button>
                         </div>
 
@@ -256,14 +256,14 @@ export const CalendarActivitati: React.FC<{
                         )}
                     </div>
 
-                    {/* ── legend ───────────────────────────────────────────── */}
+                    {/* â”€â”€ legend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                     <div className="flex flex-wrap gap-4 text-xs text-slate-400">
                         <span className="flex items-center gap-1.5"><Dot color="bg-indigo-400" /> Antrenament</span>
                         <span className="flex items-center gap-1.5"><Dot color="bg-emerald-400" /> Stagiu</span>
-                        <span className="flex items-center gap-1.5"><Dot color="bg-rose-400" /> Competiție</span>
+                        <span className="flex items-center gap-1.5"><Dot color="bg-rose-400" /> CompetiÈ›ie</span>
                     </div>
 
-                    {/* ── selected day details ──────────────────────────────── */}
+                    {/* â”€â”€ selected day details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                     {selectedDate && (
                         <div className="space-y-4">
                             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
@@ -276,7 +276,7 @@ export const CalendarActivitati: React.FC<{
                             {selectedAntrenamente.length === 0 && selectedEvenimente.length === 0 ? (
                                 <div className="text-center py-8 bg-slate-800/10 rounded-2xl border border-dashed border-slate-800">
                                     <CalendarDaysIcon className="w-10 h-10 text-slate-700 mx-auto mb-2 opacity-20" />
-                                    <p className="text-slate-500 italic text-sm">Nicio activitate programată în această zi.</p>
+                                    <p className="text-slate-500 italic text-sm">Nicio activitate programatÄƒ Ã®n aceastÄƒ zi.</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
@@ -300,7 +300,7 @@ export const CalendarActivitati: React.FC<{
                                                 </div>
                                             </div>
                                             <Button size="sm" onClick={() => onSelect(a.id)} className="w-full sm:w-auto shadow-lg shadow-indigo-500/10">
-                                                Bifează Prezența &rarr;
+                                                BifeazÄƒ PrezenÈ›a &rarr;
                                             </Button>
                                         </div>
                                     ))}
@@ -320,7 +320,7 @@ export const CalendarActivitati: React.FC<{
                                                 </div>
                                                 <div>
                                                     <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full ${ev.tip === 'Competitie' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
-                                                        {ev.tip === 'Competitie' ? 'Competiție' : 'Stagiu'}
+                                                        {ev.tip === 'Competitie' ? 'CompetiÈ›ie' : 'Stagiu'}
                                                     </span>
                                                     <p className="text-base font-bold text-white mt-1 leading-snug">{ev.denumire}</p>
                                                     {ev.locatie && (
@@ -330,7 +330,7 @@ export const CalendarActivitati: React.FC<{
                                             </div>
                                             {ev.data_sfarsit && ev.data_sfarsit !== ev.data && (
                                                 <span className="text-xs text-slate-400 whitespace-nowrap">
-                                                    până la {new Date(ev.data_sfarsit + 'T00:00:00').toLocaleDateString('ro-RO')}
+                                                    pÃ¢nÄƒ la {new Date(ev.data_sfarsit + 'T00:00:00').toLocaleDateString('ro-RO')}
                                                 </span>
                                             )}
                                         </div>
@@ -352,3 +352,4 @@ export const CalendarActivitati: React.FC<{
         </div>
     );
 };
+

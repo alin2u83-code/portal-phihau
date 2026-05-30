@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../../supabaseClient';
 import { Card, Button } from '../ui';
 import { CheckCircleIcon, CalendarDaysIcon, SparklesIcon, PlusIcon, SearchIcon, XIcon, ChevronDownIcon } from '../icons';
@@ -510,7 +510,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                                             <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500">{formatTime(section.ora_start)} – {formatTime(section.ora_sfarsit)}</p>
+                                    <p className="text-xs text-slate-500">{formatTime(section.ora_start)} â€“ {formatTime(section.ora_sfarsit)}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 shrink-0 ml-3">
@@ -590,7 +590,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                                                     {a.isExtra && <span className="ml-1.5 text-[10px] text-slate-500 font-normal">extern</span>}
                                                 </span>
                                                 <span className="text-xs text-slate-500 w-28 text-right shrink-0 truncate">
-                                                    {a.gradNume || <span className="text-slate-700">—</span>}
+                                                    {a.gradNume || <span className="text-slate-700">â€”</span>}
                                                 </span>
                                             </button>
                                         ))}
@@ -620,7 +620,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
                                         onClick={() => onSelectFull(section.id)}
                                         className="text-xs text-slate-500 hover:text-slate-300 transition-colors shrink-0 px-2"
                                     >
-                                        Complet →
+                                        Complet â†’
                                     </button>
                                 )}
                             </div>
@@ -653,3 +653,4 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
         </div>
     );
 };
+

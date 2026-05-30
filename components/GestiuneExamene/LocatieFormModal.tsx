@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Modal, Input, Button } from '../ui';
 import { useError } from '../ErrorProvider';
 
@@ -20,7 +20,7 @@ export const LocatieFormModal: React.FC<LocatieFormProps> = ({ isOpen, onClose, 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nume.trim()) {
-        showError("Validare eșuată", "Numele locației este obligatoriu.");
+        showError("Validare eÈ™uatÄƒ", "Numele locaÈ›iei este obligatoriu.");
         return;
     }
     setLoading(true);
@@ -30,15 +30,16 @@ export const LocatieFormModal: React.FC<LocatieFormProps> = ({ isOpen, onClose, 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Locație Nouă">
+    <Modal isOpen={isOpen} onClose={onClose} title="AdaugÄƒ LocaÈ›ie NouÄƒ">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Nume Locație" name="nume" value={form.nume} onChange={handleChange} required />
-        <Input label="Adresă (Opțional)" name="adresa" value={form.adresa} onChange={handleChange} />
+        <Input label="Nume LocaÈ›ie" name="nume" value={form.nume} onChange={handleChange} required />
+        <Input label="AdresÄƒ (OpÈ›ional)" name="adresa" value={form.adresa} onChange={handleChange} />
         <div className="flex justify-end pt-4 space-x-2">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-          <Button variant="success" type="submit" isLoading={loading}>Salvează Locația</Button>
+          <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>AnuleazÄƒ</Button>
+          <Button variant="success" type="submit" isLoading={loading}>SalveazÄƒ LocaÈ›ia</Button>
         </div>
       </form>
     </Modal>
   );
 };
+

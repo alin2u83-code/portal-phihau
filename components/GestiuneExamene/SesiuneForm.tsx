@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Input, Select, Button } from '../ui';
 import { PlusIcon } from '../icons';
 import { SesiuneExamen, Locatie, Club, User } from '../../types';
@@ -56,18 +56,18 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
         const { data, error } = await supabase.from('nom_locatii').insert(locatieData).select().maybeSingle();
         if (error) { 
             console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
-            showError("Eroare la salvare locație", error); 
+            showError("Eroare la salvare locaÈ›ie", error); 
         } 
         else if (data) {
             setLocatii(prev => [...prev, data]);
             setFormState(p => ({ ...p, locatie_id: data.id }));
             setIsLocatieModalOpen(false);
-            showSuccess("Succes", "Locația a fost adăugată.");
+            showSuccess("Succes", "LocaÈ›ia a fost adÄƒugatÄƒ.");
         }
     };
 
   return ( <>
-  <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "Editează Sesiune Examen" : "Adaugă Sesiune Nouă"}>
+  <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "EditeazÄƒ Sesiune Examen" : "AdaugÄƒ Sesiune NouÄƒ"}>
     <form onSubmit={handleSubmit} className="space-y-4">
         <Input label="Data Examenului" name="data" type="date" value={formState.data} onChange={handleChange} required />
         <Select label="Sesiunea" name="nume" value={formState.nume || 'Vara'} onChange={handleChange} required>
@@ -76,23 +76,24 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
         </Select>
         {isSuperAdmin && (
             <Select label="Club Organizator" name="club_id" value={formState.club_id || ''} onChange={handleChange}>
-                <option value="">Federație (eveniment central)</option>
+                <option value="">FederaÈ›ie (eveniment central)</option>
                 {(clubs || []).map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
             </Select>
         )}
         <div className="flex items-end gap-2">
             <div className="flex-grow">
-                 <Select label="Locația" name="locatie_id" value={formState.locatie_id || ''} onChange={handleChange} required>
-                    <option value="">Selectează locația...</option>
+                 <Select label="LocaÈ›ia" name="locatie_id" value={formState.locatie_id || ''} onChange={handleChange} required>
+                    <option value="">SelecteazÄƒ locaÈ›ia...</option>
                     {(locatii || []).map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
                 </Select>
             </div>
-            <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[50px] w-[50px] !p-0 flex items-center justify-center flex-shrink-0" title="Adaugă locație nouă"><PlusIcon className="w-6 h-6"/></Button>
+            <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[50px] w-[50px] !p-0 flex items-center justify-center flex-shrink-0" title="AdaugÄƒ locaÈ›ie nouÄƒ"><PlusIcon className="w-6 h-6"/></Button>
         </div>
         <ComisieEditor membri={formState.comisia || []} setMembri={(newMembri) => setFormState(p => ({ ...p, comisia: newMembri }))} />
-        <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" isLoading={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div>
+        <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>AnuleazÄƒ</Button><Button variant="success" type="submit" isLoading={loading}>{loading ? 'Se salveazÄƒ...' : 'SalveazÄƒ'}</Button></div>
     </form>
   </Modal>
   <LocatieFormModal isOpen={isLocatieModalOpen} onClose={() => setIsLocatieModalOpen(false)} onSave={handleSaveLocatie} />
   </> );
 };
+

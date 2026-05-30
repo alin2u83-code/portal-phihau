@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button } from '../ui';
 import { EditIcon, UploadCloudIcon, BookOpenIcon, UserPlusIcon } from '../icons';
-import { ManagementInscrieri } from '../ManagementInscrieri';
+import { ManagementInscrieri } from './ManagementInscrieri';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, DecontFederatie, IstoricGrade } from '../../types';
 import { ImportExcelExamen } from './ImportExcelExamen';
-import { ImportTutorial } from '../ImportTutorial';
+import { ImportTutorial } from './ImportTutorial';
 import { ImportSportiviExamen } from './ImportSportiviExamen';
 
 export interface DetaliiSesiuneProps {
@@ -53,11 +53,11 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const handleFinalizeExam = async () => {
         const admisiCount = props.inscrieri.filter(i => i.rezultat === 'Admis').length;
         if (admisiCount === 0) {
-            if (!confirm("Atenție: Niciun sportiv nu este marcat ca 'Admis'. Dacă nu ați salvat rezultatele, vă rugăm să o faceți înainte de a finaliza examenul. Doriți să continuați finalizarea oricum?")) {
+            if (!confirm("AtenÈ›ie: Niciun sportiv nu este marcat ca 'Admis'. DacÄƒ nu aÈ›i salvat rezultatele, vÄƒ rugÄƒm sÄƒ o faceÈ›i Ã®nainte de a finaliza examenul. DoriÈ›i sÄƒ continuaÈ›i finalizarea oricum?")) {
                 return;
             }
         } else {
-            if (!confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se vor actualiza gradele sportivilor admiși. Doriți să continuați?")) {
+            if (!confirm("AceastÄƒ acÈ›iune este ireversibilÄƒ. Se va marca examenul ca finalizat È™i se vor actualiza gradele sportivilor admiÈ™i. DoriÈ›i sÄƒ continuaÈ›i?")) {
                 return;
             }
         }
@@ -87,18 +87,18 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                         <Button variant="secondary" onClick={() => setIsTutorialOpen(true)} title="Ghid import XLS">
                             <BookOpenIcon className="w-4 h-4" />
                         </Button>
-                        <Button variant="secondary" onClick={() => setIsImportSportiviOpen(true)} title="Import sportivi noi și adaugă-i în sesiune">
+                        <Button variant="secondary" onClick={() => setIsImportSportiviOpen(true)} title="Import sportivi noi È™i adaugÄƒ-i Ã®n sesiune">
                             <UserPlusIcon className="w-4 h-4 mr-2" /> Import Sportivi
                         </Button>
-                        <Button variant="secondary" onClick={() => setIsImportOpen(true)} title="Import din fișier XLS (Ex. Local sau Examen de Grad)">
+                        <Button variant="secondary" onClick={() => setIsImportOpen(true)} title="Import din fiÈ™ier XLS (Ex. Local sau Examen de Grad)">
                             <UploadCloudIcon className="w-4 h-4 mr-2" /> Import XLS
                         </Button>
                         <Button variant="secondary" onClick={props.onEdit}>
-                            <EditIcon className="w-4 h-4 mr-2" /> Editează
+                            <EditIcon className="w-4 h-4 mr-2" /> EditeazÄƒ
                         </Button>
                         {props.sesiune.status !== 'Finalizat' && (
                             <Button variant="success" onClick={handleFinalizeExam} isLoading={props.isFinalizing}>
-                                Finalizează Examen
+                                FinalizeazÄƒ Examen
                             </Button>
                         )}
                     </div>
@@ -135,3 +135,4 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
         </div>
     );
 };
+

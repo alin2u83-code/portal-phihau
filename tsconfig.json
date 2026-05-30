@@ -18,10 +18,13 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@components/*": ["./components/*"],
+      "@hooks/*": ["./hooks/*"],
+      "@contexts/*": ["./contexts/*"]
     },
     "types": ["node"]
   },
-  "include": ["src", "components", "utils", "hooks", "types.ts", "supabaseClient.ts"],
+  "include": ["src", "components", "utils", "hooks", "contexts", "types.ts", "supabaseClient.ts"],
   "exclude": ["node_modules", "scripts"]
 }

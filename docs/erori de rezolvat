@@ -260,4 +260,8 @@ Fix: components/Competitii/index.tsx — sectiunea echipe non-Mixt: genFiltru ca
 ✅ REZOLVAT — sportivii retrasi sterse complet din lista de inscrieri (nu pastrati ca "Retras") (Mai 2026)
 Fix: components/Competitii/index.tsx — filteredInscrieri si filteredEchipe includ .filter(i => i.status !== 'retras'); cheia retras eliminata din statusOrdine
 
+✅ REZOLVAT — Afișare PRENUME NUME (ordine corectă) la sportivi în competiții, stagii, management sportivi (Mai 2026)
+Fix: components/Competitii/index.tsx — 9 locuri schimbate din {nume} {prenume} → {prenume} {nume};
+     components/StagiiCompetitii.tsx — lista participanți + dropdown căutare;
+     components/Sportivi/SportiviTable.tsx + SportiviMobileList.tsx — tabel desktop și carduri mobil
 

@@ -79,6 +79,26 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
              if (rpcError) throw rpcError;
         }
 
+        // Actualizează username dacă s-a modificat
+        const { username: newUsername } = formData as any;
+        if (newUsername !== undefined && newUsername !== null && newUsername.trim() !== '') {
+            const { error: usernameError } = await supabase.from('sportivi').update({ username: newUsername.trim() }).eq('id', id);
+            if (usernameError) throw usernameError;
+
+            if (currentSportiv.user_id) {
+                const response = await fetch('/api/schimba-username', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: currentSportiv.user_id, username: newUsername.trim() }),
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    console.warn('Nu s-a putut actualiza username în auth.users:', err.error);
+                    // Nu eșuăm complet — username a fost salvat în sportivi
+                }
+            }
+        }
+
         // Update other fields if any
         if (Object.keys(otherData).length > 0) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars

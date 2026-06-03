@@ -1,28 +1,35 @@
 # Session State
-**2026-05-08 18:28** | Branch: main
+**2026-06-03 11:05** | Branch: main
 
 ## Fisiere modificate
 ```
+ M .claude/session_state.md
  M .claude/settings.local.json
- M components/InlantuciriAdmin.tsx
- M "docs/erori de rezolvat"
- M types.ts
-?? .claude/hooks/
-?? .claude/session_state.md
-?? api/rag-index.ts
-?? api/rag-search.ts
-?? components/MatriceGradePanel.tsx
-?? docs/PROFIL_MONETIZARE_PERSONAL.md
-?? docs/RAG_IMPLEMENTARE.md
-?? hooks/useInlantuiriPivot.ts
-?? knowledge/
+ D components/AnuntPrezentaWidget.tsx
+ D components/ArhivaPrezente.tsx
+ D components/AthleteQuickActions.tsx
+ D components/CereriInscriere.tsx
+ D components/DeduplicareSportivi.tsx
+ D components/EditareContSportiv.tsx
+ D components/ExamenRegistrationPreview.tsx
+ D components/FinalizeExam.tsx
+ D components/FisaDigitalaSportiv.tsx
+ D components/GeneralAttendanceWidget.tsx
+ D components/GeneratorProgramMasiv.tsx
+ D components/GestiuneExamene.tsx
+ D components/Grupe.tsx
+ D components/HartaExamene.tsx
+ D components/ImportExamenModal.tsx
+ D components/ImportSportiviPage.tsx
+ D components/ImportTutorial.tsx
+ D components/InstructorPrezentaPage.tsx
 ```
 
 ## Ultimele commit-uri
 ```
-8e832af docs: plan inlantuiri — toate TODO marcate DONE
-a39dce5 feat(inlantuiri): Admin UI SUPER_ADMIN_FEDERATIE + meniu + ruta
-2122c99 feat(inlantuiri): sistem normalizat inlantuiri + wizard v2 complet
-16c448b feat(competitii): wizard inscriere v2 — quyen coloane, gender locking, 2Q, fara acord parental
-477a65d fix(competitii): footer sticky pe tableta + count fara retrasi in FuzionariPanel
+6127054 Merge branch 'worktree-agent-aafbb48a5ec1d21a9'
+9f201b0 refactor(competitii): split InscriereClubWizard.tsx into modular folder
+37285cb fix(types): resolve all pre-existing TypeScript errors
+b429631 refactor(structure): move Sportivi.tsx to Sportivi/index.tsx for consistency
+0ce8e9f docs: update architecture doc with new component structure
 ```

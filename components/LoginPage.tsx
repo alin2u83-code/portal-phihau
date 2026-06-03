@@ -1,31 +1,76 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthForm } from '../hooks/useAuthForm';
 import { Button, Card, Input } from './ui';
-import { LogIn, Mail, Lock, ShieldCheck, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Mail, Lock, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 import { QwanKiDoLogo } from './Logo';
 
 export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const { login, loading, error: authError, clearStates } = useAuth();
-    const { formData, errors, handleChange, validate, resetForm } = useAuthForm('login');
+    const { formData, errors, handleChange, setErrors } = useAuthForm('login');
     const [showPassword, setShowPassword] = useState(false);
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotLoading, setForgotLoading] = useState(false);
+    const [forgotMessage, setForgotMessage] = useState('');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!validate()) return;
-        
         clearStates();
 
+        const inputValue = formData.email?.trim() || '';
+        if (!inputValue) {
+            setErrors(prev => ({ ...prev, email: 'Email-ul sau username-ul este obligatoriu.' }));
+            return;
+        }
+        if (!formData.parola) {
+            setErrors(prev => ({ ...prev, parola: 'Parola este obligatorie.' }));
+            return;
+        }
+
+        let emailToUse = inputValue;
+
+        // Dacă inputul nu conține @, îl tratăm ca username
+        if (!inputValue.includes('@')) {
+            const { data: sportivData } = await supabase
+                .from('sportivi')
+                .select('email')
+                .eq('username', inputValue)
+                .maybeSingle();
+            if (!sportivData?.email) {
+                setErrors(prev => ({ ...prev, email: 'Username negăsit. Încearcă cu emailul.' }));
+                return;
+            }
+            emailToUse = sportivData.email;
+        }
+
         try {
-            const data = await login(formData.email || '', formData.parola || '');
+            const data = await login(emailToUse, formData.parola || '');
             if (data?.user) {
                 navigate('/');
             }
         } catch (err: any) {
             // Eroarea este deja gestionată în useAuth și expusă prin `authError`
+        }
+    };
+
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!forgotEmail.trim()) return;
+        setForgotLoading(true);
+        try {
+            await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+                redirectTo: window.location.origin + '/reset-password',
+            });
+            setForgotMessage('Email trimis dacă adresa există în sistem. Verifică și folderul Spam.');
+        } catch {
+            setForgotMessage('Email trimis dacă adresa există în sistem. Verifică și folderul Spam.');
+        } finally {
+            setForgotLoading(false);
         }
     };
 
@@ -59,14 +104,14 @@ export const LoginPage: React.FC = () => {
 
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div className="relative">
-                            <Input 
-                                label="Email" 
-                                name="email" 
-                                type="email" 
-                                value={formData.email || ''} 
-                                onChange={(e) => { handleChange(e); clearStates(); }} 
-                                required 
-                                placeholder="exemplu@email.com"
+                            <Input
+                                label="Email / Username"
+                                name="email"
+                                type="text"
+                                value={formData.email || ''}
+                                onChange={(e) => { handleChange(e); clearStates(); }}
+                                required
+                                placeholder="exemplu@email.com sau username"
                                 className={`pl-10 ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                             />
                             <Mail className="absolute left-3 top-[34px] w-4 h-4 text-slate-500" />
@@ -108,16 +153,68 @@ export const LoginPage: React.FC = () => {
                                     Ține-mă minte
                                 </label>
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => { setShowForgotPassword(true); setForgotMessage(''); }}
+                                className="text-sm text-amber-400 hover:text-amber-300 transition-colors touch-manipulation"
+                            >
+                                Ai uitat parola?
+                            </button>
                         </div>
 
-                        <Button 
-                            type="submit" 
-                            className="w-full py-6 text-lg font-bold bg-amber-600 hover:bg-amber-500 text-white border-b-4 border-amber-800 active:border-b-0 active:translate-y-1 transition-all" 
+                        <Button
+                            type="submit"
+                            className="w-full py-6 text-lg font-bold bg-amber-600 hover:bg-amber-500 text-white border-b-4 border-amber-800 active:border-b-0 active:translate-y-1 transition-all"
                             isLoading={loading}
                         >
                             Intră în cont
                         </Button>
                     </form>
+
+                    {showForgotPassword && (
+                        <div className="mt-6 p-4 bg-slate-800/60 border border-slate-700 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
+                            <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                                <Lock className="w-4 h-4 text-amber-500" />
+                                Resetare Parolă
+                            </h3>
+                            {forgotMessage ? (
+                                <div className="text-green-400 text-sm bg-green-900/20 border border-green-700/50 p-3 rounded-lg">
+                                    {forgotMessage}
+                                </div>
+                            ) : (
+                                <form onSubmit={handleForgotPassword} className="space-y-3">
+                                    <Input
+                                        label="Email cont"
+                                        name="forgot_email"
+                                        type="email"
+                                        value={forgotEmail}
+                                        onChange={e => setForgotEmail(e.target.value)}
+                                        placeholder="adresa@email.com"
+                                        required
+                                    />
+                                    <div className="flex gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => setShowForgotPassword(false)}
+                                            className="flex-1"
+                                        >
+                                            Anulează
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            size="sm"
+                                            isLoading={forgotLoading}
+                                            className="flex-1 bg-amber-600 hover:bg-amber-500"
+                                        >
+                                            Trimite link reset
+                                        </Button>
+                                    </div>
+                                </form>
+                            )}
+                        </div>
+                    )}
 
                 </Card>
                 

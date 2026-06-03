@@ -3,7 +3,7 @@ import { Sportiv, Grupa, Grad } from '../../types';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { GradBadge } from '../../utils/grades';
 import { Button, Card, RoleBadge } from '../ui';
-import { EditIcon, WalletIcon, ShieldCheckIcon, TrashIcon } from '../icons';
+import { EditIcon, WalletIcon, ShieldCheckIcon, TrashIcon, LockIcon } from '../icons';
 import { getAge } from '../../utils/date';
 
 interface SportiviTableProps {
@@ -15,6 +15,7 @@ interface SportiviTableProps {
   onOpenWallet: (sportiv: Sportiv) => void;
   onOpenAccountSettings: (sportiv: Sportiv) => void;
   onDelete: (sportiv: Sportiv) => void;
+  onResetParola?: (sportiv: Sportiv) => void;
   requestSort: (key: string) => void;
   sortConfig: { key: string; direction: 'asc' | 'desc' }[];
   searchTerm?: string;
@@ -24,7 +25,7 @@ interface SportiviTableProps {
 }
 
 export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
-  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, requestSort, sortConfig, searchTerm, onSearchChange, selectedIds, onSelectionChange } = props;
+  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, onResetParola, requestSort, sortConfig, searchTerm, onSearchChange, selectedIds, onSelectionChange } = props;
 
   const allSelected = sportivi.length > 0 && sportivi.every(s => selectedIds?.has(s.id));
 
@@ -131,6 +132,11 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
                 <Button size="sm" variant="secondary" onClick={() => onOpenAccountSettings(s)} title="Setări Cont de Acces" className="!p-1.5 md:!p-2">
                     <ShieldCheckIcon className="w-4 h-4" />
                 </Button>
+                {onResetParola && s.user_id && (
+                    <Button size="sm" variant="secondary" onClick={() => onResetParola(s)} title="Resetează Parola" className="!p-1.5 md:!p-2">
+                        <LockIcon className="w-4 h-4" />
+                    </Button>
+                )}
                 <Button size="sm" variant="danger" onClick={() => onDelete(s)} title="Șterge Sportiv" className="!p-1.5 md:!p-2">
                     <TrashIcon className="w-4 h-4" />
                 </Button>

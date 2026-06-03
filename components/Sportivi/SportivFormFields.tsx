@@ -318,8 +318,16 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                                 disabled={loading}
                                 placeholder="adresa@email.ro"
                             />
+                            <Input
+                                label="Username"
+                                name="username"
+                                value={formData.username || ''}
+                                onChange={handleChange}
+                                disabled={loading}
+                                placeholder="ex: ion.popescu"
+                            />
                             <p className="text-xs text-slate-400 col-span-full -mt-1">
-                                Dacă sportivul are cont de login, emailul de autentificare va fi actualizat automat.
+                                Dacă sportivul are cont de login, emailul și username-ul de autentificare vor fi actualizate automat.
                             </p>
                         </FormSection>
                     )}

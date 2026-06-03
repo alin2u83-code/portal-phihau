@@ -13,8 +13,8 @@ import { SportiviFilter } from './SportiviFilter';
 import { SportiviTable } from './SportiviTable';
 import { SportiviMobileList } from './SportiviMobileList';
 import { SportivModals } from './SportivModals';
-import { ImportCsvModal } from './ImportCsvModal';
 import { SportivFormModal } from './SportivFormModal';
+import { useNavigation } from '../../contexts/NavigationContext';
 import { ExportSportiviTable } from './ExportSportiviTable';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useRoleAssignment } from '../../hooks/useRoleAssignment';
@@ -60,6 +60,7 @@ export const Sportivi: React.FC<{
     } = useData();
 
     const { showError, showSuccess } = useError();
+    const { navigateTo } = useNavigation();
     const isMobile = useIsMobile();
     const grupe = filteredData?.grupe || [];
 
@@ -81,10 +82,10 @@ export const Sportivi: React.FC<{
     const [createAccountLoading, setCreateAccountLoading] = useState(false);
     const [createAccountError, setCreateAccountError] = useState('');
     const [credentialeModal, setCredentialeModal] = useState<{ email: string; parola: string; numeSportiv: string } | null>(null);
-    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [isExportTableOpen, setIsExportTableOpen] = useState(false);
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
     const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
+    const [sportivForResetParola, setSportivForResetParola] = useState<Sportiv | null>(null);
 
     const handleOpenAddSportiv = () => {
         setSportivToEdit(null);
@@ -634,7 +635,7 @@ export const Sportivi: React.FC<{
                         <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => setIsImportModalOpen(true)}
+                            onClick={() => navigateTo('import-sportivi')}
                             style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
                             className="touch-manipulation min-h-[40px]"
                         >
@@ -712,6 +713,7 @@ export const Sportivi: React.FC<{
                     onOpenWallet={handleOpenWallet}
                     onOpenAccountSettings={setAccountSettingsSportiv}
                     onDelete={setSportivToDelete}
+                    onResetParola={setSportivForResetParola}
                     requestSort={requestSort}
                     sortConfig={sortConfig}
                     selectedIds={selectedSportivIds}
@@ -807,14 +809,6 @@ export const Sportivi: React.FC<{
             )}
 
             <SportivModals
-                isImportModalOpen={isImportModalOpen}
-                onCloseImportModal={() => setIsImportModalOpen(false)}
-                onImportComplete={() => {
-                    setIsImportModalOpen(false);
-                    window.location.reload();
-                }}
-                activeClubId={currentUser?.club_id || ''}
-                defaultGrupaId={grupe[0]?.id || ''}
                 isFormModalOpen={isFormModalOpen}
                 onCloseFormModal={handleCloseFormModal}
                 onSaveSportiv={handleSave}
@@ -862,6 +856,8 @@ export const Sportivi: React.FC<{
                 onCloseDeleteModal={() => setSportivToDelete(null)}
                 onDeactivate={handleDeactivate}
                 onDelete={handleDelete}
+                sportivForResetParola={sportivForResetParola}
+                onCloseResetParola={() => setSportivForResetParola(null)}
             />
 
             {/* Modal: Mută în grupă */}

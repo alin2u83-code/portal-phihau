@@ -79,15 +79,15 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
 
     return (
         <div className="space-y-6 animate-fade-in-down">
-            <h1 className="text-3xl font-bold text-white">FiÈ™a DigitalÄƒ a Sportivului</h1>
+            <h1 className="text-3xl font-bold text-white">Fișa Digitală a Sportivului</h1>
 
             {totalRestante > 0 && (
                 <Card className="border-l-4 border-red-500 bg-red-900/30">
                     <div className="flex items-center gap-4">
                         <WalletIcon className="w-8 h-8 text-red-400" />
                         <div>
-                            <h3 className="text-lg font-bold text-white">AlertÄƒ PlatÄƒ</h3>
-                            <p className="text-red-300">AveÈ›i o sumÄƒ restantÄƒ de <strong>{totalRestante.toFixed(2)} RON</strong>. VÄƒ rugÄƒm sÄƒ contactaÈ›i secretariatul.</p>
+                            <h3 className="text-lg font-bold text-white">Alertă Plată</h3>
+                            <p className="text-red-300">Aveți o sumă restantă de <strong>{totalRestante.toFixed(2)} RON</strong>. Vă rugăm să contactați secretariatul.</p>
                         </div>
                     </div>
                 </Card>
@@ -101,13 +101,13 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
                     <div className="text-center sm:text-left">
                         <h2 className="text-2xl font-bold text-white">{currentUser.nume} {currentUser.prenume}</h2>
                         <p className="text-slate-400">{currentUser.cluburi?.nume || 'Club neasociat'}</p>
-                        <p className="mt-2 font-bold text-lg text-brand-secondary">{currentGrad?.nume || 'ÃŽncepÄƒtor'}</p>
+                        <p className="mt-2 font-bold text-lg text-brand-secondary">{currentGrad?.nume || 'Începător'}</p>
                     </div>
                 </div>
             </Card>
 
             <Card>
-                <h3 className="text-lg font-bold text-white mb-4">Progres cÄƒtre Gradul UrmÄƒtor</h3>
+                <h3 className="text-lg font-bold text-white mb-4">Progres către Gradul Următor</h3>
                 {nextGrad ? (
                     <div className="space-y-3">
                         <div className="flex justify-between items-baseline">
@@ -115,10 +115,10 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
                             <span className="text-sm text-slate-400">{timeToNextGrade.monthsElapsed} / {timeToNextGrade.monthsRequired} luni</span>
                         </div>
                         <ProgressBar percentage={timeToNextGrade.percentage} />
-                        <p className="text-xs text-slate-500 text-center">Progres bazat pe stagiul minim de pregÄƒtire necesar.</p>
+                        <p className="text-xs text-slate-500 text-center">Progres bazat pe stagiul minim de pregătire necesar.</p>
                     </div>
                 ) : (
-                    <p className="text-center text-slate-400">FelicitÄƒri! AÈ›i atins gradul maxim Ã®nregistrat Ã®n sistem.</p>
+                    <p className="text-center text-slate-400">Felicitări! Ați atins gradul maxim înregistrat în sistem.</p>
                 )}
             </Card>
 
@@ -150,7 +150,7 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
                                     : <XCircleIcon className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                                 }
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-white">Stagiu minim de pregÄƒtire</p>
+                                    <p className="text-sm font-semibold text-white">Stagiu minim de pregătire</p>
                                     <p className="text-xs text-slate-400 mt-0.5">
                                         {timeToNextGrade.monthsElapsed} / {timeToNextGrade.monthsRequired} luni completate
                                         {!stagSuficient && ` Â· mai ${timeToNextGrade.monthsRequired - timeToNextGrade.monthsElapsed} luni`}
@@ -164,18 +164,18 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
                                 </div>
                             </div>
 
-                            {/* Criteriu 2: PlÄƒÈ›i */}
+                            {/* Criteriu 2: Plăți */}
                             <div className="flex items-start gap-3 p-3 bg-slate-800/40 rounded-xl">
                                 {financiarOk
                                     ? <CheckCircleIcon className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                                     : <XCircleIcon className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                                 }
                                 <div>
-                                    <p className="text-sm font-semibold text-white">SituaÈ›ie financiarÄƒ</p>
+                                    <p className="text-sm font-semibold text-white">Situație financiară</p>
                                     <p className={`text-xs mt-0.5 ${financiarOk ? 'text-slate-400' : 'text-red-300'}`}>
                                         {financiarOk
-                                            ? 'Toate plÄƒÈ›ile sunt la zi'
-                                            : `RestanÈ›Äƒ: ${totalRestante.toFixed(2)} RON â€” contactaÈ›i secretariatul`
+                                            ? 'Toate plățile sunt la zi'
+                                            : `Restanță: ${totalRestante.toFixed(2)} RON â€” contactați secretariatul`
                                         }
                                     </p>
                                 </div>

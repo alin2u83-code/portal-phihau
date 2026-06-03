@@ -9,7 +9,7 @@ import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { ManagementInscrieri } from './ManagementInscrieri';
 import { HartaExamene } from './HartaExamene';
 
-// --- SUB-COMPONENTE PENTRU MANAGEMENTUL SESIUNILOR (PÄ‚STRATE) ---
+// --- SUB-COMPONENTE PENTRU MANAGEMENTUL SESIUNILOR (PĂSTRATE) ---
 
 const ComisieEditor: React.FC<{
     membri: string[];
@@ -36,19 +36,19 @@ const ComisieEditor: React.FC<{
                 {membri.map(membru => (
                     <div key={membru} className="bg-slate-700/50 p-2 rounded-md flex justify-between items-center text-sm">
                         <span className="font-medium text-white">{membru}</span>
-                        <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(membru)} className="!p-1.5 h-auto" title={`EliminÄƒ pe ${membru}`}>
+                        <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(membru)} className="!p-1.5 h-auto" title={`Elimină pe ${membru}`}>
                             <TrashIcon className="w-4 h-4" />
                         </Button>
                     </div>
                 ))}
-                {membri.length === 0 && <p className="text-xs text-slate-500 italic text-center py-2">Niciun membru adÄƒugat.</p>}
+                {membri.length === 0 && <p className="text-xs text-slate-500 italic text-center py-2">Niciun membru adăugat.</p>}
             </div>
             <div className="flex items-end gap-2">
                 <div className="flex-grow">
-                    <Input label="" value={newMembru} onChange={e => setNewMembru(e.target.value)} placeholder="Nume È™i prenume membru..." 
+                    <Input label="" value={newMembru} onChange={e => setNewMembru(e.target.value)} placeholder="Nume și prenume membru..." 
                         onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAdd(); } }}/>
                 </div>
-                <Button type="button" variant="info" onClick={handleAdd} className="h-[38px] aspect-square p-0" title="AdaugÄƒ membru">
+                <Button type="button" variant="info" onClick={handleAdd} className="h-[38px] aspect-square p-0" title="Adaugă membru">
                     <PlusIcon className="w-5 h-5" />
                 </Button>
             </div>
@@ -73,7 +73,7 @@ const LocatieFormModal: React.FC<LocatieFormProps> = ({ isOpen, onClose, onSave 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nume.trim()) {
-        showError("Validare eÈ™uatÄƒ", "Numele locaÈ›iei este obligatoriu.");
+        showError("Validare eșuată", "Numele locației este obligatoriu.");
         return;
     }
     setLoading(true);
@@ -83,13 +83,13 @@ const LocatieFormModal: React.FC<LocatieFormProps> = ({ isOpen, onClose, onSave 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="AdaugÄƒ LocaÈ›ie NouÄƒ">
+    <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Locație Nouă">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Nume LocaÈ›ie" name="nume" value={form.nume} onChange={handleChange} required />
-        <Input label="AdresÄƒ (OpÈ›ional)" name="adresa" value={form.adresa} onChange={handleChange} />
+        <Input label="Nume Locație" name="nume" value={form.nume} onChange={handleChange} required />
+        <Input label="Adresă (Opțional)" name="adresa" value={form.adresa} onChange={handleChange} />
         <div className="flex justify-end pt-4 space-x-2">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>AnuleazÄƒ</Button>
-          <Button variant="success" type="submit" isLoading={loading}>SalveazÄƒ LocaÈ›ia</Button>
+          <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+          <Button variant="success" type="submit" isLoading={loading}>Salvează Locația</Button>
         </div>
       </form>
     </Modal>
@@ -126,17 +126,17 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
   const handleSaveLocatie = async (locatieData: { nume: string, adresa: string }) => {
         if (!supabase) { showError("Eroare", "Client Supabase neconfigurat."); return; }
         const { data, error } = await supabase.from('nom_locatii').insert(locatieData).select().maybeSingle();
-        if (error) { showError("Eroare la salvare locaÈ›ie", error); } 
+        if (error) { showError("Eroare la salvare locație", error); } 
         else if (data) {
             setLocatii(prev => [...prev, data]);
             setFormState(p => ({ ...p, locatie_id: data.id }));
             setIsLocatieModalOpen(false);
-            showSuccess("Succes", "LocaÈ›ia a fost adÄƒugatÄƒ.");
+            showSuccess("Succes", "Locația a fost adăugată.");
         }
     };
 
   return ( <>
-  <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "EditeazÄƒ Sesiune Examen" : "AdaugÄƒ Sesiune NouÄƒ"}>
+  <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "Editează Sesiune Examen" : "Adaugă Sesiune Nouă"}>
     <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="Data Examenului" name="data" type="date" value={formState.data} onChange={handleChange} required />
@@ -147,21 +147,21 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
         </div>
         {isSuperAdmin && (
             <Select label="Club Organizator" name="club_id" value={formState.club_id || ''} onChange={handleChange}>
-                <option value="">FederaÈ›ie (eveniment central)</option>
+                <option value="">Federație (eveniment central)</option>
                 {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
             </Select>
         )}
         <div className="flex items-end gap-2">
             <div className="flex-grow">
-                 <Select label="LocaÈ›ia" name="locatie_id" value={formState.locatie_id || ''} onChange={handleChange} required>
-                    <option value="">SelecteazÄƒ locaÈ›ia...</option>
+                 <Select label="Locația" name="locatie_id" value={formState.locatie_id || ''} onChange={handleChange} required>
+                    <option value="">Selectează locația...</option>
                     {locatii.map(l => <option key={l.id} value={l.id}>{l.nume}</option>)}
                 </Select>
             </div>
-            <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[38px] aspect-square p-0" title="AdaugÄƒ locaÈ›ie nouÄƒ"><PlusIcon className="w-5 h-5"/></Button>
+            <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[38px] aspect-square p-0" title="Adaugă locație nouă"><PlusIcon className="w-5 h-5"/></Button>
         </div>
         <ComisieEditor membri={formState.comisia || []} setMembri={(newMembri) => setFormState(p => ({ ...p, comisia: newMembri }))} />
-        <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>AnuleazÄƒ</Button><Button variant="success" type="submit" isLoading={loading}>{loading ? 'Se salveazÄƒ...' : 'SalveazÄƒ'}</Button></div>
+        <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" isLoading={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div>
     </form>
   </Modal>
   <LocatieFormModal isOpen={isLocatieModalOpen} onClose={() => setIsLocatieModalOpen(false)} onSave={handleSaveLocatie} />
@@ -200,14 +200,14 @@ const DetaliiSesiune: React.FC<{
         const admisiCount = props.inscrieri.filter(i => i.rezultat === 'Admis').length;
         if (admisiCount === 0) {
             setConfirmConfig({
-                title: 'AtenÈ›ie: Niciun sportiv Admis',
-                message: "Niciun sportiv nu este marcat ca 'Admis'. DacÄƒ nu aÈ›i salvat rezultatele, vÄƒ rugÄƒm sÄƒ o faceÈ›i Ã®nainte de a finaliza examenul. DoriÈ›i sÄƒ continuaÈ›i finalizarea oricum?",
+                title: 'Atenție: Niciun sportiv Admis',
+                message: "Niciun sportiv nu este marcat ca 'Admis'. Dacă nu ați salvat rezultatele, vă rugăm să o faceți înainte de a finaliza examenul. Doriți să continuați finalizarea oricum?",
                 variant: 'warning'
             });
         } else {
             setConfirmConfig({
                 title: 'Confirmare Finalizare Examen',
-                message: "AceastÄƒ acÈ›iune este ireversibilÄƒ. Se va marca examenul ca finalizat È™i se vor actualiza gradele sportivilor admiÈ™i. DoriÈ›i sÄƒ continuaÈ›i?",
+                message: "Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se vor actualiza gradele sportivilor admiși. Doriți să continuați?",
                 variant: 'info'
             });
         }
@@ -237,7 +237,7 @@ const DetaliiSesiune: React.FC<{
             // 2. Process each inscriere
             for (const inscriere of props.inscrieri) {
                 if (inscriere.rezultat === 'Admis') {
-                    // VALIDARE STRICTÄ‚ grad_id (grad_sustinut_id)
+                    // VALIDARE STRICTĂ grad_id (grad_sustinut_id)
                     let targetGradId = inscriere.grad_sustinut_id;
 
                     if (!targetGradId || targetGradId === 'undefined' || targetGradId === 'null') {
@@ -245,7 +245,7 @@ const DetaliiSesiune: React.FC<{
                         if (inscriere.grad_actual_id) {
                             targetGradId = inscriere.grad_actual_id;
                         } else {
-                            showError("AtenÈ›ie", `Grad invalid pentru sportivul ${inscriere.sportiv_nume || inscriere.sportiv_id}. Se sare peste actualizarea gradului.`);
+                            showError("Atenție", `Grad invalid pentru sportivul ${inscriere.sportiv_nume || inscriere.sportiv_id}. Se sare peste actualizarea gradului.`);
                             continue; // Skip this record
                         }
                     }
@@ -260,7 +260,7 @@ const DetaliiSesiune: React.FC<{
                         .maybeSingle();
 
                     if (!existingIstoric) {
-                        // Arhivare note Ã®n observaÈ›ii
+                        // Arhivare note în observații
                         const notesStr = inscriere.note_detaliate
                             ? Object.entries(inscriere.note_detaliate).map(([k, v]) => `${k}: ${v}`).join(', ')
                             : '';
@@ -283,9 +283,9 @@ const DetaliiSesiune: React.FC<{
                         updatedSportiviIds.add(inscriere.sportiv_id);
                     }
 
-                    // ActualizeazÄƒ grad_actual_id Ã®n DB dacÄƒ noul grad e superior celui curent
-                    // Aceasta este pasul care lipsea È™i cauza bug-ul: sportivi.grad_actual_id
-                    // rÄƒmÃ¢nea la valoarea veche Ã®n baza de date dupÄƒ finalizarea examenului.
+                    // Actualizează grad_actual_id în DB dacă noul grad e superior celui curent
+                    // Aceasta este pasul care lipsea și cauza bug-ul: sportivi.grad_actual_id
+                    // rămânea la valoarea veche în baza de date după finalizarea examenului.
                     const newGrade = props.grade?.find(g => g.id === targetGradId);
                     const currentGrade = props.grade?.find(g => g.id === inscriere.grad_actual_id);
                     if ((newGrade?.ordine ?? 0) > (currentGrade?.ordine ?? -1)) {
@@ -316,9 +316,9 @@ const DetaliiSesiune: React.FC<{
 
             props.setSesiuni(prev => prev.map(s => s.id === props.sesiune.id ? { ...s, status: 'Finalizat' } : s));
             
-            showSuccess("Examen Finalizat", "Examenul a fost finalizat È™i gradele au fost actualizate.");
+            showSuccess("Examen Finalizat", "Examenul a fost finalizat și gradele au fost actualizate.");
         } catch (err: any) {
-            showError("Eroare la finalizare", `A apÄƒrut o eroare la finalizarea examenului. Detalii: ${err.message || err}`);
+            showError("Eroare la finalizare", `A apărut o eroare la finalizarea examenului. Detalii: ${err.message || err}`);
         } finally {
             setIsFinalizing(false);
         }
@@ -338,7 +338,7 @@ const DetaliiSesiune: React.FC<{
                 </div>
                 {props.sesiune.status !== 'Finalizat' && (
                     <Button variant="success" onClick={handleFinalizeClick} isLoading={isFinalizing}>
-                        FinalizeazÄƒ Examen
+                        Finalizează Examen
                     </Button>
                 )}
             </div>
@@ -366,14 +366,14 @@ const DetaliiSesiune: React.FC<{
                             onClick={() => setShowConfirmModal(false)}
                             className="flex-1"
                         >
-                            AnuleazÄƒ
+                            Anulează
                         </Button>
                         <Button 
                             variant={confirmConfig.variant === 'warning' ? 'warning' : 'success'} 
                             onClick={handleFinalizeExam}
                             className="flex-1 shadow-lg shadow-emerald-900/20"
                         >
-                            ConfirmÄƒ Finalizarea
+                            Confirmă Finalizarea
                         </Button>
                     </div>
                 </div>
@@ -416,7 +416,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const { showError, showSuccess } = useError();
 
-    // AplicÄƒ filtrul de club pentru non-admin-federatie
+    // Aplică filtrul de club pentru non-admin-federatie
     const isFedAdmin = currentUser.roluri.some(r =>
         ['SUPER_ADMIN_FEDERATIE', 'ADMIN'].includes(r.nume.toUpperCase().replace(/\s+/g, '_'))
     );
@@ -434,7 +434,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
             let query = supabase
                 .from('vedere_detalii_examen')
                 .select('inscriere_id, sportiv_id, sportiv_nume, sportiv_prenume, club_nume, grad_sustinut, grad_ordine, rezultat, data_examen, locatie_nume, sesiune_id, status_inscriere, club_id');
-            // FiltreazÄƒ dupÄƒ club pentru non-admini-federatie
+            // Filtrează după club pentru non-admini-federatie
             if (!isFedAdmin && currentUser.club_id) {
                 query = (query as any).eq('club_id', currentUser.club_id);
             }
@@ -534,7 +534,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     };
 
     const handleSave = async () => {
-        if (!formState.sesiune_id || !formState.grad_sustinut_id) { showError('Validare', 'SelecteazÄƒ sesiunea È™i gradul.'); return; }
+        if (!formState.sesiune_id || !formState.grad_sustinut_id) { showError('Validare', 'Selectează sesiunea și gradul.'); return; }
         setSavingForm(true);
         try {
             if (editingRow) {
@@ -573,7 +573,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
         setConfirmDeleteId(null);
         if (error) { showError('Eroare', error.message); return; }
         setRows(prev => prev.filter(r => r.inscriere_id !== id));
-        showSuccess('Succes', 'Examenul a fost È™ters.');
+        showSuccess('Succes', 'Examenul a fost șters.');
     };
 
     const activeFilterCount = [filterNume, filterGrad, filterRezultat, filterDataDe, filterDataPana].filter(Boolean).length;
@@ -585,7 +585,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                     Filtrat pe sportiv selectat
                 </div>
             ) : (
-                <Input label="CautÄƒ sportiv" value={filterNume} onChange={e => setFilterNume(e.target.value)} placeholder="Nume sau prenume..." />
+                <Input label="Caută sportiv" value={filterNume} onChange={e => setFilterNume(e.target.value)} placeholder="Nume sau prenume..." />
             )}
             <Select label="Grad" value={filterGrad} onChange={e => setFilterGrad(e.target.value)}>
                 <option value="">Toate gradele</option>
@@ -598,7 +598,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                 <option value="Neprezentat">Neprezentat</option>
             </Select>
             <Input label="Data de la" type="date" value={filterDataDe} onChange={e => setFilterDataDe(e.target.value)} />
-            <Input label="Data pÃ¢nÄƒ la" type="date" value={filterDataPana} onChange={e => setFilterDataPana(e.target.value)} />
+            <Input label="Data până la" type="date" value={filterDataPana} onChange={e => setFilterDataPana(e.target.value)} />
         </div>
     );
 
@@ -637,7 +637,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                             onClick={() => setFiltersExpanded(false)}
                             className="mt-3 w-full py-2 rounded-lg bg-amber-500 text-black text-sm font-bold"
                         >
-                            AplicÄƒ filtre â†’
+                            Aplică filtre â†’
                         </button>
                     </div>
                 )}
@@ -647,14 +647,14 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                 {filterContent}
             </div>
             <div className="flex justify-between items-center">
-                <p className="text-sm text-slate-400">{filtered.length} Ã®nregistrÄƒri</p>
+                <p className="text-sm text-slate-400">{filtered.length} înregistrări</p>
                 <div className="flex gap-2">
-                    {initialSportivId && <Button variant="info" onClick={handleAdd} size="sm"><PlusIcon className="w-4 h-4 mr-1" />AdaugÄƒ examen</Button>}
+                    {initialSportivId && <Button variant="info" onClick={handleAdd} size="sm"><PlusIcon className="w-4 h-4 mr-1" />Adaugă examen</Button>}
                     <Button variant="secondary" onClick={handleExport} size="sm">Export CSV</Button>
                 </div>
             </div>
             {loading ? (
-                <p className="text-center text-slate-400 py-8">Se Ã®ncarcÄƒ...</p>
+                <p className="text-center text-slate-400 py-8">Se încarcă...</p>
             ) : (
                 <>
                     {/* Desktop table */}
@@ -669,8 +669,8 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                         <th className="p-3"><SortBtn field="rezultat" label="Rezultat" /></th>
                                         <th className="p-3"><SortBtn field="data" label="Data" /></th>
                                         <th className="p-3 hidden lg:table-cell">Sesiune</th>
-                                        <th className="p-3 hidden lg:table-cell">LocaÈ›ie</th>
-                                        <th className="p-3 text-right">AcÈ›iuni</th>
+                                        <th className="p-3 hidden lg:table-cell">Locație</th>
+                                        <th className="p-3 text-right">Acțiuni</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-700">
@@ -693,14 +693,14 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                                     <div className="flex justify-end gap-1">
                                                         <Button variant="secondary" size="sm" onClick={() => { const s = sportivi.find(x => x.id === r.sportiv_id); if (s) onViewSportiv(s); }} title="Profil sportiv"><UserCircleIcon className="w-3.5 h-3.5" /></Button>
                                                         <Button variant="secondary" size="sm" onClick={() => onViewSesiune(r.sesiune_id)} title="Mergi la examen"><ClipboardListIcon className="w-3.5 h-3.5" /></Button>
-                                                        <Button variant="primary" size="sm" onClick={() => handleEdit(r)} title="EditeazÄƒ"><EditIcon className="w-3.5 h-3.5" /></Button>
-                                                        <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(r.inscriere_id)} isLoading={deletingId === r.inscriere_id} title="È˜terge"><TrashIcon className="w-3.5 h-3.5" /></Button>
+                                                        <Button variant="primary" size="sm" onClick={() => handleEdit(r)} title="Editează"><EditIcon className="w-3.5 h-3.5" /></Button>
+                                                        <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(r.inscriere_id)} isLoading={deletingId === r.inscriere_id} title="Șterge"><TrashIcon className="w-3.5 h-3.5" /></Button>
                                                     </div>
                                                 </td>
                                             </tr>
                                         );
                                     })}
-                                    {filtered.length === 0 && <tr><td colSpan={8} className="p-6 text-center text-slate-400">Nicio Ã®nregistrare gÄƒsitÄƒ.</td></tr>}
+                                    {filtered.length === 0 && <tr><td colSpan={8} className="p-6 text-center text-slate-400">Nicio înregistrare găsită.</td></tr>}
                                 </tbody>
                             </table>
                         </div>
@@ -709,7 +709,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                     {/* Mobile cards */}
                     <div className="md:hidden space-y-3">
                         {filtered.length === 0 && (
-                            <p className="text-center text-slate-400 py-6 italic">Nicio Ã®nregistrare gÄƒsitÄƒ.</p>
+                            <p className="text-center text-slate-400 py-6 italic">Nicio înregistrare găsită.</p>
                         )}
                         {filtered.map(r => {
                             const val = r.rezultat || r.status_inscriere;
@@ -734,8 +734,8 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                         <div className="flex gap-1">
                                             <Button variant="secondary" size="sm" onClick={() => { const s = sportivi.find(x => x.id === r.sportiv_id); if (s) onViewSportiv(s); }} title="Profil sportiv"><UserCircleIcon className="w-3.5 h-3.5" /></Button>
                                             <Button variant="secondary" size="sm" onClick={() => onViewSesiune(r.sesiune_id)} title="Mergi la examen"><ClipboardListIcon className="w-3.5 h-3.5" /></Button>
-                                            <Button variant="primary" size="sm" onClick={() => handleEdit(r)} title="EditeazÄƒ"><EditIcon className="w-3.5 h-3.5" /></Button>
-                                            <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(r.inscriere_id)} isLoading={deletingId === r.inscriere_id} title="È˜terge"><TrashIcon className="w-3.5 h-3.5" /></Button>
+                                            <Button variant="primary" size="sm" onClick={() => handleEdit(r)} title="Editează"><EditIcon className="w-3.5 h-3.5" /></Button>
+                                            <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(r.inscriere_id)} isLoading={deletingId === r.inscriere_id} title="Șterge"><TrashIcon className="w-3.5 h-3.5" /></Button>
                                         </div>
                                     </div>
                                 </div>
@@ -744,14 +744,14 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                     </div>
                 </>
             )}
-            <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title={isAdding ? 'AdaugÄƒ Examen' : 'EditeazÄƒ Examen'}>
+            <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title={isAdding ? 'Adaugă Examen' : 'Editează Examen'}>
                 <div className="space-y-4">
                     <Select label="Sesiunea" name="sesiune_id" value={formState.sesiune_id} onChange={e => setFormState(p => ({ ...p, sesiune_id: e.target.value }))} required>
-                        <option value="">SelecteazÄƒ sesiunea...</option>
+                        <option value="">Selectează sesiunea...</option>
                         {sesiuni.map(s => <option key={s.id} value={s.id}>{s.data ? new Date(s.data + 'T00:00:00').toLocaleDateString('ro-RO') : ''} â€” {s.nume} {s.locatie_nume || ''}</option>)}
                     </Select>
                     <Select label="Grad" name="grad_sustinut_id" value={formState.grad_sustinut_id} onChange={e => setFormState(p => ({ ...p, grad_sustinut_id: e.target.value }))} required>
-                        <option value="">SelecteazÄƒ gradul...</option>
+                        <option value="">Selectează gradul...</option>
                         {grade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
                     </Select>
                     <Select label="Rezultat" name="rezultat" value={formState.rezultat} onChange={e => setFormState(p => ({ ...p, rezultat: e.target.value }))}>
@@ -759,13 +759,13 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                         <option value="Respins">Respins</option>
                         <option value="Neprezentat">Neprezentat</option>
                     </Select>
-                    <Select label="Status ÃŽnregistrare" name="status_inscriere" value={formState.status_inscriere} onChange={e => setFormState(p => ({ ...p, status_inscriere: e.target.value }))}>
+                    <Select label="Status Înregistrare" name="status_inscriere" value={formState.status_inscriere} onChange={e => setFormState(p => ({ ...p, status_inscriere: e.target.value }))}>
                         <option value="Validat">Validat</option>
                         <option value="In asteptare">In asteptare</option>
                     </Select>
                     <div className="flex justify-end gap-2 pt-2">
-                        <Button variant="secondary" onClick={() => setIsFormOpen(false)} disabled={savingForm}>AnuleazÄƒ</Button>
-                        <Button variant="success" onClick={handleSave} isLoading={savingForm}>SalveazÄƒ</Button>
+                        <Button variant="secondary" onClick={() => setIsFormOpen(false)} disabled={savingForm}>Anulează</Button>
+                        <Button variant="success" onClick={handleSave} isLoading={savingForm}>Salvează</Button>
                     </div>
                 </div>
             </Modal>
@@ -773,14 +773,14 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                 isOpen={!!confirmDeleteId}
                 onClose={() => setConfirmDeleteId(null)}
                 onConfirm={() => { if (confirmDeleteId) handleDelete(confirmDeleteId); }}
-                tableName="Ã®nregistrarea examenului"
+                tableName="înregistrarea examenului"
                 isLoading={!!deletingId}
             />
         </div>
     );
 };
 
-// --- COMPONENTA PRINCIPALÄ‚ (REFActorizatÄƒ) ---
+// --- COMPONENTA PRINCIPALĂ (REFActorizată) ---
 interface RapoarteExamenProps { 
     currentUser: User;
     clubs: Club[];
@@ -826,7 +826,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
     const locatieSelectata = locatii.find(l => l.id === sesiuneData.locatie_id);
     const dataToSave: Partial<SesiuneExamen> = {
         ...sesiuneData,
-        localitate: locatieSelectata ? locatieSelectata.nume : 'NecunoscutÄƒ',
+        localitate: locatieSelectata ? locatieSelectata.nume : 'Necunoscută',
         club_id: sesiuneData.club_id === '' ? null : sesiuneData.club_id
     };
 
@@ -836,15 +836,15 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
             const { data: viewData, error: viewError } = await supabase.from('sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
             const finalData = viewData || data;
             setSesiuni(prev => prev.map(e => e.id === finalData.id ? finalData as SesiuneExamen : e)); 
-            showSuccess("Succes", "Sesiunea a fost actualizatÄƒ."); 
+            showSuccess("Succes", "Sesiunea a fost actualizată."); 
         }
     } else {
         const { data, error } = await supabase.from('sesiuni_examene').insert(dataToSave).select().maybeSingle();
-        if (error) { showError("Eroare la adÄƒugare", error); } else if (data) { 
+        if (error) { showError("Eroare la adăugare", error); } else if (data) { 
             const { data: viewData, error: viewError } = await supabase.from('sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
             const finalData = viewData || data;
             setSesiuni(prev => [...prev, finalData as SesiuneExamen]); 
-            showSuccess("Succes", "Sesiunea a fost creatÄƒ."); 
+            showSuccess("Succes", "Sesiunea a fost creată."); 
         }
     }
   };
@@ -860,9 +860,9 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
         if(sesiuneError) throw sesiuneError;
         setSesiuni(prev => prev.filter(e => e.id !== id));
         handleBackToList();
-        showSuccess("Succes", "Sesiunea È™i Ã®nscrierile asociate au fost È™terse.");
+        showSuccess("Succes", "Sesiunea și înscrierile asociate au fost șterse.");
     } catch (err: any) {
-        showError("Eroare la È™tergere", err);
+        showError("Eroare la ștergere", err);
     } finally {
         setIsDeleting(false);
         setSesiuneToDelete(null);
@@ -872,7 +872,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
   if (selectedSesiune) {
      return (
         <div>
-            <Button onClick={handleBackToList} className="mb-4" variant="secondary"><ArrowLeftIcon /> ÃŽnapoi la listÄƒ</Button>
+            <Button onClick={handleBackToList} className="mb-4" variant="secondary"><ArrowLeftIcon /> Înapoi la listă</Button>
             <DetaliiSesiune 
                 sesiune={selectedSesiune} 
                 inscrieri={inscrieri.filter(p => p.sesiune_id === selectedSesiune.id)} 
@@ -915,7 +915,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
       </div>
       {activeTab === 'sesiuni' && (
         <div>
-          <div className="flex justify-between items-center mb-6"><h1 className="text-2xl md:text-3xl font-bold text-white">Rapoarte Examen</h1><Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />AdaugÄƒ Sesiune</Button></div>
+          <div className="flex justify-between items-center mb-6"><h1 className="text-2xl md:text-3xl font-bold text-white">Rapoarte Examen</h1><Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Sesiune</Button></div>
 
           <HartaExamene />
 
@@ -923,10 +923,10 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
           <div className="hidden md:block bg-slate-800 rounded-lg shadow-lg overflow-hidden mt-6">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                  <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">LocaÈ›ia</th><th className="p-4 font-semibold">ÃŽnscriÈ™i</th><th className="p-4 font-semibold text-right">AcÈ›iuni</th></tr></thead>
+                  <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
                   <tbody className="divide-y divide-slate-700">
                       {sortedSesiuni.map(s => ( <tr key={s.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{new Date((s.data || s.data_examen || '').toString().slice(0, 10)+'T00:00:00').toLocaleDateString('ro-RO')}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{s.locatie_nume || locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A'}</td><td className="p-4">{inscrieri.filter(p => p.sesiune_id === s.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}
-                      {sortedSesiuni.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Nicio sesiune programatÄƒ.</p></td></tr>}
+                      {sortedSesiuni.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Nicio sesiune programată.</p></td></tr>}
                   </tbody>
               </table>
             </div>
@@ -935,7 +935,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
           {/* Mobile card list */}
           <div className="md:hidden mt-6 space-y-3">
               {sortedSesiuni.length === 0 && (
-                  <p className="text-center text-slate-400 py-6 italic">Nicio sesiune programatÄƒ.</p>
+                  <p className="text-center text-slate-400 py-6 italic">Nicio sesiune programată.</p>
               )}
               {sortedSesiuni.map(s => {
                   const nrInscrisi = inscrieri.filter(p => p.sesiune_id === s.id).length;
@@ -954,7 +954,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
                               </span>
                           </div>
                           <div className="flex items-center justify-between mt-3">
-                              <span className="text-sm text-slate-400">{nrInscrisi} participanÈ›i</span>
+                              <span className="text-sm text-slate-400">{nrInscrisi} participanți</span>
                               <div className="flex gap-2" onClick={e => e.stopPropagation()}>
                                   <Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button>
                                   <Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button>
@@ -965,7 +965,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
               })}
           </div>
           <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
-          <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (È™i toate Ã®nscrierile asociate)" isLoading={isDeleting} />
+          <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={isDeleting} />
         </div>
       )}
       {activeTab === 'raport' && (

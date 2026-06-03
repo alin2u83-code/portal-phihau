@@ -48,14 +48,14 @@ export const OrarEditor: React.FC<{
         <div className="space-y-6 animate-fade-in">
             <div className="flex items-center justify-between">
                 <Button onClick={onBack} variant="secondary" size="sm">
-                    <ArrowLeftIcon className="w-4 h-4 mr-2"/> ÃŽnapoi la Grupe
+                    <ArrowLeftIcon className="w-4 h-4 mr-2"/> Înapoi la Grupe
                 </Button>
                 <div className="flex gap-2">
                     <Button variant="success" onClick={handleSave} isLoading={loading} size="sm">
-                        <CheckCircleIcon className="w-4 h-4 mr-2"/> SalveazÄƒ Orar
+                        <CheckCircleIcon className="w-4 h-4 mr-2"/> Salvează Orar
                     </Button>
                     <Button variant="primary" onClick={() => onNavigate(grupa.id)} size="sm">
-                        GestioneazÄƒ Calendar <span className="ml-2">&rarr;</span>
+                        Gestionează Calendar <span className="ml-2">&rarr;</span>
                     </Button>
                 </div>
             </div>
@@ -64,9 +64,9 @@ export const OrarEditor: React.FC<{
                 <div className="p-6 border-b border-slate-800 bg-slate-800/30">
                     <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                         <CogIcon className="w-6 h-6 text-indigo-400" />
-                        Orar SÄƒptÄƒmÃ¢nal: <span className="text-indigo-300">{grupa.denumire}</span>
+                        Orar Săptămânal: <span className="text-indigo-300">{grupa.denumire}</span>
                     </h2>
-                    <p className="text-slate-400 mt-1">DefineÈ™te È™ablonul recurent al antrenamentelor pentru aceastÄƒ grupÄƒ.</p>
+                    <p className="text-slate-400 mt-1">Definește șablonul recurent al antrenamentelor pentru această grupă.</p>
                 </div>
 
                 <div className="p-6 space-y-8">
@@ -78,7 +78,7 @@ export const OrarEditor: React.FC<{
                                     {zi}
                                 </h3>
                                 <Button variant="secondary" size="sm" onClick={() => handleAddItem(zi)} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <PlusIcon className="w-3 h-3 mr-1"/> AdaugÄƒ Interval
+                                    <PlusIcon className="w-3 h-3 mr-1"/> Adaugă Interval
                                 </Button>
                             </div>
                             
@@ -91,7 +91,7 @@ export const OrarEditor: React.FC<{
                                                 <Input label="" type="time" value={item.ora_start} onChange={e => handleItemChange(item.id, 'ora_start', e.target.value)} className="flex-grow" />
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider w-12">SfÃ¢rÈ™it</span>
+                                                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider w-12">Sfârșit</span>
                                                 <Input label="" type="time" value={item.ora_sfarsit} onChange={e => handleItemChange(item.id, 'ora_sfarsit', e.target.value)} className="flex-grow" />
                                             </div>
                                             <div className="flex justify-end">
@@ -107,7 +107,7 @@ export const OrarEditor: React.FC<{
                                         className="py-4 px-6 border-2 border-dashed border-slate-800 rounded-xl text-center text-slate-500 hover:border-slate-700 hover:text-slate-400 cursor-pointer transition-all"
                                     >
                                         <p className="text-sm italic">Niciun antrenament programat pentru {zi.toLowerCase()}.</p>
-                                        <p className="text-xs mt-1">ApasÄƒ pentru a adÄƒuga primul interval.</p>
+                                        <p className="text-xs mt-1">Apasă pentru a adăuga primul interval.</p>
                                     </div>
                                 )}
                             </div>

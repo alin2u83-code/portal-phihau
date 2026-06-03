@@ -15,7 +15,7 @@ import { useData } from '../../contexts/DataContext';
 
 // Helper functions
 /**
- * CalculeazÄƒ vÃ¢rsta unui sportiv la o anumitÄƒ datÄƒ.
+ * Calculează vârsta unui sportiv la o anumită dată.
  */
 const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
     if (!birthDateStr || !onDateStr) return 0;
@@ -30,7 +30,7 @@ const getAgeOnDate = (birthDateStr: string, onDateStr: string): number => {
 };
 
 /**
- * ReturneazÄƒ gradul imediat urmÄƒtor bazat pe coloana 'ordine' din tabelul grade.
+ * Returnează gradul imediat următor bazat pe coloana 'ordine' din tabelul grade.
  * Aceasta este logica standard de progresie.
  */
 const getDefaultNextGradeId = (sportiv: Sportiv, allGrades: Grad[]): string => {
@@ -42,31 +42,31 @@ const getDefaultNextGradeId = (sportiv: Sportiv, allGrades: Grad[]): string => {
 };
 
 /**
- * SugereazÄƒ un grad bazat pe vÃ¢rstÄƒ pentru sportivii noi sau pentru tranziÈ›ii specifice.
- * Include constrÃ¢ngeri de vÃ¢rstÄƒ: sub 12 ani nu pot accesa grade de tip "Dang".
+ * Sugerează un grad bazat pe vârstă pentru sportivii noi sau pentru tranziții specifice.
+ * Include constrângeri de vârstă: sub 12 ani nu pot accesa grade de tip "Dang".
  * 
- * NOTÄ‚ CAZURI EXCEPÈšIONALE:
- * Sportivii care vin din alte stiluri cu grade echivalate sunt gestionaÈ›i manual prin 
- * setarea gradului actual Ã®n profilul lor. Sistemul va sugera apoi gradul urmÄƒtor 
- * conform ordinii standard. DacÄƒ echivalarea nu se potriveÈ™te perfect, instructorul 
- * poate suprascrie manual gradul vizat Ã®n momentul Ã®nscrierii.
+ * NOTĂ CAZURI EXCEPȚIONALE:
+ * Sportivii care vin din alte stiluri cu grade echivalate sunt gestionați manual prin 
+ * setarea gradului actual în profilul lor. Sistemul va sugera apoi gradul următor 
+ * conform ordinii standard. Dacă echivalarea nu se potrivește perfect, instructorul 
+ * poate suprascrie manual gradul vizat în momentul înscrierii.
  */
 const getAgeBasedSuggestion = (sportiv: Sportiv, sesiuneData: string, grade: Grad[]): string | null => {
     const age = getAgeOnDate(sportiv.data_nasterii, sesiuneData);
     
-    // ConstrÃ¢ngere: Sub 12 ani nu pot susÈ›ine examene de Dang (CenturÄƒ NeagrÄƒ)
+    // Constrângere: Sub 12 ani nu pot susține examene de Dang (Centură Neagră)
     const isDangGrade = (g: Grad) => g.nume.toLowerCase().includes('dang');
     
     if (age < 12) {
-        // DacÄƒ sistemul ar sugera un Dang, Ã®l limitÄƒm la ultimul grad de copii/juniori disponibil
-        // (AceastÄƒ logicÄƒ va fi aplicatÄƒ È™i Ã®n RPC-ul de pe server, dar o dublÄƒm aici pentru UX)
+        // Dacă sistemul ar sugera un Dang, îl limităm la ultimul grad de copii/juniori disponibil
+        // (Această logică va fi aplicată și în RPC-ul de pe server, dar o dublăm aici pentru UX)
     }
 
     if (age >= 13) {
         const albastru = grade.find(g => g.nume.toLowerCase().includes('albastru') && !isDangGrade(g));
         return albastru ? albastru.id : null;
     } else if (age >= 7) {
-        const rosu = grade.find(g => g.nume.toLowerCase().includes('roÈ™u') || g.nume.toLowerCase().includes('rosu'));
+        const rosu = grade.find(g => g.nume.toLowerCase().includes('roșu') || g.nume.toLowerCase().includes('rosu'));
         return rosu ? rosu.id : null;
     }
     return null;
@@ -167,11 +167,11 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
     }, [availableSportivi, searchTerm]);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="ÃŽnscriere IndividualÄƒ la Examen">
+        <Modal isOpen={isOpen} onClose={onClose} title="Înscriere Individuală la Examen">
             <div className="space-y-4">
                 <div className="relative">
                     <Input
-                        label="CautÄƒ Sportiv"
+                        label="Caută Sportiv"
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
@@ -197,7 +197,7 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
                                     </button>
                                 ))
                             ) : (
-                                <div className="px-4 py-2 text-slate-500">Nu am gÄƒsit sportivi.</div>
+                                <div className="px-4 py-2 text-slate-500">Nu am găsit sportivi.</div>
                             )}
                         </div>
                     )}
@@ -206,14 +206,14 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
                 {selectedSportiv && (
                     <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-2">
                         <p className="text-sm text-slate-300">
-                            <span className="font-bold">VÃ¢rsta la examen:</span> {ageAtExam} ani
+                            <span className="font-bold">Vârsta la examen:</span> {ageAtExam} ani
                         </p>
                         <p className="text-sm text-slate-300">
-                            <span className="font-bold">Grad actual:</span> {grade.find(g => g.id === selectedSportiv.grad_actual_id)?.nume || 'ÃŽncepÄƒtor'}
+                            <span className="font-bold">Grad actual:</span> {grade.find(g => g.id === selectedSportiv.grad_actual_id)?.nume || 'Începător'}
                         </p>
                         {!hasVisa && (
                             <div className="mt-2 p-2 bg-red-900/30 border border-red-700/50 rounded text-red-400 text-xs font-bold flex items-center gap-2">
-                                <XCircleIcon className="w-4 h-4" /> LIPSÄ‚ VIZÄ‚ ANUALÄ‚ {new Date(sesiuneData).getFullYear()}
+                                <XCircleIcon className="w-4 h-4" /> LIPSĂ VIZĂ ANUALĂ {new Date(sesiuneData).getFullYear()}
                             </div>
                         )}
                     </div>
@@ -226,7 +226,7 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
                     required
                     disabled={suggesting}
                 >
-                    <option value="">{suggesting ? 'Se calculeazÄƒ sugestia...' : 'Alege grad...'}</option>
+                    <option value="">{suggesting ? 'Se calculează sugestia...' : 'Alege grad...'}</option>
                     {grade.sort((a,b) => a.ordine - b.ordine)
                         .filter(g => {
                             if (!selectedSportiv) return true;
@@ -240,9 +240,9 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
                 </Select>
 
                 <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
-                    <Button variant="secondary" onClick={onClose} disabled={loading}>AnuleazÄƒ</Button>
+                    <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
                     <Button variant="primary" onClick={handleSave} isLoading={loading} disabled={!selectedSportivId || !gradVizatId || !hasVisa}>
-                        ÃŽnscrie Sportiv
+                        Înscrie Sportiv
                     </Button>
                 </div>
             </div>
@@ -283,7 +283,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                 
                 // Check for valid visa
                 const hasVisa = vizeSportivi.some(v => v.sportiv_id === s.id && v.an === sesiuneYear && v.status_viza === 'Activ');
-                const isEligible = true; // RestricÈ›iile au fost eliminate conform cerinÈ›ei
+                const isEligible = true; // Restricțiile au fost eliminate conform cerinței
 
                 return {
                     ...s,
@@ -356,10 +356,10 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
         setLoading(false);
     };
 
-    // Selectare / deselectare toÈ›i sportivii filtraÈ›i (fÄƒrÄƒ vizÄƒ exclusÄƒ dacÄƒ isEligible)
+    // Selectare / deselectare toți sportivii filtrați (fără viză exclusă dacă isEligible)
     const handleSelectAll = (checked: boolean) => {
         if (!checked) {
-            // DeselectÄƒm pe toÈ›i cei filtraÈ›i
+            // Deselectăm pe toți cei filtrați
             const filteredIds = new Set(filteredSportivi.map(s => s.id));
             setSelections(prev => {
                 const next = new Map(prev);
@@ -368,7 +368,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
             });
             return;
         }
-        // SelectÄƒm toÈ›i eligibili din filtrare (fÄƒrÄƒ sÄƒ aÈ™teptÄƒm sugestiile â€” le setÄƒm din defaultNextGradeId)
+        // Selectăm toți eligibili din filtrare (fără să așteptăm sugestiile â€” le setăm din defaultNextGradeId)
         setSelections(prev => {
             const next = new Map(prev);
             filteredSportivi.forEach(s => {
@@ -384,14 +384,14 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
         filteredSportivi.filter(s => s.isEligible).every(s => selections.has(s.id));
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="AdaugÄƒ ParticipanÈ›i la Examen">
+        <Modal isOpen={isOpen} onClose={onClose} title="Adaugă Participanți la Examen">
             <div className="space-y-4">
-                {/* Bara de filtrare + selectare totalÄƒ */}
+                {/* Bara de filtrare + selectare totală */}
                 <div className="flex gap-2 items-center">
                     <div className="flex-grow">
                         <Input
                             label=""
-                            placeholder="CautÄƒ dupÄƒ nume sau prenume..."
+                            placeholder="Caută după nume sau prenume..."
                             value={filterTerm}
                             onChange={e => setFilterTerm(e.target.value)}
                         />
@@ -401,9 +401,9 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                             type="button"
                             onClick={() => handleSelectAll(!allFilteredEligibleSelected)}
                             className="flex-shrink-0 text-xs px-3 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-brand-secondary hover:text-brand-secondary transition-colors"
-                            title={allFilteredEligibleSelected ? 'DeselecteazÄƒ toÈ›i' : 'SelecteazÄƒ toÈ›i eligibilii'}
+                            title={allFilteredEligibleSelected ? 'Deselectează toți' : 'Selectează toți eligibilii'}
                         >
-                            {allFilteredEligibleSelected ? 'DeselecteazÄƒ toÈ›i' : 'SelecteazÄƒ toÈ›i'}
+                            {allFilteredEligibleSelected ? 'Deselectează toți' : 'Selectează toți'}
                         </button>
                     )}
                 </div>
@@ -413,7 +413,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                     <div className="flex items-center gap-2 px-3 py-2 bg-brand-secondary/10 border border-brand-secondary/30 rounded-lg">
                         <CheckCircleIcon className="w-4 h-4 text-brand-secondary flex-shrink-0" />
                         <span className="text-sm text-brand-secondary font-semibold">
-                            {selections.size} {selections.size === 1 ? 'sportiv selectat' : 'sportivi selectaÈ›i'}
+                            {selections.size} {selections.size === 1 ? 'sportiv selectat' : 'sportivi selectați'}
                         </span>
                         {Array.from(selections.values()).some(v => !v) && (
                             <span className="ml-auto text-xs text-amber-400 font-bold">
@@ -426,7 +426,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                 <div className="max-h-[420px] overflow-y-auto space-y-2 p-2 bg-slate-900/50 rounded-lg border border-slate-700">
                     {filteredSportivi.length === 0 && (
                         <p className="text-center text-slate-500 py-8 text-sm">
-                            {filterTerm ? 'Niciun sportiv gÄƒsit pentru filtrul aplicat.' : 'ToÈ›i sportivii activi sunt deja Ã®nscriÈ™i.'}
+                            {filterTerm ? 'Niciun sportiv găsit pentru filtrul aplicat.' : 'Toți sportivii activi sunt deja înscriși.'}
                         </p>
                     )}
                    {(filteredSportivi || []).map(s => {
@@ -461,18 +461,18 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                                            </p>
                                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
                                                <span className="text-xs text-slate-400">
-                                                   Grad actual: <span className="text-slate-300">{grade.find(g => g.id === s.grad_actual_id)?.nume || 'ÃŽncepÄƒtor'}</span>
+                                                   Grad actual: <span className="text-slate-300">{grade.find(g => g.id === s.grad_actual_id)?.nume || 'Începător'}</span>
                                                </span>
                                                <span className="text-xs text-brand-secondary/80">
                                                    {getAgeOnDate(s.data_nasterii, sesiuneData)} ani
                                                </span>
                                                {!hasVisa && (
                                                    <span className="text-xs text-red-400 font-bold uppercase">
-                                                       FÄƒrÄƒ vizÄƒ {sesiuneYear}
+                                                       Fără viză {sesiuneYear}
                                                    </span>
                                                )}
                                            </div>
-                                           {/* AfiÈ™are grad selectat pe mobil */}
+                                           {/* Afișare grad selectat pe mobil */}
                                            {isSelected && gradSelectatNume && (
                                                <p className="sm:hidden text-xs text-brand-secondary font-semibold mt-1">
                                                    Grad vizat: {gradSelectatNume}
@@ -480,7 +480,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                                            )}
                                        </div>
                                    </div>
-                                   {/* Select grad â€” vizibil mereu dar disabled dacÄƒ nu e selectat */}
+                                   {/* Select grad â€” vizibil mereu dar disabled dacă nu e selectat */}
                                    <div className="w-full sm:w-52 pl-8 sm:pl-0 flex-shrink-0">
                                        <Select
                                            label=""
@@ -490,7 +490,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                                            className={`!py-1.5 text-sm w-full ${isSelected && !gradSelectat ? 'border-amber-500/60' : ''}`}
                                        >
                                            <option value="">
-                                               {fetchingSuggestions && isSelected ? 'Se calculeazÄƒ...' : 'Alege grad...'}
+                                               {fetchingSuggestions && isSelected ? 'Se calculează...' : 'Alege grad...'}
                                            </option>
                                            {(grade || [])
                                                 .sort((a, b) => a.ordine - b.ordine)
@@ -509,7 +509,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                 </div>
                 <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center pt-4 gap-3 border-t border-slate-700">
                     <Button variant="secondary" onClick={onClose} disabled={loading} className="sm:w-auto">
-                        AnuleazÄƒ
+                        Anulează
                     </Button>
                     <Button
                         variant="primary"
@@ -518,9 +518,9 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                         disabled={selections.size === 0 || fetchingSuggestions || Array.from(selections.values()).some(v => !v)}
                         className="sm:w-auto"
                     >
-                        {loading ? 'Se Ã®nscriu...' : selections.size > 0
-                            ? `ÃŽnscrie ${selections.size} ${selections.size === 1 ? 'Sportiv' : 'Sportivi'}`
-                            : 'SelecteazÄƒ sportivi'}
+                        {loading ? 'Se înscriu...' : selections.size > 0
+                            ? `Înscrie ${selections.size} ${selections.size === 1 ? 'Sportiv' : 'Sportivi'}`
+                            : 'Selectează sportivi'}
                     </Button>
                 </div>
             </div>
@@ -640,13 +640,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 }
 
                 // --- MODIFICARE AICI: Tie-breaker alfabetic ---
-                // DacÄƒ execuÈ›ia ajunge aici, Ã®nseamnÄƒ cÄƒ criteriile de sortare de mai sus sunt egale
+                // Dacă execuția ajunge aici, înseamnă că criteriile de sortare de mai sus sunt egale
                 const numeA = (a.sportiv_nume || a.sportivi?.nume || '').toLowerCase();
                 const numeB = (b.sportiv_nume || b.sportivi?.nume || '').toLowerCase();
                 return numeA.localeCompare(numeB);
             });
         } else {
-            // Sortarea implicitÄƒ (deja include tie-breaker)
+            // Sortarea implicită (deja include tie-breaker)
             data.sort((a, b) => {
                 const gradeA = getGradOrdine(a);
                 const gradeB = getGradOrdine(b);
@@ -748,7 +748,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         let newInscrieri: InscriereExamen[] = [];
         let errorCount = 0;
 
-        // Set local pentru a preveni duplicate Ã®n cadrul aceluiaÈ™i batch
+        // Set local pentru a preveni duplicate în cadrul aceluiași batch
         const addedInBatch = new Set<string>();
         let skipCount = 0;
         for (const selection of selections) {
@@ -769,14 +769,14 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 continue;
             }
 
-            // Verificare: sportivul nu Ã®ncearcÄƒ sÄƒ susÈ›inÄƒ un grad pe care Ã®l are deja Ã®n istoric
+            // Verificare: sportivul nu încearcă să susțină un grad pe care îl are deja în istoric
             const areGradulDeja = (istoricGrade || []).some(
                 ig => ig.sportiv_id === sportiv_id && ig.grad_id === grad_sustinut_id
             );
             if (areGradulDeja) {
                 showError(
-                    `Grad deja obÈ›inut â€” ${sportiv.nume} ${sportiv.prenume}`,
-                    `Sportivul are deja gradul "${grad.nume}" Ã®n istoric. ÃŽnscrierea a fost ignoratÄƒ.`
+                    `Grad deja obținut â€” ${sportiv.nume} ${sportiv.prenume}`,
+                    `Sportivul are deja gradul "${grad.nume}" în istoric. Înscrierea a fost ignorată.`
                 );
                 skipCount++;
                 continue;
@@ -786,7 +786,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 let plataId: string | null = null;
                 
                 // 1. Get registration details (fee and suggested grade) from RPC
-                // Fallback graceful: dacÄƒ RPC nu existÄƒ sau returneazÄƒ eroare, continuÄƒm fÄƒrÄƒ taxÄƒ
+                // Fallback graceful: dacă RPC nu există sau returnează eroare, continuăm fără taxă
                 let taxaSuma = 0;
                 let gradSugeratNume = grad.nume;
                 try {
@@ -798,8 +798,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         gradSugeratNume = regDetails[0].grad_sugerat_nume || grad.nume;
                     }
                 } catch {
-                    // RPC indisponibil â€” continuÄƒm fÄƒrÄƒ taxÄƒ automatÄƒ
-                    console.warn(`[ManagementInscrieri] get_registration_details indisponibil pentru ${sportiv.id}, continuÄƒm fÄƒrÄƒ taxÄƒ.`);
+                    // RPC indisponibil â€” continuăm fără taxă automată
+                    console.warn(`[ManagementInscrieri] get_registration_details indisponibil pentru ${sportiv.id}, continuăm fără taxă.`);
                 }
 
                 // 2. Generate automatic invoice (upsert cu sesiune_id pentru unicitate)
@@ -813,7 +813,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         status: 'Neachitat' as const,
                         descriere: `Taxa examen ${gradSugeratNume}`,
                         tip: 'Taxa Examen' as const,
-                        observatii: `Generat automat la Ã®nscriere examen (VÃ¢rstÄƒ: ${getAgeOnDate(sportiv.data_nasterii, sesiune.data)} ani).`,
+                        observatii: `Generat automat la înscriere examen (Vârstă: ${getAgeOnDate(sportiv.data_nasterii, sesiune.data)} ani).`,
                         club_id: sportiv.club_id
                     };
                     const { data: pData, error: pError } = await supabase
@@ -821,8 +821,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         .insert(plataData)
                         .select()
                         .maybeSingle();
-                    if (pError) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generatÄƒ: ${pError.message}`);
-                    if (!pData) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generatÄƒ (nicio datÄƒ returnatÄƒ).`);
+                    if (pError) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generată: ${pError.message}`);
+                    if (!pData) throw new Error(`Factura pt ${sportiv.nume} nu a putut fi generată (nicio dată returnată).`);
                     plataId = pData.id;
                     newPlati.push(pData as Plata);
                 }
@@ -833,25 +833,25 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     sesiune_id: sesiune.id, 
                     plata_id: plataId,
                     grad_actual_id: sportiv.grad_actual_id || null, 
-                    grad_sustinut_id: grad_sustinut_id, // PopulÄƒm automat cu gradul vizat
-                    club_id: sportiv.club_id, // AdÄƒugat club_id conform cerinÈ›elor
+                    grad_sustinut_id: grad_sustinut_id, // Populăm automat cu gradul vizat
+                    club_id: sportiv.club_id, // Adăugat club_id conform cerințelor
                     varsta_la_examen: varstaLaExamen, 
                     rezultat: 'Neprezentat' as const
                 };
                 
                 const { data: iData, error: iError } = await supabase.from('inscrieri_examene').insert(inscriereData).select().maybeSingle();
                 if (iError) throw iError;
-                if (!iData) throw new Error("ÃŽnscrierea nu a returnat date.");
+                if (!iData) throw new Error("Înscrierea nu a returnat date.");
 
                 const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('inscriere_id', iData.id).maybeSingle();
                 if (viewError) throw viewError;
-                if (!viewData) throw new Error("Nu s-au putut prelua detaliile Ã®nscrierii din vedere.");
+                if (!viewData) throw new Error("Nu s-au putut prelua detaliile înscrierii din vedere.");
 
                 newInscrieri.push(viewData as InscriereExamen);
                 addedInBatch.add(sportiv_id);
             } catch (err: any) {
                 errorCount++;
-                showError(`Eroare la Ã®nscrierea lui ${sportiv.nume} ${sportiv.prenume}`, err.message);
+                showError(`Eroare la înscrierea lui ${sportiv.nume} ${sportiv.prenume}`, err.message);
                 // Rollback payment if enrollment fails
                 if (newPlati.length > 0) {
                     const lastPlata = newPlati[newPlati.length - 1];
@@ -873,8 +873,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             if (!sportiv?.user_id) return null;
             return {
                 recipient_user_id: sportiv.user_id,
-                title: 'ÃŽnscriere Examen NouÄƒ',
-                body: `Ai fost Ã®nscris la examenul din data de ${new Date(sesiune.data).toLocaleDateString('ro-RO')} pentru gradul ${grad?.nume || 'necunoscut'}.`,
+                title: 'Înscriere Examen Nouă',
+                body: `Ai fost înscris la examenul din data de ${new Date(sesiune.data).toLocaleDateString('ro-RO')} pentru gradul ${grad?.nume || 'necunoscut'}.`,
                 type: 'examen'
             };
         }).filter((n): n is NonNullable<typeof n> => n !== null);
@@ -885,13 +885,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
         const successCount = selections.length - errorCount - skipCount;
         if (successCount > 0) {
-            showSuccess("ÃŽnscriere finalizatÄƒ", `${successCount} sportivi au fost Ã®nscriÈ™i cu succes.`);
+            showSuccess("Înscriere finalizată", `${successCount} sportivi au fost înscriși cu succes.`);
         }
         if (skipCount > 0) {
-            showError("Deja Ã®nscriÈ™i", `${skipCount} sportivi erau deja Ã®nscriÈ™i la aceastÄƒ sesiune È™i au fost ignoraÈ›i.`);
+            showError("Deja înscriși", `${skipCount} sportivi erau deja înscriși la această sesiune și au fost ignorați.`);
         }
         if (errorCount > 0) {
-            showError("ÃŽnscrieri eÈ™uate", `${errorCount} sportivi nu au putut fi Ã®nscriÈ™i.`);
+            showError("Înscrieri eșuate", `${errorCount} sportivi nu au putut fi înscriși.`);
         }
     
         setIsSaving(false);
@@ -908,7 +908,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             const gradChanged = gradSustinutId !== inscriereToEdit.grad_sustinut_id;
 
             if (!gradChanged && !notesChanged && !resultChanged) { 
-                showSuccess("Info", "Nicio modificare detectatÄƒ."); 
+                showSuccess("Info", "Nicio modificare detectată."); 
                 handleCloseEditModal(); 
                 return; 
             }
@@ -916,7 +916,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             const plataAsociata = (plati || []).find(p => p.id === inscriereToEdit.plata_id);
 
             if (gradChanged && plataAsociata && plataAsociata.status !== 'Neachitat') {
-                throw new Error("Nu se poate modifica gradul deoarece factura asociatÄƒ a fost deja achitatÄƒ. RetrageÈ›i Ã®nscrierea È™i adÄƒugaÈ›i-o din nou.");
+                throw new Error("Nu se poate modifica gradul deoarece factura asociată a fost deja achitată. Retrageți înscrierea și adăugați-o din nou.");
             }
             
             let newPlataId: string | null = inscriereToEdit.plata_id;
@@ -932,16 +932,16 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     if (plataAsociata) {
                         const { data: pData, error: pError } = await supabase.from('plati').update({ suma: taxaConfig.suma, descriere: descriereFactura }).eq('id', plataAsociata.id).select().maybeSingle();
                         if (pError) throw pError;
-                        if (!pData) throw new Error("Factura nu a putut fi actualizatÄƒ.");
+                        if (!pData) throw new Error("Factura nu a putut fi actualizată.");
                         plataResult = { action: 'update', data: pData as Plata };
-                        facturaMessage = ' È™i factura a fost actualizatÄƒ';
+                        facturaMessage = ' și factura a fost actualizată';
                     } else {
                         const sportiv = sportivi.find(s => s.id === inscriereToEdit.sportiv_id);
                         const plataData: Omit<Plata, 'id'> = {
                             sportiv_id: inscriereToEdit.sportiv_id, familie_id: sportiv?.familie_id || null,
                             sesiune_id: sesiune.id,
                             suma: taxaConfig.suma, data: sesiune.data, status: 'Neachitat',
-                            descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare Ã®nscriere.',
+                            descriere: descriereFactura, tip: 'Taxa Examen', observatii: 'Generat automat la modificare înscriere.',
                             club_id: sportiv?.club_id || null
                         };
                         const { data: pData, error: pError } = await supabase
@@ -950,15 +950,15 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                             .select()
                             .maybeSingle();
                         if (pError) throw pError;
-                        if (!pData) throw new Error("Factura nouÄƒ nu a putut fi generatÄƒ.");
+                        if (!pData) throw new Error("Factura nouă nu a putut fi generată.");
                         plataResult = { action: 'add', data: pData as Plata };
                         newPlataId = pData.id;
-                        facturaMessage = ' È™i o facturÄƒ nouÄƒ a fost generatÄƒ';
+                        facturaMessage = ' și o factură nouă a fost generată';
                     }
                 } else {
                     if (plataAsociata) {
-                        // DezleagÄƒ mai Ã®ntÃ¢i FK-ul din inscrieri_examene Ã®nainte de a È™terge plata,
-                        // altfel Postgres refuzÄƒ cu FK violation (inscrieri_examene_plata_id_fkey)
+                        // Dezleagă mai întâi FK-ul din inscrieri_examene înainte de a șterge plata,
+                        // altfel Postgres refuză cu FK violation (inscrieri_examene_plata_id_fkey)
                         const { error: nullifyError } = await supabase
                             .from('inscrieri_examene')
                             .update({ plata_id: null })
@@ -968,9 +968,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         if (pError) throw pError;
                         plataResult = { action: 'delete', data: plataAsociata };
                         newPlataId = null;
-                        facturaMessage = ' È™i factura asociatÄƒ a fost È™tearsÄƒ (noul grad nu are taxÄƒ)';
+                        facturaMessage = ' și factura asociată a fost ștearsă (noul grad nu are taxă)';
                     } else {
-                        facturaMessage = ', iar noul grad selectat nu are o taxÄƒ configuratÄƒ';
+                        facturaMessage = ', iar noul grad selectat nu are o taxă configurată';
                     }
                 }
             }
@@ -984,7 +984,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
             const { data: updatedInscriere, error: updateError } = await supabase.from('inscrieri_examene').update(updatePayload).eq('id', inscriereToEdit.inscriere_id || inscriereToEdit.id).select().maybeSingle();
             if (updateError) throw updateError;
-            if (!updatedInscriere) throw new Error("ÃŽnscrierea nu a putut fi actualizatÄƒ.");
+            if (!updatedInscriere) throw new Error("Înscrierea nu a putut fi actualizată.");
             
             const { data: viewData, error: viewError } = await supabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('inscriere_id', updatedInscriere.id).maybeSingle();
             if (viewError) throw viewError;
@@ -999,7 +999,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 else if (plataResult.action === 'add') setPlati(prev => [...prev, plataResult!.data]);
                 else setPlati(prev => prev.map(p => p.id === plataResult!.data.id ? plataResult!.data : p));
             }
-            showSuccess("Succes", `ÃŽnscrierea a fost modificatÄƒ${facturaMessage}.`);
+            showSuccess("Succes", `Înscrierea a fost modificată${facturaMessage}.`);
             handleCloseEditModal();
         } catch (err: any) {
             showError("Eroare la Modificare", err.message);
@@ -1012,7 +1012,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         const nume = inscriere.sportiv_nume || inscriere.sportivi?.nume || '';
         const prenume = inscriere.sportiv_prenume || inscriere.sportivi?.prenume || '';
         const fullName = `${nume} ${prenume}`.trim() || 'Necunoscut';
-        setDeleteMessage(`SunteÈ›i sigur cÄƒ doriÈ›i sÄƒ retrageÈ›i Ã®nscrierea sportivului ${fullName}? Factura asociatÄƒ (dacÄƒ existÄƒ È™i este neachitatÄƒ) va fi de asemenea È™tearsÄƒ.`);
+        setDeleteMessage(`Sunteți sigur că doriți să retrageți înscrierea sportivului ${fullName}? Factura asociată (dacă există și este neachitată) va fi de asemenea ștearsă.`);
         setInscriereToDelete(inscriere);
     };
 
@@ -1026,23 +1026,23 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             });
 
             if (error) {
-                // AruncÄƒm eroarea pentru a fi prinsÄƒ È™i gestionatÄƒ centralizat Ã®n blocul catch.
+                // Aruncăm eroarea pentru a fi prinsă și gestionată centralizat în blocul catch.
                 throw error;
             }
 
-            // Calea de succes: actualizÄƒm starea localÄƒ pentru feedback vizual instantaneu.
+            // Calea de succes: actualizăm starea locală pentru feedback vizual instantaneu.
             setInscrieri(prev => prev.filter(i => i.id !== inscriereToDelete.id));
             if (data?.deleted_plata_id) {
                 setPlati(prev => prev.filter(p => p.id !== data.deleted_plata_id));
             }
-            showSuccess("Succes", data?.message || "ÃŽnscrierea a fost retrasÄƒ cu succes.");
+            showSuccess("Succes", data?.message || "Înscrierea a fost retrasă cu succes.");
 
         } catch (err: any) {
-            // Gestionare centralizatÄƒ a erorilor (RPC, reÈ›ea, etc.)
-            const errorMessage = err?.message || 'A apÄƒrut o eroare necunoscutÄƒ.';
+            // Gestionare centralizată a erorilor (RPC, rețea, etc.)
+            const errorMessage = err?.message || 'A apărut o eroare necunoscută.';
             
             if (errorMessage.includes('function public.delete_exam_registration') || errorMessage.includes('Could not find the function')) {
-                showError("Eroare de Configurare BazÄƒ de Date", "FuncÈ›ia necesarÄƒ ('delete_exam_registration') nu a fost gÄƒsitÄƒ. RulaÈ›i scriptul SQL sau contactaÈ›i administratorul.");
+                showError("Eroare de Configurare Bază de Date", "Funcția necesară ('delete_exam_registration') nu a fost găsită. Rulați scriptul SQL sau contactați administratorul.");
             } else {
                 showError("Eroare la Retragere", errorMessage);
             }
@@ -1058,7 +1058,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             const { error } = await supabase.from('inscrieri_examene').update({ status_inscriere: status }).eq('id', inscriereId);
             if (error) throw error;
             setInscrieri(prev => prev.map(i => i.id === inscriereId ? { ...i, status_inscriere: status } : i));
-            showSuccess("Succes", `Statusul Ã®nscrierii a fost actualizat la ${status}.`);
+            showSuccess("Succes", `Statusul înscrierii a fost actualizat la ${status}.`);
         } catch (err: any) {
             showError("Eroare la Actualizare Status", err.message);
         }
@@ -1096,7 +1096,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
                     )
                 );
-                // ActualizeazÄƒ grad_actual_id Ã®n DB doar dacÄƒ noul grad e superior celui curent
+                // Actualizează grad_actual_id în DB doar dacă noul grad e superior celui curent
                 const newGrade = grade.find(g => g.id === newGradId);
                 const currentGrade = grade.find(g => g.id === inscriere.grad_actual_id);
                 if ((newGrade?.ordine ?? 0) > (currentGrade?.ordine ?? -1)) {
@@ -1131,7 +1131,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 });
             }
             
-            showSuccess("Rezultat Salvat", "Modificarea a fost salvatÄƒ automat.");
+            showSuccess("Rezultat Salvat", "Modificarea a fost salvată automat.");
         } catch (err: any) {
             // Revert optimistic update
             setRezultateLocale(prev => ({ ...prev, [inscriereId]: oldResult }));
@@ -1142,7 +1142,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const handleAdmitAll = () => {
         const neadmisi = participantiInscrisi.filter(i => (rezultateLocale[i.id] || i.rezultat) !== 'Admis');
         if (neadmisi.length === 0) {
-            showSuccess("Info", "ToÈ›i participanÈ›ii sunt deja marcaÈ›i ca AdmiÈ™i.");
+            showSuccess("Info", "Toți participanții sunt deja marcați ca Admiși.");
             return;
         }
         setShowAdmitAllConfirm(true);
@@ -1178,7 +1178,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
                     )
                 );
-                // ActualizeazÄƒ grad_actual_id Ã®n DB dacÄƒ noul grad e superior celui curent
+                // Actualizează grad_actual_id în DB dacă noul grad e superior celui curent
                 const newGrade = grade.find(g => g.id === inscriere.grad_sustinut_id);
                 const currentGrade = grade.find(g => g.id === inscriere.grad_actual_id);
                 if ((newGrade?.ordine ?? 0) > (currentGrade?.ordine ?? -1)) {
@@ -1197,7 +1197,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             const anyError = results.find(r => r.error);
             if (anyError) throw anyError.error;
 
-            // Re-fetch din view pentru a garanta cÄƒ cÃ¢mpurile joined (sportiv_nume, grad_sustinut) rÄƒmÃ¢n intacte
+            // Re-fetch din view pentru a garanta că câmpurile joined (sportiv_nume, grad_sustinut) rămân intacte
             const { data: freshInscrieri } = await supabase
                 .from('vedere_detalii_examen')
                 .select('*, id:inscriere_id')
@@ -1218,7 +1218,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 const map = new Map(sportiviUpdates.map(u => [u.id, u.grad_actual_id]));
                 return prev.map(s => map.has(s.id) ? { ...s, grad_actual_id: map.get(s.id)! } : s);
             });
-            showSuccess("Admis ToÈ›i", `${neadmisi.length} participanÈ›i marcaÈ›i ca AdmiÈ™i.`);
+            showSuccess("Admis Toți", `${neadmisi.length} participanți marcați ca Admiși.`);
         } catch (err: any) {
             startTransition(() => {
                 setRezultateLocale(prev => {
@@ -1249,7 +1249,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const handleForceSync = async () => {
         if (!supabase) return;
         if (!sesiune.id || !sesiune.data) {
-            showError("Eroare Validare", "Sesiunea curentÄƒ nu are un ID sau o datÄƒ validÄƒ setatÄƒ.");
+            showError("Eroare Validare", "Sesiunea curentă nu are un ID sau o dată validă setată.");
             return;
         }
 
@@ -1265,7 +1265,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
                 )
             );
-            // ActualizeazÄƒ grad_actual_id Ã®n DB (sincronizare forÈ›atÄƒ)
+            // Actualizează grad_actual_id în DB (sincronizare forțată)
             const newGrade = grade.find(g => g.id === newGradId);
             const currentGrade = grade.find(g => g.id === inscriere.grad_actual_id);
             if ((newGrade?.ordine ?? 0) > (currentGrade?.ordine ?? -1)) {
@@ -1291,7 +1291,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     return sportiv;
                 });
             });
-            showSuccess("Sincronizare ReuÈ™itÄƒ", `${desyncedInscrieri.length} sportivi au fost sincronizaÈ›i.`);
+            showSuccess("Sincronizare Reușită", `${desyncedInscrieri.length} sportivi au fost sincronizați.`);
         } catch (err: any) {
             showError("Eroare Sincronizare", err.message);
         } finally {
@@ -1323,7 +1323,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             label: 'Grad Actual',
             render: (inscriere) => {
                 const gradAnterior = grade.find(g => g.id === inscriere.grad_actual_id);
-                return <span className="text-slate-400 text-sm">{inscriere.nume_grad_actual || gradAnterior?.nume || 'FÄƒrÄƒ grad'}</span>;
+                return <span className="text-slate-400 text-sm">{inscriere.nume_grad_actual || gradAnterior?.nume || 'Fără grad'}</span>;
             }
         },
         {
@@ -1333,7 +1333,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         },
         {
             key: 'status_plata',
-            label: 'Status PlatÄƒ',
+            label: 'Status Plată',
             headerClassName: 'text-center',
             cellClassName: 'text-center',
             render: (inscriere) => (
@@ -1363,7 +1363,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         className={`!py-1 ${statusColorClass}`}
                         disabled={isReadOnly}
                     >
-                        <option value="Neprezentat">ÃŽn aÈ™teptare</option>
+                        <option value="Neprezentat">În așteptare</option>
                         <option value="Admis">Admis</option>
                         <option value="Respins">Respins</option>
                     </Select>
@@ -1372,19 +1372,19 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         },
         {
             key: 'actions',
-            label: 'AcÈ›iuni',
+            label: 'Acțiuni',
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (inscriere) => !isReadOnly && (
                 <div className="flex items-center justify-end gap-2">
-                    <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} title="ModificÄƒ gradul vizat">
+                    <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} title="Modifică gradul vizat">
                         <EditIcon className="w-4 h-4" />
                     </Button>
                     <Button 
                         size="sm" 
                         variant='danger' 
                         onClick={() => handleInitiateDelete(inscriere)} 
-                        title="Retrage Ã®nscriere"
+                        title="Retrage înscriere"
                         isLoading={false}
                     >
                         <TrashIcon className="w-4 h-4" />
@@ -1426,7 +1426,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         {/* Grade: actual â†’ vizat */}
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className="text-xs text-slate-400">
-                                {gradActualNume || inscriere.nume_grad_actual || 'FÄƒrÄƒ grad'}
+                                {gradActualNume || inscriere.nume_grad_actual || 'Fără grad'}
                             </span>
                             <span className="text-slate-600 text-xs">â†’</span>
                             <span className="text-xs font-bold text-brand-secondary">
@@ -1454,7 +1454,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                             className={`!py-2 w-full text-sm ${statusColorClass}`}
                             disabled={isReadOnly}
                         >
-                            <option value="Neprezentat">In aÈ™teptare</option>
+                            <option value="Neprezentat">In așteptare</option>
                             <option value="Admis">Admis</option>
                             <option value="Respins">Respins</option>
                         </Select>
@@ -1463,7 +1463,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     {!isReadOnly && (
                         <div className="flex gap-2 pt-2 border-t border-slate-700/60">
                             <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} className="flex-1 justify-center">
-                                <EditIcon className="w-3.5 h-3.5 mr-1.5" /> EditeazÄƒ
+                                <EditIcon className="w-3.5 h-3.5 mr-1.5" /> Editează
                             </Button>
                             <Button size="sm" variant="danger" onClick={() => handleInitiateDelete(inscriere)} className="flex-1 justify-center">
                                 <TrashIcon className="w-3.5 h-3.5 mr-1.5" /> Retrage
@@ -1482,40 +1482,40 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
     return (
         <div className="space-y-5">
-            {/* â”€â”€ Card ÃŽnscriere â”€â”€ */}
+            {/* â”€â”€ Card Înscriere â”€â”€ */}
             {!isReadOnly && (
                 <Card>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                         <div>
-                            <h3 className="text-base font-bold text-white">ÃŽnscriere ParticipanÈ›i</h3>
-                            <p className="text-xs text-slate-400 mt-0.5">AdaugÄƒ sportivi individual sau selecteazÄƒ mai mulÈ›i odatÄƒ</p>
+                            <h3 className="text-base font-bold text-white">Înscriere Participanți</h3>
+                            <p className="text-xs text-slate-400 mt-0.5">Adaugă sportivi individual sau selectează mai mulți odată</p>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Button onClick={() => setIsSingleAddModalOpen(true)} variant="primary" className="w-full justify-center">
-                            <PlusIcon className="w-4 h-4 mr-2" /> AdaugÄƒ Individual
+                            <PlusIcon className="w-4 h-4 mr-2" /> Adaugă Individual
                         </Button>
                         <Button onClick={() => setIsBulkAddModalOpen(true)} variant="info" className="w-full justify-center">
-                            <PlusIcon className="w-4 h-4 mr-2" /> AdaugÄƒ Multipli
+                            <PlusIcon className="w-4 h-4 mr-2" /> Adaugă Multipli
                         </Button>
                     </div>
                 </Card>
             )}
 
-            {/* â”€â”€ Statistici rezultate (afiÈ™ate doar dacÄƒ existÄƒ participanÈ›i) â”€â”€ */}
+            {/* â”€â”€ Statistici rezultate (afișate doar dacă există participanți) â”€â”€ */}
             {participantiInscrisi.length > 0 && (
                 <div className="grid grid-cols-3 gap-3">
                     <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-xl p-3 text-center">
                         <p className="text-2xl font-bold text-emerald-400">{statsAdmis}</p>
-                        <p className="text-xs text-emerald-300 mt-0.5 uppercase tracking-wide">AdmiÈ™i</p>
+                        <p className="text-xs text-emerald-300 mt-0.5 uppercase tracking-wide">Admiși</p>
                     </div>
                     <div className="bg-amber-900/20 border border-amber-700/30 rounded-xl p-3 text-center">
                         <p className="text-2xl font-bold text-amber-400">{statsAsteptare}</p>
-                        <p className="text-xs text-amber-300 mt-0.5 uppercase tracking-wide">ÃŽn aÈ™teptare</p>
+                        <p className="text-xs text-amber-300 mt-0.5 uppercase tracking-wide">În așteptare</p>
                     </div>
                     <div className="bg-red-900/20 border border-red-700/30 rounded-xl p-3 text-center">
                         <p className="text-2xl font-bold text-red-400">{statsRespins}</p>
-                        <p className="text-xs text-red-300 mt-0.5 uppercase tracking-wide">RespinÈ™i</p>
+                        <p className="text-xs text-red-300 mt-0.5 uppercase tracking-wide">Respinși</p>
                     </div>
                 </div>
             )}
@@ -1523,7 +1523,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             <Card>
                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                     <h3 className="text-base font-bold text-white">
-                        ParticipanÈ›i ÃŽnscriÈ™i
+                        Participanți Înscriși
                         <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 text-xs font-normal">
                             {participantiInscrisi.length}
                         </span>
@@ -1536,9 +1536,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                     onClick={handleAdmitAll}
                                     disabled={isSavingResults}
                                     size="sm"
-                                    title="MarcheazÄƒ toÈ›i participanÈ›ii ca AdmiÈ™i"
+                                    title="Marchează toți participanții ca Admiși"
                                 >
-                                    Admite ToÈ›i
+                                    Admite Toți
                                 </Button>
                             )}
                             {desyncedInscrieri.length > 0 && (
@@ -1611,7 +1611,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                     className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-brand-primary focus:ring-brand-primary"
                                 />
                                 <label htmlFor="override" className="text-sm text-slate-300 cursor-pointer">
-                                    Override Manual (IgnorÄƒ validarea automatÄƒ)
+                                    Override Manual (Ignoră validarea automată)
                                 </label>
                             </div>
 
@@ -1624,7 +1624,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                     disabled={!overrideManual}
                                     className={`!py-1.5 min-w-[120px] ${rezultatEdit === 'Admis' ? 'text-green-400' : rezultatEdit === 'Respins' ? 'text-red-400' : ''}`}
                                 >
-                                    <option value="Neprezentat">ÃŽn aÈ™teptare</option>
+                                    <option value="Neprezentat">În așteptare</option>
                                     <option value="Admis">Admis</option>
                                     <option value="Respins">Respins</option>
                                 </Select>
@@ -1632,8 +1632,8 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         </div>
 
                         <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
-                            <Button variant="secondary" onClick={handleCloseEditModal} disabled={isSaving}>AnuleazÄƒ</Button>
-                            <Button variant="primary" onClick={handleSaveInscriereEdit} isLoading={isSaving} disabled={!gradSustinutId}>SalveazÄƒ ModificÄƒri</Button>
+                            <Button variant="secondary" onClick={handleCloseEditModal} disabled={isSaving}>Anulează</Button>
+                            <Button variant="primary" onClick={handleSaveInscriereEdit} isLoading={isSaving} disabled={!gradSustinutId}>Salvează Modificări</Button>
                         </div>
                     </div>
                 </Modal>
@@ -1643,7 +1643,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 isOpen={!!inscriereToDelete}
                 onClose={() => setInscriereToDelete(null)}
                 onConfirm={handleWithdraw}
-                tableName="Ã®nscriere"
+                tableName="înscriere"
                 isLoading={isDeleting}
                 title="Confirmare Retragere"
                 customMessage={deleteMessage}
@@ -1674,14 +1674,14 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             <Modal isOpen={showAdmitAllConfirm} onClose={() => setShowAdmitAllConfirm(false)} title="Confirmare Admitere">
                 <div className="space-y-5">
                     <p className="text-slate-300">
-                        EÈ™ti sigur cÄƒ vrei sÄƒ marchezi toÈ›i participanÈ›ii neadmiÈ™i ca <span className="text-emerald-400 font-semibold">ADMIÈ˜I</span>?
+                        Ești sigur că vrei să marchezi toți participanții neadmiși ca <span className="text-emerald-400 font-semibold">ADMIȘI</span>?
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 pt-2">
                         <Button variant="secondary" onClick={() => setShowAdmitAllConfirm(false)} className="flex-1">
-                            AnuleazÄƒ
+                            Anulează
                         </Button>
                         <Button variant="success" onClick={handleAdmitAllConfirmed} className="flex-1">
-                            Da, admite toÈ›i
+                            Da, admite toți
                         </Button>
                     </div>
                 </div>

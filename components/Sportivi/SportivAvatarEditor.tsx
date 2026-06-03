@@ -87,7 +87,7 @@ export const SportivAvatarEditor: React.FC<SportivAvatarEditorProps> = ({ sporti
             const fileName = `${sportiv.id}-${Date.now()}.${fileExt}`;
             const filePath = `${fileName}`;
 
-            // 1. Upload Ã®n Storage
+            // 1. Upload în Storage
             const { error: uploadError } = await supabase.storage
                 .from('avatars')
                 .upload(filePath, croppedImageBlob, { 
@@ -97,12 +97,12 @@ export const SportivAvatarEditor: React.FC<SportivAvatarEditorProps> = ({ sporti
 
             if (uploadError) throw uploadError;
 
-            // 2. ObÈ›ine URL-ul public
+            // 2. Obține URL-ul public
             const { data: { publicUrl } } = supabase.storage
                 .from('avatars')
                 .getPublicUrl(filePath);
 
-            // 3. Update Ã®n tabela sportivi
+            // 3. Update în tabela sportivi
             const { error: updateError } = await supabase
                 .from('sportivi')
                 .update({ foto_url: publicUrl })
@@ -111,12 +111,12 @@ export const SportivAvatarEditor: React.FC<SportivAvatarEditorProps> = ({ sporti
             if (updateError) throw updateError;
 
             onUploadSuccess(publicUrl);
-            showSuccess('Succes', 'Fotografia de profil a fost actualizatÄƒ.');
+            showSuccess('Succes', 'Fotografia de profil a fost actualizată.');
             setIsModalOpen(false);
             setImage(null);
         } catch (error: any) {
             console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
-            showError('Eroare la Ã®ncÄƒrcare', error.message);
+            showError('Eroare la încărcare', error.message);
         } finally {
             setUploading(false);
         }
@@ -160,7 +160,7 @@ export const SportivAvatarEditor: React.FC<SportivAvatarEditorProps> = ({ sporti
             <Modal 
                 isOpen={isModalOpen} 
                 onClose={() => !uploading && setIsModalOpen(false)} 
-                title="DecupeazÄƒ Fotografia"
+                title="Decupează Fotografia"
             >
                 <div className="space-y-4">
                     <div className="relative h-64 w-full bg-slate-900 rounded-lg overflow-hidden border border-slate-700">
@@ -197,14 +197,14 @@ export const SportivAvatarEditor: React.FC<SportivAvatarEditorProps> = ({ sporti
                             onClick={() => setIsModalOpen(false)} 
                             disabled={uploading}
                         >
-                            <XIcon className="w-4 h-4 mr-2" /> AnuleazÄƒ
+                            <XIcon className="w-4 h-4 mr-2" /> Anulează
                         </Button>
                         <Button 
                             variant="primary" 
                             onClick={handleUpload} 
                             isLoading={uploading}
                         >
-                            <UploadIcon className="w-4 h-4 mr-2" /> SalveazÄƒ Foto
+                            <UploadIcon className="w-4 h-4 mr-2" /> Salvează Foto
                         </Button>
                     </div>
                 </div>

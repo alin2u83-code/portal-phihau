@@ -37,7 +37,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
         const { data, error } = await query;
         
         if (error) {
-            showError("Eroare la Ã®ncÄƒrcarea istoricului", error.message);
+            showError("Eroare la încărcarea istoricului", error.message);
         } else {
             setIstoric(data || []);
         }
@@ -177,7 +177,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
     return (
         <div className="space-y-6 animate-fade-in">
             <Button onClick={onBack} variant="secondary" size="sm">
-                <ArrowLeftIcon className="w-4 h-4 mr-2"/> ÃŽnapoi la Grupe
+                <ArrowLeftIcon className="w-4 h-4 mr-2"/> Înapoi la Grupe
             </Button>
 
             <Card className="overflow-hidden border-none shadow-xl bg-slate-900/40 backdrop-blur-sm">
@@ -186,9 +186,9 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
                         <div>
                             <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
                                 <CalendarDaysIcon className="w-6 h-6 text-indigo-400" />
-                                Istoric Global PrezenÈ›e
+                                Istoric Global Prezențe
                             </h2>
-                            <p className="text-slate-400 mt-1">VizualizeazÄƒ È™i filtreazÄƒ prezenÈ›ele tuturor sportivilor.</p>
+                            <p className="text-slate-400 mt-1">Vizualizează și filtrează prezențele tuturor sportivilor.</p>
                         </div>
                     </div>
                 </div>
@@ -199,10 +199,10 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
                         const activeCount = [filterNume, filterGrupa, filterDataStart, filterDataEnd].filter(Boolean).length;
                         const filterGrid = (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <Input label="CautÄƒ Sportiv" placeholder="Nume..." value={filterNume} onChange={e => setFilterNume(e.target.value)} />
-                                <Input label="CautÄƒ GrupÄƒ" placeholder="GrupÄƒ..." value={filterGrupa} onChange={e => setFilterGrupa(e.target.value)} />
+                                <Input label="Caută Sportiv" placeholder="Nume..." value={filterNume} onChange={e => setFilterNume(e.target.value)} />
+                                <Input label="Caută Grupă" placeholder="Grupă..." value={filterGrupa} onChange={e => setFilterGrupa(e.target.value)} />
                                 <Input label="De la" type="date" value={filterDataStart} onChange={e => setFilterDataStart(e.target.value)} />
-                                <Input label="PÃ¢nÄƒ la" type="date" value={filterDataEnd} onChange={e => setFilterDataEnd(e.target.value)} />
+                                <Input label="Până la" type="date" value={filterDataEnd} onChange={e => setFilterDataEnd(e.target.value)} />
                             </div>
                         );
                         return (
@@ -240,7 +240,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
                                                 onClick={() => setFiltersExpanded(false)}
                                                 className="mt-3 w-full py-2 rounded-lg bg-amber-500 text-black text-sm font-bold"
                                             >
-                                                AplicÄƒ filtre â†’
+                                                Aplică filtre â†’
                                             </button>
                                         </div>
                                     )}

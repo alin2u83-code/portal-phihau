@@ -25,11 +25,11 @@ export const DashboardPrezentaAzi: React.FC<{
                         <p className="text-2xl font-black text-white">{todaysTrainings.length}</p>
                     </Card>
                     <Card className="p-3 text-center">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">AÈ™teptaÈ›i</p>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Așteptați</p>
                         <p className="text-2xl font-black text-white">{totalAsteptati}</p>
                     </Card>
                     <Card className="p-3 text-center">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">PrezenÈ›i</p>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Prezenți</p>
                         <p className="text-2xl font-black text-emerald-400">{totalPrezenti}</p>
                     </Card>
                 </div>
@@ -39,7 +39,7 @@ export const DashboardPrezentaAzi: React.FC<{
             {!loading && todaysTrainings.length > 0 && totalAsteptati > 0 && (
                 <div className="space-y-1">
                     <div className="flex justify-between text-xs text-slate-500">
-                        <span>PrezenÈ›Äƒ globalÄƒ astÄƒzi</span>
+                        <span>Prezență globală astăzi</span>
                         <span className="font-bold text-slate-300">{pctGlobal}%</span>
                     </div>
                     <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
@@ -70,12 +70,12 @@ export const DashboardPrezentaAzi: React.FC<{
                     ) : todaysTrainings.length === 0 ? (
                         <div className="text-center py-10">
                             <CalendarDaysIcon className="w-10 h-10 text-slate-700 mx-auto mb-3 opacity-20" />
-                            <p className="text-slate-500 italic text-sm">Niciun antrenament programat pentru astÄƒzi.</p>
+                            <p className="text-slate-500 italic text-sm">Niciun antrenament programat pentru astăzi.</p>
                             <button
                                 onClick={onMassGenerator}
                                 className="mt-3 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                             >
-                                GenereazÄƒ program â†’
+                                Generează program â†’
                             </button>
                         </div>
                     ) : (
@@ -99,7 +99,7 @@ export const DashboardPrezentaAzi: React.FC<{
 
                                         {/* Info */}
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-bold text-white text-sm truncate">{a.nume_grupa || 'GrupÄƒ necunoscutÄƒ'}</p>
+                                            <p className="font-bold text-white text-sm truncate">{a.nume_grupa || 'Grupă necunoscută'}</p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 {total > 0 && (
                                                     <>
@@ -116,7 +116,7 @@ export const DashboardPrezentaAzi: React.FC<{
                                         {isBifat ? (
                                             <CheckCircleIcon className="w-5 h-5 text-emerald-400 shrink-0" />
                                         ) : (
-                                            <span className="text-xs text-indigo-400 font-bold shrink-0 group-hover:underline">BifeazÄƒ â†’</span>
+                                            <span className="text-xs text-indigo-400 font-bold shrink-0 group-hover:underline">Bifează â†’</span>
                                         )}
                                     </div>
                                 );

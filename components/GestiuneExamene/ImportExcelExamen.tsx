@@ -1,11 +1,11 @@
 ﻿/**
  * ImportExcelExamen.tsx
  *
- * Wizard 4 paÈ™i pentru import XLS/XLSX Ã®n sesiunea de examen:
+ * Wizard 4 pași pentru import XLS/XLSX în sesiunea de examen:
  *  Step 1 â€“ Upload + preview metadata
- *  Step 2 â€“ Pre-check sportivi (verde/galben/roÈ™u) + rezolvare manualÄƒ
+ *  Step 2 â€“ Pre-check sportivi (verde/galben/roșu) + rezolvare manuală
  *  Step 3 â€“ Confirmare + import efectiv
- *  Step 4 â€“ Raport detaliat import (cu descÄƒrcare CSV)
+ *  Step 4 â€“ Raport detaliat import (cu descărcare CSV)
  */
 
 import React, { useState, useCallback, useRef } from 'react';
@@ -95,7 +95,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
     const [raport, setRaport] = useState<RaportImport | null>(null);
     const [filtruRaport, setFiltruRaport] = useState<'toti' | 'success' | 'error' | 'skip'>('toti');
 
-    // Stare pentru rezolvare manualÄƒ (fuzzy + nou)
+    // Stare pentru rezolvare manuală (fuzzy + nou)
     const [overrides, setOverrides] = useState<Record<number, {
         sportivId?: string;    // ales manual
         skip?: boolean;        // exclude din import
@@ -119,7 +119,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
             setFiltruActiv('toti');
             setStep(2);
         } catch (err: any) {
-            showError('Eroare parsare', err.message || 'Nu s-a putut citi fiÈ™ierul Excel.');
+            showError('Eroare parsare', err.message || 'Nu s-a putut citi fișierul Excel.');
         } finally {
             setIsLoading(false);
         }
@@ -208,7 +208,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                             gradNume: rand.gradNume,
                             rezultat: rand.rezultat,
                             status: 'error',
-                            motiv: 'LipsÄƒ Nume sau Prenume pentru sportiv nou',
+                            motiv: 'Lipsă Nume sau Prenume pentru sportiv nou',
                         });
                         continue;
                     }
@@ -239,7 +239,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                             gradNume: rand.gradNume,
                             rezultat: rand.rezultat,
                             status: 'error',
-                            motiv: errS ? `[${errS.code}] ${errS.message}` : 'Creare sportiv nou eÈ™uatÄƒ â€” fÄƒrÄƒ date returnate',
+                            motiv: errS ? `[${errS.code}] ${errS.message}` : 'Creare sportiv nou eșuată â€” fără date returnate',
                         });
                         continue;
                     }
@@ -266,12 +266,12 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                         gradNume: rand.gradNume,
                         rezultat: rand.rezultat,
                         status: 'error',
-                        motiv: `Gradul "${rand.gradNume}" nu a fost identificat Ã®n baza de date`,
+                        motiv: `Gradul "${rand.gradNume}" nu a fost identificat în baza de date`,
                     });
                     continue;
                 }
 
-                // â”€â”€ ÃŽnregistrare la examen â”€â”€
+                // â”€â”€ Înregistrare la examen â”€â”€
                 const sportivRef = sportivi.find(s => s.id === sportivId) || newSportivi.find(s => s.id === sportivId);
                 const varsta = sesiune.data && sportivRef?.data_nasterii
                     ? Math.floor((new Date(sesiune.data).getTime() - new Date(sportivRef.data_nasterii).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
@@ -296,13 +296,13 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     .maybeSingle();
 
                 if (errI) {
-                    console.error(`[ImportExcel] Eroare Ã®nscriere ${rand.numeRaw}:`, errI);
+                    console.error(`[ImportExcel] Eroare înscriere ${rand.numeRaw}:`, errI);
                     raportRanduri.push({
                         numeRaw: rand.numeRaw,
                         gradNume: rand.gradNume,
                         rezultat: rand.rezultat,
                         status: 'error',
-                        motiv: `Eroare Ã®nregistrare examen: [${errI.code}] ${errI.message}`,
+                        motiv: `Eroare înregistrare examen: [${errI.code}] ${errI.message}`,
                         sportivNou: esteNou,
                     });
                     continue;
@@ -313,14 +313,14 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                         gradNume: rand.gradNume,
                         rezultat: rand.rezultat,
                         status: 'error',
-                        motiv: `ÃŽnregistrare fÄƒrÄƒ date returnate (sportiv_id=${sportivId}, grad_id=${gradId})`,
+                        motiv: `Înregistrare fără date returnate (sportiv_id=${sportivId}, grad_id=${gradId})`,
                         sportivNou: esteNou,
                     });
                     continue;
                 }
                 newInscrieri.push(inscr as InscriereExamen);
 
-                // â”€â”€ DacÄƒ Admis â†’ Ã®nregistreazÄƒ Ã®n istoric_grade â”€â”€
+                // â”€â”€ Dacă Admis â†’ înregistrează în istoric_grade â”€â”€
                 if (rand.rezultat === 'Admis') {
                     const { data: ig } = await supabase
                         .from('istoric_grade')
@@ -341,7 +341,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     gradNume: rand.gradNume,
                     rezultat: rand.rezultat,
                     status: 'success',
-                    motiv: esteNou ? 'Sportiv creat È™i Ã®nscris' : 'ÃŽnscris cu succes',
+                    motiv: esteNou ? 'Sportiv creat și înscris' : 'Înscris cu succes',
                     sportivNou: esteNou,
                 });
 
@@ -351,12 +351,12 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     gradNume: rand.gradNume,
                     rezultat: rand.rezultat,
                     status: 'error',
-                    motiv: err?.message || 'Eroare necunoscutÄƒ',
+                    motiv: err?.message || 'Eroare necunoscută',
                 });
             }
         }
 
-        // Actualizare stare localÄƒ
+        // Actualizare stare locală
         if (newSportivi.length) setSportivi(prev => [...prev, ...newSportivi]);
         if (newInscrieri.length) setInscrieri(prev => {
             const ids = new Set(newInscrieri.map(i => i.id));
@@ -381,7 +381,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
         setStep(4);
     };
 
-    // â”€â”€â”€ DescÄƒrcare raport CSV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â”€â”€â”€ Descărcare raport CSV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     const handleDescarcaRaport = () => {
         if (!raport) return;
@@ -410,7 +410,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
         URL.revokeObjectURL(url);
     };
 
-    // â”€â”€â”€ Reset la Ã®nchidere â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â”€â”€â”€ Reset la închidere â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     const handleClose = () => {
         setStep(1);
@@ -461,32 +461,32 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     >
                         <input ref={fileRef} type="file" accept=".xls,.xlsx" className="hidden" onChange={handleFileChange} />
                         <UploadCloudIcon className="w-12 h-12 mx-auto mb-3 text-slate-400" />
-                        <p className="text-white font-medium mb-1">Trage fiÈ™ierul XLS/XLSX aici</p>
+                        <p className="text-white font-medium mb-1">Trage fișierul XLS/XLSX aici</p>
                         <p className="text-slate-400 text-sm">sau click pentru a alege</p>
                         <p className="text-slate-500 text-xs mt-3">Format acceptat: <strong>Tabel examene locale</strong> (1 sheet) sau <strong>Examen de grad</strong> (multiple sheet-uri)</p>
-                        {isLoading && <p className="text-brand-primary text-sm mt-3 animate-pulse">Se proceseazÄƒ fiÈ™ierul...</p>}
+                        {isLoading && <p className="text-brand-primary text-sm mt-3 animate-pulse">Se procesează fișierul...</p>}
                     </div>
                     <div className="bg-slate-800/50 rounded-lg p-4 text-sm text-slate-400 space-y-3">
                         <div>
-                            <p className="font-medium text-slate-300 mb-1">FiÈ™iere suportate:</p>
-                            <p>â€¢ <strong className="text-slate-200">Phi Hau - Ex. Local - YYYY.MM.DD.xls</strong> â†’ Ã®nscrie sportivi + rezultate</p>
-                            <p>â€¢ <strong className="text-slate-200">examen de grad YYYY.MM.DD.xls</strong> â†’ importÄƒ note per sportiv</p>
+                            <p className="font-medium text-slate-300 mb-1">Fișiere suportate:</p>
+                            <p>â€¢ <strong className="text-slate-200">Phi Hau - Ex. Local - YYYY.MM.DD.xls</strong> â†’ înscrie sportivi + rezultate</p>
+                            <p>â€¢ <strong className="text-slate-200">examen de grad YYYY.MM.DD.xls</strong> â†’ importă note per sportiv</p>
                         </div>
                         <div>
                             <p className="font-medium text-slate-300 mb-1">Coloana Grad â€” formate acceptate:</p>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
-                                <p><strong className="text-slate-200">1</strong> sau <strong className="text-slate-200">1 CÃ¢p Alb</strong></p>
-                                <p><strong className="text-slate-200">2</strong> sau <strong className="text-slate-200">2 CÃ¢p RoÈ™u</strong></p>
-                                <p><strong className="text-slate-200">3</strong> sau <strong className="text-slate-200">3 CÃ¢p RoÈ™u</strong></p>
-                                <p><strong className="text-slate-200">4</strong> sau <strong className="text-slate-200">4 CÃ¢p RoÈ™u</strong></p>
-                                <p><strong className="text-slate-200">5</strong> sau <strong className="text-slate-200">5 CÃ¢p Albastru</strong></p>
-                                <p><strong className="text-slate-200">6</strong> sau <strong className="text-slate-200">6 CÃ¢p Albastru</strong></p>
+                                <p><strong className="text-slate-200">1</strong> sau <strong className="text-slate-200">1 Câp Alb</strong></p>
+                                <p><strong className="text-slate-200">2</strong> sau <strong className="text-slate-200">2 Câp Roșu</strong></p>
+                                <p><strong className="text-slate-200">3</strong> sau <strong className="text-slate-200">3 Câp Roșu</strong></p>
+                                <p><strong className="text-slate-200">4</strong> sau <strong className="text-slate-200">4 Câp Roșu</strong></p>
+                                <p><strong className="text-slate-200">5</strong> sau <strong className="text-slate-200">5 Câp Albastru</strong></p>
+                                <p><strong className="text-slate-200">6</strong> sau <strong className="text-slate-200">6 Câp Albastru</strong></p>
                             </div>
-                            <p className="mt-1 text-slate-500 text-xs">NumÄƒrul singur (1, 2, 3...) sau numele complet â€” ambele sunt recunoscute automat.</p>
+                            <p className="mt-1 text-slate-500 text-xs">Numărul singur (1, 2, 3...) sau numele complet â€” ambele sunt recunoscute automat.</p>
                         </div>
                         <div>
                             <p className="font-medium text-slate-300 mb-1">Coloana Rezultat:</p>
-                            <p><strong className="text-slate-200">Admis</strong> sau <strong className="text-slate-200">Respins</strong> (dacÄƒ lipseÈ™te â†’ se marcheazÄƒ automat <em>Neprezentat</em>)</p>
+                            <p><strong className="text-slate-200">Admis</strong> sau <strong className="text-slate-200">Respins</strong> (dacă lipsește â†’ se marchează automat <em>Neprezentat</em>)</p>
                         </div>
                     </div>
                 </div>
@@ -513,7 +513,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     {/* Statistici / Filtre */}
                     <div className="flex gap-3 flex-wrap">
                         <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-900/30 border border-emerald-700/50 text-emerald-400 text-sm font-bold">
-                            <CheckCircleIcon className="w-4 h-4" /> {stats.exact} gÄƒsiÈ›i exact
+                            <CheckCircleIcon className="w-4 h-4" /> {stats.exact} găsiți exact
                         </span>
                         <button
                             onClick={() => setFiltruActiv(filtruActiv === 'fuzzy' ? 'toti' : 'fuzzy')}
@@ -531,18 +531,18 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                                     ? 'bg-rose-500 border-rose-400 text-white'
                                     : 'bg-rose-900/30 border-rose-700/50 text-rose-400 hover:border-rose-400'}`}
                         >
-                            <XCircleIcon className="w-4 h-4" /> {stats.nou} inexistenÈ›i
+                            <XCircleIcon className="w-4 h-4" /> {stats.nou} inexistenți
                         </button>
                         {stats.skip > 0 && (
                             <span className="px-3 py-1.5 rounded-full bg-slate-700 text-slate-400 text-sm font-bold">
-                                {stats.skip} excluÈ™i
+                                {stats.skip} excluși
                             </span>
                         )}
                     </div>
 
                     {stats.nerezolvat > 0 && (
                         <div className="bg-amber-900/20 border border-amber-700/50 rounded-lg p-3 text-amber-300 text-sm">
-                            âš  {stats.nerezolvat} sportivi nesiguri necesitÄƒ confirmare manualÄƒ mai jos.
+                            âš  {stats.nerezolvat} sportivi nesiguri necesită confirmare manuală mai jos.
                         </div>
                     )}
 
@@ -584,10 +584,10 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                                         </div>
                                     </div>
 
-                                    {/* Fuzzy: selectare manualÄƒ */}
+                                    {/* Fuzzy: selectare manuală */}
                                     {rand.status === 'fuzzy' && !isSkipped && (
                                         <div className="mt-2 pt-2 border-t border-amber-700/30 space-y-2">
-                                            <p className="text-xs text-amber-300">Potrivire nesigurÄƒ ({Math.round(rand.matchScore * 100)}%). Alege sportivul corect:</p>
+                                            <p className="text-xs text-amber-300">Potrivire nesigură ({Math.round(rand.matchScore * 100)}%). Alege sportivul corect:</p>
                                             <div className="flex flex-wrap gap-2">
                                                 {[rand.sportivGasit, ...(rand.alternativeMatches || [])].filter(Boolean).map(s => s && (
                                                     <button
@@ -605,16 +605,16 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                                                     onClick={() => setOverride(i, { sportivId: undefined })}
                                                     className="px-2 py-1 rounded text-xs text-slate-500 hover:text-slate-300 border border-dashed border-slate-600 hover:border-rose-400"
                                                 >
-                                                    â†’ CreeazÄƒ ca nou
+                                                    â†’ Creează ca nou
                                                 </button>
                                             </div>
                                         </div>
                                     )}
 
-                                    {/* Nou: formular creare rapidÄƒ */}
+                                    {/* Nou: formular creare rapidă */}
                                     {(rand.status === 'nou' || (rand.status === 'fuzzy' && !ov.sportivId && !isSkipped)) && !isSkipped && (
                                         <div className="mt-2 pt-2 border-t border-rose-700/30 space-y-2">
-                                            <p className="text-xs text-rose-300">Sportiv inexistent. CompleteazÄƒ pentru creare:</p>
+                                            <p className="text-xs text-rose-300">Sportiv inexistent. Completează pentru creare:</p>
                                             <div className="grid grid-cols-3 gap-2">
                                                 <Input
                                                     label="Nume"
@@ -629,7 +629,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                                                     className="text-xs"
                                                 />
                                                 <Input
-                                                    label="Data naÈ™terii"
+                                                    label="Data nașterii"
                                                     type="date"
                                                     value={ov.dataNasteriiNou ?? ''}
                                                     onChange={e => setOverride(i, { dataNasteriiNou: e.target.value })}
@@ -644,14 +644,14 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     </div>
 
                     <div className="flex justify-between pt-2">
-                        <Button variant="secondary" onClick={() => setStep(1)}>â† ÃŽnapoi</Button>
+                        <Button variant="secondary" onClick={() => setStep(1)}>â† Înapoi</Button>
                         <Button
                             variant="primary"
                             onClick={() => setStep(3)}
                             disabled={stats.nerezolvat > 0}
-                            title={stats.nerezolvat > 0 ? 'RezolvÄƒ mai Ã®ntÃ¢i sportivii nesiguri' : ''}
+                            title={stats.nerezolvat > 0 ? 'Rezolvă mai întâi sportivii nesiguri' : ''}
                         >
-                            ContinuÄƒ <ChevronRightIcon className="w-4 h-4 ml-1" />
+                            Continuă <ChevronRightIcon className="w-4 h-4 ml-1" />
                         </Button>
                     </div>
                 </div>
@@ -664,7 +664,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                         <h3 className="text-white font-bold">Rezumat import</h3>
                         <div className="grid grid-cols-2 gap-3 text-sm">
                             <div className="bg-slate-900/50 rounded-lg p-3">
-                                <p className="text-slate-400">Sportivi de Ã®nscris</p>
+                                <p className="text-slate-400">Sportivi de înscris</p>
                                 <p className="text-2xl font-bold text-white">{stats.total - stats.skip}</p>
                             </div>
                             <div className="bg-slate-900/50 rounded-lg p-3">
@@ -679,25 +679,25 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                             <div className="bg-slate-900/50 rounded-lg p-3">
                                 <p className="text-slate-400">Rezultate importate</p>
                                 <p className="text-2xl font-bold text-emerald-400">
-                                    {randuri.filter(r => r.rezultat === 'Admis').length} AdmiÈ™i
+                                    {randuri.filter(r => r.rezultat === 'Admis').length} Admiși
                                 </p>
                             </div>
                             <div className="bg-slate-900/50 rounded-lg p-3">
-                                <p className="text-slate-400">ExcluÈ™i manual</p>
+                                <p className="text-slate-400">Excluși manual</p>
                                 <p className="text-2xl font-bold text-slate-400">{stats.skip}</p>
                             </div>
                         </div>
                         {metadata.format === 'examen_grad' && (
                             <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 text-blue-300 text-sm">
-                                Format <strong>Examen de Grad</strong>: se vor importa notele individuale pentru sportivii deja Ã®nscriÈ™i.
+                                Format <strong>Examen de Grad</strong>: se vor importa notele individuale pentru sportivii deja înscriși.
                             </div>
                         )}
                     </div>
 
                     <div className="flex justify-between">
-                        <Button variant="secondary" onClick={() => setStep(2)}>â† ÃŽnapoi</Button>
+                        <Button variant="secondary" onClick={() => setStep(2)}>â† Înapoi</Button>
                         <Button variant="success" onClick={handleImport} isLoading={isImporting}>
-                            ImportÄƒ {stats.total - stats.skip} sportivi
+                            Importă {stats.total - stats.skip} sportivi
                         </Button>
                     </div>
                 </div>
@@ -710,7 +710,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div className="bg-emerald-900/20 border border-emerald-700/40 rounded-lg p-3 text-center">
                             <p className="text-2xl font-bold text-emerald-400">{raport.salvati}</p>
-                            <p className="text-xs text-emerald-300 mt-1">SalvaÈ›i cu succes</p>
+                            <p className="text-xs text-emerald-300 mt-1">Salvați cu succes</p>
                         </div>
                         <div className="bg-rose-900/20 border border-rose-700/40 rounded-lg p-3 text-center">
                             <p className="text-2xl font-bold text-rose-400">{raport.erori}</p>
@@ -722,7 +722,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                         </div>
                         <div className="bg-blue-900/20 border border-blue-700/40 rounded-lg p-3 text-center">
                             <p className="text-2xl font-bold text-blue-400">{raport.sportiviNoi}</p>
-                            <p className="text-xs text-blue-300 mt-1">Sportivi noi creaÈ›i</p>
+                            <p className="text-xs text-blue-300 mt-1">Sportivi noi creați</p>
                         </div>
                     </div>
 
@@ -730,25 +730,25 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     {raport.erori === 0 ? (
                         <div className="flex items-center gap-2 p-3 bg-emerald-900/20 border border-emerald-700/40 rounded-lg text-emerald-300 text-sm">
                             <CheckCircleIcon className="w-5 h-5 flex-shrink-0" />
-                            Import finalizat fÄƒrÄƒ erori. {raport.salvati} sportivi Ã®nscriÈ™i Ã®n sesiune.
+                            Import finalizat fără erori. {raport.salvati} sportivi înscriși în sesiune.
                         </div>
                     ) : raport.salvati === 0 ? (
                         <div className="flex items-center gap-2 p-3 bg-rose-900/20 border border-rose-700/40 rounded-lg text-rose-300 text-sm">
                             <XCircleIcon className="w-5 h-5 flex-shrink-0" />
-                            Import eÈ™uat complet. Niciun sportiv nu a putut fi salvat. VerificaÈ›i detaliile de mai jos.
+                            Import eșuat complet. Niciun sportiv nu a putut fi salvat. Verificați detaliile de mai jos.
                         </div>
                     ) : (
                         <div className="flex items-center gap-2 p-3 bg-amber-900/20 border border-amber-700/40 rounded-lg text-amber-300 text-sm">
                             <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0" />
-                            Import parÈ›ial: {raport.salvati} salvaÈ›i, {raport.erori} erori.
+                            Import parțial: {raport.salvati} salvați, {raport.erori} erori.
                         </div>
                     )}
 
                     {/* Filtre tabel */}
                     <div className="flex gap-2 flex-wrap">
                         {([
-                            { key: 'toti',    label: `ToÈ›i (${raport.totalProcesati})`,             cls: 'bg-slate-700 text-slate-200' },
-                            { key: 'success', label: `SalvaÈ›i (${raport.salvati})`,                  cls: 'bg-emerald-900/40 text-emerald-300 border border-emerald-700/50' },
+                            { key: 'toti',    label: `Toți (${raport.totalProcesati})`,             cls: 'bg-slate-700 text-slate-200' },
+                            { key: 'success', label: `Salvați (${raport.salvati})`,                  cls: 'bg-emerald-900/40 text-emerald-300 border border-emerald-700/50' },
                             { key: 'error',   label: `Erori (${raport.erori})`,                      cls: 'bg-rose-900/40 text-rose-300 border border-rose-700/50' },
                             { key: 'skip',    label: `Ignorate (${raport.sarite})`,                  cls: 'bg-slate-700/50 text-slate-400 border border-slate-600/50' },
                         ] as const).map(({ key, label, cls }) => (
@@ -824,7 +824,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                                 {raport.randuri.filter(r => filtruRaport === 'toti' || r.status === filtruRaport).length === 0 && (
                                     <tr>
                                         <td colSpan={5} className="py-6 text-center text-slate-500">
-                                            Nicio Ã®nregistrare pentru filtrul selectat.
+                                            Nicio înregistrare pentru filtrul selectat.
                                         </td>
                                     </tr>
                                 )}
@@ -832,7 +832,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                         </table>
                     </div>
 
-                    {/* AcÈ›iuni */}
+                    {/* Acțiuni */}
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
                         <Button
                             variant="secondary"
@@ -840,11 +840,11 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                             size="sm"
                         >
                             <DownloadIcon className="w-4 h-4 mr-2" />
-                            DescarcÄƒ raport CSV
+                            Descarcă raport CSV
                         </Button>
                         <Button variant="primary" onClick={handleClose}>
                             <CheckCircleIcon className="w-4 h-4 mr-2" />
-                            Finalizat â€” ÃŽnchide
+                            Finalizat â€” Închide
                         </Button>
                     </div>
                 </div>

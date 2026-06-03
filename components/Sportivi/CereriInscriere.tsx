@@ -25,7 +25,7 @@ interface CereriInscriereProps {
 }
 
 const TAB_LABELS: { key: StatusCerere; label: string }[] = [
-    { key: 'in_asteptare', label: 'ÃŽn aÈ™teptare' },
+    { key: 'in_asteptare', label: 'În așteptare' },
     { key: 'aprobata', label: 'Aprobate' },
     { key: 'respinsa', label: 'Respinse' },
 ];
@@ -96,7 +96,7 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
         setMotivRespingere('');
     };
 
-    // ObÈ›ine link-ul personalizat al clubului (primul club gÄƒsit Ã®n cereri sau generic)
+    // Obține link-ul personalizat al clubului (primul club găsit în cereri sau generic)
     const clubSlugDetectat = cereri.find(c => c.club?.slug)?.club?.slug;
     const linkInscriere = clubSlugDetectat
         ? `${window.location.origin}/inscriere/${clubSlugDetectat}`
@@ -147,8 +147,8 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
             <div className="flex flex-col gap-3">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h1 className="text-2xl font-bold text-white">Cereri ÃŽnscriere</h1>
-                        <p className="text-slate-400 text-sm mt-0.5">GestioneazÄƒ cererile de Ã®nregistrare online.</p>
+                        <h1 className="text-2xl font-bold text-white">Cereri Înscriere</h1>
+                        <p className="text-slate-400 text-sm mt-0.5">Gestionează cererile de înregistrare online.</p>
                     </div>
                     <button
                         onClick={handleCopyLink}
@@ -157,7 +157,7 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
                                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                                 : 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
                         }`}
-                        title="CopiazÄƒ link-ul personalizat de Ã®nscriere"
+                        title="Copiază link-ul personalizat de înscriere"
                     >
                         {copySuccess ? (
                             <>
@@ -171,7 +171,7 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656L10.414 19.24A4 4 0 014.757 13.583l1.415-1.415m5.656-5.656l1.414-1.414a4 4 0 015.657 5.657l-3.535 3.535" />
                                 </svg>
-                                CopiazÄƒ link club
+                                Copiază link club
                             </>
                         )}
                     </button>
@@ -217,10 +217,10 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
                     </div>
                     <p className="text-slate-400 font-medium">
                         {activeTab === 'in_asteptare'
-                            ? 'Nicio cerere Ã®n aÈ™teptare'
+                            ? 'Nicio cerere în așteptare'
                             : activeTab === 'aprobata'
-                            ? 'Nicio cerere aprobatÄƒ'
-                            : 'Nicio cerere respinsÄƒ'}
+                            ? 'Nicio cerere aprobată'
+                            : 'Nicio cerere respinsă'}
                     </p>
                     <p className="text-slate-600 text-sm mt-1">
                         {activeTab === 'in_asteptare' ? 'Toate cererile au fost procesate.' : ''}
@@ -291,7 +291,7 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
                                     )}
 
                                     <p className="text-xs text-slate-600 pt-1">
-                                        Cerere depusÄƒ: {formatDateTime(cerere.created_at)}
+                                        Cerere depusă: {formatDateTime(cerere.created_at)}
                                         {cerere.procesat_la && (
                                             <> Â· Procesat: {formatDateTime(cerere.procesat_la)}</>
                                         )}
@@ -316,7 +316,7 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                 </svg>
                                             )}
-                                            AprobÄƒ
+                                            Aprobă
                                         </button>
                                         <button
                                             onClick={() => handleRespinge(cerere.id)}
@@ -355,13 +355,13 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
                     <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
                         <h3 className="text-white font-bold text-lg mb-2">Respinge cererea</h3>
                         <p className="text-slate-400 text-sm mb-4">
-                            PoÈ›i adÄƒuga un motiv opÈ›ional care va fi vizibil Ã®n istoricul cererii.
+                            Poți adăuga un motiv opțional care va fi vizibil în istoricul cererii.
                         </p>
                         <textarea
                             value={motivRespingere}
                             onChange={e => setMotivRespingere(e.target.value)}
                             rows={3}
-                            placeholder="Motiv respingere (opÈ›ional)..."
+                            placeholder="Motiv respingere (opțional)..."
                             className="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
                         />
                         <div className="flex gap-3 mt-4">
@@ -369,13 +369,13 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
                                 onClick={() => setRespingereModal({ open: false, cerereId: null })}
                                 className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700 transition-all"
                             >
-                                AnuleazÄƒ
+                                Anulează
                             </button>
                             <button
                                 onClick={handleConfirmRespingere}
                                 className="flex-1 px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-semibold hover:bg-red-500/20 transition-all"
                             >
-                                ConfirmÄƒ respingerea
+                                Confirmă respingerea
                             </button>
                         </div>
                     </div>

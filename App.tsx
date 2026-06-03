@@ -80,6 +80,36 @@ function App() {
     }
   }, [canGoBack, goBack, permissions?.hasAdminAccess, activeRole, setActiveView]);
 
+  /**
+   * Hardware back button (Android / browser history).
+   * Interceptează popstate și navighează în contextul aplicației
+   * în loc să lase browser-ul să iasă din SPA.
+   */
+  const [showExitDialog, setShowExitDialog] = React.useState(false);
+  useEffect(() => {
+    // Adaugă o intrare falsă în history pentru a putea intercepta popstate
+    window.history.pushState({ spa: true }, '');
+
+    const handlePopState = () => {
+      // Re-push imediat pentru a putea intercepta viitoarele apăsări
+      window.history.pushState({ spa: true }, '');
+
+      if (activeView === 'dashboard' || activeView === 'my-portal') {
+        // Suntem la rădăcină — întreabă dacă utilizatorul vrea să iasă
+        setShowExitDialog(true);
+      } else if (canGoBack) {
+        goBack();
+      } else {
+        handleBackToDashboard();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [activeView, canGoBack, goBack, handleBackToDashboard]);
+
   if (loading) {
       return <MartialArtsSkeleton />;
   }
@@ -94,6 +124,35 @@ function App() {
     >
       <NotificationProvider currentUser={currentUser}>
         <Toaster />
+
+        {/* Dialog confirmare ieșire (hardware back la rădăcină) */}
+        {showExitDialog && (
+          <div className="fixed inset-0 z-[10100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+              <h3 className="text-base font-bold text-white mb-2">Ieși din aplicație?</h3>
+              <p className="text-sm text-slate-400 mb-5">Ești sigur că vrei să ieși din portalul PhiHau?</p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowExitDialog(false)}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold border border-slate-600 text-slate-300 hover:border-slate-500 transition-colors"
+                >
+                  Rămân
+                </button>
+                <button
+                  onClick={() => {
+                    setShowExitDialog(false);
+                    // Permite browser-ului să iasă normal
+                    window.history.go(-2);
+                  }}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600/80 border border-red-500 text-white hover:bg-red-600 transition-colors"
+                >
+                  Da, ieși
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {isSwitchingRole && (
             <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[10000] flex flex-col items-center justify-center animate-fade-in-down">
                 <svg className="animate-spin h-10 w-10 text-violet-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>

@@ -1,6 +1,6 @@
 ﻿/**
  * TipuriCompetitieAdmin â€” wrapper peste TipuriNomenclatorAdmin
- * pentru gestionarea tipurilor de competiÈ›ie.
+ * pentru gestionarea tipurilor de competiție.
  */
 import React from 'react';
 import { Permissions } from '../../types';

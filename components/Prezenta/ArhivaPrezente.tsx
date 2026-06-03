@@ -10,8 +10,8 @@ export const ArhivaPrezente: React.FC<ArhivaPrezenteProps> = ({ onBack }) => {
     return (
         <div>
             <Card>
-                <h1 className="text-xl md:text-2xl font-bold text-white mb-4">ArhivÄƒ PrezenÈ›e</h1>
-                <p className="text-slate-400">Acest modul este Ã®n curs de dezvoltare È™i va permite vizualizarea È™i raportarea pe baza istoricului de prezenÈ›e.</p>
+                <h1 className="text-xl md:text-2xl font-bold text-white mb-4">Arhivă Prezențe</h1>
+                <p className="text-slate-400">Acest modul este în curs de dezvoltare și va permite vizualizarea și raportarea pe baza istoricului de prezențe.</p>
             </Card>
         </div>
     );

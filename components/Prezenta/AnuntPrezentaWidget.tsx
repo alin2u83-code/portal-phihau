@@ -60,7 +60,7 @@ const SingleTrainingAnunt: React.FC<SingleTrainingAnuntProps> = ({ training, cur
             }
 
             if (data) {
-                showSuccess("Mesaj Trimis", "AnunÈ›ul tÄƒu a fost trimis instructorului.");
+                showSuccess("Mesaj Trimis", "Anunțul tău a fost trimis instructorului.");
                 setAnunturi(prev => {
                     const index = prev.findIndex(a => a.id === data.id);
                     if (index > -1) {
@@ -83,52 +83,52 @@ const SingleTrainingAnunt: React.FC<SingleTrainingAnuntProps> = ({ training, cur
     const renderExistingAnunt = () => {
         let statusText = '';
         switch(existingAnunt?.status) {
-            case 'Confirm': statusText = 'PrezenÈ›Äƒ confirmatÄƒ'; break;
-            case 'Intarziat': statusText = `Ai anunÈ›at cÄƒ Ã®ntÃ¢rzii`; break;
-            case 'Absent': statusText = `Ai anunÈ›at cÄƒ eÈ™ti absent`; break;
+            case 'Confirm': statusText = 'Prezență confirmată'; break;
+            case 'Intarziat': statusText = `Ai anunțat că întârzii`; break;
+            case 'Absent': statusText = `Ai anunțat că ești absent`; break;
         }
         return (
             <div className="text-center p-4">
                 <ChatBubbleLeftEllipsisIcon className="w-8 h-8 mx-auto text-brand-secondary mb-2" />
                 <p className="font-bold text-white">{statusText}</p>
                 {existingAnunt?.detalii && <p className="text-sm text-slate-300">Detalii: "{existingAnunt.detalii}"</p>}
-                <p className="text-xs text-slate-500 mt-2">PoÈ›i schimba statusul trimiÈ›Ã¢nd un anunÈ› nou.</p>
+                <p className="text-xs text-slate-500 mt-2">Poți schimba statusul trimițând un anunț nou.</p>
             </div>
         );
     };
 
     const renderOptions = () => (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Button variant="success" size="md" className="!py-3" onClick={() => handleSendAnunt('Confirm', null)} isLoading={loading}>Confirm PrezenÈ›a</Button>
-            <Button variant="warning" size="md" className="!py-3" onClick={() => setMode('delay')} disabled={loading}>AnunÈ› ÃŽntÃ¢rziere</Button>
-            <Button variant="danger" size="md" className="!py-3" onClick={() => setMode('absent')} disabled={loading}>AnunÈ› AbsenÈ›Äƒ</Button>
+            <Button variant="success" size="md" className="!py-3" onClick={() => handleSendAnunt('Confirm', null)} isLoading={loading}>Confirm Prezența</Button>
+            <Button variant="warning" size="md" className="!py-3" onClick={() => setMode('delay')} disabled={loading}>Anunț Întârziere</Button>
+            <Button variant="danger" size="md" className="!py-3" onClick={() => setMode('absent')} disabled={loading}>Anunț Absență</Button>
         </div>
     );
 
     const renderDelayForm = () => (
         <div className="flex items-end gap-3">
-            <Select label="Voi Ã®ntÃ¢rzia cu aprox." value={delayTime} onChange={e => setDelayTime(e.target.value)}>
+            <Select label="Voi întârzia cu aprox." value={delayTime} onChange={e => setDelayTime(e.target.value)}>
                 <option value="15">15 minute</option>
                 <option value="30">30 minute</option>
                 <option value="45">45 minute</option>
             </Select>
-            <Button variant="primary" onClick={() => handleSendAnunt('Intarziat', `ÃŽntÃ¢rzie ${delayTime} min`)} isLoading={loading}>Trimite</Button>
-            <Button variant="secondary" onClick={() => setMode('options')}>AnuleazÄƒ</Button>
+            <Button variant="primary" onClick={() => handleSendAnunt('Intarziat', `Întârzie ${delayTime} min`)} isLoading={loading}>Trimite</Button>
+            <Button variant="secondary" onClick={() => setMode('options')}>Anulează</Button>
         </div>
     );
     
     const renderAbsentForm = () => (
         <div className="flex items-end gap-3">
-            <Input label="Motiv (opÈ›ional)" value={absentReason} onChange={e => setAbsentReason(e.target.value)} placeholder="Ex: RÄƒcit, È˜coalÄƒ..." />
+            <Input label="Motiv (opțional)" value={absentReason} onChange={e => setAbsentReason(e.target.value)} placeholder="Ex: Răcit, Școală..." />
             <Button variant="primary" onClick={() => handleSendAnunt('Absent', absentReason || 'Motiv nespecificat')} isLoading={loading}>Trimite</Button>
-            <Button variant="secondary" onClick={() => setMode('options')}>AnuleazÄƒ</Button>
+            <Button variant="secondary" onClick={() => setMode('options')}>Anulează</Button>
         </div>
     );
 
     return (
         <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-600">
             <p className="font-bold text-white">Antrenament la ora {formatTime(training.ora_start)}</p>
-            <p className="text-sm text-slate-400 mb-4">AnunÈ›Äƒ instructorul despre prezenÈ›a ta.</p>
+            <p className="text-sm text-slate-400 mb-4">Anunță instructorul despre prezența ta.</p>
             {existingAnunt && mode === 'options' ? renderExistingAnunt() :
                 mode === 'options' ? renderOptions() :
                 mode === 'delay' ? renderDelayForm() :
@@ -158,7 +158,7 @@ export const AnuntPrezentaWidget: React.FC<AnuntPrezentaWidgetProps> = ({ curren
     }, [antrenamente, todayString, currentUser]);
 
     if (todaysTrainings.length === 0) {
-        return null; // Nu afiÈ™a nimic dacÄƒ nu existÄƒ antrenament azi
+        return null; // Nu afișa nimic dacă nu există antrenament azi
     }
     
     return (

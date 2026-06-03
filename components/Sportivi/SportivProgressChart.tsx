@@ -18,7 +18,7 @@ export const SportivProgressChart: React.FC<SportivProgressChartProps> = ({ data
     if (!data || data.length === 0) {
         return (
             <div className="flex items-center justify-center h-full text-slate-600 bg-slate-800/30 rounded-xl border border-slate-700/40">
-                <p className="text-xs italic">Nu existÄƒ date istorice despre grade.</p>
+                <p className="text-xs italic">Nu există date istorice despre grade.</p>
             </div>
         );
     }

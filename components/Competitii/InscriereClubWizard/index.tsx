@@ -7,6 +7,7 @@ import Pas1SelectareSportivi from './Pas1';
 import Pas2SelectieQuyen from './Pas2Quyen';
 import Pas3FormareEchipe from './Pas3Echipe';
 import Pas4SumarTaxe from './Pas4Sumar';
+import InscriereClubCards from './InscriereClubCards';
 
 export type { InscriereClubWizardProps };
 export type { EchipaFormata, QuyenAlesMap };
@@ -17,7 +18,10 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
   onOpenEditEchipa,
 }) => {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  // step: 1=selectare sportivi, 'hub'=carduri probe, 2=quyen individual, 3=echipe, 4=sumar
+  const [step, setStep] = useState<1 | 'hub' | 2 | 3 | 4>(1);
+  // Proba deschisă din hub (pentru Pas2 / Pas3)
+  const [probaDeschisFocusId, setProbaDeschisFocusId] = useState<string | null>(null);
   const [selectedSportivi, setSelectedSportivi] = useState<Set<string>>(new Set());
 
   // Pas2: categorii auto-asignate + quyen ales
@@ -115,8 +119,25 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       computeAutoCategorie();
       lastComputedSportiviRef.current = currentKey;
     }
-    setStep(2);
+    setStep('hub');
   };
+
+  /**
+   * Din hub, utilizatorul deschide o probă:
+   * - probă individuală (thao_quyen / thao_lo / giao_dau) → Pas2
+   * - probă echipă (song_luyen / sincron) → Pas3
+   */
+  const handleDeschideProba = useCallback((probaId: string) => {
+    setProbaDeschisFocusId(probaId);
+    const proba = probe.find(p => p.id === probaId);
+    if (!proba) return;
+    const isEchipa = categorii.some(c => c.proba_id === probaId && esteEchipaSauPereche(c));
+    if (isEchipa) {
+      setStep(3);
+    } else {
+      setStep(2);
+    }
+  }, [probe, categorii]);
 
   if (step === 1) {
     return (
@@ -136,6 +157,42 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     );
   }
 
+  if (step === 'hub') {
+    return (
+      <InscriereClubCards
+        // props InscriereClubWizardProps
+        competitie={competitie}
+        probe={probe}
+        categorii={categorii}
+        sportivi={sportivi}
+        grade={grade}
+        inscrieri={inscrieri}
+        echipe={echipe}
+        clubId={clubId}
+        numeClub={numeClub}
+        vizeSportivi={vizeSportivi}
+        myClubId={myClubId}
+        onBack={() => setStep(1)}
+        onSaved={onSaved}
+        // props suplimentare hub
+        selectedSportivi={selectedSportivi}
+        autoCategorie={autoCategorie}
+        quyenAles={quyenAles}
+        echipeFormate={echipeFormate}
+        probeSkipped={probeSkippedWizard}
+        excludedFromIndividual={excludedFromIndividual}
+        onDeschideProba={handleDeschideProba}
+        onFinalizare={() => {
+          // Calculează probe skipped înainte de a merge la sumar
+          const activeProbeIds = new Set<string>();
+          autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });
+          setProbeSkippedWizard(new Set(probe.filter(p => !activeProbeIds.has(p.id)).map(p => p.id)));
+          setStep(4);
+        }}
+      />
+    );
+  }
+
   if (step === 2) {
     return (
       <Pas2SelectieQuyen
@@ -151,9 +208,9 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
           const activeProbeIds = new Set<string>();
           autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });
           setProbeSkippedWizard(new Set(probe.filter(p => !activeProbeIds.has(p.id)).map(p => p.id)));
-          areEchipe ? setStep(3) : setStep(4);
+          setStep('hub');
         }}
-        onBack={() => setStep(1)}
+        onBack={() => setStep('hub')}
         excludedFromIndividual={excludedFromIndividual}
         onToggleExclus={handleToggleExclus}
       />
@@ -170,8 +227,8 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         numeClub={numeClub}
         echipeFormate={echipeFormate}
         onUpdateEchipe={setEchipeFormate}
-        onContinua={() => setStep(4)}
-        onBack={() => setStep(2)}
+        onContinua={() => setStep('hub')}
+        onBack={() => setStep('hub')}
         echipeDB={echipe}
         myClubId={myClubId}
         dataCompetitie={competitie.data_inceput}
@@ -194,7 +251,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       excludedFromIndividual={excludedFromIndividual}
       clubId={clubId}
       numeClub={numeClub}
-      onBack={() => setStep(areEchipe ? 3 : 2)}
+      onBack={() => setStep('hub')}
       onSaved={onSaved}
     />
   );

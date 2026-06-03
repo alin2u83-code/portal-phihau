@@ -12,7 +12,7 @@ import { formatTime } from '../../utils/date';
 import { generateTrainingsFromSchedule } from '../../utils/trainingGenerator';
 import { useStatusePrezenta } from '../../hooks/useStatusePrezenta';
 
-// Tip extins pentru sportiv cu informaÈ›ie de apartenenÈ›a la grupÄƒ
+// Tip extins pentru sportiv cu informație de apartenența la grupă
 export type TipMembru = 'principal' | 'secundar';
 export interface SportivCuTip extends Sportiv {
     tip?: TipMembru;
@@ -55,7 +55,7 @@ const SportivInfoModal: React.FC<{
 
     if (!sportiv) return null;
 
-    const gradName = sportiv.grad_actual_id ? grade.find(g => g.id === sportiv.grad_actual_id)?.nume : 'FÄƒrÄƒ grad';
+    const gradName = sportiv.grad_actual_id ? grade.find(g => g.id === sportiv.grad_actual_id)?.nume : 'Fără grad';
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Profil Sportiv: ${sportiv.nume} ${sportiv.prenume}`}>
@@ -63,7 +63,7 @@ const SportivInfoModal: React.FC<{
                 <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Grad Actual</p>
-                        <p className="text-lg font-bold text-white">{gradName || 'FÄƒrÄƒ grad'}</p>
+                        <p className="text-lg font-bold text-white">{gradName || 'Fără grad'}</p>
                     </div>
                     <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Status</p>
@@ -74,14 +74,14 @@ const SportivInfoModal: React.FC<{
                 <div>
                     <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                         <CalendarDaysIcon className="w-4 h-4" />
-                        Ultimul Istoric PrezenÈ›Äƒ
+                        Ultimul Istoric Prezență
                     </h4>
                     {loading ? (
                         <div className="flex justify-center py-4">
                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-500"></div>
                         </div>
                     ) : history.length === 0 ? (
-                        <p className="text-slate-500 italic text-sm text-center py-4">Nicio prezenÈ›Äƒ Ã®nregistratÄƒ recent.</p>
+                        <p className="text-slate-500 italic text-sm text-center py-4">Nicio prezență înregistrată recent.</p>
                     ) : (
                         <div className="space-y-2">
                             {history.map((h, i) => (
@@ -100,7 +100,7 @@ const SportivInfoModal: React.FC<{
                 </div>
                 
                 <div className="pt-4 border-t border-slate-800 flex justify-end">
-                    <Button variant="secondary" onClick={onClose}>ÃŽnchide</Button>
+                    <Button variant="secondary" onClick={onClose}>Închide</Button>
                 </div>
             </div>
         </Modal>
@@ -167,14 +167,14 @@ export const FormularPrezenta: React.FC<{
         fetchSecundari();
     }, [antrenament.grupe?.id, (antrenament as any).grupa_id]);
 
-    // Lista combinatÄƒ: principali + secundari, fÄƒrÄƒ duplicate
+    // Lista combinată: principali + secundari, fără duplicate
     const sportiviInGrupa = useMemo((): SportivCuTip[] => {
         const principali: SportivCuTip[] = (antrenament.grupe?.sportivi || [])
             .filter(s => s.status === 'Activ')
             .map(s => ({ ...s, tip: 'principal' as TipMembru }));
 
-        // EliminÄƒm duplicatele â€” dacÄƒ un sportiv apare È™i ca principal È™i ca secundar,
-        // rÄƒmÃ¢ne doar varianta principalÄƒ
+        // Eliminăm duplicatele â€” dacă un sportiv apare și ca principal și ca secundar,
+        // rămâne doar varianta principală
         const idPrincipali = new Set(principali.map(s => s.id));
         const secundariFiltrati = sportiviSecundari.filter(s => !idPrincipali.has(s.id));
 
@@ -211,7 +211,7 @@ export const FormularPrezenta: React.FC<{
         });
     }, [sportiviInGrupa, presentIds, filterStatus]);
 
-    // CandidaÈ›i pentru invitat: sportivi din acelaÈ™i club, excluzi cei deja Ã®n grupÄƒ
+    // Candidați pentru invitat: sportivi din același club, excluzi cei deja în grupă
     const candidatiInvitat = useMemo(() => {
         const idInGrupa = new Set(sportiviInGrupa.map(s => s.id));
         const idInvitati = new Set(invitati.map(s => s.id));
@@ -270,14 +270,14 @@ export const FormularPrezenta: React.FC<{
                 <div className="absolute top-0 left-0 right-0 -mt-12 flex justify-center z-50 pointer-events-none">
                      <div className="bg-emerald-500 text-white text-lg font-black px-6 py-3 rounded-2xl animate-bounce flex items-center gap-3 shadow-2xl border-4 border-slate-900">
                         <CheckCircleIcon className="w-6 h-6" /> 
-                        <span>PREZENÈšÄ‚ SALVATÄ‚ CU SUCCES!</span>
+                        <span>PREZENȚĂ SALVATĂ CU SUCCES!</span>
                     </div>
                 </div>
             )}
             
             <div className="flex justify-between items-center mb-6">
                 <Button onClick={onBack} variant="secondary" size="sm">
-                    <ArrowLeftIcon className="w-4 h-4 mr-2"/> ÃŽnapoi
+                    <ArrowLeftIcon className="w-4 h-4 mr-2"/> Înapoi
                 </Button>
                 <div className="text-right">
                     <h2 className="text-2xl font-black text-white tracking-tight">{antrenament.grupe?.denumire}</h2>
@@ -289,16 +289,16 @@ export const FormularPrezenta: React.FC<{
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
-                <Button size="sm" variant="secondary" onClick={() => setAllAttendance(true)} className="w-full bg-slate-800 hover:bg-slate-700">ToÈ›i PrezenÈ›i</Button>
-                <Button size="sm" variant="secondary" onClick={() => setAllAttendance(false)} className="w-full bg-slate-800 hover:bg-slate-700">ToÈ›i AbsenÈ›i</Button>
+                <Button size="sm" variant="secondary" onClick={() => setAllAttendance(true)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Prezenți</Button>
+                <Button size="sm" variant="secondary" onClick={() => setAllAttendance(false)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Absenți</Button>
                 <div className="sm:col-span-2 flex justify-center">
                     <Button size="sm" variant="info" onClick={() => setShowInvitatModal(true)} className="gap-2">
-                        <PlusIcon className="w-4 h-4" /> AdaugÄƒ invitat
+                        <PlusIcon className="w-4 h-4" /> Adaugă invitat
                     </Button>
                 </div>
                 <div className="sm:col-span-2 flex flex-col items-center pt-2 gap-2">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                        Status: <span className="text-indigo-400">{presentIds.size}</span> / {sportiviInGrupa.length} prezenÈ›i
+                        Status: <span className="text-indigo-400">{presentIds.size}</span> / {sportiviInGrupa.length} prezenți
                     </span>
                     
                     {/* Filter Controls */}
@@ -307,19 +307,19 @@ export const FormularPrezenta: React.FC<{
                             onClick={() => setFilterStatus('all')}
                             className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${filterStatus === 'all' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-300'}`}
                         >
-                            ToÈ›i
+                            Toți
                         </button>
                         <button 
                             onClick={() => setFilterStatus('present')}
                             className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${filterStatus === 'present' ? 'bg-emerald-500/20 text-emerald-400 shadow-sm' : 'text-slate-400 hover:text-emerald-400'}`}
                         >
-                            PrezenÈ›i
+                            Prezenți
                         </button>
                         <button 
                             onClick={() => setFilterStatus('absent')}
                             className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${filterStatus === 'absent' ? 'bg-rose-500/20 text-rose-400 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
                         >
-                            AbsenÈ›i
+                            Absenți
                         </button>
                     </div>
                 </div>
@@ -328,7 +328,7 @@ export const FormularPrezenta: React.FC<{
             <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar mb-6">
                 {filteredSportivi.length === 0 && invitati.length === 0 ? (
                     <div className="text-center py-8 text-slate-500 italic">
-                        Nu existÄƒ sportivi pentru filtrul selectat.
+                        Nu există sportivi pentru filtrul selectat.
                     </div>
                 ) : (
                     <>
@@ -375,7 +375,7 @@ export const FormularPrezenta: React.FC<{
                             );
                         })}
 
-                        {/* InvitaÈ›i */}
+                        {/* Invitați */}
                         {invitati.map(s => {
                             const isPresent = presentIds.has(s.id);
                             return (
@@ -409,7 +409,7 @@ export const FormularPrezenta: React.FC<{
                                         className="opacity-0 group-hover:opacity-100 h-8 px-2 text-[10px]"
                                         onClick={(e) => { e.stopPropagation(); removeInvitat(s.id); }}
                                     >
-                                        EliminÄƒ
+                                        Elimină
                                     </Button>
                                 </div>
                             );
@@ -418,11 +418,11 @@ export const FormularPrezenta: React.FC<{
                 )}
             </div>
 
-            {/* Modal cÄƒutare invitat */}
-            <Modal isOpen={showInvitatModal} onClose={() => { setShowInvitatModal(false); setSearchInvitat(''); }} title="AdaugÄƒ sportiv invitat">
+            {/* Modal căutare invitat */}
+            <Modal isOpen={showInvitatModal} onClose={() => { setShowInvitatModal(false); setSearchInvitat(''); }} title="Adaugă sportiv invitat">
                 <div className="space-y-4">
                     <Input
-                        label="CautÄƒ dupÄƒ nume"
+                        label="Caută după nume"
                         value={searchInvitat}
                         onChange={e => setSearchInvitat(e.target.value)}
                         placeholder="Nume sau prenume..."
@@ -431,7 +431,7 @@ export const FormularPrezenta: React.FC<{
                     <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
                         {candidatiInvitat.length === 0 ? (
                             <p className="text-center text-slate-500 italic py-6 text-sm">
-                                {searchInvitat ? 'Niciun sportiv gÄƒsit.' : 'ToÈ›i sportivii sunt deja Ã®n grupÄƒ.'}
+                                {searchInvitat ? 'Niciun sportiv găsit.' : 'Toți sportivii sunt deja în grupă.'}
                             </p>
                         ) : (
                             candidatiInvitat.map(s => (
@@ -441,7 +441,7 @@ export const FormularPrezenta: React.FC<{
                                     className="w-full text-left px-4 py-3 rounded-xl bg-slate-800/50 hover:bg-amber-500/10 border border-slate-700/50 hover:border-amber-500/30 transition-all flex items-center justify-between group"
                                 >
                                     <span className="font-semibold text-slate-200 group-hover:text-amber-300">{s.nume} {s.prenume}</span>
-                                    <span className="text-xs text-slate-500 group-hover:text-amber-400">AdaugÄƒ</span>
+                                    <span className="text-xs text-slate-500 group-hover:text-amber-400">Adaugă</span>
                                 </button>
                             ))
                         )}
@@ -457,7 +457,7 @@ export const FormularPrezenta: React.FC<{
 
             <div className="pt-4 border-t border-slate-800">
                 <Button variant="success" size="md" onClick={handleSaveAttendance} isLoading={loading} className="w-full py-4 text-lg shadow-lg shadow-emerald-900/20">
-                    <CheckCircleIcon className="w-5 h-5 mr-2" /> SalveazÄƒ PrezenÈ›a Lot
+                    <CheckCircleIcon className="w-5 h-5 mr-2" /> Salvează Prezența Lot
                 </Button>
             </div>
         </Card>
@@ -528,7 +528,7 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
             });
             if (error) showError("Eroare la salvare orar", error.message);
             else {
-                showSuccess("Succes", "Antrenamentul recurent a fost adÄƒugat Ã®n orar.");
+                showSuccess("Succes", "Antrenamentul recurent a fost adăugat în orar.");
                 // Trigger generation
                 try {
                     await generateTrainingsFromSchedule(30, grupa.id);
@@ -547,7 +547,7 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
             const { error } = await supabase.from('program_antrenamente').insert(data);
             if (error) showError("Eroare", error.message);
             else {
-                showSuccess("Succes", "Antrenamentul personalizat a fost adÄƒugat.");
+                showSuccess("Succes", "Antrenamentul personalizat a fost adăugat.");
                 await refetch();
             }
         }
@@ -567,7 +567,7 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
     return (
         <div className="space-y-6 animate-fade-in">
             <Button onClick={onBack} variant="secondary" className="mb-4">
-                <ArrowLeftIcon className="w-4 h-4 mr-2"/> ÃŽnapoi la Grupe
+                <ArrowLeftIcon className="w-4 h-4 mr-2"/> Înapoi la Grupe
             </Button>
             
             <Card className="border-none shadow-xl bg-slate-900/40 backdrop-blur-sm">
@@ -575,12 +575,12 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                     <div>
                         <h2 className="text-2xl font-black text-white tracking-tight">Antrenamente: {grupa.denumire}</h2>
                         <p className="text-sm text-slate-400 mt-1">
-                            {perioada === 'azi' ? 'Programul de astÄƒzi' : `Istoric antrenamente (${perioada})`}
+                            {perioada === 'azi' ? 'Programul de astăzi' : `Istoric antrenamente (${perioada})`}
                         </p>
                     </div>
                     <div className="flex gap-2 w-full md:w-auto">
                         <Button size="sm" variant="info" onClick={() => setIsFormOpen(true)} className="flex-grow md:flex-grow-0">
-                            <PlusIcon className="w-4 h-4 mr-2" /> AdaugÄƒ
+                            <PlusIcon className="w-4 h-4 mr-2" /> Adaugă
                         </Button>
                     </div>
                 </div>
@@ -592,9 +592,9 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                             value={perioada} 
                             onChange={e => setPerioada(e.target.value as any)}
                         >
-                            <option value="azi">AstÄƒzi</option>
-                            <option value="saptamana">Ultima SÄƒptÄƒmÃ¢nÄƒ</option>
-                            <option value="luna">Ultima LunÄƒ</option>
+                            <option value="azi">Astăzi</option>
+                            <option value="saptamana">Ultima Săptămână</option>
+                            <option value="luna">Ultima Lună</option>
                             <option value="toate">Toate</option>
                         </Select>
                         
@@ -612,7 +612,7 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                             value={filterSportivId} 
                             onChange={e => setFilterSportivId(e.target.value)}
                         >
-                            <option value="">ToÈ›i Sportivii</option>
+                            <option value="">Toți Sportivii</option>
                             {sportiviInGrupa.map((s: any) => (
                                 <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>
                             ))}
@@ -626,7 +626,7 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                     ) : filteredTrainings.length === 0 ? (
                         <div className="text-center py-12 bg-slate-800/10 rounded-2xl border border-dashed border-slate-800">
                             <CalendarDaysIcon className="w-12 h-12 text-slate-700 mx-auto mb-3 opacity-20" />
-                            <p className="text-slate-500 italic">Nu existÄƒ antrenamente programate pentru aceastÄƒ selecÈ›ie.</p>
+                            <p className="text-slate-500 italic">Nu există antrenamente programate pentru această selecție.</p>
                         </div>
                     ) : (
                         <div className="space-y-3">
@@ -657,7 +657,7 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                                             </div>
                                         </div>
                                         <Button size="sm" onClick={() => setSelectedTraining(a as any)} className={`w-full sm:w-auto shadow-lg ${isToday ? 'shadow-indigo-500/20' : 'shadow-slate-900/20'}`}>
-                                            {isToday ? 'BifeazÄƒ PrezenÈ›a' : 'Vezi PrezenÈ›a'} &rarr;
+                                            {isToday ? 'Bifează Prezența' : 'Vezi Prezența'} &rarr;
                                         </Button>
                                     </div>
                                 );

@@ -30,9 +30,9 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
 
     const handleToggleResult = useCallback(async (inscriere: InscriereExamen, toggledResult: 'Admis' | 'Respins') => {
         const sportivNume = inscriere.sportiv_nume || (inscriere.sportivi?.nume + ' ' + inscriere.sportivi?.prenume) || 'Necunoscut';
-        console.log(`[PHI HAU DEBUG] Click event declanÈ™at pentru: ${sportivNume}, Decizie: ${toggledResult}`);
+        console.log(`[PHI HAU DEBUG] Click event declanșat pentru: ${sportivNume}, Decizie: ${toggledResult}`);
         if (!supabase) {
-            showError("Eroare Configurare", "Client Supabase neiniÈ›ializat.");
+            showError("Eroare Configurare", "Client Supabase neinițializat.");
             return;
         }
 
@@ -80,7 +80,7 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
                 setSportiviGlobal(prev => prev.map(s => s.id === inscriere.sportiv_id ? { ...s, grad_actual_id: sportivGradUpdate } : s));
             }
             
-            showSuccess("Succes", `Gradul a fost actualizat È™i arhivat Ã®n istoric.`);
+            showSuccess("Succes", `Gradul a fost actualizat și arhivat în istoric.`);
         } catch (err: any) {
             setError(err.message);
             showError("Eroare la Salvare", err.message);
@@ -100,7 +100,7 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
                     <tr>
                         <th className="p-4 font-bold">Sportiv</th>
                         <th className="p-4 font-bold">Grad Vizat</th>
-                        <th className="p-4 font-bold text-center">Alegere ManualÄƒ</th>
+                        <th className="p-4 font-bold text-center">Alegere Manuală</th>
                     </tr>
                 </thead>
                 <tbody>

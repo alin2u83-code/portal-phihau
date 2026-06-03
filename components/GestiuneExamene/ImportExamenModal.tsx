@@ -95,8 +95,8 @@ const stringSimilarity = (a: string, b: string): number => {
     return union.size === 0 ? 0 : intersection.size / union.size;
 };
 
-// NormalizeazÄƒ orice format de datÄƒ la yyyy-mm-dd
-// AcceptÄƒ: yyyy-mm-dd, dd/mm/yyyy, d/m/yyyy, dd-mm-yyyy
+// Normalizează orice format de dată la yyyy-mm-dd
+// Acceptă: yyyy-mm-dd, dd/mm/yyyy, d/m/yyyy, dd-mm-yyyy
 const parseDateToISO = (raw: string): string => {
     if (!raw) return '';
     const s = raw.trim();
@@ -195,8 +195,8 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     const PROBE_GRILA = ['Tehnica', 'Doc/Luyen', 'Song/Doi', 'Thao/Quyen', 'Nota generala'] as const;
 
     const mapGrilaToCsvRow = (row: GrilaRow): CsvRow => {
-        // VerificÄƒ fiecare probÄƒ: dacÄƒ nu e introdusÄƒ, se considerÄƒ nota de promovare (7)
-        // DacÄƒ orice probÄƒ introdusÄƒ < 7 â†’ Respins
+        // Verifică fiecare probă: dacă nu e introdusă, se consideră nota de promovare (7)
+        // Dacă orice probă introdusă < 7 â†’ Respins
         let rezultat: CsvRow['Rezultat'] = 'Admis';
         for (const proba of PROBE_GRILA) {
             const raw = row[proba];
@@ -207,7 +207,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     break;
                 }
             }
-            // dacÄƒ e goalÄƒ â†’ 7 implicit â†’ trece
+            // dacă e goală â†’ 7 implicit â†’ trece
         }
         return {
             Nume: row.NUME || '',
@@ -239,12 +239,12 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     const handleProcessFiles = async () => {
         if (!examFile) return;
         if (grades.length === 0) {
-            showError("Grade indisponibile", "Lista de grade nu a putut fi Ã®ncÄƒrcatÄƒ. ReÃ®ncarcÄƒ pagina È™i Ã®ncearcÄƒ din nou.");
+            showError("Grade indisponibile", "Lista de grade nu a putut fi încărcată. Reîncarcă pagina și încearcă din nou.");
             return;
         }
         if (csvFormat !== 'own') {
             if (!sessionOverride.data || !sessionOverride.sesiune_denumire || !sessionOverride.localitate) {
-                showError("Date sesiune lipsÄƒ", "Pentru acest format trebuie sÄƒ completezi Data, Denumirea sesiunii È™i Localitatea.");
+                showError("Date sesiune lipsă", "Pentru acest format trebuie să completezi Data, Denumirea sesiunii și Localitatea.");
                 return;
             }
         }
@@ -364,14 +364,14 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             };
 
             if (!row.Nume || !row.Prenume || !row.Grad_Nou_Ordine || !row.Sesiune_Denumire || !row.Data_Examen || !row.Localitate) {
-                return { ...baseRow, status: 'error', message: 'RÃ¢nd incomplet. Toate coloanele sunt obligatorii.', sessionInfo, birthdate };
+                return { ...baseRow, status: 'error', message: 'Rând incomplet. Toate coloanele sunt obligatorii.', sessionInfo, birthdate };
             }
 
             if (!grades.some(g => String(g.ordine) === String(row.Grad_Nou_Ordine).trim())) {
                 return { ...baseRow, status: 'error', message: `Cod Grad invalid: ${row.Grad_Nou_Ordine}`, sessionInfo, birthdate };
             }
 
-            // Potrivire dupÄƒ Nume + Prenume (+ Data NaÈ™terii dacÄƒ e disponibilÄƒ)
+            // Potrivire după Nume + Prenume (+ Data Nașterii dacă e disponibilă)
             const fullNameCsv = `${row.Nume} ${row.Prenume}`;
             const potentialMatches = (allSportivi || [])
                 .map(s => ({ ...s, similarity: stringSimilarity(fullNameCsv, `${s.nume} ${s.prenume}`) }))
@@ -384,34 +384,34 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     ? potentialMatches.find(s => parseDateToISO(String(s.data_nasterii || '')) === parseDateToISO(birthdate))
                     : null;
 
-                // Auto-resolve: nume similar + data naÈ™terii identicÄƒ â†’ valid fÄƒrÄƒ intervenÈ›ie manualÄƒ
+                // Auto-resolve: nume similar + data nașterii identică â†’ valid fără intervenție manuală
                 if (exactBirthdateMatch && exactBirthdateMatch.similarity >= 0.7) {
                     const sportivId = exactBirthdateMatch.id;
                     const existingSessionId = sessionInfo.existingSessionId;
                     if (existingSessionId && inscrieriSet.has(`${sportivId}_${existingSessionId}`)) {
-                        return { ...baseRow, status: 'error', message: 'Deja Ã®nscris la aceastÄƒ sesiune â€” sÄƒrit (existÄƒ Ã®n baza de date)', existingSportiv: exactBirthdateMatch, sessionInfo, birthdate };
+                        return { ...baseRow, status: 'error', message: 'Deja înscris la această sesiune â€” sărit (există în baza de date)', existingSportiv: exactBirthdateMatch, sessionInfo, birthdate };
                     }
                     return {
                         ...baseRow,
                         status: 'valid',
-                        message: `Auto-potrivit (Nume + Data NaÈ™terii): ${exactBirthdateMatch.nume} ${exactBirthdateMatch.prenume}`,
+                        message: `Auto-potrivit (Nume + Data Nașterii): ${exactBirthdateMatch.nume} ${exactBirthdateMatch.prenume}`,
                         existingSportiv: exactBirthdateMatch,
                         sessionInfo,
                         birthdate,
                     };
                 }
 
-                // Potrivire exactÄƒ de nume (similarity = 1) fÄƒrÄƒ datÄƒ â†’ valid automat
+                // Potrivire exactă de nume (similarity = 1) fără dată â†’ valid automat
                 if (potentialMatches[0].similarity === 1) {
                     const sportivId = potentialMatches[0].id;
                     const existingSessionId = sessionInfo.existingSessionId;
                     if (existingSessionId && inscrieriSet.has(`${sportivId}_${existingSessionId}`)) {
-                        return { ...baseRow, status: 'error', message: 'Deja Ã®nscris la aceastÄƒ sesiune â€” sÄƒrit (existÄƒ Ã®n baza de date)', existingSportiv: potentialMatches[0], sessionInfo, birthdate };
+                        return { ...baseRow, status: 'error', message: 'Deja înscris la această sesiune â€” sărit (există în baza de date)', existingSportiv: potentialMatches[0], sessionInfo, birthdate };
                     }
                     return {
                         ...baseRow,
                         status: 'valid',
-                        message: `GÄƒsit (Nume exact): ${potentialMatches[0].nume} ${potentialMatches[0].prenume}`,
+                        message: `Găsit (Nume exact): ${potentialMatches[0].nume} ${potentialMatches[0].prenume}`,
                         existingSportiv: potentialMatches[0],
                         sessionInfo,
                         birthdate,
@@ -422,8 +422,8 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 return { ...baseRow, status: 'conflict', message: 'Potriviri similare â€” alege sportivul corect', conflicts: potentialMatches, sessionInfo, birthdate };
             }
 
-            // Niciun sportiv gÄƒsit â†’ va fi creat automat
-            return { ...baseRow, status: 'create', message: `Sportiv nou â€” va fi creat È™i Ã®nregistrat la examen`, generatedCode: undefined, sessionInfo, birthdate };
+            // Niciun sportiv găsit â†’ va fi creat automat
+            return { ...baseRow, status: 'create', message: `Sportiv nou â€” va fi creat și înregistrat la examen`, generatedCode: undefined, sessionInfo, birthdate };
         });
 
         return Promise.all(validationPromises);
@@ -447,7 +447,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         setImportProgress({ done: 0, total: rowsToProcess.length });
 
         try {
-            // â”€â”€ Pas 1: Creare sesiuni & locaÈ›ii â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // â”€â”€ Pas 1: Creare sesiuni & locații â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             const newSessionsToCreate = new Map<string, PreviewRow['sessionInfo']>();
             rowsToProcess.forEach(row => {
                 if (row.sessionInfo.isNew && !newSessionsToCreate.has(row.sessionInfo.key))
@@ -455,7 +455,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             });
 
             for (const [key, sessionInfo] of newSessionsToCreate.entries()) {
-                // LocaÈ›ie
+                // Locație
                 let locatie = localLocatii.find(
                     l => l.nume.toLowerCase() === sessionInfo.localitate.toLowerCase()
                 );
@@ -465,12 +465,12 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         .insert({ nume: sessionInfo.localitate })
                         .select()
                         .maybeSingle();
-                    if (locError) throw new Error(`Nu s-a putut crea locaÈ›ia '${sessionInfo.localitate}': ${locError.message}`);
-                    if (!newLoc) throw new Error(`Nu s-a putut crea locaÈ›ia '${sessionInfo.localitate}'.`);
+                    if (locError) throw new Error(`Nu s-a putut crea locația '${sessionInfo.localitate}': ${locError.message}`);
+                    if (!newLoc) throw new Error(`Nu s-a putut crea locația '${sessionInfo.localitate}'.`);
                     locatie = newLoc;
                     localLocatii.push(newLoc);
                 }
-                // Sesiune â€” verificÄƒ din nou Ã®n DB dupÄƒ datÄƒ + denumire (fix: nu doar datÄƒ)
+                // Sesiune â€” verifică din nou în DB după dată + denumire (fix: nu doar dată)
                 const existingCheck = localSesiuni.find(
                     s => s.data === sessionInfo.dataExamen && s.nume === sessionInfo.sesiuneDenumire
                 );
@@ -499,7 +499,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             setLocatii(localLocatii);
             setSesiuni(localSesiuni);
 
-            // â”€â”€ Pas 2: Procesare Ã®n batch-uri paralele â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // â”€â”€ Pas 2: Procesare în batch-uri paralele â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             let done = 0;
             for (let i = 0; i < rowsToProcess.length; i += BATCH_SIZE) {
                 const batch = rowsToProcess.slice(i, i + BATCH_SIZE);
@@ -518,7 +518,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         const gradOrdine = parseInt(row.Grad_Nou_Ordine);
                         if (isNaN(gradOrdine)) throw new Error(`Grad invalid: "${row.Grad_Nou_Ordine}"`);
 
-                        // 1. GÄƒseÈ™te gradul
+                        // 1. Găsește gradul
                         const { data: gradData, error: gradError } = await supabase
                             .from('grade').select('id, ordine').eq('ordine', gradOrdine).single();
                         if (gradError || !gradData) throw new Error(`Grad invalid (ordine=${gradOrdine})`);
@@ -527,7 +527,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         const dataExamen = parseDateToISO(row.Data_Examen);
                         const contributie = parseFloat(row.Contributie) || 0;
 
-                        // 2. CreeazÄƒ sau foloseÈ™te sportivul existent
+                        // 2. Creează sau folosește sportivul existent
                         let finalSportivId = sportivId;
                         if (!finalSportivId) {
                             const { data: newSportiv, error: sportivError } = await supabase
@@ -551,7 +551,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                 .is('data_nasterii', null);
                         }
 
-                        // 3. ÃŽnregistreazÄƒ Ã®nscrierea la examen
+                        // 3. Înregistrează înscrierea la examen
                         const { data: existingInscriere } = await supabase
                             .from('inscrieri_examene')
                             .select('id')
@@ -581,7 +581,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             if (insertError) throw insertError;
                         }
 
-                        // 4. DacÄƒ Admis: actualizeazÄƒ gradul È™i istoricul de grade
+                        // 4. Dacă Admis: actualizează gradul și istoricul de grade
                         if (row.Rezultat === 'Admis') {
                             const { data: sportivCurent } = await supabase
                                 .from('sportivi')
@@ -618,15 +618,15 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : String(err);
             setErrorLog({ general: msg });
-            showError('Eroare CriticÄƒ de Import', msg);
+            showError('Eroare Critică de Import', msg);
         } finally {
             setIsProcessing(false);
             setImportProgress(null);
             if (errorDetails.length > 0) {
-                setErrorLog({ general: 'Erori la procesarea unor rÃ¢nduri.', details: errorDetails });
+                setErrorLog({ general: 'Erori la procesarea unor rânduri.', details: errorDetails });
                 showError(`Import finalizat cu ${errorDetails.length} erori`, `${successCount} procesate cu succes.`);
             } else {
-                showSuccess('Import Finalizat', `${successCount} Ã®nregistrÄƒri procesate cu succes.`);
+                showSuccess('Import Finalizat', `${successCount} înregistrări procesate cu succes.`);
                 onImportComplete();
                 onClose();
             }
@@ -685,7 +685,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         },
         {
             key: 'birthdate',
-            label: 'Data NaÈ™terii',
+            label: 'Data Nașterii',
             render: (row) => <span className="text-xs text-slate-400">{row.birthdate || '-'}</span>
         },
         {
@@ -693,7 +693,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             label: 'Grad',
             render: (row) => {
                 const grad = grades.find(g => String(g.ordine) === String(row.Grad_Nou_Ordine));
-                return <span className="text-xs text-slate-300">{grad ? `${grad.nume} (${grad.ordine})` : <span className="text-red-400">NegÄƒsit: {row.Grad_Nou_Ordine}</span>}</span>;
+                return <span className="text-xs text-slate-300">{grad ? `${grad.nume} (${grad.ordine})` : <span className="text-red-400">Negăsit: {row.Grad_Nou_Ordine}</span>}</span>;
             }
         },
         {
@@ -712,7 +712,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         },
         {
             key: 'status',
-            label: 'AcÈ›iune/Status',
+            label: 'Acțiune/Status',
             render: (row) => (
                 row.status === 'conflict' ? (
                     <ConflictResolver row={row} onResolve={handleResolution} />
@@ -740,7 +740,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 </span>
             </div>
             <p className="text-xs text-slate-300 mb-1">
-                Grad: {grad ? <strong>{grad.nume}</strong> : <span className="text-red-400">NegÄƒsit ({row.Grad_Nou_Ordine})</span>}
+                Grad: {grad ? <strong>{grad.nume}</strong> : <span className="text-red-400">Negăsit ({row.Grad_Nou_Ordine})</span>}
             </p>
             <p className="text-sm text-slate-400 mb-2">Sesiune: {row.Sesiune_Denumire}</p>
             
@@ -774,7 +774,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         className="w-full flex items-center justify-between px-4 py-3 bg-slate-800 hover:bg-slate-700 text-left"
                     >
                         <span className="flex items-center gap-2 font-semibold text-brand-secondary">
-                            <BookOpenIcon className="w-5 h-5" /> Ghid de pregÄƒtire import
+                            <BookOpenIcon className="w-5 h-5" /> Ghid de pregătire import
                         </span>
                         <ChevronDownIcon className={`w-4 h-4 text-slate-400 transition-transform ${ghidOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -782,23 +782,23 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     {ghidOpen && (
                         <div className="p-5 space-y-5 bg-slate-900/50 text-sm">
 
-                            {/* PaÈ™i */}
+                            {/* Pași */}
                             <div>
-                                <h3 className="font-bold text-white mb-2">Cum pregÄƒteÈ™ti fiÈ™ierul CSV</h3>
+                                <h3 className="font-bold text-white mb-2">Cum pregătești fișierul CSV</h3>
                                 <ol className="space-y-1 list-decimal pl-5 text-slate-300">
-                                    <li>DescarcÄƒ <strong>Lista de referinÈ›Äƒ sportivi</strong> (butonul de mai jos) â€” conÈ›ine ID, Nume, Prenume, Data NaÈ™terii È™i Grad Actual.</li>
-                                    <li>Deschide lista Ã®n Excel. SalveazÄƒ foaia ca <code className="bg-slate-800 px-1 rounded">Referinta</code> Ã®n acelaÈ™i fiÈ™ier cu grila de examen.</li>
-                                    <li>ÃŽn coloana <strong>ID</strong> din grilÄƒ, lipeÈ™te formula de mai jos â€” cautÄƒ automat ID-ul dupÄƒ <em>Nume + Prenume + Data NaÈ™terii</em>.</li>
-                                    <li>Coloana <strong>Data NaÈ™terii</strong> trebuie sÄƒ fie Ã®n format <code className="bg-slate-800 px-1 rounded">yyyy-mm-dd</code> (ex: <code className="bg-slate-800 px-1 rounded">2010-05-20</code>). DacÄƒ Excel o afiÈ™eazÄƒ altfel, formateazÄƒ coloana ca <strong>Text</strong> Ã®nainte de export CSV.</li>
-                                    <li>Gradul trebuie scris <strong>exact ca Ã®n tabelul de mai jos</strong> â€” sau foloseÈ™te numÄƒrul de ordine.</li>
-                                    <li>ExportÄƒ ca <code className="bg-slate-800 px-1 rounded">.csv</code> È™i Ã®ncarcÄƒ mai jos.</li>
+                                    <li>Descarcă <strong>Lista de referință sportivi</strong> (butonul de mai jos) â€” conține ID, Nume, Prenume, Data Nașterii și Grad Actual.</li>
+                                    <li>Deschide lista în Excel. Salvează foaia ca <code className="bg-slate-800 px-1 rounded">Referinta</code> în același fișier cu grila de examen.</li>
+                                    <li>În coloana <strong>ID</strong> din grilă, lipește formula de mai jos â€” caută automat ID-ul după <em>Nume + Prenume + Data Nașterii</em>.</li>
+                                    <li>Coloana <strong>Data Nașterii</strong> trebuie să fie în format <code className="bg-slate-800 px-1 rounded">yyyy-mm-dd</code> (ex: <code className="bg-slate-800 px-1 rounded">2010-05-20</code>). Dacă Excel o afișează altfel, formatează coloana ca <strong>Text</strong> înainte de export CSV.</li>
+                                    <li>Gradul trebuie scris <strong>exact ca în tabelul de mai jos</strong> â€” sau folosește numărul de ordine.</li>
+                                    <li>Exportă ca <code className="bg-slate-800 px-1 rounded">.csv</code> și încarcă mai jos.</li>
                                 </ol>
                             </div>
 
-                            {/* ReferinÈ›Äƒ sportivi */}
+                            {/* Referință sportivi */}
                             <div className="flex items-center justify-between bg-slate-800 rounded-lg p-3">
                                 <div>
-                                    <p className="font-semibold text-white">Lista de referinÈ›Äƒ sportivi</p>
+                                    <p className="font-semibold text-white">Lista de referință sportivi</p>
                                     <p className="text-xs text-slate-400">CSV cu: ID, Nume, Prenume, Data_Nasterii, Grad_Actual</p>
                                 </div>
                                 <Button
@@ -808,7 +808,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                     isLoading={downloadingRef}
                                     disabled={grades.length === 0}
                                 >
-                                    <DocumentArrowDownIcon className="w-4 h-4 mr-1" /> DescarcÄƒ
+                                    <DocumentArrowDownIcon className="w-4 h-4 mr-1" /> Descarcă
                                 </Button>
                             </div>
 
@@ -816,7 +816,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             <div>
                                 <h3 className="font-bold text-white mb-1">Formula Excel pentru extragerea ID-ului</h3>
                                 <p className="text-xs text-slate-400 mb-2">
-                                    DacÄƒ Ã®n grila ta <strong>A2=Nume, B2=Prenume, C2=Data_Nasterii</strong>, pune formula Ã®n coloana ID:
+                                    Dacă în grila ta <strong>A2=Nume, B2=Prenume, C2=Data_Nasterii</strong>, pune formula în coloana ID:
                                 </p>
                                 <div className="flex items-start gap-2">
                                     <pre className="flex-1 bg-slate-950 border border-slate-700 rounded p-3 text-xs text-green-400 font-mono whitespace-pre-wrap overflow-x-auto">
@@ -826,33 +826,33 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
           Referinta!$B:$B&"|"&Referinta!$C:$C&"|"&TEXT(Referinta!$D:$D,"YYYY-MM-DD"),
           0)
   ),
-  "NEGÄ‚SIT"
+  "NEGĂSIT"
 )`}
                                     </pre>
                                     <button
                                         type="button"
                                         onClick={() => {
                                             navigator.clipboard.writeText(
-                                                `=IFERROR(INDEX(Referinta!$A:$A,MATCH(A2&"|"&B2&"|"&TEXT(C2,"YYYY-MM-DD"),Referinta!$B:$B&"|"&Referinta!$C:$C&"|"&TEXT(Referinta!$D:$D,"YYYY-MM-DD"),0)),"NEGÄ‚SIT")`
+                                                `=IFERROR(INDEX(Referinta!$A:$A,MATCH(A2&"|"&B2&"|"&TEXT(C2,"YYYY-MM-DD"),Referinta!$B:$B&"|"&Referinta!$C:$C&"|"&TEXT(Referinta!$D:$D,"YYYY-MM-DD"),0)),"NEGĂSIT")`
                                             );
                                             setCopiedFormula(true);
                                             setTimeout(() => setCopiedFormula(false), 2000);
                                         }}
                                         className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white"
-                                        title="CopiazÄƒ formula"
+                                        title="Copiază formula"
                                     >
                                         <ClipboardCheckIcon className="w-4 h-4" />
-                                        {copiedFormula ? 'Copiat!' : 'CopiazÄƒ'}
+                                        {copiedFormula ? 'Copiat!' : 'Copiază'}
                                     </button>
                                 </div>
                                 <p className="text-xs text-slate-500 mt-1">
-                                    âš ï¸ ÃŽn Excel 365 apasÄƒ <kbd className="bg-slate-700 px-1 rounded">Enter</kbd> direct. ÃŽn Excel mai vechi (pre-2019) apasÄƒ <kbd className="bg-slate-700 px-1 rounded">Ctrl+Shift+Enter</kbd>.
+                                    âš ï¸ În Excel 365 apasă <kbd className="bg-slate-700 px-1 rounded">Enter</kbd> direct. În Excel mai vechi (pre-2019) apasă <kbd className="bg-slate-700 px-1 rounded">Ctrl+Shift+Enter</kbd>.
                                 </p>
                             </div>
 
                             {/* Tabel grade */}
                             <div>
-                                <h3 className="font-bold text-white mb-2">Grade valide (scrieÈ›i exact aceastÄƒ denumire Ã®n CSV)</h3>
+                                <h3 className="font-bold text-white mb-2">Grade valide (scrieți exact această denumire în CSV)</h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                                     {grades.map(g => (
                                         <div key={g.id} className="flex items-center gap-2 bg-slate-800 rounded px-3 py-1.5">
@@ -861,7 +861,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                         </div>
                                     ))}
                                 </div>
-                                <p className="text-xs text-slate-500 mt-2">Coloana din CSV: <code className="bg-slate-800 px-1 rounded">Grad sustinut</code> (Format GrilÄƒ) sau <code className="bg-slate-800 px-1 rounded">Gradul sustinut</code> (Format FederaÈ›ie). NumÄƒrul din coloana <strong>Ord.</strong> poate fi folosit direct Ã®n loc de denumire.</p>
+                                <p className="text-xs text-slate-500 mt-2">Coloana din CSV: <code className="bg-slate-800 px-1 rounded">Grad sustinut</code> (Format Grilă) sau <code className="bg-slate-800 px-1 rounded">Gradul sustinut</code> (Format Federație). Numărul din coloana <strong>Ord.</strong> poate fi folosit direct în loc de denumire.</p>
                             </div>
 
                         </div>
@@ -870,33 +870,33 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
 
                 <div className="space-y-4">
                     <Select
-                        label="Format fiÈ™ier CSV"
+                        label="Format fișier CSV"
                         value={csvFormat}
                         onChange={e => { setCsvFormat(e.target.value as CsvFormat); setExamFile(null); setPreviewData([]); }}
                     >
                         <option value="own">Format Propriu</option>
-                        <option value="grila">Format GrilÄƒ Examen</option>
-                        <option value="federatie">Format Tabel FederaÈ›ie</option>
+                        <option value="grila">Format Grilă Examen</option>
+                        <option value="federatie">Format Tabel Federație</option>
                     </Select>
 
                     {csvFormat !== 'own' && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                            <p className="md:col-span-3 text-xs text-slate-400 font-semibold">Detalii sesiune (nu sunt Ã®n CSV-ul extern):</p>
+                            <p className="md:col-span-3 text-xs text-slate-400 font-semibold">Detalii sesiune (nu sunt în CSV-ul extern):</p>
                             <Input label="Data Examenului *" type="date" value={sessionOverride.data}
                                 onChange={e => setSessionOverride(p => ({ ...p, data: e.target.value }))} />
                             <Input label="Denumire Sesiune *" value={sessionOverride.sesiune_denumire}
                                 onChange={e => setSessionOverride(p => ({ ...p, sesiune_denumire: e.target.value }))}
-                                placeholder="ex: Examen IarnÄƒ 2026" />
+                                placeholder="ex: Examen Iarnă 2026" />
                             <Input label="Localitate *" value={sessionOverride.localitate}
                                 onChange={e => setSessionOverride(p => ({ ...p, localitate: e.target.value }))}
-                                placeholder="ex: IaÈ™i" />
+                                placeholder="ex: Iași" />
                         </div>
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Input type="file" accept=".csv" label="FiÈ™ier Examen (Obligatoriu)"
+                        <Input type="file" accept=".csv" label="Fișier Examen (Obligatoriu)"
                             onChange={(e) => setExamFile(e.target.files?.[0] || null)} />
-                        <Input type="file" accept=".csv" label="FiÈ™ier Date NaÈ™tere (OpÈ›ional)"
+                        <Input type="file" accept=".csv" label="Fișier Date Naștere (Opțional)"
                             onChange={(e) => setBirthdateFile(e.target.files?.[0] || null)} />
                     </div>
                 </div>
@@ -908,23 +908,23 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         isLoading={isProcessing}
                         variant="primary"
                     >
-                        ProceseazÄƒ FiÈ™ierele
+                        Procesează Fișierele
                     </Button>
                 </div>
                 
                 {previewData.length > 0 && (
                     <div className="space-y-4 animate-fade-in-down">
-                        <h2 className="text-xl font-bold">Previzualizare È™i Confirmare</h2>
+                        <h2 className="text-xl font-bold">Previzualizare și Confirmare</h2>
 
                         {/* Debug Stats Panel */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <div className="bg-slate-800 rounded-lg p-3 text-center">
                                 <p className="text-2xl font-bold text-white">{previewData.length}</p>
-                                <p className="text-xs text-slate-400">Total RÃ¢nduri</p>
+                                <p className="text-xs text-slate-400">Total Rânduri</p>
                             </div>
                             <div className="bg-green-900/30 rounded-lg p-3 text-center border border-green-800">
                                 <p className="text-2xl font-bold text-green-400">{previewData.filter(r => r.status === 'valid').length}</p>
-                                <p className="text-xs text-slate-400">GÄƒsiÈ›i (Exact)</p>
+                                <p className="text-xs text-slate-400">Găsiți (Exact)</p>
                             </div>
                             <div className="bg-amber-900/30 rounded-lg p-3 text-center border border-amber-800">
                                 <p className="text-2xl font-bold text-amber-400">{previewData.filter(r => r.status === 'conflict').length}</p>
@@ -932,7 +932,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             </div>
                             <div className="bg-blue-900/30 rounded-lg p-3 text-center border border-blue-800">
                                 <p className="text-2xl font-bold text-blue-400">{previewData.filter(r => r.status === 'create').length}</p>
-                                <p className="text-xs text-slate-400">Sportivi Noi (creaÈ›i automat)</p>
+                                <p className="text-xs text-slate-400">Sportivi Noi (creați automat)</p>
                             </div>
                             {previewData.filter(r => r.status === 'error').length > 0 && (
                                 <div className="bg-red-900/30 rounded-lg p-3 text-center border border-red-800 col-span-2 md:col-span-1">
@@ -963,7 +963,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         {importProgress && (
                             <div className="space-y-1">
                                 <div className="flex justify-between text-xs text-slate-400">
-                                    <span>Se proceseazÄƒ... {importProgress.done} / {importProgress.total}</span>
+                                    <span>Se procesează... {importProgress.done} / {importProgress.total}</span>
                                     <span>{Math.round((importProgress.done / importProgress.total) * 100)}%</span>
                                 </div>
                                 <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
@@ -980,13 +980,13 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                 size="sm"
                                 onClick={handleDescarcaRaport}
                                 disabled={previewData.length === 0}
-                                title="DescarcÄƒ previzualizarea curentÄƒ ca raport CSV"
+                                title="Descarcă previzualizarea curentă ca raport CSV"
                             >
                                 <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
-                                DescarcÄƒ raport previzualizare
+                                Descarcă raport previzualizare
                             </Button>
                             <Button onClick={confirmImport} variant="primary" size="md" isLoading={isProcessing && !importProgress} disabled={isProcessing || unresolvedConflicts || importableRowsCount === 0}>
-                                ImportÄƒ {importableRowsCount} ÃŽnregistrÄƒri
+                                Importă {importableRowsCount} Înregistrări
                             </Button>
                         </div>
                     </div>
@@ -1002,7 +1002,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             <div className="mt-2 max-h-40 overflow-y-auto bg-black/30 p-2 rounded-md text-xs space-y-1">
                                 {errorLog.details.map((e: any, i: number) => (
                                     <div key={i}>
-                                        <p className="font-mono text-red-300">RÃ¢nd {e.row} ({e.name}): <span className="text-red-400">{e.error}</span></p>
+                                        <p className="font-mono text-red-300">Rând {e.row} ({e.name}): <span className="text-red-400">{e.error}</span></p>
                                     </div>
                                 ))}
                             </div>
@@ -1018,7 +1018,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             className="mt-4" 
                             onClick={() => navigator.clipboard.writeText(JSON.stringify(errorLog, null, 2))}
                         >
-                            CopiazÄƒ Cod Debug
+                            Copiază Cod Debug
                         </Button>
                     </div>
                 )}
@@ -1035,19 +1035,19 @@ const ConflictResolver: React.FC<{ row: PreviewRow, onResolve: (index: number, r
         <div className="flex items-center gap-2 relative">
             <ExclamationTriangleIcon className="w-5 h-5 text-amber-400" />
             <span className="text-xs text-amber-400">{row.message}</span>
-            <Button size="sm" variant="warning" className="!text-xs !py-0.5" onClick={() => setIsOpen(!isOpen)}>RezolvÄƒ</Button>
+            <Button size="sm" variant="warning" className="!text-xs !py-0.5" onClick={() => setIsOpen(!isOpen)}>Rezolvă</Button>
             {isOpen && (
                 <div className="absolute z-20 mt-1 w-80 bg-slate-700 border border-slate-600 rounded-md shadow-lg p-2 right-0 top-full">
-                    <p className="text-xs font-bold mb-2 text-white">Conflicte GÄƒsite:</p>
+                    <p className="text-xs font-bold mb-2 text-white">Conflicte Găsite:</p>
                     {row.conflicts?.map(c => (
                         <button key={c.id} onClick={() => { onResolve(row.originalIndex, { action: 'use_existing', sportivId: c.id }); setIsOpen(false); }} className="w-full text-left p-2 hover:bg-slate-600 rounded text-xs mb-1 border border-slate-600">
                             <div className="font-bold text-white">{c.nume} {c.prenume}</div>
                             <div className="text-slate-400">Cod: {c.cod_sportiv || 'N/A'} | Data N.: {c.data_nasterii || 'N/A'}</div>
-                            {c.data_nasterii === row.birthdate && <div className="text-amber-400 font-bold mt-1">âš ï¸ Data naÈ™terii identicÄƒ!</div>}
+                            {c.data_nasterii === row.birthdate && <div className="text-amber-400 font-bold mt-1">âš ï¸ Data nașterii identică!</div>}
                         </button>
                     ))}
                     <button onClick={() => { onResolve(row.originalIndex, { action: 'create' }); setIsOpen(false); }} className="w-full text-left p-2 hover:bg-slate-600 rounded text-xs font-bold text-green-400 mt-2 border border-green-900 bg-green-900/20">
-                        <UserPlusIcon className="w-4 h-4 inline mr-1"/> CreeazÄƒ sportiv nou (IgnorÄƒ duplicatele)
+                        <UserPlusIcon className="w-4 h-4 inline mr-1"/> Creează sportiv nou (Ignoră duplicatele)
                     </button>
                 </div>
             )}

@@ -11,7 +11,7 @@ import { supabase } from '../../supabaseClient';
 
 const exportToCsv = (filename: string, rows: object[]) => {
     if (!rows || rows.length === 0) {
-        alert("Nu existÄƒ date de exportat.");
+        alert("Nu există date de exportat.");
         return;
     }
     const separator = ',';
@@ -62,15 +62,15 @@ interface ReportRow {
     sportivId: string;
     nume: string;
     grad: string;
-    // Luna curentÄƒ
+    // Luna curentă
     totalTrainings: number;
     attendedTrainings: number;
-    // PerioadÄƒ examen
+    // Perioadă examen
     perioadaStart: string | null;
     perioadaEnd: string | null;
     totalPerioadaExamen: number;
     attendedPerioadaExamen: number;
-    // Breakdown per grupÄƒ (luna curentÄƒ)
+    // Breakdown per grupă (luna curentă)
     grupeBreakdown: GrupaBreakdown[];
 }
 
@@ -84,7 +84,7 @@ interface RaportLunarPrezentaProps {
     onBack: () => void;
 }
 
-// â”€â”€â”€ ComponentÄƒ principalÄƒ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Componentă principală â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack }) => {
     const { filteredData, grade, activeRoleContext } = useData();
@@ -160,9 +160,9 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         fetchExamene();
     }, [clubId]);
 
-    // â”€â”€ CalculeazÄƒ intervalul perioadei de examen (din perspectiva lunii selectate) â”€
+    // â”€â”€ Calculează intervalul perioadei de examen (din perspectiva lunii selectate) â”€
     const perioadaExamen = useMemo(() => {
-        // LuÄƒm data de referinÈ›Äƒ = prima zi a lunii selectate
+        // Luăm data de referință = prima zi a lunii selectate
         const refDate = new Date(filters.year, filters.month, 1);
         const todayStr = today.toISOString().slice(0, 10);
 
@@ -172,11 +172,11 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             .sort();
 
         if (sortedDates.length === 0) {
-            // Nu existÄƒ examene Ã®n DB â€” perioada = de la data_inscrierii sau 2024-01-01 pÃ¢nÄƒ azi
+            // Nu există examene în DB â€” perioada = de la data_inscrierii sau 2024-01-01 până azi
             return { start: null, end: todayStr };
         }
 
-        // Ultimul examen ÃŽNAINTE SAU ÃŽN luna selectatÄƒ
+        // Ultimul examen ÎNAINTE SAU ÎN luna selectată
         const refStr = refDate.toISOString().slice(0, 10);
         const trecut = sortedDates.filter(d => d <= refStr);
         const viitor = sortedDates.filter(d => d > refStr);
@@ -222,23 +222,23 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             sportiviFiltrati = sportivi.filter(s => s.status === 'Activ');
         }
 
-        // Antrenamente Ã®n luna selectatÄƒ
+        // Antrenamente în luna selectată
         const antrenamenteInLuna = antrenamente.filter(a => {
             const date = new Date((a.data || '').toString().slice(0, 10));
             return date.getFullYear() === year && date.getMonth() === month;
         });
 
-        // Antrenamente Ã®n perioada examen
+        // Antrenamente în perioada examen
         const { start: periStart, end: periEnd } = perioadaExamen;
         const antrenamentePerioadaExamen = antrenamente.filter(a => {
             const d = (a.data || '').toString().slice(0, 10);
             if (!d) return false;
-            if (periStart && d <= periStart) return false; // strict dupÄƒ ultimul examen
+            if (periStart && d <= periStart) return false; // strict după ultimul examen
             if (d > periEnd) return false;
             return true;
         });
 
-        // Map grupÄƒ id â†’ denumire
+        // Map grupă id â†’ denumire
         const grupeMap = new Map(grupe.map(g => [g.id, g.denumire]));
 
         return sportiviFiltrati.map(sportiv => {
@@ -253,7 +253,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             const grupaSportivExista = sportiv.grupa_id && grupe.find(g => g.id === sportiv.grupa_id);
             if (!grupaSportivExista && !grupaId && grupeDeContorizat.size === 0) return null;
 
-            // â”€â”€ PrezenÈ›e luna curentÄƒ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // â”€â”€ Prezențe luna curentă â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             const antrenamenteGrupaLuna = antrenamenteInLuna.filter(
                 a => a.grupa_id && grupeDeContorizat.has(a.grupa_id)
             );
@@ -262,7 +262,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                 (a.prezenta || []).some((p: any) => p.sportiv_id === sportiv.id && p.status?.este_prezent === true)
             ).length;
 
-            // â”€â”€ PrezenÈ›e perioadÄƒ examen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // â”€â”€ Prezențe perioadă examen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             const antrenamenteGrupaPeriodaExamen = antrenamentePerioadaExamen.filter(
                 a => a.grupa_id && grupeDeContorizat.has(a.grupa_id)
             );
@@ -271,7 +271,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                 (a.prezenta || []).some((p: any) => p.sportiv_id === sportiv.id && p.status?.este_prezent === true)
             ).length;
 
-            // â”€â”€ Breakdown per grupÄƒ (luna curentÄƒ) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // â”€â”€ Breakdown per grupă (luna curentă) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             const grupeBreakdown: GrupaBreakdown[] = [];
             grupeDeContorizat.forEach(gid => {
                 const antTrGrupa = antrenamenteInLuna.filter(a => a.grupa_id === gid);
@@ -292,7 +292,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                 return a.grupaDenumire.localeCompare(b.grupaDenumire);
             });
 
-            const gradActual = grade.find(g => g.id === sportiv.grad_actual_id)?.nume || 'ÃŽncepÄƒtor';
+            const gradActual = grade.find(g => g.id === sportiv.grad_actual_id)?.nume || 'Începător';
 
             return {
                 sportivId: sportiv.id,
@@ -317,12 +317,12 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             "Nume Sportiv": d.nume,
             "Grad Actual": d.grad,
             "Planificate (luna)": d.totalTrainings,
-            "PrezenÈ›e (luna)": d.attendedTrainings,
+            "Prezențe (luna)": d.attendedTrainings,
             "Procentaj (luna)": d.totalTrainings > 0 ? `${Math.round((d.attendedTrainings / d.totalTrainings) * 100)}%` : 'N/A',
-            "Planificate (perioadÄƒ examen)": d.totalPerioadaExamen,
-            "PrezenÈ›e (perioadÄƒ examen)": d.attendedPerioadaExamen,
-            "PerioadÄƒ Start": d.perioadaStart ? fmtDate(d.perioadaStart) : 'ÃŽnceput',
-            "PerioadÄƒ End": fmtDate(d.perioadaEnd),
+            "Planificate (perioadă examen)": d.totalPerioadaExamen,
+            "Prezențe (perioadă examen)": d.attendedPerioadaExamen,
+            "Perioadă Start": d.perioadaStart ? fmtDate(d.perioadaStart) : 'Început',
+            "Perioadă End": fmtDate(d.perioadaEnd),
             "Grupe": d.grupeBreakdown.map(g => `${g.grupaDenumire}: ${g.attendedTrainings}/${g.totalTrainings}`).join(' | '),
         }));
         const monthName = new Date(filters.year, filters.month).toLocaleString('ro-RO', { month: 'long' });
@@ -335,11 +335,11 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
     }));
     const years = [2024, 2025, 2026];
 
-    // â”€â”€ Randare perioadÄƒ examen header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â”€â”€ Randare perioadă examen header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const perioadaLabel = useMemo(() => {
         const { start, end } = perioadaExamen;
-        const startStr = start ? `dupÄƒ ${fmtDate(start)}` : 'De la Ã®nceput';
-        const endStr = end === today.toISOString().slice(0, 10) ? 'azi' : `pÃ¢nÄƒ la ${fmtDate(end)}`;
+        const startStr = start ? `după ${fmtDate(start)}` : 'De la început';
+        const endStr = end === today.toISOString().slice(0, 10) ? 'azi' : `până la ${fmtDate(end)}`;
         return `${startStr} â€” ${endStr}`;
     }, [perioadaExamen]);
 
@@ -348,9 +348,9 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             {/* Header */}
             <div className="flex items-center gap-3">
                 <Button variant="secondary" onClick={onBack} className="shrink-0">
-                    <ArrowLeftIcon className="w-5 h-5 mr-2" />ÃŽnapoi
+                    <ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi
                 </Button>
-                <h1 className="text-xl md:text-3xl font-bold text-white truncate">Raport Lunar PrezenÈ›Äƒ</h1>
+                <h1 className="text-xl md:text-3xl font-bold text-white truncate">Raport Lunar Prezență</h1>
             </div>
 
             {/* Filtre */}
@@ -358,19 +358,19 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                 <Select label="An" name="year" value={String(filters.year)} onChange={handleFilterChange}>
                     {years.map(y => <option key={y} value={y}>{y}</option>)}
                 </Select>
-                <Select label="LunÄƒ" name="month" value={String(filters.month)} onChange={handleFilterChange}>
+                <Select label="Lună" name="month" value={String(filters.month)} onChange={handleFilterChange}>
                     {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                 </Select>
-                <Select label="GrupÄƒ" name="grupaId" value={filters.grupaId} onChange={handleFilterChange}>
+                <Select label="Grupă" name="grupaId" value={filters.grupaId} onChange={handleFilterChange}>
                     <option value="">Toate Grupele</option>
                     {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
                 </Select>
             </Card>
 
-            {/* Banner perioadÄƒ examen */}
+            {/* Banner perioadă examen */}
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-900/30 border border-indigo-700/40 text-indigo-300 text-sm">
-                <span className="font-semibold shrink-0">PerioadÄƒ examen:</span>
-                <span className="truncate">{loadingExamene ? 'Se Ã®ncarcÄƒ...' : perioadaLabel}</span>
+                <span className="font-semibold shrink-0">Perioadă examen:</span>
+                <span className="truncate">{loadingExamene ? 'Se încarcă...' : perioadaLabel}</span>
             </div>
 
             {/* Rezultate */}
@@ -390,7 +390,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
 
                 {reportData.length === 0 ? (
                     <p className="p-12 text-center text-slate-500 italic text-sm">
-                        Niciun sportiv de afiÈ™at conform filtrelor.
+                        Niciun sportiv de afișat conform filtrelor.
                     </p>
                 ) : (
                     <>
@@ -403,10 +403,10 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                         <th className="p-3 font-semibold">Nume Sportiv</th>
                                         <th className="p-3 font-semibold">Grad</th>
                                         <th className="p-3 font-semibold text-center" colSpan={3}>
-                                            <span className="text-slate-300">Luna curentÄƒ</span>
+                                            <span className="text-slate-300">Luna curentă</span>
                                         </th>
                                         <th className="p-3 font-semibold text-center border-l border-slate-700" colSpan={2}>
-                                            <span className="text-indigo-300">PerioadÄƒ examen</span>
+                                            <span className="text-indigo-300">Perioadă examen</span>
                                         </th>
                                     </tr>
                                     <tr className="text-xs">
@@ -414,9 +414,9 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                         <th className="pb-2"></th>
                                         <th className="pb-2"></th>
                                         <th className="pb-2 text-center">Planificate</th>
-                                        <th className="pb-2 text-center">PrezenÈ›e</th>
+                                        <th className="pb-2 text-center">Prezențe</th>
                                         <th className="pb-2 text-center">%</th>
-                                        <th className="pb-2 text-center border-l border-slate-700">PrezenÈ›e</th>
+                                        <th className="pb-2 text-center border-l border-slate-700">Prezențe</th>
                                         <th className="pb-2 text-center">din</th>
                                     </tr>
                                 </thead>
@@ -437,7 +437,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                             <button
                                                                 onClick={() => toggleExpand(row.sportivId)}
                                                                 className="text-slate-400 hover:text-white transition-colors"
-                                                                title={isExpanded ? 'Ascunde grupe' : 'AfiÈ™eazÄƒ breakdown per grupÄƒ'}
+                                                                title={isExpanded ? 'Ascunde grupe' : 'Afișează breakdown per grupă'}
                                                             >
                                                                 {isExpanded
                                                                     ? <ChevronDownIcon className="w-4 h-4" />
@@ -448,7 +448,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                     <td className="p-3 font-medium text-white">
                                                         <div className="flex items-center gap-2">
                                                             {percentage < 50 && (
-                                                                <span title="PrezenÈ›Äƒ sub 50%">
+                                                                <span title="Prezență sub 50%">
                                                                     <ExclamationTriangleIcon className="w-4 h-4 text-red-500 shrink-0" />
                                                                 </span>
                                                             )}
@@ -478,7 +478,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                     </td>
                                                 </tr>
 
-                                                {/* Breakdown per grupÄƒ (expandat) */}
+                                                {/* Breakdown per grupă (expandat) */}
                                                 {isExpanded && hasMultiGrupe && (
                                                     <tr className="bg-slate-800/60">
                                                         <td colSpan={8} className="px-8 py-2">
@@ -498,7 +498,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                                                 ? 'bg-slate-600 text-slate-300'
                                                                                 : 'bg-purple-800/50 text-purple-400'
                                                                         }`}>
-                                                                            {gb.tip === 'principala' ? 'principalÄƒ' : 'secundarÄƒ'}
+                                                                            {gb.tip === 'principala' ? 'principală' : 'secundară'}
                                                                         </span>
                                                                         <span className="font-bold text-white">
                                                                             {gb.attendedTrainings}/{gb.totalTrainings}
@@ -557,7 +557,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                             </span>
                                         </div>
 
-                                        {/* BarÄƒ progres */}
+                                        {/* Bară progres */}
                                         <div className="w-full bg-slate-700 rounded-full h-1.5 mb-2">
                                             <div
                                                 className={`h-1.5 rounded-full transition-all ${atRisk ? 'bg-red-500' : 'bg-green-500'}`}
@@ -572,16 +572,16 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                 <span className="text-slate-200 font-medium">{row.totalTrainings}</span>
                                             </span>
                                             <span>
-                                                <span className="text-slate-500">PrezenÈ›e: </span>
+                                                <span className="text-slate-500">Prezențe: </span>
                                                 <span className={`font-medium ${row.attendedTrainings < 5 ? 'text-red-400' : 'text-slate-200'}`}>
                                                     {row.attendedTrainings}
                                                 </span>
                                             </span>
                                         </div>
 
-                                        {/* Stats perioadÄƒ examen */}
+                                        {/* Stats perioadă examen */}
                                         <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-indigo-900/20 border border-indigo-800/30 text-xs mb-2">
-                                            <span className="text-indigo-400 font-semibold shrink-0">PerioadÄƒ examen:</span>
+                                            <span className="text-indigo-400 font-semibold shrink-0">Perioadă examen:</span>
                                             <span className="text-indigo-200 font-bold">{row.attendedPerioadaExamen}</span>
                                             <span className="text-indigo-500">din</span>
                                             <span className="text-indigo-300">{row.totalPerioadaExamen}</span>
@@ -596,7 +596,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                 {isExpanded
                                                     ? <ChevronDownIcon className="w-3 h-3" />
                                                     : <ChevronRightIcon className="w-3 h-3" />}
-                                                <span>{isExpanded ? 'Ascunde' : 'AfiÈ™eazÄƒ'} breakdown grupe ({row.grupeBreakdown.length})</span>
+                                                <span>{isExpanded ? 'Ascunde' : 'Afișează'} breakdown grupe ({row.grupeBreakdown.length})</span>
                                             </button>
                                         )}
                                         {isExpanded && hasMultiGrupe && (

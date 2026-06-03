@@ -11,7 +11,6 @@ import {
     BellIcon, SitemapIcon, BookOpenIcon, ClipboardListIcon,
     ArchiveBoxIcon,
 } from './icons';
-import { useState } from 'react';
 
 interface AdminDashboardProps {
     onNavigate: (view: View) => void;

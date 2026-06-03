@@ -74,7 +74,7 @@ export const IstoricPrezentaSportiv: React.FC<IstoricPrezentaSportivProps> = ({ 
     }, [filteredPrezente]);
 
     if (loading) {
-        return <div className="p-4 text-center text-slate-400">Se Ã®ncarcÄƒ istoricul...</div>;
+        return <div className="p-4 text-center text-slate-400">Se încarcă istoricul...</div>;
     }
 
     if (error) {
@@ -89,13 +89,13 @@ export const IstoricPrezentaSportiv: React.FC<IstoricPrezentaSportivProps> = ({ 
                         <ArrowLeftIcon className="w-5 h-5" />
                     </Button>
                 )}
-                <h2 className="text-2xl font-bold text-white">Istoric PrezenÈ›Äƒ</h2>
+                <h2 className="text-2xl font-bold text-white">Istoric Prezență</h2>
             </div>
 
             <Card className="bg-slate-800 border-slate-700">
                 <Input 
-                    label="CautÄƒ dupÄƒ grupÄƒ"
-                    placeholder="Ex: Grupa AvansaÈ›i..."
+                    label="Caută după grupă"
+                    placeholder="Ex: Grupa Avansați..."
                     value={filterGrupa}
                     onChange={(e) => setFilterGrupa(e.target.value)}
                     className="w-full"
@@ -105,7 +105,7 @@ export const IstoricPrezentaSportiv: React.FC<IstoricPrezentaSportivProps> = ({ 
             <div className="space-y-6">
                 {Object.keys(groupedPrezente).length === 0 ? (
                     <Card className="text-center py-8 text-slate-400 border-dashed border-slate-700">
-                        Nu s-au gÄƒsit prezenÈ›e pentru criteriile selectate.
+                        Nu s-au găsit prezențe pentru criteriile selectate.
                     </Card>
                 ) : (
                     Object.entries(groupedPrezente).map(([monthYear, records]) => (

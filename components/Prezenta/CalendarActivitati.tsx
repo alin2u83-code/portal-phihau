@@ -10,7 +10,7 @@ import { formatTime } from '../../utils/date';
 
 // â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-const ZILE_SCURTE = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'SÃ¢', 'Du'];
+const ZILE_SCURTE = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
 
 /** Returns YYYY-MM-DD for the given year/month/day (1-based). */
 function ymd(year: number, month: number, day: number): string {
@@ -126,7 +126,7 @@ export const CalendarActivitati: React.FC<{
     return (
         <div className="space-y-6 animate-fade-in">
             <Button onClick={onBack} variant="secondary" size="sm">
-                <ArrowLeftIcon className="w-4 h-4 mr-2" /> ÃŽnapoi la Orar
+                <ArrowLeftIcon className="w-4 h-4 mr-2" /> Înapoi la Orar
             </Button>
 
             <Card className="overflow-hidden border-none shadow-xl bg-slate-900/40 backdrop-blur-sm">
@@ -134,25 +134,25 @@ export const CalendarActivitati: React.FC<{
                 <div className="p-4 md:p-6 border-b border-slate-800 bg-slate-800/30">
                     <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
                         <CalendarDaysIcon className="w-6 h-6 text-indigo-400" />
-                        Calendar ActivitÄƒÈ›i: <span className="text-indigo-300">{grupa.denumire}</span>
+                        Calendar Activități: <span className="text-indigo-300">{grupa.denumire}</span>
                     </h2>
-                    <p className="text-slate-400 mt-1">GestioneazÄƒ instanÈ›ele reale de antrenament È™i prezenÈ›a.</p>
+                    <p className="text-slate-400 mt-1">Gestionează instanțele reale de antrenament și prezența.</p>
                 </div>
 
                 <div className="p-4 md:p-6 space-y-6">
                     {/* controls row */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
                         <Input
-                            label="Zile Ã®n avans"
+                            label="Zile în avans"
                             type="number"
                             value={daysToGenerate}
                             onChange={e => setDaysToGenerate(parseInt(e.target.value) || 0)}
                         />
                         <Button onClick={handleGenerate} isLoading={loading} className="w-full">
-                            GenereazÄƒ Calendar
+                            Generează Calendar
                         </Button>
                         <Button variant="info" onClick={() => setIsFormOpen(true)} className="w-full">
-                            + AdaugÄƒ Antrenament
+                            + Adaugă Antrenament
                         </Button>
                     </div>
 
@@ -163,7 +163,7 @@ export const CalendarActivitati: React.FC<{
                             <button
                                 onClick={goToPrevMonth}
                                 className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-300 hover:text-white transition-colors"
-                                aria-label="Luna anterioarÄƒ"
+                                aria-label="Luna anterioară"
                             >
                                 â€¹
                             </button>
@@ -173,7 +173,7 @@ export const CalendarActivitati: React.FC<{
                             <button
                                 onClick={goToNextMonth}
                                 className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-300 hover:text-white transition-colors"
-                                aria-label="Luna urmÄƒtoare"
+                                aria-label="Luna următoare"
                             >
                                 â€º
                             </button>
@@ -260,7 +260,7 @@ export const CalendarActivitati: React.FC<{
                     <div className="flex flex-wrap gap-4 text-xs text-slate-400">
                         <span className="flex items-center gap-1.5"><Dot color="bg-indigo-400" /> Antrenament</span>
                         <span className="flex items-center gap-1.5"><Dot color="bg-emerald-400" /> Stagiu</span>
-                        <span className="flex items-center gap-1.5"><Dot color="bg-rose-400" /> CompetiÈ›ie</span>
+                        <span className="flex items-center gap-1.5"><Dot color="bg-rose-400" /> Competiție</span>
                     </div>
 
                     {/* â”€â”€ selected day details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
@@ -276,7 +276,7 @@ export const CalendarActivitati: React.FC<{
                             {selectedAntrenamente.length === 0 && selectedEvenimente.length === 0 ? (
                                 <div className="text-center py-8 bg-slate-800/10 rounded-2xl border border-dashed border-slate-800">
                                     <CalendarDaysIcon className="w-10 h-10 text-slate-700 mx-auto mb-2 opacity-20" />
-                                    <p className="text-slate-500 italic text-sm">Nicio activitate programatÄƒ Ã®n aceastÄƒ zi.</p>
+                                    <p className="text-slate-500 italic text-sm">Nicio activitate programată în această zi.</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
@@ -300,7 +300,7 @@ export const CalendarActivitati: React.FC<{
                                                 </div>
                                             </div>
                                             <Button size="sm" onClick={() => onSelect(a.id)} className="w-full sm:w-auto shadow-lg shadow-indigo-500/10">
-                                                BifeazÄƒ PrezenÈ›a &rarr;
+                                                Bifează Prezența &rarr;
                                             </Button>
                                         </div>
                                     ))}
@@ -320,7 +320,7 @@ export const CalendarActivitati: React.FC<{
                                                 </div>
                                                 <div>
                                                     <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full ${ev.tip === 'Competitie' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
-                                                        {ev.tip === 'Competitie' ? 'CompetiÈ›ie' : 'Stagiu'}
+                                                        {ev.tip === 'Competitie' ? 'Competiție' : 'Stagiu'}
                                                     </span>
                                                     <p className="text-base font-bold text-white mt-1 leading-snug">{ev.denumire}</p>
                                                     {ev.locatie && (
@@ -330,7 +330,7 @@ export const CalendarActivitati: React.FC<{
                                             </div>
                                             {ev.data_sfarsit && ev.data_sfarsit !== ev.data && (
                                                 <span className="text-xs text-slate-400 whitespace-nowrap">
-                                                    pÃ¢nÄƒ la {new Date(ev.data_sfarsit + 'T00:00:00').toLocaleDateString('ro-RO')}
+                                                    până la {new Date(ev.data_sfarsit + 'T00:00:00').toLocaleDateString('ro-RO')}
                                                 </span>
                                             )}
                                         </div>

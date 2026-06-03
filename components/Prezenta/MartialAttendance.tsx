@@ -59,7 +59,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({ percentage, totalAttended }
                  <span className="text-6xl font-black text-white tracking-tighter" style={{ textShadow: '0 0 10px rgba(77, 188, 233, 0.3)' }}>
                     {totalAttended}
                 </span>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">PrezenÈ›e</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Prezențe</span>
             </div>
         </div>
     );
@@ -95,9 +95,9 @@ export const MartialAttendance: React.FC<MartialAttendanceProps> = ({ currentUse
             <div className="flex items-center gap-4">
                 <Button variant="secondary" onClick={onBack}>
                     <ArrowLeftIcon className="w-5 h-5 mr-2" />
-                    ÃŽnapoi la Dashboard
+                    Înapoi la Dashboard
                 </Button>
-                <h1 className="text-2xl font-bold text-white uppercase">Istoric PrezenÈ›Äƒ</h1>
+                <h1 className="text-2xl font-bold text-white uppercase">Istoric Prezență</h1>
             </div>
 
             <header className="flex flex-col md:flex-row items-center justify-center gap-8 py-6 animate-fade-in-down bg-slate-800/30 rounded-2xl border border-slate-700/50 p-8">
@@ -110,14 +110,14 @@ export const MartialAttendance: React.FC<MartialAttendanceProps> = ({ currentUse
                     <div className="mt-4 h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                         <div className="h-full bg-[#4DBCE9] transition-all duration-1000" style={{ width: `${attendancePercentage}%` }}></div>
                     </div>
-                    <p className="text-right text-xs text-[#4DBCE9] mt-1 font-bold">{attendancePercentage}% RatÄƒ de prezenÈ›Äƒ</p>
+                    <p className="text-right text-xs text-[#4DBCE9] mt-1 font-bold">{attendancePercentage}% Rată de prezență</p>
                 </div>
             </header>
 
             <div className="space-y-3">
                 <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
                     <CalendarDaysIcon className="w-5 h-5 text-[#4DBCE9]" />
-                    Activitate RecentÄƒ
+                    Activitate Recentă
                 </h3>
                 
                 <TabelPrezentaVedere istoricPrezenta={istoricPrezenta} loading={loadingIstoric} />

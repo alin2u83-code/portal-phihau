@@ -11,7 +11,7 @@ const LoadingSpinner: React.FC = () => (
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <p className="text-sm text-slate-400 mt-2">Se Ã®ncarcÄƒ sumarul...</p>
+        <p className="text-sm text-slate-400 mt-2">Se încarcă sumarul...</p>
     </div>
 );
 
@@ -82,7 +82,7 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
                     console.warn('Permission denied for GeneralAttendanceWidget data. Hiding widget.');
                     setPermissionError(true);
                 } else {
-                    showError('Eroare widget prezenÈ›Äƒ', error.message);
+                    showError('Eroare widget prezență', error.message);
                 }
             } finally {
                 setLoading(false);
@@ -114,17 +114,17 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
         <Card className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 p-6 flex flex-col justify-center text-center h-full">
             <div className="flex items-center justify-center gap-2">
                  <UsersIcon className="w-6 h-6 text-sky-400" />
-                <h3 className="text-xl font-bold text-white">PrezenÈ›a GeneralÄƒ Azi</h3>
+                <h3 className="text-xl font-bold text-white">Prezența Generală Azi</h3>
             </div>
             
             {loading ? <LoadingSpinner/> : stats.trainingsCount === 0 ? (
                 <div className="flex-grow flex items-center justify-center">
-                    <p className="text-slate-400 italic">Niciun antrenament programat astÄƒzi.</p>
+                    <p className="text-slate-400 italic">Niciun antrenament programat astăzi.</p>
                 </div>
             ) : (
                 <div className="mt-4">
                     <div className="text-6xl font-black text-white">{stats.present} / <span className="text-4xl text-slate-400">{stats.expected}</span></div>
-                    <p className="text-slate-300 text-base">Sportivi PrezenÈ›i</p>
+                    <p className="text-slate-300 text-base">Sportivi Prezenți</p>
                     <div className="w-full bg-slate-700 rounded-full h-2.5 mt-6">
                       <div className="bg-sky-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${stats.percentage}%`, boxShadow: '0 0 8px #0ea5e9' }}></div>
                     </div>

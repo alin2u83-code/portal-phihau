@@ -42,7 +42,7 @@ const GradFormModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formState.nume.trim() || formState.ordine <= 0) {
-        showError("Validare EÈ™uatÄƒ", "Numele gradului este obligatoriu, iar ordinea trebuie sÄƒ fie un numÄƒr pozitiv.");
+        showError("Validare Eșuată", "Numele gradului este obligatoriu, iar ordinea trebuie să fie un număr pozitiv.");
         return;
     }
     setLoading(true);
@@ -52,21 +52,21 @@ const GradFormModal: React.FC<GradFormProps> = ({ isOpen, onClose, onSave, grade
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={gradToEdit ? "EditeazÄƒ Grad" : "AdaugÄƒ Grad Nou"}>
+    <Modal isOpen={isOpen} onClose={onClose} title={gradToEdit ? "Editează Grad" : "Adaugă Grad Nou"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Nume Grad" name="nume" value={formState.nume} onChange={handleChange} required />
             <Input label="Ordine (Rang)" name="ordine" type="number" value={formState.ordine} onChange={handleChange} required min="1" />
         </div>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="VÃ¢rstÄƒ MinimÄƒ" name="varsta_minima" type="number" value={formState.varsta_minima} onChange={handleChange} required min="1" />
-            <Input label="Timp AÈ™teptare" name="timp_asteptare" value={formState.timp_asteptare} onChange={handleChange} required />
+            <Input label="Vârstă Minimă" name="varsta_minima" type="number" value={formState.varsta_minima} onChange={handleChange} required min="1" />
+            <Input label="Timp Așteptare" name="timp_asteptare" value={formState.timp_asteptare} onChange={handleChange} required />
         </div>
         <Select label="Grad Necesar" name="grad_start_id" value={formState.grad_start_id || ''} onChange={handleChange}>
-            <option value="">Niciunul (pentru Ã®ncepÄƒtori)</option>
+            <option value="">Niciunul (pentru începători)</option>
             {grade.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
         </Select>
-        <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>AnuleazÄƒ</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salveazÄƒ...' : 'SalveazÄƒ'}</Button></div>
+        <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div>
       </form>
     </Modal>
   );
@@ -108,7 +108,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-white">Management Grade</h1>
-        {canEdit && <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" />AdaugÄƒ Grad</Button>}
+        {canEdit && <Button onClick={handleOpenAdd} variant="info"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grad</Button>}
       </div>
 
       {/* Mobil: card list */}
@@ -127,11 +127,11 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
                   </div>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                     <div>
-                      <span className="text-slate-500 text-xs">VÃ¢rstÄƒ min.</span>
+                      <span className="text-slate-500 text-xs">Vârstă min.</span>
                       <p className="text-slate-300">{grad.varsta_minima} ani</p>
                     </div>
                     <div>
-                      <span className="text-slate-500 text-xs">Timp aÈ™teptare</span>
+                      <span className="text-slate-500 text-xs">Timp așteptare</span>
                       <p className="text-slate-300">{grad.timp_asteptare}</p>
                     </div>
                     <div className="col-span-2">
@@ -151,10 +151,10 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
           ))}
         </div>
       ) : (
-        /* Desktop/tabletÄƒ: tabel cu scroll orizontal */
+        /* Desktop/tabletă: tabel cu scroll orizontal */
         <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
           <table className="w-full text-left min-w-[600px]">
-            <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Ordine</th><th className="p-4 font-semibold">Nume</th><th className="p-4 font-semibold">VÃ¢rstÄƒ Min.</th><th className="p-4 font-semibold">Timp AÈ™teptare</th><th className="p-4 font-semibold">Grad Necesar</th><th className="p-4 font-semibold text-right">AcÈ›iuni</th></tr></thead>
+            <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Ordine</th><th className="p-4 font-semibold">Nume</th><th className="p-4 font-semibold">Vârstă Min.</th><th className="p-4 font-semibold">Timp Așteptare</th><th className="p-4 font-semibold">Grad Necesar</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
             <tbody className="divide-y divide-slate-700">
               {sortedGrade.map(grad => (
                 <tr key={grad.id}>

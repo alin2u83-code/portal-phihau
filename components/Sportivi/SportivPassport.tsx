@@ -34,7 +34,7 @@ function buildTimeline(
 ): TimelineEvent[] {
     const events: TimelineEvent[] = [];
 
-    // 1. ÃŽnregistrare
+    // 1. Înregistrare
     if (viewedUser.data_inscrierii) {
         const d = new Date(viewedUser.data_inscrierii);
         if (!isNaN(d.getTime())) {
@@ -43,7 +43,7 @@ function buildTimeline(
                 type: 'inscriere',
                 date: d.getTime(),
                 dateLabel: d.toLocaleDateString('ro-RO', { month: 'short', year: 'numeric' }),
-                title: 'ÃŽnregistrare club',
+                title: 'Înregistrare club',
                 subtitle: viewedUser.cluburi?.nume,
             });
         }
@@ -66,11 +66,11 @@ function buildTimeline(
             date: d.getTime(),
             dateLabel: d.toLocaleDateString('ro-RO', { month: 'short', year: 'numeric' }),
             title: grad.nume,
-            subtitle: 'Grad obÈ›inut la examen',
+            subtitle: 'Grad obținut la examen',
         });
     }
 
-    // 3. Grade manuale (fÄƒrÄƒ sesiune_examen_id)
+    // 3. Grade manuale (fără sesiune_examen_id)
     for (const hg of (istoricGrade || []).filter(g => g.sportiv_id === viewedUser.id && !g.sesiune_examen_id)) {
         const grad = (grade || []).find(g => g.id === hg.grad_id);
         if (!grad) continue;
@@ -83,11 +83,11 @@ function buildTimeline(
             date: d.getTime(),
             dateLabel: d.toLocaleDateString('ro-RO', { month: 'short', year: 'numeric' }),
             title: grad.nume,
-            subtitle: 'Grad Ã®nregistrat manual',
+            subtitle: 'Grad înregistrat manual',
         });
     }
 
-    // 4. Vize medicale din plÄƒÈ›i
+    // 4. Vize medicale din plăți
     const vizePlati = (plati || []).filter(
         p => p.sportiv_id === viewedUser.id && p.tip.toLowerCase().includes('viza')
     );
@@ -101,12 +101,12 @@ function buildTimeline(
             type: isAchitat ? 'viza_medicala' : 'viza_expirata',
             date: d.getTime(),
             dateLabel: d.toLocaleDateString('ro-RO', { month: 'short', year: 'numeric' }),
-            title: isAchitat ? 'VizÄƒ medicalÄƒ obÈ›inutÄƒ' : 'VizÄƒ medicalÄƒ neachitatÄƒ',
+            title: isAchitat ? 'Viză medicală obținută' : 'Viză medicală neachitată',
             subtitle: vp.descriere || undefined,
         });
     }
 
-    // Sortare ascendentÄƒ (cel mai vechi primul)
+    // Sortare ascendentă (cel mai vechi primul)
     return events.sort((a, b) => a.date - b.date);
 }
 
@@ -136,7 +136,7 @@ const EVENT_STYLES: Record<TimelineEventType, { dot: string; icon: React.ReactNo
 export const SportivPassport: React.FC<SportivPassportProps> = ({
     viewedUser, grade, participari, examene, istoricGrade, plati,
 }) => {
-    // â”€â”€ PROGRES SPRE GRAD URMÄ‚TOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â”€â”€ PROGRES SPRE GRAD URMĂTOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const progress = useMemo(() => {
         const sortedGrades = [...(grade || [])].sort((a, b) => a.ordine - b.ordine);
         const currentGrad = viewedUser.grad_actual_id
@@ -149,7 +149,7 @@ export const SportivPassport: React.FC<SportivPassportProps> = ({
 
         if (!nextGrad) return null;
 
-        // Data de referinÈ›Äƒ = ultimul examen admis sau data Ã®nscrierii
+        // Data de referință = ultimul examen admis sau data înscrierii
         const lastAdmitted = (participari || [])
             .filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis')
             .map(p => {
@@ -195,7 +195,7 @@ export const SportivPassport: React.FC<SportivPassportProps> = ({
         <Card className="border border-slate-800 bg-slate-900/50">
             <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                 <TrophyIcon className="w-4 h-4 text-amber-400" />
-                PaÈ™aport Sportiv
+                Pașaport Sportiv
             </h3>
 
             {/* â”€â”€ PROGRES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
@@ -205,11 +205,11 @@ export const SportivPassport: React.FC<SportivPassportProps> = ({
                         <div className="flex items-center gap-2 min-w-0">
                             <span className="text-xs text-slate-400 shrink-0">Grad curent:</span>
                             <span className="text-xs font-semibold text-white truncate">
-                                {progress.currentGrad?.nume ?? 'ÃŽncepÄƒtor'}
+                                {progress.currentGrad?.nume ?? 'Începător'}
                             </span>
                         </div>
                         <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-xs text-slate-400 shrink-0">UrmÄƒtor:</span>
+                            <span className="text-xs text-slate-400 shrink-0">Următor:</span>
                             <span className={`text-xs font-bold truncate ${progress.isDan ? 'text-amber-400' : 'text-sky-400'}`}>
                                 {progress.nextGrad.nume}
                             </span>
@@ -246,7 +246,7 @@ export const SportivPassport: React.FC<SportivPassportProps> = ({
             {/* â”€â”€ TIMELINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {events.length > 0 && (
                 <div className="relative">
-                    {/* Linie verticalÄƒ */}
+                    {/* Linie verticală */}
                     <div className="absolute left-[11px] top-2 bottom-2 w-px bg-slate-700/60" />
 
                     <ol className="space-y-0">
@@ -260,7 +260,7 @@ export const SportivPassport: React.FC<SportivPassportProps> = ({
                                         {style.icon}
                                     </div>
 
-                                    {/* ConÈ›inut */}
+                                    {/* Conținut */}
                                     <div className={`flex-1 pb-4 ${isLast ? '' : ''}`}>
                                         <div className="flex items-start justify-between gap-2">
                                             <span className={`text-sm font-semibold leading-tight ${
@@ -288,7 +288,7 @@ export const SportivPassport: React.FC<SportivPassportProps> = ({
 
             {events.length === 0 && !progress && (
                 <p className="text-xs text-slate-500 text-center py-4">
-                    Nu existÄƒ evenimente Ã®nregistrate Ã®ncÄƒ.
+                    Nu există evenimente înregistrate încă.
                 </p>
             )}
         </Card>

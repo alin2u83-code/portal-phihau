@@ -10,7 +10,7 @@ import { PrezentaRapida } from './PrezentaRapida';
 import { useStatusePrezenta } from '../../hooks/useStatusePrezenta';
 import { formatTime } from '../../utils/date';
 
-// Utilitar: combinÄƒ sportivii principali cu cei secundari, eliminÄƒ duplicate
+// Utilitar: combină sportivii principali cu cei secundari, elimină duplicate
 const combinaSportivi = (principali: Sportiv[], secundari: SportivCuTip[]): SportivCuTip[] => {
     const principaliCuTip: SportivCuTip[] = principali.map(s => ({ ...s, tip: 'principal' as TipMembru }));
     const idPrincipali = new Set(principaliCuTip.map(s => s.id));
@@ -18,7 +18,7 @@ const combinaSportivi = (principali: Sportiv[], secundari: SportivCuTip[]): Spor
     return [...principaliCuTip, ...secundariFiltrati].sort((a, b) => a.nume.localeCompare(b.nume));
 };
 
-// Fetch sportivi secundari pentru o grupÄƒ
+// Fetch sportivi secundari pentru o grupă
 const fetchSportiviSecundari = async (grupaId: string): Promise<SportivCuTip[]> => {
     const { data, error } = await supabase
         .from('sportivi_grupe_secundare')
@@ -72,13 +72,13 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         if (!isToday || mode === 'lista') {
             // For lista mode or non-today dates, fetch full training data
             const fetchTrainings = async () => {
-                if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu a fost gÄƒsit."); setLoading(false); return; }
+                if (!supabase) { showError("Eroare Configurare", "Clientul Supabase nu a fost găsit."); setLoading(false); return; }
                 setLoading(true);
                 const { data, error } = await supabase
                     .from('program_antrenamente')
                     .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
                     .eq('data', selectedDateString);
-                if (error) { showError("Eroare la Ã®ncÄƒrcarea antrenamentelor", error.message); setLoading(false); return; }
+                if (error) { showError("Eroare la încărcarea antrenamentelor", error.message); setLoading(false); return; }
 
                 // Pentru fiecare antrenament, fetch sportivii secundari ai grupei
                 const processed = await Promise.all((data || []).map(async t => {
@@ -151,7 +151,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 <Button onClick={onBack} variant="secondary" size="sm">
                     <ArrowLeftIcon className="w-4 h-4 mr-1" /> Meniu
                 </Button>
-                <h1 className="text-xl font-bold text-white flex-1">PrezenÈ›Äƒ ZilnicÄƒ</h1>
+                <h1 className="text-xl font-bold text-white flex-1">Prezență Zilnică</h1>
             </div>
 
             {/* Date selector */}
@@ -184,7 +184,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                             onClick={() => setMode('lista')}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${mode === 'lista' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
                         >
-                            <CalendarDaysIcon className="w-3.5 h-3.5" /> ListÄƒ
+                            <CalendarDaysIcon className="w-3.5 h-3.5" /> Listă
                         </button>
                     </div>
                 )}
@@ -199,7 +199,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 </div>
             ) : trainings.length === 0 ? (
                 <Card className="text-center py-12">
-                    <p className="text-slate-400 italic">Niciun antrenament programat pentru data selectatÄƒ.</p>
+                    <p className="text-slate-400 italic">Niciun antrenament programat pentru data selectată.</p>
                 </Card>
             ) : (
                 <div className="space-y-3">
@@ -215,7 +215,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                                 </div>
                             </div>
                             <Button size="sm" onClick={() => setSelectedTraining(t)} className="w-full sm:w-auto">
-                                BifeazÄƒ PrezenÈ›a â†’
+                                Bifează Prezența â†’
                             </Button>
                         </div>
                     ))}

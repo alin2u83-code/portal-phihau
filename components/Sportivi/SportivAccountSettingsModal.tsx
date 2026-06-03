@@ -54,7 +54,7 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
     };
 
     const handleSaveRole = async () => {
-        if (!supabase) { showError("Eroare", "Conexiunea la baza de date nu a putut fi stabilitÄƒ."); return; }
+        if (!supabase) { showError("Eroare", "Conexiunea la baza de date nu a putut fi stabilită."); return; }
         if (!sportiv) { showError("Eroare", "Niciun sportiv selectat."); return; }
 
         if (!sportiv.user_id) {
@@ -65,14 +65,14 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
         setLoading(true);
         const targetUserMaxWeight = Math.max(0, ...(sportiv.roluri || []).map(r => roleWeights[r.nume] || 0));
         if (currentUserMaxWeight <= targetUserMaxWeight && currentUser.id !== sportiv.id) {
-             showError("Permisiune RefuzatÄƒ", "Nu puteÈ›i modifica rolurile unui utilizator cu privilegii egale sau mai mari.");
+             showError("Permisiune Refuzată", "Nu puteți modifica rolurile unui utilizator cu privilegii egale sau mai mari.");
              setLoading(false);
              return;
         }
 
         const assignedRolesWeight = newRoleIds.map(roleId => roleWeights[allRoles.find(r => r.id === roleId)?.nume || 'SPORTIV'] || 0);
         if (assignedRolesWeight.some(weight => weight > currentUserMaxWeight)) {
-            showError("Permisiune RefuzatÄƒ", "Nu puteÈ›i acorda un rol cu privilegii mai mari decÃ¢t rolul dumneavoastrÄƒ.");
+            showError("Permisiune Refuzată", "Nu puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră.");
             setLoading(false);
             return;
         }
@@ -126,11 +126,11 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
     if (!sportiv) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`GestioneazÄƒ Roluri: ${sportiv.nume} ${sportiv.prenume}`}>
+        <Modal isOpen={isOpen} onClose={onClose} title={`Gestionează Roluri: ${sportiv.nume} ${sportiv.prenume}`}>
             {showCreateAccountPrompt ? (
                  <div className="text-center p-4">
                     <p className="text-amber-300 text-sm bg-amber-900/50 p-3 rounded-md mb-6">
-                        Acest sportiv nu are un cont de utilizator asociat. CreaÈ›i unul pentru a putea salva rolurile.
+                        Acest sportiv nu are un cont de utilizator asociat. Creați unul pentru a putea salva rolurile.
                     </p>
                     <Button 
                         variant="primary" 
@@ -141,7 +141,7 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
                         }}
                     >
                         <UserPlusIcon className="w-5 h-5 mr-2" />
-                        CreeazÄƒ Cont Utilizator
+                        Creează Cont Utilizator
                     </Button>
                 </div>
             ) : (
@@ -160,8 +160,8 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
                         ))}
                     </div>
                     <div className="flex justify-end pt-4 border-t border-slate-700 gap-2">
-                        <Button variant="secondary" onClick={onClose} disabled={loading}>AnuleazÄƒ</Button>
-                        <Button variant="success" onClick={handleSaveRole} isLoading={loading}>SalveazÄƒ Roluri</Button>
+                        <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
+                        <Button variant="success" onClick={handleSaveRole} isLoading={loading}>Salvează Roluri</Button>
                     </div>
                 </div>
             )}

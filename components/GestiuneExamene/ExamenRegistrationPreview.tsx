@@ -22,7 +22,7 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
         setSubmitting(true);
 
         try {
-            // VerificÄƒ mai Ã®ntÃ¢i dacÄƒ plata existÄƒ deja pentru aceastÄƒ sesiune
+            // Verifică mai întâi dacă plata există deja pentru această sesiune
             const { data: existing } = await supabase
                 .from('plati')
                 .select('id')
@@ -32,7 +32,7 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
                 .maybeSingle();
 
             if (existing?.id) {
-                // Plata existÄƒ deja â€” actualizeazÄƒ dacÄƒ suma diferÄƒ
+                // Plata există deja â€” actualizează dacă suma diferă
                 const { error: updateError } = await supabase
                     .from('plati')
                     .update({
@@ -42,7 +42,7 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
                     .eq('id', existing.id);
                 if (updateError) throw updateError;
             } else {
-                // Plata nu existÄƒ â€” insereazÄƒ cu sesiune_id pentru unicitate
+                // Plata nu există â€” inserează cu sesiune_id pentru unicitate
                 const { data: sportivData } = await supabase
                     .from('sportivi')
                     .select('club_id')
@@ -54,7 +54,7 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
                     sesiune_id,
                     suma: data.taxa_suma,
                     status: isCash ? 'Achitat' : 'Neachitat',
-                    descriere: `TaxÄƒ examen - Grad: ${data.grad_sugerat_nume}`,
+                    descriere: `Taxă examen - Grad: ${data.grad_sugerat_nume}`,
                     data: new Date().toISOString().split('T')[0],
                     tip: 'Taxa Examen',
                     observatii: 'Generat din ExamenRegistrationPreview',
@@ -63,7 +63,7 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
                 if (insertError) throw insertError;
             }
 
-            showSuccess("Succes", "ÃŽnregistrarea la examen a fost salvatÄƒ.");
+            showSuccess("Succes", "Înregistrarea la examen a fost salvată.");
             onConfirm();
         } catch (err: any) {
             console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
@@ -73,12 +73,12 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
         }
     };
 
-    if (loading) return <div>Se Ã®ncarcÄƒ...</div>;
+    if (loading) return <div>Se încarcă...</div>;
     if (error) return <div>Eroare: {error}</div>;
-    if (!data) return <div>Nu existÄƒ detalii de Ã®nregistrare pentru acest sportiv.</div>;
+    if (!data) return <div>Nu există detalii de înregistrare pentru acest sportiv.</div>;
 
     return (
-        <Modal isOpen={true} onClose={onClose} title="Previzualizare ÃŽnregistrare Examen">
+        <Modal isOpen={true} onClose={onClose} title="Previzualizare Înregistrare Examen">
             <div className="space-y-4">
                 <Card className="bg-slate-800 p-4">
                     <div className="flex justify-between mb-2">
@@ -86,11 +86,11 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
                         <span className="font-bold text-white">{data.grad_sugerat_nume}</span>
                     </div>
                     <div className="flex justify-between mb-2">
-                        <span className="text-slate-400">SumÄƒ de platÄƒ:</span>
+                        <span className="text-slate-400">Sumă de plată:</span>
                         <span className="font-bold text-white">{data.taxa_suma} RON</span>
                     </div>
                     {data.is_debtor && (
-                        <div className="text-red-400 text-sm mt-2">AtenÈ›ie: Sportivul are restanÈ›e!</div>
+                        <div className="text-red-400 text-sm mt-2">Atenție: Sportivul are restanțe!</div>
                     )}
                 </Card>
 
@@ -101,12 +101,12 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
                         onChange={(e) => setIsCash(e.target.checked)} 
                         className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-primary-600"
                     />
-                    PlatÄƒ Cash efectuatÄƒ pe loc
+                    Plată Cash efectuată pe loc
                 </label>
 
                 <div className="flex justify-end gap-2 pt-4">
-                    <Button variant="secondary" onClick={onClose}>AnuleazÄƒ</Button>
-                    <Button variant="success" onClick={handleConfirm} isLoading={submitting}>ConfirmÄƒ ÃŽnregistrarea</Button>
+                    <Button variant="secondary" onClick={onClose}>Anulează</Button>
+                    <Button variant="success" onClick={handleConfirm} isLoading={submitting}>Confirmă Înregistrarea</Button>
                 </div>
             </div>
         </Modal>

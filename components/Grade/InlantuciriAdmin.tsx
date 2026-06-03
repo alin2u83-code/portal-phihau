@@ -57,7 +57,7 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
   if (!canEdit) {
     return (
       <div className="text-center py-16 text-slate-400">
-        Acces restricÈ›ionat â€” doar SUPER_ADMIN_FEDERATIE.
+        Acces restricționat â€” doar SUPER_ADMIN_FEDERATIE.
       </div>
     );
   }
@@ -76,10 +76,10 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
   };
 
   const handleDelete = async (item: Inlantuire) => {
-    if (!window.confirm(`È˜tergi Ã®nlÄƒnÈ›uirea "${item.denumire}"? Se vor È™terge È™i toate asocierile cu grade.`)) return;
+    if (!window.confirm(`Ștergi înlănțuirea "${item.denumire}"? Se vor șterge și toate asocierile cu grade.`)) return;
     setDeleting(item.id);
     const error = await deleteInlantuire(item.id);
-    if (error) showError('Eroare È™tergere', error.message);
+    if (error) showError('Eroare ștergere', error.message);
     setDeleting(null);
   };
 
@@ -90,9 +90,9 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white">ÃŽnlÄƒnÈ›uiri</h1>
+          <h1 className="text-xl font-bold text-white">Înlănțuiri</h1>
           <p className="text-slate-400 text-sm">
-            Catalog forme/arme + asocieri per grad È™i tip probÄƒ
+            Catalog forme/arme + asocieri per grad și tip probă
           </p>
         </div>
 
@@ -111,7 +111,7 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M4 6h16M4 10h16M4 14h16M4 18h16" />
               </svg>
-              Per Ã®nlÄƒnÈ›uire
+              Per înlănțuire
             </button>
             <button
               onClick={() => setViewMode('matrice')}
@@ -129,25 +129,25 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
             </button>
           </div>
 
-          {/* Buton AdaugÄƒ â€” doar Ã®n modul per-inlantuire */}
+          {/* Buton Adaugă â€” doar în modul per-inlantuire */}
           {viewMode === 'per-inlantuire' && (
             <Button onClick={openAdd}>
               <PlusIcon className="w-4 h-4 mr-1" />
-              AdaugÄƒ
+              Adaugă
             </Button>
           )}
         </div>
       </div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* MOD: Per Ã®nlÄƒnÈ›uire (existent, neschimbat)                          */}
+      {/* MOD: Per înlănțuire (existent, neschimbat)                          */}
       {/* ------------------------------------------------------------------ */}
       {viewMode === 'per-inlantuire' && (
         <>
           {loading ? (
-            <div className="text-slate-400 text-sm py-8 text-center">Se Ã®ncarcÄƒ...</div>
+            <div className="text-slate-400 text-sm py-8 text-center">Se încarcă...</div>
           ) : inlantuiri.length === 0 ? (
-            <div className="text-slate-400 text-sm py-8 text-center italic">Nicio Ã®nlÄƒnÈ›uire definitÄƒ.</div>
+            <div className="text-slate-400 text-sm py-8 text-center italic">Nicio înlănțuire definită.</div>
           ) : (
             <div className="space-y-1">
               {inlantuiri.map(item => (
@@ -169,7 +169,7 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
                     </Badge>
                     <button
                       onClick={() => openEdit(item)}
-                      title="EditeazÄƒ"
+                      title="Editează"
                       className="p-1.5 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
                     >
                       <EditIcon className="w-3.5 h-3.5" />
@@ -177,7 +177,7 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
                     <button
                       onClick={() => handleDelete(item)}
                       disabled={deleting === item.id}
-                      title="È˜terge"
+                      title="Șterge"
                       className="p-1.5 rounded text-slate-400 hover:text-red-400 hover:bg-slate-700 transition-colors disabled:opacity-40"
                     >
                       <TrashIcon className="w-3.5 h-3.5" />
@@ -186,7 +186,7 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
                   {expanded === item.id && (
                     <div className="border-t border-slate-700 px-3 py-3 bg-slate-900/40">
                       <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">
-                        Grade È™i probe permise
+                        Grade și probe permise
                       </p>
                       <InlantuireGradePanel inlantuireId={item.id} />
                     </div>
@@ -203,7 +203,7 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
       {/* ------------------------------------------------------------------ */}
       {viewMode === 'matrice' && (
         <div className="space-y-3">
-          {/* Tabs tip probÄƒ */}
+          {/* Tabs tip probă */}
           <div className="border-b border-slate-700 overflow-x-auto">
             <div className="flex min-w-max">
               {TABS_MATRICE.map(tab => (
@@ -231,7 +231,7 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
         </div>
       )}
 
-      {/* Modal adÄƒugare/editare */}
+      {/* Modal adăugare/editare */}
       {formOpen && (
         <InlantuireFormModal
           inlantuire={editItem}

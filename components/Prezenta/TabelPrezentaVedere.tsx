@@ -43,7 +43,7 @@ export const TabelPrezentaVedere: React.FC<TabelPrezentaVedereProps> = ({ istori
     if (!istoricPrezenta || istoricPrezenta.length === 0) {
         return (
             <Card className="text-center p-6 bg-slate-800 border-slate-700">
-                <p className="text-slate-400">Nu existÄƒ prezenÈ›e Ã®nregistrate.</p>
+                <p className="text-slate-400">Nu există prezențe înregistrate.</p>
             </Card>
         );
     }
@@ -52,10 +52,10 @@ export const TabelPrezentaVedere: React.FC<TabelPrezentaVedereProps> = ({ istori
         <div className="space-y-4">
             <div className="flex justify-end mb-4">
                 <div className="w-48">
-                    <Select label="FiltreazÄƒ" value={filter} onChange={(e) => { setFilter(e.target.value as any); setLimit(20); }}>
+                    <Select label="Filtrează" value={filter} onChange={(e) => { setFilter(e.target.value as any); setLimit(20); }}>
                         <option value="Toate">Toate</option>
-                        <option value="Prezent">Doar PrezenÈ›e</option>
-                        <option value="Absent">Doar AbsenÈ›e</option>
+                        <option value="Prezent">Doar Prezențe</option>
+                        <option value="Absent">Doar Absențe</option>
                     </Select>
                 </div>
             </div>
@@ -97,7 +97,7 @@ export const TabelPrezentaVedere: React.FC<TabelPrezentaVedereProps> = ({ istori
                 
                 {filteredData.length === 0 && (
                     <div className="text-center py-8 text-slate-500 italic">
-                        Nu existÄƒ rezultate pentru filtrul selectat.
+                        Nu există rezultate pentru filtrul selectat.
                     </div>
                 )}
             </div>
@@ -105,7 +105,7 @@ export const TabelPrezentaVedere: React.FC<TabelPrezentaVedereProps> = ({ istori
             {filteredData.length > limit && (
                 <div className="flex justify-center pt-4">
                     <Button variant="secondary" onClick={() => setLimit(prev => prev + 20)}>
-                        ÃŽncarcÄƒ mai multe
+                        Încarcă mai multe
                     </Button>
                 </div>
             )}

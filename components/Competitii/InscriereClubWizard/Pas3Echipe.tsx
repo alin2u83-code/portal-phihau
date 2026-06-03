@@ -475,14 +475,14 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   const sportiviDisponibiliPerCategorie = useMemo<Map<string, Sportiv[]>>(() => {
     const map = new Map<string, Sportiv[]>();
     for (const cat of categoriiEchipa) {
-      const disponibili = sportiviSelectati.filter(s => {
-        if (cat.gen !== 'Mixt' && s.gen !== cat.gen) return false;
-        return true;
-      });
+      // Filtrare completă: gen + vârstă + grad via verificaEligibilitate
+      const disponibili = sportiviSelectati.filter(s =>
+        verificaEligibilitate(s, cat, grade, dataCompetitie).eligibil
+      );
       map.set(cat.id, disponibili);
     }
     return map;
-  }, [categoriiEchipa, sportiviSelectati]);
+  }, [categoriiEchipa, sportiviSelectati, grade, dataCompetitie]);
 
   const eligibilitateMap = useMemo<Map<string, Map<string, { eligibil: boolean; motive: string[] }>>>(() => {
     const outer = new Map<string, Map<string, { eligibil: boolean; motive: string[] }>>();
@@ -513,6 +513,47 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoriiEchipa.length, echipeFormate.length]);
+
+  // State pentru nr categorii auto-excluse (afișat în banner)
+  const [nrCategoriiAutoExcluse, setNrCategoriiAutoExcluse] = React.useState(0);
+
+  /**
+   * Auto-excludere categorii cu 0 sportivi eligibili.
+   * Rulează după ce sportiviDisponibiliPerCategorie e calculat.
+   * Marchează echipaSkip = true și golește titularii/rezervele.
+   */
+  useEffect(() => {
+    if (categoriiEchipa.length === 0) return;
+    let autoExcluse = 0;
+    const updates: Array<{ catId: string }> = [];
+
+    for (const cat of categoriiEchipa) {
+      const disponibili = sportiviDisponibiliPerCategorie.get(cat.id) ?? [];
+      if (disponibili.length > 0) continue;
+
+      const echipa = echipeFormate.find(e => e.categorieId === cat.id);
+      // Dacă echipa nu e deja skip, o marcăm
+      if (!echipa?.echipaSkip) {
+        updates.push({ catId: cat.id });
+        autoExcluse++;
+      } else {
+        autoExcluse++;
+      }
+    }
+
+    if (updates.length > 0) {
+      const novaLista = echipeFormate.map(e => {
+        if (updates.some(u => u.catId === e.categorieId)) {
+          return { ...e, echipaSkip: true, titulari: [], rezerve: [] };
+        }
+        return e;
+      });
+      onUpdateEchipe(novaLista);
+    }
+
+    setNrCategoriiAutoExcluse(autoExcluse);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sportiviDisponibiliPerCategorie, categoriiEchipa.length]);
 
   const getEchipa = useCallback((catId: string): EchipaFormata => {
     return echipeFormate.find(e => e.categorieId === catId) ?? {
@@ -671,6 +712,18 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
         </div>
       )}
 
+      {/* Banner categorii auto-excluse */}
+      {nrCategoriiAutoExcluse > 0 && (
+        <div className="flex items-start gap-3 rounded-lg border border-sky-700/50 bg-sky-900/15 px-4 py-3">
+          <svg className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-xs text-sky-300">
+            {nrCategoriiAutoExcluse} categor{nrCategoriiAutoExcluse !== 1 ? 'ii excluse' : 'ie exclusă'} automat — niciun sportiv eligibil selectat pentru aceste categorii.
+          </p>
+        </div>
+      )}
+
       {/* Banner skip toate probele */}
       {categoriiEchipa.length > 0 && (() => {
         const nrSkipped = echipeFormate.filter(e => e.echipaSkip).length;
@@ -782,10 +835,10 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
           <Button
             variant="success"
             disabled={!poateContinua}
-            onClick={onContinua}
+            onClick={poateContinua ? onContinua : undefined}
             className="min-w-[140px]"
           >
-            Continua
+            Înapoi la probe
           </Button>
         </div>
       </div>

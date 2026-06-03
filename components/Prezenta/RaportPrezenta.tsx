@@ -94,7 +94,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                 return {
                     id: `${a.id}-${p.sportiv_id}`, data: (a.data || '').toString().slice(0, 10), ora: a.ora_start, tip: tip,
                     sportiv: sportiv, sportivNume: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : 'N/A',
-                    grupaNume: a.grupe?.denumire || (tip === 'Vacanta' ? 'VacanÈ›Äƒ' : 'N/A'), grupaId: a.grupa_id,
+                    grupaNume: a.grupe?.denumire || (tip === 'Vacanta' ? 'Vacanță' : 'N/A'), grupaId: a.grupa_id,
                 };
             })
         );
@@ -114,7 +114,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
             return sportiviAsteptati.map(sportiv => ({
                 id: `${a.id}-${sportiv.id}`, data: (a.data || '').toString().slice(0, 10), sportiv: sportiv,
                 sportivNume: `${sportiv.nume} ${sportiv.prenume}`,
-                grupaNume: a.grupe?.denumire || 'VacanÈ›Äƒ',
+                grupaNume: a.grupe?.denumire || 'Vacanță',
                 status: (a.prezenta || []).some(p => p.sportiv_id === sportiv.id) ? 'Prezent' : 'Absent'
             }));
         });
@@ -168,14 +168,14 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
             label: 'Nume Sportiv',
             render: (stat) => (
                 <div className="flex items-center gap-2 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" onClick={() => onViewSportiv(stat.sportiv)}>
-                    {stat.percentage < 50 && <span title="PrezenÈ›Äƒ sub 50%"><ExclamationTriangleIcon className="w-4 h-4 text-red-500" /></span>}
+                    {stat.percentage < 50 && <span title="Prezență sub 50%"><ExclamationTriangleIcon className="w-4 h-4 text-red-500" /></span>}
                     {stat.sportivNume}
                 </div>
             )
         },
         {
             key: 'present',
-            label: 'PrezenÈ›e',
+            label: 'Prezențe',
             headerClassName: 'text-center',
             cellClassName: 'text-center text-slate-300',
             render: (stat) => <span>{stat.present} / {stat.total}</span>
@@ -205,7 +205,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                 </span>
             </div>
             <div className="mt-2 text-sm text-slate-400">
-                PrezenÈ›e: <span className="text-white font-bold">{stat.present} / {stat.total}</span>
+                Prezențe: <span className="text-white font-bold">{stat.present} / {stat.total}</span>
             </div>
         </Card>
     );
@@ -262,13 +262,13 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
     const filterContent = (
         <div className="space-y-4">
-            <Input label="CautÄƒ Sportiv" name="searchTerm" value={filters.searchTerm} onChange={handleFilterChange} placeholder="Nume..." />
-            <Select label="GrupÄƒ" name="grupaFilter" value={filters.grupaFilter} onChange={handleFilterChange}>
+            <Input label="Caută Sportiv" name="searchTerm" value={filters.searchTerm} onChange={handleFilterChange} placeholder="Nume..." />
+            <Select label="Grupă" name="grupaFilter" value={filters.grupaFilter} onChange={handleFilterChange}>
                 <option value="">Toate Grupele</option>
                 {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
             </Select>
-            <Select label="SalÄƒ" name="salaFilter" value={filters.salaFilter} onChange={handleFilterChange}>
-                <option value="">Toate sÄƒlile</option>
+            <Select label="Sală" name="salaFilter" value={filters.salaFilter} onChange={handleFilterChange}>
+                <option value="">Toate sălile</option>
                 {sali.map(s => <option key={s} value={s}>{s}</option>)}
             </Select>
             <div className="grid grid-cols-2 gap-2">
@@ -276,7 +276,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                     <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
                 </Select>
                 <Select label="Tip" name="tipFilter" value={filters.tipFilter} onChange={handleFilterChange}>
-                    <option value="">Toate</option><option value="Normal">Normal</option><option value="Vacanta">VacanÈ›Äƒ</option>
+                    <option value="">Toate</option><option value="Normal">Normal</option><option value="Vacanta">Vacanță</option>
                 </Select>
             </div>
         </div>
@@ -284,8 +284,8 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> ÃŽnapoi la Meniu</Button>
-            <h1 className="text-3xl font-bold text-white">AnalizÄƒ PrezenÈ›e</h1>
+            <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            <h1 className="text-3xl font-bold text-white">Analiză Prezențe</h1>
 
             {/* Filtre collapse pe mobil â€” vizibile direct pe desktop */}
             <div className="lg:hidden rounded-lg bg-slate-800/50 overflow-hidden">
@@ -320,7 +320,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                             onClick={() => setFiltersExpanded(false)}
                             className="mt-3 w-full py-2 rounded-lg bg-amber-500 text-black text-sm font-bold"
                         >
-                            AplicÄƒ filtre â†’
+                            Aplică filtre â†’
                         </button>
                     </div>
                 )}
@@ -328,7 +328,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
-                    <h3 className="text-xl font-bold text-white mb-4">PrezenÈ›e Lunare pe Grupe ({parseInt(filters.yearFilter, 10)})</h3>
+                    <h3 className="text-xl font-bold text-white mb-4">Prezențe Lunare pe Grupe ({parseInt(filters.yearFilter, 10)})</h3>
                     <div className="h-64 w-full">
                         {groupChartData.length > 0 && activeGroups.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
@@ -343,7 +343,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                                     ))}
                                 </BarChart>
                             </ResponsiveContainer>
-                        ) : <div className="flex items-center justify-center h-full text-slate-500 italic">Nu existÄƒ date pentru intervalul selectat.</div> }
+                        ) : <div className="flex items-center justify-center h-full text-slate-500 italic">Nu există date pentru intervalul selectat.</div> }
                     </div>
                 </Card>
                 <Card className="hidden lg:block"><h3 className="text-xl font-bold text-white mb-4">Filtre Raport</h3>
@@ -353,7 +353,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="p-0 overflow-hidden">
-                    <div className="p-4 bg-slate-700/50 font-bold text-white">Sumar pe Sportiv (AtenÈ›ie &lt; 50%)</div>
+                    <div className="p-4 bg-slate-700/50 font-bold text-white">Sumar pe Sportiv (Atenție &lt; 50%)</div>
                     <div className="overflow-x-auto max-h-[600px]">
                         <ResponsiveTable
                             columns={columnsSummary}
@@ -366,7 +366,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                 </Card>
 
                 <Card className="p-0 overflow-hidden">
-                    <div className="p-4 bg-slate-700/50 font-bold text-white">Jurnal Detaliat PrezenÈ›e</div>
+                    <div className="p-4 bg-slate-700/50 font-bold text-white">Jurnal Detaliat Prezențe</div>
                     <div className="overflow-x-auto max-h-[600px]">
                         <ResponsiveTable
                             columns={columnsLog}

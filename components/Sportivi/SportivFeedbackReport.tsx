@@ -95,7 +95,7 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
         const currentGrad = grade.find(g => g.id === admitted[0]?.grad_sustinut_id);
         const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
         const nextGrad = currentGrad ? sortedGrades.find(g => g.ordine === currentGrad.ordine + 1) : sortedGrades[0];
-        let eligibilityMsg = "FelicitÄƒri pentru progresul de pÃ¢nÄƒ acum!";
+        let eligibilityMsg = "Felicitări pentru progresul de până acum!";
         if (nextGrad) {
             const lastExamDate = admitted[0] ? new Date((examene.find(e=>e.id===admitted[0].sesiune_id)?.data || '').toString().slice(0, 10)) : new Date((sportiv.data_inscrierii || '').toString().slice(0, 10));
             const monthsToWait = parseDurationToMonths(nextGrad.timp_asteptare);
@@ -105,9 +105,9 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
             if (now < eligibilityDate) {
                 const monthsRemaining = (eligibilityDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
                 const trainingsRemaining = Math.ceil(monthsRemaining * 8); // Assuming 8 trainings/month
-                eligibilityMsg = `ContinuÄƒ tot aÈ™a! Mai ai nevoie de aproximativ ${trainingsRemaining} antrenamente pentru a fi eligibil pentru ${nextGrad.nume}.`;
+                eligibilityMsg = `Continuă tot așa! Mai ai nevoie de aproximativ ${trainingsRemaining} antrenamente pentru a fi eligibil pentru ${nextGrad.nume}.`;
             } else {
-                eligibilityMsg = `EÈ™ti eligibil pentru a susÈ›ine examenul pentru ${nextGrad.nume}! PerseverenÈ›a ta dÄƒ roade.`;
+                eligibilityMsg = `Ești eligibil pentru a susține examenul pentru ${nextGrad.nume}! Perseverența ta dă roade.`;
             }
         }
 
@@ -140,11 +140,11 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
                     <main className="mt-6 grid grid-cols-3 gap-6">
                         <section className="col-span-3 lg:col-span-2 space-y-6">
                             <div className="grid grid-cols-2 gap-4">
-                                <StatCard title="Rata FrecvenÈ›Äƒ (Ultimele 30 zile)" value={`${reportData.attendanceRate}%`} icon="chart" />
-                                <StatCard title="UrmÄƒtorul Obiectiv" value={reportData.nextGrad?.nume || "Maxim"} icon="target"/>
+                                <StatCard title="Rata Frecvență (Ultimele 30 zile)" value={`${reportData.attendanceRate}%`} icon="chart" />
+                                <StatCard title="Următorul Obiectiv" value={reportData.nextGrad?.nume || "Maxim"} icon="target"/>
                             </div>
                             <div>
-                                <h3 className="font-bold text-slate-700 mb-2">ConstanÈ›a (Ultimele 8 SÄƒptÄƒmÃ¢ni)</h3>
+                                <h3 className="font-bold text-slate-700 mb-2">Constanța (Ultimele 8 Săptămâni)</h3>
                                 <div className="h-24 w-full bg-slate-50 p-2 rounded-lg border border-slate-200">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={reportData.weeklyAttendance} margin={{ top: 5, right: 5, left: -30, bottom: -10 }}>
@@ -165,15 +165,15 @@ export const SportivFeedbackReport: React.FC<SportivFeedbackReportProps> = ({ is
                         </section>
 
                         <aside className="col-span-3 lg:col-span-1 space-y-4">
-                             <h3 className="font-bold text-slate-700 text-center">Insigne CÃ¢È™tigate</h3>
-                            <Badge title="Dragon Perseverent" description="PrezenÈ›Äƒ 100% Ã®n luna curentÄƒ." icon="dragon" earned={reportData.dragonPerseverent} />
-                            <Badge title="VoinÈ›Äƒ de Fier" description="Revenire dupÄƒ o pauzÄƒ." icon="will" earned={reportData.vointaDeFier} />
+                             <h3 className="font-bold text-slate-700 text-center">Insigne Câștigate</h3>
+                            <Badge title="Dragon Perseverent" description="Prezență 100% în luna curentă." icon="dragon" earned={reportData.dragonPerseverent} />
+                            <Badge title="Voință de Fier" description="Revenire după o pauză." icon="will" earned={reportData.vointaDeFier} />
                         </aside>
                     </main>
                 </div>
                 <div className="flex justify-end mt-6 pt-4 border-t border-slate-200 no-print">
-                    <Button variant="secondary" onClick={onClose}>ÃŽnchide</Button>
-                    <Button onClick={handlePrint} className="ml-2">PrinteazÄƒ / SalveazÄƒ PDF</Button>
+                    <Button variant="secondary" onClick={onClose}>Închide</Button>
+                    <Button onClick={handlePrint} className="ml-2">Printează / Salvează PDF</Button>
                 </div>
             </div>
         </Modal>

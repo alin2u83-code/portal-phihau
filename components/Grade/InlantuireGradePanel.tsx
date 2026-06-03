@@ -41,7 +41,7 @@ export const InlantuireGradePanel: React.FC<Props> = ({ inlantuireId }) => {
   };
 
   if (loading) {
-    return <div className="text-slate-400 text-xs py-2">Se Ã®ncarcÄƒ asocierile...</div>;
+    return <div className="text-slate-400 text-xs py-2">Se încarcă asocierile...</div>;
   }
 
   return (
@@ -70,7 +70,7 @@ export const InlantuireGradePanel: React.FC<Props> = ({ inlantuireId }) => {
                     <button
                       onClick={() => handleToggle(g.id, tp.cod)}
                       disabled={busy}
-                      title={active ? 'DezactiveazÄƒ' : 'ActiveazÄƒ'}
+                      title={active ? 'Dezactivează' : 'Activează'}
                       className={`w-5 h-5 rounded border transition-colors ${
                         busy
                           ? 'opacity-40 cursor-wait border-slate-500'

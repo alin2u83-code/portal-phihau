@@ -31,7 +31,7 @@ export const AddGradeModal: React.FC<AddGradeModalProps> = ({ isOpen, onClose, o
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!gradId) {
-            showError("Validare eÈ™uatÄƒ", "VÄƒ rugÄƒm selectaÈ›i un grad.");
+            showError("Validare eșuată", "Vă rugăm selectați un grad.");
             return;
         }
         setLoading(true);
@@ -42,42 +42,42 @@ export const AddGradeModal: React.FC<AddGradeModalProps> = ({ isOpen, onClose, o
     const sortedGrades = [...grades].sort((a,b) => a.ordine - b.ordine);
 
     const title = isEditing
-        ? `EditeazÄƒ Intrare Grad â€” ${sportiv.prenume} ${sportiv.nume}`
-        : `AdaugÄƒ Grad Manual pentru ${sportiv.prenume} ${sportiv.nume}`;
+        ? `Editează Intrare Grad â€” ${sportiv.prenume} ${sportiv.nume}`
+        : `Adaugă Grad Manual pentru ${sportiv.prenume} ${sportiv.nume}`;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <Select
-                    label="Gradul ObÈ›inut"
+                    label="Gradul Obținut"
                     value={gradId}
                     onChange={(e) => setGradId(e.target.value)}
                     required
                 >
-                    <option value="">SelecteazÄƒ un grad...</option>
+                    <option value="">Selectează un grad...</option>
                     {sortedGrades.map(g => (
                         <option key={g.id} value={g.id}>{g.nume} (ord. {g.ordine})</option>
                     ))}
                 </Select>
                 <Input
-                    label="Data ObÈ›inerii"
+                    label="Data Obținerii"
                     type="date"
                     value={dataObtinere}
                     onChange={(e) => setDataObtinere(e.target.value)}
                     required
                 />
                 <Input
-                    label="Detalii (OpÈ›ional)"
+                    label="Detalii (Opțional)"
                     value={observatii}
                     onChange={(e) => setObservatii(e.target.value)}
-                    placeholder="Ex: ObÈ›inut la altÄƒ federaÈ›ie, corecÈ›ie, etc."
+                    placeholder="Ex: Obținut la altă federație, corecție, etc."
                 />
                 <div className="flex justify-end pt-4 space-x-2 border-t border-slate-700">
                     <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
-                        AnuleazÄƒ
+                        Anulează
                     </Button>
                     <Button type="submit" variant="success" isLoading={loading}>
-                        {isEditing ? 'SalveazÄƒ ModificÄƒrile' : 'SalveazÄƒ Grad'}
+                        {isEditing ? 'Salvează Modificările' : 'Salvează Grad'}
                     </Button>
                 </div>
             </form>

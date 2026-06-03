@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Competitie, CategorieCompetitie, Sportiv, Grad, Inlantuire,
 } from '../../../types';
@@ -37,6 +37,8 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
   const [dreptMap, setDreptMap] = useState<Map<string, Map<string, Inlantuire[]>>>(new Map());
   const [loadingDrepturi, setLoadingDrepturi] = useState(true);
   const [gradFilter, setGradFilter] = useState<number | null>(null);
+  // Ref pentru a preveni auto-select repetat (rulează o singură dată după load)
+  const autoSelectDone = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -78,6 +80,34 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
       }),
     [sportivi, selectedSportivi, autoCategorie, grade, dreptMap]
   );
+
+  /**
+   * Auto-select Q1: după încărcarea drepturilor, pentru fiecare sportiv
+   * care NU are deja Q1 ales și are exact O singură opțiune — setează automat.
+   * Se rulează o singură dată (după primul load complet).
+   */
+  useEffect(() => {
+    if (loadingDrepturi) return;
+    if (autoSelectDone.current) return;
+    autoSelectDone.current = true;
+
+    const actualizari: Array<{ id: string; q1: string }> = [];
+    for (const d of sportiviDate) {
+      const q = quyenAles.get(d.sportiv.id);
+      if (q?.q1) continue; // deja ales — nu suprascrie
+      if (d.opts.length === 1) {
+        actualizari.push({ id: d.sportiv.id, q1: d.opts[0].id });
+      }
+    }
+    if (actualizari.length > 0) {
+      const next = new Map(quyenAles);
+      for (const { id, q1 } of actualizari) {
+        const cur = next.get(id) ?? { q1: '', q2: '' };
+        next.set(id, { ...cur, q1 });
+      }
+      onUpdateQuyenAles(next);
+    }
+  }, [loadingDrepturi, sportiviDate, quyenAles, onUpdateQuyenAles]);
 
   const sportiviVizibili = useMemo(() =>
     gradFilter === null
@@ -134,10 +164,16 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
     onUpdateQuyenAles(next);
   };
 
-  const sportiviLipsaQ1 = sportiviDate.filter(d => !quyenAles.get(d.sportiv.id)?.q1);
+  // Sportivi fără Q1 (excluși nu se contorizează — nu participă)
+  const sportiviLipsaQ1 = sportiviDate.filter(d =>
+    !excludedFromIndividual.has(d.sportiv.id) && !quyenAles.get(d.sportiv.id)?.q1
+  );
   const sportiviLipsaQ2 = sportiviDate.filter(d =>
+    !excludedFromIndividual.has(d.sportiv.id) &&
     d.autoCat.doua_quyenuri && quyenAles.get(d.sportiv.id)?.q1 && !quyenAles.get(d.sportiv.id)?.q2
   );
+  // Blocat = există sportivi fără Q1 cu mai mult de o opțiune (dacă e o singură opțiune s-a auto-setat)
+  const esteBlockat = sportiviLipsaQ1.some(d => d.opts.length > 1) || sportiviLipsaQ1.some(d => d.opts.length === 0);
 
   if (sportiviDate.length === 0 && !loadingDrepturi) {
     return (
@@ -206,13 +242,40 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
             </div>
           )}
 
+          {/* Banner blocare — sportivi cu multiple opțiuni fără Q1 ales */}
+          {esteBlockat && (
+            <div className="rounded-lg border border-red-700/50 bg-red-900/15 px-4 py-3 flex items-start gap-3">
+              <svg className="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-red-400">
+                  {sportiviLipsaQ1.length} sportiv{sportiviLipsaQ1.length !== 1 ? 'i' : ''} fără Q1 ales — nu poți continua
+                </p>
+                <p className="text-xs text-red-300/70 mt-0.5">
+                  Alege înlănțuirea pentru fiecare sportiv sau dezactivează participarea lui.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Bulk Q1 */}
-          <button
-            onClick={handleBulkQ1}
-            className="text-xs px-3 py-2 rounded-lg border border-slate-600 text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
-          >
-            ↓ Prima opțiune Q1 pentru toți vizibili
-          </button>
+          {sportiviLipsaQ1.length > 0 && (
+            <button
+              onClick={handleBulkQ1}
+              className="text-xs px-3 py-2 rounded-lg border border-brand-primary/50 text-brand-primary hover:bg-brand-primary/10 transition-colors font-medium"
+            >
+              Setează prima opțiune Q1 pentru toți ({sportiviLipsaQ1.length})
+            </button>
+          )}
+          {sportiviLipsaQ1.length === 0 && (
+            <button
+              onClick={handleBulkQ1}
+              className="text-xs px-3 py-2 rounded-lg border border-slate-600 text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
+            >
+              ↓ Prima opțiune Q1 pentru toți vizibili
+            </button>
+          )}
 
           {/* Tabel înlănțuiri */}
           <div className="overflow-x-auto max-w-full rounded-lg border border-slate-700" style={{ WebkitOverflowScrolling: 'touch' }}>
@@ -353,16 +416,20 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
       {/* Footer */}
       <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm text-slate-400">
-            {nrComplet}/{sportiviDate.length} sportivi cu înlănțuire completă
+          <span className={`text-sm ${esteBlockat ? 'text-red-400' : 'text-slate-400'}`}>
+            {esteBlockat
+              ? `${sportiviLipsaQ1.length} sportiv${sportiviLipsaQ1.length !== 1 ? 'i' : ''} fără Q1`
+              : `${nrComplet}/${sportiviDate.length} sportivi cu înlănțuire completă`
+            }
           </span>
           <Button
             variant="success"
-            disabled={loadingDrepturi}
-            onClick={onContinua}
+            disabled={loadingDrepturi || esteBlockat}
+            onClick={(!loadingDrepturi && !esteBlockat) ? onContinua : undefined}
             className="min-w-[140px]"
+            title={esteBlockat ? 'Rezolvă selecțiile Q1 lipsă înainte de a continua' : undefined}
           >
-            Continuă
+            Înapoi la probe
           </Button>
         </div>
       </div>

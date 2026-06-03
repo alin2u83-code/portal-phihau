@@ -1,7 +1,7 @@
 ﻿/**
- * TipuriNomenclatorAdmin â€” componentÄƒ genericÄƒ pentru editarea denumirilor
+ * TipuriNomenclatorAdmin â€” componentă generică pentru editarea denumirilor
  * din tabele de nomenclator (tipuri_competitie, tipuri_stagii etc.)
- * Vizibil È™i funcÈ›ional DOAR pentru SUPER_ADMIN_FEDERATIE / ADMIN.
+ * Vizibil și funcțional DOAR pentru SUPER_ADMIN_FEDERATIE / ADMIN.
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../supabaseClient';

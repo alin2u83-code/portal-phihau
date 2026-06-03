@@ -32,11 +32,11 @@ export const HartaExamene: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Harta InformaÈ›iilor din Examene</h2>
+            <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Harta Informațiilor din Examene</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="p-4">
-                    <h3 className="text-lg font-bold text-white mb-4">ParticipanÈ›i per Sesiune</h3>
+                    <h3 className="text-lg font-bold text-white mb-4">Participanți per Sesiune</h3>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={sessionData}>
@@ -52,7 +52,7 @@ export const HartaExamene: React.FC = () => {
                 </Card>
 
                 <Card className="p-4">
-                    <h3 className="text-lg font-bold text-white mb-4">DistribuÈ›ie Status Sesiuni</h3>
+                    <h3 className="text-lg font-bold text-white mb-4">Distribuție Status Sesiuni</h3>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>

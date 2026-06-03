@@ -6,6 +6,7 @@ import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { formatTime } from '../../utils/date';
+import { formatNume } from '../../utils/formatareSportiv';
 
 export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, onViewSportiv }) => {
     const [istoric, setIstoric] = useState<any[]>([]);
@@ -68,7 +69,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
             const lowerFilter = filterNume.toLowerCase();
             result = result.filter(row => {
                 const sp = sportivi[row.sportiv_id];
-                const numeComplet = sp ? `${sp.nume} ${sp.prenume}` : '';
+                const numeComplet = sp ? formatNume(sp) : '';
                 return numeComplet.toLowerCase().includes(lowerFilter);
             });
         }
@@ -83,8 +84,8 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
             } else if (sortField === 'nume_sportiv') {
                 const spA = sportivi[a.sportiv_id];
                 const spB = sportivi[b.sportiv_id];
-                valA = spA ? `${spA.nume} ${spA.prenume}` : '';
-                valB = spB ? `${spB.nume} ${spB.prenume}` : '';
+                valA = spA ? formatNume(spA) : '';
+                valB = spB ? formatNume(spB) : '';
             } else if (sortField === 'nume_grupa') {
                 valA = a.nume_grupa || '';
                 valB = b.nume_grupa || '';
@@ -128,7 +129,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
                         className="font-bold text-white cursor-pointer hover:text-indigo-400 hover:underline transition-colors"
                         onClick={() => sp && onViewSportiv && onViewSportiv(sp)}
                     >
-                        {sp ? `${sp.nume} ${sp.prenume}` : 'Necunoscut'}
+                        {sp ? formatNume(sp) : 'Necunoscut'}
                     </span>
                 );
             }
@@ -156,7 +157,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
                 <div className="flex justify-between items-start">
                     <div>
                         <p className="font-bold text-white text-lg mb-1" onClick={() => sp && onViewSportiv && onViewSportiv(sp)}>
-                            {sp ? `${sp.nume} ${sp.prenume}` : 'Necunoscut'}
+                            {sp ? formatNume(sp) : 'Necunoscut'}
                         </p>
                         <p className="text-sm text-slate-400 mb-2">{row.nume_grupa}</p>
                         <div className="flex items-center gap-2 text-xs text-slate-500">

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button, Modal } from '../../ui';
+import { formatNume } from '../../../utils/formatareSportiv';
 import { ExclamationTriangleIcon, UserCheckIcon, UserXIcon, TransferIcon } from '../../icons';
 import { PereacheDuplicat } from './types';
 
@@ -44,7 +45,7 @@ export const ModalConfirmareFuzionare: React.FC<{
                         </span>
                     </div>
                     <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
-                        <p className="text-sm font-bold text-white">{primar.prenume} {primar.nume}</p>
+                        <p className="text-sm font-bold text-white">{formatNume(primar)}</p>
                         <p className="text-xs text-slate-400 mt-1">
                             {primar.data_nasterii || 'fara data nastere'} · {primar.email || 'fara email'}
                         </p>
@@ -67,7 +68,7 @@ export const ModalConfirmareFuzionare: React.FC<{
                         </span>
                     </div>
                     <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30">
-                        <p className="text-sm font-bold text-white">{secundar.prenume} {secundar.nume}</p>
+                        <p className="text-sm font-bold text-white">{formatNume(secundar)}</p>
                         <p className="text-xs text-slate-400 mt-1">
                             {secundar.data_nasterii || 'fara data nastere'} · {secundar.email || 'fara email'}
                         </p>

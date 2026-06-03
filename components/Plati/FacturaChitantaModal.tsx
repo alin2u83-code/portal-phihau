@@ -10,6 +10,7 @@
 import React, { useRef } from 'react';
 import { Plata, IstoricPlataDetaliat, Sportiv, Familie } from '../../types';
 import { XIcon, PrinterIcon, CheckCircleIcon, ExclamationTriangleIcon, FileTextIcon } from '../icons';
+import { formatNume } from '../../utils/formatareSportiv';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -45,7 +46,7 @@ export const FacturaChitantaModal: React.FC<FacturaChitantaModalProps> = ({
     const statusCfg = STATUS_DISPLAY_CONFIG[displayStatus];
 
     const numeplatitor = sportiv
-        ? `${sportiv.nume} ${sportiv.prenume}`
+        ? formatNume(sportiv)
         : familie?.nume ?? plata.nume_complet_sportiv ?? '—';
 
     const restDePlata = plata.rest_de_plata ?? Math.max(0, plata.suma_datorata - (plata.total_incasat || 0));

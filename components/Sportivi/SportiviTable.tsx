@@ -5,6 +5,7 @@ import { GradBadge } from '../../utils/grades';
 import { Button, Card, RoleBadge } from '../ui';
 import { EditIcon, WalletIcon, ShieldCheckIcon, TrashIcon, LockIcon } from '../icons';
 import { getAge } from '../../utils/date';
+import { formatNume } from '../../utils/formatareSportiv';
 
 interface SportiviTableProps {
   sportivi: Sportiv[];
@@ -70,7 +71,7 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
         render: (s) => (
             <div className="flex flex-col">
                 <div className="font-bold text-white hover:text-brand-primary">
-                    {s.prenume} {s.nume}
+                    {formatNume(s)}
                     <span className="ml-2 text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span>
                 </div>
                 <div className="text-[10px] text-slate-500 uppercase tracking-wider font-mono">
@@ -153,7 +154,7 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
           <Card className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-bold text-white text-lg mb-1">{sportiv.prenume} {sportiv.nume}</p>
+                <p className="font-bold text-white text-lg mb-1">{formatNume(sportiv)}</p>
                 <div className="flex items-center gap-2 mb-2">
                     <GradBadge grad={grad} />
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${sportiv.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>

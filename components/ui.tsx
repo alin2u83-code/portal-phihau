@@ -1,6 +1,6 @@
 import React, { ReactNode, useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { XIcon, SearchIcon } from './icons';
+import { XIcon, SearchIcon, ChevronDownIcon } from './icons';
 import { Rol, Club } from '../types';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -837,3 +837,37 @@ export const DateInputDMY: React.FC<DateInputDMYProps> = ({ label, value, onChan
     </div>
   );
 };
+
+// --- Accordion ---
+interface AccordionItemProps {
+  id: string;
+  title: string;
+  icon?: React.ElementType;
+  isOpen: boolean;
+  onToggle: (id: string) => void;
+  children: React.ReactNode;
+}
+
+export const AccordionItem: React.FC<AccordionItemProps> = ({ id, title, icon: Icon, isOpen, onToggle, children }) => (
+  <div className="border border-slate-700/50 rounded-lg overflow-hidden">
+    <button
+      onClick={() => onToggle(id)}
+      className="w-full flex items-center justify-between px-4 py-3 bg-slate-800/60 hover:bg-slate-700/60 transition-colors text-left"
+    >
+      <div className="flex items-center gap-3">
+        {Icon && <Icon className="w-4 h-4 text-amber-400 shrink-0" />}
+        <span className="font-semibold text-slate-200 text-sm uppercase tracking-wider">{title}</span>
+      </div>
+      <ChevronDownIcon className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+    </button>
+    {isOpen && (
+      <div className="p-3 bg-slate-900/40">
+        {children}
+      </div>
+    )}
+  </div>
+);
+
+export const Accordion: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="space-y-2">{children}</div>
+);

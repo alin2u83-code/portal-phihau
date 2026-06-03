@@ -6,6 +6,7 @@ import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useFamilyManager } from '../../hooks/useFamilyManager';
+import { formatNume } from '../../utils/formatareSportiv';
 
 interface FamiliiManagementProps {
     familii: Familie[];
@@ -94,11 +95,11 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Select label="Selectează Sportiv 1" value={selectedSportiv1} onChange={e => setSelectedSportiv1(e.target.value)} required>
                             <option value="">Alege...</option>
-                            {filteredUnassigned.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
+                            {filteredUnassigned.map(s => <option key={s.id} value={s.id}>{formatNume(s)}</option>)}
                         </Select>
                         <Select label="Selectează Sportiv 2" value={selectedSportiv2} onChange={e => setSelectedSportiv2(e.target.value)} required disabled={!selectedSportiv1}>
                              <option value="">Alege...</option>
-                            {sportiviSelect2.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
+                            {sportiviSelect2.map(s => <option key={s.id} value={s.id}>{formatNume(s)}</option>)}
                         </Select>
                     </div>
                     <Input label="Nume Familie" value={newFamilyName} onChange={e => setNewFamilyName(e.target.value)} placeholder="Ex: Popescu" required/>
@@ -119,10 +120,10 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                         <Card key={f.id}>
                             <h4 className="font-bold text-white text-lg">{f.nume}</h4>
                             <p className="text-sm text-slate-300">Abonament: <span className="font-semibold">{abonament?.denumire || 'Automat'}</span></p>
-                            <p className="text-sm text-slate-300">Reprezentant: <span className="font-semibold text-blue-400">{reprezentant ? `${reprezentant.nume} ${reprezentant.prenume}` : 'Nespecificat'}</span></p>
+                            <p className="text-sm text-slate-300">Reprezentant: <span className="font-semibold text-blue-400">{reprezentant ? formatNume(reprezentant) : 'Nespecificat'}</span></p>
                             <div className="mt-3 pt-3 border-t border-[var(--border-color)]">
                                 <h5 className="text-xs uppercase font-bold text-slate-400 mb-1">Membri ({membri.length})</h5>
-                                <ul className="text-sm text-slate-200 list-disc list-inside">{membri.map(m => <li key={m.id}>{onViewSportiv ? <button type="button" className="hover:text-brand-primary hover:underline" onClick={() => onViewSportiv(m)}>{m.nume} {m.prenume}</button> : <>{m.nume} {m.prenume}</>}</li>)}</ul>
+                                <ul className="text-sm text-slate-200 list-disc list-inside">{membri.map(m => <li key={m.id}>{onViewSportiv ? <button type="button" className="hover:text-brand-primary hover:underline" onClick={() => onViewSportiv(m)}>{formatNume(m)}</button> : <>{formatNume(m)}</>}</li>)}</ul>
                             </div>
                              <div className="mt-4 flex gap-2">
                                 <Button size="sm" variant="danger" onClick={() => setToDelete(f)} className="min-h-[44px]"><TrashIcon className="w-4 h-4"/></Button>
@@ -154,9 +155,9 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                                             <span key={m.id}>
                                                 {idx > 0 && ', '}
                                                 {onViewSportiv ? (
-                                                    <button type="button" className="hover:text-brand-primary hover:underline" onClick={() => onViewSportiv(m)}>{m.nume} {m.prenume}</button>
+                                                    <button type="button" className="hover:text-brand-primary hover:underline" onClick={() => onViewSportiv(m)}>{formatNume(m)}</button>
                                                 ) : (
-                                                    <>{m.nume} {m.prenume}</>
+                                                    <>{formatNume(m)}</>
                                                 )}
                                             </span>
                                         ))}
@@ -164,7 +165,7 @@ export const FamiliiManagement: React.FC<FamiliiManagementProps> = ({
                                     <td className="p-2 w-1/4">
                                         <Select label="" value={f.reprezentant_id || ''} onChange={(e) => handleSetRepresentative(f.id, e.target.value || null)} className="!bg-transparent text-sm">
                                             <option value="">Alege reprezentant...</option>
-                                            {membri.map(m => <option key={m.id} value={m.id}>{m.nume} {m.prenume}</option>)}
+                                            {membri.map(m => <option key={m.id} value={m.id}>{formatNume(m)}</option>)}
                                         </Select>
                                     </td>
                                     <td className="p-2 w-1/4">

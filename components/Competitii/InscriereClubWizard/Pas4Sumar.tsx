@@ -10,6 +10,7 @@ import { calculeazaVarstaLaData } from '../../../utils/eligibilitateCompetitie';
 import { exportFisaParticipare, exportBorderoClub, RandIndividualPDF, RandEchipaPDF } from '../../../utils/exportPDFCompetitie';
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../../utils/taxeCompetitie';
 import { STEP_LABELS } from './constants';
+import { formatNume } from '../../../utils/formatareSportiv';
 import { WizardProgress } from './shared';
 import { EchipaFormata, QuyenAlesMap } from './types';
 
@@ -105,7 +106,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       const taxa = cat ? calculeazaTaxaEchipa(cat, competitie) : (competitie.config_taxe?.echipa_seniori ?? competitie.taxa_echipa ?? 120);
       const getNumeSportiv = (id: string) => {
         const s = sportivi.find(sp => sp.id === id);
-        return s ? `${s.nume} ${s.prenume}` : id;
+        return s ? formatNume(s) : id;
       };
       return {
         echipa,
@@ -139,7 +140,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
     randuriIndividuale.map(r => {
       const gradEntry = grade.find(g => g.id === r.sportiv.grad_actual_id);
       return {
-        numeComplet: `${r.sportiv.nume} ${r.sportiv.prenume}`,
+        numeComplet: formatNume(r.sportiv),
         categorie: r.categorie.denumire ?? `Categoria ${r.categorie.numar_categorie}`,
         proba: r.categorie.proba?.denumire ?? '—',
         inlantuireArma: (r.inlantuire_id ? inlantuiriById.get(r.inlantuire_id)?.denumire : null) ?? '—',
@@ -366,7 +367,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                 {randuriIndividuale.map(rand => (
                   <tr key={rand.sportiv.id} className="bg-slate-800/10 hover:bg-slate-800/40 transition-colors">
                     <td className="px-4 py-2.5 font-medium text-white whitespace-nowrap">
-                      {rand.sportiv.nume} {rand.sportiv.prenume}
+                      {formatNume(rand.sportiv)}
                     </td>
                     <td className="px-4 py-2.5 text-sm text-slate-300">
                       {rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}
@@ -397,7 +398,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
               <div key={rand.sportiv.id} className="px-4 py-3 space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-sm text-white">
-                    {rand.sportiv.nume} {rand.sportiv.prenume}
+                    {formatNume(rand.sportiv)}
                   </span>
                   <span className="text-sm font-semibold text-green-400">{rand.taxa} lei</span>
                 </div>

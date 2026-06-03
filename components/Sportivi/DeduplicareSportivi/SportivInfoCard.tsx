@@ -1,5 +1,6 @@
 import React from 'react';
 import { SportivCard } from './types';
+import { formatNume } from '../../../utils/formatareSportiv';
 
 export const SportivInfoCard: React.FC<{
     sportiv: SportivCard;
@@ -27,7 +28,7 @@ export const SportivInfoCard: React.FC<{
         <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1 min-w-0">
                 <p className="text-sm sm:text-base font-bold text-white leading-tight">
-                    {sportiv.prenume} {sportiv.nume}
+                    {formatNume(sportiv)}
                 </p>
                 {sportiv.data_nasterii ? (
                     <p className="text-xs text-slate-400 mt-0.5">

@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import { usePermissions } from '../hooks/usePermissions';
 import { useDataProvider } from '../hooks/useDataProvider';
 import { View } from '../types';
-import { Card } from './ui';
+import { Card, Accordion, AccordionItem } from './ui';
 import {
     UsersIcon, CreditCardIcon, BuildingOfficeIcon, TrophyIcon,
     CogIcon,
@@ -11,6 +11,7 @@ import {
     BellIcon, SitemapIcon, BookOpenIcon, ClipboardListIcon,
     ArchiveBoxIcon,
 } from './icons';
+import { useState } from 'react';
 
 interface AdminDashboardProps {
     onNavigate: (view: View) => void;
@@ -41,6 +42,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
     const [counts, setCounts] = useState<{ sportivi: number; plati: number; cluburi: number; utilizatori: number } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [openSection, setOpenSection] = useState<string>('gestiune-membri');
+    const handleToggle = (id: string) => setOpenSection(prev => prev === id ? '' : id);
 
     useEffect(() => {
         if (!permissions.isFederationAdmin) {
@@ -149,25 +152,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             </div>
 
             {/* Action Groups */}
-            {actionGroups.map(({ title, items }) => (
-                <div key={title}>
-                    <h2 className="text-base font-semibold text-slate-300 mb-3">{title}</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                        {items.map(({ label, view, icon: Icon, color }) => (
-                            <button
-                                key={view}
-                                onClick={() => onNavigate(view)}
-                                className="flex items-center gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-600 hover:bg-slate-800 transition-all text-left group"
-                            >
-                                <div className="shrink-0 p-1.5 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
-                                    <Icon className={`w-4 h-4 ${color}`} />
-                                </div>
-                                <span className="text-sm text-slate-300 group-hover:text-white transition-colors leading-tight">{label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            ))}
+            <Accordion>
+                {actionGroups.map(({ title, items }, idx) => {
+                    const ids = ['gestiune-membri', 'evenimente', 'setari-admin'];
+                    const icons = [UsersIcon, TrophyIcon, CogIcon];
+                    const id = ids[idx];
+                    const Icon = icons[idx];
+                    return (
+                        <AccordionItem key={id} id={id} title={title} icon={Icon} isOpen={openSection === id} onToggle={handleToggle}>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                {items.map(({ label, view, icon: ItemIcon, color }) => (
+                                    <button
+                                        key={view}
+                                        onClick={() => onNavigate(view)}
+                                        className="flex items-center gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-600 hover:bg-slate-800 transition-all text-left group"
+                                    >
+                                        <div className="shrink-0 p-1.5 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
+                                            <ItemIcon className={`w-4 h-4 ${color}`} />
+                                        </div>
+                                        <span className="text-sm text-slate-300 group-hover:text-white transition-colors leading-tight">{label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </AccordionItem>
+                    );
+                })}
+            </Accordion>
         </div>
     );
 };

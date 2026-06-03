@@ -13,6 +13,7 @@ import { useData } from '../../contexts/DataContext';
 import { useError } from '../ErrorProvider';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
+import { formatNume } from '../../utils/formatareSportiv';
 
 interface RaportFinanciarProps {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
@@ -219,7 +220,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         if (filters.metodaPlata) chips.push({ key: 'metodaPlata', label: `Metodă: ${filters.metodaPlata}` });
         if (filters.sportivId) {
             const s = sportivi.find(sp => sp.id === filters.sportivId);
-            if (s) chips.push({ key: 'sportivId', label: `Sportiv: ${s.nume} ${s.prenume}` });
+            if (s) chips.push({ key: 'sportivId', label: `Sportiv: ${formatNume(s)}` });
         }
         if (filters.familieId) {
             const f = familii.find(fa => fa.id === filters.familieId);
@@ -370,7 +371,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                     <Input label="Până la" type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />
                                     <Select label="Sportiv" name="sportivId" value={filters.sportivId} onChange={handleFilterChange} disabled={!!filters.familieId}>
                                         <option value="">Toți</option>
-                                        {sportivi.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
+                                        {sportivi.map(s => <option key={s.id} value={s.id}>{formatNume(s)}</option>)}
                                     </Select>
                                     <Select label="Familie" name="familieId" value={filters.familieId} onChange={handleFilterChange} disabled={!!filters.sportivId}>
                                         <option value="">Toate</option>
@@ -756,7 +757,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                                 const cfg = STATUS_DISPLAY_CONFIG[ds];
                                                 const sp = sportivi.find(s => s.id === p.sportiv_id);
                                                 const fam = familii.find(f => f.id === p.familie_id);
-                                                const numePlatitor = sp ? `${sp.nume} ${sp.prenume}` : fam?.nume ?? '—';
+                                                const numePlatitor = sp ? formatNume(sp) : fam?.nume ?? '—';
                                                 return (
                                                     <div key={p.id} className="flex items-center justify-between px-4 py-3 gap-3">
                                                         <div className="min-w-0">

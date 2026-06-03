@@ -11,6 +11,7 @@ import {
     CheckCircleIcon,
 } from '../../icons';
 import { PereacheDuplicat, SportivCard } from './types';
+import { formatNume } from '../../../utils/formatareSportiv';
 import { detecteazaLocalDuplicate } from './utils';
 import { CardPereache } from './CardPereache';
 import { ModalConfirmareFuzionare } from './ModalConfirmareFuzionare';
@@ -174,7 +175,7 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
             setFuzionate(prev => new Set(prev).add(modalPereche.id));
             setModalPereche(null);
 
-            const numePrimar = `${modalPereche.sportiv_a.id === primarId ? modalPereche.sportiv_a.prenume : modalPereche.sportiv_b.prenume} ${modalPereche.sportiv_a.id === primarId ? modalPereche.sportiv_a.nume : modalPereche.sportiv_b.nume}`;
+            const numePrimar = formatNume(modalPereche.sportiv_a.id === primarId ? modalPereche.sportiv_a : modalPereche.sportiv_b);
             showSuccess('Fuzionat cu succes', `Contul duplicat a fost dezactivat. Profilul principal: ${numePrimar}.`);
         } catch (err: any) {
             showError('Eroare la fuzionare', err.message ?? String(err));
@@ -190,8 +191,8 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
         if (cautare.trim()) {
             const q = cautare.toLowerCase();
             lista = lista.filter(p =>
-                `${p.sportiv_a.prenume} ${p.sportiv_a.nume}`.toLowerCase().includes(q) ||
-                `${p.sportiv_b.prenume} ${p.sportiv_b.nume}`.toLowerCase().includes(q)
+                formatNume(p.sportiv_a).toLowerCase().includes(q) ||
+                formatNume(p.sportiv_b).toLowerCase().includes(q)
             );
         }
         return lista;

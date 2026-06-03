@@ -8,6 +8,7 @@ import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { useData } from '../../contexts/DataContext';
 import { getPretValabil, getPretProdus } from '../../utils/pricing';
+import { formatNume } from '../../utils/formatareSportiv';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
 
 interface GestiuneFacturiProps {
@@ -130,7 +131,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         }
         if (plata.sportiv_id) {
             const s = sportivi.find(sp => sp.id === plata.sportiv_id);
-            return s ? `${s.nume} ${s.prenume}` : 'Sportiv Șters';
+            return s ? formatNume(s) : 'Sportiv Șters';
         }
         return 'N/A';
     };
@@ -473,7 +474,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 <form onSubmit={handleAddFactura} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <Select label="Sportiv" name="sportiv_id" value={formState.sportiv_id} onChange={handleFormChange} required>
                         <option value="">Selectează Sportiv</option>
-                        {clubSportivi.map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
+                        {clubSportivi.map(s => <option key={s.id} value={s.id}>{formatNume(s)}</option>)}
                     </Select>
                     
                     <Select label="Tip Factură" name="tip" value={formState.tip} onChange={handleFormChange} required>

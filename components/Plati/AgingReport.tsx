@@ -5,6 +5,7 @@
  */
 import React, { useMemo } from 'react';
 import { Plata, Sportiv, Familie } from '../../types';
+import { formatNume } from '../../utils/formatareSportiv';
 
 interface Props {
     plati: Plata[];
@@ -104,7 +105,7 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
                 return {
                     ...p,
                     daysOverdue,
-                    numePlatitor: sp ? `${sp.nume} ${sp.prenume}` : fam?.nume ?? '—',
+                    numePlatitor: sp ? formatNume(sp) : fam?.nume ?? '—',
                     bucket: bucketFor(daysOverdue),
                 };
             })

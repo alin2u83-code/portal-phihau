@@ -468,9 +468,9 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     [categorii]
   );
 
-  const sportiviSelectati = useMemo<Sportiv[]>(() =>
-    sportivi.filter(s => selectedSportivi.has(s.id)),
-    [sportivi, selectedSportivi]
+  const sportiviSelectati = useMemo<Sportiv[]>(
+    () => sportivi,
+    [sportivi]
   );
 
   const sportiviDisponibiliPerCategorie = useMemo<Map<string, Sportiv[]>>(() => {

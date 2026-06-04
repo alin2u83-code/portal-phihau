@@ -487,8 +487,8 @@ const ProbaEchipeView: React.FC<ProbaEchipeViewProps> = ({
   );
 
   const sportiviSelectati = useMemo(
-    () => sportivi.filter(s => selectedSportivi.has(s.id) && (!myClubId || s.club_id === myClubId)),
-    [sportivi, selectedSportivi, myClubId]
+    () => sportivi.filter(s => !myClubId || s.club_id === myClubId),
+    [sportivi, myClubId]
   );
 
   const sportiviDisponibiliPerCategorie = useMemo<Map<string, Sportiv[]>>(() => {

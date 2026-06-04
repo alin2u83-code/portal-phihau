@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-06-04T20:25:13.299Z"
-last_activity: 2026-06-04 — Roadmap creat, gata de planificare Phase 1
+status: verifying
+stopped_at: "Checkpoint Task 3: aplicare manuala migratii in Supabase"
+last_updated: "2026-06-04T20:48:46.260Z"
+last_activity: 2026-06-04 -- Phase 01 execution started
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** Adminul/instructorul poate gestiona complet antrenamentele unei grupe (vizualizare calendar, adăugare one-off, anulare cu motiv) și poate înregistra sportivi la stagii cu facturi corecte.
-**Current focus:** Phase 1 — DB & Types
+**Current focus:** Phase 01 — db-types
 
 ## Current Position
 
-Phase: 1 of 4 (DB & Types)
-Plan: 0 of ? in current phase
-Status: Ready to plan
-Last activity: 2026-06-04 — Roadmap creat, gata de planificare Phase 1
+Phase: 01 (db-types) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-06-04 -- Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01-db-types P01 | 127s | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,10 @@ Recent decisions affecting current work:
 - Calendar lunar cu dot-uri + expand-on-click — fără librării externe
 - Preț per tip stagiu pe `tipuri_stagii.pret` (coloană simplă)
 - StagiiCompetitii.tsx rămâne baza pentru stagii club — completăm, nu rescriem
+- [Phase ?]: status CHECK constraint
+- [Phase ?]: motiv_anulare nullable fara DEFAULT
+- [Phase ?]: pret NUMERIC nullable pe tipuri_stagii
+- [Phase ?]: Antrenament.status/motiv_anulare + TipStagiu interface
 
 ### Pending Todos
 
@@ -84,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-04T20:25:13.286Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-db-types/01-CONTEXT.md
+Last session: 2026-06-04T20:48:46.247Z
+Stopped at: Checkpoint Task 3: aplicare manuala migratii in Supabase
+Resume file: .planning/phases/01-db-types/01-01-PLAN.md

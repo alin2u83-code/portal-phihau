@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CategorieCompetitie, Grad, InscriereCompetitie, Inlantuire,
   ProbaCompetitie, Sportiv, TipParticipare, StagiuCVDParticipare,
@@ -7,6 +7,15 @@ import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { formatNume } from '../../../utils/formatareSportiv';
 import { STEP_LABELS, STEP_LABELS_SCURT } from './constants';
 import { EligibilitateGenerala, DreptGrad, PickCategorie, IndivPicks } from './types';
+
+// -----------------------------------------------
+// FILTER TYPES & COMPONENTS
+// -----------------------------------------------
+
+export interface FilterOption {
+  value: string;
+  label: string;
+}
 
 // -----------------------------------------------
 // STEP INDICATOR (STEPPER)
@@ -362,6 +371,87 @@ export const RandCategorie: React.FC<RandCategorieProps> = ({
               className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary"
             />
           )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// -----------------------------------------------
+// FilterDropdown — reusable multi-select filter dropdown
+// -----------------------------------------------
+
+interface FilterDropdownProps {
+  label: string;
+  options: FilterOption[];
+  selected: Set<string>;
+  onChange: (next: Set<string>) => void;
+}
+
+export const FilterDropdown: React.FC<FilterDropdownProps> = ({ label, options, selected, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const toggle = (val: string) => {
+    const next = new Set(selected);
+    next.has(val) ? next.delete(val) : next.add(val);
+    onChange(next);
+  };
+
+  const count = selected.size;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        style={{ touchAction: 'manipulation' }}
+        className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-all min-h-[36px] ${
+          count > 0
+            ? 'border-indigo-500 bg-indigo-900/20 text-indigo-300'
+            : 'border-slate-600 bg-slate-800 text-slate-400 hover:border-slate-500'
+        }`}
+      >
+        {label}
+        {count > 0 && (
+          <span className="bg-indigo-600 text-white rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none">
+            {count}
+          </span>
+        )}
+        <span className="text-slate-500 text-[10px]">{open ? '▴' : '▾'}</span>
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 min-w-[160px] bg-slate-800 border border-slate-600 rounded-xl shadow-xl overflow-hidden">
+          {options.map(opt => {
+            const isSel = selected.has(opt.value);
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => toggle(opt.value)}
+                style={{ touchAction: 'manipulation' }}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-left hover:bg-slate-700 transition-colors min-h-[44px]"
+              >
+                <span className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border text-[10px] ${
+                  isSel ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-500'
+                }`}>
+                  {isSel ? '✓' : ''}
+                </span>
+                <span className={isSel ? 'text-indigo-300 font-semibold' : 'text-slate-300'}>
+                  {opt.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

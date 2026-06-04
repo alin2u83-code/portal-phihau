@@ -691,3 +691,19 @@ export interface SolicitareEchipaIncompleta {
   club_solicitant?: { id: string; nume: string };
   club_acceptant?: { id: string; nume: string } | null;
 }
+
+export interface CerereCoechipier {
+  id: string;
+  competitie_id: string;
+  categorie_id: string;
+  club_solicitant_id: string;
+  nr_locuri_solicitate: number;
+  status: 'pending' | 'aprobat' | 'respins' | 'anulat';
+  created_at: string;
+  resolved_at: string | null;
+  rezolvat_de: string | null;
+  created_by: string | null;
+  // joined
+  categorie?: CategorieCompetitie;
+  club_solicitant?: { id: string; nume: string };
+}

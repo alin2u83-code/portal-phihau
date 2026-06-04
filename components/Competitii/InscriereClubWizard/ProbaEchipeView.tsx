@@ -817,7 +817,7 @@ const ProbaEchipeView: React.FC<ProbaEchipeViewProps> = ({
 
       {/* Footer sticky */}
       <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
-        <div className="flex items-center gap-3 justify-between">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:justify-between">
           <span className="text-xs text-slate-400">
             {poateSalva
               ? `${nrCompletate}/${categoriiCuEligibili.length} categor${nrCompletate === 1 ? 'ie' : 'ii'} configurate`
@@ -827,7 +827,7 @@ const ProbaEchipeView: React.FC<ProbaEchipeViewProps> = ({
             variant="success"
             disabled={!poateSalva}
             onClick={poateSalva ? onSave : undefined}
-            className="min-w-[160px]"
+            className="w-full sm:w-auto sm:min-w-[160px]"
           >
             {poateSalva
               ? `Salvează ${info?.title ?? proba.tip_proba} ✓`

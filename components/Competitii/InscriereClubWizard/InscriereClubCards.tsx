@@ -484,7 +484,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
 
       {/* Footer sticky */}
       <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
-        <div className="flex items-center gap-3 flex-wrap justify-between">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:justify-between">
           {onPrevizualizare && (
             <Button variant="secondary" size="sm" onClick={onPrevizualizare}>
               Previzualizare fișă
@@ -498,7 +498,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
               variant="success"
               disabled={!poateFinalizare}
               onClick={poateFinalizare ? onFinalizare : undefined}
-              className="min-w-[140px]"
+              className="w-full sm:w-auto sm:min-w-[140px]"
               title={!poateFinalizare ? tooltipFinalizare : undefined}
             >
               {!poateFinalizare ? '🔒 Finalizează înscrierea' : 'Finalizează înscrierea'}

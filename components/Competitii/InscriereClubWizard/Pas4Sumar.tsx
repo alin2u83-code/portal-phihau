@@ -559,7 +559,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             variant="success"
             onClick={() => setConfirmOpen(true)}
             disabled={saving || !!successMsg}
-            className="min-w-[180px] ml-auto"
+            className="w-full sm:w-auto sm:min-w-[180px] ml-auto"
           >
             Finalizeaza inscrierea
           </Button>

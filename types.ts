@@ -343,6 +343,8 @@ export interface Antrenament {
   ziua: ProgramItem['ziua'] | null;
   is_recurent: boolean;
   is_activ?: boolean;
+  status?: 'planificat' | 'anulat' | 'efectuat';
+  motiv_anulare?: string | null;
   prezenta: { sportiv_id: string; status_id?: string | null; status: { este_prezent: boolean; denumire: string } | null }[];
   orar_id?: string | null;
   // New fields from view
@@ -352,6 +354,12 @@ export interface Antrenament {
   tip_antrenament?: 'regular' | 'stagiu' | 'examen';
   ziua_saptamanii?: string;
   sportivi_count?: number;
+}
+
+export interface TipStagiu {
+  cod: string;
+  denumire: string;
+  pret?: number | null;
 }
 
 export interface AnuntPrezenta {

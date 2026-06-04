@@ -11,6 +11,7 @@ export const GrupeManagement = lazy(() => import('./Grupe').then(m => ({ default
 export const RaportPrezenta = lazy(() => import('./Prezenta/RaportPrezenta').then(m => ({ default: m.RaportPrezenta })));
 export const StagiiManagement = lazy(() => import('./Competitii/StagiiManagement').then(m => ({ default: m.StagiiManagement })));
 export const CompetitiiManagement = lazy(() => import('./Competitii').then(m => ({ default: m.CompetitiiManagement })));
+export const CategoriiTemplateManager = lazy(() => import('./Competitii/CategoriiTemplateManager'));
 export const PlatiScadente = lazy(() => import('./Plati/PlatiScadente').then(m => ({ default: m.PlatiScadente })));
 export const JurnalIncasari = lazy(() => import('./Plati/JurnalIncasari').then(m => ({ default: m.JurnalIncasari })));
 export const TipuriAbonamentManagement = lazy(() => import('./Plati/TipuriAbonament').then(m => ({ default: m.TipuriAbonamentManagement })));

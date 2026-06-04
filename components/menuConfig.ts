@@ -46,6 +46,7 @@ export const adminMenu: MenuItem[] = [
         submenu: [
             { label: 'Competiții', view: 'competitii' },
             { label: 'Stagii', view: 'stagii' },
+            { label: 'Template Probe', view: 'template-probe' },
         ]
     },
     {

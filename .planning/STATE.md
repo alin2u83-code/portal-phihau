@@ -1,8 +1,13 @@
 ---
-gsd_state_version: '1.0'
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
 status: planning
+stopped_at: Phase 1 context gathered
+last_updated: "2026-06-04T20:25:13.299Z"
+last_activity: 2026-06-04 — Roadmap creat, gata de planificare Phase 1
 progress:
-  total_phases: 2
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -15,21 +20,22 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-06-04)
 
-**Core value:** Orice admin sau instructor poate filtra rapid sportivii/categoriile după gen + vârstă + grad simultan, pe orice tab din competiție, folosind o interfață identică pretutindeni.
-**Current focus:** Phase 1 — Infrastructure
+**Core value:** Adminul/instructorul poate gestiona complet antrenamentele unei grupe (vizualizare calendar, adăugare one-off, anulare cu motiv) și poate înregistra sportivi la stagii cu facturi corecte.
+**Current focus:** Phase 1 — DB & Types
 
 ## Current Position
 
-Phase: 1 of 2 (Infrastructure)
+Phase: 1 of 4 (DB & Types)
 Plan: 0 of ? in current phase
 Status: Ready to plan
-Last activity: 2026-06-04 — Roadmap creat, gata de planificare faza 1
+Last activity: 2026-06-04 — Roadmap creat, gata de planificare Phase 1
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: -
 - Total execution time: -
@@ -41,6 +47,7 @@ Progress: [░░░░░░░░░░] 0%
 | - | - | - | - |
 
 **Recent Trend:**
+
 - Last 5 plans: -
 - Trend: -
 
@@ -53,10 +60,10 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Roadmap: Hook separat `useCompetitieFilters` — logică reutilizabilă fără prop-drilling
-- Roadmap: Componentă shared `CompetitieFilterBar` — UI identic pe toate tab-urile
-- Roadmap: Filtrare client-side — datele sunt deja în state, overhead nejustificat pentru server-side
-- Roadmap: Tab Template refactorizat (nu duplicat) — elimină codul local de filtrare existent
+- GrupaDetailView componentă separată — drill-down clar, nu supraîncarcă GrupaCard
+- Calendar lunar cu dot-uri + expand-on-click — fără librării externe
+- Preț per tip stagiu pe `tipuri_stagii.pret` (coloană simplă)
+- StagiiCompetitii.tsx rămâne baza pentru stagii club — completăm, nu rescriem
 
 ### Pending Todos
 
@@ -64,20 +71,19 @@ None yet.
 
 ### Blockers/Concerns
 
-- Fișier sursă monolitic: `components/Competitii/index.tsx` ~3942 linii — atenție la re-rendere la extragere hook
-- Tab Template: refactorizarea nu trebuie introduce regresii vizibile pentru admin
+- `program_antrenamente` — confirma că `status` coloană există și cu ce enum values înainte de Phase 1
+- `motiv_anulare` coloană lipsă — necesită migrație Supabase
 
 ## Deferred Items
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| v2 | PERS-01: Filtre salvate în localStorage per competiție | Deferred | 2026-06-04 |
-| v2 | PERS-02: Filtre exportate ca URL params | Deferred | 2026-06-04 |
-| v2 | ADV-01: Filtru după club (super admin) | Deferred | 2026-06-04 |
-| v2 | ADV-02: Filtru după status | Deferred | 2026-06-04 |
+| v2 | WhatsApp la anulare antrenament | Deferred | 2026-06-04 |
+| v2 | Calendar săptămânal (week view) | Deferred | 2026-06-04 |
+| v2 | Stagii cu probe CVD extins | Deferred | 2026-06-04 |
 
 ## Session Continuity
 
-Last session: 2026-06-04
-Stopped at: Roadmap creat — Phase 1 ready to plan
-Resume file: None
+Last session: 2026-06-04T20:25:13.286Z
+Stopped at: Phase 1 context gathered
+Resume file: .planning/phases/01-db-types/01-CONTEXT.md

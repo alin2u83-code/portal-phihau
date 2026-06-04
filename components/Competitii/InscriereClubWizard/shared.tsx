@@ -4,6 +4,7 @@ import {
   ProbaCompetitie, Sportiv, TipParticipare, StagiuCVDParticipare,
 } from '../../../types';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
+import { formatNume } from '../../../utils/formatareSportiv';
 import { STEP_LABELS, STEP_LABELS_SCURT } from './constants';
 import { EligibilitateGenerala, DreptGrad, PickCategorie, IndivPicks } from './types';
 
@@ -508,7 +509,7 @@ export const VederePerCategorie: React.FC<VederePerCategorieProps> = ({
                               className="w-4 h-4 rounded accent-brand-primary"
                             />
                             <div className="flex-1 min-w-0">
-                              <span className="text-sm text-white">{sportiv.nume} {sportiv.prenume}</span>
+                              <span className="text-sm text-white">{formatNume(sportiv)}</span>
                               <span className="text-xs text-slate-500 ml-2">{varsta} ani{gradNume ? ` · ${gradNume}` : ''}</span>
                             </div>
                             {dejaInscrisActiv && (

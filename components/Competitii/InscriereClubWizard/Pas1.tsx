@@ -5,6 +5,7 @@ import {
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { calculeazaVarstaLaData, verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
+import { formatNume } from '../../../utils/formatareSportiv';
 import { STEP_LABELS } from './constants';
 import { WizardProgress, BadgeEligibilitateGenerala } from './shared';
 import { EligibilitateGenerala } from './types';
@@ -134,7 +135,7 @@ const CardSportiv: React.FC<CardSportivProps> = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`font-semibold text-sm ${isDisabled ? 'text-slate-400' : 'text-white'}`}>
-            {sportiv.nume} {sportiv.prenume}
+            {formatNume(sportiv)}
           </span>
           {isDejaInscris && (
             <span className="inline-flex items-center text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-2 py-0.5 shrink-0">
@@ -211,7 +212,7 @@ const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
       <td className="p-3">
         <div className="flex items-center gap-2">
           <span className={`font-medium text-sm ${isDisabled ? 'text-slate-400' : 'text-white'}`}>
-            {sportiv.nume} {sportiv.prenume}
+            {formatNume(sportiv)}
           </span>
           {isDejaInscris && (
             <span className="inline-flex items-center text-[10px] font-bold text-blue-400 bg-blue-900/30 border border-blue-700/50 rounded-full px-1.5 py-0.5 shrink-0">

@@ -6,6 +6,7 @@ import { supabase } from '../../../supabaseClient';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
+import { formatNume } from '../../../utils/formatareSportiv';
 import { STEP_LABELS } from './constants';
 import { WizardProgress } from './shared';
 import { QuyenAlesMap } from './types';
@@ -322,7 +323,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
                           </label>
                         </td>
                         <td className={`p-3 font-medium whitespace-nowrap ${isExclus ? 'text-slate-500' : 'text-white'}`}>
-                          {sportiv.nume} {sportiv.prenume}
+                          {formatNume(sportiv)}
                         </td>
                         <td className="p-3 text-slate-400 text-xs">{autoCat.denumire ?? `Cat ${autoCat.numar_categorie}`}</td>
                         <td className="p-3 text-slate-400 text-xs whitespace-nowrap">{grad?.nume ?? '—'}</td>
@@ -347,7 +348,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
                     <React.Fragment key={sportiv.id}>
                       <tr className="bg-green-900/5">
                         <td rowSpan={2} className="p-3 text-white font-medium whitespace-nowrap border-r border-slate-700/50">
-                          {sportiv.nume} {sportiv.prenume}
+                          {formatNume(sportiv)}
                           <span className="ml-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-900/40 border border-emerald-700/50 rounded-full px-1.5 py-0.5">2Q</span>
                         </td>
                         <td rowSpan={2} className="p-3 text-slate-400 text-xs border-r border-slate-700/50">

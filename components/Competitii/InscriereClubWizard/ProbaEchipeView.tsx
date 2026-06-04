@@ -18,6 +18,7 @@ import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
 import { verificaEligibilitate, calculeazaVarstaLaData } from '../../../utils/eligibilitateCompetitie';
+import { formatNume } from '../../../utils/formatareSportiv';
 import { BadgeTipParticipare, esteEchipaSauPereche, getSLProg } from './shared';
 import { EchipaFormata, RolEchipa } from './types';
 import { PROBA_INFO, PROBA_COLOR_CLASSES } from './constants';
@@ -68,7 +69,7 @@ function canAddToTitulari(
 // -----------------------------------------------
 const ChipSportiv: React.FC<{ sportiv: Sportiv; onRemove: () => void }> = ({ sportiv, onRemove }) => (
   <span className="inline-flex items-center gap-1.5 bg-indigo-900/30 border border-indigo-700/40 rounded-full px-2.5 py-1 text-xs font-medium text-indigo-300">
-    {sportiv.prenume} {sportiv.nume}
+    {formatNume(sportiv)}
     <button
       type="button"
       onClick={onRemove}
@@ -250,7 +251,7 @@ const CardCategorie: React.FC<CardCategorieProps> = ({
                       <div key={sportiv.id} className="px-4 py-3 space-y-2">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm font-medium text-white">
-                            {sportiv.prenume} {sportiv.nume}
+                            {formatNume(sportiv)}
                           </span>
                           {grad && (
                             <span className="text-[10px] bg-slate-700 rounded px-1.5 py-0.5 text-slate-300">

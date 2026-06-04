@@ -7,6 +7,7 @@ import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
+import { formatNume } from '../../../utils/formatareSportiv';
 import { TIP_PROBA_LABELS } from '../../../utils/competitiiTemplates';
 import { STEP_LABELS, ProbaHeader } from './constants';
 import { WizardProgress, BadgeTipParticipare, esteEchipaSauPereche, getSLProg } from './shared';
@@ -256,7 +257,7 @@ const SectiuneEchipaCategorie: React.FC<SectiuneEchipaCategorieProps> = ({
             return (
               <div key={sportiv.id} className="px-4 py-3 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-white">{sportiv.prenume} {sportiv.nume}</span>
+                  <span className="text-sm font-medium text-white">{formatNume(sportiv)}</span>
                   {ineligibil && (
                     <span
                       className="text-[10px] font-semibold text-orange-400 bg-orange-900/30 border border-orange-700/50 rounded-full px-2 py-0.5"

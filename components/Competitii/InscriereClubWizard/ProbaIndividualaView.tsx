@@ -475,7 +475,7 @@ const Pas2Quyen: React.FC<Pas2Props> = ({
 
                     <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-sm text-white min-w-[90px]">
-                        {sportiv.prenume} {sportiv.nume}
+                        {formatNume(sportiv)}
                       </span>
                       {grad && (
                         <span className="text-[11px] text-slate-400">{grad.nume}</span>

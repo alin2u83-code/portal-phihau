@@ -56,9 +56,9 @@ Exceptions:
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 | Sportiv list items, orar interval labels, placeholder text |
 | Label | 12px (`text-xs`) | 700 (bold) | 1.4 | Section headers (uppercase tracking-wide), tab labels, badge text |
 | Heading | 20px (`text-xl`) | 700 (bold) | 1.2 | GrupaDetailView title (grupa name), matches GrupaCard `text-xl font-bold` |
-| Display | 16px (`text-base`) | 600 (semibold) | 1.3 | Tab names in active state, modal section headings |
+| Display | 16px (`text-base`) | 700 (bold) | 1.3 | Tab names in active state, modal section headings |
 
-Weights used: 400 (regular) and 700 (bold). Semibold (600) reserved for tab active state only.
+Weights used: 400 (regular) and 700 (bold).
 
 ---
 
@@ -133,7 +133,7 @@ Components required for this phase. All implemented via `components/ui.tsx` + Ta
 ### Tab Bar
 
 - 3 tabs rendered as `<button>` elements in a horizontal strip
-- Active tab: `border-b-2 border-indigo-500 text-white font-semibold` 
+- Active tab: `border-b-2 border-indigo-500 text-white font-bold` 
 - Inactive tab: `text-slate-400 hover:text-slate-200 border-b-2 border-transparent`
 - Default active tab on mount: **Antrenamente** (per D-09)
 - Tab state: local `useState<'antrenamente' | 'orar' | 'sportivi'>('antrenamente')` in `GrupaDetailView`

@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Adaugă navigare drill-down în modulul Grupe: butonul "Detalii" pe GrupaCard deschide GrupaDetailView (view swap în NavigationContext, nu modal) cu 3 tab-uri — Antrenamente | Orar | Sportivi. Tab Orar: logică copiată din OrarEditorModal, inline fără wrapper Modal. Tab Sportivi: lista sportivilor + buton care deschide AdaugaSportiviModal existent. Zero logică de calendar sau anulare antrenament (Phase 3).
+Adaugă navigare drill-down în modulul Grupe: butonul "Detalii" pe GrupaCard deschide GrupaDetailView (state local în Grupe/index.tsx, nu modal, nu NavigationContext view swap) cu 3 tab-uri — Antrenamente | Orar | Sportivi. Tab Orar: logică copiată din OrarEditorModal, inline fără wrapper Modal. Tab Sportivi: lista sportivilor + buton care deschide AdaugaSportiviModal existent. Zero logică de calendar sau anulare antrenament (Phase 3).
 
 </domain>
 
@@ -14,7 +14,7 @@ Adaugă navigare drill-down în modulul Grupe: butonul "Detalii" pe GrupaCard de
 ## Implementation Decisions
 
 ### Drill-down mount (Claude's discretion)
-- **D-01:** GrupaDetailView se montează ca **view swap în NavigationContext** — `setActiveView('grupa-detail')` cu `viewParams: { grupaId }`. Butonul Back din view navighează înapoi la gridul de carduri prin NavigationContext history stack. Nu se folosește modal fullscreen (ar conflicta cu z-index-ul modalelor existente și ar pierde navigarea back din hardware button).
+- **D-01 [REVISED 2026-06-05]:** GrupaDetailView se montează ca **state local în `Grupe/index.tsx`** — `grupaSelectedForDetail` state cu render condiționat `{grupaSelectedForDetail ? <GrupaDetailView> : <grid carduri>}`. Butonul Back din view setează `grupaSelectedForDetail(null)`. NU se folosește NavigationContext view swap (risc z-index cu modalele existente, complexitate inutilă pentru MVP).
 
 ### OrarEditorModal inline în Tab Orar
 - **D-02:** Logica din OrarEditorModal se **copiează direct** în componenta Tab Orar (nu se extrage o componentă partajată). OrarEditorModal rămâne neschimbat — zero risc de regresie la modalul existent.
@@ -47,7 +47,7 @@ Adaugă navigare drill-down în modulul Grupe: butonul "Detalii" pe GrupaCard de
 - `components/Grupe/index.tsx` — orchestratorul Grupe; mountează toate modalele; trebuie să mounteze GrupaDetailView și să gestioneze `grupaSelectedForDetail`
 
 ### Navigare SPA
-- `contexts/NavigationContext.tsx` — `setActiveView`, `viewParams`, history stack; D-01 folosește view swap pattern
+- `contexts/NavigationContext.tsx` — `setActiveView`, `viewParams`, history stack; **D-01 (revised): NU se folosește pentru GrupaDetailView** — state local în index.tsx
 
 ### Schema DB & Types
 - `types.ts` — interfețele `Antrenament`, `Grupa`, `ProgramItem` (actualizate în Phase 1)

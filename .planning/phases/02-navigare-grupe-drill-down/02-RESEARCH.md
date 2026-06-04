@@ -591,17 +591,19 @@ export const GrupaCard: React.FC<{
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`setGrupe` prop în Tab Orar — update optimistic sau nu?**
    - Ce știm: OrarEditorModal face atât `setGrupe` (update optimistic local) cât și `invalidateQueries` (sync DB). Tab Orar poate omite `setGrupe` — `invalidateQueries` va re-fetcha.
    - Ce e neclar: Dacă există un lag vizibil între save și re-fetch care deranjează UX.
    - Recomandare: Omite `setGrupe` în Phase 2 MVP. Dacă UX-ul e acceptabil cu doar `invalidateQueries`, nu e nevoie de complicare. Planner poate adăuga `setGrupe` ca prop dacă UX validation arată lag.
+   - **RESOLVED:** Omite `setGrupe` în Phase 2. Tab Orar folosește doar `queryClient.invalidateQueries` după save. Dacă apare lag UX la Phase 3, se adaugă `setGrupe`.
 
 2. **Afișarea gradului sportivului în Tab Sportivi**
    - Ce știm: Query selectează `grad_actual_id` (UUID). UI-SPEC spune `{grad_actual}` în `text-slate-300 text-sm`.
    - Ce e neclar: E `grad_actual_id` suficient sau trebuie join la tabela `grade` pentru denumire?
    - Recomandare: Adaugă join în query: `.select('id, nume, prenume, grade:grad_actual_id(denumire)')`. Cost minim, elimină ambiguitatea.
+   - **RESOLVED:** Include join la `grade` în query: `.select('id, nume, prenume, grade:grad_actual_id(denumire)')` — afișează denumirea gradului, nu UUID-ul.
 
 ---
 

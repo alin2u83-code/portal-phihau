@@ -17,6 +17,7 @@ import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/tax
 import { VizaSportiv } from '../../types';
 import InscriereClubWizard from './InscriereClubWizard';
 import { TipuriCompetitieAdmin } from './TipuriCompetitieAdmin';
+import { CereriInterclubAdmin } from './CereriInterclubAdmin';
 
 // -----------------------------------------------
 // HELPERS persistare stare în sessionStorage
@@ -757,9 +758,9 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [inscrieri, setInscrieri] = useState<InscriereCompetitie[]>([]);
   const [echipe, setEchipe] = useState<EchipaCompetitie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template'>(() => {
+  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub'>(() => {
     const saved = ssGet(SS_KEY_TAB);
-    if (saved === 'categorii' || saved === 'inscrieri' || saved === 'raport' || saved === 'admin' || saved === 'rezultate_legacy' || saved === 'financiar') return saved;
+    if (saved === 'categorii' || saved === 'inscrieri' || saved === 'raport' || saved === 'admin' || saved === 'rezultate_legacy' || saved === 'financiar' || saved === 'cereri_interclub') return saved;
     return 'inscrieri';
   });
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -779,7 +780,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const isClubAdmin = permissions.isAdminClub;
 
   // Persistă tab-ul activ în sessionStorage la fiecare schimbare
-  const handleSetActiveTab = useCallback((tab: 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template') => {
+  const handleSetActiveTab = useCallback((tab: 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub') => {
     setActiveTab(tab);
     ssSet(SS_KEY_TAB, tab);
   }, []);
@@ -948,6 +949,19 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             }`}
           >
             Template-uri
+          </button>
+        )}
+        {permissions.isSuperAdmin && (
+          <button
+            onClick={() => handleSetActiveTab('cereri_interclub')}
+            style={{ touchAction: 'manipulation' }}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+              activeTab === 'cereri_interclub'
+                ? 'bg-indigo-700 text-white'
+                : 'text-indigo-400 hover:text-white hover:bg-slate-700'
+            }`}
+          >
+            Cereri inter-club
           </button>
         )}
         {competitie.legacy_eveniment_id && (
@@ -1282,6 +1296,18 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
               categoriiExistente={categorii}
               onImported={(cats) => setCategorii(prev => [...prev, ...cats])}
             />
+          )}
+
+          {activeTab === 'cereri_interclub' && permissions.isSuperAdmin && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-base font-semibold text-white">Cereri inter-club</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Cereri de coechipier de la cluburi diferite pentru aceasta competitie.
+                </p>
+              </div>
+              <CereriInterclubAdmin competitieId={competitie.id} />
+            </div>
           )}
         </>
       )}

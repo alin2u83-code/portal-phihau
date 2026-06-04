@@ -40,6 +40,9 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   // Echipe formate per categorie
   const [echipeFormate, setEchipeFormate] = useState<EchipaFormata[]>([]);
 
+  // Cereri coechipier inter-club per categorie
+  const [cereriInterclub, setCereriInterclub] = useState<Map<string, 'pending' | 'aprobat' | 'respins'>>(new Map());
+
   // Probe skipped (fără concurenți)
   const [probeSkipped, setProbeSkipped] = useState<Set<string>>(new Set());
 
@@ -224,6 +227,10 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onBack={() => setNav({ view: 'hub' })}
         onSave={() => setNav({ view: 'hub' })}
         myClubId={myClubId}
+        cereriInterclub={cereriInterclub}
+        onUpdateCereri={(m) => setCereriInterclub(m)}
+        competitieId={competitie.id}
+        clubSolicitantId={myClubId ?? ''}
       />
     );
   }

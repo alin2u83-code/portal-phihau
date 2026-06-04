@@ -39,6 +39,10 @@ export interface ProbaEchipeViewProps {
   onBack: () => void;
   onSave: () => void;
   myClubId?: string;
+  cereriInterclub: Map<string, 'pending' | 'aprobat' | 'respins'>;
+  onUpdateCereri: (m: Map<string, 'pending' | 'aprobat' | 'respins'>) => void;
+  competitieId: string;
+  clubSolicitantId: string;
 }
 
 // -----------------------------------------------
@@ -443,6 +447,7 @@ const ProbaEchipeView: React.FC<ProbaEchipeViewProps> = ({
   proba, sportivi, grade, categorii, selectedSportivi,
   numeClub, echipeFormate, onUpdateEchipe, dataCompetitie,
   onBack, onSave, myClubId,
+  cereriInterclub, onUpdateCereri, competitieId, clubSolicitantId,
 }) => {
   const { showError } = useError();
   const [dreptUri, setDreptUri] = useState<Map<string, Inlantuire[]>>(new Map());
@@ -505,6 +510,49 @@ const ProbaEchipeView: React.FC<ProbaEchipeViewProps> = ({
   const categoriiCuEligibili = categoriiProba.filter(c => (sportiviDisponibiliPerCategorie.get(c.id) ?? []).length > 0);
   const categoriiExcluse = categoriiProba.filter(c => (sportiviDisponibiliPerCategorie.get(c.id) ?? []).length === 0);
 
+  // ── Inter-club helpers ───────────────────────────
+  const isCategoryIncomplete = (cat: CategorieCompetitie): boolean => {
+    const echipa = echipeFormate.find(e => e.categorieId === cat.id);
+    if (!echipa || echipa.echipaSkip) return false;
+    const min = cat.sportivi_per_echipa_min ?? 2;
+    return echipa.titulari.length < min;
+  };
+
+  const handleSolicitaInterclub = async (categorieId: string, nrLocuri: number) => {
+    try {
+      const { error } = await supabase.from('cereri_coechipier').insert({
+        competitie_id: competitieId,
+        categorie_id: categorieId,
+        club_solicitant_id: clubSolicitantId,
+        nr_locuri_solicitate: nrLocuri,
+      });
+      if (error) throw error;
+      const next = new Map(cereriInterclub);
+      next.set(categorieId, 'pending');
+      onUpdateCereri(next);
+    } catch (err) {
+      showError('Trimitere cerere inter-club', err);
+    }
+  };
+
+  const handleAnuleazaCerere = async (categorieId: string) => {
+    try {
+      const { error } = await supabase
+        .from('cereri_coechipier')
+        .update({ status: 'anulat' })
+        .eq('competitie_id', competitieId)
+        .eq('categorie_id', categorieId)
+        .eq('club_solicitant_id', clubSolicitantId)
+        .eq('status', 'pending');
+      if (error) throw error;
+      const next = new Map(cereriInterclub);
+      next.delete(categorieId);
+      onUpdateCereri(next);
+    } catch (err) {
+      showError('Anulare cerere inter-club', err);
+    }
+  };
+
   // Init echipeFormate pentru categorii noi
   useEffect(() => {
     if (categoriiProba.length === 0) return;
@@ -539,6 +587,30 @@ const ProbaEchipeView: React.FC<ProbaEchipeViewProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sportiviDisponibiliPerCategorie, categoriiProba.length]);
+
+  // Fetch cereri inter-club existente la mount
+  useEffect(() => {
+    if (!competitieId || !clubSolicitantId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cereri_coechipier')
+          .select('categorie_id, status')
+          .eq('competitie_id', competitieId)
+          .eq('club_solicitant_id', clubSolicitantId)
+          .in('status', ['pending', 'aprobat']);
+        if (error || cancelled) return;
+        const m = new Map<string, 'pending' | 'aprobat' | 'respins'>();
+        for (const row of data ?? []) {
+          m.set(row.categorie_id, row.status as 'pending' | 'aprobat');
+        }
+        onUpdateCereri(m);
+      } catch (_) {}
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [competitieId, clubSolicitantId]);
 
   const getEchipa = useCallback((catId: string): EchipaFormata => {
     return echipeFormate.find(e => e.categorieId === catId) ?? {
@@ -629,19 +701,75 @@ const ProbaEchipeView: React.FC<ProbaEchipeViewProps> = ({
       )}
       <div className="space-y-3">
         {categoriiCuEligibili.map((cat, idx) => (
-          <CardCategorie
-            key={cat.id}
-            cat={cat}
-            sportiviDisponibili={sportiviDisponibiliPerCategorie.get(cat.id) ?? []}
-            grade={grade}
-            dreptUri={dreptUri}
-            numeClub={numeClub}
-            echipa={getEchipa(cat.id)}
-            onUpdateEchipa={update => handleUpdateEchipa(cat.id, update)}
-            erroare={eroriPerCategorie.get(cat.id) ?? null}
-            dataCompetitie={dataCompetitie}
-            defaultOpen={idx === 0}
-          />
+          <div key={cat.id}>
+            <CardCategorie
+              cat={cat}
+              sportiviDisponibili={sportiviDisponibiliPerCategorie.get(cat.id) ?? []}
+              grade={grade}
+              dreptUri={dreptUri}
+              numeClub={numeClub}
+              echipa={getEchipa(cat.id)}
+              onUpdateEchipa={update => handleUpdateEchipa(cat.id, update)}
+              erroare={eroriPerCategorie.get(cat.id) ?? null}
+              dataCompetitie={dataCompetitie}
+              defaultOpen={idx === 0}
+            />
+            {/* Buton cerere inter-club */}
+            {isCategoryIncomplete(cat) && (() => {
+              const statusCerere = cereriInterclub.get(cat.id);
+              const min = cat.sportivi_per_echipa_min ?? 2;
+              const echipa = echipeFormate.find(e => e.categorieId === cat.id);
+              const nrLocuriLipsa = min - (echipa?.titulari.length ?? 0);
+
+              if (statusCerere === 'pending') {
+                return (
+                  <div className="mt-2 flex items-center gap-2 rounded-xl border border-blue-800/50 bg-blue-950/20 px-3 py-2.5">
+                    <span className="text-sm">📨</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-blue-300">Cerere trimisă</p>
+                      <p className="text-[11px] text-blue-400/60">Super admin decide completarea</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleAnuleazaCerere(cat.id)}
+                      style={{ touchAction: 'manipulation' }}
+                      className="text-[11px] text-slate-500 underline hover:text-slate-400"
+                    >
+                      Anulează
+                    </button>
+                  </div>
+                );
+              }
+
+              if (statusCerere === 'aprobat') {
+                return (
+                  <div className="mt-2 flex items-center gap-2 rounded-xl border border-emerald-800/50 bg-emerald-950/20 px-3 py-2.5">
+                    <span className="text-sm">✅</span>
+                    <p className="text-xs font-semibold text-emerald-300">Completare aprobată de super admin</p>
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  type="button"
+                  onClick={() => handleSolicitaInterclub(cat.id, nrLocuriLipsa)}
+                  style={{ touchAction: 'manipulation' }}
+                  className="mt-2 w-full flex items-center gap-2 rounded-xl border border-dashed border-amber-700/60 bg-amber-950/10 px-3 py-2.5 text-left hover:bg-amber-950/20 transition-colors"
+                >
+                  <span className="text-sm">🤝</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-amber-400">
+                      Solicită completare din alt club
+                      {nrLocuriLipsa > 1 ? ` (${nrLocuriLipsa} locuri)` : ''}
+                    </p>
+                    <p className="text-[11px] text-amber-600/70">Super admin asignează sportivi eligibili</p>
+                  </div>
+                  <span className="text-amber-600 text-xs">→</span>
+                </button>
+              );
+            })()}
+          </div>
         ))}
       </div>
 

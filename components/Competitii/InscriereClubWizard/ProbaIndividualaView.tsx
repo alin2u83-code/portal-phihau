@@ -18,6 +18,34 @@ import { verificaEligibilitate, calculeazaVarstaLaData } from '../../../utils/el
 import { formatNume } from '../../../utils/formatareSportiv';
 import { QuyenAlesMap } from './types';
 import { PROBA_INFO, PROBA_COLOR_CLASSES } from './constants';
+import { FilterDropdown, type FilterOption } from './shared';
+
+// -----------------------------------------------
+// VÂRSTĂ HELPER
+// -----------------------------------------------
+interface VarstaInterval {
+  key: string;
+  label: string;
+  varstaMin: number;
+  varstaMax: number;
+}
+
+function getCategoriiVarsta(categorii: CategorieCompetitie[], probaId: string): VarstaInterval[] {
+  const seen = new Set<string>();
+  const result: VarstaInterval[] = [];
+  for (const cat of categorii) {
+    if (cat.proba_id !== probaId) continue;
+    const min = cat.varsta_min ?? 0;
+    const max = cat.varsta_max ?? 99;
+    const key = `${min}-${max}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const labelVarsta = max >= 99 ? `${min}+ ani` : `${min}–${max} ani`;
+    const labelCateg = cat.denumire?.match(/U\d+|Senior|Copii|Juniori/i)?.[0] ?? '';
+    result.push({ key, label: labelCateg ? `${labelCateg} (${labelVarsta})` : labelVarsta, varstaMin: min, varstaMax: max });
+  }
+  return result.sort((a, b) => a.varstaMin - b.varstaMin);
+}
 
 // -----------------------------------------------
 // STEP INDICATOR
@@ -73,7 +101,9 @@ const Pas1Sportivi: React.FC<Pas1Props> = ({
   sportivi, grade, categorii, selectedSportivi, dataCompetitie, probaId, onToggle, onContinua,
 }) => {
   const [cautare, setCautare] = useState('');
-  const [gradFilter, setGradFilter] = useState<string | null>(null);
+  const [gradFilter, setGradFilter] = useState<Set<string>>(new Set());
+  const [varstaFilter, setVarstaFilter] = useState<Set<string>>(new Set());
+  const [genFilter, setGenFilter] = useState<Set<string>>(new Set());
 
   const catProba = useMemo(
     () => categorii.filter(c => c.proba_id === probaId),
@@ -92,23 +122,54 @@ const Pas1Sportivi: React.FC<Pas1Props> = ({
     });
   }, [sportivi, catProba, grade, dataCompetitie]);
 
-  const gradePresente = useMemo(() => {
+  const optiuiniGrade = useMemo((): FilterOption[] => {
     const m = new Map<string, string>();
     for (const { grad } of sportiviEligibili) {
       if (grad) m.set(grad.id, grad.nume);
     }
-    return Array.from(m.entries()).sort(([, a], [, b]) => a.localeCompare(b, 'ro'));
+    return Array.from(m.entries())
+      .sort(([, a], [, b]) => a.localeCompare(b, 'ro'))
+      .map(([value, label]) => ({ value, label }));
+  }, [sportiviEligibili]);
+
+  const optiuiniVarsta = useMemo(
+    () => getCategoriiVarsta(categorii, probaId),
+    [categorii, probaId]
+  );
+
+  const optiuiniGen = useMemo((): FilterOption[] => {
+    const valori = new Set<string>();
+    for (const { sportiv } of sportiviEligibili) {
+      if (sportiv.gen) valori.add(sportiv.gen);
+    }
+    const labels: Record<string, string> = { Masculin: 'Masculin', Feminin: 'Feminin' };
+    return Array.from(valori).sort().map(v => ({ value: v, label: labels[v] ?? v }));
   }, [sportiviEligibili]);
 
   const sportiviVizibili = useMemo(() => {
     let lista = sportiviEligibili;
-    if (gradFilter) lista = lista.filter(e => e.grad?.id === gradFilter);
+    if (gradFilter.size) lista = lista.filter(e => gradFilter.has(e.grad?.id ?? ''));
+    if (varstaFilter.size) lista = lista.filter(e => {
+      const v = e.varsta ?? 0;
+      return optiuiniVarsta
+        .filter(opt => varstaFilter.has(opt.key))
+        .some(opt => v >= opt.varstaMin && v <= opt.varstaMax);
+    });
+    if (genFilter.size) lista = lista.filter(e => genFilter.has(e.sportiv.gen ?? ''));
     if (cautare.trim()) {
       const q = cautare.trim().toLowerCase();
       lista = lista.filter(e => formatNume(e.sportiv).toLowerCase().includes(q));
     }
     return lista;
-  }, [sportiviEligibili, gradFilter, cautare]);
+  }, [sportiviEligibili, gradFilter, varstaFilter, genFilter, cautare, optiuiniVarsta]);
+
+  const resetFiltre = () => {
+    setGradFilter(new Set());
+    setVarstaFilter(new Set());
+    setGenFilter(new Set());
+    setCautare('');
+  };
+  const areFiltre = gradFilter.size > 0 || varstaFilter.size > 0 || genFilter.size > 0 || cautare.trim().length > 0;
 
   const nrSelectati = sportiviEligibili.filter(e => selectedSportivi.has(e.sportiv.id)).length;
   const initials = (s: Sportiv) => `${(s.prenume ?? '')[0] ?? ''}${(s.nume ?? '')[0] ?? ''}`.toUpperCase();
@@ -123,7 +184,7 @@ const Pas1Sportivi: React.FC<Pas1Props> = ({
 
       <StepIndicator step={1} />
 
-      {/* Filtru căutare + grad */}
+      {/* Filtre */}
       {sportiviEligibili.length > 0 && (
         <div className="flex flex-col gap-2 mb-3">
           <input
@@ -133,37 +194,42 @@ const Pas1Sportivi: React.FC<Pas1Props> = ({
             placeholder="Caută după nume..."
             className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
           />
-          {gradePresente.length > 1 && (
-            <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {optiuiniGrade.length > 1 && (
+              <FilterDropdown
+                label="Grad"
+                options={optiuiniGrade}
+                selected={gradFilter}
+                onChange={setGradFilter}
+              />
+            )}
+            {optiuiniVarsta.length > 1 && (
+              <FilterDropdown
+                label="Vârstă"
+                options={optiuiniVarsta.map(v => ({ value: v.key, label: v.label }))}
+                selected={varstaFilter}
+                onChange={setVarstaFilter}
+              />
+            )}
+            {optiuiniGen.length > 1 && (
+              <FilterDropdown
+                label="Gen"
+                options={optiuiniGen}
+                selected={genFilter}
+                onChange={setGenFilter}
+              />
+            )}
+            {areFiltre && (
               <button
                 type="button"
-                onClick={() => setGradFilter(null)}
+                onClick={resetFiltre}
                 style={{ touchAction: 'manipulation' }}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
-                  gradFilter === null
-                    ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
-                    : 'border-slate-600 bg-slate-800 text-slate-400 hover:border-slate-500'
-                }`}
+                className="flex items-center gap-1 rounded-lg border border-red-800/60 bg-red-950/30 px-3 py-2 text-xs font-semibold text-red-400 hover:bg-red-950/50 transition-colors min-h-[36px]"
               >
-                Toate
+                ✕ Reset
               </button>
-              {gradePresente.map(([id, nume]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setGradFilter(gradFilter === id ? null : id)}
-                  style={{ touchAction: 'manipulation' }}
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
-                    gradFilter === id
-                      ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
-                      : 'border-slate-600 bg-slate-800 text-slate-400 hover:border-slate-500'
-                  }`}
-                >
-                  {nume}
-                </button>
-              ))}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 

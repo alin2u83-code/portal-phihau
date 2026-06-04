@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 2 context gathered
-last_updated: "2026-06-04T21:08:30.549Z"
-last_activity: 2026-06-04 -- Phase 01 all 3 tasks complete, Supabase migrations confirmed via MCP
+status: executing
+stopped_at: Phase 2 UI-SPEC approved
+last_updated: "2026-06-04T21:42:19.842Z"
+last_activity: 2026-06-04 -- Phase 02 execution started
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 1
+  total_plans: 3
   completed_plans: 1
   percent: 25
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** Adminul/instructorul poate gestiona complet antrenamentele unei grupe (vizualizare calendar, adăugare one-off, anulare cu motiv) și poate înregistra sportivi la stagii cu facturi corecte.
-**Current focus:** Phase 01 — db-types
+**Current focus:** Phase 02 — navigare-grupe-drill-down
 
 ## Current Position
 
-Phase: 01 (db-types) — COMPLETE
-Plan: 1 of 1 (all complete)
-Status: Phase 01 done — next: Phase 02 (Navigare Grupe Drill-Down)
-Last activity: 2026-06-04 -- Phase 01 all 3 tasks complete, Supabase migrations confirmed via MCP
+Phase: 02 (navigare-grupe-drill-down) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 02
+Last activity: 2026-06-04 -- Phase 02 execution started
 
 Progress: [##░░░░░░░░] 25%
 
@@ -89,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-04T21:08:30.536Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-navigare-grupe-drill-down/02-CONTEXT.md
+Last session: 2026-06-04T21:17:32.836Z
+Stopped at: Phase 2 UI-SPEC approved
+Resume file: .planning/phases/02-navigare-grupe-drill-down/02-UI-SPEC.md

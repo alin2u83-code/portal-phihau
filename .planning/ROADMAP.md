@@ -57,7 +57,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 
-- [ ] 02-01-PLAN.md — GrupaDetailView nou: tab bar + Tab Antrenamente placeholder + Tab Orar inline + Tab Sportivi read-only (NAV-02, NAV-03)
+- [x] 02-01-PLAN.md — GrupaDetailView nou: tab bar + Tab Antrenamente placeholder + Tab Orar inline + Tab Sportivi read-only (NAV-02, NAV-03)
 - [ ] 02-02-PLAN.md — Wiring: buton Detalii pe GrupaCard + render condiționat în index.tsx + checkpoint vizual (NAV-01, NAV-02, NAV-03)
 
 **UI hint**: yes
@@ -102,6 +102,6 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. DB & Types | 1/1 | Complete   | 2026-06-04 |
-| 2. Navigare Grupe Drill-Down | 0/2 | Not started | - |
+| 2. Navigare Grupe Drill-Down | 1/2 | In Progress|  |
 | 3. Calendar & CRUD Antrenamente | 0/? | Not started | - |
 | 4. Stagii Completare | 0/? | Not started | - |

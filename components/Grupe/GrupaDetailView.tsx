@@ -180,10 +180,66 @@ const TabOrar: React.FC<{ grupa: GrupaWithDetails }> = ({ grupa }) => {
     );
 };
 
-// Tab Sportivi — stub temporar, completat în Task 3
-const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g: GrupaWithDetails) => void }> = (_props) => (
-    <div />
-);
+// Tab Sportivi — query read-only per grupă + buton Adaugă Sportivi (D-05, D-06)
+const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g: GrupaWithDetails) => void }> = ({ grupa, onOpenAdaugaSportivi }) => {
+    const { data: sportivi = [], isLoading, error } = useQuery({
+        queryKey: ['sportivi-grupa', grupa.id],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from('sportivi')
+                .select('id, nume, prenume, grad_actual_id, grade:grad_actual_id(denumire)')
+                .eq('grupa_id', grupa.id)
+                .eq('status', 'Activ');
+            if (error) throw error;
+            return data ?? [];
+        },
+        staleTime: 5 * 60 * 1000,
+    });
+
+    if (isLoading) return <div className="text-center py-8 text-slate-400">Se încarcă...</div>;
+    if (error) return <div className="text-center py-8 text-rose-400">Nu s-au putut încărca datele. Verifică conexiunea și încearcă din nou.</div>;
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    {sportivi.length} sportivi activi
+                </h3>
+                <Button
+                    variant="info"
+                    size="sm"
+                    onClick={() => onOpenAdaugaSportivi(grupa)}
+                    className="min-h-[40px] touch-manipulation"
+                >
+                    Adaugă Sportivi
+                </Button>
+            </div>
+
+            {sportivi.length === 0 ? (
+                <Card className="text-center py-8">
+                    <p className="text-sm font-semibold text-slate-300">Niciun sportiv în această grupă</p>
+                    <p className="text-xs text-slate-400 mt-1">Adaugă primul sportiv folosind butonul de mai jos.</p>
+                </Card>
+            ) : (
+                <div className="space-y-2">
+                    {sportivi.map((s: any) => (
+                        <div
+                            key={s.id}
+                            className="flex items-center gap-3 py-2 px-3 rounded-lg bg-slate-800/30 border border-slate-700/50"
+                        >
+                            <span className="text-sm text-slate-300">
+                                {(s.prenume || '')} {(s.nume || '')}
+                            </span>
+                            {s.grade?.denumire && (
+                                <span className="text-xs text-slate-500 ml-auto">{s.grade.denumire}</span>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
 
 export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack, onOpenAdaugaSportivi }) => {
     const [activeTab, setActiveTab] = useState<TabId>('antrenamente');

@@ -22,9 +22,9 @@ decisions:
   - "D-06..D-07: pret NUMERIC(10,2) nullable pe tipuri_stagii, NULL = fallback taxa globala"
   - "D-08..D-10: Antrenament.status + motiv_anulare optional; TipStagiu interface exportata cu pret"
 metrics:
-  duration: "2m07s"
+  duration: "~30m (includes human-action checkpoint for Supabase application)"
   completed: "2026-06-04"
-  tasks_completed: 2
+  tasks_completed: 3
   tasks_total: 3
   files_created: 2
   files_modified: 1
@@ -40,12 +40,17 @@ metrics:
 |------|------|--------|-------|
 | 1 | Migratie status + motiv_anulare pe program_antrenamente | gitignored (sql/) | sql/migrations/add_status_motiv_antrenamente.sql |
 | 2 | Migratie pret pe tipuri_stagii + update types.ts | 7cc6dbb | sql/migrations/add_pret_tipuri_stagii.sql, types.ts |
+| 3 | Aplicare manuala migratii in Supabase | N/A (human-action via MCP) | Supabase: program_antrenamente + tipuri_stagii |
 
 > Note: SQL files are excluded from git by project .gitignore (sql/ + *.sql are ignored intentionally — DB schema considered sensitive). The files exist on disk for manual Supabase application.
 
-## Task 3: Awaiting Manual Application
+## Task 3: COMPLETE — Applied via Supabase MCP
 
-Task 3 is a `checkpoint:human-action` — migration files are ready on disk, awaiting manual application in Supabase Studio.
+Migratiile au fost aplicate in Supabase (proiectul phi-hau-db) de catre orchestrator folosind Supabase MCP tools. Coloane confirmate:
+
+- `program_antrenamente.status` — text, DEFAULT 'planificat', nullable YES
+- `program_antrenamente.motiv_anulare` — text, nullable YES
+- `tipuri_stagii.pret` — numeric(10,2), nullable YES
 
 ## Deviations from Plan
 
@@ -96,7 +101,7 @@ ALTER TABLE tipuri_stagii
 - [x] `add_pret_tipuri_stagii.sql`: contains ADD COLUMN IF NOT EXISTS pret numeric(10,2) on tipuri_stagii, no DEFAULT
 - [x] `types.ts`: Antrenament has status? + motiv_anulare?; TipStagiu interface exported with pret?: number | null
 - [x] `npm run lint` (tsc --noEmit): passes with no new errors
-- [ ] Checkpoint Task 3: manual Supabase application pending user confirmation
+- [x] Checkpoint Task 3: migratii aplicate in Supabase via MCP — coloane confirmate in Table Editor
 
 ## Known Stubs
 
@@ -106,9 +111,12 @@ None.
 
 No new network endpoints, auth paths, file access patterns, or schema changes at trust boundaries beyond those documented in the plan's threat model (T-01-01, T-01-02, T-01-03).
 
-## Self-Check: PASSED
+## Self-Check: PASSED (ALL 3 TASKS)
 
 - [x] `sql/migrations/add_status_motiv_antrenamente.sql` exists on disk
 - [x] `sql/migrations/add_pret_tipuri_stagii.sql` exists on disk
 - [x] `types.ts` modified and committed (7cc6dbb)
 - [x] TypeScript compilation passes
+- [x] Supabase DB: program_antrenamente.status, motiv_anulare confirmed via MCP
+- [x] Supabase DB: tipuri_stagii.pret confirmed via MCP
+- [x] Plan 01-01 COMPLETE — all success criteria met

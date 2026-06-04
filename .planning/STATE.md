@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: "Checkpoint Task 3: aplicare manuala migratii in Supabase"
-last_updated: "2026-06-04T20:48:46.260Z"
-last_activity: 2026-06-04 -- Phase 01 execution started
+status: phase_complete
+stopped_at: "Phase 01 complete — ready for Phase 02 (Navigare Grupe Drill-Down)"
+last_updated: "2026-06-04T21:30:00.000Z"
+last_activity: 2026-06-04 -- Phase 01 all tasks complete (incl. Supabase MCP confirmation)
 progress:
   total_phases: 4
   completed_phases: 1
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 01 (db-types) — EXECUTING
-Plan: 1 of 1
-Status: Phase complete — ready for verification
-Last activity: 2026-06-04 -- Phase 01 execution started
+Phase: 01 (db-types) — COMPLETE
+Plan: 1 of 1 (all complete)
+Status: Phase 01 done — next: Phase 02 (Navigare Grupe Drill-Down)
+Last activity: 2026-06-04 -- Phase 01 all 3 tasks complete, Supabase migrations confirmed via MCP
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [##░░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -65,10 +65,10 @@ Recent decisions affecting current work:
 - Calendar lunar cu dot-uri + expand-on-click — fără librării externe
 - Preț per tip stagiu pe `tipuri_stagii.pret` (coloană simplă)
 - StagiiCompetitii.tsx rămâne baza pentru stagii club — completăm, nu rescriem
-- [Phase ?]: status CHECK constraint
-- [Phase ?]: motiv_anulare nullable fara DEFAULT
-- [Phase ?]: pret NUMERIC nullable pe tipuri_stagii
-- [Phase ?]: Antrenament.status/motiv_anulare + TipStagiu interface
+- [Phase 01-01]: status CHECK constraint 'planificat'|'anulat'|'efectuat' cu bloc DO idempotent
+- [Phase 01-01]: motiv_anulare nullable TEXT fara DEFAULT (NULL = nespecificat)
+- [Phase 01-01]: pret NUMERIC(10,2) nullable pe tipuri_stagii, NULL = fallback taxa globala
+- [Phase 01-01]: Antrenament.status/motiv_anulare optional in types.ts + TipStagiu interface exportata
 
 ### Pending Todos
 
@@ -89,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-04T20:48:46.247Z
-Stopped at: Checkpoint Task 3: aplicare manuala migratii in Supabase
-Resume file: .planning/phases/01-db-types/01-01-PLAN.md
+Last session: 2026-06-04T21:30:00.000Z
+Stopped at: Phase 01 complete — all tasks done including Supabase confirmation
+Resume file: .planning/phases/02-navigare-grupe/ (next phase to plan)

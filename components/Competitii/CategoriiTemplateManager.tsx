@@ -6,6 +6,7 @@ import { Button, Modal, Input, Select, SearchableSelect } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { TIP_PROBA_LABELS, ordineToLabel } from '../../utils/competitiiTemplates';
+import CategoryWizard from './CategoryWizard';
 
 // -----------------------------------------------
 // TIP entitate categorii_template
@@ -39,15 +40,6 @@ const TIP_PROBA_TABS: { key: string; label: string }[] = [
   { key: 'giao_dau', label: 'Giao Dau' },
 ];
 
-// Grupe de vârstă identice cu Pasul 1 din wizard
-const VARSTA_GROUPS: { key: string; label: string; min: number; max: number | null }[] = [
-  { key: 'copii', label: 'Copii 4-8', min: 4, max: 8 },
-  { key: 'jun_mici', label: 'Jun. Mici 9-12', min: 9, max: 12 },
-  { key: 'jun_mari', label: 'Jun. Mari 13-15', min: 13, max: 15 },
-  { key: 'cadeti', label: 'Cadeți 16-17', min: 16, max: 17 },
-  { key: 'seniori', label: 'Seniori 18-39', min: 18, max: 39 },
-  { key: 'masters', label: 'Masters 40+', min: 40, max: null },
-];
 
 const GEN_OPTIONS: ('Feminin' | 'Masculin' | 'Mixt')[] = ['Feminin', 'Masculin', 'Mixt'];
 const PARTICIPARE_OPTIONS: { key: 'individual' | 'pereche' | 'echipa'; label: string }[] = [
@@ -258,11 +250,24 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
 
   // --- Filtre ---
   const [filterTipProba, setFilterTipProba] = useState<string>('all');
-  const [filterGen, setFilterGen] = useState<'all' | 'Feminin' | 'Masculin' | 'Mixt'>('all');
+  const [filterGenSet, setFilterGenSet] = useState<Set<string>>(new Set());
   const [filterParticipare, setFilterParticipare] = useState<'all' | 'individual' | 'pereche' | 'echipa'>('all');
-  const [filterVarstaGroups, setFilterVarstaGroups] = useState<Set<string>>(new Set());
+  const [filterVarsteValues, setFilterVarsteValues] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState('');
   const [filtreVisible, setFiltreVisible] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+
+  const toggleFilterGen = (g: string) => setFilterGenSet(prev => {
+    const next = new Set(prev);
+    if (next.has(g)) next.delete(g); else next.add(g);
+    return next;
+  });
+
+  const toggleVarstaValue = (v: number) => setFilterVarsteValues(prev => {
+    const next = new Set(prev);
+    if (next.has(v)) next.delete(v); else next.add(v);
+    return next;
+  });
 
   const fetchTemplates = useCallback(async () => {
     setLoading(true);
@@ -274,34 +279,19 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
 
   useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
 
-  const toggleVarstaGroup = (key: string) => {
-    setFilterVarstaGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
-      return next;
-    });
-  };
-
   const filtered = useMemo(() => {
     return templates.filter(t => {
       if (filterTipProba !== 'all' && t.tip_proba !== filterTipProba) return false;
-      if (filterGen !== 'all' && t.gen !== filterGen) return false;
+      if (filterGenSet.size > 0 && !filterGenSet.has(t.gen)) return false;
       if (filterParticipare !== 'all' && t.tip_participare !== filterParticipare) return false;
-      if (filterVarstaGroups.size > 0) {
-        // Template-ul trece dacă intervalul lui se intersectează cu vreuna din grupele selectate
-        const tMax = t.varsta_max ?? 200;
-        const match = Array.from(filterVarstaGroups).some(key => {
-          const g = VARSTA_GROUPS.find(x => x.key === key);
-          if (!g) return false;
-          const gMax = g.max ?? 200;
-          return t.varsta_min <= gMax && tMax >= g.min;
-        });
+      if (filterVarsteValues.size > 0) {
+        const match = Array.from(filterVarsteValues).some(v => v >= t.varsta_min && (t.varsta_max === null || v <= t.varsta_max));
         if (!match) return false;
       }
       if (search.trim() && !t.denumire.toLowerCase().includes(search.trim().toLowerCase())) return false;
       return true;
     });
-  }, [templates, filterTipProba, filterGen, filterParticipare, filterVarstaGroups, search]);
+  }, [templates, filterTipProba, filterGenSet, filterParticipare, filterVarsteValues, search]);
 
   const probeMap = useMemo(() => {
     const m: Record<string, string> = {};
@@ -388,16 +378,16 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
 
   const nrFiltreActive =
     (filterTipProba !== 'all' ? 1 : 0) +
-    (filterGen !== 'all' ? 1 : 0) +
+    (filterGenSet.size > 0 ? 1 : 0) +
     (filterParticipare !== 'all' ? 1 : 0) +
-    (filterVarstaGroups.size > 0 ? 1 : 0) +
+    (filterVarsteValues.size > 0 ? 1 : 0) +
     (search.trim() ? 1 : 0);
 
   const resetFiltre = () => {
     setFilterTipProba('all');
-    setFilterGen('all');
+    setFilterGenSet(new Set());
     setFilterParticipare('all');
-    setFilterVarstaGroups(new Set());
+    setFilterVarsteValues(new Set());
     setSearch('');
   };
 
@@ -419,9 +409,14 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
             </Button>
           )}
           {canEdit && (
-            <Button variant="success" size="sm" onClick={() => { setToEdit(null); setFormOpen(true); }}>
-              <PlusIcon className="w-4 h-4 mr-1" /> Adaugă Template
-            </Button>
+            <>
+              <Button variant="info" size="sm" onClick={() => setWizardOpen(true)}>
+                <PlusIcon className="w-4 h-4 mr-1" /> Wizard Adăugare
+              </Button>
+              <Button variant="success" size="sm" onClick={() => { setToEdit(null); setFormOpen(true); }}>
+                <PlusIcon className="w-4 h-4 mr-1" /> Adaugă Template
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -480,17 +475,14 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
         <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 space-y-3">
           {/* Gen */}
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Gen</p>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Gen <span className="text-slate-600 font-normal normal-case">(nimic selectat = toate)</span></p>
             <div className="flex gap-1.5 flex-wrap">
-              <button
-                onClick={() => setFilterGen('all')}
-                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${filterGen === 'all' ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400'}`}
-              >Toate</button>
               {GEN_OPTIONS.map(g => (
                 <button
                   key={g}
-                  onClick={() => setFilterGen(g)}
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${filterGen === g ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400'}`}
+                  onClick={() => toggleFilterGen(g)}
+                  style={{ touchAction: 'manipulation' }}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${filterGenSet.has(g) ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400 hover:text-white'}`}
                 >{g}</button>
               ))}
             </div>
@@ -512,16 +504,17 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
               ))}
             </div>
           </div>
-          {/* Vârstă (grupe) */}
+          {/* Vârstă (valori individuale) */}
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Grupă vârstă (opțional)</p>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Vârstă <span className="text-slate-600 font-normal normal-case">(nimic selectat = toate)</span></p>
             <div className="flex gap-1.5 flex-wrap">
-              {VARSTA_GROUPS.map(g => (
+              {VARSTE_OPTIUNI.map(v => (
                 <button
-                  key={g.key}
-                  onClick={() => toggleVarstaGroup(g.key)}
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${filterVarstaGroups.has(g.key) ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400'}`}
-                >{g.label}</button>
+                  key={v}
+                  onClick={() => toggleVarstaValue(v)}
+                  style={{ touchAction: 'manipulation' }}
+                  className={`text-xs px-2 py-1 rounded border transition-colors min-w-[32px] text-center ${filterVarsteValues.has(v) ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400 hover:text-white'}`}
+                >{v >= 40 ? `${v}+` : String(v)}</button>
               ))}
             </div>
           </div>
@@ -631,6 +624,18 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
             else setTemplates(prev => [...prev, t]);
             setFormOpen(false); setToEdit(null);
           }}
+        />
+      )}
+
+      {/* Wizard modal */}
+      {wizardOpen && (
+        <CategoryWizard
+          mode="template"
+          permissions={permissions}
+          grade={grade}
+          existingTemplates={templates}
+          onTemplateSaved={t => { setTemplates(prev => [...prev, t]); setWizardOpen(false); }}
+          onClose={() => setWizardOpen(false)}
         />
       )}
     </div>

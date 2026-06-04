@@ -15,6 +15,7 @@ import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
 import { verificaEligibilitate, calculeazaVarstaLaData } from '../../../utils/eligibilitateCompetitie';
+import { formatNume } from '../../../utils/formatareSportiv';
 import { QuyenAlesMap } from './types';
 import { PROBA_INFO, PROBA_COLOR_CLASSES } from './constants';
 
@@ -71,6 +72,9 @@ interface Pas1Props {
 const Pas1Sportivi: React.FC<Pas1Props> = ({
   sportivi, grade, categorii, selectedSportivi, dataCompetitie, probaId, onToggle, onContinua,
 }) => {
+  const [cautare, setCautare] = useState('');
+  const [gradFilter, setGradFilter] = useState<string | null>(null);
+
   const catProba = useMemo(
     () => categorii.filter(c => c.proba_id === probaId),
     [categorii, probaId]
@@ -88,6 +92,24 @@ const Pas1Sportivi: React.FC<Pas1Props> = ({
     });
   }, [sportivi, catProba, grade, dataCompetitie]);
 
+  const gradePresente = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const { grad } of sportiviEligibili) {
+      if (grad) m.set(grad.id, grad.nume);
+    }
+    return Array.from(m.entries()).sort(([, a], [, b]) => a.localeCompare(b, 'ro'));
+  }, [sportiviEligibili]);
+
+  const sportiviVizibili = useMemo(() => {
+    let lista = sportiviEligibili;
+    if (gradFilter) lista = lista.filter(e => e.grad?.id === gradFilter);
+    if (cautare.trim()) {
+      const q = cautare.trim().toLowerCase();
+      lista = lista.filter(e => formatNume(e.sportiv).toLowerCase().includes(q));
+    }
+    return lista;
+  }, [sportiviEligibili, gradFilter, cautare]);
+
   const nrSelectati = sportiviEligibili.filter(e => selectedSportivi.has(e.sportiv.id)).length;
   const initials = (s: Sportiv) => `${(s.prenume ?? '')[0] ?? ''}${(s.nume ?? '')[0] ?? ''}`.toUpperCase();
   const avatarColors = ['bg-indigo-600', 'bg-violet-600', 'bg-sky-600', 'bg-teal-600', 'bg-rose-600'];
@@ -101,17 +123,68 @@ const Pas1Sportivi: React.FC<Pas1Props> = ({
 
       <StepIndicator step={1} />
 
+      {/* Filtru căutare + grad */}
+      {sportiviEligibili.length > 0 && (
+        <div className="flex flex-col gap-2 mb-3">
+          <input
+            type="text"
+            value={cautare}
+            onChange={e => setCautare(e.target.value)}
+            placeholder="Caută după nume..."
+            className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+          {gradePresente.length > 1 && (
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setGradFilter(null)}
+                style={{ touchAction: 'manipulation' }}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
+                  gradFilter === null
+                    ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
+                    : 'border-slate-600 bg-slate-800 text-slate-400 hover:border-slate-500'
+                }`}
+              >
+                Toate
+              </button>
+              {gradePresente.map(([id, nume]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setGradFilter(gradFilter === id ? null : id)}
+                  style={{ touchAction: 'manipulation' }}
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
+                    gradFilter === id
+                      ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
+                      : 'border-slate-600 bg-slate-800 text-slate-400 hover:border-slate-500'
+                  }`}
+                >
+                  {nume}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <p className="text-xs text-slate-400 mb-3">
         Selectați: <span className="text-white font-bold">{nrSelectati}</span> din {sportiviEligibili.length}
+        {sportiviVizibili.length !== sportiviEligibili.length && (
+          <span className="text-slate-500"> · {sportiviVizibili.length} afișați</span>
+        )}
       </p>
 
       {sportiviEligibili.length === 0 ? (
         <div className="text-center text-slate-500 py-10 italic text-sm">
           Niciun sportiv eligibil pentru această probă.
         </div>
+      ) : sportiviVizibili.length === 0 ? (
+        <div className="text-center text-slate-500 py-8 italic text-sm">
+          Niciun rezultat pentru filtrele aplicate.
+        </div>
       ) : (
         <div className="flex flex-col gap-1.5 mb-4">
-          {sportiviEligibili.map(({ sportiv, grad, varsta }, idx) => {
+          {sportiviVizibili.map(({ sportiv, grad, varsta }, idx) => {
             const isSel = selectedSportivi.has(sportiv.id);
             const avatarCls = avatarColors[idx % avatarColors.length];
             return (
@@ -143,7 +216,7 @@ const Pas1Sportivi: React.FC<Pas1Props> = ({
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <span className="font-semibold text-sm text-white">
-                    {sportiv.prenume} {sportiv.nume}
+                    {formatNume(sportiv)}
                   </span>
                   <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                     {grad && (

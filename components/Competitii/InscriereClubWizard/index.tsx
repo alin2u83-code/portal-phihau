@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { supabase } from '../../../supabaseClient';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap } from './types';
-import { esteEchipaSauPereche } from './shared';
 import Pas1SelectareSportivi from './Pas1';
 import Pas2SelectieQuyen from './Pas2Quyen';
 import Pas3FormareEchipe from './Pas3Echipe';
@@ -18,8 +17,8 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
   onOpenEditEchipa,
 }) => {
-  // step: 1=selectare sportivi, 'hub'=carduri probe, 2=quyen individual, 3=echipe, 4=sumar
-  const [step, setStep] = useState<1 | 'hub' | 2 | 3 | 4>(1);
+  // step: 'hub'=carduri probe, 1=selectare sportivi (doar quyen), 2=quyen, 3=echipe/giao_dau, 4=sumar
+  const [step, setStep] = useState<1 | 'hub' | 2 | 3 | 4>('hub');
   // Proba deschisă din hub (pentru Pas2 / Pas3)
   const [probaDeschisFocusId, setProbaDeschisFocusId] = useState<string | null>(null);
   const [selectedSportivi, setSelectedSportivi] = useState<Set<string>>(new Set());
@@ -84,12 +83,6 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   // Ref pentru a urmări ultimul set de sportivi pentru care s-a calculat autoCategorie
   const lastComputedSportiviRef = React.useRef<string>('');
 
-  // Categorii echipă existente în competiție
-  const areEchipe = useMemo(
-    () => categorii.some(esteEchipaSauPereche),
-    [categorii]
-  );
-
   const handleToggle = (id: string) => {
     setSelectedSportivi(prev => {
       const next = new Set(prev);
@@ -119,25 +112,23 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       computeAutoCategorie();
       lastComputedSportiviRef.current = currentKey;
     }
-    setStep('hub');
+    setStep(2);
   };
 
   /**
    * Din hub, utilizatorul deschide o probă:
-   * - probă individuală (thao_quyen / thao_lo / giao_dau) → Pas2
-   * - probă echipă (song_luyen / sincron) → Pas3
+   * - thao_quyen_individual / thao_lo_individual → Pas1 (selectare sportivi) → Pas2 (quyen)
+   * - orice altceva (song_luyen, sincron, giao_dau) → Pas3 direct (toți sportivii activi, per categorie)
    */
   const handleDeschideProba = useCallback((probaId: string) => {
     setProbaDeschisFocusId(probaId);
     const proba = probe.find(p => p.id === probaId);
     if (!proba) return;
-    const isEchipa = categorii.some(c => c.proba_id === probaId && esteEchipaSauPereche(c));
-    if (isEchipa) {
-      setStep(3);
-    } else {
-      setStep(2);
-    }
-  }, [probe, categorii]);
+    const isIndividualQuyen =
+      proba.tip_proba === 'thao_quyen_individual' ||
+      proba.tip_proba === 'thao_lo_individual';
+    setStep(isIndividualQuyen ? 1 : 3);
+  }, [probe]);
 
   if (step === 1) {
     return (
@@ -145,14 +136,14 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         competitie={competitie}
         sportivi={sportivi}
         grade={grade}
-        categorii={categorii}
+        categorii={categorii.filter(c => c.proba_id === probaDeschisFocusId)}
         inscrieri={inscrieri}
         vizeSportivi={vizeSportivi}
         selected={selectedSportivi}
         myClubId={myClubId}
         onToggle={handleToggle}
         onContinua={handlePas1Continua}
-        onBack={onBack}
+        onBack={() => setStep('hub')}
       />
     );
   }
@@ -172,7 +163,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         numeClub={numeClub}
         vizeSportivi={vizeSportivi}
         myClubId={myClubId}
-        onBack={() => setStep(1)}
+        onBack={onBack}
         onSaved={onSaved}
         // props suplimentare hub
         selectedSportivi={selectedSportivi}
@@ -222,7 +213,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       <Pas3FormareEchipe
         sportivi={sportivi}
         grade={grade}
-        categorii={categorii}
+        categorii={categorii.filter(c => c.proba_id === probaDeschisFocusId)}
         selectedSportivi={selectedSportivi}
         numeClub={numeClub}
         echipeFormate={echipeFormate}

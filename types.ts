@@ -164,6 +164,7 @@ export interface Plata {
   observatii: string;
   // Coloane de normalizare (Varianta B — FK dedicate)
   sesiune_id?: string | null;   // FK → sesiuni_examene.id (pentru 'Taxa Examen')
+  eveniment_id?: string | null; // FK → evenimente.id (pentru 'Taxa Stagiu' și 'Taxa Competitie')
   luna?: number | null;         // 1–12 (pentru 'Abonament')
   an?: number | null;           // 2020–2100 (pentru 'Abonament' și 'Taxa Anuala')
 }
@@ -385,6 +386,10 @@ export interface Eveniment {
   tip_eveniment?: 'CLUB' | 'FEDERATIE' | null;
   vizibilitate_globala?: boolean | null;
   tip_stagiu?: string | null;
+  // STG-05: prețuri per categorie vârstă/grad (fallback: tipuri_stagii.pret → preturiConfig global)
+  pret_copii?: number | null;   // sportivi 7–12 ani
+  pret_grade?: number | null;   // min 13 ani, grade colorate (până la Dan 1)
+  pret_centuri?: number | null; // centuri negre (Dan 1+)
 }
 
 export interface Rezultat {
@@ -393,6 +398,7 @@ export interface Rezultat {
   eveniment_id: string;
   rezultat: string;
   probe?: string;
+  created_at?: string;
 }
 
 export interface StagiuCVDParticipare {

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { PROBA_INFO, PROBA_COLOR_CLASSES } from './constants';
@@ -21,6 +21,7 @@ interface CardProba {
   nrComplet: number;
   nrTotal: number;
   motivBlocat?: string;
+  /** count categorii echipă cu 0 eligibili */
   categoriiExcluse: number;
 }
 
@@ -29,19 +30,24 @@ interface CardProba {
 // -----------------------------------------------
 
 export interface InscriereClubCardsProps extends InscriereClubWizardProps {
+  /** sportivi deja selectați în Pasul 1 */
   selectedSportivi: Set<string>;
   autoCategorie: Map<string, CategorieCompetitie>;
   quyenAles: QuyenAlesMap;
   echipeFormate: EchipaFormata[];
   probeSkipped: Set<string>;
   excludedFromIndividual: Set<string>;
+  /** Deschide ecranul de editare quyen pentru o probă individuală */
   onDeschideProba: (probaId: string) => void;
+  /** Finalizează înscrierea (merge la Pas4) */
   onFinalizare: () => void;
+  /** Previzualizare fișă PDF */
   onPrevizualizare?: () => void;
 }
 
 // -----------------------------------------------
-// HELPER: calculează status per card
+// HELPER: detectează dacă o probă individuală are
+// sportivi fără Q1 selectat (blocată)
 // -----------------------------------------------
 
 function calculeazaStatusCard(
@@ -57,12 +63,15 @@ function calculeazaStatusCard(
   const catProba = categorii.filter(c => c.proba_id === proba.id);
   const isSkipped = probeSkipped.has(proba.id);
 
+  // Probă sărită explicit → exclus
   if (isSkipped) {
     return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
   }
 
+  // Probe individuale (thao_quyen, thao_lo)
   const tipIndiv = proba.tip_proba === 'thao_quyen_individual' || proba.tip_proba === 'thao_lo_individual';
   if (tipIndiv) {
+    // Sportivii din selecție care au categorie auto-asignată pe această probă
     const sportiviProba = Array.from(selectedSportivi)
       .map(id => {
         const cat = autoCategorie.get(id);
@@ -109,6 +118,7 @@ function calculeazaStatusCard(
     };
   }
 
+  // Giao Dau — individual fără quyen
   if (proba.tip_proba === 'giao_dau') {
     const sportiviProba = Array.from(selectedSportivi).filter(id => {
       const cat = autoCategorie.get(id);
@@ -128,6 +138,7 @@ function calculeazaStatusCard(
     };
   }
 
+  // Probe echipă (song_luyen / sincron)
   const catEchipa = catProba.filter(esteEchipaSauPereche);
   if (catEchipa.length > 0) {
     const dataComp = competitie.data_inceput;
@@ -138,6 +149,7 @@ function calculeazaStatusCard(
     let nrTotal = 0;
 
     for (const cat of catEchipa) {
+      // Verifică câți sportivi eligibili există pentru această categorie
       const eligibili = sportiviSelectatiArr.filter(s => {
         if (cat.gen !== 'Mixt' && s.gen !== cat.gen) return false;
         return verificaEligibilitate(s, cat, grade, dataComp).eligibil;
@@ -175,6 +187,7 @@ function calculeazaStatusCard(
     };
   }
 
+  // Fallback — probă fără categorii → exclus
   return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
 }
 
@@ -197,28 +210,28 @@ const CardProbaItem: React.FC<{
   const isComplet = status === 'completat';
 
   const borderCls = isExclus
-    ? 'border-dashed border-slate-600 opacity-40 pointer-events-none'
+    ? 'border-dashed border-slate-600 opacity-50'
     : isBlocat
       ? 'border-yellow-600/70'
       : isComplet
         ? 'border-emerald-600/70'
         : 'border-slate-600';
 
-  const badgeText = isExclus
-    ? 'Nu concurăm'
-    : isBlocat
-      ? `Blocat — ${motivBlocat}`
-      : isComplet
-        ? nrTotal > 0 ? `${nrTotal} completate` : 'Completat'
-        : `${nrComplet}/${nrTotal} completate`;
-
   const badgeCls = isExclus
-    ? 'text-slate-500 bg-slate-800 border border-slate-700'
+    ? 'text-slate-500 bg-slate-800'
     : isBlocat
       ? 'text-yellow-400 bg-yellow-900/30 border border-yellow-700/50'
       : isComplet
         ? 'text-emerald-400 bg-emerald-900/30 border border-emerald-700/50'
         : 'text-orange-400 bg-orange-900/30 border border-orange-700/50';
+
+  const badgeText = isExclus
+    ? 'Nu participăm'
+    : isBlocat
+      ? `Blocat — ${motivBlocat}`
+      : isComplet
+        ? 'Completat'
+        : `${nrComplet}/${nrTotal} completate`;
 
   return (
     <button
@@ -226,59 +239,66 @@ const CardProbaItem: React.FC<{
       onClick={!isExclus ? onDeschide : undefined}
       disabled={isExclus}
       style={{ touchAction: 'manipulation' }}
-      className={`relative w-full text-left rounded-2xl border bg-slate-800/50 transition-all cursor-pointer ${borderCls} ${
-        !isExclus ? 'hover:bg-slate-700/50 hover:border-opacity-100 active:scale-[0.99]' : 'cursor-default'
+      className={`w-full text-left rounded-xl border bg-slate-800/40 transition-all ${borderCls} ${
+        !isExclus ? 'hover:bg-slate-700/50 active:scale-[0.99]' : 'cursor-default'
       }`}
     >
-      {/* Checkmark badge top-right */}
-      {isComplet && (
-        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-emerald-600/25 border border-emerald-500/60 flex items-center justify-center">
-          <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5 text-emerald-400">
-            <path d="M3 8.5l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+      {/* Header card */}
+      <div className={`px-4 py-3 rounded-t-xl border-b border-slate-700/60 ${!isExclus ? colors.bg : 'bg-slate-800/30'}`}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className={`text-xs font-bold uppercase tracking-widest mb-0.5 ${!isExclus ? colors.text : 'text-slate-500'}`}>
+              {tipLabel}
+            </p>
+            <p className="text-sm font-semibold text-white leading-tight">
+              {proba.denumire}
+            </p>
+          </div>
+          {/* Checkmark / warning */}
+          {isComplet && (
+            <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-600/20 border border-emerald-500/50 flex items-center justify-center">
+              <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4 text-emerald-400">
+                <path d="M3 8.5l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          )}
+          {isBlocat && (
+            <div className="shrink-0 w-8 h-8 rounded-full bg-yellow-900/30 border border-yellow-600/50 flex items-center justify-center">
+              <span className="text-yellow-400 text-sm font-bold">!</span>
+            </div>
+          )}
+          {status === 'incomplet' && (
+            <div className="shrink-0 w-8 h-8 rounded-full bg-orange-900/30 border border-orange-600/50 flex items-center justify-center">
+              <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4 text-orange-400">
+                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M8 5v3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="8" cy="11" r="0.75" fill="currentColor" />
+              </svg>
+            </div>
+          )}
         </div>
-      )}
-      {isBlocat && (
-        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-yellow-900/40 border border-yellow-600/60 flex items-center justify-center">
-          <span className="text-yellow-400 text-xs font-bold">!</span>
-        </div>
-      )}
-
-      {/* Icon + title */}
-      <div className="px-4 pt-4 pb-3">
-        <div className={`text-2xl mb-2 ${isExclus ? 'opacity-50' : ''}`}>
-          {proba.tip_proba === 'thao_quyen_individual' ? '🥋'
-            : proba.tip_proba === 'song_luyen' ? '👥'
-            : proba.tip_proba === 'sincron' ? '🔄'
-            : proba.tip_proba === 'giao_dau' ? '⚔️'
-            : proba.tip_proba === 'thao_lo_individual' ? '🗡️'
-            : '🏆'}
-        </div>
-        <p className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${!isExclus ? colors.text : 'text-slate-600'}`}>
-          {tipLabel}
-        </p>
-        <p className="text-sm font-semibold text-white leading-tight pr-6">
-          {proba.denumire}
-        </p>
       </div>
 
-      {/* Body */}
-      <div className="px-4 pb-4 space-y-2">
+      {/* Body card */}
+      <div className="px-4 py-3 space-y-2">
         {/* Badge status */}
         <span className={`inline-flex text-[11px] font-semibold rounded-full px-2.5 py-0.5 ${badgeCls}`}>
           {badgeText}
         </span>
 
-        {/* Categorii excluse sub badge */}
-        {!isExclus && categoriiExcluse > 0 && (
-          <div className="text-[11px] text-slate-500 italic">
-            {categoriiExcluse} categor{categoriiExcluse === 1 ? 'ie exclusă' : 'ii excluse'} automat
+        {/* Contor sportivi / categorii */}
+        {!isExclus && nrTotal > 0 && (
+          <div className="flex items-center gap-3 text-xs text-slate-400">
+            <span>{nrTotal} categor{nrTotal === 1 ? 'ie' : 'ii'}</span>
+            {categoriiExcluse > 0 && (
+              <span className="text-slate-500 italic">({categoriiExcluse} excluse auto)</span>
+            )}
           </div>
         )}
 
-        {/* Bara progres */}
+        {/* Bară progres */}
         {!isExclus && nrTotal > 0 && (
-          <div className="h-1.5 w-full rounded-full bg-slate-700 overflow-hidden mt-1">
+          <div className="h-1.5 w-full rounded-full bg-slate-700 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
                 isComplet ? 'bg-emerald-500' : isBlocat ? 'bg-yellow-500' : 'bg-orange-500'
@@ -290,16 +310,10 @@ const CardProbaItem: React.FC<{
 
         {/* CTA */}
         {!isExclus && (
-          <div className="flex items-center justify-end pt-0.5">
-            {isComplet ? (
-              <span className="text-xs font-semibold text-slate-400 bg-slate-700 border border-slate-600 rounded-md px-2.5 py-1">
-                Modifică
-              </span>
-            ) : (
-              <span className={`text-xs font-semibold ${colors.text}`}>
-                Configurează →
-              </span>
-            )}
+          <div className="flex items-center justify-end pt-1">
+            <span className="text-xs font-semibold text-brand-primary">
+              {isComplet ? 'Modifică' : 'Configurează'} →
+            </span>
           </div>
         )}
       </div>
@@ -313,12 +327,10 @@ const CardProbaItem: React.FC<{
 
 const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const {
-    competitie, probe, numeClub,
+    competitie, probe,
     onBack, onDeschideProba, onFinalizare, onPrevizualizare,
     selectedSportivi,
   } = props;
-
-  const [showExcluse, setShowExcluse] = useState(false);
 
   const probeActive = useMemo(
     () => [...probe].sort((a, b) => (a.ordine_afisare ?? 0) - (b.ordine_afisare ?? 0)),
@@ -331,22 +343,11 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
     [probeActive, props.selectedSportivi, props.autoCategorie, props.quyenAles, props.echipeFormate, props.probeSkipped, props.excludedFromIndividual]
   );
 
-  const cardsActive = cards.filter(c => c.status !== 'exclus');
-  const cardsExcluse = cards.filter(c => c.status === 'exclus');
+  // Verifică dacă se poate finaliza
+  const probleme = useMemo(() => {
+    return cards.filter(c => c.status === 'blocat' || c.status === 'incomplet');
+  }, [cards]);
 
-  // Probe individuale vs echipe (din categorii)
-  const probeIndividuale = cardsActive.filter(c =>
-    c.proba.tip_proba === 'thao_quyen_individual' ||
-    c.proba.tip_proba === 'thao_lo_individual' ||
-    (c.proba.tip_proba === 'giao_dau' && !props.categorii.some(cat => cat.proba_id === c.proba.id && (cat.tip_participare === 'echipa' || cat.tip_participare === 'pereche')))
-  );
-  const probeEchipe = cardsActive.filter(c =>
-    c.proba.tip_proba === 'song_luyen' ||
-    c.proba.tip_proba === 'sincron' ||
-    (c.proba.tip_proba === 'giao_dau' && props.categorii.some(cat => cat.proba_id === c.proba.id && (cat.tip_participare === 'echipa' || cat.tip_participare === 'pereche')))
-  );
-
-  const probleme = useMemo(() => cards.filter(c => c.status === 'blocat' || c.status === 'incomplet'), [cards]);
   const nrBlocate = cards.filter(c => c.status === 'blocat').length;
   const nrIncomplete = cards.filter(c => c.status === 'incomplet').length;
   const poateFinalizare = probleme.length === 0;
@@ -358,126 +359,53 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
       ].filter(Boolean).join(' · ')
     : '';
 
-  const nrCompletate = cards.filter(c => c.status === 'completat').length;
+  const nrSportiviSelectati = selectedSportivi.size;
 
   return (
     <div className="space-y-4">
-      {/* Header nav */}
+      {/* Header */}
       <div className="flex items-start gap-3">
         <Button variant="secondary" size="sm" onClick={onBack} className="!p-2 shrink-0 mt-0.5">
           <ArrowLeftIcon className="w-4 h-4" />
         </Button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-base font-bold text-white leading-tight">Selectează proba</h2>
+          <h2 className="text-lg font-bold text-white leading-tight">Înscriere club</h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            {competitie.denumire}
-            {numeClub && ` · ${numeClub}`}
-            {selectedSportivi.size > 0 && ` · ${selectedSportivi.size} sportiv${selectedSportivi.size !== 1 ? 'i' : ''}`}
+            {competitie.denumire} · {nrSportiviSelectati} sportiv{nrSportiviSelectati !== 1 ? 'i' : ''} selectat{nrSportiviSelectati !== 1 ? 'i' : ''}
           </p>
         </div>
         {/* Rezumat rapid */}
-        <div className="shrink-0 text-right text-xs space-y-0.5">
-          {nrCompletate > 0 && (
-            <div className="text-emerald-400 font-semibold">{nrCompletate} completate</div>
+        <div className="shrink-0 text-right text-xs text-slate-500 space-y-0.5">
+          {cards.filter(c => c.status === 'completat').length > 0 && (
+            <div className="text-emerald-400 font-semibold">
+              {cards.filter(c => c.status === 'completat').length} completate
+            </div>
           )}
           {probleme.length > 0 && (
-            <div className="text-orange-400">{probleme.length} necesit{probleme.length === 1 ? 'a' : 'a'} atenție</div>
+            <div className="text-orange-400">
+              {probleme.length} necesita atentie
+            </div>
           )}
         </div>
       </div>
 
-      {/* Banner warning — probe blocate */}
-      {nrBlocate > 0 && (
-        <div className="flex items-start gap-3 rounded-xl border border-yellow-700/50 bg-yellow-900/15 px-4 py-3">
-          <span className="text-yellow-400 text-sm shrink-0 mt-0.5">⚠</span>
-          <div>
-            <p className="text-xs font-semibold text-yellow-300">
-              {nrBlocate} prob{nrBlocate !== 1 ? 'e' : 'a'} necesit{nrBlocate !== 1 ? 'a' : 'a'} atenție
-            </p>
-            <p className="text-xs text-yellow-400/80 mt-0.5">
-              Sportivi fără quyen selectat. Finalizarea este blocată.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* ── Probe individuale ── */}
-      {probeIndividuale.length > 0 && (
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2.5">
-            Probe individuale
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {probeIndividuale.map(card => (
-              <CardProbaItem
-                key={card.proba.id}
-                card={card}
-                onDeschide={() => onDeschideProba(card.proba.id)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Probe de echipe ── */}
-      {probeEchipe.length > 0 && (
-        <div className={probeIndividuale.length > 0 ? 'mt-2' : ''}>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2.5">
-            Probe de echipe
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {probeEchipe.map(card => (
-              <CardProbaItem
-                key={card.proba.id}
-                card={card}
-                onDeschide={() => onDeschideProba(card.proba.id)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Fallback: probe fara grup */}
-      {probeIndividuale.length === 0 && probeEchipe.length === 0 && cardsActive.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          {cardsActive.map(card => (
-            <CardProbaItem
-              key={card.proba.id}
-              card={card}
-              onDeschide={() => onDeschideProba(card.proba.id)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* ── Probe excluse automat (collapsible) ── */}
-      {cardsExcluse.length > 0 && (
-        <div className="mt-1">
-          <button
-            onClick={() => setShowExcluse(v => !v)}
-            className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-400 transition-colors py-1"
-          >
-            <span>{showExcluse ? '▼' : '▶'}</span>
-            <span>{cardsExcluse.length} prob{cardsExcluse.length === 1 ? 'a exclusa' : 'e excluse'} automat</span>
-          </button>
-          {showExcluse && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-2">
-              {cardsExcluse.map(card => (
-                <CardProbaItem
-                  key={card.proba.id}
-                  card={card}
-                  onDeschide={() => {}}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Grid carduri — 1 col mobil, 2 col tablet, 3 col desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {cards.map(card => (
+          <CardProbaItem
+            key={card.proba.id}
+            card={card}
+            onDeschide={() => onDeschideProba(card.proba.id)}
+          />
+        ))}
+      </div>
 
       {/* Banner probleme globale */}
       {!poateFinalizare && (
-        <div className="rounded-xl border border-orange-700/50 bg-orange-900/15 px-4 py-3">
-          <p className="text-xs font-semibold text-orange-400 mb-1">Nu poți finaliza încă:</p>
+        <div className="rounded-lg border border-orange-700/50 bg-orange-900/15 px-4 py-3">
+          <p className="text-xs font-semibold text-orange-400 mb-1">
+            Nu poți finaliza înca:
+          </p>
           <p className="text-xs text-orange-300">{tooltipFinalizare}</p>
         </div>
       )}
@@ -501,7 +429,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
               className="w-full sm:w-auto sm:min-w-[140px]"
               title={!poateFinalizare ? tooltipFinalizare : undefined}
             >
-              {!poateFinalizare ? '🔒 Finalizează înscrierea' : 'Finalizează înscrierea'}
+              Finalizează înscrierea
             </Button>
           </div>
         </div>

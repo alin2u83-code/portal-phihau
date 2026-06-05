@@ -33,10 +33,10 @@ decisions:
 metrics:
   duration: "12 minute"
   completed: "2026-06-05"
-  tasks_completed: 2
+  tasks_completed: 3
   tasks_total: 3
   files_changed: 1
-status: "awaiting-checkpoint-verification"
+status: "complete"
 ---
 
 # Phase 04 Plan 03: Tabel Participanți + Export CSV — Raport Stagiu
@@ -49,7 +49,7 @@ status: "awaiting-checkpoint-verification"
 |------|------|--------|-------|
 | 1 | Tabel Participanți cu status plată în EvenimentDetail | `46be7a0` | `components/Competitii/StagiiCompetitii.tsx` |
 | 2 | Export CSV participanți cu Blob download | `46be7a0` | `components/Competitii/StagiiCompetitii.tsx` |
-| 3 (checkpoint) | Verificare vizuală — PENDING | — | — |
+| 3 (checkpoint) | Verificare vizuală — APROBAT de utilizator | — | — |
 
 ## What Was Built
 
@@ -100,12 +100,14 @@ const exportParticipantiCSV = () => {
 3. `grep -n "platiParticipanti\|randuriiParticipanti" StagiiCompetitii.tsx` → 6 matches (2 definiții useMemo + 4 utilizări)
 4. `npx tsc --noEmit` → **0 erori**
 
-## Checkpoint Pending
+## Checkpoint Verificat
 
-**Checkpoint 3 (visual verification)** este în așteptare. Continuarea necesită verificare manuală:
-- Admin vede "Raport Participanți" cu tabel colorat
-- Export CSV descarcă fișier valid
-- Instructor NU vede secțiunea
+**Checkpoint 3 (visual verification)** — APROBAT de utilizator ("aprobat").
+
+Verificări confirmate:
+- Admin vede "Raport Participanți" cu tabel colorat (Achitat=verde, Neachitat=roșu)
+- Export CSV descarcă fișier valid cu header corect
+- Guard permisiune `isAdminClub` funcționează corect
 
 ## Deviations from Plan
 

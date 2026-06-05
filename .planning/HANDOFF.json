@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-06-05T11:56:39.907Z",
+  "phase": null,
+  "phase_name": "competitii-inscriere-fixes",
+  "phase_dir": null,
+  "plan": null,
+  "task": 3,
+  "total_tasks": 5,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "Fix 3 bug-uri hub probe (carduri exclus, giao_dau, echipe)", "status": "done", "commit": "ba38abe"},
+    {"id": 2, "name": "Pas2 filtre (gen, varsta presets, fara Q1)", "status": "done", "commit": "ba38abe"},
+    {"id": 3, "name": "Pas3 sincron/song luyen - filter club+activ", "status": "done", "commit": "ba38abe"},
+    {"id": 4, "name": "types.ts - prop onOpenInscriereModal adaugat", "status": "done", "commit": "uncommitted"}
+  ],
+  "remaining_tasks": [
+    {"id": 5, "name": "Task1: InscriereClubCards.tsx - expand inline categorii echipa + buton Inscriere", "status": "not_started"},
+    {"id": 6, "name": "Task1: InscriereClubWizard/index.tsx - pass onOpenInscriereModal prop prin wizard", "status": "not_started"},
+    {"id": 7, "name": "Task1: Competitii/index.tsx - wire onOpenInscriereModal={cat => setInscriereModal(cat)}", "status": "not_started"},
+    {"id": 8, "name": "Task2: InscriereClubWizard/index.tsx - compute varsteCompetitie din toate categoriile", "status": "not_started"},
+    {"id": 9, "name": "Task2: Pas1.tsx - inlocuire preset buckets cu ani individuali din varsteCompetitie", "status": "not_started"},
+    {"id": 10, "name": "Task2: Pas2Quyen.tsx - inlocuire preset buckets cu ani individuali din categorii", "status": "not_started"}
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {"decision": "Reuse InscriereModal din Competitii/index.tsx pentru echipe (nu wizard separat)", "rationale": "Modal existent bine facut, evita duplicare cod", "phase": "N/A"},
+    {"decision": "onOpenInscriereModal prop thread prin InscriereClubWizardProps -> InscriereClubCards", "rationale": "InscriereClubCardsProps extends InscriereClubWizardProps, prop disponibil automat", "phase": "N/A"},
+    {"decision": "varsteCompetitie din toate categoriile competitiei, nu buckets preset", "rationale": "User explicit: fiecare an individual, doar varstele din competitie", "phase": "N/A"}
+  ],
+  "uncommitted_files": [
+    "components/Competitii/InscriereClubWizard/InscriereClubCards.tsx",
+    "components/Competitii/InscriereClubWizard/Pas2Quyen.tsx",
+    "components/Competitii/InscriereClubWizard/Pas3Echipe.tsx",
+    "components/Competitii/InscriereClubWizard/types.ts"
+  ],
+  "next_action": "Deschide InscriereClubCards.tsx, adauga state expandedTeamProbaId, detecteaza probe echipa (esteEchipaSauPereche), extinde inline cu categorii + buton Inscriere",
+  "context_notes": "Task1: probe echipa (song_luyen/sincron) nu se pot vizualiza. Solutie: click pe card echipa -> expand inline lista categorii cu buton Inscriere care apeleaza onOpenInscriereModal(cat). Task2: varste individuale (ex 4-17 -> 4,5,6...17) din categorii competitie."
+}

@@ -3,6 +3,8 @@ import { Eveniment, Rezultat, Sportiv, Plata, PretConfig, InscriereExamen, Exame
 import { Button, Modal, Input, Select, Card, Switch } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from '../icons';
 import { getPretValabil } from '../../utils/pricing';
+import { calculeazaVarstaLaData } from '../../utils/eligibilitateCompetitie';
+import { usePermissions } from '../../hooks/usePermissions';
 import { supabase } from '../../supabaseClient';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useError } from '../ErrorProvider';
@@ -132,9 +134,43 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
     <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div> </form> </Modal> );
 };
 
+// Calculează categoria unui sportiv pentru un stagiu pe baza vârstei și gradului
+function calculeazaCategorieStagiu(
+    dataNasterii: string | undefined | null,
+    dataStagiu: string,
+    gradActualId: string | undefined | null,
+    grade: Grad[]
+): 'copii' | 'grade' | 'centuri' {
+    if (dataNasterii) {
+        const varsta = calculeazaVarstaLaData(dataNasterii, dataStagiu);
+        if (varsta >= 7 && varsta <= 12) return 'copii';
+    }
+    if (gradActualId) {
+        const grad = grade.find(g => g.id === gradActualId);
+        if (grad && grad.nume && grad.nume.toLowerCase().includes('dan')) return 'centuri';
+    }
+    return 'grade';
+}
+
+// Returnează taxa de participare la stagiu cu fallback pe 3 niveluri
+function getTaxaStagiu(
+    eveniment: Eveniment,
+    categorie: 'copii' | 'grade' | 'centuri',
+    preturiConfig: PretConfig[]
+): number | null {
+    // Nivel 1: preț per categorie pe eveniment
+    if (categorie === 'copii' && eveniment.pret_copii != null) return eveniment.pret_copii;
+    if (categorie === 'grade' && eveniment.pret_grade != null) return eveniment.pret_grade;
+    if (categorie === 'centuri' && eveniment.pret_centuri != null) return eveniment.pret_centuri;
+    // Nivel 3: preț global din preturiConfig
+    const pretGlobal = getPretValabil(preturiConfig, 'Taxa Stagiu', eveniment.data);
+    return pretGlobal?.suma ?? null;
+}
+
 interface EvenimentDetailProps { eveniment: Eveniment; }
 const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
-    const { filteredData, setRezultate, setPlati, preturiConfig, grade, currentUser } = useData();
+    const { filteredData, setRezultate, setPlati, preturiConfig, grade, currentUser, activeRoleContext } = useData();
+    const permissions = usePermissions(activeRoleContext);
     const sportivi = filteredData.sportivi;
     const rezultate = filteredData.rezultate.filter(r => 
         r.eveniment_id === eveniment.id && 
@@ -232,30 +268,52 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!permissions.isAdminClub) return;
         if (!formState.sportivId) { showError("Date incomplete", "Vă rugăm selectați un sportiv."); return; }
 
         const sportiv = sportivi.find(s => s.id === formState.sportivId);
         if(!sportiv) return;
 
-        let taxaConfig: PretConfig | undefined;
-        if(eveniment.tip === 'Stagiu') taxaConfig = getPretValabil(preturiConfig, 'Taxa Stagiu', eveniment.data);
-        else if(eveniment.tip === 'Competitie') taxaConfig = getPretValabil(preturiConfig, 'Taxa Competitie', eveniment.data);
+        let suma: number | null = null;
+        let categorieText = '';
+
+        if (eveniment.tip === 'Stagiu') {
+            const categorie = calculeazaCategorieStagiu(sportiv.data_nasterii, eveniment.data, sportiv.grad_actual_id, grade);
+            suma = getTaxaStagiu(eveniment, categorie, preturiConfig);
+            const etichetaCategorie: Record<string, string> = { copii: 'Copii (7-12 ani)', grade: 'Grade (13+)', centuri: 'Centuri Negre' };
+            categorieText = etichetaCategorie[categorie] || categorie;
+        } else if (eveniment.tip === 'Competitie') {
+            const taxaConfig = getPretValabil(preturiConfig, 'Taxa Competitie', eveniment.data);
+            suma = taxaConfig?.suma ?? null;
+        }
 
         const newRezultat: Omit<Rezultat, 'id'> = { sportiv_id: formState.sportivId, eveniment_id: eveniment.id, rezultat: formState.rezultat, probe: formState.probe.join(', ') };
-        
+
         try {
             const { data, error } = await supabase.from('rezultate').insert(newRezultat).select().single();
             if (error) throw error;
             setRezultate(prev => [...prev, data as Rezultat]);
 
-            if (taxaConfig) {
-                const newPlata: Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null } = { sportiv_id: sportiv.id, familie_id: sportiv.familie_id, club_id: sportiv.club_id, suma: taxaConfig.suma, data: eveniment.data, status: 'Neachitat', descriere: `Taxa ${eveniment.tip}: ${eveniment.denumire}`, tip: eveniment.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere.' };
+            if (suma != null && suma > 0) {
+                const newPlata: Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null; eveniment_id?: string | null } = {
+                    sportiv_id: sportiv.id,
+                    familie_id: sportiv.familie_id,
+                    club_id: sportiv.club_id,
+                    suma,
+                    data: eveniment.data,
+                    status: 'Neachitat',
+                    descriere: `Taxa ${eveniment.tip}: ${eveniment.denumire}${categorieText ? ` (${categorieText})` : ''}`,
+                    tip: eveniment.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie',
+                    observatii: 'Generat automat la înscriere.',
+                    eveniment_id: eveniment.id,
+                };
                 const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
                 if(plataError) throw plataError;
                 setPlati(prev => [...prev, plataData as Plata]);
             }
-            showSuccess("Succes", `Sportivul a fost înscris${taxaConfig ? ' și taxa generată' : ''}.`);
+            showSuccess("Succes", `Sportivul a fost înscris${suma != null && suma > 0 ? ' și taxa generată' : ''}.`);
             setFormState({ sportivId: '', rezultat: 'Participare', probe: [] });
+            setSearchSportiv('');
         } catch (err) {
             console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la înscriere", err);
@@ -276,6 +334,16 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
 
     const handleProbeChange = (proba: string, checked: boolean) => { setFormState(p => ({ ...p, probe: checked ? [...p.probe, proba] : p.probe.filter(pr => pr !== proba) })); };
 
+    const taxaPreview = useMemo(() => {
+        if (!formState.sportivId || eveniment.tip !== 'Stagiu') return null;
+        const sportiv = sportivi.find(s => s.id === formState.sportivId);
+        if (!sportiv) return null;
+        const categorie = calculeazaCategorieStagiu(sportiv.data_nasterii, eveniment.data, sportiv.grad_actual_id, grade);
+        const suma = getTaxaStagiu(eveniment, categorie, preturiConfig);
+        const etichetaCategorie: Record<string, string> = { copii: 'Copii (7-12 ani)', grade: 'Grade (13+)', centuri: 'Centuri Negre' };
+        return { suma, categorie: etichetaCategorie[categorie] || categorie };
+    }, [formState.sportivId, eveniment, sportivi, grade, preturiConfig]);
+
     const getSportivGrad = (sportivId: string) => {
         const admittedParticipations = inscrieriExamene
             .filter(p => p.sportiv_id === sportivId && p.rezultat === 'Admis')
@@ -289,6 +357,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
 
     return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-slate-400">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({rezultate.length})</h4>
     <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{(rezultate || []).map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.prenume} {s?.nume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{(rezultate || []).length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
+    {permissions.isAdminClub && (
     <Card className="bg-slate-900/50">
         <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Participant</h5>
         <form onSubmit={handleAddParticipant} className="space-y-4">
@@ -317,9 +386,15 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
             {eveniment.tip === 'Competitie' && eveniment.probe_disponibile && eveniment.probe_disponibile.length > 0 && (
                 <div><label className="block text-sm font-medium text-slate-300 mb-2">Probe</label><div className="flex flex-wrap gap-x-4 gap-y-2">{(eveniment.probe_disponibile || []).map(proba => (<label key={proba} className="flex items-center space-x-2 text-sm"><input type="checkbox" checked={formState.probe.includes(proba)} onChange={e => handleProbeChange(proba, e.target.checked)} className="h-4 w-4 rounded" /><span>{proba}</span></label>))}</div></div>
             )}
+            {taxaPreview && (
+                <p className="text-sm text-slate-400">
+                    Taxa estimată: <span className="font-semibold text-emerald-400">{taxaPreview.suma != null ? `${taxaPreview.suma} lei` : 'nedefinită'}</span> <span className="text-slate-500">(Categorie: {taxaPreview.categorie})</span>
+                </p>
+            )}
             <div className="flex justify-end pt-2"><Button type="submit" variant="info">Înscrie</Button></div>
         </form>
     </Card>
+    )}
 
     {/* Secțiune CVD â€” arme per participant, vizibilă doar la stagii naționale */}
     {esteStaguNationalCVD && rezultate.length > 0 && (

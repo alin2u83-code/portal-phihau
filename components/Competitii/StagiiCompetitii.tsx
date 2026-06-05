@@ -344,6 +344,64 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
         return { suma, categorie: etichetaCategorie[categorie] || categorie };
     }, [formState.sportivId, eveniment, sportivi, grade, preturiConfig]);
 
+    // Mapă sportivId → Plata pentru participanți la acest eveniment
+    const platiParticipanti = useMemo(() => {
+        const map = new Map<string, Plata>();
+        filteredData.plati
+            .filter(p =>
+                p.tip === 'Taxa Stagiu' &&
+                (p.eveniment_id === eveniment.id ||
+                    (p.eveniment_id == null && rezultate.some(r => r.sportiv_id === p.sportiv_id)))
+            )
+            .forEach(p => { if (p.sportiv_id) map.set(p.sportiv_id, p); });
+        return map;
+    }, [filteredData.plati, eveniment.id, rezultate]);
+
+    // Rânduri tabel participanți: combină rezultate cu plăți
+    const randuriiParticipanti = useMemo(() => {
+        const etichetaCategorie: Record<string, string> = { copii: 'Copii (7-12 ani)', grade: 'Grade (13+)', centuri: 'Centuri Negre' };
+        return rezultate.map(r => {
+            const sportiv = sportivi.find(s => s.id === r.sportiv_id);
+            const plata = platiParticipanti.get(r.sportiv_id);
+            const categorie = sportiv
+                ? calculeazaCategorieStagiu(sportiv.data_nasterii, eveniment.data, sportiv.grad_actual_id, grade)
+                : 'grade';
+            const dataInscriere = r.created_at
+                ? new Date(r.created_at).toLocaleDateString('ro-RO')
+                : '-';
+            return {
+                sportiv,
+                dataInscriere,
+                categorie: etichetaCategorie[categorie] || categorie,
+                taxa: plata?.suma ?? null,
+                statusPlata: plata?.status ?? 'Fără plată',
+            };
+        });
+    }, [rezultate, sportivi, platiParticipanti, eveniment, grade]);
+
+    // Exportă participanții la stagiu ca fișier CSV
+    const exportParticipantiCSV = () => {
+        const header = 'Sportiv,Data Inscrierii,Categorie,Taxa (lei),Status Plata';
+        const rows = randuriiParticipanti.map(rand => {
+            const numeSportiv = `"${rand.sportiv?.prenume || ''} ${rand.sportiv?.nume || ''}"`;
+            const dataInscriere = `"${rand.dataInscriere}"`;
+            const categorie = `"${rand.categorie}"`;
+            const taxa = rand.taxa != null ? rand.taxa.toFixed(2) : '';
+            const statusPlata = `"${rand.statusPlata}"`;
+            return `${numeSportiv},${dataInscriere},${categorie},${taxa},${statusPlata}`;
+        });
+        const csvContent = [header, ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `participanti_${eveniment.denumire.replace(/\s+/g, '_')}_${eveniment.data}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     const getSportivGrad = (sportivId: string) => {
         const admittedParticipations = inscrieriExamene
             .filter(p => p.sportiv_id === sportivId && p.rezultat === 'Admis')
@@ -357,6 +415,53 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
 
     return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-slate-400">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({rezultate.length})</h4>
     <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{(rezultate || []).map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.prenume} {s?.nume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{(rezultate || []).length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
+    {permissions.isAdminClub && rezultate.length > 0 && (
+      <div className="mt-6 border-t border-slate-700 pt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-xl font-semibold text-white">
+            Raport Participanți ({rezultate.length})
+          </h4>
+          <Button variant="secondary" size="sm" onClick={exportParticipantiCSV}>
+            Export CSV
+          </Button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-700 text-slate-400">
+                <th className="text-left py-2 pr-4">Sportiv</th>
+                <th className="text-left py-2 pr-4">Data Înscrierii</th>
+                <th className="text-left py-2 pr-4">Categorie</th>
+                <th className="text-right py-2 pr-4">Taxă (lei)</th>
+                <th className="text-left py-2">Status Plată</th>
+              </tr>
+            </thead>
+            <tbody>
+              {randuriiParticipanti.map((rand, i) => (
+                <tr key={i} className="border-b border-slate-800 hover:bg-slate-800/30">
+                  <td className="py-2 pr-4 font-medium">
+                    {rand.sportiv ? `${rand.sportiv.prenume} ${rand.sportiv.nume}` : '—'}
+                  </td>
+                  <td className="py-2 pr-4 text-slate-400">{rand.dataInscriere}</td>
+                  <td className="py-2 pr-4 text-slate-300">{rand.categorie}</td>
+                  <td className="py-2 pr-4 text-right">
+                    {rand.taxa != null ? rand.taxa.toFixed(2) : '—'}
+                  </td>
+                  <td className={`py-2 font-medium ${
+                    rand.statusPlata === 'Achitat' ? 'text-green-400' :
+                    rand.statusPlata === 'Neachitat' ? 'text-red-400' :
+                    rand.statusPlata === 'Achitat Parțial' ? 'text-amber-400' :
+                    'text-slate-500'
+                  }`}>
+                    {rand.statusPlata}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
     {permissions.isAdminClub && (
     <Card className="bg-slate-900/50">
         <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Participant</h5>

@@ -1,6 +1,10 @@
 node_modules
 dist/
 
+# Playwright
+playwright-report/
+test-results/
+
 # Variabile de mediu și secrete
 .env
 .env.*

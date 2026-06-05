@@ -225,19 +225,15 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   if (step === 3) {
     return (
       <Pas3FormareEchipe
+        categorii={categorii.filter(c => c.proba_id === probaDeschisFocusId)}
+        probe={probe}
+        echipe={echipe}
+        clubId={clubId}
         sportivi={sportivi}
         grade={grade}
-        categorii={categorii.filter(c => c.proba_id === probaDeschisFocusId)}
-        selectedSportivi={selectedSportivi}
-        numeClub={numeClub}
-        echipeFormate={echipeFormate}
-        onUpdateEchipe={setEchipeFormate}
-        onContinua={() => setStep('hub')}
-        onBack={() => setStep('hub')}
-        echipeDB={echipe}
-        myClubId={myClubId}
         dataCompetitie={competitie.data_inceput}
-        probe={probe}
+        onOpenInscriereModal={(cat) => onOpenInscriereModal?.(cat, () => setStep('hub'))}
+        onBack={() => setStep('hub')}
       />
     );
   }

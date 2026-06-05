@@ -56,7 +56,7 @@ function calculeazaStatusCard(
 ): CardProba {
   const {
     categorii, sportivi, grade, selectedSportivi, autoCategorie,
-    quyenAles, echipeFormate, probeSkipped, excludedFromIndividual,
+    quyenAles, echipe, clubId, echipeFormate, probeSkipped, excludedFromIndividual,
     competitie,
   } = props;
 
@@ -76,12 +76,11 @@ function calculeazaStatusCard(
     // Selecția efectivă se face în Pas1, deci nu blocăm cardul pe baza selectedSportivi gol.
     if (selectedSportivi.size === 0) {
       const catProbaIndiv = catProba.filter(c => c.tip_participare === 'individual');
-      const areEligibili = sportivi.some(s =>
-        catProbaIndiv.some(cat => verificaEligibilitate(s, cat, grade, competitie.data_inceput).eligibil)
-      );
-      if (!areEligibili) {
+      // Dacă nu există categorii individuale pentru această probă → exclude
+      if (catProbaIndiv.length === 0) {
         return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
       }
+      // Altfel arată cardul ca incomplet — adminul poate intra în Pas1 să vadă situația
       return { proba, status: 'incomplet', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
     }
 
@@ -188,14 +187,16 @@ function calculeazaStatusCard(
       }
 
       nrTotal++;
-      const echipa = echipeFormate.find(e => e.categorieId === cat.id);
-      if (!echipa) continue;
-      if (echipa.echipaSkip) {
-        nrComplet++;
-        continue;
-      }
-      const titMin = cat.tip_participare === 'pereche' ? 2 : cat.sportivi_per_echipa_min;
-      if (echipa.titulari.length >= titMin || echipa.echipaIncompleta) {
+      const echipaDB = echipe.find(e =>
+        e.categorie_id === cat.id &&
+        e.club_id === clubId &&
+        e.status?.toLowerCase() !== 'retrasa'
+      );
+      if (!echipaDB) continue;
+      const membri: Array<{ rol: string }> = (echipaDB as any).echipa_sportivi ?? [];
+      const nrTitulari = membri.filter(m => m.rol === 'titular').length;
+      const titMin = cat.tip_participare === 'pereche' ? 2 : (cat.sportivi_per_echipa_min ?? 1);
+      if (nrTitulari >= titMin || echipaDB.echipa_incompleta) {
         nrComplet++;
       }
     }
@@ -225,9 +226,7 @@ function calculeazaStatusCard(
 const CardProbaItem: React.FC<{
   card: CardProba;
   onDeschide: () => void;
-  isTeam?: boolean;
-  isExpanded?: boolean;
-}> = ({ card, onDeschide, isTeam, isExpanded }) => {
+}> = ({ card, onDeschide }) => {
   const { proba, status, nrComplet, nrTotal, motivBlocat, categoriiExcluse } = card;
   const info = PROBA_INFO[proba.tip_proba];
   const colorKey = info?.color ?? 'amber';
@@ -341,10 +340,7 @@ const CardProbaItem: React.FC<{
         {!isExclus && (
           <div className="flex items-center justify-end pt-1">
             <span className="text-xs font-semibold text-brand-primary">
-              {isTeam
-                ? (isExpanded ? 'Ascunde categorii ▲' : 'Gestionează echipe ▼')
-                : (isComplet ? 'Modifică →' : 'Configurează →')
-              }
+              {isComplet ? 'Modifică →' : 'Configurează →'}
             </span>
           </div>
         )}
@@ -359,12 +355,12 @@ const CardProbaItem: React.FC<{
 
 const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const {
-    competitie, probe, categorii, echipeFormate,
+    competitie, probe, categorii,
     onBack, onDeschideProba, onFinalizare, onPrevizualizare,
-    selectedSportivi, onOpenInscriereModal,
+    selectedSportivi,
   } = props;
 
-  const [expandedTeamProbaId, setExpandedTeamProbaId] = useState<string | null>(null);
+  const [filtruHub, setFiltruHub] = useState<'toate' | 'nefinalizate'>('toate');
 
   const probeActive = useMemo(
     () => [...probe].sort((a, b) => (a.ordine_afisare ?? 0) - (b.ordine_afisare ?? 0)),
@@ -374,7 +370,12 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const cards = useMemo<CardProba[]>(
     () => probeActive.map(p => calculeazaStatusCard(p, props)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [probeActive, props.selectedSportivi, props.autoCategorie, props.quyenAles, props.echipeFormate, props.probeSkipped, props.excludedFromIndividual]
+    [probeActive, props.selectedSportivi, props.autoCategorie, props.quyenAles, props.echipeFormate, props.probeSkipped, props.excludedFromIndividual, props.echipe, props.sportivi, props.grade, props.categorii]
+  );
+
+  const cardsFiltrate = useMemo(
+    () => filtruHub === 'nefinalizate' ? cards.filter(c => c.status !== 'completat' && c.status !== 'exclus') : cards,
+    [cards, filtruHub]
   );
 
   // Verifică dacă se poate finaliza
@@ -423,56 +424,38 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
         </div>
       </div>
 
+      {/* Filtru probe */}
+      <div className="flex items-center gap-2">
+        {(['toate', 'nefinalizate'] as const).map(f => (
+          <button
+            key={f}
+            onClick={() => setFiltruHub(f)}
+            style={{ touchAction: 'manipulation' }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              filtruHub === f
+                ? 'border-brand-primary bg-brand-primary/20 text-white'
+                : 'border-slate-600 text-slate-400 hover:border-slate-500'
+            }`}
+          >
+            {f === 'toate' ? 'Toate' : 'Nefinalizate'}
+          </button>
+        ))}
+      </div>
+
       {/* Grid carduri — 1 col mobil, 2 col tablet, 3 col desktop */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-        {cards.map(card => {
-          const isTeam = categorii.some(c => c.proba_id === card.proba.id && esteEchipaSauPereche(c));
-          const isExpanded = expandedTeamProbaId === card.proba.id;
-          const catProba = isTeam ? categorii.filter(c => c.proba_id === card.proba.id && esteEchipaSauPereche(c)) : [];
-          return (
-            <div key={card.proba.id} className="flex flex-col gap-2">
-              <CardProbaItem
-                card={card}
-                isTeam={isTeam}
-                isExpanded={isExpanded}
-                onDeschide={() => {
-                  if (isTeam) {
-                    setExpandedTeamProbaId(prev => prev === card.proba.id ? null : card.proba.id);
-                  } else {
-                    onDeschideProba(card.proba.id);
-                  }
-                }}
-              />
-              {isTeam && isExpanded && catProba.length > 0 && (
-                <div className="p-3 rounded-xl border border-slate-600 bg-slate-800/60 space-y-2">
-                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Categorii {card.proba.denumire}</p>
-                  {catProba.map(cat => {
-                    const echipa = echipeFormate.find(e => e.categorieId === cat.id);
-                    const eCompleta = echipa && (echipa.echipaSkip || echipa.titulari.length > 0 || echipa.echipaIncompleta);
-                    return (
-                      <div key={cat.id} className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-slate-700/40">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-white leading-tight">{cat.denumire ?? `Cat ${cat.numar_categorie}`}</p>
-                          {eCompleta && (
-                            <p className="text-[10px] text-emerald-400 mt-0.5">configurată</p>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          style={{ touchAction: 'manipulation' }}
-                          onClick={() => onOpenInscriereModal?.(cat)}
-                          className="text-xs px-3 py-1.5 rounded-lg bg-brand-primary/20 border border-brand-primary/50 text-brand-primary hover:bg-brand-primary/30 transition-colors font-medium shrink-0"
-                        >
-                          {eCompleta ? 'Modifică' : 'Înscrie'}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {cardsFiltrate.map(card => (
+          <CardProbaItem
+            key={card.proba.id}
+            card={card}
+            onDeschide={() => onDeschideProba(card.proba.id)}
+          />
+        ))}
+        {cardsFiltrate.length === 0 && (
+          <div className="col-span-full text-center py-8 text-sm text-slate-500 italic">
+            Toate probele sunt finalizate.
+          </div>
+        )}
       </div>
 
       {/* Banner probleme globale */}

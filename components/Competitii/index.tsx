@@ -768,6 +768,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [loadingLegacy, setLoadingLegacy] = useState(false);
   const [selectedProbaId, setSelectedProbaId] = useState<string>('');
   const [inscriereModal, setInscriereModal] = useState<CategorieCompetitie | null>(null);
+  const goToHubAfterModalRef = React.useRef<(() => void) | null>(null);
   const [catFormOpen, setCatFormOpen] = useState(false);
   const [catToEdit, setCatToEdit] = useState<CategorieCompetitie | null>(null);
   const [probaFormOpen, setProbaFormOpen] = useState(false);
@@ -1163,7 +1164,10 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 myClubId={myClubId}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}
-                onOpenInscriereModal={cat => setInscriereModal(cat)}
+                onOpenInscriereModal={(cat, goToHub) => {
+                  setInscriereModal(cat);
+                  goToHubAfterModalRef.current = goToHub ?? null;
+                }}
               />
             ) : (
               <div className="space-y-3">
@@ -1326,7 +1330,13 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           numeClub={currentUser?.cluburi?.nume ?? ''}
           vizeSportivi={vizeSportivi}
           onClose={() => setInscriereModal(null)}
-          onSaved={() => { setInscriereModal(null); fetchData(); }}
+          onSaved={() => {
+            const goToHub = goToHubAfterModalRef.current;
+            goToHubAfterModalRef.current = null;
+            setInscriereModal(null);
+            fetchData();
+            goToHub?.();
+          }}
         />
       )}
     </div>
@@ -2987,7 +2997,6 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
   // For echipa/pereche
   const [selectedTitulari, setSelectedTitulari] = useState<string[]>([]);
   const [selectedRezerve, setSelectedRezerve] = useState<string[]>([]);
-  const [denEchipa, setDenEchipa] = useState(numeClub);
 
   // Eligibility check
   const eligibilitati = filtreazaSportiviEligibili(
@@ -3063,15 +3072,21 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
       const rezerve = membri.filter((m: any) => m.rol === 'rezerva').map((m: any) => m.sportiv_id);
       setSelectedTitulari(titulari);
       setSelectedRezerve(rezerve);
-      setDenEchipa((echipaDejaInscrisa as any).denumire_echipa || '');
     }
   }, [editMode, echipaDejaInscrisa]);
 
   const toggleTitular = (id: string) => {
     setSelectedTitulari(prev => {
       if (prev.includes(id)) return prev.filter(x => x !== id);
-      // Task 3: thao quyen individual — nelimitat
-      if (!esteThaoQuyenIndividualModal && prev.length >= categorie.sportivi_per_echipa_max) return prev;
+      if (!esteThaoQuyenIndividualModal && categorie.sportivi_per_echipa_max > 0 && prev.length >= categorie.sportivi_per_echipa_max) return prev;
+      // Mixt: dacă adăugând sportivul nu mai rămân locuri pentru genul lipsă, blochează
+      if (categorie.gen === 'Mixt' && categorie.sportivi_per_echipa_max > 0) {
+        const newList = [...prev, id];
+        const nM = newList.filter(sid => sportivi.find(s => s.id === sid)?.gen === 'Masculin').length;
+        const nF = newList.filter(sid => sportivi.find(s => s.id === sid)?.gen === 'Feminin').length;
+        const libre = categorie.sportivi_per_echipa_max - newList.length;
+        if ((nM === 0 ? 1 : 0) + (nF === 0 ? 1 : 0) > libre) return prev;
+      }
       return [...prev, id];
     });
   };
@@ -3137,10 +3152,8 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           const { error: mErr } = await supabase.from('echipa_sportivi').insert(members);
           if (mErr) throw mErr;
         }
-        // Actualizăm și denumirea
-        if (denEchipa.trim()) {
-          await supabase.from('echipe_competitie').update({ denumire_echipa: denEchipa.trim().toUpperCase() }).eq('id', (echipaDejaInscrisa as any).id);
-        }
+        // Actualizăm denumirea cu numele clubului
+        await supabase.from('echipe_competitie').update({ denumire_echipa: numeClub.trim().toUpperCase() }).eq('id', (echipaDejaInscrisa as any).id);
       } else {
         if (selectedTitulari.length < categorie.sportivi_per_echipa_min) {
           throw new Error(`Selectează minim ${categorie.sportivi_per_echipa_min} titulari`);
@@ -3150,7 +3163,7 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           competitie_id: competitie.id,
           categorie_id: categorie.id,
           club_id: clubId,
-          denumire_echipa: denEchipa.trim().toUpperCase() || null,
+          denumire_echipa: numeClub.trim().toUpperCase() || null,
         }).select().single();
         if (ecErr) throw ecErr;
 
@@ -3232,15 +3245,25 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
     const grad = grade.find(g => g.id === sportiv.grad_actual_id);
     const isRezerva = selectedRezerve.includes(sportiv.id);
     const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
+    const isMixtBlocked = !deja && !selectedTitulari.includes(sportiv.id) && categorie.gen === 'Mixt' && (() => {
+      const newList = [...selectedTitulari, sportiv.id];
+      const nM = newList.filter(sid => sportivi.find(s => s.id === sid)?.gen === 'Masculin').length;
+      const nF = newList.filter(sid => sportivi.find(s => s.id === sid)?.gen === 'Feminin').length;
+      const libre = (categorie.sportivi_per_echipa_max || 0) - newList.length;
+      return (nM === 0 ? 1 : 0) + (nF === 0 ? 1 : 0) > libre;
+    })();
+    const isDisabled = deja || isRezerva || isMixtBlocked;
     return (
       <label key={sportiv.id} style={{ touchAction: 'manipulation' }} className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
-        deja || isRezerva ? 'opacity-40 cursor-not-allowed border-transparent' :
+        isDisabled ? 'opacity-40 cursor-not-allowed border-transparent' :
         selectedTitulari.includes(sportiv.id) ? 'border-brand-primary bg-brand-primary/10' :
         'border-slate-700 hover:border-slate-500'
-      }`}>
+      }`}
+        title={isMixtBlocked ? 'Trebuie adăugat cel puțin un sportiv din genul lipsă' : undefined}
+      >
         <input type="checkbox" checked={selectedTitulari.includes(sportiv.id) || deja}
-          disabled={deja || isRezerva}
-          onChange={() => !deja && !isRezerva && toggleTitular(sportiv.id)}
+          disabled={isDisabled}
+          onChange={() => !isDisabled && toggleTitular(sportiv.id)}
           className="w-4 h-4" />
         <div className="flex-1">
           <div className="flex items-center gap-1 flex-wrap">
@@ -3268,8 +3291,8 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
 
   return (
     <Modal isOpen={true} onClose={handleClose} title={`Înscrie la: ${categorie.denumire}`}>
-      <div className="flex flex-col -m-4 sm:-m-6 min-h-0 flex-1">
-      <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4">
+      <div className="-m-4 sm:-m-6">
+      <div className="p-4 sm:p-6 space-y-4">
         <div className="bg-slate-800 rounded-lg p-3 text-sm">
           <div className="text-slate-300">{categorie.denumire}</div>
           {categorie.arma && <div className="text-orange-400 text-xs mt-0.5">Armă: {categorie.arma}</div>}
@@ -3367,7 +3390,6 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                 <button onClick={() => setEditMode(false)} className="text-blue-400 hover:underline ml-auto">Anulează</button>
               </div>
             )}
-            <Input label="Denumire Echipă (opțional)" value={denEchipa} onChange={e => setDenEchipa(e.target.value)} />
             <div>
               <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
                 <span className="text-sm text-slate-300 font-medium flex items-center gap-2 flex-wrap">
@@ -3541,8 +3563,8 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
         })()}
       </div>
 
-      {/* Footer fix */}
-      <div className="flex-shrink-0 border-t border-slate-700 bg-slate-900 px-4 py-3 rounded-b-2xl">
+      {/* Footer sticky */}
+      <div className="sticky bottom-0 z-10 border-t border-slate-700 bg-slate-900/95 backdrop-blur-sm px-4 py-3 sm:px-6 rounded-b-2xl">
         {!(isTeam && echipaDejaInscrisa && !editMode) ? (
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <Button variant="secondary" onClick={handleClose} disabled={loading} className="w-full sm:w-auto h-11">Anulează</Button>

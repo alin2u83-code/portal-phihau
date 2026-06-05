@@ -80,4 +80,5 @@ export interface InscriereClubWizardProps {
   onBack: () => void;
   onSaved: () => void;
   onOpenEditEchipa?: (categorieId: string) => void;
+  onOpenInscriereModal?: (cat: CategorieCompetitie, goToHub?: () => void) => void;
 }

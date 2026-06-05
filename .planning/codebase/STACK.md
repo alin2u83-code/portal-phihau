@@ -1,123 +1,129 @@
 # Technology Stack
 
-**Analysis Date:** 2026-06-04
+**Analysis Date:** 2026-06-05
 
 ## Languages
 
 **Primary:**
-- TypeScript 5.5.3 - Application frontend, backend API handlers, type definitions
-- JavaScript (via JSX) - React component templates
+- TypeScript 5.5.3 — all frontend components, hooks, services, API handlers
+- SQL — database migrations and RLS policies in `sql/migrations/` and `supabase/`
 
 **Secondary:**
-- SQL - Database migrations and RLS policies in `sql/` directory
+- JavaScript (JSX via React plugin) — React component templates compiled by Vite
+- Deno TypeScript — Supabase Edge Functions in `supabase/functions/` (uses `https://esm.sh` imports, `Deno.serve`)
 
 ## Runtime
 
 **Environment:**
-- Node.js (inferred from package.json type: "module" and API handlers)
+- Node.js — inferred from `"type": "module"` in `package.json`, ES2022 target in `tsconfig.json`
+- Deno — Supabase Edge Functions runtime (`supabase/functions/*`)
+- Browser (ES2022 + DOM) — compiled frontend bundle
 
 **Package Manager:**
-- npm (package-lock.json present, lockfile committed)
+- npm
+- Lockfile: `package-lock.json` present and committed
 
 ## Frameworks
 
 **Core:**
-- React 18.3.1 - UI component framework
-- React Router DOM 6.23.1 - Client-side routing (SPA mode, not URL-based)
-- Vite 5.3.4 - Build tool and dev server
+- React 18.3.1 — UI component framework, all UI in `components/`
+- React Router DOM 6.23.1 — imported but navigation handled via `NavigationContext` (`contexts/`), not URL-based routing; used only for `BrowserRouter` provider at root
 
-**State Management:**
-- TanStack React Query 5.90.21 - Server state caching, data synchronization
-- Zustand 5.0.11 - Global application state (`src/store/useAppStore.ts`)
+**State / Data:**
+- TanStack React Query 5.90.21 — server state caching with 5-minute staleTime; hooks in `hooks/`
+- Zustand 5.0.11 — global client state; store at `src/store/useAppStore.ts`
 
-**Backend/Serverless:**
-- Vercel Node.js runtime (via `@vercel/node` v5.6.12) - API endpoint execution
+**Build / Dev:**
+- Vite 5.3.4 — dev server, build tool; config at `vite.config.ts`
+- @vitejs/plugin-react 4.3.1 — JSX compilation
+- vite-plugin-pwa 1.2.0 — service worker / PWA manifest (registered but superseded by native browser PWA)
+- Tailwind CSS 3.4.6 — utility-first CSS, no separate CSS files; config at `tailwind.config.js`
+- PostCSS 8.4.39 — CSS processing; config at `postcss.config.js`
+- Autoprefixer 10.4.19 — vendor prefix injection
 
-**Testing:**
-- TypeScript compiler for type checking (via `lint` script running `tsc --noEmit`)
+**Serverless API:**
+- @vercel/node 5.6.12 — Vercel Serverless Functions runtime for all `api/` handlers (`VercelRequest`, `VercelResponse`)
+- Express 5.2.1 — available as middleware dependency; used in dev context only
 
-**Build/Dev:**
-- @vitejs/plugin-react 4.3.1 - React JSX compilation for Vite
-- Tailwind CSS 3.4.6 - Utility-first CSS styling
-- PostCSS 8.4.39 - CSS processing (paired with Tailwind)
-- Autoprefixer 10.4.19 - Browser vendor prefix injection
+**TypeScript Tooling:**
+- tsx 4.21.0 — TypeScript executor for Node.js scripts
+- TypeScript compiler (`tsc --noEmit`) — used as the only lint step via `npm run lint`
 
 ## Key Dependencies
 
 **Critical:**
-- @supabase/supabase-js 2.98.0 - PostgreSQL database client with auth integration
-- @supabase/postgrest-js 2.97.0 - Supabase REST API client
-- react-hot-toast 2.6.0 - Toast notification system (critical for UX feedback)
-
-**Infrastructure:**
-- @google/generative-ai 0.24.1 - Google Gemini API integration for embeddings and text generation
-- express 5.2.1 - API middleware (used in development/serverless context)
-- tsx 4.21.0 - TypeScript executor for Node.js
+- @supabase/supabase-js 2.98.0 — PostgreSQL client, auth, realtime; singleton in `supabaseClient.ts`
+- @supabase/postgrest-js 2.97.0 — REST API client (transitive, pinned)
+- react-hot-toast 2.6.0 — toast notification system; used throughout for UX feedback
+- @google/generative-ai 0.24.1 — Google Gemini SDK; used in `services/` for embeddings (RAG)
 
 **UI & Visualization:**
-- Lucide-react 0.400.0 - Icon library
-- Recharts 2.15.4 - Chart/graph rendering for financial reports
-- Motion 12.34.5 - Animation library
-- clsx 2.1.1 - Conditional className utility
+- lucide-react 0.400.0 — icon library
+- recharts 2.15.4 — chart rendering for financial reports (`components/Plati/`)
+- motion 12.34.5 — animation library
+- react-easy-crop 5.5.6 — avatar/photo cropping UI
 
-**Data Handling:**
-- xlsx 0.18.5 - Excel file import/export
-- PapaParse 5.4.1 - CSV parsing and generation
-- date-fns 4.1.0 - Date manipulation and formatting
-
-**PDF Generation:**
-- jsPDF 4.2.1 - PDF document creation
-- jspdf-autotable 5.0.7 - Table generation in PDF documents
-
-**Image Cropping:**
-- react-easy-crop 5.5.6 - User photo/avatar cropping UI
-
-**CSS Utilities:**
-- tailwind-merge 2.3.0 - Merge Tailwind CSS class names intelligently
-
-**PWA (Legacy):**
-- vite-plugin-pwa 1.2.0 - Progressive Web App support (service workers registered but deprecated in favor of native browser PWA)
+**Utilities:**
+- clsx 2.1.1 — conditional className composition
+- tailwind-merge 2.3.0 — merge Tailwind class names without conflicts
+- date-fns 4.1.0 — date manipulation and formatting throughout components
+- jsPDF 4.2.1 + jspdf-autotable 5.0.7 — PDF document generation (invoices, reports)
+- xlsx 0.18.5 — Excel import/export for sportivi and examene
+- PapaParse 5.4.1 — CSV parsing and generation
 
 ## Configuration
 
-**Environment:**
-- Variables loaded via `.env` file
-- Client-side environment variables prefixed with `VITE_` (Vite convention)
-- Server-side environment variables accessible via `process.env` in API handlers
+**Path aliases (`tsconfig.json` and `vite.config.ts`):**
+- `@components/*` -> `./components/*`
+- `@hooks/*` -> `./hooks/*`
+- `@contexts/*` -> `./contexts/*`
+- `@/*` -> `./*`
 
-**Critical Environment Variables:**
-- `VITE_SUPABASE_URL` - Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` - Supabase anonymous/public API key
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase server-side role key (backend only)
-- `CLAUDE_API_KEY` - Anthropic Claude API key (optional, used for Claude chat proxy)
-- `GEMINI_API_KEY` - Google Gemini API key (embeddings + text generation)
-- `GROQ_API_KEY` - Groq LLM API key (alternative LLM provider)
-- `RAG_INDEX_SECRET` - Shared secret for RAG indexing operations
-- `SMS_PROVIDER` - SMS provider type (android_gateway, smslink, twilio, vonage)
-- `SMS_CALLBACK_SECRET` - HMAC secret for SMS webhook validation
-- `ANDROID_GATEWAY_URL` - Custom Android SMS gateway endpoint
-- `ANDROID_GATEWAY_TOKEN` - Bearer token for Android SMS gateway
+**Environment variables:**
 
-**Build:**
-- vite.config.ts - Build configuration with React plugin, path aliases, code splitting
-- tsconfig.json - TypeScript compiler options, path aliases (@components, @hooks, @contexts)
-- tailwind.config.js - Tailwind CSS theme customization (colors, shadows, animations)
-- postcss.config.js - PostCSS configuration for Tailwind
-- vercel.json - Deployment configuration, SPA rewrite rules, cache headers
+| Variable | Used in | Purpose |
+|---|---|---|
+| `VITE_SUPABASE_URL` | `supabaseClient.ts`, `api/` handlers | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | `supabaseClient.ts` | Supabase public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | All `api/` handlers | Supabase admin operations (bypasses RLS) |
+| `CLAUDE_API_KEY` | `api/claude-proxy.ts`, `vite.config.ts` dev plugin | Anthropic Claude API |
+| `GEMINI_API_KEY` | `api/gemini-proxy.ts`, `api/rag-index.ts`, `api/rag-search.ts` | Google Gemini API |
+| `GROQ_API_KEY` | `api/groq-proxy.ts` | Groq LLM API |
+| `RAG_INDEX_SECRET` | `api/rag-index.ts` | Shared secret for RAG indexing (header `x-index-secret`) |
+| `SMS_CALLBACK_SECRET` | `supabase/functions/sms-callback/` | HMAC validation for SMS delivery webhooks |
+| `ANDROID_GATEWAY_URL` | SMS config via DB | Custom Android SMS gateway endpoint |
+| `ANDROID_GATEWAY_TOKEN` | SMS config via DB | Bearer token for Android SMS gateway |
+
+**Build config:** `vite.config.ts` — manual chunk splitting into `vendor-react`, `vendor-query`, `vendor-supabase`, `vendor-charts`, `vendor-motion`, `vendor-pdf`, `vendor-xlsx`, `vendor-ui`
+
+**Deployment config:** `vercel.json` — SPA rewrite `/* -> /index.html`, HSTS header, immutable cache for `/assets/`, no-cache for `index.html`
+
+## TypeScript Configuration
+
+- `tsconfig.json` — `strict: false` (flexible types), target ES2022, `noEmit: true` (build handled by Vite)
+- Includes: `src`, `components`, `utils`, `hooks`, `contexts`, `types.ts`, `supabaseClient.ts`
+- Excludes: `node_modules`, `scripts`
+- Single type file: `types.ts` at root — all domain types centralized; import via `import type { X } from '../types'`
 
 ## Platform Requirements
 
 **Development:**
-- Node.js (version not explicitly pinned in .nvmrc but inferred ES2022 target)
-- npm or compatible package manager
-- VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY required for local dev
+- Node.js (ES2022 compatible)
+- `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` required to start
 
 **Production:**
-- Deployment target: Vercel (configured via vercel.json)
-- Edge runtime: Vercel Node.js Functions for serverless API handlers
-- Static asset hosting via Vercel CDN
-- Custom domain support via Vercel
+- Vercel (configured via `vercel.json`)
+- Vercel Node.js Serverless Functions for all `api/` handlers
+- Static assets served via Vercel CDN
+- Supabase Edge Functions (Deno runtime) for SMS queue processing and push notifications
+
+## Notable Missing Tools
+
+- **No ESLint or Prettier** — zero linting/formatting tooling; only `tsc --noEmit` as lint step
+- **No test framework** — `tests/` directory exists at project root but no Jest, Vitest, or other runner configured in `package.json`
+- **No Husky or pre-commit hooks** — no automated quality gates on commit
+- **No Storybook** — no component isolation environment
 
 ---
 
-*Stack analysis: 2026-06-04*
+*Stack analysis: 2026-06-05*

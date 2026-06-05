@@ -1,73 +1,64 @@
-# CONCERNS.md — Portal PhiHau
+# CONCERNS.md — portal-phihau Technical Concerns
+*Generated: 2026-06-05*
 
-**Mapped:** 2026-06-04 | **Focus:** concerns/tech-debt
+## 1. Security
 
----
+### Critical
+- **32 SELECT policies use `USING (true)`** — all club-level filtering delegated to JS layer; RLS is not a hard row-level security gate for most tables
+- **3 debug routes without role guards** in AppRouter: `backdoor-check`, `backdoor-test`, `debug-page` — accessible in production to any authenticated user
+- **`el.innerHTML` injection** in `components/Plati/FacturaChitantaModal.tsx:74` — no sanitization, XSS risk if any user-controlled data flows through
 
-## Critical (Blocking Features)
+### Moderate
+- xlsx 0.18.5 (SheetJS community edition) is unmaintained and accepts user file uploads — known CVEs in old versions
 
-| Issue | Location | Impact |
-|---|---|---|
-| Migrație `orar_exceptii` lipsă | DB | Excepțiile de orar nu funcționează |
-| TODO discount logic | `PlatiScadente.tsx:171-172` | Reducerile nu se aplică corect |
+## 2. Performance
 
----
+### Critical
+- **`components/Competitii/index.tsx` is 3,965 lines** — single god component handling 8+ features, 30+ useState, 20+ useEffect
+- **Zero `React.memo` usage** across 90+ component files — no memoization anywhere
 
-## Tech Debt
+### High
+- **`hooks/useDataProvider.ts` bulk-fetches 20+ tables with no pagination/LIMIT** — plati, tranzactii, vizualizarePlati, sportivi all loaded in full
+- `useSportivi` and `usePlati` have no `staleTime` — refetch on every focus
 
-### Cod Duplicat
-- `generateEmail`, `normalizeDate`, `isSimilar` — duplicate în 3+ importere
-- Calcul taxe duplicat în 4 module diferite
-- Normalizare grade: aliasuri hard-coded în loc de tabel DB
+### Moderate
+- `varsteCompetitie` useMemo in InscriereClubWizard/index.tsx iterates all categories from 0–80 producing large number arrays
 
-### Componente Monolitice
-- `Competitii.tsx` — **3942 linii**, re-render lent, greu de menținut
-- `DataProvider` — fetch 20+ tabele la orice schimbare de rol (nu lazy)
+## 3. Data Integrity
 
-### Query Performance
-- Pattern N+1 la înscrieri examene (RPC per înregistrare în loc de batch)
-- Liste sportivi fără paginare (totul în memorie)
+### Known Bugs
+- **`PlatiScadente.tsx:171,198` — explicit `Bug 4 TODO`** — invoices never apply discount policies from `politici_reducere` table
+- Competitii mutations bypass React Query (direct supabase calls + local `fetchData()`) — React Query cache never invalidated after competition mutations
 
----
+### Risks
+- **Dual cache system** (localStorage cache.ts + React Query) with documented fragile ordering at `GrupaDetailView.tsx:64`
+- **118 `as any` casts** disabling TypeScript type checks on Supabase join results
+- Wizard state (9 useState in InscriereClubWizard/index.tsx orchestrator) has no central store — stale closure risk when Pas4Sumar reads state
 
-## Security Concerns
+## 4. Architecture Debt
 
-| Concern | Detaliu |
-|---|---|
-| Header injection | `active-role-context-id` în `supabaseClient.ts` — RLS depinde de corectitudinea clientului |
-| Upload nevalidat | CSV/Excel importere — fără validare MIME type sau size limit |
-| localStorage | Posibil date sensibile cached |
-| Câmpuri nesanitizate | Descrieri în modulele financiare |
+- **`types.ts` is 723 lines** single-file — convention already broken by `InscriereClubWizard/types.ts`
+- **AppRouter is 58-case switch** — two-file registration burden per new view (AppRouter.tsx + Sidebar.tsx)
+- Competitii/index.tsx is a god component — needs splitting into CompetitieList, CompetitieDetail, InscrieriTab, etc.
+- `myClubId = currentUser?.club_id` pattern in Competitii/index.tsx — if admin has no sportiv profile, club_id is undefined → empty sportivi list
 
----
+## 5. Missing / Incomplete Features
 
-## Race Conditions / Fragile
+- **`program_competitie` table** exists in DB but no UI (Phase 3 not started per roadmap)
+- **SMS providers** Twilio and Vonage referenced in config but NOT implemented (only AndroidGateway + SMSLink are wired)
+- Web Push notifications (Supabase Edge Function exists) — no frontend UI to manage subscriptions
 
-- Cache invalidation pe orar grupe — parțial fixat Mai 2026, risc residual
-- Generare plăți bulk — fără error granular per înregistrare
-- Sync offline — menționat în docs, **neimplementat**
-- Roluri circulare — nu sunt validate la DB level
+## 6. Mobile / Responsive Gaps
 
----
+Components with `hidden md:block` on core content and no mobile alternative:
+- `PlatiScadente.tsx` — aging/debt table hidden on mobile
+- `RaportFinanciar.tsx` — charts and tables
+- `Familii.tsx` — family management table
+- `AgingReport` — entirely desktop-only
 
-## Missing Capabilities
+## 7. Code Quality
 
-- Audit trail pentru operații financiare (cine a modificat ce)
-- Notificări bulk email/SMS
-- Paginare server-side pe liste mari
-- Rate limiting pe AI endpoints
-
----
-
-## Test Gaps
-
-- Zero teste automate (zero coverage)
-- RLS verificat manual, nu automat
-- Zero teste pentru fluxul de plăți
-- Zero load tests (țintă: 3500+ sportivi)
-
----
-
-## Notes
-
-Aplicația e funcțională și în producție (7 cluburi, date reale). Riscurile de mai sus sunt tehnice, nu blocante operațional, dar cresc cu scalarea la 35 cluburi.
+- 118 `as any` casts across codebase
+- No linting (eslint not configured), no formatting (prettier not configured)
+- No test files — zero test coverage
+- Several `console.warn` / `console.log` left in production code (useDataProvider fallback warnings)

@@ -1,287 +1,251 @@
-<!-- refreshed: 2026-06-04 -->
+<!-- refreshed: 2026-06-05 -->
 # Architecture
 
-**Analysis Date:** 2026-06-04
+**Analysis Date:** 2026-06-05
 
 ## System Overview
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     Frontend Layer (React 18 + TypeScript)              │
-├──────────────┬──────────────────┬──────────────────┬────────────────────┤
-│   AppRouter  │   Components     │   Contexts       │   Hooks            │
-│  `AppRouter` │  (60+ modules)   │  (Navigation,    │  (35+ custom)      │
-│              │  `components/`   │   Data, Auth)    │  `hooks/`          │
-└────────┬─────┴────────┬─────────┴────────┬─────────┴──────┬────────────┘
-         │              │                  │                │
-         ▼              ▼                  ▼                ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│           State Management Layer (React Query v5 + Zustand)            │
-│  - Server state: TanStack React Query (5 min staleTime)                 │
-│  - Client state: Zustand stores (useAppStore, useAIStore)              │
-│  - Navigation: NavigationContext (activeView + history stack)           │
-│  - Data: DataContext (filteredData per role + club)                    │
-└──────────────┬──────────────────────────────────────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    Backend Layer (Supabase PostgreSQL)                  │
-│  - Auth: Supabase Auth (email/password, multi-role RBAC)               │
-│  - RLS: Row-Level Security per role_context_id (header injected)       │
-│  - Storage: File uploads (foto, documente), Vector embeddings (pgvector)
-│  - Real-time subscriptions (presence, activity feeds)                  │
-└─────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                     Browser SPA (React 18)                        │
+│   index.tsx → App.tsx → AppLayout → AppRouter (58-case switch)   │
+├────────────┬──────────────┬──────────────┬────────────────────────┤
+│ Components │   Contexts   │    Hooks     │      Services          │
+│ components/│ DataContext  │ useDataProv. │ importSportiviService  │
+│            │ NavigationCtx│ useSportivi  │ ragService             │
+│            │ ErrorProvider│ usePlati     │ claudeService          │
+│            │ AIAssistant  │ useGrupe     │ sportivService         │
+│            │   Context    │ usePermission│ familieService         │
+└────────────┴──────┬───────┴──────┬───────┴────────────────────────┘
+                    │              │
+                    ▼              ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    supabaseClient.ts                              │
+│   customFetch — injects active-role-context-id header            │
+│   reads localStorage key: phi-hau-active-role-context-id         │
+└──────────────────────────────┬───────────────────────────────────┘
+                               │
+                               ▼
+┌──────────────────────────────────────────────────────────────────┐
+│          Supabase (PostgreSQL + Auth + RLS + Storage)             │
+│   RLS policies use header → set_config('app.role_context_id')    │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ## Component Responsibilities
 
 | Component | Responsibility | File |
 |-----------|----------------|------|
-| **App** | Root orchestration, session mgmt, role selection, layout wrapper | `App.tsx` |
-| **AppRouter** | View dispatcher — switches between 40+ views based on activeView | `components/AppRouter.tsx` |
-| **AppLayout** | Master layout: sidebar, header, main content, AI widget | `components/AppLayout.tsx` |
-| **Sidebar** | Navigation menu, role switcher, club selector per role | `components/Sidebar.tsx` |
-| **Sportivi** | Athlete CRUD, import/export, deduplication, group assignment | `components/Sportivi/index.tsx` |
-| **GestiuneExamene** | Grade exam sessions, athlete registration, results entry | `components/GestiuneExamene/index.tsx` |
-| **Grupe** | Training groups, schedule mgmt, attendance tracking | `components/Grupe/index.tsx` |
-| **Competitii** | Competitions (tehnica/giao_dau/cvd), registration, brackets | `components/Competitii/index.tsx` |
-| **Plati** | Invoicing, subscription types, financial dashboards, collections | `components/Plati/*` |
-| **Prezenta** | Attendance marking, reports, archive by month | `components/Prezenta/index.tsx` |
-| **Grade** | Grade chains, nomenclature, linking rules | `components/Grade/*` |
-| **Design System** | 20+ UI components (Button, Modal, Card, Input, etc.) | `components/ui.tsx` |
-| **AIAssistant** | RAG-powered help widget, Gemini embeddings + Claude API | `components/AIAssistant/` |
+| App | Root orchestration, session mgmt, role selection, layout wrapper | `App.tsx` |
+| AppRouter | View dispatcher — 58-case switch on activeView string | `components/AppRouter.tsx` |
+| AppLayout | Master layout: sidebar, header, main content, AI widget | `components/AppLayout.tsx` |
+| Sidebar | Navigation menu, role switcher, club selector per role | `components/Sidebar.tsx` |
+| Sportivi | Athlete CRUD, import/export, deduplication, group assignment | `components/Sportivi/index.tsx` |
+| GestiuneExamene | Grade exam sessions, athlete registration, results entry | `components/GestiuneExamene/index.tsx` |
+| Grupe | Training groups, schedule mgmt, attendance tracking | `components/Grupe/index.tsx` |
+| Competitii | Competitions (tehnica/giao_dau/cvd), registration, brackets | `components/Competitii/index.tsx` |
+| Plati | Invoicing, subscription types, financial dashboards | `components/Plati/` (13 files) |
+| Prezenta | Attendance marking, reports, archive by month | `components/Prezenta/index.tsx` |
+| Grade | Grade chains, nomenclature, linking rules | `components/Grade/` |
+| Design System | 20+ UI components (Button, Modal, Card, Input, etc.) | `components/ui.tsx` |
+| AIAssistant | RAG-powered help widget, Gemini embeddings + Claude API | `components/AIAssistant/` |
+| LazyComponents | Code-split imports for all major modules | `components/LazyComponents.tsx` |
 
 ## Pattern Overview
 
-**Overall:** Multi-role SPA (Single Page Application) with context-aware data filtering and RLS enforcement
+**Overall:** SPA with string-enum view dispatch (no URL routing)
 
 **Key Characteristics:**
-- **No URL routing** — Navigation via `activeView` string in NavigationContext, not browser URL
-- **SPA history stack** — Back button navigates views, not browser history (overrides popstate)
-- **Multi-role RBAC** — User can hold multiple roles at different clubs; context selected at login
-- **Header injection** — Supabase client injects `active-role-context-id` header in all requests
-- **Optimistic updates** — Changes written to state immediately, sync to DB in background
-- **Lazy component loading** — Code splitting via `LazyComponents.tsx` for mobile performance
+- Navigation is `activeView: View` string stored in `NavigationContext`, not browser URL
+- SPA back-button managed by `NavigationContext` history stack (max 15 entries), overrides `popstate`
+- All Supabase requests carry `active-role-context-id` header for per-row access control
+- Lazy loading via `LazyComponents.tsx` for code splitting on mobile
+- Multi-role: one user holds multiple `user_roles` rows across clubs; active role chosen at login
 
 ## Layers
 
-**Presentation Layer:**
-- Purpose: Render UI, handle user interaction, display filtered data
+**UI Components:**
+- Purpose: Render views, handle user interaction, display filtered data
 - Location: `components/`
-- Contains: React components, modals, forms, pages, design system
+- Contains: React components, modals, forms, pages, design system (`ui.tsx`)
 - Depends on: Hooks, contexts, services
-- Used by: AppRouter for view rendering
+- Used by: `AppRouter` for view rendering
 
-**State Management Layer:**
+**Contexts / State:**
 - Purpose: Manage client state, cache server data, track navigation
-- Location: `contexts/`, `src/store/`, React Query cache
-- Contains: NavigationContext, DataContext, Zustand stores
-- Depends on: Services, Supabase client
-- Used by: All components via hooks (useData, useNavigation, useAppStore)
+- Location: `contexts/DataContext.tsx`, `contexts/NavigationContext.tsx`, `contexts/ErrorProvider.tsx`, `src/store/useAppStore.ts`
+- Contains: DataContext (all fetched data + filtered views), NavigationContext (activeView, history stack), Zustand stores (UI flags)
+- Depends on: Hooks, Supabase client
+- Used by: All components via `useData()`, `useNavigation()`, `useAppStore()`
 
-**Data Fetching Layer:**
-- Purpose: Query Supabase, cache results, refresh on schedule
-- Location: `hooks/` (useSportivi, usePlati, useGrupe, useDataProvider, etc.)
-- Contains: React Query hooks, custom fetch logic, caching utilities
+**Hooks (React Query layer):**
+- Purpose: Query Supabase, cache results, manage server state
+- Location: `hooks/` (30+ files)
+- Key hooks: `useDataProvider.ts` (main orchestrator), `useSportivi.ts`, `usePlati.ts`, `useGrupe.ts`, `useUserRoles.ts`, `usePermissions.ts`, `useFilteredData.ts`, `useAttendanceData.ts`
 - Depends on: Supabase client, RLS rules
-- Used by: DataContext, components
+- Used by: `DataContext` via `useDataProvider`; components directly for mutations
 
-**Service Layer:**
-- Purpose: Business logic, import/export, AI integration, complex mutations
+**Services:**
+- Purpose: Business logic, batch operations, import/export, AI integration
 - Location: `services/`
-- Contains: importSportiviService, ragService, claudeService, agents
-- Depends on: Supabase client, external APIs
-- Used by: Components for batch operations, AI queries
+- Contains: `importSportiviService.ts`, `ragService.ts`, `claudeService.ts`, `sportivService.ts`, `familieService.ts`, `importExcelExamenService.ts`, `agents/`
+- Depends on: Supabase client, external APIs (Gemini, Claude)
+- Used by: Components for complex mutations; `api/` handlers for serverless
 
-**Backend Layer:**
-- Purpose: Data persistence, authentication, authorization
-- Location: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
-- Contains: Tables, RLS policies, SQL functions, Auth rules
-- Depends on: None
-- Used by: All frontend queries via supabaseClient
+**Supabase / Data Persistence:**
+- Purpose: Data persistence, authentication, row-level security
+- Location: Supabase cloud (PostgreSQL + Auth + Storage)
+- Contains: Tables, RLS policies, SQL functions, views
+- Migrations: `sql/migrations/` (applied manually in Supabase dashboard)
+- Used by: All frontend queries via `supabaseClient.ts`
 
 ## Data Flow
 
-### Primary Request Path (View Navigation)
+### Primary Request Path
 
-1. User clicks menu item → Sidebar calls `setActiveView(newView)`  (`components/Sidebar.tsx`)
-2. NavigationContext updates and pushes previous view to history stack  (`contexts/NavigationContext.tsx`)
-3. AppRouter switches `case activeView` and renders matching component  (`components/AppRouter.tsx:115-350`)
-4. Component mounts, calls hooks (useSportivi, usePlati, etc.) which query Supabase
-5. useDataProvider aggregates results into `filteredData` object  (`hooks/useDataProvider.ts:110-120`)
-6. DataContext distributes `filteredData` to all child components via `useData()` hook
-7. Component renders using cached data; Supabase RLS filters rows by `active-role-context-id` header
-8. User interaction (e.g., add athlete) → component calls service function
-9. Service updates DB via Supabase mutations
-10. React Query invalidates cache; hooks refetch; UI updates
+1. User action in component calls service or React Query mutation
+2. `supabaseClient.ts` `customFetch` reads `localStorage('phi-hau-active-role-context-id')` and injects `active-role-context-id` header (`supabaseClient.ts:11-15`)
+3. Supabase RLS policy reads header via `set_config` and filters rows to permitted club(s)
+4. React Query hook receives response and caches with 5 min `staleTime`
+5. `useDataProvider.ts` aggregates all hook results and passes to `DataContext`
+6. `useFilteredData.ts` applies frontend `visibleClubIds` filter as second defence layer
+7. Component receives `filteredData` from `useData()` and renders
 
 ### Authentication Flow
 
-1. User visits `/login` (no session) → LoginPage renders  (`components/LoginPage.tsx`)
-2. User enters email + password → calls `supabase.auth.signInWithPassword()`
-3. Supabase Auth returns `session` + `user` object
-4. useAppLogic initializes; calls `useDataProvider()` to fetch user roles  (`hooks/useAppLogic.ts:14-37`)
-5. useUserRoles queries `usuarios_roles_contexto` table filtered by `user_id`  (inherited from DataProvider)
-6. If user has multiple roles → RoleSelectionPage shows options  (`components/RoleSelectionPage.tsx`)
-7. User selects role (e.g., ADMIN_CLUB for Club A) → saves `active-role-context-id` to localStorage
-8. supabaseClient.customFetch() injects header into all subsequent requests  (`supabaseClient.ts:11-15`)
-9. Supabase RLS policies use `auth.jwt()` + header to filter data per role/club
-10. App renders authenticated layout (Sidebar, AppRouter, etc.)
+1. `LoginPage` calls `supabase.auth.signInWithPassword()` — session JWT stored by Supabase SDK
+2. `App.tsx` detects session and queries `user_roles` for all roles of this `auth.uid()`
+3. If `trebuie_schimbata_parola = true` — `MandatoryPasswordChange` rendered before anything else
+4. `RoleSelectionPage` shown when user has multiple roles — user picks active role
+5. `activeRoleContext` (role row with `club_id`, `rol_denumire`) stored in `localStorage` as `phi-hau-active-role-context-id`
+6. `supabaseClient.ts` reads this on every subsequent request and injects as header
+7. `AppLayout` + `AppRouter` render with selected role context
 
 ### Data Mutation Flow
 
-1. User fills form, clicks "Save" → component calls `actualizeazaSportiv()` or similar service function  (`services/sportivService.ts`)
-2. Service validates data, builds mutation object
-3. Calls `supabase.from('sportivi').update(data).eq('id', id)`
-4. Supabase RLS checks: user's role + club must match row's club_id
-5. Row updated in DB; Supabase returns success/error
-6. Service calls `queryClient.invalidateQueries()` to bust React Query cache
-7. useSportivi hook refetches from DB automatically
-8. Component's `sportivi` state updates; UI re-renders with fresh data
-9. Toast notification shows success/error
+1. Component calls mutation (React Query `useMutation` or direct `supabase.from().insert()`)
+2. Optimistic update written to local state immediately
+3. Supabase responds; React Query invalidates relevant query keys and hooks refetch
+4. `DataContext` re-computes `filteredData` with fresh data
+5. UI re-renders with server-confirmed state
 
 **State Management:**
-- Navigation state: NavigationContext (activeView, viewParams, history stack)
-- User state: Session (Supabase Auth), currentUser (custom User object)
-- Data cache: React Query (sportivi, grupe, plati, etc. with 5 min staleTime)
-- Client state: Zustand stores (sidebar expanded, AI widget open, etc.)
-- Global settings: Themes, permissions, role list stored in localStorage
+- Server state: React Query (5 min `staleTime`, automatic refetch on window focus)
+- Navigation state: `NavigationContext` (`activeView`, history stack, `viewParams`)
+- Global UI state: Zustand `useAppStore` (`src/store/useAppStore.ts`) — sidebar expanded, AI widget open
+- Auth state: Supabase session (auto-persisted) + `currentUser` object in `App.tsx`
+- Filtered data: `DataContext` computed from all hooks after `useFilteredData` pass
+- AI state: Zustand `useAIStore` (`src/store/useAIStore.ts`)
 
 ## Key Abstractions
 
-**View (String Enum):**
+**View (activeView string):**
 - Purpose: Identifies which component to render; replaces URL routing
-- Examples: `'sportivi'`, `'profil-sportiv'`, `'examene'`, `'plati-scadente'`, `'dashboard'`
-- Pattern: Defined in `types.ts` as string union; stored in NavigationContext; dispatched by AppRouter
+- Definition: `types.ts` — string union type `View`
+- Examples: `'sportivi'`, `'profil-sportiv'`, `'examene'`, `'plati-scadente'`, `'dashboard'`, `'competitii'`, `'grupe'`, `'fisa-competitie'`
+- Pattern: Stored in `NavigationContext`; dispatched by `AppRouter` 58-case switch (`components/AppRouter.tsx:117-256`)
 
-**activeRoleContext:**
+**RoleContext (activeRoleContext):**
 - Purpose: Represents active role + club for current user session
-- Examples: `{ id: 'uuid', user_id: '...', club_id: '...', rol_denumire: 'ADMIN_CLUB', roluri: { nume: 'ADMIN_CLUB' } }`
-- Pattern: Queried on login, persisted in localStorage, injected as header in all Supabase requests
-- Used by: RLS policies to enforce row-level security
+- Shape: `{ id: uuid, user_id, club_id, rol_denumire: 'ADMIN_CLUB' | 'INSTRUCTOR' | 'SPORTIV' | 'SUPER_ADMIN_FEDERATIE', roluri: { nume } }`
+- Persisted: `localStorage` key `phi-hau-active-role-context-id`
+- Used by: `supabaseClient.ts` (header injection), RLS policies (row filtering), `usePermissions()` (access control)
 
-**Permissions:**
-- Purpose: Computed access control derived from activeRole (role + club)
-- Examples: `{ isFederationAdmin: true, canManageFinances: true, visibleClubIds: 'all' }`
-- Pattern: Computed by `usePermissions()` hook; cached; used to show/hide UI elements
-- Applied at: View level (renderProtected), component level (permissions?.canManageFinances)
+**usePermissions:**
+- Purpose: Computed access control derived from `activeRoleContext`
+- Returns: `{ isFederationAdmin, isClubAdmin, isInstructor, isSportiv, canManageFinances, visibleClubIds, ... }`
+- Location: `hooks/usePermissions.ts`
+- Pattern: Called with `activeRoleContext`; result cached; used to show/hide UI and guard mutations
 
 **FilteredData:**
-- Purpose: Role-aware filtered view of all cached data
-- Examples: `{ sportivi: [], grupe: [], plati: [], ...alle dati filtrate pe club/rol }`
-- Pattern: Computed in DataContext after all hooks load; passed to all components
-- Updated: When any hook refetches; invalidation triggers re-filter
+- Purpose: Role-aware, club-filtered view of all cached data
+- Type defined: `types.ts` as `FilteredData`
+- Computed by: `hooks/useFilteredData.ts` aggregated in `hooks/useDataProvider.ts` exposed via `contexts/DataContext.tsx`
+- Contains: `sportivi`, `grupe`, `plati`, `antrenamente` etc. filtered to `visibleClubIds`
+
+**AppData (useDataProvider aggregate):**
+- Purpose: All raw + filtered data in one object passed to DataContext
+- Definition: `hooks/useDataProvider.ts:23-51` (`AppData` interface, 25+ entity arrays)
+- Contains: `sportivi`, `sesiuniExamene`, `inscrieriExamene`, `grade`, `istoricGrade`, `grupe`, `plati`, `tranzactii`, `evenimente`, `rezultate`, `preturiConfig`, `tipuriAbonament`, `familii`, `allRoles`, `reduceri`, `tipuriPlati`, `locatii`, `clubs`, `deconturiFederatie`, `vizeSportivi`, `decontSportivi`, `filteredData`, `allowedClubs`
 
 ## Entry Points
 
-**Browser Entry:**
+**Application Bootstrap:**
 - Location: `index.tsx`
-- Triggers: Page load or refresh
-- Responsibilities: Initializes React, mounts root element, wraps with providers (ErrorProvider, QueryClientProvider, DataProvider, NavigationProvider, BrowserRouter)
+- Responsibilities: Initializes React, mounts root, wraps with `ErrorProvider`, `QueryClientProvider`, `DataProvider`, `NavigationProvider`, `BrowserRouter`
 
-**App Root:**
+**Session Orchestrator:**
 - Location: `App.tsx`
-- Triggers: After providers mount
-- Responsibilities: Orchestrates session + auth, shows LoadingScreen or LoginPage or AppLayout, manages hardware back button
+- Responsibilities: Auth state machine — shows `LoadingScreen` | `LoginPage` | `MandatoryPasswordChange` | `RoleSelectionPage` | `AppLayout`
 
-**Authenticated Entry:**
+**Layout Shell:**
 - Location: `components/AppLayout.tsx`
-- Triggers: User logged in + role selected
-- Responsibilities: Renders Sidebar + Header + AppRouter, manages mobile sidebar, AI widget toggle
+- Responsibilities: Renders `Sidebar` + `Header` + `AppRouter`; manages mobile sidebar; AI widget toggle
 
-**View Rendering:**
-- Location: `components/AppRouter.tsx` (switch statement at line 115-350)
-- Triggers: activeView changes
-- Responsibilities: Dispatches to correct component based on View enum
+**View Dispatcher:**
+- Location: `components/AppRouter.tsx` (58-case switch from line ~117)
+- Responsibilities: Maps `activeView` string to lazy-loaded component; passes data props; enforces `AccessDenied` for unauthorized views
 
 ## Architectural Constraints
 
-- **Threading:** JavaScript event loop — single-threaded, async operations via Promises/async-await
-- **Global state:** 
-  - Supabase session in localStorage (`pi-hau-active-role-context-id`, `activeRole`, `phi-hau-global-club-filter`)
-  - Zustand stores (`useAppStore`, `useAIStore`)
-  - React Query cache (shared instance via QueryClientProvider)
-  - No module-level singletons besides supabaseClient
-- **Circular imports:** None known; component/hook dependencies are acyclic
-- **Navigation:** SPA model — no server-side routing; history maintained by NavigationContext stack (15 max entries)
-- **Headers:** Custom header `active-role-context-id` injected by supabaseClient for RLS filtering
-- **RLS enforcement:** All table queries MUST use header or `auth.uid()` in WHERE clause
-- **Data filtering:** Frontend also filters by `visibleClubIds` to defend against RLS bypass
-- **Mobile:** Responsive design via Tailwind; sidebar collapses to hamburger on <768px; modals touch-friendly
+- **Threading:** JavaScript event loop — single-threaded; async operations via Promises/async-await
+- **Global state:** `useAppStore` (`src/store/useAppStore.ts`) for UI flags; `useAIStore` (`src/store/useAIStore.ts`) for AI widget; no shared mutable module-level state outside these stores
+- **Navigation:** SPA model — no server-side routing; back handled by `NavigationContext` stack (max 15 entries); `popstate` overridden
+- **Headers:** `active-role-context-id` injected by `supabaseClient.ts`; UUID validated via regex before injection (`supabaseClient.ts:12`)
+- **RLS enforcement:** All table queries must pass header OR rely on `auth.uid()`; frontend `visibleClubIds` filter is defence-in-depth, not primary security
+- **Type registry:** All types in single file `types.ts` (723 lines) — do NOT create separate type files
+- **UI components:** Only `components/ui.tsx` design system — no Shadcn, no MUI, no external component libraries
 
 ## Anti-Patterns
 
-### Anti-Pattern: Direct Prop Drilling
+### Direct Prop Drilling Past AppRouter
 
-**What happens:** Components pass data 15+ levels deep (e.g., sportivi → SportiviTable → SportiviRow → EditModal)
-**Why it's wrong:** Hard to refactor, lose track of data flow, prop name changes ripple through files
-**Do this instead:** Use `useData()` hook to access filteredData directly in any component  (`contexts/DataContext.tsx`)
-**Example:** Instead of `<SportiviRow sportiv={props.sportiv}>`, destructure in the component: `const { filteredData } = useData(); const sportiv = filteredData.sportivi.find(...)`
+**What happens:** Passing data via props through AppRouter down to grandchild components
+**Why it's wrong:** AppRouter already receives all data from DataContext; drilling duplicates state
+**Do this instead:** Use `useData()` hook inside any component to access `DataContext` directly
 
-### Anti-Pattern: Fetching Data in Multiple Places
+### Fetching Data Directly in Components
 
-**What happens:** Three different components call `supabase.from('sportivi').select()` independently
-**Why it's wrong:** Stale data, network waste, cache invalidation nightmare
-**Do this instead:** Single point of fetch in `useDataProvider()`, distribute via DataContext  (`hooks/useDataProvider.ts`)
-**Example:** New component needs athletes? Call `const { filteredData } = useData()` — don't call Supabase
+**What happens:** Component calls `supabase.from('sportivi').select()` directly
+**Why it's wrong:** Bypasses React Query cache; causes redundant requests and stale state
+**Do this instead:** Use existing hooks (`useSportivi`, `usePlati`, `useGrupe`) or `useData()` from DataContext
 
-### Anti-Pattern: Mutations Without Cache Invalidation
+### Mutations Without Cache Invalidation
 
-**What happens:** Component calls `supabase.from('sportivi').insert()` but doesn't invalidate React Query
-**Why it's wrong:** UI shows stale data; user thinks change failed
-**Do this instead:** After mutation, call `queryClient.invalidateQueries({ queryKey: ['sportivi'] })`  (`services/sportivService.ts:30`)
-**Example:** `actualizeazaSportiv()` updates DB then calls invalidate to trigger refetch
+**What happens:** Mutation updates DB but does not call `queryClient.invalidateQueries()`
+**Why it's wrong:** UI shows stale data until next 5 min refetch cycle
+**Do this instead:** Always invalidate relevant query keys after mutations via `useMutation` `onSuccess`
 
-### Anti-Pattern: Side Effects in Render
+### URL-Based Navigation
 
-**What happens:** Component calls `supabase.select()` inside JSX or without useEffect
-**Why it's wrong:** Infinite loops, duplicate requests, memory leaks
-**Do this instead:** Use hooks (useSportivi, useData) or useEffect with dependency array  (`hooks/useSportivi.ts`)
+**What happens:** Using `react-router-dom` `<Link>` or `useNavigate()` for internal navigation
+**Why it's wrong:** App uses `NavigationContext` `activeView` string system; URL changes break SPA model
+**Do this instead:** Call `setActiveView('view-name')` or `navigateTo('view-name', params)` from `NavigationContext`
 
-### Anti-Pattern: URL-Based Navigation
+### Separate Type Files
 
-**What happens:** Component tries to use React Router URLs like `/sportivi/123`
-**Why it's wrong:** This app is a full SPA without URL routing; routes not defined
-**Do this instead:** Use NavigationContext: `const { setActiveView } = useNavigation(); setActiveView('profil-sportiv')`  (`contexts/NavigationContext.tsx`)
-**Example:** In Sportivi.tsx: `setActiveView('profil-sportiv')` when user clicks row
-
-### Anti-Pattern: Hardcoded Club IDs
-
-**What happens:** Component assumes `activeRoleContext.club_id` exists without checking
-**Why it's wrong:** SUPER_ADMIN_FEDERATIE has no club_id; crashes with "Cannot read property 'club_id' of undefined"
-**Do this instead:** Check permissions first: `if (permissions.isFederationAdmin) { ... } else { const clubId = activeRoleContext.club_id; ... }`  (`hooks/usePermissions.ts`)
+**What happens:** Creating `types/sportiv.ts` or `MyComponent.types.ts`
+**Why it's wrong:** Violates single-source-of-truth; breaks project convention
+**Do this instead:** Add all types to root `types.ts`
 
 ## Error Handling
 
-**Strategy:** Try-catch at service layer; showError toast at component layer; error boundaries for React crashes
+**Strategy:** Multi-layer — service catches, context propagates, boundary catches render crashes
 
 **Patterns:**
-- **Service layer:** Catch Supabase errors, log, re-throw with context  (`services/sportivService.ts`)
-- **Component layer:** Wrap mutations in try-catch, call `useError().showError(title, message)`  (`components/ErrorProvider.tsx`)
-- **Boundaries:** ErrorBoundary catches React render crashes and displays fallback UI  (`components/ErrorBoundary.tsx`)
-- **Network:** React Query retries failed queries (3 times by default); user sees loading state
-- **Validation:** Form fields validate on blur; submit button disabled if errors exist
+- Services return `{ data, error }` — never throw; caller checks error
+- Components wrap mutations in try-catch and call `useError().showError(title, message)` from `contexts/ErrorProvider.tsx`
+- `ErrorBoundary` (`components/ErrorBoundary.tsx`) catches React render crashes and displays fallback UI
+- React Query retries failed queries 3 times; user sees loading state during retries
+- Toast notifications via `react-hot-toast` for immediate UX feedback on mutations
 
 ## Cross-Cutting Concerns
 
-**Logging:** Console.error/warn for dev; no logging library configured (can add Sentry)
-
-**Validation:** 
-- Client-side: React Hook Form for input validation, custom validators for age/grade rules
-- Server-side: Supabase RLS blocks unauthorized rows, NOT NULL/UNIQUE constraints enforced
-- Business rules: Custom SQL functions encode domain logic (e.g., valid grade chains)
-
-**Authentication:**
-- Supabase Auth handles password hashing, JWT tokens, session refresh
-- App maintains activeRoleContext to track selected role + club
-- Header injection enables RLS to enforce multi-role access control
-- Force password change on first login (trebuie_schimbata_parola flag)
-
-**Authorization:**
-- Two-layer: RLS at database (hard security), permissions checks in UI (UX)
-- FE checks don't prevent access (user can manipulate); RLS is the gate
-- Menu items hidden based on permissions (UX optimization, not security)
+**Validation:** Client-side custom validators for age/grade rules; server-side Supabase RLS `NOT NULL`/`UNIQUE` constraints; business rules in SQL functions
+**Authentication:** Supabase Auth (JWT, session refresh, password hashing); force password change via `trebuie_schimbata_parola` flag
+**Permissions:** `usePermissions(activeRoleContext)` hook — never duplicate logic; two-layer check: RLS at DB (security) + permissions checks in UI (UX)
+**Logging:** `console.warn`/`console.error` in services; no structured logging service
 
 ---
 
-*Architecture analysis: 2026-06-04*
+*Architecture analysis: 2026-06-05*

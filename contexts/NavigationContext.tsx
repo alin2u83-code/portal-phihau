@@ -19,6 +19,10 @@ interface NavigationContextType {
     goBack: () => void;
     canGoBack: boolean;
     previousView: View | null;
+    /** Stack complet de navigare (fără intrarea curentă) */
+    history: HistoryEntry[];
+    /** Sare la o intrare specifică din history și curăță intrările de deasupra */
+    jumpToHistory: (index: number) => void;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
@@ -63,11 +67,19 @@ export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children
         setViewParams(entry.params);
     }, [history, setStoredView]);
 
+    const jumpToHistory = useCallback((index: number) => {
+        if (index < 0 || index >= history.length) return;
+        const entry = history[index];
+        setHistory(prev => prev.slice(0, index));
+        setStoredView(entry.view);
+        setViewParams(entry.params);
+    }, [history, setStoredView]);
+
     const canGoBack = history.length > 0;
     const previousView = canGoBack ? history[history.length - 1].view : null;
 
     return (
-        <NavigationContext.Provider value={{ activeView, setActiveView, viewParams, setViewParams, navigateTo, navigateRoot, goBack, canGoBack, previousView }}>
+        <NavigationContext.Provider value={{ activeView, setActiveView, viewParams, setViewParams, navigateTo, navigateRoot, goBack, canGoBack, previousView, history, jumpToHistory }}>
             {children}
         </NavigationContext.Provider>
     );

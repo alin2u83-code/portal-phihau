@@ -13,6 +13,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 
 import { GrupaFormModal } from './GrupaFormModal';
 import { GrupaCard } from './GrupaCard';
+import { GrupaDetailView } from './GrupaDetailView';
 import { AdaugaSportiviModal } from './AdaugaSportiviModal';
 import { OrarEditorModal } from './OrarEditorModal';
 import { OrarModificareModal } from './OrarModificareModal';
@@ -50,6 +51,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
     const [grupaForModificareOrar, setGrupaForModificareOrar] = useState<GrupaWithDetails | null>(null);
     const [grupaForSecundari, setGrupaForSecundari] = useState<GrupaWithDetails | null>(null);
     const [grupaForGenerare, setGrupaForGenerare] = useState<GrupaWithDetails | null>(null);
+    const [grupaSelectedForDetail, setGrupaSelectedForDetail] = useState<GrupaWithDetails | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const { showError, showSuccess } = useError();
     const queryClient = useQueryClient();
@@ -216,35 +218,45 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="flex items-center gap-3">
-                    <Button variant="secondary" onClick={onBack}><ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi</Button>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
-                </div>
-                <div className="flex gap-2 w-full sm:w-auto">
-                    <Button
-                        variant="secondary"
-                        onClick={handleRefresh}
-                        isLoading={isRefreshing}
-                        title="Reîncarcă datele (util dacă alți admini au făcut modificări)"
-                        className="flex-1 sm:flex-none"
-                    >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                        Actualizează
-                    </Button>
-                    <Button onClick={handleOpenAdd} variant="info" className="flex-1 sm:flex-none" data-tour="grupe-adauga"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
-                </div>
-            </div>
-            {grupe.length > 0 ? (
-                <div data-tour="grupe-lista" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {(grupe as GrupaWithDetails[]).map(grupa => (
-                        <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onAdaugaSportivi={setGrupaForAdaugaSportivi} onConfigurareOrar={setGrupaForOrar} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} onGenerareAntrenamente={setGrupaForGenerare} />
-                    ))}
-                </div>
+            {grupaSelectedForDetail ? (
+                <GrupaDetailView
+                    grupa={grupaSelectedForDetail}
+                    onBack={() => setGrupaSelectedForDetail(null)}
+                    onOpenAdaugaSportivi={(g) => setGrupaForAdaugaSportivi(g)}
+                />
             ) : (
-                <Card className="text-center p-12">
-                    <p className="text-slate-400 italic">Nicio grupă definită pentru acest club.</p>
-                </Card>
+                <>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="flex items-center gap-3">
+                            <Button variant="secondary" onClick={onBack}><ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi</Button>
+                            <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
+                        </div>
+                        <div className="flex gap-2 w-full sm:w-auto">
+                            <Button
+                                variant="secondary"
+                                onClick={handleRefresh}
+                                isLoading={isRefreshing}
+                                title="Reîncarcă datele (util dacă alți admini au făcut modificări)"
+                                className="flex-1 sm:flex-none"
+                            >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                Actualizează
+                            </Button>
+                            <Button onClick={handleOpenAdd} variant="info" className="flex-1 sm:flex-none" data-tour="grupe-adauga"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
+                        </div>
+                    </div>
+                    {grupe.length > 0 ? (
+                        <div data-tour="grupe-lista" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {(grupe as GrupaWithDetails[]).map(grupa => (
+                                <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onDetalii={setGrupaSelectedForDetail} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} onGenerareAntrenamente={setGrupaForGenerare} />
+                            ))}
+                        </div>
+                    ) : (
+                        <Card className="text-center p-12">
+                            <p className="text-slate-400 italic">Nicio grupă definită pentru acest club.</p>
+                        </Card>
+                    )}
+                </>
             )}
 
             <TourOverlay steps={TOURS.grupe} pageKey="grupe" />

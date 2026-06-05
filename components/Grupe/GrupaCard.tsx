@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Grupa as GrupaType, ProgramItem } from '../../types';
 import { Button, Card } from '../ui';
-import { TrashIcon, UsersIcon, UserPlusIcon, CogIcon, CalendarIcon, ExclamationTriangleIcon, SparklesIcon } from '../icons';
+import { TrashIcon, UsersIcon, CalendarIcon, ExclamationTriangleIcon, SparklesIcon } from '../icons';
 import { sortProgram } from './ProgramEditor';
 import { formatTime } from '../../utils/date';
 import { supabase } from '../../supabaseClient';
@@ -44,8 +44,7 @@ export const GrupaCard: React.FC<{
     grupa: GrupaWithDetails;
     onEdit: (g: GrupaWithDetails) => void;
     onDelete: (g: GrupaWithDetails) => void;
-    onAdaugaSportivi: (g: GrupaWithDetails) => void;
-    onConfigurareOrar: (g: GrupaWithDetails) => void;
+    onDetalii: (g: GrupaWithDetails) => void;
     onModificareOrar?: (g: GrupaWithDetails) => void;
     onGestionareSecundari?: (g: GrupaWithDetails) => void;
     onGenerareAntrenamente?: (g: GrupaWithDetails) => void;
@@ -54,8 +53,7 @@ export const GrupaCard: React.FC<{
     grupa,
     onEdit,
     onDelete,
-    onAdaugaSportivi,
-    onConfigurareOrar,
+    onDetalii,
     onModificareOrar,
     onGestionareSecundari,
     onGenerareAntrenamente,
@@ -140,15 +138,8 @@ export const GrupaCard: React.FC<{
             </div>
             <div className="mt-6 pt-4 border-t border-slate-700 flex items-center justify-end flex-wrap gap-2">
                 {/* Butoane principale — mereu vizibile */}
-                <Button size="sm" variant="primary" onClick={() => onEdit(grupa)} className="min-h-[40px] touch-manipulation">Gestionează</Button>
-                <Button size="sm" variant="info" onClick={() => onAdaugaSportivi(grupa)} className="min-h-[40px] touch-manipulation">
-                    <UserPlusIcon className="w-4 h-4 mr-1.5" />
-                    Sportivi
-                </Button>
-                <Button size="sm" variant="secondary" onClick={() => onConfigurareOrar(grupa)} className="min-h-[40px] touch-manipulation">
-                    <CogIcon className="w-4 h-4 mr-1.5" />
-                    Orar
-                </Button>
+                <Button size="sm" variant="primary" onClick={() => onDetalii(grupa)} className="min-h-[40px] touch-manipulation">Detalii</Button>
+                <Button size="sm" variant="secondary" onClick={() => onEdit(grupa)} className="min-h-[40px] touch-manipulation">Gestionează</Button>
 
                 {/* Buton "..." — acțiuni secundare */}
                 <div className="relative" ref={menuRef}>

@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Login Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
+    await page.waitForSelector('input[name="email"]');
   });
 
   test('afișează formularul de login', async ({ page }) => {
@@ -12,12 +13,20 @@ test.describe('Login Page', () => {
   });
 
   test('validare câmpuri goale', async ({ page }) => {
+    // Disable HTML5 required validation so React handler runs
+    await page.evaluate(() => {
+      (document.querySelector('form') as HTMLFormElement).noValidate = true;
+    });
     await page.getByRole('button', { name: 'Intră în cont' }).click();
     await expect(page.getByText('Email-ul sau username-ul este obligatoriu.')).toBeVisible();
   });
 
   test('validare parolă lipsă', async ({ page }) => {
     await page.locator('input[name="email"]').fill('test@example.com');
+    // Disable HTML5 required validation so React handler runs
+    await page.evaluate(() => {
+      (document.querySelector('form') as HTMLFormElement).noValidate = true;
+    });
     await page.getByRole('button', { name: 'Intră în cont' }).click();
     await expect(page.getByText('Parola este obligatorie.')).toBeVisible();
   });

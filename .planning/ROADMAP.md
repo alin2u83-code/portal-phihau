@@ -95,7 +95,7 @@ Plans:
 Plans:
 
 - [x] 04-01-PLAN.md — Migrații DB (pret_copii/pret_grade/pret_centuri pe evenimente + eveniment_id pe plati) + update types.ts (STG-02, STG-03, STG-04, STG-05)
-- [ ] 04-02-PLAN.md — Fix preturiConfig fetch + EvenimentForm câmpuri preț + handleAddParticipant cu calcul categorie și eveniment_id (STG-01, STG-02, STG-03, STG-05)
+- [x] 04-02-PLAN.md — Fix preturiConfig fetch + EvenimentForm câmpuri preț + handleAddParticipant cu calcul categorie și eveniment_id (STG-01, STG-02, STG-03, STG-05)
 - [ ] 04-03-PLAN.md — Tab Participanți cu tabel status plată + Export CSV (STG-04)
 
 **UI hint**: yes
@@ -110,4 +110,4 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 | 1. DB & Types | 1/1 | Complete   | 2026-06-04 |
 | 2. Navigare Grupe Drill-Down | 1/2 | In Progress|  |
 | 3. Calendar & CRUD Antrenamente | 0/? | Not started | - |
-| 4. Stagii Completare | 1/3 | In Progress|  |
+| 4. Stagii Completare | 2/3 | In Progress|  |

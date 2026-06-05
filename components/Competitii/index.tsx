@@ -1163,6 +1163,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 myClubId={myClubId}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}
+                onOpenInscriereModal={cat => setInscriereModal(cat)}
               />
             ) : (
               <div className="space-y-3">

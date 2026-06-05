@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { PROBA_INFO, PROBA_COLOR_CLASSES } from './constants';
@@ -71,6 +71,20 @@ function calculeazaStatusCard(
   // Probe individuale (thao_quyen, thao_lo)
   const tipIndiv = proba.tip_proba === 'thao_quyen_individual' || proba.tip_proba === 'thao_lo_individual';
   if (tipIndiv) {
+    // Dacă nu s-au selectat sportivi încă (hub-ul tocmai s-a deschis sau proba nu a fost vizitată),
+    // verificăm dacă există sportivi eligibili în club pentru această probă.
+    // Selecția efectivă se face în Pas1, deci nu blocăm cardul pe baza selectedSportivi gol.
+    if (selectedSportivi.size === 0) {
+      const catProbaIndiv = catProba.filter(c => c.tip_participare === 'individual');
+      const areEligibili = sportivi.some(s =>
+        catProbaIndiv.some(cat => verificaEligibilitate(s, cat, grade, competitie.data_inceput).eligibil)
+      );
+      if (!areEligibili) {
+        return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
+      }
+      return { proba, status: 'incomplet', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
+    }
+
     // Sportivii din selecție care au categorie auto-asignată pe această probă
     const sportiviProba = Array.from(selectedSportivi)
       .map(id => {
@@ -118,22 +132,31 @@ function calculeazaStatusCard(
     };
   }
 
-  // Giao Dau — individual fără quyen
+  // Giao Dau — individual fără quyen (selecția se face în Pas3, nu în Pas1)
+  // Verificăm eligibilitatea direct din sportivii clubului, nu din autoCategorie
+  // (autoCategorie conține doar categorii 'individual' de tip thao_quyen/thao_lo).
   if (proba.tip_proba === 'giao_dau') {
-    const sportiviProba = Array.from(selectedSportivi).filter(id => {
-      const cat = autoCategorie.get(id);
-      return cat && cat.proba_id === proba.id;
-    });
-    const nrTotal = sportiviProba.length;
-    if (nrTotal === 0) {
+    const catGiaoDau = catProba.filter(c => c.tip_participare === 'individual');
+    const dataComp = competitie.data_inceput;
+    const areEligibili = sportivi.some(s =>
+      catGiaoDau.some(cat => verificaEligibilitate(s, cat, grade, dataComp).eligibil)
+    );
+    if (!areEligibili) {
       return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
     }
+    // Cardul giao_dau este întotdeauna "incomplet" până când Pas3 confirmă echipele/participanții.
+    // Dacă există echipe formate pentru această probă, marcăm ca completat.
+    const echipeProba = echipeFormate.filter(e => {
+      const cat = categorii.find(c => c.id === e.categorieId);
+      return cat && cat.proba_id === proba.id;
+    });
+    const areEchipeConfigurate = echipeProba.length > 0 && echipeProba.every(e => e.echipaSkip || e.titulari.length > 0 || e.echipaIncompleta);
     return {
       proba,
-      status: 'completat',
-      nrSportivi: nrTotal,
-      nrComplet: nrTotal,
-      nrTotal,
+      status: areEchipeConfigurate ? 'completat' : 'incomplet',
+      nrSportivi: 0,
+      nrComplet: areEchipeConfigurate ? 1 : 0,
+      nrTotal: 1,
       categoriiExcluse: 0,
     };
   }
@@ -142,7 +165,11 @@ function calculeazaStatusCard(
   const catEchipa = catProba.filter(esteEchipaSauPereche);
   if (catEchipa.length > 0) {
     const dataComp = competitie.data_inceput;
-    const sportiviSelectatiArr = sportivi.filter(s => selectedSportivi.has(s.id));
+    // Pas3 folosește toți sportivii clubului (ignoră selectedSportivi) — hub-ul trebuie să fie consistent.
+    // Dacă selectedSportivi este gol (nicio probă individuală nu a fost vizitată), folosim toți sportivii.
+    const sportiviSelectatiArr = selectedSportivi.size > 0
+      ? sportivi.filter(s => selectedSportivi.has(s.id))
+      : sportivi;
 
     let categoriiExcluse = 0;
     let nrComplet = 0;
@@ -198,7 +225,9 @@ function calculeazaStatusCard(
 const CardProbaItem: React.FC<{
   card: CardProba;
   onDeschide: () => void;
-}> = ({ card, onDeschide }) => {
+  isTeam?: boolean;
+  isExpanded?: boolean;
+}> = ({ card, onDeschide, isTeam, isExpanded }) => {
   const { proba, status, nrComplet, nrTotal, motivBlocat, categoriiExcluse } = card;
   const info = PROBA_INFO[proba.tip_proba];
   const colorKey = info?.color ?? 'amber';
@@ -312,7 +341,10 @@ const CardProbaItem: React.FC<{
         {!isExclus && (
           <div className="flex items-center justify-end pt-1">
             <span className="text-xs font-semibold text-brand-primary">
-              {isComplet ? 'Modifică' : 'Configurează'} →
+              {isTeam
+                ? (isExpanded ? 'Ascunde categorii ▲' : 'Gestionează echipe ▼')
+                : (isComplet ? 'Modifică →' : 'Configurează →')
+              }
             </span>
           </div>
         )}
@@ -327,10 +359,12 @@ const CardProbaItem: React.FC<{
 
 const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const {
-    competitie, probe,
+    competitie, probe, categorii, echipeFormate,
     onBack, onDeschideProba, onFinalizare, onPrevizualizare,
-    selectedSportivi,
+    selectedSportivi, onOpenInscriereModal,
   } = props;
+
+  const [expandedTeamProbaId, setExpandedTeamProbaId] = useState<string | null>(null);
 
   const probeActive = useMemo(
     () => [...probe].sort((a, b) => (a.ordine_afisare ?? 0) - (b.ordine_afisare ?? 0)),
@@ -391,13 +425,54 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
 
       {/* Grid carduri — 1 col mobil, 2 col tablet, 3 col desktop */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-        {cards.map(card => (
-          <CardProbaItem
-            key={card.proba.id}
-            card={card}
-            onDeschide={() => onDeschideProba(card.proba.id)}
-          />
-        ))}
+        {cards.map(card => {
+          const isTeam = categorii.some(c => c.proba_id === card.proba.id && esteEchipaSauPereche(c));
+          const isExpanded = expandedTeamProbaId === card.proba.id;
+          const catProba = isTeam ? categorii.filter(c => c.proba_id === card.proba.id && esteEchipaSauPereche(c)) : [];
+          return (
+            <div key={card.proba.id} className="flex flex-col gap-2">
+              <CardProbaItem
+                card={card}
+                isTeam={isTeam}
+                isExpanded={isExpanded}
+                onDeschide={() => {
+                  if (isTeam) {
+                    setExpandedTeamProbaId(prev => prev === card.proba.id ? null : card.proba.id);
+                  } else {
+                    onDeschideProba(card.proba.id);
+                  }
+                }}
+              />
+              {isTeam && isExpanded && catProba.length > 0 && (
+                <div className="p-3 rounded-xl border border-slate-600 bg-slate-800/60 space-y-2">
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Categorii {card.proba.denumire}</p>
+                  {catProba.map(cat => {
+                    const echipa = echipeFormate.find(e => e.categorieId === cat.id);
+                    const eCompleta = echipa && (echipa.echipaSkip || echipa.titulari.length > 0 || echipa.echipaIncompleta);
+                    return (
+                      <div key={cat.id} className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-slate-700/40">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white leading-tight">{cat.denumire ?? `Cat ${cat.numar_categorie}`}</p>
+                          {eCompleta && (
+                            <p className="text-[10px] text-emerald-400 mt-0.5">configurată</p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          style={{ touchAction: 'manipulation' }}
+                          onClick={() => onOpenInscriereModal?.(cat)}
+                          className="text-xs px-3 py-1.5 rounded-lg bg-brand-primary/20 border border-brand-primary/50 text-brand-primary hover:bg-brand-primary/30 transition-colors font-medium shrink-0"
+                        >
+                          {eCompleta ? 'Modifică' : 'Înscrie'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Banner probleme globale */}

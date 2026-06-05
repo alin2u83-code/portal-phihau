@@ -15,7 +15,7 @@ export type { PickCategorie, IndivPicks } from './types';
 const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   competitie, probe, categorii, sportivi, grade,
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
-  onOpenEditEchipa,
+  onOpenEditEchipa, onOpenInscriereModal,
 }) => {
   // step: 'hub'=carduri probe, 1=selectare sportivi (doar quyen), 2=quyen, 3=echipe/giao_dau, 4=sumar
   const [step, setStep] = useState<1 | 'hub' | 2 | 3 | 4>('hub');
@@ -80,6 +80,17 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     })();
   }, []); // run once on mount
 
+  // Vârstele individuale prezente în competiție (din toate categoriile)
+  const varsteCompetitie = useMemo(() => {
+    const set = new Set<number>();
+    for (const cat of categorii) {
+      const min = cat.varsta_min ?? 0;
+      const max = cat.varsta_max ?? 80;
+      for (let v = min; v <= Math.min(max, 80); v++) set.add(v);
+    }
+    return Array.from(set).sort((a, b) => a - b);
+  }, [categorii]);
+
   // Ref pentru a urmări ultimul set de sportivi pentru care s-a calculat autoCategorie
   const lastComputedSportiviRef = React.useRef<string>('');
 
@@ -141,6 +152,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         vizeSportivi={vizeSportivi}
         selected={selectedSportivi}
         myClubId={myClubId}
+        varsteCompetitie={varsteCompetitie}
         onToggle={handleToggle}
         onContinua={handlePas1Continua}
         onBack={() => setStep('hub')}
@@ -165,6 +177,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         myClubId={myClubId}
         onBack={onBack}
         onSaved={onSaved}
+        onOpenInscriereModal={onOpenInscriereModal}
         // props suplimentare hub
         selectedSportivi={selectedSportivi}
         autoCategorie={autoCategorie}
@@ -195,6 +208,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         autoCategorie={autoCategorie}
         quyenAles={quyenAles}
         onUpdateQuyenAles={setQuyenAles}
+        varsteCompetitie={varsteCompetitie}
         onContinua={() => {
           const activeProbeIds = new Set<string>();
           autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });

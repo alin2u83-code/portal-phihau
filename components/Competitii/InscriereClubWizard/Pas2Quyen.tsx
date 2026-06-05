@@ -3,6 +3,7 @@ import {
   Competitie, CategorieCompetitie, Sportiv, Grad, Inlantuire,
 } from '../../../types';
 import { supabase } from '../../../supabaseClient';
+import { calculeazaVarstaLaData } from '../../../utils/eligibilitateCompetitie';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
@@ -25,17 +26,22 @@ export interface Pas2QuyenProps {
   onBack: () => void;
   excludedFromIndividual: Set<string>;
   onToggleExclus: (sportivId: string) => void;
+  varsteCompetitie?: number[];
 }
 
 const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
-  competitie, sportivi, grade, selectedSportivi,
+  competitie, sportivi, grade, categorii, selectedSportivi,
   autoCategorie, quyenAles, onUpdateQuyenAles, onContinua, onBack,
-  excludedFromIndividual, onToggleExclus,
+  excludedFromIndividual, onToggleExclus, varsteCompetitie: varsteCompetitieProps,
 }) => {
   const { showError } = useError();
   const [dreptMap, setDreptMap] = useState<Map<string, Map<string, Inlantuire[]>>>(new Map());
   const [loadingDrepturi, setLoadingDrepturi] = useState(true);
   const [gradFilter, setGradFilter] = useState<number | null>(null);
+  const [filterGen, setFilterGen] = useState<'' | 'Masculin' | 'Feminin'>('');
+  const [filterVarstaMin, setFilterVarstaMin] = useState('');
+  const [filterVarstaMax, setFilterVarstaMax] = useState('');
+  const [filterFaraQ1, setFilterFaraQ1] = useState(false);
   // Ref pentru a preveni auto-select repetat (rulează o singură dată după load)
   const autoSelectDone = useRef(false);
 
@@ -108,17 +114,41 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
     }
   }, [loadingDrepturi, sportiviDate, quyenAles, onUpdateQuyenAles]);
 
-  const sportiviVizibili = useMemo(() =>
-    gradFilter === null
-      ? sportiviDate
-      : sportiviDate.filter(d => d.grad?.ordine === gradFilter),
-    [sportiviDate, gradFilter]
-  );
+  const sportiviVizibili = useMemo(() => {
+    let lista = gradFilter === null ? sportiviDate : sportiviDate.filter(d => d.grad?.ordine === gradFilter);
+    if (filterGen) lista = lista.filter(d => d.sportiv.gen === filterGen);
+    if (filterVarstaMin || filterVarstaMax) {
+      const vMin = filterVarstaMin ? parseInt(filterVarstaMin) : null;
+      const vMax = filterVarstaMax ? parseInt(filterVarstaMax) : null;
+      lista = lista.filter(d => {
+        if (!d.sportiv.data_nasterii) return false;
+        const varsta = calculeazaVarstaLaData(d.sportiv.data_nasterii, competitie.data_inceput);
+        if (vMin !== null && varsta < vMin) return false;
+        if (vMax !== null && varsta > vMax) return false;
+        return true;
+      });
+    }
+    if (filterFaraQ1) lista = lista.filter(d => !quyenAles.get(d.sportiv.id)?.q1);
+    return lista;
+  }, [sportiviDate, gradFilter, filterGen, filterVarstaMin, filterVarstaMax, filterFaraQ1, quyenAles, competitie.data_inceput]);
 
   const maxOpts = useMemo(() =>
     Math.max(2, ...sportiviVizibili.map(d => d.opts.length)),
     [sportiviVizibili]
   );
+
+  const varsteCompetitie = useMemo(() => {
+    if (varsteCompetitieProps && varsteCompetitieProps.length > 0) return varsteCompetitieProps;
+    const set = new Set<number>();
+    for (const cat of categorii) {
+      const min = cat.varsta_min ?? 0;
+      const max = cat.varsta_max ?? 80;
+      for (let v = min; v <= Math.min(max, 80); v++) set.add(v);
+    }
+    return Array.from(set).sort((a, b) => a - b);
+  }, [varsteCompetitieProps, categorii]);
+
+  const nrFiltreActive = (filterGen ? 1 : 0) + (filterVarstaMin || filterVarstaMax ? 1 : 0) + (filterFaraQ1 ? 1 : 0);
 
   const gradePresente = useMemo(() => {
     const m = new Map<number, string>();
@@ -235,6 +265,71 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
               ))}
             </div>
           )}
+
+          {/* Filtre: gen, vârstă, Q1 */}
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {(['', 'Masculin', 'Feminin'] as const).map(g => (
+              <button
+                key={g || 'toti-gen'}
+                onClick={() => setFilterGen(g)}
+                style={{ touchAction: 'manipulation' }}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors min-h-[36px] ${
+                  filterGen === g
+                    ? 'border-brand-primary bg-brand-primary/20 text-white'
+                    : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                }`}
+              >
+                {g || 'Toți'}
+              </button>
+            ))}
+            <span className="text-slate-700 text-xs">·</span>
+            {varsteCompetitie.length > 0 && (
+              <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch', maxWidth: '100%' }}>
+                <div className="flex gap-1 pb-0.5" style={{ minWidth: 'max-content' }}>
+                  {varsteCompetitie.map(an => {
+                    const isActive = filterVarstaMin === String(an) && filterVarstaMax === String(an);
+                    return (
+                      <button
+                        key={an}
+                        onClick={() => {
+                          if (isActive) { setFilterVarstaMin(''); setFilterVarstaMax(''); }
+                          else { setFilterVarstaMin(String(an)); setFilterVarstaMax(String(an)); }
+                        }}
+                        style={{ touchAction: 'manipulation' }}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors min-h-[36px] min-w-[36px] ${
+                          isActive
+                            ? 'border-emerald-500 bg-emerald-900/30 text-emerald-300'
+                            : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                        }`}
+                      >
+                        {an}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <span className="text-slate-700 text-xs">·</span>
+            <button
+              onClick={() => setFilterFaraQ1(v => !v)}
+              style={{ touchAction: 'manipulation' }}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors min-h-[36px] ${
+                filterFaraQ1
+                  ? 'border-yellow-500 bg-yellow-900/30 text-yellow-300'
+                  : 'border-slate-600 text-slate-400 hover:border-slate-500'
+              }`}
+            >
+              Fără Q1 {filterFaraQ1 && <span className="text-yellow-400">({sportiviVizibili.length})</span>}
+            </button>
+            {nrFiltreActive > 0 && (
+              <button
+                onClick={() => { setFilterGen(''); setFilterVarstaMin(''); setFilterVarstaMax(''); setFilterFaraQ1(false); }}
+                className="text-xs text-red-400 hover:underline px-1"
+              >
+                ✕ resetează
+              </button>
+            )}
+          </div>
 
           {/* Banner blocare — sportivi cu multiple opțiuni fără Q1 ales */}
           {esteBlockat && (

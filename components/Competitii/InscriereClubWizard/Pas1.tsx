@@ -255,6 +255,7 @@ export interface Pas1Props {
   vizeSportivi: VizaSportiv[];
   selected: Set<string>;
   myClubId?: string;
+  varsteCompetitie?: number[];
   onToggle: (id: string) => void;
   onContinua: () => void;
   onBack: () => void;
@@ -262,7 +263,7 @@ export interface Pas1Props {
 
 const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   competitie, sportivi, grade, categorii, inscrieri, vizeSportivi,
-  selected, myClubId, onToggle, onContinua, onBack,
+  selected, myClubId, varsteCompetitie, onToggle, onContinua, onBack,
 }) => {
   const [search, setSearch] = useState('');
   const [filterGen, setFilterGen] = useState<'' | 'Masculin' | 'Feminin'>('');
@@ -506,43 +507,65 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
             {/* Vârstă */}
             <div>
               <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Vârstă la competiție</p>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  { label: 'Copii', min: 4, max: 8 },
-                  { label: 'Jun. Mici', min: 9, max: 12 },
-                  { label: 'Jun. 2', min: 13, max: 15 },
-                  { label: 'Jun. 1', min: 16, max: 17 },
-                  { label: 'Seniori', min: 18, max: 39 },
-                  { label: 'Veterani', min: 40, max: 99 },
-                ].map(cat => {
-                  const isActive =
-                    filterVarstaMin === String(cat.min) && filterVarstaMax === String(cat.max);
-                  return (
-                    <button
-                      key={cat.label}
-                      type="button"
-                      onClick={() => {
-                        if (isActive) {
-                          setFilterVarstaMin('');
-                          setFilterVarstaMax('');
-                        } else {
-                          setFilterVarstaMin(String(cat.min));
-                          setFilterVarstaMax(String(cat.max));
-                        }
-                      }}
-                      style={{ touchAction: 'manipulation' }}
-                      className={`px-2.5 py-2 rounded-lg text-xs font-medium border transition-colors min-h-[44px] ${
-                        isActive
-                          ? 'border-emerald-500 bg-emerald-900/30 text-emerald-300'
-                          : 'border-slate-600 text-slate-400 hover:border-slate-500'
-                      }`}
-                    >
-                      {cat.label}
-                      <span className="block text-[10px] opacity-70">{cat.min === 40 ? '40+' : `${cat.min}–${cat.max}`}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {varsteCompetitie && varsteCompetitie.length > 0 ? (
+                <div className="overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+                  <div className="flex gap-1.5" style={{ minWidth: 'max-content' }}>
+                    {varsteCompetitie.map(an => {
+                      const isActive = filterVarstaMin === String(an) && filterVarstaMax === String(an);
+                      return (
+                        <button
+                          key={an}
+                          type="button"
+                          onClick={() => {
+                            if (isActive) { setFilterVarstaMin(''); setFilterVarstaMax(''); }
+                            else { setFilterVarstaMin(String(an)); setFilterVarstaMax(String(an)); }
+                          }}
+                          style={{ touchAction: 'manipulation' }}
+                          className={`px-2.5 py-2 rounded-lg text-xs font-medium border transition-colors min-h-[44px] min-w-[40px] ${
+                            isActive
+                              ? 'border-emerald-500 bg-emerald-900/30 text-emerald-300'
+                              : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                          }`}
+                        >
+                          {an}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: 'Copii', min: 4, max: 8 },
+                    { label: 'Jun. Mici', min: 9, max: 12 },
+                    { label: 'Jun. 2', min: 13, max: 15 },
+                    { label: 'Jun. 1', min: 16, max: 17 },
+                    { label: 'Seniori', min: 18, max: 39 },
+                    { label: 'Veterani', min: 40, max: 99 },
+                  ].map(cat => {
+                    const isActive = filterVarstaMin === String(cat.min) && filterVarstaMax === String(cat.max);
+                    return (
+                      <button
+                        key={cat.label}
+                        type="button"
+                        onClick={() => {
+                          if (isActive) { setFilterVarstaMin(''); setFilterVarstaMax(''); }
+                          else { setFilterVarstaMin(String(cat.min)); setFilterVarstaMax(String(cat.max)); }
+                        }}
+                        style={{ touchAction: 'manipulation' }}
+                        className={`px-2.5 py-2 rounded-lg text-xs font-medium border transition-colors min-h-[44px] ${
+                          isActive
+                            ? 'border-emerald-500 bg-emerald-900/30 text-emerald-300'
+                            : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                        }`}
+                      >
+                        {cat.label}
+                        <span className="block text-[10px] opacity-70">{cat.min === 40 ? '40+' : `${cat.min}–${cat.max}`}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Reset */}

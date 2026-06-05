@@ -3,50 +3,38 @@ import { supabase } from '../../../supabaseClient';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap } from './types';
 import { esteEchipaSauPereche } from './shared';
-import InscriereClubCards from './InscriereClubCards';
-import ProbaIndividualaView from './ProbaIndividualaView';
-import ProbaEchipeView from './ProbaEchipeView';
+import Pas1SelectareSportivi from './Pas1';
+import Pas2SelectieQuyen from './Pas2Quyen';
+import Pas3FormareEchipe from './Pas3Echipe';
 import Pas4SumarTaxe from './Pas4Sumar';
+import InscriereClubCards from './InscriereClubCards';
 
 export type { InscriereClubWizardProps };
 export type { EchipaFormata, QuyenAlesMap };
 export type { PickCategorie, IndivPicks } from './types';
-
-// -----------------------------------------------
-// NAVIGARE NOUĂ — hub-first, fără pași numerici globali
-// -----------------------------------------------
-type NavState =
-  | { view: 'hub' }
-  | { view: 'proba-individuala'; probaId: string }
-  | { view: 'proba-echipe'; probaId: string }
-  | { view: 'sumar' };
 
 const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   competitie, probe, categorii, sportivi, grade,
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
   onOpenEditEchipa,
 }) => {
-  const [nav, setNav] = useState<NavState>({ view: 'hub' });
-
-  // Sportivi selectați global (uniți din toate probele)
+  // step: 1=selectare sportivi, 'hub'=carduri probe, 2=quyen individual, 3=echipe, 4=sumar
+  const [step, setStep] = useState<1 | 'hub' | 2 | 3 | 4>(1);
+  // Proba deschisă din hub (pentru Pas2 / Pas3)
+  const [probaDeschisFocusId, setProbaDeschisFocusId] = useState<string | null>(null);
   const [selectedSportivi, setSelectedSportivi] = useState<Set<string>>(new Set());
 
-  // Categorii auto-asignate per sportiv (pentru probe individuale)
+  // Pas2: categorii auto-asignate + quyen ales
   const [autoCategorie, setAutoCategorie] = useState<Map<string, import('../../../types').CategorieCompetitie>>(new Map());
-
-  // Quyen ales per sportiv
   const [quyenAles, setQuyenAles] = useState<QuyenAlesMap>(new Map());
 
-  // Echipe formate per categorie
+  // Pas3: echipe formate
   const [echipeFormate, setEchipeFormate] = useState<EchipaFormata[]>([]);
 
-  // Cereri coechipier inter-club per categorie
-  const [cereriInterclub, setCereriInterclub] = useState<Map<string, 'pending' | 'aprobat' | 'respins'>>(new Map());
+  // Pas2: probe sărite (nu avem concurenți) — propagate la Pas4 pentru filtrare sumar
+  const [probeSkippedWizard, setProbeSkippedWizard] = useState<Set<string>>(new Set());
 
-  // Probe skipped (fără concurenți)
-  const [probeSkipped, setProbeSkipped] = useState<Set<string>>(new Set());
-
-  // Sportivi excluși de la probe individuale
+  // Sportivi excluși de la Thao Quyen individual
   const [excludedFromIndividual, setExcludedFromIndividual] = useState<Set<string>>(new Set());
 
   const handleToggleExclus = useCallback((sportivId: string) => {
@@ -58,7 +46,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     });
   }, []);
 
-  // Fetch echipe salvate în BD la mount
+  // Fetch echipe salvate în BD la mount pentru editare
   useEffect(() => {
     if (!clubId || !competitie?.id) return;
     (async () => {
@@ -93,7 +81,24 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     })();
   }, []); // run once on mount
 
-  // Compute autoCategorie: pentru fiecare sportiv selectat → prima categorie individuală eligibilă
+  // Ref pentru a urmări ultimul set de sportivi pentru care s-a calculat autoCategorie
+  const lastComputedSportiviRef = React.useRef<string>('');
+
+  // Categorii echipă existente în competiție
+  const areEchipe = useMemo(
+    () => categorii.some(esteEchipaSauPereche),
+    [categorii]
+  );
+
+  const handleToggle = (id: string) => {
+    setSelectedSportivi(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const computeAutoCategorie = useCallback(() => {
     const m = new Map<string, import('../../../types').CategorieCompetitie>();
     const catIndiv = categorii
@@ -108,49 +113,54 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     setAutoCategorie(m);
   }, [selectedSportivi, sportivi, categorii, grade, competitie.data_inceput]);
 
-  // Re-compute autoCategorie când selectedSportivi se schimbă
-  const lastComputedKey = React.useRef<string>('');
-  useEffect(() => {
+  const handlePas1Continua = () => {
     const currentKey = Array.from(selectedSportivi).sort().join(',');
-    if (currentKey !== lastComputedKey.current) {
+    if (currentKey !== lastComputedSportiviRef.current) {
       computeAutoCategorie();
-      lastComputedKey.current = currentKey;
+      lastComputedSportiviRef.current = currentKey;
     }
-  }, [selectedSportivi, computeAutoCategorie]);
-
-  // Probe skipped calculation
-  const calcProbeSkipped = useCallback(() => {
-    const activeProbeIds = new Set<string>();
-    autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });
-    return new Set(probe.filter(p => !activeProbeIds.has(p.id)).map(p => p.id));
-  }, [autoCategorie, probe]);
-
-  // Toggle sportiv global
-  const handleToggle = (id: string) => {
-    setSelectedSportivi(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    setStep('hub');
   };
 
-  // Deschide probă din hub
+  /**
+   * Din hub, utilizatorul deschide o probă:
+   * - probă individuală (thao_quyen / thao_lo / giao_dau) → Pas2
+   * - probă echipă (song_luyen / sincron) → Pas3
+   */
   const handleDeschideProba = useCallback((probaId: string) => {
+    setProbaDeschisFocusId(probaId);
     const proba = probe.find(p => p.id === probaId);
     if (!proba) return;
     const isEchipa = categorii.some(c => c.proba_id === probaId && esteEchipaSauPereche(c));
     if (isEchipa) {
-      setNav({ view: 'proba-echipe', probaId });
+      setStep(3);
     } else {
-      setNav({ view: 'proba-individuala', probaId });
+      setStep(2);
     }
   }, [probe, categorii]);
 
-  // ── HUB ──────────────────────────────────────────
-  if (nav.view === 'hub') {
+  if (step === 1) {
+    return (
+      <Pas1SelectareSportivi
+        competitie={competitie}
+        sportivi={sportivi}
+        grade={grade}
+        categorii={categorii}
+        inscrieri={inscrieri}
+        vizeSportivi={vizeSportivi}
+        selected={selectedSportivi}
+        myClubId={myClubId}
+        onToggle={handleToggle}
+        onContinua={handlePas1Continua}
+        onBack={onBack}
+      />
+    );
+  }
+
+  if (step === 'hub') {
     return (
       <InscriereClubCards
+        // props InscriereClubWizardProps
         competitie={competitie}
         probe={probe}
         categorii={categorii}
@@ -162,60 +172,54 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         numeClub={numeClub}
         vizeSportivi={vizeSportivi}
         myClubId={myClubId}
-        onBack={onBack}
+        onBack={() => setStep(1)}
         onSaved={onSaved}
+        // props suplimentare hub
         selectedSportivi={selectedSportivi}
         autoCategorie={autoCategorie}
         quyenAles={quyenAles}
         echipeFormate={echipeFormate}
-        probeSkipped={probeSkipped}
+        probeSkipped={probeSkippedWizard}
         excludedFromIndividual={excludedFromIndividual}
         onDeschideProba={handleDeschideProba}
         onFinalizare={() => {
-          setProbeSkipped(calcProbeSkipped());
-          setNav({ view: 'sumar' });
+          // Calculează probe skipped înainte de a merge la sumar
+          const activeProbeIds = new Set<string>();
+          autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });
+          setProbeSkippedWizard(new Set(probe.filter(p => !activeProbeIds.has(p.id)).map(p => p.id)));
+          setStep(4);
         }}
       />
     );
   }
 
-  // ── PROBĂ INDIVIDUALĂ ────────────────────────────
-  if (nav.view === 'proba-individuala') {
-    const probaObj = probe.find(p => p.id === nav.probaId);
-    if (!probaObj) return null;
-
+  if (step === 2) {
     return (
-      <ProbaIndividualaView
+      <Pas2SelectieQuyen
         competitie={competitie}
-        proba={probaObj}
         sportivi={sportivi}
         grade={grade}
         categorii={categorii}
-        vizeSportivi={vizeSportivi}
+        selectedSportivi={selectedSportivi}
+        autoCategorie={autoCategorie}
         quyenAles={quyenAles}
         onUpdateQuyenAles={setQuyenAles}
+        onContinua={() => {
+          const activeProbeIds = new Set<string>();
+          autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });
+          setProbeSkippedWizard(new Set(probe.filter(p => !activeProbeIds.has(p.id)).map(p => p.id)));
+          setStep('hub');
+        }}
+        onBack={() => setStep('hub')}
         excludedFromIndividual={excludedFromIndividual}
         onToggleExclus={handleToggleExclus}
-        onBack={() => setNav({ view: 'hub' })}
-        onSave={() => {
-          // Update selectedSportivi cu sportivii selectați în probă individuală
-          // (vizibili via ProbaIndividualaView -> localSelected -> expus prin onSave callback)
-          setNav({ view: 'hub' });
-        }}
-        selectedSportiviHub={selectedSportivi}
-        myClubId={myClubId}
       />
     );
   }
 
-  // ── PROBĂ ECHIPE ────────────────────────────────
-  if (nav.view === 'proba-echipe') {
-    const probaObj = probe.find(p => p.id === nav.probaId);
-    if (!probaObj) return null;
-
+  if (step === 3) {
     return (
-      <ProbaEchipeView
-        proba={probaObj}
+      <Pas3FormareEchipe
         sportivi={sportivi}
         grade={grade}
         categorii={categorii}
@@ -223,19 +227,16 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         numeClub={numeClub}
         echipeFormate={echipeFormate}
         onUpdateEchipe={setEchipeFormate}
-        dataCompetitie={competitie.data_inceput}
-        onBack={() => setNav({ view: 'hub' })}
-        onSave={() => setNav({ view: 'hub' })}
+        onContinua={() => setStep('hub')}
+        onBack={() => setStep('hub')}
+        echipeDB={echipe}
         myClubId={myClubId}
-        cereriInterclub={cereriInterclub}
-        onUpdateCereri={(m) => setCereriInterclub(m)}
-        competitieId={competitie.id}
-        clubSolicitantId={myClubId ?? ''}
+        dataCompetitie={competitie.data_inceput}
+        probe={probe}
       />
     );
   }
 
-  // ── SUMAR ───────────────────────────────────────
   return (
     <Pas4SumarTaxe
       competitie={competitie}
@@ -246,11 +247,11 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       autoCategorie={autoCategorie}
       quyenAles={quyenAles}
       echipeFormate={echipeFormate}
-      probeSkipped={probeSkipped}
+      probeSkipped={probeSkippedWizard}
       excludedFromIndividual={excludedFromIndividual}
       clubId={clubId}
       numeClub={numeClub}
-      onBack={() => setNav({ view: 'hub' })}
+      onBack={() => setStep('hub')}
       onSaved={onSaved}
     />
   );

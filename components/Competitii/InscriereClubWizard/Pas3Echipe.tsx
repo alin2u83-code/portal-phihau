@@ -9,8 +9,8 @@ import { useError } from '../../ErrorProvider';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { formatNume } from '../../../utils/formatareSportiv';
 import { TIP_PROBA_LABELS } from '../../../utils/competitiiTemplates';
-import { STEP_LABELS, ProbaHeader } from './constants';
-import { WizardProgress, BadgeTipParticipare, esteEchipaSauPereche, getSLProg } from './shared';
+import { ProbaHeader } from './constants';
+import { BadgeTipParticipare, esteEchipaSauPereche, getSLProg } from './shared';
 import { EchipaFormata, RolEchipa } from './types';
 
 // -----------------------------------------------
@@ -677,9 +677,6 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
           <h2 className="text-lg font-bold text-white leading-tight">
             Inscriere sportivi
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Pasul 3 din 4: {STEP_LABELS[2]}
-          </p>
         </div>
         <div className="text-right shrink-0">
           <span className="text-xs text-slate-500">
@@ -688,8 +685,6 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
         </div>
       </div>
 
-      {/* Progress */}
-      <WizardProgress step={3} total={4} />
 
       {/* Header colorat per tip probă activ */}
       {probaActivaTabEchipe && <ProbaHeader tipProba={probaActivaTabEchipe} />}

@@ -7,8 +7,6 @@ import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
 import { formatNume } from '../../../utils/formatareSportiv';
-import { STEP_LABELS } from './constants';
-import { WizardProgress } from './shared';
 import { QuyenAlesMap } from './types';
 
 // -----------------------------------------------
@@ -185,10 +183,8 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
           </Button>
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-white leading-tight">Inscriere sportivi</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Pasul 2 din 4: {STEP_LABELS[1]}</p>
           </div>
         </div>
-        <WizardProgress step={2} total={4} />
         <div className="text-center text-slate-500 py-10 italic text-sm">
           Niciun sportiv cu categorie individuală auto-asignată.
         </div>
@@ -208,14 +204,11 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
         </Button>
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-white leading-tight">Inscriere sportivi</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Pasul 2 din 4: {STEP_LABELS[1]}</p>
         </div>
         <div className="text-right shrink-0 text-xs text-slate-500">
           {nrComplet}/{sportiviDate.length} complet
         </div>
       </div>
-
-      <WizardProgress step={2} total={4} />
 
       {loadingDrepturi ? (
         <div className="text-center text-xs text-slate-500 py-8 animate-pulse">Se incarca drepturile de grad...</div>

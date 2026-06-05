@@ -6,8 +6,7 @@ import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { calculeazaVarstaLaData, verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { formatNume } from '../../../utils/formatareSportiv';
-import { STEP_LABELS } from './constants';
-import { WizardProgress, BadgeEligibilitateGenerala } from './shared';
+import { BadgeEligibilitateGenerala } from './shared';
 import { EligibilitateGenerala } from './types';
 
 // -----------------------------------------------
@@ -392,17 +391,12 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
           <h2 className="text-lg font-bold text-white leading-tight">
             Inscriere sportivi
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Pasul 1 din 4: {STEP_LABELS[0]}
-          </p>
         </div>
         <div className="text-right shrink-0">
           <span className="text-xs text-slate-500">{selected.size} selectati</span>
         </div>
       </div>
 
-      {/* Progress */}
-      <WizardProgress step={1} total={4} />
 
       {/* Search */}
       <div className="relative">

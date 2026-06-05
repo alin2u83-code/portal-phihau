@@ -9,9 +9,7 @@ import { useError } from '../../ErrorProvider';
 import { calculeazaVarstaLaData } from '../../../utils/eligibilitateCompetitie';
 import { exportFisaParticipare, exportBorderoClub, RandIndividualPDF, RandEchipaPDF } from '../../../utils/exportPDFCompetitie';
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../../utils/taxeCompetitie';
-import { STEP_LABELS } from './constants';
 import { formatNume } from '../../../utils/formatareSportiv';
-import { WizardProgress } from './shared';
 import { EchipaFormata, QuyenAlesMap } from './types';
 
 // -----------------------------------------------
@@ -330,14 +328,9 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           <h2 className="text-lg font-bold text-white leading-tight">
             Inscriere sportivi
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Pasul 4 din 4: {STEP_LABELS[3]}
-          </p>
         </div>
       </div>
 
-      {/* Progress */}
-      <WizardProgress step={4} total={4} />
 
       {/* Sectiunea 1 — Inscrieri individuale */}
       {randuriIndividuale.length > 0 && (

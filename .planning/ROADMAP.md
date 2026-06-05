@@ -19,6 +19,7 @@ Două axe de lucru paralele:
 - [ ] **Phase 2: Navigare Grupe Drill-Down** - Card → GrupaDetailView cu tab-uri Antrenamente | Orar | Sportivi
 - [ ] **Phase 3: Calendar & CRUD Antrenamente** - Calendar lunar, add one-off, anulare cu motiv
 - [ ] **Phase 4: Stagii Completare** - Stagii club, preț dinamic, verificare facturi, export participanți
+- [ ] **Phase 5: Color Theme System** - Sistem teme CSS vars, ThemeEditor, Button follow-theme, Supabase persist
 
 ## Phase Details
 
@@ -100,6 +101,28 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 5: Color Theme System
+
+**Goal**: Sistemul de teme permite oricărui club să-și personalizeze culorile portalului, iar butoanele urmează tema activă — fără rebuild
+**Mode**: mvp
+**Depends on**: Nothing (independent feature)
+**Requirements**: THEME-01, THEME-02, THEME-03, THEME-04
+**Success Criteria** (what must be TRUE):
+
+  1. `ThemeContext` injectează 12 variabile CSS `--t-*` în `:root` la mount — tema clubului activ din Supabase, cu override per user
+  2. `Button` (primary + secondary) folosește `var(--t-primary)` / `var(--t-secondary)` via style prop — culoarea se schimbă vizibil la schimbarea temei
+  3. `ThemeEditor` modal cu 8 teme predefinite + tab editor custom + save cu scope `user|club` — accesibil din Sidebar footer
+  4. `cluburi.tema_config` și `utilizatori.tema_config` (jsonb) există în Supabase cu RLS corect
+
+**Plans**: 3 plans
+Plans:
+
+- [ ] 05-01-PLAN.md — ThemeConfig în types.ts + lib/themes.ts (8 teme) + index.css --t-* vars + PaletteIcon + sql/add_tema_config.sql (THEME-01, THEME-04)
+- [ ] 05-02-PLAN.md — contexts/ThemeContext.tsx (fetch + applyTheme + saveTheme) + Button migration primary/secondary la CSS vars (THEME-01, THEME-02)
+- [ ] 05-03-PLAN.md — ThemeEditor modal (3 taburi) + ThemeProvider în index.tsx + Sidebar footer buton + AppLayout wiring (THEME-01, THEME-02, THEME-03, THEME-04)
+
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
@@ -111,3 +134,4 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 | 2. Navigare Grupe Drill-Down | 1/2 | In Progress|  |
 | 3. Calendar & CRUD Antrenamente | 0/? | Not started | - |
 | 4. Stagii Completare | 3/3 | Complete   | 2026-06-05 |
+| 5. Color Theme System | 0/3 | Not started | - |

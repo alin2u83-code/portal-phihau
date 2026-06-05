@@ -249,12 +249,6 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return <Lazy.FisaDigitalaSportiv onBack={handleBackToDashboard} currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} />;
                             case 'fisa-competitie':
                                 return <Lazy.FisaCompetitie onBack={handleBackToDashboard} currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} />;
-                            case 'backdoor-check':
-                                return <Lazy.BackdoorCheck onBack={handleBackToDashboard} currentUser={currentUser!} />;
-                            case 'backdoor-test':
-                                return <Lazy.BackdoorTest onBack={handleBackToDashboard} currentUser={currentUser!} activeRole={activeRole!} userRoles={userRoles} />;
-                            case 'debug':
-                                return <Lazy.DebugPage />;
                             default:
                                 return <div>Lipsește Vizualizarea</div>;
                         }

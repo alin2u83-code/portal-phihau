@@ -192,20 +192,6 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
             setOpenSubmenu={setOpenSubmenu}
         />
       )}
-      {permissions?.isSuperAdmin && (
-        <div
-          onClick={() => onNavigate('debug')}
-          className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-all duration-200 w-full group border ${
-              'debug' === activeView
-              ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
-              : "bg-slate-800/40 text-slate-400 border-slate-700/50 hover:bg-slate-800/70 hover:text-slate-200 hover:border-amber-400/20"
-          }`}
-          title={!isExpanded ? 'Debug' : ''}
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 shrink-0 text-amber-400 transition-transform duration-200 ${isExpanded ? 'mr-3' : 'mx-auto'} ${'debug' === activeView ? 'scale-110' : 'group-hover:scale-110'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            {isExpanded && <span className="flex-1 font-semibold text-sm">Debug</span>}
-        </div>
-      )}
     </nav>
 
       {/* Scroll down button */}

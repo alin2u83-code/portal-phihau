@@ -35,7 +35,6 @@ const VIEW_TITLES: Partial<Record<View, string>> = {
     'notificari': 'Notificări',
     'gestiune-facturi': 'Gestiune Facturi',
     'competitii': 'Competiții',
-    'debug': 'Debug',
     'profil-sportiv': 'Profil Sportiv',
     'import-sportivi': 'Import Sportivi',
     'setari-club': 'Setări Club',

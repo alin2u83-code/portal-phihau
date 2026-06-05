@@ -41,15 +41,12 @@ export const FisaDigitalaSportiv = lazy(() => import('./Sportivi/FisaDigitalaSpo
 export const FisaCompetitie = lazy(() => import('./Competitii/FisaCompetitie').then(m => ({ default: m.FisaCompetitie })));
 export const InstructorPrezentaPage = lazy(() => import('./Prezenta/InstructorPrezentaPage').then(m => ({ default: m.InstructorPrezentaPage })));
 export const RaportActivitate = lazy(() => import('./RaportActivitate').then(m => ({ default: m.RaportActivitate })));
-export const BackdoorCheck = lazy(() => import('./BackdoorCheck').then(m => ({ default: m.BackdoorCheck })));
-export const BackdoorTest = lazy(() => import('./BackdoorTest').then(m => ({ default: m.BackdoorTest })));
 export const AdminConsole = lazy(() => import('./AdminConsole').then(m => ({ default: m.AdminConsole })));
 export const ArhivaPrezente = lazy(() => import('./Prezenta/ArhivaPrezente').then(m => ({ default: m.ArhivaPrezente })));
 export const ProgramAntrenamenteManagement = lazy(() => import('./Grupe/ProgramAntrenamenteManagement').then(m => ({ default: m.ProgramAntrenamenteManagement })));
 export const AdminMasterMap = lazy(() => import('./AdminMasterMap').then(m => ({ default: m.AdminMasterMap })));
 export const SportivDashboard = lazy(() => import('./SportivDashboard').then(m => ({ default: m.SportivDashboard })));
 export const RaportLunarPrezenta = lazy(() => import('./Prezenta/RaportLunarPrezenta').then(m => ({ default: m.RaportLunarPrezenta })));
-export const DebugPage = lazy(() => import('./DebugPage').then(m => ({ default: m.DebugPage })));
 export const AdminDashboard = lazy(() => import('./AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 export const ReportsDashboard = lazy(() => import('./ReportsDashboard').then(m => ({ default: m.ReportsDashboard })));
 export const LegitimatiiPage = lazy(() => import('./LegitimatiiPage').then(m => ({ default: m.LegitimatiiPage })));

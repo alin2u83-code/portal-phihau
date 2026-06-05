@@ -17,7 +17,7 @@ interface TipStagiuOpt { cod: string; denumire: string; }
 
 interface EvenimentFormProps { isOpen: boolean; onClose: () => void; onSave: (ev: Omit<Eveniment, 'id'>) => Promise<void>; evToEdit: Eveniment | null; type: 'Stagiu' | 'Competitie'; currentUser: User; permissions: Permissions; locatii: Locatie[]; }
 const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, evToEdit, type, currentUser, permissions, locatii }) => {
-    const [formState, setFormState] = useState<Omit<Eveniment, 'id' | 'probe_disponibile'>>({ denumire: '', data: new Date().toISOString().split('T')[0], data_sfarsit: new Date().toISOString().split('T')[0], locatie: '', organizator: '', tip: type });
+    const [formState, setFormState] = useState<Omit<Eveniment, 'id' | 'probe_disponibile' | 'pret_copii' | 'pret_grade' | 'pret_centuri'> & { pret_copii: string; pret_grade: string; pret_centuri: string }>({ denumire: '', data: new Date().toISOString().split('T')[0], data_sfarsit: new Date().toISOString().split('T')[0], locatie: '', organizator: '', tip: type, pret_copii: '', pret_grade: '', pret_centuri: '' });
     const [probeStr, setProbeStr] = useState('');
     const [tipStagiu, setTipStagiu] = useState('general');
     const [tipuriStagii, setTipuriStagii] = useState<TipStagiuOpt[]>([]);
@@ -50,12 +50,12 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
     React.useEffect(() => {
         if (isOpen) {
             if (evToEdit) {
-                setFormState({ denumire: evToEdit.denumire, data: evToEdit.data, data_sfarsit: evToEdit.data_sfarsit, locatie: evToEdit.locatie, organizator: evToEdit.organizator, tip: evToEdit.tip });
+                setFormState({ denumire: evToEdit.denumire, data: evToEdit.data, data_sfarsit: evToEdit.data_sfarsit, locatie: evToEdit.locatie, organizator: evToEdit.organizator, tip: evToEdit.tip, pret_copii: evToEdit.pret_copii != null ? String(evToEdit.pret_copii) : '', pret_grade: evToEdit.pret_grade != null ? String(evToEdit.pret_grade) : '', pret_centuri: evToEdit.pret_centuri != null ? String(evToEdit.pret_centuri) : '' });
                 setProbeStr(evToEdit.probe_disponibile?.join(', ') || '');
                 setIsFederationEvent(evToEdit.club_id === null);
                 setTipStagiu(evToEdit.tip_stagiu || 'general');
             } else {
-                setFormState({ denumire: '', data: new Date().toISOString().split('T')[0], data_sfarsit: new Date().toISOString().split('T')[0], locatie: '', organizator: '', tip: type });
+                setFormState({ denumire: '', data: new Date().toISOString().split('T')[0], data_sfarsit: new Date().toISOString().split('T')[0], locatie: '', organizator: '', tip: type, pret_copii: '', pret_grade: '', pret_centuri: '' });
                 setProbeStr('');
                 setIsFederationEvent(false);
                 setTipStagiu('general');
@@ -78,7 +78,12 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
             tip_eveniment: isFed ? 'FEDERATIE' : 'CLUB',
             vizibilitate_globala: isFed,
             ...(type === 'Competitie' && { probe_disponibile: probeStr.split(',').map(p => p.trim()).filter(Boolean) }),
-            ...(type === 'Stagiu' && { tip_stagiu: tipStagiu }),
+            ...(type === 'Stagiu' && {
+                tip_stagiu: tipStagiu,
+                pret_copii: formState.pret_copii ? parseFloat(formState.pret_copii) : null,
+                pret_grade: formState.pret_grade ? parseFloat(formState.pret_grade) : null,
+                pret_centuri: formState.pret_centuri ? parseFloat(formState.pret_centuri) : null,
+            }),
         };
         await onSave(eventData as Omit<Eveniment, 'id'>);
         setLoading(false);
@@ -104,6 +109,13 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
                     <option key={t.cod} value={t.cod}>{t.denumire}</option>
                 ))}
             </Select>
+        </div>
+    )}
+    {type === 'Stagiu' && (
+        <div className="grid grid-cols-3 gap-3">
+            <Input label="Preț Copii (7-12 ani) lei" name="pret_copii" type="number" min="0" step="0.01" placeholder="Opțional" value={formState.pret_copii} onChange={handleChange} />
+            <Input label="Preț Grade (13+ ani) lei" name="pret_grade" type="number" min="0" step="0.01" placeholder="Opțional" value={formState.pret_grade} onChange={handleChange} />
+            <Input label="Preț Centuri Negre lei" name="pret_centuri" type="number" min="0" step="0.01" placeholder="Opțional" value={formState.pret_centuri} onChange={handleChange} />
         </div>
     )}
     {type === 'Competitie' && ( <Input label="Probe Competiție (separate prin virgulă)" name="probe" value={probeStr} onChange={(e) => setProbeStr(e.target.value)} placeholder="Ex: Quyen, Song Dau, Arme" /> )}

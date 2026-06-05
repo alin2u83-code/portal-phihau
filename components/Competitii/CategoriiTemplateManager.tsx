@@ -7,6 +7,7 @@ import { PlusIcon, EditIcon, TrashIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { TIP_PROBA_LABELS, ordineToLabel } from '../../utils/competitiiTemplates';
 import CategoryWizard from './CategoryWizard';
+import BulkCategoryWizard from './BulkCategoryWizard';
 
 // -----------------------------------------------
 // TIP entitate categorii_template
@@ -256,6 +257,7 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
   const [search, setSearch] = useState('');
   const [filtreVisible, setFiltreVisible] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [bulkWizardOpen, setBulkWizardOpen] = useState(false);
 
   const toggleFilterGen = (g: string) => setFilterGenSet(prev => {
     const next = new Set(prev);
@@ -410,6 +412,9 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
           )}
           {canEdit && (
             <>
+              <Button variant="warning" size="sm" onClick={() => setBulkWizardOpen(true)}>
+                <PlusIcon className="w-4 h-4 mr-1" /> Generator Bulk
+              </Button>
               <Button variant="info" size="sm" onClick={() => setWizardOpen(true)}>
                 <PlusIcon className="w-4 h-4 mr-1" /> Wizard Adăugare
               </Button>
@@ -636,6 +641,18 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
           existingTemplates={templates}
           onTemplateSaved={t => { setTemplates(prev => [...prev, t]); setWizardOpen(false); }}
           onClose={() => setWizardOpen(false)}
+        />
+      )}
+
+      {/* Generator Bulk modal */}
+      {bulkWizardOpen && (
+        <BulkCategoryWizard
+          existingTemplates={templates}
+          onSaved={saved => {
+            setTemplates(prev => [...prev, ...saved]);
+            setBulkWizardOpen(false);
+          }}
+          onClose={() => setBulkWizardOpen(false)}
         />
       )}
     </div>

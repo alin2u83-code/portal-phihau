@@ -522,6 +522,113 @@ export const TIP_COMPETITIE_LABELS = {
   cvd: 'CN Co Vo Dao (Arme)',
 };
 
+// -----------------------------------------------
+// BULK GENERATOR
+// -----------------------------------------------
+
+export interface GradeRange {
+  min: number | null;
+  max: number | null;
+}
+
+export interface BulkGeneratorParams {
+  varste: number[];
+  genuri: Array<'Feminin' | 'Masculin' | 'Mixt'>;
+  gradeRanges: GradeRange[];
+  tip_proba: TipProba;
+  arma: string;
+}
+
+export interface BulkCategorieRow {
+  key: string;
+  denumire: string;
+  varsta_min: number;
+  varsta_max: number;
+  gen: 'Feminin' | 'Masculin' | 'Mixt';
+  grad_min_ordine: number | null;
+  grad_max_ordine: number | null;
+  tip_proba: TipProba;
+  arma: string | null;
+  tip_participare: 'individual' | 'pereche' | 'echipa';
+  sportivi_per_echipa_min: number;
+  sportivi_per_echipa_max: number;
+  rezerve_max: number;
+  max_echipe_per_club: number;
+  selected: boolean;
+  hasConflict: boolean;
+  conflictDenumire?: string;
+}
+
+function buildBulkDenumire(
+  varsta: number,
+  gen: 'Feminin' | 'Masculin' | 'Mixt',
+  gradMin: number | null,
+  gradMax: number | null,
+  arma: string | null
+): string {
+  const varstaStr = `${varsta} ani`;
+  const gradStr = buildGradStr(gradMin, gradMax);
+  const armaStr = arma ? ` / ${arma}` : '';
+  return `${varstaStr} / ${gen} / ${gradStr}${armaStr}`;
+}
+
+export function generateBulkCategories(
+  params: BulkGeneratorParams,
+  existingTemplates: Array<{
+    id: string;
+    gen: string;
+    tip_proba: string;
+    varsta_min: number;
+    varsta_max: number | null;
+    denumire: string;
+  }>
+): BulkCategorieRow[] {
+  const rows: BulkCategorieRow[] = [];
+  const { varste, genuri, gradeRanges, tip_proba, arma } = params;
+
+  const armaNorm = arma.trim() || null;
+  const defaultPart: 'individual' | 'pereche' | 'echipa' = 'individual';
+  const defaultSportMin = 1;
+  const defaultSportMax = 1;
+
+  for (const varsta of varste) {
+    for (const gen of genuri) {
+      for (const gr of gradeRanges) {
+        const key = `${varsta}-${gen}-${gr.min ?? 'x'}-${gr.max ?? 'x'}`;
+        const denumire = buildBulkDenumire(varsta, gen, gr.min, gr.max, armaNorm);
+
+        const conflict = existingTemplates.find(e => {
+          if (e.gen !== gen || e.tip_proba !== tip_proba) return false;
+          const eMax = e.varsta_max ?? 200;
+          return varsta <= eMax && varsta >= e.varsta_min;
+        });
+
+        rows.push({
+          key,
+          denumire,
+          varsta_min: varsta,
+          varsta_max: varsta,
+          gen,
+          grad_min_ordine: gr.min,
+          grad_max_ordine: gr.max,
+          tip_proba,
+          arma: armaNorm,
+          tip_participare: defaultPart,
+          sportivi_per_echipa_min: defaultSportMin,
+          sportivi_per_echipa_max: defaultSportMax,
+          rezerve_max: 0,
+          max_echipe_per_club: 1,
+          selected: true,
+          hasConflict: !!conflict,
+          conflictDenumire: conflict?.denumire,
+        });
+      }
+    }
+  }
+
+  return rows;
+}
+
 export const DEFAULT_PROBE_PER_TIP: Record<string, Array<{ tip_proba: TipProba; denumire: string }>> = {
   tehnica: [
     { tip_proba: 'thao_quyen_individual', denumire: 'Thao Quyen Individual' },

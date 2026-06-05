@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 2 UI-SPEC approved
-last_updated: "2026-06-04T21:42:19.842Z"
-last_activity: 2026-06-04 -- Phase 02 execution started
+last_updated: "2026-06-05T08:10:07.717Z"
+last_activity: 2026-06-05 -- Phase 04 execution started
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 1
-  percent: 25
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** Adminul/instructorul poate gestiona complet antrenamentele unei grupe (vizualizare calendar, adăugare one-off, anulare cu motiv) și poate înregistra sportivi la stagii cu facturi corecte.
-**Current focus:** Phase 02 — navigare-grupe-drill-down
+**Current focus:** Phase 04 — stagii-completare
 
 ## Current Position
 
-Phase: 02 (navigare-grupe-drill-down) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 02
-Last activity: 2026-06-04 -- Phase 02 execution started
+Phase: 04 (stagii-completare) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 04
+Last activity: 2026-06-05 -- Phase 04 execution started
 
 Progress: [##░░░░░░░░] 25%
 

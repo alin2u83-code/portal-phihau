@@ -2726,15 +2726,67 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
   const [expandedProbe, setExpandedProbe] = useState<Set<string>>(new Set(['__individual__', '__echipe__', ...probe.map(p => p.id)]));
   const [editEchipaCategorie, setEditEchipaCategorie] = useState<CategorieCompetitie | null>(null);
   const [editEchipaClubId, setEditEchipaClubId] = useState<string>('');
+  const [filtreVisible, setFiltreVisible] = useState(false);
+  const [filterGen, setFilterGen] = useState<Set<string>>(new Set());
+  const [filterProbaId, setFilterProbaId] = useState<string>('');
+  const [filterVarstaMin, setFilterVarstaMin] = useState('');
+  const [filterVarstaMax, setFilterVarstaMax] = useState('');
+  const [filterGradMin, setFilterGradMin] = useState('');
+  const [filterGradMax, setFilterGradMax] = useState('');
+
+  const categoriiVizibile = useMemo(() => {
+    const areFiltre = filterGen.size > 0 || filterProbaId || filterVarstaMin || filterVarstaMax || filterGradMin || filterGradMax;
+    if (!areFiltre) return null; // null = no filtering, show all
+    return new Set(
+      categorii.filter(cat => {
+        if (filterGen.size > 0 && !filterGen.has(cat.gen)) return false;
+        if (filterProbaId && cat.proba_id !== filterProbaId) return false;
+        if (filterVarstaMin !== '' && cat.varsta_min < Number(filterVarstaMin)) return false;
+        if (filterVarstaMax !== '' && (cat.varsta_max === null || cat.varsta_max > Number(filterVarstaMax))) return false;
+        if (filterGradMin !== '' && (cat.grad_min_ordine === null || cat.grad_min_ordine < Number(filterGradMin))) return false;
+        if (filterGradMax !== '' && (cat.grad_max_ordine === null || cat.grad_max_ordine > Number(filterGradMax))) return false;
+        return true;
+      }).map(c => c.id)
+    );
+  }, [categorii, filterGen, filterProbaId, filterVarstaMin, filterVarstaMax, filterGradMin, filterGradMax]);
+
+  const nrFiltreActive = useMemo(() => {
+    let n = 0;
+    if (filterGen.size > 0) n++;
+    if (filterProbaId) n++;
+    if (filterVarstaMin !== '' || filterVarstaMax !== '') n++;
+    if (filterGradMin !== '' || filterGradMax !== '') n++;
+    return n;
+  }, [filterGen, filterProbaId, filterVarstaMin, filterVarstaMax, filterGradMin, filterGradMax]);
+
+  const toggleGen = (gen: string) => {
+    setFilterGen(prev => {
+      const next = new Set(prev);
+      if (next.has(gen)) next.delete(gen); else next.add(gen);
+      return next;
+    });
+  };
+
+  const resetFiltre = () => {
+    setFilterGen(new Set());
+    setFilterProbaId('');
+    setFilterVarstaMin('');
+    setFilterVarstaMax('');
+    setFilterGradMin('');
+    setFilterGradMax('');
+  };
+
   const canSeeAll = isAdmin;
   const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1 };
   const filteredInscrieri = (canSeeAll ? inscrieri : inscrieri.filter(i => i.club_id === myClubId))
     .filter(i => i.status?.toLowerCase() !== 'retras')
+    .filter(i => !categoriiVizibile || categoriiVizibile.has(i.categorie_id))
     .slice()
     .sort((a, b) => (statusOrdine[a.status] ?? 9) - (statusOrdine[b.status] ?? 9));
   const filteredEchipe = (canSeeAll ? echipe : echipe.filter(e => e.club_id === myClubId))
     .filter(e => e.status?.toLowerCase() !== 'retrasa')
-    .filter(e => !echipeRetraseLocal.has((e as any).id));
+    .filter(e => !echipeRetraseLocal.has((e as any).id))
+    .filter(e => !categoriiVizibile || categoriiVizibile.has(e.categorie_id));
 
   const toggleProba = (key: string) => {
     setExpandedProbe(prev => {

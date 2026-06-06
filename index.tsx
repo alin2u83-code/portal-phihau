@@ -10,6 +10,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { DataProvider } from './contexts/DataContext';
 import { NavigationProvider } from './contexts/NavigationContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -45,9 +46,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
         <QueryClientProvider client={queryClient}>
           <DataProvider>
             <NavigationProvider>
-              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <App />
-              </BrowserRouter>
+              <ThemeProvider>
+                <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                  <App />
+                </BrowserRouter>
+              </ThemeProvider>
             </NavigationProvider>
           </DataProvider>
         </QueryClientProvider>

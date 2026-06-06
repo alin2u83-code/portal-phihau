@@ -348,7 +348,7 @@ export const useDataProvider = () => {
                 deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
                 vizeSportivi: cleanedSupabase.from('vize_sportivi').select('*'),
                 decontSportivi: cleanedSupabase.from('decont_sportivi').select('*'),
-                preturiConfig: withClub(cleanedSupabase.from('preturi_config').select('*')),
+                preturiConfig: cleanedSupabase.from('preturi_config').select('*'),
             };
 
             // Check cache for static data

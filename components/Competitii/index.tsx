@@ -751,7 +751,7 @@ interface CompetitieDetailProps {
 
 const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated }) => {
   const tipuriLabelsCtx = React.useContext(TipuriLabelsContext);
-  const { filteredData, grade, currentUser, vizeSportivi } = useData();
+  const { filteredData, grade, currentUser, vizeSportivi, activeRoleContext } = useData();
   const { showError } = useError();
   const [probe, setProbe] = useState<ProbaCompetitie[]>([]);
   const [categorii, setCategorii] = useState<CategorieCompetitie[]>([]);
@@ -828,7 +828,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     echipe.filter(e => e.categorie_id === catId && e.status?.toLowerCase() !== 'retrasa').length;
 
   const canRegister = competitie.status === 'inscrieri_deschise';
-  const myClubId = currentUser?.club_id;
+  const myClubId = activeRoleContext?.club_id ?? currentUser?.club_id;
 
   return (
     <div className="space-y-4">

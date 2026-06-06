@@ -74,13 +74,14 @@ function calculeazaStatusCard(
     // Dacă nu s-au selectat sportivi încă (hub-ul tocmai s-a deschis sau proba nu a fost vizitată),
     // verificăm dacă există sportivi eligibili în club pentru această probă.
     // Selecția efectivă se face în Pas1, deci nu blocăm cardul pe baza selectedSportivi gol.
-    if (selectedSportivi.size === 0) {
+    // Dacă selectedSportivi e gol SAU autoCategorie e gol (echipe încărcate din DB dar
+    // autoCategorie nu a fost calculată încă), arătăm cardul ca incomplet pentru a permite
+    // accesul în Pas1.
+    if (selectedSportivi.size === 0 || autoCategorie.size === 0) {
       const catProbaIndiv = catProba.filter(c => c.tip_participare === 'individual');
-      // Dacă nu există categorii individuale pentru această probă → exclude
       if (catProbaIndiv.length === 0) {
         return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
       }
-      // Altfel arată cardul ca incomplet — adminul poate intra în Pas1 să vadă situația
       return { proba, status: 'incomplet', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
     }
 
@@ -131,20 +132,12 @@ function calculeazaStatusCard(
     };
   }
 
-  // Giao Dau — individual fără quyen (selecția se face în Pas3, nu în Pas1)
-  // Verificăm eligibilitatea direct din sportivii clubului, nu din autoCategorie
-  // (autoCategorie conține doar categorii 'individual' de tip thao_quyen/thao_lo).
+  // Giao Dau — categorii 'pereche', selecția în Pas3.
+  // Card activ dacă există categorii (fără filtru eligibilitate — ca tab Categorii).
   if (proba.tip_proba === 'giao_dau') {
-    const catGiaoDau = catProba.filter(c => c.tip_participare === 'individual');
-    const dataComp = competitie.data_inceput;
-    const areEligibili = sportivi.some(s =>
-      catGiaoDau.some(cat => verificaEligibilitate(s, cat, grade, dataComp).eligibil)
-    );
-    if (!areEligibili) {
+    if (catProba.length === 0) {
       return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
     }
-    // Cardul giao_dau este întotdeauna "incomplet" până când Pas3 confirmă echipele/participanții.
-    // Dacă există echipe formate pentru această probă, marcăm ca completat.
     const echipeProba = echipeFormate.filter(e => {
       const cat = categorii.find(c => c.id === e.categorieId);
       return cat && cat.proba_id === proba.id;

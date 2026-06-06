@@ -3080,7 +3080,9 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
 
       {filteredInscrieri.length === 0 && filteredEchipe.length === 0 && (
         <div className="text-center text-slate-500 py-12 italic">
-          {canSeeAll ? 'Nicio înscriere înregistrată.' : 'Clubul tău nu are sportivi înscriși la această competiție.'}
+          {nrFiltreActive > 0
+            ? 'Nicio înscriere nu corespunde filtrelor aplicate.'
+            : canSeeAll ? 'Nicio înscriere înregistrată.' : 'Clubul tău nu are sportivi înscriși la această competiție.'}
         </div>
       )}
 

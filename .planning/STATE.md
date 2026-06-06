@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 04 Plan 03 complete
-last_updated: "2026-06-05T12:00:00.000Z"
-last_activity: 2026-06-05 -- Phase 04 Plan 03 finalizat (checkpoint aprobat)
+stopped_at: Phase 05 Plan 02 complete
+last_updated: "2026-06-06T00:00:00.000Z"
+last_activity: 2026-06-06 -- Phase 05 Plan 02 finalizat (ThemeContext + Button migration)
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 4
+  total_plans: 9
+  completed_plans: 6
   percent: 67
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 04 (stagii-completare) — COMPLETE
-Plan: 3 of 3 (toate completate)
-Status: Phase 04 finalizată complet
-Last activity: 2026-06-05 -- Phase 04 Plan 03 finalizat (checkpoint aprobat)
+Phase: 05 (color-theme-system) — IN PROGRESS
+Plan: 2 of 3 finalizat (Plan 03 în așteptare)
+Status: Phase 05 Plan 02 finalizat
+Last activity: 2026-06-06 -- Phase 05 Plan 02 finalizat (ThemeContext + Button migration)
 
 Progress: [####░░░░░░] 67%
 
@@ -69,6 +69,9 @@ Recent decisions affecting current work:
 - [Phase 01-01]: motiv_anulare nullable TEXT fara DEFAULT (NULL = nespecificat)
 - [Phase 01-01]: pret NUMERIC(10,2) nullable pe tipuri_stagii, NULL = fallback taxa globala
 - [Phase 01-01]: Antrenament.status/motiv_anulare optional in types.ts + TipStagiu interface exportata
+- [Phase 05-02]: ThemeContext uses users table (not utilizatori) — actual DB schema
+- [Phase 05-02]: clubThemeRef (useRef) avoids effect dependency loop between club and user theme effects
+- [Phase 05-02]: Button primary/secondary hover via useState(isHovered) + style prop (no Tailwind hover class)
 
 ### Pending Todos
 
@@ -89,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-04T21:17:32.836Z
-Stopped at: Phase 2 UI-SPEC approved
-Resume file: .planning/phases/02-navigare-grupe-drill-down/02-UI-SPEC.md
+Last session: 2026-06-06T00:00:00.000Z
+Stopped at: Phase 05 Plan 02 complete
+Resume file: .planning/phases/05-color-theme-system/05-03-PLAN.md

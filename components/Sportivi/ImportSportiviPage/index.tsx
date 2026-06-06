@@ -244,7 +244,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
             const { data: insertedData, error } = await supabase
                 .from('sportivi')
                 .upsert(finalToImport, { onConflict: 'id' })
-                .select('id, grad_actual_id, data_inscrierii');
+                .select('id, nume, prenume, grad_actual_id, data_inscrierii');
 
             if (error) {
                 console.error("Eroare Supabase la upsert:", error);
@@ -262,10 +262,16 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
 
                 console.log("Import finalizat cu succes.");
 
+                const insertedByName = new Map(
+                    (insertedData || []).map(s => [`${s.nume}|${s.prenume}`, s.id])
+                );
                 const result: ImportResult = {
                     adaugati: toImportList
                         .filter(s => !s.error)
-                        .map(s => ({ nume: s.nume, prenume: s.prenume, data_nasterii: s.data_nasterii || null })),
+                        .map(s => ({
+                            id: insertedByName.get(`${s.nume}|${s.prenume}`) || '',
+                            nume: s.nume, prenume: s.prenume, data_nasterii: s.data_nasterii || null
+                        })),
                     actualizati: [
                         ...strictDuplicates
                             .filter((_, i) => !excludedStrictIndices.has(i))

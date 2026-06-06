@@ -4,6 +4,7 @@ import { View, Sportiv, Plata } from '../types';
 import * as Lazy from './LazyComponents';
 import AccessDenied from './AccessDenied';
 import { MandatoryPasswordChange } from './MandatoryPasswordChange';
+import { OnboardingCompletare } from './OnboardingCompletare';
 import { SetupMFAPage } from './SetupMFAPage';
 import { Card } from './ui';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
@@ -86,6 +87,10 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     const handleIncasareProcesata = () => {
         setPlatiPentruIncasare([]);
     };
+
+    if (currentUser && currentUser.email?.endsWith('@frqkd.ro')) {
+        return <OnboardingCompletare currentUser={currentUser} onCompleted={() => window.location.reload()} />;
+    }
 
     if (currentUser && currentUser.trebuie_schimbata_parola) {
         return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={() => window.location.reload()} />;

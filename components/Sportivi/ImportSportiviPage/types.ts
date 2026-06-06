@@ -1,7 +1,7 @@
 export type ImportStep = 0 | 1 | 2;
 
 export interface ImportResult {
-    adaugati: { nume: string; prenume: string; data_nasterii: string | null }[];
+    adaugati: { id: string; nume: string; prenume: string; data_nasterii: string | null }[];
     actualizati: { nume: string; prenume: string; data_nasterii: string | null }[];
     omisi: { rand: number; nume: string; prenume: string; motiv: string }[];
 }

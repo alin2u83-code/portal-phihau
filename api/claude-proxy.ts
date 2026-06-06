@@ -1,8 +1,15 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
+import { checkRateLimit, getClientIp } from './_rateLimit';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`claude-proxy:${ip}`, { maxRequests: 20, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return res.status(429).json({ error: 'Prea multe cereri. Încearcă din nou în câteva minute.' });
   }
 
   const apiKey = process.env.CLAUDE_API_KEY;

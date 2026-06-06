@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from './_rateLimit';
 
 async function generateEmbedding(text: string, apiKey: string): Promise<number[]> {
   const resp = await fetch(
@@ -20,6 +21,12 @@ async function generateEmbedding(text: string, apiKey: string): Promise<number[]
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end();
+
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`rag-search:${ip}`, { maxRequests: 30, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return res.status(429).json({ error: 'Prea multe cereri. Încearcă din nou în câteva minute.' });
+  }
 
   const { query, category, matchCount = 4, matchThreshold = 0.60 } = req.body ?? {};
   if (!query || typeof query !== 'string') {

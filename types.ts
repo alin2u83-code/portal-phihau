@@ -721,3 +721,20 @@ export interface CerereCoechipier {
   categorie?: CategorieCompetitie;
   club_solicitant?: { id: string; nume: string };
 }
+
+// --- Domain: Color Theme System ---
+export interface ThemeConfig {
+  name: string;
+  bg: string;
+  surface: string;
+  surface2: string;
+  border: string;
+  text: string;
+  textMuted: string;
+  primary: string;
+  primaryHover: string;
+  primaryFg: string;
+  secondary: string;
+  secondaryHover: string;
+  secondaryFg: string;
+}

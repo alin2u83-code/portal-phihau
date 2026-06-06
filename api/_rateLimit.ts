@@ -10,14 +10,6 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>();
 
-// Curăță intrările expirate periodic
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of store.entries()) {
-        if (now > entry.resetAt) store.delete(key);
-    }
-}, 5 * 60 * 1000);
-
 export interface RateLimitOptions {
     windowMs?: number;
     maxRequests?: number;
@@ -36,6 +28,11 @@ export function checkRateLimit(
     const { windowMs = 60_000, maxRequests = 60 } = options;
     const now = Date.now();
 
+    // Lazy cleanup: purge one stale entry per call (serverless-safe, no timer)
+    for (const [key, entry] of store.entries()) {
+        if (now > entry.resetAt) { store.delete(key); break; }
+    }
+
     const entry = store.get(identifier);
 
     if (!entry || now > entry.resetAt) {
@@ -50,7 +47,7 @@ export function checkRateLimit(
 
 export function getClientIp(req: { headers: Record<string, string | string[] | undefined> }): string {
     const forwarded = req.headers['x-forwarded-for'];
-    if (Array.isArray(forwarded)) return forwarded[0];
+    if (Array.isArray(forwarded)) return forwarded[0].trim();
     if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
     return 'unknown';
 }

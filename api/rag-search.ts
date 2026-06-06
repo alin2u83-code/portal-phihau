@@ -20,7 +20,7 @@ async function generateEmbedding(text: string, apiKey: string): Promise<number[]
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') return res.status(405).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Metodă nepermisă' });
 
   const ip = getClientIp(req);
   const rl = checkRateLimit(`rag-search:${ip}`, { maxRequests: 30, windowMs: 60_000 });

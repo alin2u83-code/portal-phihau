@@ -12,10 +12,6 @@ export function SetupMFAPage() {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<'enroll' | 'verify'>('enroll');
 
-    useEffect(() => {
-        enrollTOTP();
-    }, []);
-
     async function enrollTOTP() {
         setLoading(true);
         setError(null);
@@ -32,6 +28,31 @@ export function SetupMFAPage() {
         }
         setLoading(false);
     }
+
+    useEffect(() => {
+        let mounted = true;
+
+        async function run() {
+            setLoading(true);
+            setError(null);
+            const { data, error: enrollError } = await supabase!.auth.mfa.enroll({
+                factorType: 'totp',
+                issuer: 'Portal PhiHau',
+            });
+            if (!mounted) return;
+            if (enrollError) {
+                setError(enrollError.message);
+            } else {
+                setQrCode(data.totp.qr_code);
+                setFactorId(data.id);
+                setStep('verify');
+            }
+            setLoading(false);
+        }
+
+        run();
+        return () => { mounted = false; };
+    }, []);
 
     async function verifyTOTP() {
         if (!factorId || code.length !== 6) return;

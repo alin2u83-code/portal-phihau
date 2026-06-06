@@ -22,6 +22,20 @@
   --brand-primary: #3b82f6; /* blue-500 */
   --brand-secondary: #0ea5e9; /* sky-500 */
   --accent: #3b82f6;
+
+  /* Theme System Sprint 1 — prefix --t- (coexistă cu --bg-*, --brand-*) */
+  --t-bg: #020617;
+  --t-surface: #0f172a;
+  --t-surface-2: #1e293b;
+  --t-border: #1e293b;
+  --t-text: #f8fafc;
+  --t-text-muted: #94a3b8;
+  --t-primary: #3b82f6;
+  --t-primary-hover: #2563eb;
+  --t-primary-fg: #ffffff;
+  --t-secondary: #1e293b;
+  --t-secondary-hover: #334155;
+  --t-secondary-fg: #e2e8f0;
 }
 body {
   background-color: var(--bg-main);

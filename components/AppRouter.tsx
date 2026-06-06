@@ -4,6 +4,7 @@ import { View, Sportiv, Plata } from '../types';
 import * as Lazy from './LazyComponents';
 import AccessDenied from './AccessDenied';
 import { MandatoryPasswordChange } from './MandatoryPasswordChange';
+import { SetupMFAPage } from './SetupMFAPage';
 import { Card } from './ui';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { useData } from '../contexts/DataContext';
@@ -249,6 +250,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return <Lazy.FisaDigitalaSportiv onBack={handleBackToDashboard} currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} />;
                             case 'fisa-competitie':
                                 return <Lazy.FisaCompetitie onBack={handleBackToDashboard} currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} />;
+                            case 'setup-mfa':
+                                return <SetupMFAPage />;
                             default:
                                 return <div>Lipsește Vizualizarea</div>;
                         }

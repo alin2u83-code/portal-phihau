@@ -23,6 +23,7 @@ import { LoginPage } from './components/LoginPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { InscrierePublicPage } from './components/InscrierePublicPage';
 import { useAppLogic } from './hooks/useAppLogic';
+import { useMFAGuard } from './hooks/useMFAGuard';
 import { AppLayout } from './components/AppLayout';
 import { AIAssistantProvider } from './contexts/AIAssistantContext';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -34,6 +35,8 @@ function App() {
     clubs, grade,
     handleLogout, handleSwitchRole, handleSelectRole, initializeAndFetchData
   } = useAppLogic();
+
+  useMFAGuard(activeRoleContext);
 
   const permissions = usePermissions(activeRoleContext);
 

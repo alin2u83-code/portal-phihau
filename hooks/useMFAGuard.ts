@@ -1,0 +1,35 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { useNavigation } from '../contexts/NavigationContext';
+
+const ADMIN_ROLES = ['ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE', 'ADMIN'];
+
+export function useMFAGuard(activeRoleContext: any | null) {
+    const { navigateTo } = useNavigation();
+    const [mfaChecked, setMfaChecked] = useState(false);
+
+    useEffect(() => {
+        if (!activeRoleContext) return;
+
+        const roleName = activeRoleContext.roluri?.nume || activeRoleContext.rol_denumire;
+        const isAdminRole = ADMIN_ROLES.includes(roleName);
+
+        if (!isAdminRole) {
+            setMfaChecked(true);
+            return;
+        }
+
+        supabase?.auth.mfa.getAuthenticatorAssuranceLevel().then(({ data }) => {
+            const currentLevel = data?.currentLevel;
+            const nextLevel = data?.nextLevel;
+            if (nextLevel === 'aal2' && currentLevel !== 'aal2') {
+                navigateTo('setup-mfa');
+            } else if (!nextLevel || nextLevel === 'aal1') {
+                navigateTo('setup-mfa');
+            }
+            setMfaChecked(true);
+        });
+    }, [activeRoleContext?.id]);
+
+    return { mfaChecked };
+}

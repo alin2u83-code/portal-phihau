@@ -9,6 +9,7 @@ import { AIAssistantWidget } from './AIAssistant';
 import { TutorialOverlay } from './Tutorial';
 import { useAIStore } from '../src/store/useAIStore';
 import { BotIcon, XIcon } from './icons';
+import { ThemeEditor } from './ThemeEditor';
 
 interface AppLayoutProps {
     currentUser: User;
@@ -41,6 +42,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     activeRoleContext
 }) => {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [isThemeEditorOpen, setIsThemeEditorOpen] = useState(false);
     const { isOpen: isAIOpen, setIsOpen: setIsAIOpen } = useAIStore();
 
     return (
@@ -60,6 +62,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 userRoles={userRoles}
                 isMobileOpen={isMobileSidebarOpen}
                 setIsMobileOpen={setIsMobileSidebarOpen}
+                onOpenThemeEditor={() => setIsThemeEditorOpen(true)}
             />
 
             <Header
@@ -127,6 +130,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                     )}
                 </button>
             </footer>
+
+            {/* Theme Editor modal */}
+            <ThemeEditor
+                isOpen={isThemeEditorOpen}
+                onClose={() => setIsThemeEditorOpen(false)}
+            />
 
             {/* AI Assistant - floating widget */}
             <AIAssistantWidget activeRole={activeRole} />

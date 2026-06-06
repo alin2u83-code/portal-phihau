@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { User, View, Club, Permissions, Rol, Grad } from '../types';
 import { useNavigation } from '../contexts/NavigationContext';
 import { adminMenu, adminClubMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
-import { ArrowRightOnRectangleIcon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon } from './icons';
+import { ArrowRightOnRectangleIcon, ChevronDownIcon, ShieldCheckIcon, UserCircleIcon, PaletteIcon } from './icons';
 import { RoleSwitcher } from './RoleSwitcher';
 import { NavMenu } from './NavMenu';
 import { ROLES } from '../constants';
@@ -24,6 +24,7 @@ interface SidebarProps {
     userRoles: any[];
     isMobileOpen: boolean;
     setIsMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    onOpenThemeEditor: () => void;
 }
 
 const UserAvatar: React.FC<{ user: User; size?: 'sm' | 'md' }> = ({ user, size = 'md' }) => {
@@ -46,7 +47,7 @@ const UserAvatar: React.FC<{ user: User; size?: 'sm' | 'md' }> = ({ user, size =
 };
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
-    const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles, isMobileOpen, setIsMobileOpen } = props;
+    const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles, isMobileOpen, setIsMobileOpen, onOpenThemeEditor } = props;
     const { activeView, navigateRoot } = useNavigation();
     const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
     const roleSwitcherRef = useRef<HTMLDivElement>(null);
@@ -174,6 +175,17 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
             {/* User profile + logout at bottom */}
             <div className="relative mt-auto">
+                {/* ThemeEditor trigger */}
+                <div className="px-2 mb-1">
+                    <button
+                        onClick={onOpenThemeEditor}
+                        title="Personalizeaza tema"
+                        className={`w-full flex items-center ${effectiveExpanded ? 'gap-2 px-3 py-2' : 'justify-center p-2.5'} rounded-xl text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition-all border border-slate-700/40`}
+                    >
+                        <PaletteIcon className="h-4 w-4 shrink-0" />
+                        {effectiveExpanded && <span className="text-xs font-medium">Tema</span>}
+                    </button>
+                </div>
                 <div className="h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent mx-2 mb-2" />
                 <div className={`mx-2 mb-2 p-2 rounded-xl bg-slate-800/40 border border-slate-700/40 flex items-center gap-2.5 ${effectiveExpanded ? '' : 'justify-center'}`}>
                     <UserAvatar user={currentUser} size="md" />

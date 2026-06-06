@@ -55,6 +55,7 @@ export interface Club {
   oras?: string | null;
   federatie_id?: string | null;
   theme_config?: Record<string, string> | null;
+  tema_config?: ThemeConfig | null;
 }
 
 export interface ClubStats {

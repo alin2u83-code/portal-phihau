@@ -326,7 +326,7 @@ export const useDataProvider = () => {
 
             // Critical queries — blochează UI până sunt gata
             const criticalQueries: Record<string, any> = {
-                clubs: cleanedSupabase.from('cluburi').select('id, nume, cif, oras, theme_config'),
+                clubs: cleanedSupabase.from('cluburi').select('id, nume, cif, oras, theme_config, tema_config'),
                 allRoles: cleanedSupabase.from('roluri').select('id, nume'),
                 grade: cleanedSupabase.from('grade').select('*'),
                 tipuriPlati: cleanedSupabase.from('tipuri_plati').select('id, nume'),

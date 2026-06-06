@@ -2810,6 +2810,117 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Panou filtre */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <button
+            onClick={() => setFiltreVisible(v => !v)}
+            style={{ touchAction: 'manipulation' }}
+            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${nrFiltreActive > 0 ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-primary' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M7 8h10M11 12h2" />
+            </svg>
+            Filtre
+            {nrFiltreActive > 0 && (
+              <span className="bg-brand-primary text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                {nrFiltreActive}
+              </span>
+            )}
+            <svg className={`w-3 h-3 transition-transform ${filtreVisible ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {nrFiltreActive > 0 && (
+            <button onClick={resetFiltre} className="text-xs text-slate-400 hover:text-white underline">
+              Reset
+            </button>
+          )}
+        </div>
+
+        {filtreVisible && (
+          <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-3 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Gen */}
+              <div className="space-y-1.5">
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Gen</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Feminin', 'Masculin', 'Mixt'].map(gen => (
+                    <label key={gen} className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg cursor-pointer border transition-colors ${filterGen.has(gen) ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-primary' : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-700'}`}>
+                      <input type="checkbox" checked={filterGen.has(gen)} onChange={() => toggleGen(gen)} className="w-3 h-3 accent-brand-primary" />
+                      {gen}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Probă */}
+              <div className="space-y-1.5">
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Probă</div>
+                <select
+                  value={filterProbaId}
+                  onChange={e => setFilterProbaId(e.target.value)}
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-brand-primary/60"
+                >
+                  <option value="">Toate probele</option>
+                  {probe.map(p => (
+                    <option key={p.id} value={p.id}>{p.denumire}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Vârstă */}
+              <div className="space-y-1.5">
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Vârstă (ani)</div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Min"
+                    value={filterVarstaMin}
+                    onChange={e => setFilterVarstaMin(e.target.value)}
+                    className="w-20 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/60"
+                  />
+                  <span className="text-slate-500 text-xs">–</span>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Max"
+                    value={filterVarstaMax}
+                    onChange={e => setFilterVarstaMax(e.target.value)}
+                    className="w-20 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/60"
+                  />
+                </div>
+              </div>
+
+              {/* Grad */}
+              <div className="space-y-1.5">
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Grad (ordine)</div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Min"
+                    value={filterGradMin}
+                    onChange={e => setFilterGradMin(e.target.value)}
+                    className="w-20 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/60"
+                  />
+                  <span className="text-slate-500 text-xs">–</span>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Max"
+                    value={filterGradMax}
+                    onChange={e => setFilterGradMax(e.target.value)}
+                    className="w-20 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/60"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Individual */}
       {filteredInscrieri.length > 0 && (
         <div>

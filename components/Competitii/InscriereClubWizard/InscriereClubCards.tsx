@@ -71,15 +71,8 @@ function calculeazaStatusCard(
   // Probe individuale (thao_quyen, thao_lo)
   const tipIndiv = proba.tip_proba === 'thao_quyen_individual' || proba.tip_proba === 'thao_lo_individual';
   if (tipIndiv) {
-    // Dacă nu s-au selectat sportivi încă (hub-ul tocmai s-a deschis sau proba nu a fost vizitată),
-    // verificăm dacă există sportivi eligibili în club pentru această probă.
-    // Selecția efectivă se face în Pas1, deci nu blocăm cardul pe baza selectedSportivi gol.
-    // Dacă selectedSportivi e gol SAU autoCategorie e gol (echipe încărcate din DB dar
-    // autoCategorie nu a fost calculată încă), arătăm cardul ca incomplet pentru a permite
-    // accesul în Pas1.
     if (selectedSportivi.size === 0 || autoCategorie.size === 0) {
-      const catProbaIndiv = catProba.filter(c => c.tip_participare === 'individual');
-      if (catProbaIndiv.length === 0) {
+      if (catProba.length === 0) {
         return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
       }
       return { proba, status: 'incomplet', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };

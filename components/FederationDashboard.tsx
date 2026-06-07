@@ -64,9 +64,9 @@ const NavCard: React.FC<{ title: string; view: View; icon: React.ElementType; on
     <div
         onClick={() => onNavigate(view)}
         style={{ touchAction: 'manipulation' }}
-        className="bg-slate-900/50 p-5 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-slate-800/50 transition-all border border-slate-800 hover:border-slate-700 hover:shadow-lg group"
+        className="bg-[var(--t-surface-2)] p-5 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-[var(--t-surface)] transition-all border border-[var(--t-border)] hover:shadow-lg group"
     >
-        <div className="p-3 rounded-full bg-slate-800 group-hover:bg-slate-700 transition-colors shrink-0">
+        <div className="p-3 rounded-full bg-[var(--t-surface)] group-hover:bg-[var(--t-surface-2)] transition-colors shrink-0">
             <Icon className="w-6 h-6 text-brand-light group-hover:text-white transition-colors" />
         </div>
         <span className="font-semibold text-slate-200 group-hover:text-white transition-colors">{title}</span>
@@ -334,9 +334,9 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                 {/* Sportivi per club — 2/3 lățime */}
                 <div className="lg:col-span-2">
                     <Card className="overflow-hidden">
-                        <div className="px-5 py-4 border-b border-slate-700/50 flex items-center gap-3">
-                            <BuildingIcon className="w-5 h-5 text-slate-400" />
-                            <h2 className="font-semibold text-white">Sportivi per Club</h2>
+                        <div className="px-5 py-4 border-b border-[var(--t-border)] flex items-center gap-3">
+                            <BuildingIcon className="w-5 h-5 text-[var(--t-text-muted)]" />
+                            <h2 className="font-semibold text-[var(--t-text)]">Sportivi per Club</h2>
                         </div>
                         {loadingCluburi ? (
                             <div className="p-5 space-y-3">
@@ -350,11 +350,11 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="bg-slate-800/50">
-                                            <th className="text-left px-5 py-3 text-slate-400 font-medium">Club</th>
-                                            <th className="text-right px-5 py-3 text-slate-400 font-medium">Total</th>
-                                            <th className="text-right px-5 py-3 text-slate-400 font-medium">Activi</th>
-                                            <th className="px-5 py-3 text-slate-400 font-medium text-right">Activi %</th>
+                                        <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
+                                            <th className="text-left px-5 py-3 font-medium">Club</th>
+                                            <th className="text-right px-5 py-3 font-medium">Total</th>
+                                            <th className="text-right px-5 py-3 font-medium">Activi</th>
+                                            <th className="px-5 py-3 font-medium text-right">Activi %</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -363,7 +363,7 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                                             return (
                                                 <tr
                                                     key={row.club_id}
-                                                    className={`border-t border-slate-700/40 hover:bg-slate-800/30 transition-colors ${idx === 0 ? 'border-t-0' : ''}`}
+                                                    className={`border-t border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)] transition-colors ${idx === 0 ? 'border-t-0' : ''}`}
                                                 >
                                                     <td className="px-5 py-3 text-slate-200">{row.club_nume}</td>
                                                     <td className="px-5 py-3 text-right font-semibold text-white">{row.total}</td>
@@ -384,8 +384,8 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                                         })}
                                     </tbody>
                                     <tfoot>
-                                        <tr className="border-t border-slate-600 bg-slate-800/30">
-                                            <td className="px-5 py-3 font-semibold text-slate-300">Total federație</td>
+                                        <tr className="border-t border-[var(--t-border)] bg-[var(--t-surface-2)]">
+                                            <td className="px-5 py-3 font-semibold text-[var(--t-text-muted)]">Total federație</td>
                                             <td className="px-5 py-3 text-right font-bold text-white">{totalSportivi}</td>
                                             <td className="px-5 py-3 text-right font-bold text-emerald-400">{totalActivi}</td>
                                             <td className="px-5 py-3 text-right text-slate-400 text-xs">
@@ -402,9 +402,9 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                 {/* Timeline evenimente — 1/3 lățime */}
                 <div className="lg:col-span-1">
                     <Card className="overflow-hidden">
-                        <div className="px-5 py-4 border-b border-slate-700/50 flex items-center gap-3">
-                            <CalendarIcon className="w-5 h-5 text-slate-400" />
-                            <h2 className="font-semibold text-white">Următori 30 zile</h2>
+                        <div className="px-5 py-4 border-b border-[var(--t-border)] flex items-center gap-3">
+                            <CalendarIcon className="w-5 h-5 text-[var(--t-text-muted)]" />
+                            <h2 className="font-semibold text-[var(--t-text)]">Următori 30 zile</h2>
                         </div>
                         {loadingEvenimente ? (
                             <div className="p-5 space-y-4">
@@ -420,12 +420,12 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                                 Niciun eveniment programat în următoarele 30 zile.
                             </div>
                         ) : (
-                            <div className="divide-y divide-slate-700/40 max-h-[400px] overflow-y-auto">
+                            <div className="divide-y divide-[var(--t-border)] max-h-[400px] overflow-y-auto">
                                 {evenimente.map(ev => {
                                     const zile = getDaysUntil(ev.data);
                                     const isExamen = ev.tip === 'examen';
                                     return (
-                                        <div key={ev.id} className="px-5 py-4 hover:bg-slate-800/30 transition-colors">
+                                        <div key={ev.id} className="px-5 py-4 hover:bg-[var(--t-table-row-hover)] transition-colors">
                                             <div className="flex items-start gap-3">
                                                 <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${isExamen ? 'bg-purple-400' : 'bg-orange-400'}`} />
                                                 <div className="flex-1 min-w-0">

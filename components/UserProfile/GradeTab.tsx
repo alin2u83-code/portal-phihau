@@ -68,10 +68,10 @@ export const GradeTab: React.FC<GradeTabProps> = ({
                         <PlusIcon className="w-4 h-4 mr-1"/> Adaugă Manual
                     </Button>
                 </div>
-                <div className="overflow-hidden rounded-lg border border-slate-700">
+                <div className="overflow-hidden rounded-lg border border-[var(--t-border)]">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-800 text-slate-400">
-                            <tr>
+                        <thead>
+                            <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
                                 <th className="p-3">Data</th>
                                 <th className="p-3">Grad</th>
                                 <th className="p-3">Sursă</th>
@@ -79,9 +79,9 @@ export const GradeTab: React.FC<GradeTabProps> = ({
                                 {(onEditEntry || onDeleteEntry) && <th className="p-3 w-24"></th>}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-700 bg-slate-900/50">
+                        <tbody className="divide-y divide-[var(--t-border)]">
                             {gradeHistory.length > 0 ? gradeHistory.map((item) => (
-                                <tr key={item.id} className="hover:bg-slate-800/50 transition-colors">
+                                <tr key={item.id} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
                                     <td className="p-3 font-medium text-white">{new Date(item.data_obtinere + 'T00:00:00').toLocaleDateString('ro-RO')}</td>
                                     <td className="p-3"><span className="font-bold text-amber-400">{item.rankName}</span></td>
                                     <td className="p-3">

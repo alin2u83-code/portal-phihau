@@ -59,7 +59,7 @@ export const InlantuireGradePanel: React.FC<Props> = ({ inlantuireId }) => {
         </thead>
         <tbody>
           {grade.map(g => (
-            <tr key={g.id} className="border-t border-slate-700/50 hover:bg-slate-700/20">
+            <tr key={g.id} className="border-t border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)]">
               <td className="py-1.5 px-2 text-slate-300">{g.nume}</td>
               {TIP_PROBE.map(tp => {
                 const key = `${g.id}:${tp.cod}`;

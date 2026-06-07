@@ -60,7 +60,7 @@ export const TrainingHistory: React.FC<TrainingHistoryProps> = ({ sportiv, antre
                                 <th className="py-2 text-right">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-700">
+                        <tbody className="divide-y divide-[var(--t-border)]">
                             {trainingRecords.map((record, index) => (
                                 <tr key={index}>
                                     <td className="py-2 font-semibold text-white">{new Date(record.date).toLocaleDateString('ro-RO')}</td>

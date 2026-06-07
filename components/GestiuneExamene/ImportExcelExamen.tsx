@@ -466,7 +466,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                         <p className="text-slate-500 text-xs mt-3">Format acceptat: <strong>Tabel examene locale</strong> (1 sheet) sau <strong>Examen de grad</strong> (multiple sheet-uri)</p>
                         {isLoading && <p className="text-brand-primary text-sm mt-3 animate-pulse">Se procesează fișierul...</p>}
                     </div>
-                    <div className="bg-slate-800/50 rounded-lg p-4 text-sm text-slate-400 space-y-3">
+                    <div className="bg-[var(--t-surface-2)] rounded-lg p-4 text-sm text-[var(--t-text-muted)] space-y-3">
                         <div>
                             <p className="font-medium text-slate-300 mb-1">Fișiere suportate:</p>
                             <p>â€¢ <strong className="text-slate-200">Phi Hau - Ex. Local - YYYY.MM.DD.xls</strong> â†’ înscrie sportivi + rezultate</p>
@@ -503,7 +503,7 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                             { label: 'Club', value: metadata.club || 'â€”' },
                             { label: 'Format', value: metadata.format === 'ex_local' ? 'Ex. Local' : 'Examen Grad' },
                         ].map(({ label, value }) => (
-                            <div key={label} className="bg-slate-800 rounded-lg p-3">
+                            <div key={label} className="bg-[var(--t-surface)] rounded-lg p-3">
                                 <p className="text-xs text-slate-400 uppercase font-bold">{label}</p>
                                 <p className="text-white text-sm font-medium mt-0.5 truncate">{value}</p>
                             </div>
@@ -660,14 +660,14 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
             {/* â”€â”€ STEP 3: Confirmare â”€â”€ */}
             {step === 3 && metadata && (
                 <div className="space-y-4">
-                    <div className="bg-slate-800 rounded-xl p-5 space-y-3">
+                    <div className="bg-[var(--t-surface)] rounded-xl p-5 space-y-3">
                         <h3 className="text-white font-bold">Rezumat import</h3>
                         <div className="grid grid-cols-2 gap-3 text-sm">
-                            <div className="bg-slate-900/50 rounded-lg p-3">
+                            <div className="bg-[var(--t-surface-2)] rounded-lg p-3">
                                 <p className="text-slate-400">Sportivi de înscris</p>
                                 <p className="text-2xl font-bold text-white">{stats.total - stats.skip}</p>
                             </div>
-                            <div className="bg-slate-900/50 rounded-lg p-3">
+                            <div className="bg-[var(--t-surface-2)] rounded-lg p-3">
                                 <p className="text-slate-400">Sportivi noi de creat</p>
                                 <p className="text-2xl font-bold text-rose-400">
                                     {randuri.filter((r, i) => {
@@ -676,13 +676,13 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                                     }).length}
                                 </p>
                             </div>
-                            <div className="bg-slate-900/50 rounded-lg p-3">
+                            <div className="bg-[var(--t-surface-2)] rounded-lg p-3">
                                 <p className="text-slate-400">Rezultate importate</p>
                                 <p className="text-2xl font-bold text-emerald-400">
                                     {randuri.filter(r => r.rezultat === 'Admis').length} Admiși
                                 </p>
                             </div>
-                            <div className="bg-slate-900/50 rounded-lg p-3">
+                            <div className="bg-[var(--t-surface-2)] rounded-lg p-3">
                                 <p className="text-slate-400">Excluși manual</p>
                                 <p className="text-2xl font-bold text-slate-400">{stats.skip}</p>
                             </div>
@@ -763,15 +763,15 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     </div>
 
                     {/* Tabel detalii */}
-                    <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-700">
+                    <div className="max-h-72 overflow-y-auto rounded-lg border border-[var(--t-border)]">
                         <table className="text-xs w-full border-collapse">
-                            <thead className="sticky top-0 bg-slate-800 z-10">
-                                <tr className="border-b border-slate-700">
-                                    <th className="text-left py-2 px-3 text-slate-400 min-w-32">Sportiv</th>
-                                    <th className="text-left py-2 px-3 text-slate-400 hidden sm:table-cell">Grad</th>
-                                    <th className="text-left py-2 px-3 text-slate-400 hidden sm:table-cell">Rezultat</th>
-                                    <th className="text-left py-2 px-3 text-slate-400">Status</th>
-                                    <th className="text-left py-2 px-3 text-slate-400">Motiv</th>
+                            <thead className="sticky top-0 z-10" style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
+                                <tr className="border-b border-[var(--t-border)]">
+                                    <th className="text-left py-2 px-3 min-w-32">Sportiv</th>
+                                    <th className="text-left py-2 px-3 hidden sm:table-cell">Grad</th>
+                                    <th className="text-left py-2 px-3 hidden sm:table-cell">Rezultat</th>
+                                    <th className="text-left py-2 px-3">Status</th>
+                                    <th className="text-left py-2 px-3">Motiv</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -780,10 +780,10 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                                     .map((r, i) => (
                                         <tr
                                             key={i}
-                                            className={`border-b border-slate-800 last:border-0 ${
+                                            className={`border-b border-[var(--t-border)] last:border-0 ${
                                                 r.status === 'success' ? 'bg-emerald-900/10'
                                                 : r.status === 'error' ? 'bg-rose-900/10'
-                                                : 'bg-slate-800/10'
+                                                : ''
                                             }`}
                                         >
                                             <td className="py-2 px-3 text-white font-medium">

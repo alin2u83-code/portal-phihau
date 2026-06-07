@@ -814,7 +814,7 @@ export const Sportivi: React.FC<{
 
             {/* Paginare */}
             {!loadAll ? (
-                <div data-tour="sportivi-paginare" className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-slate-700/50">
+                <div data-tour="sportivi-paginare" className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-[var(--t-border)]">
                     {/* Stânga: info + selector per pagina + incarca toti */}
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
                         <span>
@@ -828,7 +828,7 @@ export const Sportivi: React.FC<{
                             <select
                                 value={pageSize}
                                 onChange={e => handlePageSizeChange(Number(e.target.value))}
-                                className="bg-slate-800 border border-slate-600 text-white rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                                className="bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-primary"
                             >
                                 {PAGE_SIZE_OPTIONS.map(n => (
                                     <option key={n} value={n}>{n}</option>
@@ -848,8 +848,8 @@ export const Sportivi: React.FC<{
                                 disabled={page <= 1}
                                 className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-colors ${
                                     page <= 1
-                                        ? 'border-slate-700 text-slate-600 opacity-50 cursor-not-allowed bg-slate-800/50'
-                                        : 'border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white bg-slate-800 cursor-pointer'
+                                        ? 'border-[var(--t-border)] text-[var(--t-text-muted)] opacity-50 cursor-not-allowed bg-[var(--t-surface-2)]'
+                                        : 'border-[var(--t-border)] text-[var(--t-text-muted)] hover:border-[var(--t-border)] hover:text-[var(--t-text)] bg-[var(--t-surface)] cursor-pointer'
                                 }`}
                             >
                                 Anterior
@@ -862,8 +862,8 @@ export const Sportivi: React.FC<{
                                 disabled={page >= totalPages}
                                 className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-colors ${
                                     page >= totalPages
-                                        ? 'border-slate-700 text-slate-600 opacity-50 cursor-not-allowed bg-slate-800/50'
-                                        : 'border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white bg-slate-800 cursor-pointer'
+                                        ? 'border-[var(--t-border)] text-[var(--t-text-muted)] opacity-50 cursor-not-allowed bg-[var(--t-surface-2)]'
+                                        : 'border-[var(--t-border)] text-[var(--t-text-muted)] hover:border-[var(--t-border)] hover:text-[var(--t-text)] bg-[var(--t-surface)] cursor-pointer'
                                 }`}
                             >
                                 Următor
@@ -872,7 +872,7 @@ export const Sportivi: React.FC<{
                     )}
                 </div>
             ) : (
-                <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-slate-700/50">
+                <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-[var(--t-border)]">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
                         <span>
                             {sportiviLoading
@@ -885,7 +885,7 @@ export const Sportivi: React.FC<{
                             <select
                                 value={0}
                                 onChange={e => handlePageSizeChange(Number(e.target.value))}
-                                className="bg-slate-800 border border-slate-600 text-white rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                                className="bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-primary"
                             >
                                 {PAGE_SIZE_OPTIONS.map(n => (
                                     <option key={n} value={n}>{n}</option>
@@ -961,7 +961,7 @@ export const Sportivi: React.FC<{
                         <select
                             value={bulkGrupaId}
                             onChange={e => setBulkGrupaId(e.target.value)}
-                            className="w-full bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                            className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
                             autoFocus
                         >
                             <option value="">Fără grupă (elimină din grupă)</option>

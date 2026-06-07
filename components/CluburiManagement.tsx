@@ -189,8 +189,8 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                     <Card className="p-0 overflow-hidden hidden md:block">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
-                                <thead className="bg-slate-700">
-                                    <tr>
+                                <thead>
+                                    <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
                                         <th className="p-4 font-semibold">Nume</th>
                                         <th className="p-4 font-semibold">Oraș</th>
                                         <th className="p-4 font-semibold">CIF</th>
@@ -199,7 +199,7 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                                 </thead>
                                 <tbody className="divide-y divide-slate-700">
                                     {(clubs || []).map(club => (
-                                        <tr key={club.id} className="hover:bg-slate-800/40 transition-colors">
+                                        <tr key={club.id} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
                                             <td className="p-4 font-medium text-white">{club.id === FEDERATIE_ID ? FEDERATIE_NAME : club.nume}</td>
                                             <td className="p-4 text-slate-300">{club.oras || '-'}</td>
                                             <td className="p-4 text-slate-300 font-mono text-sm">{club.cif || '-'}</td>
@@ -259,7 +259,7 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                                         )}
                                     </div>
                                 </div>
-                                <div className="flex gap-2 pt-2 border-t border-slate-700">
+                                <div className="flex gap-2 pt-2 border-t border-[var(--t-border)]">
                                     <Button
                                         type="button"
                                         onClick={() => navigateRoot('user-management')}

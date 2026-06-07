@@ -124,7 +124,7 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
     return (
         <div className="space-y-4">
             {/* ── Heat map ── */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl p-4">
                 <div className="flex items-start justify-between mb-4 gap-3">
                     <div>
                         <p className="text-sm font-bold text-white">Raport Aging Restanțe</p>
@@ -170,7 +170,7 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
 
             {/* ── Risk concentration bar ── */}
             {grandTotal > 0 && criticalBucket.total > 0 && (
-                <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                     <div className="flex justify-between text-xs text-slate-400 mb-2">
                         <span>
                             Concentrare risc:&nbsp;
@@ -193,8 +193,8 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
 
             {/* ── Detail table ── */}
             {detailRows.length > 0 && (
-                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-                    <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl overflow-hidden">
+                    <div className="px-4 py-3 border-b border-[var(--t-border)] flex items-center justify-between">
                         <p className="text-sm font-bold text-white">Top restanțe (cele mai vechi)</p>
                         <span className="text-xs text-slate-500">{grandCount} total · afișate {detailRows.length}</span>
                     </div>
@@ -203,17 +203,17 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead>
-                                <tr className="border-b border-slate-800 bg-slate-800/40">
-                                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400">Plătitor</th>
-                                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400">Descriere</th>
-                                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400">Scadență</th>
-                                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400">Vechime</th>
-                                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 text-right">Sumă</th>
+                                <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+                                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">Plătitor</th>
+                                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">Descriere</th>
+                                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">Scadență</th>
+                                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">Vechime</th>
+                                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-right">Sumă</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-800/50">
+                            <tbody className="divide-y divide-[var(--t-border)]">
                                 {detailRows.map(row => (
-                                    <tr key={row.id} className="hover:bg-slate-800/30 transition-colors">
+                                    <tr key={row.id} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
                                         <td className="px-4 py-2.5 text-white font-medium">{row.numePlatitor}</td>
                                         <td className="px-4 py-2.5 text-slate-300 max-w-[200px] truncate">{row.descriere}</td>
                                         <td className="px-4 py-2.5 text-slate-400 whitespace-nowrap">

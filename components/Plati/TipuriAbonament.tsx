@@ -134,7 +134,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
             </Card>
 
             <Card className="overflow-hidden p-0">
-                <div className="bg-slate-700/50 p-4 border-b border-slate-700">
+                <div className="bg-[var(--t-surface-2)] p-4 border-b border-[var(--t-border)]">
                     <h3 className="font-bold text-white">Nomenclator Abonamente Active</h3>
                 </div>
 
@@ -142,7 +142,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                 {isMobile ? (
                     <div className="p-3 space-y-3">
                         {sortedAbonamente.map(ab => (
-                            <div key={ab.id} className="bg-slate-800/60 rounded-xl border border-slate-700 p-4 space-y-3">
+                            <div key={ab.id} className="bg-[var(--t-surface-2)] rounded-xl border border-[var(--t-border)] p-4 space-y-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex-1 min-w-0">
                                         <Input label="Denumire" value={ab.denumire}
@@ -221,12 +221,12 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                 ))}
                             </tbody>
                         </table>
-                        {tipuriAbonament.length === 0 && <div className="p-12 text-center text-slate-500 italic bg-slate-800/20">Nu există tipuri de abonament definite. Folosiți formularul de mai sus pentru a începe.</div>}
+                        {tipuriAbonament.length === 0 && <div className="p-12 text-center text-[var(--t-text-muted)] italic bg-[var(--t-surface-2)]">Nu există tipuri de abonament definite. Folosiți formularul de mai sus pentru a începe.</div>}
                     </div>
                 )}
             </Card>
 
-            <div className="mt-8 bg-slate-800/40 p-4 rounded-lg border border-slate-700">
+            <div className="mt-8 bg-[var(--t-surface-2)] p-4 rounded-lg border border-[var(--t-border)]">
                 <h4 className="text-sm font-bold text-slate-400 uppercase mb-2">Ghid de utilizare</h4>
                 <ul className="text-xs text-slate-500 space-y-1 list-disc pl-4">
                     <li>Abonamentele <strong>Individuale</strong> trebuie să aibă Nr. Membri setat la <strong>1</strong>.</li>

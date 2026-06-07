@@ -175,7 +175,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold text-white">Jurnal Plăți (Facturi Emise)</h3>
                     <label className="flex items-center space-x-2 text-sm cursor-pointer">
-                        <input type="checkbox" checked={showUnpaidOnly} onChange={() => setShowUnpaidOnly(!showUnpaidOnly)} className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary"/>
+                        <input type="checkbox" checked={showUnpaidOnly} onChange={() => setShowUnpaidOnly(!showUnpaidOnly)} className="h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary"/>
                         <span className="font-semibold">Vezi doar plățile neachitate</span>
                     </label>
                 </div>

@@ -77,7 +77,7 @@ const TaxaCard: React.FC<{
     }, [taxa.data_inceput, taxa.data_sfarsit]);
 
     return (
-        <Card className="flex flex-col bg-slate-800/50 border-slate-700 hover:border-brand-secondary transition-colors">
+        <Card className="flex flex-col bg-[var(--t-surface-2)] border-[var(--t-border)] hover:border-brand-secondary transition-colors">
             <div className="flex justify-between items-start gap-2">
                 <div className="flex-grow min-w-0">
                     {isEditing ? (
@@ -157,7 +157,7 @@ const TaxaCard: React.FC<{
             </div>
 
             {canGenerate && (
-                <div className="mt-6 pt-4 border-t border-slate-700/50 flex gap-2">
+                <div className="mt-6 pt-4 border-t border-[var(--t-border)] flex gap-2">
                     <Button variant="info" size="sm" className="flex-1" onClick={() => onGenerate(taxa)}>
                         <BanknotesIcon className="w-4 h-4 mr-2" /> Generează Facturi
                     </Button>
@@ -228,7 +228,7 @@ const TipTaxaListe: React.FC<TipTaxaListeProps> = ({ tip, sportiviActivi, plati,
                     </div>
                     <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
                         {auPlatit.length === 0 ? (
-                            <div className="text-center py-4 text-slate-500 italic text-xs bg-slate-800/30 rounded-lg border border-dashed border-slate-700">
+                            <div className="text-center py-4 text-[var(--t-text-muted)] italic text-xs bg-[var(--t-surface-2)] rounded-lg border border-dashed border-[var(--t-border)]">
                                 Nicio plată înregistrată.
                             </div>
                         ) : (
@@ -343,19 +343,19 @@ const TabTransmisFederatie: React.FC<TabTransmisFederatieProps> = ({
                 Sportivi incluși în deconturi transmise la federație în <span className="font-bold text-white">{anCurent}</span>.
                 Total: <span className="font-bold text-white">{rows.length}</span> sportivi.
             </p>
-            <div className="overflow-x-auto rounded-xl border border-slate-700">
+            <div className="overflow-x-auto rounded-xl border border-[var(--t-border)]">
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="border-b border-slate-700 bg-slate-800/60">
-                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider text-slate-400">Sportiv</th>
-                            <th className="text-right py-3 px-4 text-xs font-black uppercase tracking-wider text-slate-400">Sumă</th>
-                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider text-slate-400">Data Decontului</th>
-                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider text-slate-400 hidden sm:table-cell">Decont ID</th>
+                        <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider">Sportiv</th>
+                            <th className="text-right py-3 px-4 text-xs font-black uppercase tracking-wider">Sumă</th>
+                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider">Data Decontului</th>
+                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider hidden sm:table-cell">Decont ID</th>
                         </tr>
                     </thead>
                     <tbody>
                         {rows.map(row => (
-                            <tr key={row.id} className="border-b border-slate-700/50 hover:bg-slate-800/30 transition-colors">
+                            <tr key={row.id} className="border-b border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)] transition-colors">
                                 <td className="py-3 px-4 font-semibold text-white">{row.numeSportiv}</td>
                                 <td className="py-3 px-4 text-right font-bold text-emerald-400">{row.suma.toFixed(2)} RON</td>
                                 <td className="py-3 px-4 text-slate-300 text-xs">{row.dataDecont ? new Date(row.dataDecont).toLocaleDateString('ro-RO') : '-'}</td>
@@ -455,9 +455,9 @@ const TabRaportFederatie: React.FC<TabRaportFederatieProps> = ({
             </p>
 
             {grupateClub.map(club => (
-                <div key={club.clubId} className="rounded-xl border border-slate-700 overflow-hidden">
+                <div key={club.clubId} className="rounded-xl border border-[var(--t-border)] overflow-hidden">
                     {/* Header club */}
-                    <div className="flex items-center justify-between px-5 py-3 bg-slate-800/70 border-b border-slate-700">
+                    <div className="flex items-center justify-between px-5 py-3 bg-[var(--t-surface-2)] border-b border-[var(--t-border)]">
                         <div className="flex items-center gap-3">
                             <span className="text-sm font-black text-white">{club.clubNume}</span>
                             <span className="text-xs text-slate-400">{club.rows.length} sportivi</span>
@@ -469,16 +469,16 @@ const TabRaportFederatie: React.FC<TabRaportFederatieProps> = ({
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-slate-700/60 bg-slate-800/30">
-                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider text-slate-500">Sportiv</th>
-                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider text-slate-500">Tip Taxă</th>
-                                    <th className="text-right py-2 px-4 text-[10px] font-black uppercase tracking-wider text-slate-500">Sumă</th>
-                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider text-slate-500 hidden sm:table-cell">Data</th>
+                                <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider">Sportiv</th>
+                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider">Tip Taxă</th>
+                                    <th className="text-right py-2 px-4 text-[10px] font-black uppercase tracking-wider">Sumă</th>
+                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider hidden sm:table-cell">Data</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {club.rows.map(row => (
-                                    <tr key={row.id} className="border-b border-slate-700/30 hover:bg-slate-800/20 transition-colors">
+                                    <tr key={row.id} className="border-b border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)] transition-colors">
                                         <td className="py-2.5 px-4 font-semibold text-white">{row.numeSportiv}</td>
                                         <td className="py-2.5 px-4">
                                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${
@@ -749,7 +749,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
             </div>
 
             {/* Tab-uri */}
-            <div className="flex border-b border-slate-700 overflow-x-auto">
+            <div className="flex border-b border-[var(--t-border)] overflow-x-auto">
                 {taburi.map(tab => (
                     <button
                         key={tab.id}
@@ -786,7 +786,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                                     />
                                 ))
                         ) : (
-                            <Card className="col-span-full text-center py-12 bg-slate-800/30 border-dashed border-slate-700">
+                            <Card className="col-span-full text-center py-12 bg-[var(--t-surface-2)] border-dashed border-[var(--t-border)]">
                                 <BanknotesIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
                                 <p className="text-slate-400 font-medium">Nicio taxă anuală configurată.</p>
                                 {canManage && (
@@ -868,7 +868,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                     </div>
 
                     {statusList.some(s => s.vizaStatus === 'Activ') && (
-                        <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center p-3 bg-slate-800/40 rounded-lg border border-slate-700/50">
+                        <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center p-3 bg-[var(--t-surface-2)] rounded-lg border border-[var(--t-border)]">
                             <p className="text-xs text-slate-400">
                                 <span className="font-bold text-emerald-400">{statusList.filter(s => s.vizaStatus === 'Activ').length}</span> sportivi cu viză activă — pot fi exportați pentru federație
                             </p>
@@ -883,7 +883,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                         </div>
                     )}
 
-                    <div className="max-h-[60vh] overflow-y-auto rounded-lg border border-slate-700">
+                    <div className="max-h-[60vh] overflow-y-auto rounded-lg border border-[var(--t-border)]">
                         <ResponsiveTable
                             data={statusList}
                             columns={[

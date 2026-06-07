@@ -256,7 +256,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
         )}
       </div>
       {/* Bloc filtre perioadă */}
-      <div className="mb-4 bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-3">
+      <div className="mb-4 bg-[var(--t-surface-2)] border border-[var(--t-border)] rounded-xl p-4 space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-end gap-4">
           {/* De la: Lună + An */}
           <div className="flex flex-col sm:flex-row gap-2 flex-1">
@@ -265,7 +265,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               <select
                 value={monthFrom}
                 onChange={e => setMonthFrom(e.target.value)}
-                className="w-full bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
               >
                 <option value="">Orice lună</option>
                 {LUNI.map((luna, idx) => (
@@ -278,7 +278,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               <select
                 value={yearFrom}
                 onChange={e => setYearFrom(e.target.value)}
-                className="w-full bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
               >
                 <option value="">Orice an</option>
                 {ANI.map(an => (
@@ -300,7 +300,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               <select
                 value={monthTo}
                 onChange={e => setMonthTo(e.target.value)}
-                className="w-full bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
               >
                 <option value="">Orice lună</option>
                 {LUNI.map((luna, idx) => (
@@ -313,7 +313,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               <select
                 value={yearTo}
                 onChange={e => setYearTo(e.target.value)}
-                className="w-full bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
               >
                 <option value="">Orice an</option>
                 {ANI.map(an => (
@@ -329,7 +329,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               <button
                 type="button"
                 onClick={clearDateFilter}
-                className="w-full lg:w-auto px-4 py-2 text-xs font-medium text-slate-300 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg transition-colors whitespace-nowrap"
+                className="w-full lg:w-auto px-4 py-2 text-xs font-medium text-[var(--t-text-muted)] bg-[var(--t-surface)] hover:bg-[var(--t-table-row-hover)] border border-[var(--t-border)] rounded-lg transition-colors whitespace-nowrap"
               >
                 Resetează filtrele de perioadă
               </button>
@@ -363,7 +363,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               key={sc.value}
               type="button"
               onClick={() => applyShortcut(sc.value)}
-              className="shrink-0 px-3 py-1 text-xs font-medium rounded-full border border-slate-600 text-slate-300 bg-slate-700/60 hover:bg-brand-secondary/20 hover:border-brand-secondary hover:text-brand-secondary transition-colors"
+              className="shrink-0 px-3 py-1 text-xs font-medium rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] bg-[var(--t-surface-2)] hover:bg-brand-secondary/20 hover:border-brand-secondary hover:text-brand-secondary transition-colors"
             >
               {sc.label}
             </button>

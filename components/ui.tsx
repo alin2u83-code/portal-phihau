@@ -112,7 +112,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Card: React.FC<CardProps> = ({ children, className, ...props }) => (
-  <div className={`bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 shadow-lg backdrop-blur-sm ${className}`} {...props}>
+  <div className={`bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl p-4 shadow-lg backdrop-blur-sm ${className}`} {...props}>
     {children}
   </div>
 );
@@ -177,8 +177,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
   return ReactDOM.createPortal(
     <div className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in" onClick={() => !persistent && onClose()} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-      <div className="bg-slate-900 border border-slate-700/80 w-full max-h-[90vh] max-w-lg sm:max-w-2xl rounded-2xl shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()} style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}>
-        <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/80 bg-slate-800/60 rounded-t-2xl sticky top-0 z-10 backdrop-blur-md">
+      <div className="bg-[var(--t-bg)] border border-[var(--t-border)] w-full max-h-[90vh] max-w-lg sm:max-w-2xl rounded-2xl shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()} style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}>
+        <div className="flex justify-between items-center p-4 sm:p-5 border-b border-[var(--t-border)] bg-[var(--t-surface-2)] rounded-t-2xl sticky top-0 z-10 backdrop-blur-md">
           <h2 id={titleId} className="text-base sm:text-lg font-bold text-white tracking-tight truncate pr-4">{title}</h2>
           <button onClick={onClose} className="p-2 -mr-1 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl transition-colors active:scale-95 touch-manipulation">
             <XIcon className="w-5 h-5" />
@@ -223,12 +223,12 @@ export const CredentialeContModal: React.FC<CredentialeContModalProps> = ({ isOp
       aria-label="Credențiale cont creat"
     >
       <div
-        className="bg-slate-900 border border-slate-700/80 w-full max-w-md rounded-2xl shadow-2xl flex flex-col"
+        className="bg-[var(--t-bg)] border border-[var(--t-border)] w-full max-w-md rounded-2xl shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
         style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}
       >
         {/* Header */}
-        <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/80 bg-slate-800/60 rounded-t-2xl">
+        <div className="flex justify-between items-center p-4 sm:p-5 border-b border-[var(--t-border)] bg-[var(--t-surface-2)] rounded-t-2xl">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">Cont creat cu succes</h2>
             {numeSportiv && <p className="text-xs text-slate-400 mt-0.5">Credențiale pentru {numeSportiv}</p>}
@@ -252,8 +252,8 @@ export const CredentialeContModal: React.FC<CredentialeContModalProps> = ({ isOp
           {/* Email */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Email</label>
-            <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
-              <span className="flex-1 text-sm text-white font-mono break-all select-all">{email}</span>
+            <div className="flex items-center gap-2 bg-[var(--t-surface)] border border-[var(--t-border)] rounded-lg px-3 py-2">
+              <span className="flex-1 text-sm text-[var(--t-text)] font-mono break-all select-all">{email}</span>
               <button
                 type="button"
                 onClick={() => copiaza(email, setCopiatEmail)}
@@ -268,8 +268,8 @@ export const CredentialeContModal: React.FC<CredentialeContModalProps> = ({ isOp
           {/* Parola */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Parolă inițială</label>
-            <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
-              <span className="flex-1 text-sm text-white font-mono break-all select-all">{parola}</span>
+            <div className="flex items-center gap-2 bg-[var(--t-surface)] border border-[var(--t-border)] rounded-lg px-3 py-2">
+              <span className="flex-1 text-sm text-[var(--t-text)] font-mono break-all select-all">{parola}</span>
               <button
                 type="button"
                 onClick={() => copiaza(parola, setCopiatParola)}
@@ -304,7 +304,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, id, error, ...props }, ref) => {
-    const errorClasses = error ? 'border-rose-500 focus:ring-rose-500 focus:border-rose-500' : 'border-slate-700 focus:ring-indigo-500 focus:border-indigo-500';
+    const errorClasses = error ? 'border-rose-500 focus:ring-rose-500 focus:border-rose-500' : 'border-[var(--t-border)] focus:ring-indigo-500 focus:border-indigo-500';
 
     return (
         <div className="w-full">
@@ -313,7 +313,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, id
                 id={id}
                 ref={ref}
                 {...props}
-                className={`w-full bg-slate-900 border ${errorClasses} rounded-xl px-4 py-3 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all shadow-sm touch-manipulation appearance-none ${props.className}`}
+                className={`w-full bg-[var(--t-bg)] border ${errorClasses} rounded-xl px-4 py-3 text-base sm:text-sm text-[var(--t-text)] placeholder-slate-500 focus:outline-none focus:ring-2 transition-all shadow-sm touch-manipulation appearance-none ${props.className}`}
             />
             {error && <p className="text-rose-400 text-xs mt-1.5 ml-1 font-medium flex items-center gap-1">⚠️ {error}</p>}
         </div>
@@ -328,7 +328,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ label,
     <div className="w-full">
         {label && <label htmlFor={id} className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">{label}</label>}
         <div className="relative">
-            <select id={id} ref={ref} {...props} className={`w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm appearance-none touch-manipulation ${props.className}`}>
+            <select id={id} ref={ref} {...props} className={`w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-base sm:text-sm text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm appearance-none touch-manipulation ${props.className}`}>
                 {children}
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400">
@@ -453,7 +453,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ label, containerClassN
       </div>
       <input
         {...props}
-        className={`w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm touch-manipulation appearance-none ${className}`}
+        className={`w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl pl-10 pr-4 py-3 text-base sm:text-sm text-[var(--t-text)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm touch-manipulation appearance-none ${className}`}
       />
     </div>
   </div>
@@ -684,7 +684,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           <select
             value={value}
             onChange={e => onChange(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm appearance-none touch-manipulation"
+            className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-base text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm appearance-none touch-manipulation"
           >
             {emptyLabel !== undefined && <option value="">{emptyLabel}</option>}
             {options.map(o => (
@@ -715,7 +715,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         role="combobox"
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all shadow-sm flex items-center gap-2"
+        className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-sm text-[var(--t-text)] focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all shadow-sm flex items-center gap-2"
       >
         <input
           ref={inputRef}
@@ -762,7 +762,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           id="searchable-select-listbox"
           ref={listRef}
           role="listbox"
-          className="absolute z-50 mt-1 w-full bg-slate-800 border border-slate-600 rounded-xl shadow-xl overflow-hidden max-h-52 overflow-y-auto py-1"
+          className="absolute z-50 mt-1 w-full bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl shadow-xl overflow-hidden max-h-52 overflow-y-auto py-1"
         >
           {emptyLabel !== undefined && !query && (
             <li
@@ -871,7 +871,7 @@ export const DateInputDMY: React.FC<DateInputDMYProps> = ({ label, value, onChan
   const handleFocus = () => { hasFocusRef.current = true; };
   const handleBlur = () => { hasFocusRef.current = false; };
 
-  const cls = `w-full bg-slate-800 border ${error ? 'border-red-500' : 'border-slate-700'} rounded-lg px-2 py-2 text-white text-center text-base focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50`;
+  const cls = `w-full bg-[var(--t-surface)] border ${error ? 'border-red-500' : 'border-[var(--t-border)]'} rounded-lg px-2 py-2 text-[var(--t-text)] text-center text-base focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50`;
 
   return (
     <div className="space-y-1">
@@ -912,10 +912,10 @@ interface AccordionItemProps {
 }
 
 export const AccordionItem: React.FC<AccordionItemProps> = ({ id, title, icon: Icon, isOpen, onToggle, children }) => (
-  <div className="border border-slate-700/50 rounded-lg overflow-hidden">
+  <div className="border border-[var(--t-border)] rounded-lg overflow-hidden">
     <button
       onClick={() => onToggle(id)}
-      className="w-full flex items-center justify-between px-4 py-3 bg-slate-800/60 hover:bg-slate-700/60 transition-colors text-left"
+      className="w-full flex items-center justify-between px-4 py-3 bg-[var(--t-surface-2)] hover:bg-[var(--t-surface)] transition-colors text-left"
     >
       <div className="flex items-center gap-3">
         {Icon && <Icon className="w-4 h-4 text-amber-400 shrink-0" />}

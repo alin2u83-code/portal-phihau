@@ -419,8 +419,8 @@ const RaportInscrieri: React.FC<RaportInscrieriProps> = ({
         </button>
       </div>
 
-      <div className="border border-slate-700 rounded-xl overflow-hidden">
-        <div className="divide-y divide-slate-700/50">
+      <div className="border border-[var(--t-border)] rounded-xl overflow-hidden">
+        <div className="divide-y divide-[var(--t-border)]">
           {raport.map((sp) => (
             <div key={sp.id} className="px-4 py-3">
               <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -636,9 +636,9 @@ const FinanciarView: React.FC<FinanciarViewProps> = ({
         </button>
       </div>
 
-      <div className="border border-slate-700 rounded-xl overflow-hidden">
+      <div className="border border-[var(--t-border)] rounded-xl overflow-hidden">
         {/* Header tabel */}
-        <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 px-4 py-2 bg-slate-800/80 text-xs font-semibold text-slate-400 border-b border-slate-700">
+        <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 px-4 py-2 text-xs font-semibold border-b border-[var(--t-border)]" style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
           <span>Club</span>
           <span className="text-right">Sportivi</span>
           <span className="text-right">Echipe</span>
@@ -658,10 +658,10 @@ const FinanciarView: React.FC<FinanciarViewProps> = ({
           const nrEchipe = club.randuri.filter(r => r.tip === 'echipa').length;
 
           return (
-            <div key={club.clubId} className="border-b border-slate-700/50 last:border-0">
+            <div key={club.clubId} className="border-b border-[var(--t-border)] last:border-0">
               {/* Rand club */}
               <div
-                className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 px-4 py-3 cursor-pointer hover:bg-slate-800/40 transition-colors items-center"
+                className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 px-4 py-3 cursor-pointer hover:bg-[var(--t-table-row-hover)] transition-colors items-center"
                 onClick={() => toggleExpand(club.clubId)}
                 style={{ touchAction: 'manipulation' }}
               >
@@ -684,10 +684,10 @@ const FinanciarView: React.FC<FinanciarViewProps> = ({
 
               {/* Detalii expandabile */}
               {isExpanded && (
-                <div className="border-t border-slate-700/50 bg-slate-900/40">
+                <div className="border-t border-[var(--t-border)] bg-[var(--t-surface-2)]">
                   {/* Buton Marcheaza tot achitat */}
                   {neachitat > 0 && (
-                    <div className="px-6 py-2 border-b border-slate-700/30">
+                    <div className="px-6 py-2 border-b border-[var(--t-border)]">
                       <button
                         onClick={() => marcheazaTotAchitat(club)}
                         style={{ touchAction: 'manipulation' }}
@@ -1005,7 +1005,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
               <div className="-mx-4 sm:mx-0 overflow-x-auto">
                 <table className="w-full text-sm text-slate-300 min-w-[480px]">
                   <thead>
-                    <tr className="border-b border-slate-700">
+                    <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
                       <th className="p-2 text-left w-10">#</th>
                       <th className="p-2 text-left">Categorie</th>
                       <th className="p-2 text-left hidden md:table-cell">Probă</th>
@@ -1014,7 +1014,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                       {canRegister && isClubAdmin && <th className="p-2 text-right">Acțiuni</th>}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800">
+                  <tbody className="divide-y divide-[var(--t-border)]">
                     {filteredCategorii.map(cat => {
                       const proba = probe.find(p => p.id === cat.proba_id);
                       const count = inscrieriCount(cat.id);
@@ -1027,8 +1027,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                       const colCount = (canRegister && isClubAdmin) ? 6 : 5;
                       return (
                         <React.Fragment key={cat.id}>
-                          <tr className="hover:bg-slate-800/50">
-                            <td className="p-2 text-slate-500">{cat.numar_categorie}</td>
+                          <tr className="hover:bg-[var(--t-table-row-hover)]">
+                            <td className="p-2 text-[var(--t-text-muted)]">{cat.numar_categorie}</td>
                             <td className="p-2">
                               <div className="font-medium text-white">{cat.denumire}</div>
                               {cat.arma && <div className="text-xs text-orange-400">{cat.arma}</div>}
@@ -1065,9 +1065,9 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                           {/* Task 1: panou expandat cu sportivii înscriși */}
                           {isExpanded && (
                             <tr>
-                              <td colSpan={colCount} className="px-2 pb-2 pt-0 bg-slate-800/40">
-                                <div className="rounded-lg border border-slate-700 overflow-hidden">
-                                  <div className="px-3 py-2 bg-slate-800/60 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wide flex items-center justify-between">
+                              <td colSpan={colCount} className="px-2 pb-2 pt-0 bg-[var(--t-surface-2)]">
+                                <div className="rounded-lg border border-[var(--t-border)] overflow-hidden">
+                                  <div className="px-3 py-2 bg-[var(--t-surface-2)] border-b border-[var(--t-border)] text-xs font-semibold text-[var(--t-text-muted)] uppercase tracking-wide flex items-center justify-between">
                                     <span>Înscriși în: {cat.denumire}</span>
                                     <button
                                       onClick={() => setViewInscrieriCatId(null)}
@@ -1224,7 +1224,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 <div className="-mx-4 sm:mx-0 overflow-x-auto">
                   <table className="w-full text-sm text-slate-300 min-w-[480px]">
                     <thead>
-                      <tr className="border-b border-slate-700 text-slate-500 text-xs uppercase">
+                      <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="text-xs uppercase">
                         <th className="p-2 text-left">#</th>
                         <th className="p-2 text-left">Sportiv</th>
                         <th className="p-2 text-left">Probe</th>
@@ -1233,7 +1233,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                     </thead>
                     <tbody>
                       {rezultateLegacy.map((r, idx) => (
-                        <tr key={r.id} className="border-b border-slate-800 hover:bg-slate-800/40">
+                        <tr key={r.id} className="border-b border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)]">
                           <td className="p-2 text-slate-500">{idx + 1}</td>
                           <td className="p-2 font-medium text-white">
                             <span className="uppercase">{r.sportiv ? `${r.sportiv.nume} ${r.sportiv.prenume}` : '—'}</span>
@@ -2304,7 +2304,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           <div className="-mx-4 sm:mx-0 overflow-x-auto">
             <table className="w-full text-sm text-slate-300 min-w-[480px]">
               <thead>
-                <tr className="border-b border-slate-700">
+                <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
                   <th className="p-2 text-left w-10">#</th>
                   <th className="p-2 text-left">Categorie</th>
                   <th className="p-2 text-left hidden md:table-cell">Probă</th>
@@ -2313,7 +2313,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   <th className="p-2 text-right">Acțiuni</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-[var(--t-border)]">
                 {categorii.map(cat => {
                   const proba = probe.find(p => p.id === cat.proba_id);
                   const cnt = inscrieriCount(cat.id);
@@ -2325,8 +2325,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   });
                   return (
                     <React.Fragment key={cat.id}>
-                    <tr className="hover:bg-slate-800/50">
-                      <td className="p-2 text-slate-500 text-xs">{cat.numar_categorie}</td>
+                    <tr className="hover:bg-[var(--t-table-row-hover)]">
+                      <td className="p-2 text-[var(--t-text-muted)] text-xs">{cat.numar_categorie}</td>
                       <td className="p-2">
                         <div className="text-white text-xs font-medium">{cat.denumire}</div>
                         {cat.arma && <div className="text-orange-400 text-[11px]">{cat.arma}</div>}
@@ -2364,7 +2364,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     </tr>
                     {isCatExpanded && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-2 bg-slate-800/30 text-xs text-slate-400">
+                        <td colSpan={6} className="px-4 py-2 bg-[var(--t-surface-2)] text-xs text-[var(--t-text-muted)]">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                             <div><span className="text-slate-500">Vârstă:</span> {cat.varsta_min ?? '?'}–{cat.varsta_max ?? '∞'}</div>
                             <div><span className="text-slate-500">Gen:</span> {cat.gen ?? '-'}</div>

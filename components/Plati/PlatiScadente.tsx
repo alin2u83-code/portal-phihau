@@ -618,17 +618,17 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             <Card className="p-0 overflow-hidden hidden md:block">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-700/50">
-                            <tr>
-                                <th className="p-3"><input type="checkbox" onChange={handleSelectAll} className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary" /></th>
+                        <thead>
+                            <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
+                                <th className="p-3"><input type="checkbox" onChange={handleSelectAll} className="h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary" /></th>
                                 <th className="p-3">Data</th><th className="p-3">Plătitor</th><th className="p-3">Descriere</th>
                                 <th className="p-3 text-right">Sumă</th><th className="p-3 text-center">Status</th><th className="p-3 text-right">Acțiuni</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-700">
+                        <tbody className="divide-y divide-[var(--t-border)]">
                             {platiCuDetalii.map(p => (
                                 <tr key={p.id} className={`${selectedIds.has(p.id) ? 'bg-brand-primary/20' : ''}`}>
-                                    <td className="p-3"><input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleSelectRow(p.id)} className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary" /></td>
+                                    <td className="p-3"><input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleSelectRow(p.id)} className="h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary" /></td>
                                     <td className="p-3">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" style={{ touchAction: 'manipulation' }} onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!) }}>{getEntityName(p)}</td>
                                     <td className="p-3"><div className="font-medium text-white">{p.descriereDetaliata}</div>{p.reducereDetalii && <div className="text-xs text-slate-400">Aplicat: {p.reducereDetalii.nume}</div>}</td>
@@ -672,7 +672,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             {/* Mobile cards */}
             <div className="md:hidden space-y-2">
                 {platiCuDetalii.length === 0 && (
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+                    <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl p-8 text-center">
                         <p className="text-slate-500 italic">Nicio factură de afișat conform filtrelor.</p>
                         {(plati || []).length > 0 && <p className="text-xs mt-2 text-slate-600">Există {(plati || []).length} plăți în total, dar sunt ascunse de filtre.</p>}
                     </div>
@@ -681,13 +681,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     const ds = getDisplayStatus(p);
                     const cfg = STATUS_DISPLAY_CONFIG[ds];
                     return (
-                        <div key={p.id} className={`bg-slate-900 border rounded-xl px-4 py-3 ${selectedIds.has(p.id) ? 'border-indigo-500/60' : 'border-slate-800'}`}>
+                        <div key={p.id} className={`bg-[var(--t-bg)] border rounded-xl px-4 py-3 ${selectedIds.has(p.id) ? 'border-indigo-500/60' : 'border-[var(--t-border)]'}`}>
                             <div className="flex items-start gap-3">
                                 <input
                                     type="checkbox"
                                     checked={selectedIds.has(p.id)}
                                     onChange={() => handleSelectRow(p.id)}
-                                    className="mt-1 h-4 w-4 rounded border-slate-500 bg-slate-800 text-brand-secondary focus:ring-brand-secondary shrink-0"
+                                    className="mt-1 h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary shrink-0"
                                     onClick={e => e.stopPropagation()}
                                 />
                                 <div className="flex-1 min-w-0">
@@ -744,7 +744,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             {plataForPayment && (
                 <Modal isOpen={!!plataForPayment} onClose={() => setPlataForPayment(null)} title="Procesează Plată Factură">
                     <div className="space-y-4">
-                        <div className="p-3 bg-slate-800 rounded-lg border border-slate-700">
+                        <div className="p-3 bg-[var(--t-surface)] rounded-lg border border-[var(--t-border)]">
                             <p className="text-sm text-slate-400">Factură: <span className="text-white font-medium">{plataForPayment.descriere}</span></p>
                             <p className="text-sm text-slate-400">Total de plată: <span className="text-white font-bold">{plataForPayment.suma.toFixed(2)} RON</span></p>
                         </div>
@@ -763,7 +763,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                             <option value="Transfer Bancar">Transfer Bancar</option>
                         </Select>
 
-                        <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                        <div className="flex justify-end pt-4 gap-2 border-t border-[var(--t-border)]">
                             <Button variant="secondary" onClick={() => setPlataForPayment(null)} disabled={isPaymentLoading}>Anulează</Button>
                             <Button variant="success" onClick={handleProcessPayment} isLoading={isPaymentLoading}>Înregistrează Plata</Button>
                         </div>

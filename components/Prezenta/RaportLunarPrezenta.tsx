@@ -397,15 +397,15 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                         {/* â”€â”€ Tabel desktop â”€â”€ */}
                         <div className="hidden md:block overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-800 text-slate-400">
+                                <thead style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
                                     <tr>
                                         <th className="p-3 font-semibold w-6"></th>
                                         <th className="p-3 font-semibold">Nume Sportiv</th>
                                         <th className="p-3 font-semibold">Grad</th>
                                         <th className="p-3 font-semibold text-center" colSpan={3}>
-                                            <span className="text-slate-300">Luna curentă</span>
+                                            <span>Luna curentă</span>
                                         </th>
-                                        <th className="p-3 font-semibold text-center border-l border-slate-700" colSpan={2}>
+                                        <th className="p-3 font-semibold text-center border-l border-[var(--t-border)]" colSpan={2}>
                                             <span className="text-indigo-300">Perioadă examen</span>
                                         </th>
                                     </tr>
@@ -416,11 +416,11 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                         <th className="pb-2 text-center">Planificate</th>
                                         <th className="pb-2 text-center">Prezențe</th>
                                         <th className="pb-2 text-center">%</th>
-                                        <th className="pb-2 text-center border-l border-slate-700">Prezențe</th>
+                                        <th className="pb-2 text-center border-l border-[var(--t-border)]">Prezențe</th>
                                         <th className="pb-2 text-center">din</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-700">
+                                <tbody className="divide-y divide-[var(--t-border)]">
                                     {reportData.map(row => {
                                         const percentage = row.totalTrainings > 0
                                             ? Math.round((row.attendedTrainings / row.totalTrainings) * 100)
@@ -468,7 +468,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                     <td className={`p-3 text-center font-bold ${percentage < 50 ? 'text-red-400' : 'text-green-400'}`}>
                                                         {percentage}%
                                                     </td>
-                                                    <td className="p-3 text-center border-l border-slate-700">
+                                                    <td className="p-3 text-center border-l border-[var(--t-border)]">
                                                         <span className="font-bold text-indigo-300">
                                                             {row.attendedPerioadaExamen}
                                                         </span>
@@ -480,7 +480,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
 
                                                 {/* Breakdown per grupă (expandat) */}
                                                 {isExpanded && hasMultiGrupe && (
-                                                    <tr className="bg-slate-800/60">
+                                                    <tr className="bg-[var(--t-surface-2)]">
                                                         <td colSpan={8} className="px-8 py-2">
                                                             <div className="flex flex-wrap gap-2">
                                                                 {row.grupeBreakdown.map(gb => (
@@ -600,7 +600,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                             </button>
                                         )}
                                         {isExpanded && hasMultiGrupe && (
-                                            <div className="flex flex-col gap-1 mt-1 pl-2 border-l-2 border-slate-700">
+                                            <div className="flex flex-col gap-1 mt-1 pl-2 border-l-2 border-[var(--t-border)]">
                                                 {row.grupeBreakdown.map(gb => (
                                                     <div key={gb.grupaId} className="flex items-center justify-between text-xs">
                                                         <div className="flex items-center gap-1.5">

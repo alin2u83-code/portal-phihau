@@ -193,11 +193,11 @@ const ExpandedRow: React.FC<ExpandedRowProps> = ({ sms, clubId, onConfirm, onIgn
   };
 
   return (
-    <div className="px-4 pb-4 pt-2 bg-slate-800/60 border-t border-slate-700/60 rounded-b-xl space-y-3">
-      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Potrivire manuală</p>
+    <div className="px-4 pb-4 pt-2 bg-[var(--t-surface-2)] border-t border-[var(--t-border)] rounded-b-xl space-y-3">
+      <p className="text-xs font-bold text-[var(--t-text-muted)] uppercase tracking-wider">Potrivire manuală</p>
 
       {/* SMS content preview */}
-      <p className="text-xs text-slate-500 font-mono bg-slate-900/60 rounded-lg px-3 py-2 break-all">
+      <p className="text-xs text-[var(--t-text-muted)] font-mono bg-[var(--t-bg)] rounded-lg px-3 py-2 break-all">
         {sms.continut}
       </p>
 
@@ -212,13 +212,13 @@ const ExpandedRow: React.FC<ExpandedRowProps> = ({ sms, clubId, onConfirm, onIgn
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Filtrează după nume..."
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-3 py-2 text-sm text-[var(--t-text)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
           />
           <select
             value={selectedSportivId}
             onChange={e => setSelectedSportivId(e.target.value)}
             disabled={loadingSportivi}
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:opacity-50"
+            className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-3 py-2 text-sm text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:opacity-50"
           >
             <option value="">{loadingSportivi ? 'Se încarcă...' : '— Selectează sportiv —'}</option>
             {filteredSportivi.map(s => (
@@ -238,7 +238,7 @@ const ExpandedRow: React.FC<ExpandedRowProps> = ({ sms, clubId, onConfirm, onIgn
             value={selectedPlataId}
             onChange={e => setSelectedPlataId(e.target.value)}
             disabled={!selectedSportivId || loadingPlati}
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:opacity-50 mt-[26px]"
+            className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-3 py-2 text-sm text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:opacity-50 mt-[26px]"
           >
             <option value="">
               {!selectedSportivId
@@ -412,7 +412,7 @@ export const SMSIncasari: React.FC<SMSIncasariProps> = ({
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 p-1 bg-slate-800/60 rounded-xl border border-slate-700/60 w-fit">
+      <div className="flex gap-1 p-1 bg-[var(--t-surface-2)] rounded-xl border border-[var(--t-border)] w-fit">
         {(
           [
             { key: 'nerecunoscute', label: 'Nerecunoscute' },
@@ -488,10 +488,10 @@ export const SMSIncasari: React.FC<SMSIncasariProps> = ({
       {/* Desktop table — hidden on mobile */}
       {!loading && filtered.length > 0 && (
         <>
-          <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-700/60">
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-[var(--t-border)]">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider">
+                <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="text-xs uppercase tracking-wider">
                   <th className="px-4 py-3 text-left font-semibold">Ora primirii</th>
                   <th className="px-4 py-3 text-left font-semibold">Bancă</th>
                   <th className="px-4 py-3 text-right font-semibold">Sumă</th>
@@ -500,16 +500,16 @@ export const SMSIncasari: React.FC<SMSIncasariProps> = ({
                   <th className="px-4 py-3 text-right font-semibold">Conf. %</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-700/40">
+              <tbody className="divide-y divide-[var(--t-border)]">
                 {filtered.map(record => (
                   <React.Fragment key={record.id}>
                     <tr
                       onClick={() => handleRowClick(record)}
                       className={`transition-colors ${
                         record.status === 'unmatched'
-                          ? 'cursor-pointer hover:bg-slate-700/40'
+                          ? 'cursor-pointer hover:bg-[var(--t-table-row-hover)]'
                           : 'cursor-default'
-                      } ${expandedId === record.id ? 'bg-slate-700/30' : 'bg-slate-800/30'}`}
+                      } ${expandedId === record.id ? 'bg-[var(--t-surface-2)]' : ''}`}
                     >
                       <td className="px-4 py-3 text-slate-300 whitespace-nowrap">
                         {formatReceivedAt(record.received_at)}
@@ -564,14 +564,14 @@ export const SMSIncasari: React.FC<SMSIncasariProps> = ({
           {/* Mobile cards — shown only on mobile */}
           <div className="md:hidden space-y-3">
             {filtered.map(record => (
-              <div key={record.id} className="rounded-xl border border-slate-700/60 overflow-hidden">
+              <div key={record.id} className="rounded-xl border border-[var(--t-border)] overflow-hidden">
                 <div
                   onClick={() => handleRowClick(record)}
                   className={`p-4 space-y-3 ${
                     record.status === 'unmatched'
-                      ? 'cursor-pointer active:bg-slate-700/40'
+                      ? 'cursor-pointer active:bg-[var(--t-table-row-hover)]'
                       : 'cursor-default'
-                  } bg-slate-800/50`}
+                  } bg-[var(--t-surface-2)]`}
                 >
                   {/* Top row: time + badges */}
                   <div className="flex items-center justify-between gap-2 flex-wrap">

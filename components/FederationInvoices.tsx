@@ -153,12 +153,12 @@ const PaymentConfirmationModal: React.FC<PaymentConfirmationModalProps> = ({
                             placeholder="Caută sportiv..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-primary"
+                            className="w-full pl-9 pr-3 py-2 bg-[var(--t-surface)] border border-[var(--t-border)] rounded-lg text-sm text-[var(--t-text)] placeholder:text-slate-500 focus:outline-none focus:border-brand-primary"
                         />
                     </div>
 
                     {/* Lista sportivi — mobil: full-width scroll, desktop: grid 2 col */}
-                    <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-700 p-2 bg-slate-800/50">
+                    <div className="max-h-48 overflow-y-auto rounded-lg border border-[var(--t-border)] p-2 bg-[var(--t-surface-2)]">
                         {sportiviDisponibili.length === 0 ? (
                             <p className="text-center text-slate-500 text-sm py-4 italic">
                                 {search ? 'Niciun sportiv găsit.' : 'Toți sportivii activi sunt deja acoperiți de alt decont.'}
@@ -196,7 +196,7 @@ const PaymentConfirmationModal: React.FC<PaymentConfirmationModalProps> = ({
 
                 {file && <p className="text-sm text-center font-semibold text-slate-300">Fișier selectat: {file.name}</p>}
 
-                <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
+                <div className="flex justify-end pt-4 gap-2 border-t border-[var(--t-border)]">
                     <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
                     <Button variant="success" onClick={handleConfirm} isLoading={loading} disabled={!file}>
                         Confirmă și Încarcă

@@ -218,19 +218,19 @@ export const SMSLog: React.FC<SMSLogProps> = ({ clubId }) => {
             <Card className="overflow-x-auto p-0">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-700/60">
-                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-4 py-3">Telefon</th>
-                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-4 py-3">Tip</th>
-                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-4 py-3">Status</th>
-                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-4 py-3">Trimis la</th>
-                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-4 py-3">Retry</th>
-                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-4 py-3">Eroare</th>
+                  <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+                    <th className="text-left text-xs font-bold uppercase tracking-wider px-4 py-3">Telefon</th>
+                    <th className="text-left text-xs font-bold uppercase tracking-wider px-4 py-3">Tip</th>
+                    <th className="text-left text-xs font-bold uppercase tracking-wider px-4 py-3">Status</th>
+                    <th className="text-left text-xs font-bold uppercase tracking-wider px-4 py-3">Trimis la</th>
+                    <th className="text-left text-xs font-bold uppercase tracking-wider px-4 py-3">Retry</th>
+                    <th className="text-left text-xs font-bold uppercase tracking-wider px-4 py-3">Eroare</th>
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700/40">
+                <tbody className="divide-y divide-[var(--t-border)]">
                   {filtered.map(item => (
-                    <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={item.id} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
                       <td className="px-4 py-3 text-slate-300 font-mono text-xs">{item.telefon}</td>
                       <td className="px-4 py-3"><TipBadge tip={item.tip} /></td>
                       <td className="px-4 py-3"><StatusBadge status={item.status} /></td>

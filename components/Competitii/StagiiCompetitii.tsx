@@ -413,10 +413,10 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
         return grade.find(g => g.id === admittedParticipations[0]?.grad_sustinut_id);
     };
 
-    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-slate-400">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-slate-700 pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({rezultate.length})</h4>
+    return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-[var(--t-text-muted)]">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-[var(--t-border)] pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({rezultate.length})</h4>
     <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{(rezultate || []).map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.prenume} {s?.nume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{(rezultate || []).length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
     {permissions.isAdminClub && rezultate.length > 0 && (
-      <div className="mt-6 border-t border-slate-700 pt-6">
+      <div className="mt-6 border-t border-[var(--t-border)] pt-6">
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-xl font-semibold text-white">
             Raport Participanți ({rezultate.length})
@@ -428,7 +428,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-700 text-slate-400">
+              <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
                 <th className="text-left py-2 pr-4">Sportiv</th>
                 <th className="text-left py-2 pr-4">Data Înscrierii</th>
                 <th className="text-left py-2 pr-4">Categorie</th>
@@ -438,7 +438,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
             </thead>
             <tbody>
               {randuriiParticipanti.map((rand, i) => (
-                <tr key={i} className="border-b border-slate-800 hover:bg-slate-800/30">
+                <tr key={i} className="border-b border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)]">
                   <td className="py-2 pr-4 font-medium">
                     {rand.sportiv ? `${rand.sportiv.prenume} ${rand.sportiv.nume}` : '—'}
                   </td>
@@ -463,7 +463,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
       </div>
     )}
     {permissions.isAdminClub && (
-    <Card className="bg-slate-900/50">
+    <Card className="bg-[var(--t-surface-2)]">
         <h5 className="text-lg font-semibold mb-4 text-white">Înscrie Participant</h5>
         <form onSubmit={handleAddParticipant} className="space-y-4">
             <div className="relative">
@@ -475,9 +475,9 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                     placeholder="Nume sau prenume..."
                 />
                 {isSportivDropdownOpen && searchSportiv && (
-                    <div className="absolute z-10 w-full mt-1 bg-slate-900 border border-slate-700 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                    <div className="absolute z-10 w-full mt-1 bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl shadow-lg max-h-60 overflow-y-auto">
                         {sportiviFiltered.length > 0 ? sportiviFiltered.map(s => (
-                            <button key={s.id} type="button" className="w-full text-left px-4 py-2 hover:bg-slate-800 text-white"
+                            <button key={s.id} type="button" className="w-full text-left px-4 py-2 hover:bg-[var(--t-surface)] text-[var(--t-text)]"
                                 onClick={() => { setFormState(p => ({ ...p, sportivId: s.id })); setSearchSportiv(`${s.prenume} ${s.nume}`); setIsSportivDropdownOpen(false); }}>
                                 {s.prenume} {s.nume}
                             </button>
@@ -503,7 +503,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
 
     {/* Secțiune CVD â€” arme per participant, vizibilă doar la stagii naționale */}
     {esteStaguNationalCVD && rezultate.length > 0 && (
-        <div className="mt-6 border-t border-slate-700 pt-6">
+        <div className="mt-6 border-t border-[var(--t-border)] pt-6">
             <h4 className="text-lg font-semibold mb-1 text-amber-400">Arme CVD practiciate</h4>
             <p className="text-xs text-slate-500 mb-4">
                 Înregistrează arma practicată de fiecare sportiv la acest stagiu național.
@@ -529,7 +529,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                             <select
                                 value={selectat}
                                 onChange={e => setArmePick(p => ({ ...p, [r.sportiv_id]: e.target.value }))}
-                                className="bg-slate-800 border border-slate-600 text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                className="bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500"
                             >
                                 <option value="">Selectează armă...</option>
                                 {ARME_CVD_INDIVIDUALE.map(a => (
@@ -649,19 +649,19 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
             </div>
 
             {/* Desktop table */}
-            <div className="hidden md:block bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+            <div className="hidden md:block bg-[var(--t-surface)] rounded-lg shadow-lg overflow-hidden">
                 <table className="w-full text-left">
-                    <thead className="bg-slate-700">
-                        <tr>
+                    <thead>
+                        <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
                             <th className="p-4 font-semibold">Perioadă</th>
                             <th className="p-4 font-semibold">Denumire</th>
                             <th className="p-4 font-semibold">Înscriși</th>
                             <th className="p-4 font-semibold text-right">Acțiuni</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-700">
+                    <tbody className="divide-y divide-[var(--t-border)]">
                         {sortedEvenimente.map(ev => (
-                            <tr key={ev.id} className="hover:bg-slate-700/50" style={{ touchAction: 'manipulation' }} onClick={() => setSelectedEvenimentId(ev.id)}>
+                            <tr key={ev.id} className="hover:bg-[var(--t-table-row-hover)]" style={{ touchAction: 'manipulation' }} onClick={() => setSelectedEvenimentId(ev.id)}>
                                 <td className="p-4 font-medium cursor-pointer">
                                     {formatDateRange(ev.data)} - {formatDateRange(ev.data_sfarsit)}
                                 </td>
@@ -694,7 +694,7 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
                 {sortedEvenimente.map(ev => {
                     const nrInscrisi = rezultate.filter(r => r.eveniment_id === ev.id && sportivi.some(s => s.id === r.sportiv_id)).length;
                     return (
-                        <div key={ev.id} className="bg-slate-800 border border-slate-700 rounded-xl p-4"
+                        <div key={ev.id} className="bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl p-4"
                             onClick={() => setSelectedEvenimentId(ev.id)}>
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">

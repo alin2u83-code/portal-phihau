@@ -278,13 +278,13 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     return (
         <div className="space-y-4">
             {/* Tab bar */}
-            <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 overflow-x-auto scrollbar-none">
+            <div className="flex bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl p-1 gap-1 overflow-x-auto scrollbar-none">
                 {tabs.map(t => (
                     <button
                         key={t.id}
                         onClick={() => setActiveTab(t.id)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all shrink-0 ${
-                            activeTab === t.id ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                            activeTab === t.id ? 'bg-indigo-600 text-white shadow-sm' : 'text-[var(--t-text-muted)] hover:text-white hover:bg-[var(--t-surface)]'
                         }`}
                     >
                         {t.icon}
@@ -297,7 +297,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             {(activeTab === 'incasari' || activeTab === 'abonamente') && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {/* Încasat luna curentă */}
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                    <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                         <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
                             <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-400" />
                             Încasat {new Date().toLocaleString('ro-RO', { month: 'short' })}
@@ -305,7 +305,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         <p className="text-xl font-black text-emerald-400">{(kpi.incasatLuna).toLocaleString('ro-RO', { minimumFractionDigits: 0 })} RON</p>
                     </div>
                     {/* Total restanțe */}
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                    <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                         <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
                             <ExclamationTriangleIcon className="w-3.5 h-3.5 text-amber-400" />
                             Total Restanțe
@@ -315,7 +315,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         </p>
                     </div>
                     {/* Plăți scadente */}
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                    <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                         <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
                             <ExclamationTriangleIcon className="w-3.5 h-3.5 text-red-400" />
                             Plăți Scadente
@@ -325,7 +325,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         </p>
                     </div>
                     {/* Rata colectare */}
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                    <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                         <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
                             <ChartBarIcon className="w-3.5 h-3.5 text-indigo-400" />
                             Rată Colectare
@@ -354,7 +354,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     <Card className="!p-0 overflow-hidden">
                         <button
                             onClick={() => setFiltersOpen(o => !o)}
-                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-800/40 transition-colors"
+                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-[var(--t-table-row-hover)] transition-colors"
                         >
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-white">Filtre</span>
@@ -365,7 +365,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                             <ChevronDownIcon className={`w-4 h-4 text-slate-400 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {filtersOpen && (
-                            <div className="px-4 pb-4 border-t border-slate-800/60">
+                            <div className="px-4 pb-4 border-t border-[var(--t-border)]">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-3">
                                     <Input label="De la" type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} />
                                     <Input label="Până la" type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />
@@ -383,7 +383,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                         <option value="Transfer Bancar">Transfer Bancar</option>
                                     </Select>
                                     <div className="flex items-end">
-                                        <button onClick={resetFilters} className="w-full py-2 text-xs text-slate-400 hover:text-rose-400 border border-slate-700 hover:border-rose-500/50 rounded-lg transition-colors font-medium">
+                                        <button onClick={resetFilters} className="w-full py-2 text-xs text-[var(--t-text-muted)] hover:text-rose-400 border border-[var(--t-border)] hover:border-rose-500/50 rounded-lg transition-colors font-medium">
                                             Resetează
                                         </button>
                                     </div>
@@ -419,7 +419,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     )}
 
                     {/* Total card + Export */}
-                    <div className="flex flex-col sm:flex-row sm:items-center bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center bg-[var(--t-surface-2)] border border-[var(--t-border)] rounded-xl px-4 py-3 gap-3">
                         <div className="flex items-center justify-between sm:contents gap-3">
                             <div>
                                 <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Încasări</p>
@@ -464,21 +464,21 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     ) : (
                         <>
                             {/* Desktop table */}
-                            <div className="hidden md:block bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                            <div className="hidden md:block bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl overflow-hidden">
                                 <table className="w-full text-left text-sm">
                                     <thead>
-                                        <tr className="border-b border-slate-800 bg-slate-800/50">
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Data</th>
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Plătit de</th>
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Descriere</th>
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Metodă</th>
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 text-right">Sumă</th>
+                                        <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Data</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Plătit de</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Descriere</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Metodă</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Sumă</th>
                                             <th className="px-4 py-3 w-20"></th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-800/60">
+                                    <tbody className="divide-y divide-[var(--t-border)]">
                                         {filteredIstoric.map(t => (
-                                            <tr key={t.tranzactie_id || t.plata_id} className="hover:bg-slate-800/30 transition-colors">
+                                            <tr key={t.tranzactie_id || t.plata_id} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
                                                 <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{formatDate(t.data_plata_string)}</td>
                                                 <td className="px-4 py-3 text-white"><SportivLink row={t} /></td>
                                                 <td className="px-4 py-3 text-slate-300 max-w-xs truncate">{t.descriere || '—'}</td>
@@ -510,7 +510,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                             {/* Mobile cards */}
                             <div className="md:hidden space-y-2">
                                 {filteredIstoric.map(t => (
-                                    <div key={t.tranzactie_id || t.plata_id} className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                                    <div key={t.tranzactie_id || t.plata_id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0">
                                                 <p className="text-white font-semibold text-sm truncate"><SportivLink row={t} /></p>
@@ -549,11 +549,11 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     </Card>
 
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-4">
+                        <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-4">
                             <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Încasări</p>
                             <p className="text-xl md:text-2xl font-black text-emerald-400">{formatSum(raportLunarData.incasari)}</p>
                         </div>
-                        <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-4">
+                        <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-4">
                             <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Restanțe</p>
                             <p className="text-xl md:text-2xl font-black text-rose-400">{formatSum(totalRestante)}</p>
                         </div>
@@ -563,24 +563,24 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         <>
                             <h3 className="font-bold text-white text-sm px-1">De achitat în {raportLunarData.luna}</h3>
                             {/* Desktop */}
-                            <div className="hidden md:block bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                            <div className="hidden md:block bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl overflow-hidden">
                                 <table className="w-full text-sm text-left">
                                     <thead>
-                                        <tr className="border-b border-slate-800 bg-slate-800/50">
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Scadență</th>
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Sportiv</th>
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Descriere</th>
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400">Status</th>
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 text-right">Restant</th>
+                                        <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Scadență</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Sportiv</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Descriere</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Status</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Restant</th>
                                             <th className="px-4 py-3"></th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-800/60">
+                                    <tbody className="divide-y divide-[var(--t-border)]">
                                         {[...raportLunarData.restante].sort((a, b) =>
                                             new Date(a.data_emitere?.toString().slice(0, 10) || '').getTime() -
                                             new Date(b.data_emitere?.toString().slice(0, 10) || '').getTime()
                                         ).map(p => (
-                                            <tr key={p.plata_id} className="hover:bg-slate-800/30 transition-colors">
+                                            <tr key={p.plata_id} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
                                                 <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{formatDate(p.data_emitere)}</td>
                                                 <td className="px-4 py-3 text-white"><SportivLink row={p} /></td>
                                                 <td className="px-4 py-3 text-slate-300 max-w-xs truncate">{p.descriere || '—'}</td>
@@ -606,7 +606,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                             {/* Mobile */}
                             <div className="md:hidden space-y-2">
                                 {raportLunarData.restante.map(p => (
-                                    <div key={p.plata_id} className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                                    <div key={p.plata_id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0">
                                                 <p className="text-white font-semibold text-sm truncate"><SportivLink row={p} /></p>
@@ -655,7 +655,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                             <h3 className={`text-sm font-bold ${colorClass}`}>{label}</h3>
                                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${bgClass} ${colorClass}`}>{list.length}</span>
                                         </div>
-                                        <div className="bg-slate-800/50 rounded-xl overflow-hidden divide-y divide-slate-700/40 max-h-80 overflow-y-auto">
+                                        <div className="bg-[var(--t-surface-2)] rounded-xl overflow-hidden divide-y divide-[var(--t-border)] max-h-80 overflow-y-auto">
                                             {list.length === 0
                                                 ? <p className="text-slate-500 italic text-sm p-4">Nicio înregistrare.</p>
                                                 : list.map(p => (
@@ -704,7 +704,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         <>
                             {/* Sumar */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 col-span-2 md:col-span-1">
+                                <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 col-span-2 md:col-span-1">
                                     <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Total sportivi</p>
                                     <p className="text-2xl font-black text-white">{abonamenteData.total}</p>
                                 </div>
@@ -717,7 +717,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                     <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Neachitat</p>
                                     <p className={`text-2xl font-black ${abonamenteData.neachitate > 0 ? 'text-rose-400' : 'text-slate-500'}`}>{abonamenteData.neachitate}</p>
                                 </div>
-                                <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                                <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                                     <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Rest Colectat</p>
                                     <p className={`text-lg font-black ${abonamenteData.incasatSuma < abonamenteData.totalSuma ? 'text-amber-400' : 'text-emerald-400'}`}>
                                         {formatSum(abonamenteData.totalSuma - abonamenteData.incasatSuma)}
@@ -727,7 +727,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
 
                             {/* Bara progres colectare */}
                             {abonamenteData.totalSuma > 0 && (
-                                <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                                <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                                     <div className="flex justify-between text-xs text-slate-400 mb-2">
                                         <span>Progres colectare</span>
                                         <span className="font-bold text-white">
@@ -750,7 +750,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                         <ExclamationTriangleIcon className="w-4 h-4" />
                                         Abonamente neachitate ({abonamenteData.listaNeachitate.length})
                                     </h3>
-                                    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                                    <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl overflow-hidden">
                                         <div className="divide-y divide-slate-800/60">
                                             {abonamenteData.listaNeachitate.map(p => {
                                                 const ds = getDisplayStatus(p);
@@ -802,7 +802,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     <div className="space-y-4">
                         {/* Sumar */}
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                            <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Familii înregistrate</p>
                                 <p className="text-2xl font-black text-white">{familiiCuPlati.length}</p>
                             </div>
@@ -816,8 +816,8 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
 
                         {/* Lista carduri familii */}
                         {familiiCuPlati.length === 0 ? (
-                            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-                                <p className="text-slate-400 italic">Nu există familii cu plăți înregistrate.</p>
+                            <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl p-8 text-center">
+                                <p className="text-[var(--t-text-muted)] italic">Nu există familii cu plăți înregistrate.</p>
                             </div>
                         ) : (
                             <div className="space-y-3">
@@ -861,7 +861,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
 
                         {/* Mini KPI restanțe lângă donut */}
                         <div className="space-y-3">
-                            <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+                            <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-3">
                                     Sumar financiar curent
                                 </p>
@@ -872,14 +872,14 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                             {kpi.incasatLuna.toLocaleString('ro-RO', { minimumFractionDigits: 0 })} RON
                                         </span>
                                     </div>
-                                    <div className="h-px bg-slate-800" />
+                                    <div className="h-px bg-[var(--t-border)]" />
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-slate-400">Total restanțe</span>
                                         <span className={`text-sm font-bold ${kpi.totalRestante > 0 ? 'text-rose-400' : 'text-slate-500'}`}>
                                             {kpi.totalRestante.toLocaleString('ro-RO', { minimumFractionDigits: 0 })} RON
                                         </span>
                                     </div>
-                                    <div className="h-px bg-slate-800" />
+                                    <div className="h-px bg-[var(--t-border)]" />
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-slate-400">Facturi scadente</span>
                                         <span className={`text-sm font-bold ${kpi.nrScadente > 0 ? 'text-red-400' : 'text-slate-500'}`}>
@@ -888,7 +888,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                     </div>
                                     {kpi.rataColectare !== null && (
                                         <>
-                                            <div className="h-px bg-slate-800" />
+                                            <div className="h-px bg-[var(--t-border)]" />
                                             <div>
                                                 <div className="flex items-center justify-between mb-1.5">
                                                     <span className="text-sm text-slate-400">Rată colectare</span>
@@ -929,8 +929,8 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             {/* ─── MODAL ÎNCASARE ─── */}
             {plataToIncaseze && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl">
-                        <div className="px-5 pt-5 pb-4 border-b border-slate-800">
+                    <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-2xl w-full max-w-sm shadow-2xl">
+                        <div className="px-5 pt-5 pb-4 border-b border-[var(--t-border)]">
                             <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Înregistrare Încasare</p>
                             <p className="text-white font-bold text-base">{plataToIncaseze.nume_complet_sportiv || '—'}</p>
                             <p className="text-slate-400 text-sm mt-0.5">{plataToIncaseze.descriere}</p>
@@ -960,7 +960,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         <div className="px-5 pb-5 flex gap-2">
                             <button
                                 onClick={() => setPlataToIncaseze(null)}
-                                className="flex-1 py-2.5 text-sm text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 rounded-xl transition-colors font-medium"
+                                className="flex-1 py-2.5 text-sm text-[var(--t-text-muted)] hover:text-white border border-[var(--t-border)] hover:border-slate-600 rounded-xl transition-colors font-medium"
                             >
                                 Anulează
                             </button>

@@ -605,7 +605,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     return (
         <div className="space-y-4">
             {/* Filtre collapse pe mobil */}
-            <div className="sm:hidden rounded-lg bg-slate-800/50 overflow-hidden">
+            <div className="sm:hidden rounded-lg bg-[var(--t-surface-2)] overflow-hidden">
                 <button
                     onClick={() => setFiltersExpanded(prev => !prev)}
                     className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-white"
@@ -629,7 +629,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                     </svg>
                 </button>
                 {filtersExpanded && (
-                    <div className="px-4 pb-4 border-t border-slate-700">
+                    <div className="px-4 pb-4 border-t border-[var(--t-border)]">
                         <div className="pt-3 space-y-3">
                             {filterContent}
                         </div>
@@ -658,11 +658,11 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
             ) : (
                 <>
                     {/* Desktop table */}
-                    <div className="hidden md:block bg-slate-800 rounded-lg overflow-hidden">
+                    <div className="hidden md:block bg-[var(--t-surface)] rounded-lg overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-700 text-slate-300">
-                                    <tr>
+                                <thead>
+                                    <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
                                         <th className="p-3"><SortBtn field="sportiv" label="Sportiv" /></th>
                                         <th className="p-3"><SortBtn field="club" label="Club" /></th>
                                         <th className="p-3"><SortBtn field="grad" label="Grad" /></th>
@@ -673,7 +673,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                         <th className="p-3 text-right">Acțiuni</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-700">
+                                <tbody className="divide-y divide-[var(--t-border)]">
                                     {filtered.map(r => {
                                         const val = r.rezultat || r.status_inscriere;
                                         const cls = r.rezultat === 'Admis' ? 'bg-green-500/20 text-green-400'
@@ -681,7 +681,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                             : r.status_inscriere === 'In asteptare' ? 'bg-yellow-500/20 text-yellow-400'
                                             : 'bg-slate-600 text-slate-300';
                                         return (
-                                            <tr key={r.inscriere_id} className="hover:bg-slate-700/40">
+                                            <tr key={r.inscriere_id} className="hover:bg-[var(--t-table-row-hover)]">
                                                 <td className="p-3 font-medium text-white">{r.sportiv_nume} {r.sportiv_prenume}</td>
                                                 <td className="p-3 text-slate-300">{r.club_nume || 'â€”'}</td>
                                                 <td className="p-3 text-slate-300">{r.grad_sustinut || 'â€”'}</td>
@@ -718,7 +718,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                 : r.status_inscriere === 'In asteptare' ? 'bg-yellow-500/20 text-yellow-400'
                                 : 'bg-slate-600 text-slate-300';
                             return (
-                                <div key={r.inscriere_id} className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3">
+                                <div key={r.inscriere_id} className="bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="min-w-0">
                                             <p className="text-white font-semibold text-sm truncate">{r.sportiv_nume} {r.sportiv_prenume}</p>
@@ -899,16 +899,16 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
   return (
     <div>
       <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-      <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 w-fit mb-6">
+      <div className="flex bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl p-1 gap-1 w-fit mb-6">
           <button
               onClick={() => setActiveTab('sesiuni')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'sesiuni' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'sesiuni' ? 'bg-indigo-600 text-white shadow-sm' : 'text-[var(--t-text-muted)] hover:text-white hover:bg-[var(--t-surface)]'}`}
           >
               Sesiuni
           </button>
           <button
               onClick={() => setActiveTab('raport')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'raport' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'raport' ? 'bg-indigo-600 text-white shadow-sm' : 'text-[var(--t-text-muted)] hover:text-white hover:bg-[var(--t-surface)]'}`}
           >
               Raport Sportivi
           </button>
@@ -920,12 +920,12 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
           <HartaExamene />
 
           {/* Desktop table */}
-          <div className="hidden md:block bg-slate-800 rounded-lg shadow-lg overflow-hidden mt-6">
+          <div className="hidden md:block bg-[var(--t-surface)] rounded-lg shadow-lg overflow-hidden mt-6">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                  <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
-                  <tbody className="divide-y divide-slate-700">
-                      {sortedSesiuni.map(s => ( <tr key={s.id} className="hover:bg-slate-700/50"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{new Date((s.data || s.data_examen || '').toString().slice(0, 10)+'T00:00:00').toLocaleDateString('ro-RO')}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{s.locatie_nume || locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A'}</td><td className="p-4">{inscrieri.filter(p => p.sesiune_id === s.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}
+                  <thead><tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}><th className="p-4 font-semibold">Data</th><th className="p-4 font-semibold">Locația</th><th className="p-4 font-semibold">Înscriși</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
+                  <tbody className="divide-y divide-[var(--t-border)]">
+                      {sortedSesiuni.map(s => ( <tr key={s.id} className="hover:bg-[var(--t-table-row-hover)]"><td className="p-4 font-medium cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{new Date((s.data || s.data_examen || '').toString().slice(0, 10)+'T00:00:00').toLocaleDateString('ro-RO')}</td><td className="p-4 cursor-pointer" onClick={() => setSelectedSesiuneId(s.id)}>{s.locatie_nume || locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A'}</td><td className="p-4">{inscrieri.filter(p => p.sesiune_id === s.id).length}</td><td className="p-4 w-32"><div className="flex items-center justify-end space-x-2"><Button onClick={() => { setSesiuneToEdit(s); setIsFormOpen(true); }} variant="primary" size="sm"><EditIcon /></Button><Button onClick={() => setSesiuneToDelete(s)} variant="danger" size="sm"><TrashIcon /></Button></div></td></tr> ))}
                       {sortedSesiuni.length === 0 && <tr><td colSpan={4}><p className="p-4 text-center text-slate-400">Nicio sesiune programată.</p></td></tr>}
                   </tbody>
               </table>
@@ -942,7 +942,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
                   const locatieNume = s.locatie_nume || locatii.find(l => l.id === s.locatie_id)?.nume || 'N/A';
                   const dataText = new Date((s.data || s.data_examen || '').toString().slice(0, 10)+'T00:00:00').toLocaleDateString('ro-RO');
                   return (
-                      <div key={s.id} className="bg-slate-800 border border-slate-700 rounded-xl p-4"
+                      <div key={s.id} className="bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl p-4"
                           onClick={() => setSelectedSesiuneId(s.id)}>
                           <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">

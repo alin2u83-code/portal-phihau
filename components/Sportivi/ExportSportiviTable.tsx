@@ -283,7 +283,7 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
             </div>
 
             <Card className="p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-[var(--t-surface-2)] p-4 rounded-xl border border-[var(--t-border)]">
                     <div className="col-span-1 sm:col-span-2 lg:col-span-1">
                         <Input 
                             label="Caută sportiv"
@@ -297,7 +297,7 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
                     <div>
                         <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">Categorie</label>
                         <select 
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-primary"
+                            className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-lg px-3 py-2 text-[var(--t-text)] text-sm focus:outline-none focus:border-brand-primary"
                             value={categorieFilter}
                             onChange={(e) => setCategorieFilter(e.target.value)}
                         >
@@ -309,7 +309,7 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
                     <div>
                         <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">Sex</label>
                         <select 
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-primary"
+                            className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-lg px-3 py-2 text-[var(--t-text)] text-sm focus:outline-none focus:border-brand-primary"
                             value={genFilter}
                             onChange={(e) => setGenFilter(e.target.value)}
                         >
@@ -321,7 +321,7 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
                     <div>
                         <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">Departament</label>
                         <select 
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-primary"
+                            className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-lg px-3 py-2 text-[var(--t-text)] text-sm focus:outline-none focus:border-brand-primary"
                             value={departamentFilter}
                             onChange={(e) => setDepartamentFilter(e.target.value)}
                         >
@@ -331,11 +331,11 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
                     </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-lg border border-slate-700/50">
-                    <table className="w-full text-left text-sm text-slate-300">
-                        <thead className="bg-slate-800 text-slate-200 uppercase text-[10px] whitespace-nowrap">
-                            <tr>
-                                <th className="p-2 w-10 text-center sticky left-0 bg-slate-800 z-10">
+                <div className="overflow-x-auto rounded-lg border border-[var(--t-border)]">
+                    <table className="w-full text-left text-sm text-[var(--t-text)]">
+                        <thead>
+                            <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="uppercase text-[10px] whitespace-nowrap">
+                                <th className="p-2 w-10 text-center sticky left-0 z-10" style={{ background: 'var(--t-table-header-bg)' }}>
                                     <input 
                                         type="checkbox" 
                                         className="rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary"
@@ -349,14 +349,14 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-700/50">
+                        <tbody className="divide-y divide-[var(--t-border)]">
                             {loading ? (
                                 <tr><td colSpan={fields.length + 2} className="p-8 text-center">Se încarcă...</td></tr>
                             ) : filteredSportivi.length === 0 ? (
-                                <tr><td colSpan={fields.length + 2} className="p-8 text-center text-slate-500 italic">Niciun sportiv găsit.</td></tr>
+                                <tr><td colSpan={fields.length + 2} className="p-8 text-center text-[var(--t-text-muted)] italic">Niciun sportiv găsit.</td></tr>
                             ) : filteredSportivi.map((s, index) => (
-                                <tr key={s.id || index} className="hover:bg-slate-800/50 transition-colors whitespace-nowrap">
-                                    <td className="p-2 text-center sticky left-0 bg-slate-900 group-hover:bg-slate-800/50">
+                                <tr key={s.id || index} className="hover:bg-[var(--t-table-row-hover)] transition-colors whitespace-nowrap">
+                                    <td className="p-2 text-center sticky left-0" style={{ background: 'var(--t-bg)' }}>
                                         <input 
                                             type="checkbox" 
                                             className="rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary"
@@ -370,7 +370,7 @@ export const ExportSportiviTable: React.FC<{ onClose: () => void }> = ({ onClose
                                     {fields.map(f => (
                                         <td 
                                             key={f.key} 
-                                            className={`p-2 min-w-[120px] ${f.editable ? 'cursor-pointer hover:bg-slate-700/50' : 'cursor-default opacity-80'}`}
+                                            className={`p-2 min-w-[120px] ${f.editable ? 'cursor-pointer hover:bg-[var(--t-table-row-hover)]' : 'cursor-default opacity-80'}`}
                                             onClick={() => f.editable && startEditing(s.id, f.key, s[f.key])}
                                         >
                                             {editingCell?.id === s.id && editingCell?.field === f.key ? (

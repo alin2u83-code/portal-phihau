@@ -471,13 +471,13 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Caută denumire..."
-          className="flex-1 min-w-[160px] bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-xs text-white placeholder-slate-500"
+          className="flex-1 min-w-[160px] bg-[var(--t-surface)] border border-[var(--t-border)] rounded px-3 py-1.5 text-xs text-[var(--t-text)] placeholder-slate-500"
         />
       </div>
 
       {/* Panou filtre */}
       {filtreVisible && (
-        <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 space-y-3">
+        <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-lg p-3 space-y-3">
           {/* Gen */}
           <div>
             <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Gen <span className="text-slate-600 font-normal normal-case">(nimic selectat = toate)</span></p>
@@ -534,10 +534,10 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
           {templates.length === 0 ? 'Niciun template în bibliotecă.' : 'Niciun template pentru filtrele selectate.'}
         </div>
       ) : (
-        <div className="-mx-4 sm:mx-0 overflow-x-auto border border-slate-700 rounded-xl">
+        <div className="-mx-4 sm:mx-0 overflow-x-auto border border-[var(--t-border)] rounded-xl">
           <table className="w-full text-sm text-slate-300 min-w-[640px]">
             <thead>
-              <tr className="border-b border-slate-700 bg-slate-800/60 text-xs text-slate-400 uppercase">
+              <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)] text-xs uppercase">
                 {isImportContext && (
                   <th className="p-2 text-center w-10">
                     <input
@@ -558,11 +558,11 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
                 <th className="p-2 text-right">Acțiuni</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-[var(--t-border)]">
               {filtered.map(t => {
                 const isImporting = importingIds.has(t.id);
                 return (
-                  <tr key={t.id} className="hover:bg-slate-800/50">
+                  <tr key={t.id} className="hover:bg-[var(--t-table-row-hover)]">
                     {isImportContext && (
                       <td className="p-2 text-center">
                         <input

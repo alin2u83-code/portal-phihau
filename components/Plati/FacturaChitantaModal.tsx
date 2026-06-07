@@ -80,10 +80,10 @@ export const FacturaChitantaModal: React.FC<FacturaChitantaModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
 
                 {/* ─── Header ─── */}
-                <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-800 shrink-0">
+                <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-[var(--t-border)] shrink-0">
                     <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-xl ${isChitanta ? 'bg-emerald-500/15' : 'bg-indigo-500/15'}`}>
                             {isChitanta
@@ -103,13 +103,13 @@ export const FacturaChitantaModal: React.FC<FacturaChitantaModalProps> = ({
                         <button
                             onClick={handlePrint}
                             title="Printează"
-                            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[var(--t-surface)] transition-colors"
                         >
                             <PrinterIcon className="w-4 h-4" />
                         </button>
                         <button
                             onClick={onClose}
-                            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[var(--t-surface)] transition-colors"
                         >
                             <XIcon className="w-4 h-4" />
                         </button>
@@ -140,10 +140,10 @@ export const FacturaChitantaModal: React.FC<FacturaChitantaModalProps> = ({
                     </div>
 
                     {/* Separator */}
-                    <div className="border-t border-slate-800" />
+                    <div className="border-t border-[var(--t-border)]" />
 
                     {/* Date plătitor */}
-                    <div className="bg-slate-800/40 rounded-xl px-4 py-3">
+                    <div className="bg-[var(--t-surface-2)] rounded-xl px-4 py-3">
                         <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">
                             {isChitanta ? 'Achitat de' : 'Beneficiar'}
                         </p>
@@ -160,13 +160,13 @@ export const FacturaChitantaModal: React.FC<FacturaChitantaModalProps> = ({
                         </p>
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-slate-800">
-                                    <th className="text-left py-2 text-xs text-slate-400 font-semibold uppercase tracking-wider">Descriere</th>
-                                    <th className="text-right py-2 text-xs text-slate-400 font-semibold uppercase tracking-wider">Sumă</th>
+                                <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+                                    <th className="text-left py-2 text-xs font-semibold uppercase tracking-wider">Descriere</th>
+                                    <th className="text-right py-2 text-xs font-semibold uppercase tracking-wider">Sumă</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr className="border-b border-slate-800/50">
+                                <tr className="border-b border-[var(--t-border)]">
                                     <td className="py-3 text-white">{plata.descriere || '—'}</td>
                                     <td className="py-3 text-right text-white font-medium whitespace-nowrap">
                                         {fmt(plata.suma_datorata)} RON
@@ -177,8 +177,8 @@ export const FacturaChitantaModal: React.FC<FacturaChitantaModalProps> = ({
                     </div>
 
                     {/* Sumar financiar */}
-                    <div className="bg-slate-800/30 rounded-xl overflow-hidden">
-                        <div className="px-4 py-2.5 flex items-center justify-between border-b border-slate-700/50">
+                    <div className="bg-[var(--t-surface-2)] rounded-xl overflow-hidden">
+                        <div className="px-4 py-2.5 flex items-center justify-between border-b border-[var(--t-border)]">
                             <span className="text-sm text-slate-400">Total de plată</span>
                             <span className="text-sm text-white font-medium">{fmt(plata.suma_datorata)} RON</span>
                         </div>
@@ -228,7 +228,7 @@ export const FacturaChitantaModal: React.FC<FacturaChitantaModalProps> = ({
                     )}
 
                     {/* Footer document */}
-                    <div className="border-t border-slate-800 pt-3">
+                    <div className="border-t border-[var(--t-border)] pt-3">
                         <p className="text-xs text-slate-500 text-center">
                             Club Qwan Ki Do · Document generat electronic · {new Date().toLocaleDateString('ro-RO')}
                         </p>
@@ -236,10 +236,10 @@ export const FacturaChitantaModal: React.FC<FacturaChitantaModalProps> = ({
                 </div>
 
                 {/* ─── Footer acțiuni ─── */}
-                <div className="px-5 pb-5 pt-3 border-t border-slate-800 shrink-0 flex gap-2">
+                <div className="px-5 pb-5 pt-3 border-t border-[var(--t-border)] shrink-0 flex gap-2">
                     <button
                         onClick={onClose}
-                        className="flex-1 py-2.5 text-sm text-slate-400 hover:text-white border border-slate-700
+                        className="flex-1 py-2.5 text-sm text-[var(--t-text-muted)] hover:text-white border border-[var(--t-border)]
                                    hover:border-slate-600 rounded-xl transition-colors font-medium"
                     >
                         Închide

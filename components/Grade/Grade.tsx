@@ -118,7 +118,7 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
             <p className="p-4 text-center text-slate-400">Niciun grad definit.</p>
           )}
           {sortedGrade.map(grad => (
-            <div key={grad.id} className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+            <div key={grad.id} className="bg-[var(--t-surface)] rounded-xl p-4 border border-[var(--t-border)]">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
@@ -152,10 +152,10 @@ export const GradeManagement: React.FC<GradeManagementProps> = ({ grade, setGrad
         </div>
       ) : (
         /* Desktop/tabletă: tabel cu scroll orizontal */
-        <div className="bg-slate-800 rounded-lg shadow-lg overflow-x-auto">
+        <div className="bg-[var(--t-surface)] rounded-lg shadow-lg overflow-x-auto">
           <table className="w-full text-left min-w-[600px]">
-            <thead className="bg-slate-700"><tr><th className="p-4 font-semibold">Ordine</th><th className="p-4 font-semibold">Nume</th><th className="p-4 font-semibold">Vârstă Min.</th><th className="p-4 font-semibold">Timp Așteptare</th><th className="p-4 font-semibold">Grad Necesar</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
-            <tbody className="divide-y divide-slate-700">
+            <thead><tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}><th className="p-4 font-semibold">Ordine</th><th className="p-4 font-semibold">Nume</th><th className="p-4 font-semibold">Vârstă Min.</th><th className="p-4 font-semibold">Timp Așteptare</th><th className="p-4 font-semibold">Grad Necesar</th><th className="p-4 font-semibold text-right">Acțiuni</th></tr></thead>
+            <tbody className="divide-y divide-[var(--t-border)]">
               {sortedGrade.map(grad => (
                 <tr key={grad.id}>
                   <td className="p-4 w-20">{grad.ordine}</td>

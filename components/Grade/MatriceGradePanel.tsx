@@ -105,11 +105,11 @@ const SubTabelGrup: React.FC<SubTabelProps> = ({
         {grup.label}
       </div>
 
-      <div className="overflow-x-auto rounded-b-lg border border-slate-700">
+      <div className="overflow-x-auto rounded-b-lg border border-[var(--t-border)]">
         <table className="text-xs border-collapse min-w-max w-full">
           <thead>
-            <tr className="bg-slate-800 border-b border-slate-700">
-              <th className="sticky left-0 z-10 bg-slate-800 py-2 px-3 text-left text-slate-400 font-medium whitespace-nowrap border-r border-slate-700 min-w-[130px]">
+            <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+              <th className="sticky left-0 z-10 py-2 px-3 text-left font-medium whitespace-nowrap border-r border-[var(--t-border)] min-w-[130px]" style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
                 Grad
               </th>
               {coloane.map(col => (
@@ -129,9 +129,9 @@ const SubTabelGrup: React.FC<SubTabelProps> = ({
             {gradeVizibile.map((grad, ri) => (
               <tr
                 key={grad.id}
-                className={`border-t border-slate-700/50 hover:bg-slate-700/20 ${ri % 2 === 0 ? '' : 'bg-slate-800/30'}`}
+                className={`border-t border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)] ${ri % 2 === 0 ? '' : 'bg-[var(--t-surface-2)]'}`}
               >
-                <td className="sticky left-0 z-10 bg-slate-800 py-1.5 px-3 text-slate-200 whitespace-nowrap border-r border-slate-700 font-medium">
+                <td className="sticky left-0 z-10 bg-[var(--t-surface)] py-1.5 px-3 text-[var(--t-text)] whitespace-nowrap border-r border-[var(--t-border)] font-medium">
                   {grad.nume}
                 </td>
                 {coloane.map(col => {
@@ -292,7 +292,7 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
           {selectedGradeIds.size > 0 && (
             <button
               onClick={clearFiltre}
-              className="text-xs px-2 py-1 rounded border border-slate-600 bg-slate-800 text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
+              className="text-xs px-2 py-1 rounded border border-[var(--t-border)] bg-[var(--t-surface)] text-[var(--t-text-muted)] hover:text-white hover:border-slate-500 transition-colors"
             >
               âœ• Toate
             </button>
@@ -309,7 +309,7 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
                 className={`text-xs px-2.5 py-1 rounded-full border transition-colors font-medium ${
                   selected
                     ? (grup?.colorChip ?? 'bg-emerald-600 border-emerald-500 text-white')
-                    : 'bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white'
+                    : 'bg-[var(--t-surface)] border-[var(--t-border)] text-[var(--t-text-muted)] hover:border-slate-400 hover:text-white'
                 }`}
               >
                 {g.nume}

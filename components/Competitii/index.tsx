@@ -763,7 +763,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     if (saved === 'categorii' || saved === 'inscrieri' || saved === 'raport' || saved === 'admin' || saved === 'rezultate_legacy' || saved === 'financiar' || saved === 'cereri_interclub') return saved;
     return 'inscrieri';
   });
-  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(true);
   const [rezultateLegacy, setRezultateLegacy] = useState<Array<{ id: string; rezultat: string; probe?: string; sportiv?: { id: string; nume: string; prenume: string } }>>([]);
   const [loadingLegacy, setLoadingLegacy] = useState(false);
   const [selectedProbaId, setSelectedProbaId] = useState<string>('');

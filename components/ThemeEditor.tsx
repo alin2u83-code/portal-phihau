@@ -18,8 +18,12 @@ interface CustomThemeState {
   primary: string;
   bg: string;
   surface: string;
+  surface2: string;
   border: string;
+  text: string;
+  textMuted: string;
   sidebarBg: string;
+  sidebarText: string;
 }
 
 const DEFAULT_CUSTOM: CustomThemeState = {
@@ -27,8 +31,12 @@ const DEFAULT_CUSTOM: CustomThemeState = {
   primary: DEFAULT_THEME.primary,
   bg: DEFAULT_THEME.bg,
   surface: DEFAULT_THEME.surface,
+  surface2: DEFAULT_THEME.surface2,
   border: DEFAULT_THEME.border,
+  text: DEFAULT_THEME.text,
+  textMuted: DEFAULT_THEME.textMuted,
   sidebarBg: DEFAULT_THEME.sidebarBg,
+  sidebarText: DEFAULT_THEME.sidebarText,
 };
 
 function buildCustomThemeConfig(custom: CustomThemeState): ThemeConfig {
@@ -39,12 +47,15 @@ function buildCustomThemeConfig(custom: CustomThemeState): ThemeConfig {
     primaryHover: custom.primary,
     bg: custom.bg,
     surface: custom.surface,
-    surface2: custom.surface,
+    surface2: custom.surface2,
     border: custom.border,
+    text: custom.text,
+    textMuted: custom.textMuted,
     secondary: custom.surface,
     secondaryHover: custom.border,
+    secondaryFg: custom.text,
     sidebarBg: custom.sidebarBg,
-    sidebarText: DEFAULT_THEME.sidebarText,
+    sidebarText: custom.sidebarText,
     sidebarActive: custom.primary,
     sidebarActiveFg: '#ffffff',
   };
@@ -266,20 +277,75 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ isOpen, onClose }) => 
                   <span className="text-xs text-slate-500 font-mono">{customTheme.border}</span>
                 </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Fundal sidebar</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={customTheme.sidebarBg}
-                  onChange={(e) => handleCustomColorChange('sidebarBg', e.target.value)}
-                  className="w-10 h-10 rounded cursor-pointer border border-slate-700 bg-transparent"
-                />
-                <span className="text-xs text-slate-500 font-mono">{customTheme.sidebarBg}</span>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Text principal</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customTheme.text}
+                    onChange={(e) => handleCustomColorChange('text', e.target.value)}
+                    className="w-10 h-10 rounded cursor-pointer border border-slate-700 bg-transparent"
+                  />
+                  <span className="text-xs text-slate-500 font-mono">{customTheme.text}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Text secundar</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customTheme.textMuted}
+                    onChange={(e) => handleCustomColorChange('textMuted', e.target.value)}
+                    className="w-10 h-10 rounded cursor-pointer border border-slate-700 bg-transparent"
+                  />
+                  <span className="text-xs text-slate-500 font-mono">{customTheme.textMuted}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Suprafețe 2</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customTheme.surface2}
+                    onChange={(e) => handleCustomColorChange('surface2', e.target.value)}
+                    className="w-10 h-10 rounded cursor-pointer border border-slate-700 bg-transparent"
+                  />
+                  <span className="text-xs text-slate-500 font-mono">{customTheme.surface2}</span>
+                </div>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Fundal sidebar</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customTheme.sidebarBg}
+                    onChange={(e) => handleCustomColorChange('sidebarBg', e.target.value)}
+                    className="w-10 h-10 rounded cursor-pointer border border-slate-700 bg-transparent"
+                  />
+                  <span className="text-xs text-slate-500 font-mono">{customTheme.sidebarBg}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Text sidebar</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customTheme.sidebarText}
+                    onChange={(e) => handleCustomColorChange('sidebarText', e.target.value)}
+                    className="w-10 h-10 rounded cursor-pointer border border-slate-700 bg-transparent"
+                  />
+                  <span className="text-xs text-slate-500 font-mono">{customTheme.sidebarText}</span>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           {/* Preview live */}

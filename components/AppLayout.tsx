@@ -46,7 +46,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     const { isOpen: isAIOpen, setIsOpen: setIsAIOpen } = useAIStore();
 
     return (
-        <div className="flex min-h-screen bg-[var(--bg-main)]">
+        <div className="flex min-h-screen" style={{ background: 'var(--t-bg)', color: 'var(--t-text)' }}>
             <Sidebar
                 currentUser={currentUser}
                 onLogout={handleLogout}

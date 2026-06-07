@@ -187,10 +187,13 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         excludedFromIndividual={excludedFromIndividual}
         onDeschideProba={handleDeschideProba}
         onFinalizare={() => {
-          // Calculează probe skipped înainte de a merge la sumar
+          // Calculează probe skipped înainte de a merge la sumar — doar probe individuale
           const activeProbeIds = new Set<string>();
           autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });
-          setProbeSkippedWizard(new Set(probe.filter(p => !activeProbeIds.has(p.id)).map(p => p.id)));
+          const probeIndividuale = probe.filter(p =>
+            p.tip_proba === 'thao_quyen_individual' || p.tip_proba === 'thao_lo_individual'
+          );
+          setProbeSkippedWizard(new Set(probeIndividuale.filter(p => !activeProbeIds.has(p.id)).map(p => p.id)));
           setStep(4);
         }}
       />
@@ -212,7 +215,10 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onContinua={() => {
           const activeProbeIds = new Set<string>();
           autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });
-          setProbeSkippedWizard(new Set(probe.filter(p => !activeProbeIds.has(p.id)).map(p => p.id)));
+          const probeIndividuale = probe.filter(p =>
+            p.tip_proba === 'thao_quyen_individual' || p.tip_proba === 'thao_lo_individual'
+          );
+          setProbeSkippedWizard(new Set(probeIndividuale.filter(p => !activeProbeIds.has(p.id)).map(p => p.id)));
           setStep('hub');
         }}
         onBack={() => setStep('hub')}

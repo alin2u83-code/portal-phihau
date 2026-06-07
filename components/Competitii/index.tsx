@@ -1149,7 +1149,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
 
           {/* INSCRIERI TAB */}
           {activeTab === 'inscrieri' && (
-            wizardOpen ? (
+            (wizardOpen && isClubAdmin) ? (
               <InscriereClubWizard
                 competitie={competitie}
                 probe={probe}

@@ -19,6 +19,7 @@ interface CustomThemeState {
   bg: string;
   surface: string;
   border: string;
+  sidebarBg: string;
 }
 
 const DEFAULT_CUSTOM: CustomThemeState = {
@@ -27,6 +28,7 @@ const DEFAULT_CUSTOM: CustomThemeState = {
   bg: DEFAULT_THEME.bg,
   surface: DEFAULT_THEME.surface,
   border: DEFAULT_THEME.border,
+  sidebarBg: DEFAULT_THEME.sidebarBg,
 };
 
 function buildCustomThemeConfig(custom: CustomThemeState): ThemeConfig {
@@ -41,6 +43,10 @@ function buildCustomThemeConfig(custom: CustomThemeState): ThemeConfig {
     border: custom.border,
     secondary: custom.surface,
     secondaryHover: custom.border,
+    sidebarBg: custom.sidebarBg,
+    sidebarText: DEFAULT_THEME.sidebarText,
+    sidebarActive: custom.primary,
+    sidebarActiveFg: '#ffffff',
   };
 }
 
@@ -140,10 +146,10 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ isOpen, onClose }) => 
                       : 'border-slate-700/60 hover:border-slate-500'
                   }`}
                 >
-                  <div
-                    className="w-12 h-12 rounded-lg shadow-md border-2 border-slate-700/40"
-                    style={{ backgroundColor: theme.primary }}
-                  />
+                  <div className="w-12 h-10 rounded-lg shadow-md border-2 border-slate-700/40 overflow-hidden flex">
+                    <div style={{ width: '40%', background: theme.sidebarBg }} />
+                    <div style={{ flex: 1, background: theme.bg }} />
+                  </div>
                   <span className="text-xs text-slate-300 text-center leading-tight">
                     {theme.name}
                   </span>
@@ -259,6 +265,19 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ isOpen, onClose }) => 
                   />
                   <span className="text-xs text-slate-500 font-mono">{customTheme.border}</span>
                 </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">Fundal sidebar</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={customTheme.sidebarBg}
+                  onChange={(e) => handleCustomColorChange('sidebarBg', e.target.value)}
+                  className="w-10 h-10 rounded cursor-pointer border border-slate-700 bg-transparent"
+                />
+                <span className="text-xs text-slate-500 font-mono">{customTheme.sidebarBg}</span>
               </div>
             </div>
           </div>

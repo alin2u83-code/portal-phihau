@@ -150,11 +150,8 @@ function calculeazaStatusCard(
   const catEchipa = catProba.filter(esteEchipaSauPereche);
   if (catEchipa.length > 0) {
     const dataComp = competitie.data_inceput;
-    // Pas3 folosește toți sportivii clubului (ignoră selectedSportivi) — hub-ul trebuie să fie consistent.
-    // Dacă selectedSportivi este gol (nicio probă individuală nu a fost vizitată), folosim toți sportivii.
-    const sportiviSelectatiArr = selectedSportivi.size > 0
-      ? sportivi.filter(s => selectedSportivi.has(s.id))
-      : sportivi;
+    // Probe echipă sunt independente de selecția individuală — Pas3 folosește toți sportivii clubului.
+    const sportiviSelectatiArr = sportivi;
 
     let categoriiExcluse = 0;
     let nrComplet = 0;

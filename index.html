@@ -10,6 +10,32 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Anti-FOUC: aplică tema din localStorage înainte de React mount -->
+    <script>
+      try {
+        var saved = localStorage.getItem('phihau-theme');
+        if (saved) {
+          var t = JSON.parse(saved);
+          var r = document.documentElement;
+          if (t.bg) r.style.setProperty('--t-bg', t.bg);
+          if (t.surface) r.style.setProperty('--t-surface', t.surface);
+          if (t.surface2) r.style.setProperty('--t-surface-2', t.surface2);
+          if (t.border) r.style.setProperty('--t-border', t.border);
+          if (t.text) r.style.setProperty('--t-text', t.text);
+          if (t.textMuted) r.style.setProperty('--t-text-muted', t.textMuted);
+          if (t.primary) r.style.setProperty('--t-primary', t.primary);
+          if (t.primaryHover) r.style.setProperty('--t-primary-hover', t.primaryHover);
+          if (t.primaryFg) r.style.setProperty('--t-primary-fg', t.primaryFg);
+          if (t.secondary) r.style.setProperty('--t-secondary', t.secondary);
+          if (t.secondaryHover) r.style.setProperty('--t-secondary-hover', t.secondaryHover);
+          if (t.secondaryFg) r.style.setProperty('--t-secondary-fg', t.secondaryFg);
+          if (t.sidebarBg) r.style.setProperty('--t-sidebar-bg', t.sidebarBg);
+          if (t.sidebarText) r.style.setProperty('--t-sidebar-text', t.sidebarText);
+          if (t.sidebarActive) r.style.setProperty('--t-sidebar-active', t.sidebarActive);
+          if (t.sidebarActiveFg) r.style.setProperty('--t-sidebar-active-fg', t.sidebarActiveFg);
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -93,6 +93,11 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       throw error;
     }
 
+    // Salvează în localStorage pentru anti-FOUC la reload
+    if (scope === 'user') {
+      localStorage.setItem('phihau-theme', JSON.stringify(theme));
+    }
+
     applyTheme(theme);
     setCurrentTheme(theme);
   }, [currentUser?.id, activeRoleContext?.club_id]);

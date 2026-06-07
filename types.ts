@@ -738,4 +738,8 @@ export interface ThemeConfig {
   secondary: string;
   secondaryHover: string;
   secondaryFg: string;
+  sidebarBg: string;
+  sidebarText: string;
+  sidebarActive: string;
+  sidebarActiveFg: string;
 }

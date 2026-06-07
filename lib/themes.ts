@@ -1,6 +1,5 @@
 import type { ThemeConfig } from '../types';
 
-// Tema implicită: QwanKiDo Blue
 export const DEFAULT_THEME: ThemeConfig = {
   name: 'QwanKiDo Blue',
   bg: '#020617',
@@ -15,9 +14,12 @@ export const DEFAULT_THEME: ThemeConfig = {
   secondary: '#1e293b',
   secondaryHover: '#334155',
   secondaryFg: '#e2e8f0',
+  sidebarBg: '#020617',
+  sidebarText: '#94a3b8',
+  sidebarActive: '#3b82f6',
+  sidebarActiveFg: '#ffffff',
 };
 
-// 8 teme predefinite (prima = DEFAULT_THEME)
 export const PREDEFINED_THEMES: ThemeConfig[] = [
   DEFAULT_THEME,
   {
@@ -34,6 +36,10 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     secondary: '#0c1526',
     secondaryHover: '#122240',
     secondaryFg: '#bfdbfe',
+    sidebarBg: '#010b18',
+    sidebarText: '#7ea5c8',
+    sidebarActive: '#1d4ed8',
+    sidebarActiveFg: '#ffffff',
   },
   {
     name: 'Forest',
@@ -49,6 +55,10 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     secondary: '#052e16',
     secondaryHover: '#0a4023',
     secondaryFg: '#dcfce7',
+    sidebarBg: '#021208',
+    sidebarText: '#6ee7a0',
+    sidebarActive: '#16a34a',
+    sidebarActiveFg: '#ffffff',
   },
   {
     name: 'Crimson',
@@ -64,6 +74,10 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     secondary: '#1c0a0a',
     secondaryHover: '#2d1010',
     secondaryFg: '#fee2e2',
+    sidebarBg: '#0f0505',
+    sidebarText: '#f87171',
+    sidebarActive: '#dc2626',
+    sidebarActiveFg: '#ffffff',
   },
   {
     name: 'Violet',
@@ -79,6 +93,10 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     secondary: '#13082b',
     secondaryHover: '#1f0e42',
     secondaryFg: '#ede9fe',
+    sidebarBg: '#0a0514',
+    sidebarText: '#a78bfa',
+    sidebarActive: '#7c3aed',
+    sidebarActiveFg: '#ffffff',
   },
   {
     name: 'Amber',
@@ -94,6 +112,10 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     secondary: '#1c1a05',
     secondaryHover: '#292508',
     secondaryFg: '#fef3c7',
+    sidebarBg: '#0c0a02',
+    sidebarText: '#fbbf24',
+    sidebarActive: '#d97706',
+    sidebarActiveFg: '#ffffff',
   },
   {
     name: 'Ocean',
@@ -109,6 +131,10 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     secondary: '#0c1e24',
     secondaryHover: '#102d36',
     secondaryFg: '#cffafe',
+    sidebarBg: '#020c0f',
+    sidebarText: '#67e8f9',
+    sidebarActive: '#0891b2',
+    sidebarActiveFg: '#ffffff',
   },
   {
     name: 'Graphite',
@@ -124,13 +150,51 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     secondary: '#111111',
     secondaryHover: '#1a1a1a',
     secondaryFg: '#e5e5e5',
+    sidebarBg: '#030303',
+    sidebarText: '#737373',
+    sidebarActive: '#525252',
+    sidebarActiveFg: '#ffffff',
+  },
+  {
+    name: 'Office Light',
+    bg: '#f4f6fa',
+    surface: '#ffffff',
+    surface2: '#f1f5f9',
+    border: '#e2e8f0',
+    text: '#1e293b',
+    textMuted: '#64748b',
+    primary: '#2563eb',
+    primaryHover: '#1d4ed8',
+    primaryFg: '#ffffff',
+    secondary: '#f1f5f9',
+    secondaryHover: '#e2e8f0',
+    secondaryFg: '#334155',
+    sidebarBg: '#1e3a5f',
+    sidebarText: '#cbd5e1',
+    sidebarActive: '#3b82f6',
+    sidebarActiveFg: '#ffffff',
+  },
+  {
+    name: 'Snow',
+    bg: '#ffffff',
+    surface: '#f8fafc',
+    surface2: '#f1f5f9',
+    border: '#e2e8f0',
+    text: '#0f172a',
+    textMuted: '#475569',
+    primary: '#7c3aed',
+    primaryHover: '#6d28d9',
+    primaryFg: '#ffffff',
+    secondary: '#f1f5f9',
+    secondaryHover: '#e2e8f0',
+    secondaryFg: '#334155',
+    sidebarBg: '#4c1d95',
+    sidebarText: '#ddd6fe',
+    sidebarActive: '#7c3aed',
+    sidebarActiveFg: '#ffffff',
   },
 ];
 
-/**
- * Aplică o temă pe document.documentElement prin setarea variabilelor CSS --t-*.
- * Coexistă cu --bg-*, --brand-* (themes.ts la rădăcină — neatins).
- */
 export function applyTheme(theme: ThemeConfig): void {
   const root = document.documentElement;
   root.style.setProperty('--t-bg', theme.bg);
@@ -145,4 +209,8 @@ export function applyTheme(theme: ThemeConfig): void {
   root.style.setProperty('--t-secondary', theme.secondary);
   root.style.setProperty('--t-secondary-hover', theme.secondaryHover);
   root.style.setProperty('--t-secondary-fg', theme.secondaryFg);
+  root.style.setProperty('--t-sidebar-bg', theme.sidebarBg);
+  root.style.setProperty('--t-sidebar-text', theme.sidebarText);
+  root.style.setProperty('--t-sidebar-active', theme.sidebarActive);
+  root.style.setProperty('--t-sidebar-active-fg', theme.sidebarActiveFg);
 }

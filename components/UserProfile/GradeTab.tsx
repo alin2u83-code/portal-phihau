@@ -96,8 +96,9 @@ export const GradeTab: React.FC<GradeTabProps> = ({
                                                 {onEditEntry && (
                                                     <button
                                                         onClick={() => onEditEntry({ id: item.id, grad_id: item.grad_id, data_obtinere: item.data_obtinere, observatii: item.observatii })}
-                                                        className="p-1.5 rounded text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                                                        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
                                                         title="Editează"
+                                                        aria-label="Editează intrarea de grad"
                                                     >
                                                         <EditIcon className="w-4 h-4" />
                                                     </button>
@@ -105,8 +106,9 @@ export const GradeTab: React.FC<GradeTabProps> = ({
                                                 {onDeleteEntry && (
                                                     <button
                                                         onClick={() => onDeleteEntry(item.id)}
-                                                        className="p-1.5 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                                                        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                                                         title="Șterge"
+                                                        aria-label="Șterge intrarea de grad"
                                                     >
                                                         <TrashIcon className="w-4 h-4" />
                                                     </button>

@@ -44,7 +44,7 @@ export const ProfilTab: React.FC<ProfilTabProps> = ({
             {/* Left Column: Stats & Quick Info */}
             <div className="space-y-6">
                 {!sportiv.user_id && (
-                    <Card className="bg-amber-900/20 border-l-4 border-amber-500">
+                    <Card className="bg-amber-500/10 border border-amber-500/40">
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2 text-amber-400 font-bold">
                                 <ShieldCheckIcon className="w-5 h-5" />
@@ -70,12 +70,12 @@ export const ProfilTab: React.FC<ProfilTabProps> = ({
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-slate-800/50 p-3 rounded-lg text-center">
-                            <p className="text-xs text-slate-400 uppercase">Vârstă</p>
-                            <p className="text-xl font-bold text-white">{getAge(sportiv.data_nasterii)} ani</p>
+                            <p className="text-xs text-slate-300 font-medium mb-1">Vârstă</p>
+                            <p className="text-2xl font-semibold text-white">{getAge(sportiv.data_nasterii)} <span className="text-sm font-normal text-slate-400">ani</span></p>
                         </div>
                         <div className="bg-slate-800/50 p-3 rounded-lg text-center">
-                            <p className="text-xs text-slate-400 uppercase">Vechime</p>
-                            <p className="text-xl font-bold text-white">{getAge(sportiv.data_inscrierii)} ani</p>
+                            <p className="text-xs text-slate-300 font-medium mb-1">Vechime</p>
+                            <p className="text-2xl font-semibold text-white">{getAge(sportiv.data_inscrierii)} <span className="text-sm font-normal text-slate-400">ani</span></p>
                         </div>
                     </div>
                 </Card>
@@ -119,16 +119,16 @@ export const ProfilTab: React.FC<ProfilTabProps> = ({
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-emerald-900/20 p-4 rounded-lg border border-emerald-500/20">
-                                <h4 className="text-sm font-bold text-emerald-400 mb-2 uppercase tracking-wider">Puncte Forte</h4>
+                            <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
+                                <h4 className="text-sm font-semibold text-emerald-400 mb-2">Puncte Forte</h4>
                                 <p className="text-slate-300 text-sm whitespace-pre-wrap">{sportiv.puncte_forte || 'Nespecificat'}</p>
                             </div>
-                            <div className="bg-red-900/20 p-4 rounded-lg border border-red-500/20">
-                                <h4 className="text-sm font-bold text-red-400 mb-2 uppercase tracking-wider">Puncte Slabe</h4>
+                            <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
+                                <h4 className="text-sm font-semibold text-amber-400 mb-2">Puncte Slabe</h4>
                                 <p className="text-slate-300 text-sm whitespace-pre-wrap">{sportiv.puncte_slabe || 'Nespecificat'}</p>
                             </div>
-                            <div className="bg-blue-900/20 p-4 rounded-lg border border-blue-500/20">
-                                <h4 className="text-sm font-bold text-blue-400 mb-2 uppercase tracking-wider">Obiective</h4>
+                            <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-700/60">
+                                <h4 className="text-sm font-semibold text-sky-400 mb-2">Obiective</h4>
                                 <p className="text-slate-300 text-sm whitespace-pre-wrap">{sportiv.obiective || 'Nespecificat'}</p>
                             </div>
                         </div>

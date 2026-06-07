@@ -107,12 +107,12 @@ export const AttendanceStats: React.FC<AttendanceStatsProps> = ({ sportiv, antre
                             strokeDasharray={364.4}
                             strokeDashoffset={364.4 - (364.4 * stats.percentage) / 100}
                             strokeLinecap="round"
-                            className="text-indigo-500 transition-all duration-1000 ease-out"
+                            className="text-indigo-500 motion-safe:transition-all duration-1000 ease-out"
                         />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className="text-2xl font-black text-white">{stats.percentage}%</span>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Prezență</span>
+                        <span className="text-[10px] font-medium text-slate-300">Prezență</span>
                     </div>
                 </div>
             </div>
@@ -122,27 +122,27 @@ export const AttendanceStats: React.FC<AttendanceStatsProps> = ({ sportiv, antre
                     <div className="flex justify-center mb-1">
                         <ClockIcon className="w-4 h-4 text-slate-400" />
                     </div>
-                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Total</p>
+                    <p className="text-[10px] text-slate-300 font-medium">Total</p>
                     <p className="text-lg font-bold text-white">{stats.totalSessions}</p>
                 </div>
                 <div className="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 text-center">
                     <div className="flex justify-center mb-1">
                         <CheckCircleIcon className="w-4 h-4 text-emerald-400" />
                     </div>
-                    <p className="text-[10px] text-emerald-500 uppercase font-bold tracking-wider">Prezent</p>
+                    <p className="text-[10px] text-emerald-400 font-medium">Prezent</p>
                     <p className="text-lg font-bold text-emerald-400">{stats.presences}</p>
                 </div>
                 <div className="bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 text-center">
                     <div className="flex justify-center mb-1">
                         <XCircleIcon className="w-4 h-4 text-rose-400" />
                     </div>
-                    <p className="text-[10px] text-rose-500 uppercase font-bold tracking-wider">Absent</p>
+                    <p className="text-[10px] text-rose-400 font-medium">Absent</p>
                     <p className="text-lg font-bold text-rose-400">{stats.absences}</p>
                 </div>
             </div>
 
             <div className="space-y-4">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Evoluție lunară (%)</p>
+                <p className="text-xs font-semibold text-slate-300">Evoluție lunară (%)</p>
                 <div className="flex items-end justify-between h-32 gap-2 px-2">
                     {stats.chartData.map((data, idx) => (
                         <div key={idx} className="flex-grow flex flex-col items-center gap-2 group relative">
@@ -152,7 +152,7 @@ export const AttendanceStats: React.FC<AttendanceStatsProps> = ({ sportiv, antre
                                     style={{ height: `${data.percentage}%` }}
                                 />
                             </div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase">{data.label}</span>
+                            <span className="text-[10px] font-medium text-slate-400">{data.label}</span>
                             
                             {/* Tooltip */}
                             <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 border border-slate-700 shadow-xl">

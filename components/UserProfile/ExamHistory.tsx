@@ -61,16 +61,16 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({ sportiv, participari, 
                 </h3>
                 <div className="flex gap-3">
                     <div className="text-center">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold">Total</p>
+                        <p className="text-[10px] text-slate-300 font-medium">Total</p>
                         <p className="text-sm font-bold text-white">{summary.total}</p>
                     </div>
                     <div className="text-center">
-                        <p className="text-[10px] text-emerald-500 uppercase font-bold">Admis</p>
+                        <p className="text-[10px] text-emerald-400 font-medium">Admis</p>
                         <p className="text-sm font-bold text-emerald-400">{summary.admitted}</p>
                     </div>
                     {summary.pending > 0 && (
                         <div className="text-center">
-                            <p className="text-[10px] text-amber-500 uppercase font-bold">În curs</p>
+                            <p className="text-[10px] text-amber-400 font-medium">În curs</p>
                             <p className="text-sm font-bold text-amber-400">{summary.pending}</p>
                         </div>
                     )}
@@ -98,10 +98,10 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({ sportiv, participari, 
                                 </div>
                                 <div className="text-right">
                                     <p className="text-sm font-bold text-white">{item.date ? item.date.toLocaleDateString('ro-RO') : 'Dată necunoscută'}</p>
-                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${
-                                        item.rezultat === 'Admis' ? 'bg-emerald-500/20 text-emerald-400' : 
-                                        item.rezultat === 'Respins' ? 'bg-rose-500/20 text-rose-400' : 
-                                        'bg-slate-700 text-slate-400'
+                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                                        item.rezultat === 'Admis' ? 'bg-emerald-500/20 text-emerald-400' :
+                                        item.rezultat === 'Respins' ? 'bg-rose-500/20 text-rose-400' :
+                                        'bg-slate-700 text-slate-300'
                                     }`}>
                                         {item.rezultat || 'În așteptare'}
                                     </span>

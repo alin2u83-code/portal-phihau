@@ -23,6 +23,7 @@ import { useData } from '../../contexts/DataContext';
 import { useFamilyManager } from '../../hooks/useFamilyManager';
 import { getAge } from '../../utils/date';
 import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';
+import { Wand2, Copy, Check, Download, AlertTriangle } from 'lucide-react';
 
 
 
@@ -86,6 +87,14 @@ export const Sportivi: React.FC<{
     const [accountSettingsSportiv, setAccountSettingsSportiv] = useState<Sportiv | null>(null);
     const [sportivToDelete, setSportivToDelete] = useState<Sportiv | null>(null);
     const [sportivForResetParola, setSportivForResetParola] = useState<Sportiv | null>(null);
+    const [showBulkLinkuriModal, setShowBulkLinkuriModal] = useState(false);
+    const [bulkLinkuriStatus, setBulkLinkuriStatus] = useState<'idle' | 'loading' | 'done'>('idle');
+    const [bulkLinkuriList, setBulkLinkuriList] = useState<{ id: string; nume: string; prenume: string; link: string; tempEmail: string }[]>([]);
+    const [bulkLinkuriErori, setBulkLinkuriErori] = useState<{ id: string; nume: string; prenume: string; error: string }[]>([]);
+    const [bulkLinkuriProgres, setBulkLinkuriProgres] = useState(0);
+    const [bulkLinkuriTotal, setBulkLinkuriTotal] = useState(0);
+    const [bulkLinkuriCopiedAll, setBulkLinkuriCopiedAll] = useState(false);
+    const [bulkLinkuriCopiedId, setBulkLinkuriCopiedId] = useState<string | null>(null);
 
     const handleOpenAddSportiv = () => {
         setSportivToEdit(null);
@@ -100,6 +109,77 @@ export const Sportivi: React.FC<{
     const handleCloseFormModal = () => {
         setIsFormModalOpen(false);
         setSportivToEdit(null);
+    };
+
+    const handleDeschideBulkLinkuri = async () => {
+        setShowBulkLinkuriModal(true);
+        setBulkLinkuriStatus('idle');
+        setBulkLinkuriList([]);
+        setBulkLinkuriErori([]);
+        setBulkLinkuriProgres(0);
+    };
+
+    const handleGenerareBulkLinkuri = async () => {
+        const clubId = activeRoleContext?.club_id;
+        if (!supabase || !clubId) return;
+
+        const { data: sportiviFaraConturi, error } = await supabase
+            .from('sportivi')
+            .select('id, nume, prenume')
+            .eq('club_id', clubId)
+            .is('user_id', null);
+
+        if (error || !sportiviFaraConturi || sportiviFaraConturi.length === 0) {
+            showError('Niciun sportiv', error ? error.message : 'Toți sportivii din club au deja un cont.');
+            return;
+        }
+
+        setBulkLinkuriStatus('loading');
+        setBulkLinkuriTotal(sportiviFaraConturi.length);
+        setBulkLinkuriProgres(0);
+
+        const rezultate: typeof bulkLinkuriList = [];
+        const erori: typeof bulkLinkuriErori = [];
+
+        for (let i = 0; i < sportiviFaraConturi.length; i++) {
+            const s = sportiviFaraConturi[i];
+            try {
+                const response = await fetch('/api/genereaza-magic-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sportiv_id: s.id, roles: ['SPORTIV'] }),
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    rezultate.push({ id: s.id, nume: s.nume, prenume: s.prenume, link: result.link, tempEmail: result.tempEmail });
+                } else {
+                    erori.push({ id: s.id, nume: s.nume, prenume: s.prenume, error: result.error || 'Eroare necunoscută' });
+                }
+            } catch {
+                erori.push({ id: s.id, nume: s.nume, prenume: s.prenume, error: 'Eroare de rețea' });
+            }
+            setBulkLinkuriProgres(i + 1);
+        }
+
+        setBulkLinkuriList(rezultate);
+        setBulkLinkuriErori(erori);
+        setBulkLinkuriStatus('done');
+    };
+
+    const exportBulkLinkuriCSV = () => {
+        const BOM = '﻿';
+        const header = 'Prenume,Nume,Email Provizoriu,Magic Link';
+        const rows = bulkLinkuriList.map(l =>
+            `"${l.prenume}","${l.nume}","${l.tempEmail}","${l.link}"`
+        );
+        const csv = BOM + header + '\n' + rows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `magic_linkuri_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
     };
 
     const [filters, setFilters] = useLocalStorage('phi-hau-sportivi-filters', {
@@ -642,6 +722,16 @@ export const Sportivi: React.FC<{
                             <UploadCloudIcon className="w-4 h-4 mr-1"/> Import
                         </Button>
                         <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={handleDeschideBulkLinkuri}
+                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
+                            className="touch-manipulation min-h-[40px] flex items-center gap-1"
+                            title="Generează magic link-uri pentru sportivii fără cont"
+                        >
+                            <Wand2 className="w-4 h-4" /> Link-uri Magic
+                        </Button>
+                        <Button
                             variant="primary"
                             size="sm"
                             onClick={handleOpenAddSportiv}
@@ -889,6 +979,133 @@ export const Sportivi: React.FC<{
                             Confirmă mutarea
                         </Button>
                     </div>
+                </div>
+            </Modal>
+
+            {/* Modal: Generare magic link-uri în masă */}
+            <Modal
+                isOpen={showBulkLinkuriModal}
+                onClose={() => setShowBulkLinkuriModal(false)}
+                title="Generează Magic Link-uri"
+            >
+                <div className="space-y-4">
+                    {bulkLinkuriStatus === 'idle' && (
+                        <div className="space-y-4">
+                            <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-300 text-sm space-y-2">
+                                <p className="font-semibold flex items-center gap-2"><Wand2 className="w-4 h-4" />Cum funcționează:</p>
+                                <ul className="space-y-1 text-xs text-blue-200/80 list-disc list-inside">
+                                    <li>Găsește toți sportivii din club fără cont activ</li>
+                                    <li>Generează un magic link pentru fiecare</li>
+                                    <li>Poți exporta CSV sau copia toate link-urile pentru WhatsApp</li>
+                                </ul>
+                            </div>
+                            <Button
+                                type="button"
+                                className="w-full bg-amber-600 hover:bg-amber-500 text-white flex items-center justify-center gap-2"
+                                onClick={handleGenerareBulkLinkuri}
+                            >
+                                <Wand2 className="w-4 h-4" />
+                                Generează pentru toți fără cont
+                            </Button>
+                        </div>
+                    )}
+
+                    {bulkLinkuriStatus === 'loading' && (
+                        <div className="space-y-3 py-4">
+                            <p className="text-center text-sm text-slate-300">Se generează link-urile...</p>
+                            <div className="flex justify-between text-xs text-zinc-400">
+                                <span>Progres</span>
+                                <span>{bulkLinkuriProgres} / {bulkLinkuriTotal}</span>
+                            </div>
+                            <div className="w-full bg-zinc-800 rounded-full h-2">
+                                <div
+                                    className="bg-amber-500 h-2 rounded-full transition-all"
+                                    style={{ width: bulkLinkuriTotal ? `${(bulkLinkuriProgres / bulkLinkuriTotal) * 100}%` : '0%' }}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {bulkLinkuriStatus === 'done' && (
+                        <div className="space-y-4">
+                            <div className="flex gap-3">
+                                <div className="flex-1 bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-center">
+                                    <div className="text-2xl font-bold text-green-400">{bulkLinkuriList.length}</div>
+                                    <div className="text-xs text-green-300">Generate</div>
+                                </div>
+                                {bulkLinkuriErori.length > 0 && (
+                                    <div className="flex-1 bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-center">
+                                        <div className="text-2xl font-bold text-red-400">{bulkLinkuriErori.length}</div>
+                                        <div className="text-xs text-red-300">Erori</div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {bulkLinkuriList.length > 0 && (
+                                <div className="flex gap-2 flex-wrap">
+                                    <Button type="button" variant="secondary" size="sm" onClick={exportBulkLinkuriCSV} className="flex items-center gap-1">
+                                        <Download className="w-4 h-4" /> Export CSV
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant={bulkLinkuriCopiedAll ? 'success' : 'secondary'}
+                                        size="sm"
+                                        onClick={() => {
+                                            const text = bulkLinkuriList.map(l => `${l.prenume} ${l.nume}: ${l.link}`).join('\n');
+                                            navigator.clipboard.writeText(text);
+                                            setBulkLinkuriCopiedAll(true);
+                                            setTimeout(() => setBulkLinkuriCopiedAll(false), 2500);
+                                        }}
+                                        className="flex items-center gap-1"
+                                    >
+                                        {bulkLinkuriCopiedAll ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                        {bulkLinkuriCopiedAll ? 'Copiat!' : 'Copiază toate (WhatsApp)'}
+                                    </Button>
+                                </div>
+                            )}
+
+                            {bulkLinkuriList.length > 0 && (
+                                <div className="border border-zinc-800 rounded-lg overflow-hidden max-h-64 overflow-y-auto divide-y divide-zinc-800/50">
+                                    {bulkLinkuriList.map(l => (
+                                        <div key={l.id} className="flex items-center gap-3 px-3 py-2">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-zinc-200 font-medium">{l.prenume} {l.nume}</p>
+                                                <p className="text-xs text-zinc-500 font-mono truncate">{l.link}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(l.link);
+                                                    setBulkLinkuriCopiedId(l.id);
+                                                    setTimeout(() => setBulkLinkuriCopiedId(null), 2500);
+                                                }}
+                                                className={`shrink-0 p-1.5 rounded transition-colors ${
+                                                    bulkLinkuriCopiedId === l.id
+                                                        ? 'text-green-400 bg-green-500/10'
+                                                        : 'text-zinc-400 hover:text-white hover:bg-zinc-700'
+                                                }`}
+                                            >
+                                                {bulkLinkuriCopiedId === l.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {bulkLinkuriErori.length > 0 && (
+                                <div className="space-y-1">
+                                    <p className="text-xs font-medium text-red-400 flex items-center gap-1">
+                                        <AlertTriangle className="w-3 h-3" /> Erori la generare:
+                                    </p>
+                                    {bulkLinkuriErori.map(e => (
+                                        <div key={e.id} className="text-xs text-red-300/70 pl-4">
+                                            {e.prenume} {e.nume} — {e.error}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </Modal>
 

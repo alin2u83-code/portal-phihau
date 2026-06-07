@@ -96,7 +96,7 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
 
                     {/* Total restant */}
                     <div className={`p-4 rounded-xl border ${totalRestante > 0 ? 'bg-red-950/30 border-red-500/30' : 'bg-emerald-950/20 border-emerald-500/20'}`}>
-                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Total de achitat</p>
+                        <p className="text-xs text-slate-300 font-medium mb-1">Total de achitat</p>
                         <p className={`text-3xl font-black ${totalRestante > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                             {totalRestante.toFixed(2)}
                             <span className="text-sm font-normal text-slate-500 ml-1">RON</span>
@@ -112,17 +112,17 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                     <div className="grid grid-cols-2 gap-2">
                         <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/40 text-center">
                             <p className="text-xl font-black text-white">{istoricFacturi.length}</p>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">Total facturi</p>
+                            <p className="text-[10px] text-slate-300 font-medium mt-0.5">Total facturi</p>
                         </div>
                         <div className={`p-3 rounded-xl border text-center ${nrNeachitate > 0 ? 'bg-red-950/20 border-red-500/20' : 'bg-slate-800/50 border-slate-700/40'}`}>
                             <p className={`text-xl font-black ${nrNeachitate > 0 ? 'text-red-400' : 'text-slate-400'}`}>{nrNeachitate}</p>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">Neachitate</p>
+                            <p className="text-[10px] text-slate-300 font-medium mt-0.5">Neachitate</p>
                         </div>
                     </div>
 
                     {/* Abonament */}
                     <div>
-                        <p className="text-xs text-slate-500 uppercase tracking-wider mb-1.5">Abonament activ</p>
+                        <p className="text-xs text-slate-300 font-medium mb-1.5">Abonament activ</p>
                         <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/40 text-sm text-white">
                             {tipuriAbonament.find(t => t.id === sportiv.tip_abonament_id)?.denumire || (
                                 <span className="text-slate-500 italic">Nespecificat</span>
@@ -133,7 +133,7 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                     {/* Familie */}
                     {sportiv.familie_id && (
                         <div>
-                            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1.5">Familie</p>
+                            <p className="text-xs text-slate-300 font-medium mb-1.5">Familie</p>
                             <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/40 flex items-center gap-2 text-sm text-white">
                                 <UsersIcon className="w-4 h-4 text-violet-400 shrink-0" />
                                 {getFamilieName(sportiv.familie_id) ?? 'Familie'}
@@ -312,17 +312,17 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                         <div className="space-y-2">
                             <div className="grid grid-cols-3 gap-2">
                                 <div className="flex flex-col items-center p-3 bg-slate-800/50 rounded-xl border border-slate-700/40">
-                                    <span className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Total</span>
+                                    <span className="text-[10px] text-slate-300 font-medium mb-1">Total</span>
                                     <span className="text-lg font-black text-white">{p.suma_datorata.toFixed(2)}</span>
-                                    <span className="text-[10px] text-slate-500">RON</span>
+                                    <span className="text-[10px] text-slate-400">RON</span>
                                 </div>
                                 <div className="flex flex-col items-center p-3 bg-emerald-950/20 rounded-xl border border-emerald-500/20">
-                                    <span className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Încasat</span>
+                                    <span className="text-[10px] text-slate-300 font-medium mb-1">Încasat</span>
                                     <span className="text-lg font-black text-emerald-400">{totalIncasat.toFixed(2)}</span>
-                                    <span className="text-[10px] text-slate-500">RON</span>
+                                    <span className="text-[10px] text-slate-400">RON</span>
                                 </div>
                                 <div className={`flex flex-col items-center p-3 rounded-xl border ${ramasDePlata > 0 ? 'bg-red-950/20 border-red-500/20' : 'bg-emerald-950/10 border-emerald-500/10'}`}>
-                                    <span className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Rest</span>
+                                    <span className="text-[10px] text-slate-300 font-medium mb-1">Rest</span>
                                     <span className={`text-lg font-black ${ramasDePlata > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                                         {ramasDePlata.toFixed(2)}
                                     </span>
@@ -337,9 +337,7 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
 
                         {/* Timeline încasări */}
                         <div>
-                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                                Istoric plăți
-                            </p>
+                            <p className="text-xs font-semibold text-slate-300 mb-3">Istoric plăți</p>
 
                             {/* Eveniment: emitere factură */}
                             <div className="relative pl-6">

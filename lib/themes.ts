@@ -18,6 +18,15 @@ export const DEFAULT_THEME: ThemeConfig = {
   sidebarText: '#94a3b8',
   sidebarActive: '#3b82f6',
   sidebarActiveFg: '#ffffff',
+  headerBg: '#0f172a',
+  headerBorder: '#1e293b',
+  tableHeaderBg: '#1e293b',
+  tableHeaderText: '#94a3b8',
+  tableRowHover: '#1e2d45',
+  statusSuccess: '#16a34a',
+  statusDanger: '#dc2626',
+  statusWarning: '#d97706',
+  statusInfo: '#0891b2',
 };
 
 export const PREDEFINED_THEMES: ThemeConfig[] = [
@@ -40,6 +49,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     sidebarText: '#7ea5c8',
     sidebarActive: '#1d4ed8',
     sidebarActiveFg: '#ffffff',
+    headerBg: '#0c1526',
+    headerBorder: '#1a2f52',
+    tableHeaderBg: '#122240',
+    tableHeaderText: '#7ea5c8',
+    tableRowHover: '#1a2f52',
+    statusSuccess: '#16a34a',
+    statusDanger: '#dc2626',
+    statusWarning: '#d97706',
+    statusInfo: '#0891b2',
   },
   {
     name: 'Forest',
@@ -59,6 +77,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     sidebarText: '#6ee7a0',
     sidebarActive: '#16a34a',
     sidebarActiveFg: '#ffffff',
+    headerBg: '#052e16',
+    headerBorder: '#14532d',
+    tableHeaderBg: '#0a4023',
+    tableHeaderText: '#6ee7a0',
+    tableRowHover: '#0f4d2a',
+    statusSuccess: '#22c55e',
+    statusDanger: '#dc2626',
+    statusWarning: '#d97706',
+    statusInfo: '#0891b2',
   },
   {
     name: 'Crimson',
@@ -78,6 +105,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     sidebarText: '#f87171',
     sidebarActive: '#dc2626',
     sidebarActiveFg: '#ffffff',
+    headerBg: '#1c0a0a',
+    headerBorder: '#450a0a',
+    tableHeaderBg: '#2d1010',
+    tableHeaderText: '#fca5a5',
+    tableRowHover: '#3a1414',
+    statusSuccess: '#16a34a',
+    statusDanger: '#ef4444',
+    statusWarning: '#d97706',
+    statusInfo: '#0891b2',
   },
   {
     name: 'Violet',
@@ -97,6 +133,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     sidebarText: '#a78bfa',
     sidebarActive: '#7c3aed',
     sidebarActiveFg: '#ffffff',
+    headerBg: '#13082b',
+    headerBorder: '#2e1065',
+    tableHeaderBg: '#1f0e42',
+    tableHeaderText: '#a78bfa',
+    tableRowHover: '#281257',
+    statusSuccess: '#16a34a',
+    statusDanger: '#dc2626',
+    statusWarning: '#d97706',
+    statusInfo: '#7c3aed',
   },
   {
     name: 'Amber',
@@ -116,6 +161,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     sidebarText: '#fbbf24',
     sidebarActive: '#d97706',
     sidebarActiveFg: '#ffffff',
+    headerBg: '#1c1a05',
+    headerBorder: '#3d3400',
+    tableHeaderBg: '#292508',
+    tableHeaderText: '#fbbf24',
+    tableRowHover: '#33290a',
+    statusSuccess: '#16a34a',
+    statusDanger: '#dc2626',
+    statusWarning: '#f59e0b',
+    statusInfo: '#0891b2',
   },
   {
     name: 'Ocean',
@@ -135,6 +189,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     sidebarText: '#67e8f9',
     sidebarActive: '#0891b2',
     sidebarActiveFg: '#ffffff',
+    headerBg: '#0c1e24',
+    headerBorder: '#164e63',
+    tableHeaderBg: '#102d36',
+    tableHeaderText: '#67e8f9',
+    tableRowHover: '#163a47',
+    statusSuccess: '#16a34a',
+    statusDanger: '#dc2626',
+    statusWarning: '#d97706',
+    statusInfo: '#06b6d4',
   },
   {
     name: 'Graphite',
@@ -154,6 +217,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     sidebarText: '#737373',
     sidebarActive: '#525252',
     sidebarActiveFg: '#ffffff',
+    headerBg: '#111111',
+    headerBorder: '#262626',
+    tableHeaderBg: '#1a1a1a',
+    tableHeaderText: '#737373',
+    tableRowHover: '#222222',
+    statusSuccess: '#16a34a',
+    statusDanger: '#dc2626',
+    statusWarning: '#d97706',
+    statusInfo: '#0891b2',
   },
   {
     name: 'Office Light',
@@ -173,6 +245,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     sidebarText: '#cbd5e1',
     sidebarActive: '#3b82f6',
     sidebarActiveFg: '#ffffff',
+    headerBg: '#ffffff',
+    headerBorder: '#e2e8f0',
+    tableHeaderBg: '#f1f5f9',
+    tableHeaderText: '#475569',
+    tableRowHover: '#e8edf5',
+    statusSuccess: '#16a34a',
+    statusDanger: '#dc2626',
+    statusWarning: '#d97706',
+    statusInfo: '#0891b2',
   },
   {
     name: 'Snow',
@@ -192,6 +273,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     sidebarText: '#ddd6fe',
     sidebarActive: '#7c3aed',
     sidebarActiveFg: '#ffffff',
+    headerBg: '#ffffff',
+    headerBorder: '#e2e8f0',
+    tableHeaderBg: '#f1f5f9',
+    tableHeaderText: '#475569',
+    tableRowHover: '#ede9fe',
+    statusSuccess: '#16a34a',
+    statusDanger: '#dc2626',
+    statusWarning: '#d97706',
+    statusInfo: '#0891b2',
   },
 ];
 
@@ -213,4 +303,13 @@ export function applyTheme(theme: ThemeConfig): void {
   root.style.setProperty('--t-sidebar-text', theme.sidebarText);
   root.style.setProperty('--t-sidebar-active', theme.sidebarActive);
   root.style.setProperty('--t-sidebar-active-fg', theme.sidebarActiveFg);
+  root.style.setProperty('--t-header-bg', theme.headerBg);
+  root.style.setProperty('--t-header-border', theme.headerBorder);
+  root.style.setProperty('--t-table-header-bg', theme.tableHeaderBg);
+  root.style.setProperty('--t-table-header-text', theme.tableHeaderText);
+  root.style.setProperty('--t-table-row-hover', theme.tableRowHover);
+  root.style.setProperty('--t-status-success', theme.statusSuccess);
+  root.style.setProperty('--t-status-danger', theme.statusDanger);
+  root.style.setProperty('--t-status-warning', theme.statusWarning);
+  root.style.setProperty('--t-status-info', theme.statusInfo);
 }

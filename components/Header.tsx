@@ -93,8 +93,8 @@ export const Header: React.FC<HeaderProps> = ({
     return (
         <header
             data-tutorial="header"
-            className={`fixed top-0 right-0 h-16 flex items-center justify-between px-4 bg-slate-900/95 backdrop-blur-md transition-all duration-300 ${isSidebarExpanded ? 'md:left-64' : 'md:left-20'} left-0 z-40`}
-            style={{ borderBottom: '1px solid rgba(30,41,59,0.9)', boxShadow: '0 1px 20px rgba(0,0,0,0.3)' }}
+            className={`fixed top-0 right-0 h-16 flex items-center justify-between px-4 backdrop-blur-md transition-all duration-300 ${isSidebarExpanded ? 'md:left-64' : 'md:left-20'} left-0 z-40`}
+            style={{ background: 'var(--t-header-bg)', borderBottom: '1px solid var(--t-header-border)', boxShadow: '0 1px 20px rgba(0,0,0,0.3)' }}
         >
             {/* Left: Hamburger (mobile) + Back Button + Breadcrumb */}
             <div className="flex items-center gap-2 flex-shrink-0 min-w-0">

@@ -742,4 +742,13 @@ export interface ThemeConfig {
   sidebarText: string;
   sidebarActive: string;
   sidebarActiveFg: string;
+  headerBg: string;
+  headerBorder: string;
+  tableHeaderBg: string;
+  tableHeaderText: string;
+  tableRowHover: string;
+  statusSuccess: string;
+  statusDanger: string;
+  statusWarning: string;
+  statusInfo: string;
 }

@@ -32,10 +32,10 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   const variantClasses = {
     primary: "focus:ring-blue-500 shadow-md active:scale-95",
     secondary: "focus:ring-slate-500 shadow-sm active:scale-95",
-    danger: "bg-rose-600 hover:bg-rose-700 text-white focus:ring-rose-500 shadow-md active:scale-95",
-    success: "bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500 shadow-md active:scale-95",
-    info: "bg-sky-600 hover:bg-sky-700 text-white focus:ring-sky-500 shadow-md active:scale-95",
-    warning: "bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500 shadow-md active:scale-95",
+    danger: "focus:ring-rose-500 shadow-md active:scale-95",
+    success: "focus:ring-emerald-500 shadow-md active:scale-95",
+    info: "focus:ring-sky-500 shadow-md active:scale-95",
+    warning: "focus:ring-amber-500 shadow-md active:scale-95",
   };
 
   const variantStyles: Partial<Record<string, React.CSSProperties>> = {
@@ -46,6 +46,22 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
     secondary: {
       backgroundColor: isHovered ? 'var(--t-secondary-hover)' : 'var(--t-secondary)',
       color: 'var(--t-secondary-fg)',
+    },
+    danger: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-danger) 80%, #000)' : 'var(--t-status-danger)',
+      color: '#ffffff',
+    },
+    success: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-success) 80%, #000)' : 'var(--t-status-success)',
+      color: '#ffffff',
+    },
+    info: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-info) 80%, #000)' : 'var(--t-status-info)',
+      color: '#ffffff',
+    },
+    warning: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-warning) 80%, #000)' : 'var(--t-status-warning)',
+      color: '#ffffff',
     },
   };
 
@@ -67,7 +83,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
         htmlFor={htmlFor}
         className={`${finalClassName} ${(disabled || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
         style={variantStyles[variant]}
-        onMouseEnter={() => { if (variant === 'primary' || variant === 'secondary') setIsHovered(true); }}
+        onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         {...(props as any)}
       >
@@ -80,7 +96,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
     <button
       className={finalClassName}
       style={variantStyles[variant]}
-      onMouseEnter={() => { if (variant === 'primary' || variant === 'secondary') setIsHovered(true); }}
+      onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       disabled={disabled || isLoading}
       {...props}
@@ -389,15 +405,35 @@ export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
 };
 
 export const Badge: React.FC<{ children: React.ReactNode, variant?: 'green' | 'red' | 'amber' | 'blue' | 'slate', className?: string }> = ({ children, variant = 'slate', className = '' }) => {
-  const variants = {
-    green: 'bg-emerald-900/30 text-emerald-400 border-emerald-800/50',
-    red: 'bg-rose-900/30 text-rose-400 border-rose-800/50',
-    amber: 'bg-amber-900/30 text-amber-400 border-amber-800/50',
-    blue: 'bg-sky-900/30 text-sky-400 border-sky-800/50',
-    slate: 'bg-slate-800 text-slate-400 border-slate-700'
+  const variantStyles: Record<string, React.CSSProperties> = {
+    green: {
+      background: 'color-mix(in srgb, var(--t-status-success) 18%, transparent)',
+      color: 'var(--t-status-success)',
+      borderColor: 'color-mix(in srgb, var(--t-status-success) 35%, transparent)',
+    },
+    red: {
+      background: 'color-mix(in srgb, var(--t-status-danger) 18%, transparent)',
+      color: 'var(--t-status-danger)',
+      borderColor: 'color-mix(in srgb, var(--t-status-danger) 35%, transparent)',
+    },
+    amber: {
+      background: 'color-mix(in srgb, var(--t-status-warning) 18%, transparent)',
+      color: 'var(--t-status-warning)',
+      borderColor: 'color-mix(in srgb, var(--t-status-warning) 35%, transparent)',
+    },
+    blue: {
+      background: 'color-mix(in srgb, var(--t-status-info) 18%, transparent)',
+      color: 'var(--t-status-info)',
+      borderColor: 'color-mix(in srgb, var(--t-status-info) 35%, transparent)',
+    },
+    slate: {
+      background: 'rgba(100,116,139,0.15)',
+      color: '#94a3b8',
+      borderColor: 'rgba(100,116,139,0.3)',
+    },
   };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${variants[variant]} ${className}`}>
+    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${className}`} style={variantStyles[variant]}>
       {children}
     </span>
   );

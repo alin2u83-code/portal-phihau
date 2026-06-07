@@ -69,6 +69,10 @@ const NavItem: React.FC<{
                                         ? "bg-amber-500/15 text-amber-300 font-semibold"
                                         : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
                                     }`}
+                                    style={isSubActive ? {
+                                        background: 'var(--t-sidebar-active)',
+                                        color: 'var(--t-sidebar-active-fg)',
+                                    } : undefined}
                                 >
                                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-amber-400' : 'bg-slate-600'}`} />
                                     {sub.label}
@@ -97,6 +101,10 @@ const NavItem: React.FC<{
                 ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
                 : "bg-slate-800/40 text-slate-400 border-slate-700/50 hover:bg-slate-800/70 hover:text-slate-200 hover:border-amber-400/20"
             }`}
+            style={isActive ? {
+                background: 'var(--t-sidebar-active)',
+                color: 'var(--t-sidebar-active-fg)',
+            } : undefined}
             title={!isExpanded ? item.label : ''}
         >
             <div className="relative">

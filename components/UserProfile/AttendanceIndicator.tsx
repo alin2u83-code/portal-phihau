@@ -31,7 +31,8 @@ export const AttendanceIndicator: React.FC<{ attendances: {date: string; present
                     <div 
                         key={index} 
                         title={att.isPlaceholder ? 'Antrenament neînregistrat' : `${new Date(att.date + 'T00:00:00').toLocaleDateString('ro-RO')}: ${att.present ? 'Prezent' : 'Absent'}`}
-                        className={`w-8 h-12 rounded-md transition-all duration-300 ${att.isPlaceholder ? 'bg-slate-700' : att.present ? 'bg-green-500' : 'bg-red-500'}`}
+                        aria-label={att.isPlaceholder ? 'Antrenament neînregistrat' : att.present ? 'Prezent' : 'Absent'}
+                        className={`w-8 h-12 rounded-md transition-all duration-300 ${att.isPlaceholder ? 'bg-slate-700' : att.present ? 'bg-emerald-500' : 'bg-rose-500'}`}
                     >
                     </div>
                 ))}

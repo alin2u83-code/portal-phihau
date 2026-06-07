@@ -53,7 +53,7 @@ export const TrainingHistory: React.FC<TrainingHistoryProps> = ({ sportiv, antre
             {trainingRecords.length > 0 ? (
                 <div className="max-h-60 overflow-y-auto pr-2">
                     <table className="w-full text-left text-sm">
-                        <thead className="text-slate-400 text-xs uppercase sticky top-0 bg-[var(--bg-card)]">
+                        <thead className="text-slate-300 text-xs font-medium sticky top-0 bg-[var(--bg-card)]">
                             <tr>
                                 <th className="py-2">Data</th>
                                 <th className="py-2">Grupă</th>
@@ -66,9 +66,9 @@ export const TrainingHistory: React.FC<TrainingHistoryProps> = ({ sportiv, antre
                                     <td className="py-2 font-semibold text-white">{new Date(record.date).toLocaleDateString('ro-RO')}</td>
                                     <td className="py-2 text-slate-300">{record.groupName}</td>
                                     <td className={`py-2 text-right font-bold ${
-                                        record.status === 'Prezent' ? 'text-green-500' : 
-                                        record.status === 'Absent' ? 'text-red-500' : 
-                                        'text-slate-500'
+                                        record.status === 'Prezent' ? 'text-emerald-400' :
+                                        record.status === 'Absent' ? 'text-rose-400' :
+                                        'text-slate-400'
                                     }`}>{record.status}</td>
                                 </tr>
                             ))}

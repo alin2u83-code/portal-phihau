@@ -6,6 +6,7 @@ import { ArrowLeftIcon, Bars3Icon } from './icons';
 import { NotificationBell } from './NotificationBell';
 import { UserMenu } from './UserMenu';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { ThemeDropdown } from './ThemeDropdown';
 
 interface HeaderProps {
     onBack: () => void;
@@ -16,6 +17,7 @@ interface HeaderProps {
     userRoles?: any[];
     onSwitchRole?: (context: any) => void;
     onOpenMobileSidebar?: () => void;
+    onOpenThemeEditor: () => void;
 }
 
 const ROOT_VIEWS: View[] = ['dashboard', 'my-portal', 'federation-dashboard', 'admin-dashboard'];
@@ -64,6 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
     userRoles,
     onSwitchRole,
     onOpenMobileSidebar,
+    onOpenThemeEditor,
 }) => {
     const { activeView, setActiveView, canGoBack, history, goBack, jumpToHistory } = useNavigation();
     const isRootView = ROOT_VIEWS.includes(activeView);
@@ -150,6 +153,8 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Right: Notifications & User Menu */}
             <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                <ThemeDropdown onOpenAdvanced={onOpenThemeEditor} />
+
                 {currentUser && <NotificationBell currentUser={currentUser} />}
 
                 <div className="h-6 w-px bg-slate-800 hidden md:block" />

@@ -74,6 +74,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 userRoles={userRoles}
                 onSwitchRole={onSwitchRole}
                 onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+                onOpenThemeEditor={() => setIsThemeEditorOpen(true)}
             />
 
             <main className={`flex-1 transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'} min-h-screen`}>

@@ -135,7 +135,11 @@ Plans:
   2. `components/Competitii/CompetitieFilterBar.tsx` acceptă props de la hook și randează chips gen, inputs vârstă range, inputs grad range, pills probă + badge filtre active — zero state propriu
   3. Funcție pură `aplicaFiltreCategorie(categorii, filtre)` în hook sau utils — extrasă din CategoriiTemplateManager, returnează array filtrat
 
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+
+- [ ] 06-01-PLAN.md — useCompetitieFilters hook + aplicaFiltreCategorie pură + CompetitieFilterBar componentă prezentațională (INFR-01, INFR-02, INFR-03)
+
 **UI hint**: yes
 
 ### Phase 7: Aplicare Filtre pe Tab-uri
@@ -166,5 +170,5 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 | 3. Calendar & CRUD Antrenamente | 0/? | Not started | - |
 | 4. Stagii Completare | 3/3 | Complete   | 2026-06-05 |
 | 5. Color Theme System | 3/3 | Complete   | 2026-06-06 |
-| 6. Infrastructură Filtrare | 0/? | Not started | - |
+| 6. Infrastructură Filtrare | 0/1 | Not started | - |
 | 7. Aplicare Filtre pe Tab-uri | 0/? | Not started | - |

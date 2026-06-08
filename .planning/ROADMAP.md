@@ -135,8 +135,7 @@ Plans:
   2. `components/Competitii/CompetitieFilterBar.tsx` acceptă props de la hook și randează chips gen, inputs vârstă range, inputs grad range, pills probă + badge filtre active — zero state propriu
   3. Funcție pură `aplicaFiltreCategorie(categorii, filtre)` în hook sau utils — extrasă din CategoriiTemplateManager, returnează array filtrat
 
-**Plans**: 1 plan
-Plans:
+**Plans**: 1 planPlans:
 
 - [ ] 06-01-PLAN.md — useCompetitieFilters hook + aplicaFiltreCategorie pură + CompetitieFilterBar componentă prezentațională (INFR-01, INFR-02, INFR-03)
 

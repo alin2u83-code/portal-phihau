@@ -123,15 +123,48 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 6: Infrastructură Filtrare Unificată
+
+**Goal**: Hook `useCompetitieFilters` și componentă `CompetitieFilterBar` create și testate — baza tehnică pentru filtrarea unificată pe toate tab-urile din modul Competiții
+**Mode**: mvp
+**Depends on**: Nothing (independent feature — logică extrasă din cod existent)
+**Requirements**: INFR-01, INFR-02, INFR-03
+**Success Criteria** (what must be TRUE):
+
+  1. `hooks/useCompetitieFilters.ts` exportă hook cu state complet (gen, varstaMin, varstaMax, gradMin, gradMax, probaId) + funcții toggle/reset — zero logică UI
+  2. `components/Competitii/CompetitieFilterBar.tsx` acceptă props de la hook și randează chips gen, inputs vârstă range, inputs grad range, pills probă + badge filtre active — zero state propriu
+  3. Funcție pură `aplicaFiltreCategorie(categorii, filtre)` în hook sau utils — extrasă din CategoriiTemplateManager, returnează array filtrat
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 7: Aplicare Filtre pe Tab-uri
+
+**Goal**: Toate tab-urile principale (Categorii, Înscrieri, Raport, Template) folosesc `CompetitieFilterBar` identic — nicio regresia față de comportamentul actual
+**Mode**: mvp
+**Depends on**: Phase 6
+**Requirements**: TAB-01, TAB-02, TAB-03, INSC-01, INSC-02, INSC-03, RAP-01, RAP-02, TMPL-01, TMPL-02
+**Success Criteria** (what must be TRUE):
+
+  1. Tab Categorii: `CompetitieFilterBar` înlocuiește pills-urile de probe standalone + adaugă gen/vârstă/grad — lista categorii se actualizează live
+  2. Tab Înscrieri: `InscrieriView.tsx` folosește `useCompetitieFilters` + `CompetitieFilterBar` în loc de state local duplicat — comportament identic sau superior
+  3. Tab Raport: `RaportInscrieri.tsx` primește filtre și afișează `CompetitieFilterBar` — datele de raport se filtrează consistent
+  4. Tab Template: `CategoriiTemplateManager.tsx` folosește `useCompetitieFilters` + `CompetitieFilterBar` în loc de filterGenSet local — zero regresii pentru admin
+
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1, parallel cu 2-3)
+Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1, parallel cu 2-3) | 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. DB & Types | 1/1 | Complete   | 2026-06-04 |
-| 2. Navigare Grupe Drill-Down | 1/2 | In Progress|  |
+| 2. Navigare Grupe Drill-Down | 2/2 | Complete   | 2026-06-04 |
 | 3. Calendar & CRUD Antrenamente | 0/? | Not started | - |
 | 4. Stagii Completare | 3/3 | Complete   | 2026-06-05 |
-| 5. Color Theme System | 0/3 | Not started | - |
+| 5. Color Theme System | 3/3 | Complete   | 2026-06-06 |
+| 6. Infrastructură Filtrare | 0/? | Not started | - |
+| 7. Aplicare Filtre pe Tab-uri | 0/? | Not started | - |

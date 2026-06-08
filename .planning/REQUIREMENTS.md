@@ -58,19 +58,19 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFR-01 | Phase 1 | Pending |
-| INFR-02 | Phase 1 | Pending |
-| INFR-03 | Phase 1 | Pending |
-| TAB-01 | Phase 2 | Pending |
-| TAB-02 | Phase 2 | Pending |
-| TAB-03 | Phase 2 | Pending |
-| INSC-01 | Phase 2 | Pending |
-| INSC-02 | Phase 2 | Pending |
-| INSC-03 | Phase 2 | Pending |
-| RAP-01 | Phase 2 | Pending |
-| RAP-02 | Phase 2 | Pending |
-| TMPL-01 | Phase 2 | Pending |
-| TMPL-02 | Phase 2 | Pending |
+| INFR-01 | Phase 6 | Pending |
+| INFR-02 | Phase 6 | Pending |
+| INFR-03 | Phase 6 | Pending |
+| TAB-01 | Phase 7 | Pending |
+| TAB-02 | Phase 7 | Pending |
+| TAB-03 | Phase 7 | Pending |
+| INSC-01 | Phase 7 | Pending |
+| INSC-02 | Phase 7 | Pending |
+| INSC-03 | Phase 7 | Pending |
+| RAP-01 | Phase 7 | Pending |
+| RAP-02 | Phase 7 | Pending |
+| TMPL-01 | Phase 7 | Pending |
+| TMPL-02 | Phase 7 | Pending |
 
 **Coverage:**
 - v1 requirements: 13 total

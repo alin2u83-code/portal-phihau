@@ -6,6 +6,9 @@ import { VizaSportiv } from '../../types';
 import { useError } from '../ErrorProvider';
 import { areVizaFRAM, WarningVizaFRAM } from './constants';
 import { InscriereModal } from './InscriereModal';
+import { CompetitieFilterBar } from './CompetitieFilterBar';
+import { aplicaFiltreCategorie } from '../../hooks/useCompetitieFilters';
+import type { CompetitieFiltre } from '../../hooks/useCompetitieFilters';
 
 export interface InscrieriViewProps {
   competitie: Competitie;
@@ -21,10 +24,16 @@ export interface InscrieriViewProps {
   vizeSportivi: VizaSportiv[];
   sportivi: Sportiv[];
   onRefresh: () => void;
+  filtre: CompetitieFiltre;
+  toggleGen: (gen: string) => void;
+  setFiltre: (partial: Partial<CompetitieFiltre>) => void;
+  resetFiltre: () => void;
+  nrFiltreActive: number;
 }
 
 export const InscrieriView: React.FC<InscrieriViewProps> = ({
-  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, myClubId, numeClub, vizeSportivi, sportivi, onRefresh
+  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, myClubId, numeClub, vizeSportivi, sportivi, onRefresh,
+  filtre, toggleGen, setFiltre, resetFiltre, nrFiltreActive
 }) => {
   const { showError } = useError();
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
@@ -33,55 +42,12 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
   const [expandedProbe, setExpandedProbe] = useState<Set<string>>(new Set(['__individual__', '__echipe__', ...probe.map(p => p.id)]));
   const [editEchipaCategorie, setEditEchipaCategorie] = useState<CategorieCompetitie | null>(null);
   const [editEchipaClubId, setEditEchipaClubId] = useState<string>('');
-  const [filtreVisible, setFiltreVisible] = useState(false);
-  const [filterGen, setFilterGen] = useState<Set<string>>(new Set());
-  const [filterProbaId, setFilterProbaId] = useState<string>('');
-  const [filterVarstaMin, setFilterVarstaMin] = useState('');
-  const [filterVarstaMax, setFilterVarstaMax] = useState('');
-  const [filterGradMin, setFilterGradMin] = useState('');
-  const [filterGradMax, setFilterGradMax] = useState('');
-
   const categoriiVizibile = useMemo(() => {
-    const areFiltre = filterGen.size > 0 || filterProbaId || filterVarstaMin || filterVarstaMax || filterGradMin || filterGradMax;
-    if (!areFiltre) return null; // null = no filtering, show all
-    return new Set(
-      categorii.filter(cat => {
-        if (filterGen.size > 0 && !filterGen.has(cat.gen)) return false;
-        if (filterProbaId && cat.proba_id !== filterProbaId) return false;
-        if (filterVarstaMin !== '' && cat.varsta_min < Number(filterVarstaMin)) return false;
-        if (filterVarstaMax !== '' && (cat.varsta_max === null || cat.varsta_max > Number(filterVarstaMax))) return false;
-        if (filterGradMin !== '' && (cat.grad_min_ordine === null || cat.grad_min_ordine < Number(filterGradMin))) return false;
-        if (filterGradMax !== '' && (cat.grad_max_ordine === null || cat.grad_max_ordine > Number(filterGradMax))) return false;
-        return true;
-      }).map(c => c.id)
-    );
-  }, [categorii, filterGen, filterProbaId, filterVarstaMin, filterVarstaMax, filterGradMin, filterGradMax]);
-
-  const nrFiltreActive = useMemo(() => {
-    let n = 0;
-    if (filterGen.size > 0) n++;
-    if (filterProbaId) n++;
-    if (filterVarstaMin !== '' || filterVarstaMax !== '') n++;
-    if (filterGradMin !== '' || filterGradMax !== '') n++;
-    return n;
-  }, [filterGen, filterProbaId, filterVarstaMin, filterVarstaMax, filterGradMin, filterGradMax]);
-
-  const toggleGen = (gen: string) => {
-    setFilterGen(prev => {
-      const next = new Set(prev);
-      if (next.has(gen)) next.delete(gen); else next.add(gen);
-      return next;
-    });
-  };
-
-  const resetFiltre = () => {
-    setFilterGen(new Set());
-    setFilterProbaId('');
-    setFilterVarstaMin('');
-    setFilterVarstaMax('');
-    setFilterGradMin('');
-    setFilterGradMax('');
-  };
+    const areFiltre = filtre.gen.size > 0 || filtre.probaId || filtre.varstaMin ||
+      filtre.varstaMax || filtre.gradMin || filtre.gradMax;
+    if (!areFiltre) return null;
+    return new Set(aplicaFiltreCategorie(categorii, filtre).map(c => c.id));
+  }, [categorii, filtre]);
 
   const canSeeAll = isAdmin;
   const statusOrdine: Record<string, number> = { inscris: 0, confirmat: 1 };
@@ -130,111 +96,15 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Panou filtre */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <button
-            onClick={() => setFiltreVisible(v => !v)}
-            style={{ touchAction: 'manipulation' }}
-            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${nrFiltreActive > 0 ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-primary' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-            </svg>
-            {`Filtrează${nrFiltreActive > 0 ? ` (${nrFiltreActive})` : ''}`}
-            <svg className={`w-3 h-3 transition-transform ${filtreVisible ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          {nrFiltreActive > 0 && (
-            <button onClick={resetFiltre} className="text-xs text-slate-400 hover:text-white underline">
-              Reset
-            </button>
-          )}
-        </div>
-
-        {filtreVisible && (
-          <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-3 space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Gen */}
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Gen</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {['Feminin', 'Masculin', 'Mixt'].map(gen => (
-                    <label key={gen} className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg cursor-pointer border transition-colors ${filterGen.has(gen) ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-primary' : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-700'}`}>
-                      <input type="checkbox" checked={filterGen.has(gen)} onChange={() => toggleGen(gen)} className="w-3 h-3 accent-brand-primary" />
-                      {gen}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Probă */}
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Probă</div>
-                <select
-                  value={filterProbaId}
-                  onChange={e => setFilterProbaId(e.target.value)}
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-brand-primary/60"
-                >
-                  <option value="">Toate probele</option>
-                  {probe.map(p => (
-                    <option key={p.id} value={p.id}>{p.denumire}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Vârstă */}
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Vârstă (ani)</div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={0}
-                    placeholder="Min"
-                    value={filterVarstaMin}
-                    onChange={e => setFilterVarstaMin(e.target.value)}
-                    className="w-20 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/60"
-                  />
-                  <span className="text-slate-500 text-xs">–</span>
-                  <input
-                    type="number"
-                    min={0}
-                    placeholder="Max"
-                    value={filterVarstaMax}
-                    onChange={e => setFilterVarstaMax(e.target.value)}
-                    className="w-20 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/60"
-                  />
-                </div>
-              </div>
-
-              {/* Grad */}
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Grad (ordine)</div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={0}
-                    placeholder="Min"
-                    value={filterGradMin}
-                    onChange={e => setFilterGradMin(e.target.value)}
-                    className="w-20 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/60"
-                  />
-                  <span className="text-slate-500 text-xs">–</span>
-                  <input
-                    type="number"
-                    min={0}
-                    placeholder="Max"
-                    value={filterGradMax}
-                    onChange={e => setFilterGradMax(e.target.value)}
-                    className="w-20 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary/60"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      <CompetitieFilterBar
+        filtre={filtre}
+        toggleGen={toggleGen}
+        setFiltre={setFiltre}
+        resetFiltre={resetFiltre}
+        nrFiltreActive={nrFiltreActive}
+        probe={probe}
+        grade={grade}
+      />
 
       {/* Individual */}
       {filteredInscrieri.length > 0 && (

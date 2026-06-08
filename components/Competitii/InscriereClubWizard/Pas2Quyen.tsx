@@ -218,7 +218,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
         <div className="text-center text-slate-500 py-10 italic text-sm">
           Niciun sportiv cu categorie individuală auto-asignată.
         </div>
-        <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4 flex justify-end">
+        <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-2 pb-2 md:pb-4 -mx-4 px-4 flex justify-end">
           <Button variant="success" onClick={onContinua} className="min-w-[140px]">Continuă</Button>
         </div>
       </div>
@@ -348,26 +348,23 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
             </div>
           )}
 
-          {/* Bulk Q1 */}
-          {sportiviLipsaQ1.length > 0 && (
-            <button
-              onClick={handleBulkQ1}
-              className="text-xs px-3 py-2 rounded-lg border border-brand-primary/50 text-brand-primary hover:bg-brand-primary/10 transition-colors font-medium"
-            >
-              Setează prima opțiune Q1 pentru toți ({sportiviLipsaQ1.length})
-            </button>
-          )}
-          {sportiviLipsaQ1.length === 0 && (
-            <button
-              onClick={handleBulkQ1}
-              className="text-xs px-3 py-2 rounded-lg border border-slate-600 text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
-            >
-              ↓ Prima opțiune Q1 pentru toți vizibili
-            </button>
-          )}
+          {/* Bulk Q1 — un singur buton cu text dinamic */}
+          <button
+            onClick={handleBulkQ1}
+            className={`text-xs px-3 py-2 rounded-lg border transition-colors font-medium ${
+              sportiviLipsaQ1.length > 0
+                ? 'border-brand-primary/50 text-brand-primary hover:bg-brand-primary/10'
+                : 'border-slate-600 text-slate-400 hover:text-white hover:border-slate-500'
+            }`}
+          >
+            {sportiviLipsaQ1.length > 0
+              ? `Setează prima opțiune Q1 pentru toți (${sportiviLipsaQ1.length})`
+              : '↓ Resetează Q1 la prima opțiune pentru toți vizibili'
+            }
+          </button>
 
           {/* Tabel înlănțuiri */}
-          <div className="overflow-x-auto max-w-full rounded-lg border border-slate-700" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="overflow-x-auto overflow-y-auto max-h-[60vh] max-w-full rounded-lg border border-slate-700" style={{ WebkitOverflowScrolling: 'touch' }}>
             <table className="w-full text-sm" style={{ minWidth: `${Math.max(480, 300 + maxOpts * 120)}px` }}>
               <thead>
                 <tr className="bg-slate-800 border-b border-slate-700">
@@ -503,7 +500,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
       )}
 
       {/* Footer */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-2 pb-2 md:pb-4 -mx-4 px-4">
         <div className="flex items-center justify-between gap-3">
           <span className={`text-sm ${esteBlockat ? 'text-red-400' : 'text-slate-400'}`}>
             {esteBlockat

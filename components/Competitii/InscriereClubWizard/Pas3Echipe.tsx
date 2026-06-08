@@ -34,6 +34,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
 }) => {
   const { showError } = useError();
   const [cereriInterclub, setCereriInterclub] = useState<Map<string, 'pending' | 'aprobat' | 'respins'>>(new Map());
+  const [filtruCategorii, setFiltruCategorii] = useState<'toate' | 'completate' | 'incomplete'>('toate');
 
   useEffect(() => {
     if (!competitieId || !clubSolicitantId) return;
@@ -106,12 +107,34 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     const nrRezervă = membri.filter(m => m.rol === 'rezerva').length;
     const titMin = cat.tip_participare === 'pereche' ? 2 : (cat.sportivi_per_echipa_min ?? 1);
     const eCompleta = !!echipaDB && (nrTitulari >= titMin || echipaDB.echipa_incompleta);
-    const eligibili = sportivi.filter(s => verificaEligibilitate(s, cat, grade, dataCompetitie).eligibil).length;
+    // Task 5: excludem sportivii fără data_nasterii sau gen din contorizarea eligibililor
+    const eligibili = sportivi.filter(s => {
+      if (!s.data_nasterii || !s.gen) return false;
+      return verificaEligibilitate(s, cat, grade, dataCompetitie).eligibil;
+    }).length;
     return { cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili };
   }), [categoriiEchipa, echipe, clubId, sportivi, grade, dataCompetitie]);
 
   const nrConfigurate = categoriiStare.filter(c => c.eCompleta || (skippedCategorii?.has(c.cat.id) ?? false)).length;
   const nrTotal = categoriiStare.filter(c => c.eligibili > 0).length;
+
+  // Task 1+4: numărători filtre (din lista completă, nu filtrată)
+  const nrCompletate = categoriiStare.filter(c => c.eCompleta || (skippedCategorii?.has(c.cat.id) ?? false)).length;
+  const nrIncomplete = categoriiStare.filter(c => !c.eCompleta && !(skippedCategorii?.has(c.cat.id) ?? false) && c.eligibili > 0).length;
+  const nrToate = categoriiStare.length;
+
+  // Task 1+4: lista filtrată de categorii pentru afișare
+  const categoriiStareFiltrate = useMemo(() => {
+    if (filtruCategorii === 'toate') return categoriiStare;
+    if (filtruCategorii === 'completate') {
+      return categoriiStare.filter(c => c.eCompleta || (skippedCategorii?.has(c.cat.id) ?? false));
+    }
+    // incomplete: nu completate, nu sărite, au eligibili
+    return categoriiStare.filter(c => !c.eCompleta && !(skippedCategorii?.has(c.cat.id) ?? false) && c.eligibili > 0);
+  }, [categoriiStare, filtruCategorii, skippedCategorii]);
+
+  // Task 4: afișăm filtrul doar dacă există 3+ categorii
+  const arataBara = categoriiStare.length >= 3;
 
   return (
     <div className="space-y-4">
@@ -130,9 +153,36 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
 
       {tipProba && <ProbaHeader tipProba={tipProba} />}
 
+      {/* Task 1+4: Bara de filtre categorii — apare doar la 3+ categorii */}
+      {arataBara && (
+        <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex gap-2 min-w-max md:min-w-0 md:flex-wrap">
+            {([
+              { key: 'toate', label: `Toate (${nrToate})` },
+              { key: 'completate', label: `Completate (${nrCompletate})` },
+              { key: 'incomplete', label: `Incomplete (${nrIncomplete})` },
+            ] as const).map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFiltruCategorii(key)}
+                style={{ touchAction: 'manipulation' }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors whitespace-nowrap ${
+                  filtruCategorii === key
+                    ? 'border-brand-primary bg-brand-primary/20 text-white'
+                    : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Carduri categorii */}
       <div className="space-y-3">
-        {categoriiStare.map(({ cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili }) => {
+        {categoriiStareFiltrate.map(({ cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili }) => {
           const titMin = cat.tip_participare === 'pereche' ? 2 : (cat.sportivi_per_echipa_min ?? 1);
           const areEligibili = eligibili > 0;
           const isCatSkipped = skippedCategorii?.has(cat.id) ?? false;
@@ -306,10 +356,22 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
             <p className="text-sm text-slate-500 italic">Nicio categorie echipă pentru această probă.</p>
           </div>
         )}
+        {categoriiEchipa.length > 0 && categoriiStareFiltrate.length === 0 && (
+          <div className="rounded-xl border border-slate-700 bg-slate-800/30 px-4 py-6 text-center">
+            <p className="text-sm text-slate-500 italic">Nicio categorie în filtrul curent.</p>
+            <button
+              type="button"
+              onClick={() => setFiltruCategorii('toate')}
+              className="mt-2 text-xs text-brand-primary hover:underline"
+            >
+              Afișează toate
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
-      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-3 pb-2 md:pb-16 -mx-4 px-4">
+      <div className="sticky bottom-0 z-10 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 pt-2 pb-2 md:pb-4 -mx-4 px-4">
         <Button variant="secondary" onClick={onBack} className="w-full">
           Înapoi la probe
         </Button>

@@ -20,6 +20,8 @@ interface Pas3Props {
   dataCompetitie: string;
   competitieId: string;
   clubSolicitantId: string;
+  skippedCategorii?: Set<string>;
+  onToggleSkipCategorie?: (catId: string) => void;
   onOpenInscriereModal?: (cat: CategorieCompetitie) => void;
   onBack: () => void;
 }
@@ -27,6 +29,7 @@ interface Pas3Props {
 const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   categorii, probe, echipe, clubId, sportivi, grade, dataCompetitie,
   competitieId, clubSolicitantId,
+  skippedCategorii, onToggleSkipCategorie,
   onOpenInscriereModal, onBack,
 }) => {
   const { showError } = useError();
@@ -107,7 +110,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     return { cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili };
   }), [categoriiEchipa, echipe, clubId, sportivi, grade, dataCompetitie]);
 
-  const nrConfigurate = categoriiStare.filter(c => c.eCompleta).length;
+  const nrConfigurate = categoriiStare.filter(c => c.eCompleta || (skippedCategorii?.has(c.cat.id) ?? false)).length;
   const nrTotal = categoriiStare.filter(c => c.eligibili > 0).length;
 
   return (
@@ -132,16 +135,19 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
         {categoriiStare.map(({ cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili }) => {
           const titMin = cat.tip_participare === 'pereche' ? 2 : (cat.sportivi_per_echipa_min ?? 1);
           const areEligibili = eligibili > 0;
+          const isCatSkipped = skippedCategorii?.has(cat.id) ?? false;
 
           return (
             <div
               key={cat.id}
               className={`rounded-xl border bg-slate-800/40 transition-all ${
-                eCompleta
-                  ? 'border-emerald-600/50'
-                  : !areEligibili
-                    ? 'border-dashed border-slate-600 opacity-50'
-                    : 'border-slate-600'
+                isCatSkipped
+                  ? 'border-dashed border-slate-600 opacity-60'
+                  : eCompleta
+                    ? 'border-emerald-600/50'
+                    : !areEligibili
+                      ? 'border-dashed border-slate-600 opacity-50'
+                      : 'border-slate-600'
               }`}
             >
               <div className="px-4 py-3">
@@ -187,31 +193,59 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                       </p>
                     )}
 
+                    {isCatSkipped && (
+                      <span className="inline-flex text-[11px] font-semibold rounded-full px-2.5 py-0.5 mt-1 text-slate-500 bg-slate-800">
+                        Nu participăm
+                      </span>
+                    )}
                     {!areEligibili && (
                       <p className="text-xs text-slate-500 italic mt-1">Niciun sportiv eligibil în club</p>
                     )}
                   </div>
 
-                  {/* Buton acțiune */}
-                  {areEligibili && (
-                    <button
-                      type="button"
-                      onClick={() => onOpenInscriereModal?.(cat)}
-                      style={{ touchAction: 'manipulation' }}
-                      className={`shrink-0 text-xs px-3 py-2 rounded-lg border font-medium transition-colors min-h-[40px] ${
-                        eCompleta
-                          ? 'border-emerald-600/60 text-emerald-400 hover:bg-emerald-900/30'
-                          : 'border-brand-primary/60 text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20'
-                      }`}
-                    >
-                      {eCompleta ? 'Modifică' : 'Configurează'}
-                    </button>
-                  )}
+                  {/* Butoane acțiune */}
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    {areEligibili && !isCatSkipped && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenInscriereModal?.(cat)}
+                        style={{ touchAction: 'manipulation' }}
+                        className={`text-xs px-3 py-2 rounded-lg border font-medium transition-colors min-h-[40px] ${
+                          eCompleta
+                            ? 'border-emerald-600/60 text-emerald-400 hover:bg-emerald-900/30'
+                            : 'border-brand-primary/60 text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20'
+                        }`}
+                      >
+                        {eCompleta ? 'Modifică' : 'Configurează'}
+                      </button>
+                    )}
+                    {onToggleSkipCategorie && areEligibili && (
+                      isCatSkipped ? (
+                        <button
+                          type="button"
+                          onClick={() => onToggleSkipCategorie(cat.id)}
+                          style={{ touchAction: 'manipulation' }}
+                          className="text-xs text-brand-primary underline hover:text-white transition-colors"
+                        >
+                          ← Participăm
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onToggleSkipCategorie(cat.id)}
+                          style={{ touchAction: 'manipulation' }}
+                          className="text-xs text-slate-500 underline hover:text-slate-300 transition-colors"
+                        >
+                          Nu participăm
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Buton cerere inter-club — vizibil doar pe categorii incomplete cu eligibili */}
-              {areEligibili && !eCompleta && (() => {
+              {/* Buton cerere inter-club — vizibil doar pe categorii incomplete cu eligibili, nesărite */}
+              {areEligibili && !eCompleta && !isCatSkipped && (() => {
                 const statusCerere = cereriInterclub.get(cat.id);
                 const nrLocuriLipsa = titMin - nrTitulari;
 

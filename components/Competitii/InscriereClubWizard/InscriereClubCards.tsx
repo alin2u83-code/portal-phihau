@@ -398,20 +398,13 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
     [cards, filtruHub]
   );
 
-  // Verifică dacă se poate finaliza
-  const probleme = useMemo(() => {
-    return cards.filter(c => c.status === 'blocat' || c.status === 'incomplet');
-  }, [cards]);
-
   const nrBlocate = cards.filter(c => c.status === 'blocat').length;
   const nrIncomplete = cards.filter(c => c.status === 'incomplet').length;
-  const poateFinalizare = probleme.length === 0;
+  // Blocat (quyen lipsă) = blochează finalizarea; Incomplet = permite finalizare cu avertisment
+  const poateFinalizare = nrBlocate === 0;
 
-  const tooltipFinalizare = !poateFinalizare
-    ? [
-        nrBlocate > 0 ? `${nrBlocate} prob${nrBlocate !== 1 ? 'e' : 'a'} blocate (quyen lipsă)` : '',
-        nrIncomplete > 0 ? `${nrIncomplete} prob${nrIncomplete !== 1 ? 'e' : 'a'} incomplete` : '',
-      ].filter(Boolean).join(' · ')
+  const tooltipFinalizare = nrBlocate > 0
+    ? `${nrBlocate} prob${nrBlocate !== 1 ? 'e' : 'ă'} blocate (quyen lipsă)`
     : '';
 
   const nrSportiviSelectati = selectedSportivi.size;
@@ -436,9 +429,9 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
               {cards.filter(c => c.status === 'completat').length} completate
             </div>
           )}
-          {probleme.length > 0 && (
-            <div className="text-orange-400">
-              {probleme.length} necesita atentie
+          {(nrBlocate + nrIncomplete) > 0 && (
+            <div className={nrBlocate > 0 ? 'text-red-400' : 'text-amber-400'}>
+              {nrBlocate + nrIncomplete} necesita atentie
             </div>
           )}
         </div>
@@ -479,13 +472,20 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
         )}
       </div>
 
-      {/* Banner probleme globale */}
-      {!poateFinalizare && (
-        <div className="rounded-lg border border-orange-700/50 bg-orange-900/15 px-4 py-3">
-          <p className="text-xs font-semibold text-orange-400 mb-1">
-            Nu poți finaliza înca:
+      {/* Banner blocat — blochează finalizarea */}
+      {nrBlocate > 0 && (
+        <div className="rounded-lg border border-red-700/50 bg-red-900/15 px-4 py-3">
+          <p className="text-xs font-semibold text-red-400 mb-1">Nu poți finaliza:</p>
+          <p className="text-xs text-red-300">{tooltipFinalizare}</p>
+        </div>
+      )}
+      {/* Banner avertisment — incomplet dar poate finaliza */}
+      {nrBlocate === 0 && nrIncomplete > 0 && (
+        <div className="rounded-lg border border-amber-700/50 bg-amber-900/15 px-4 py-3">
+          <p className="text-xs font-semibold text-amber-400 mb-1">Atenție — probe incomplete:</p>
+          <p className="text-xs text-amber-300">
+            {nrIncomplete} prob{nrIncomplete !== 1 ? 'e' : 'ă'} incomplete. Poți finaliza cu categorii parțiale — sportivii neconfigurati nu vor fi înscriși.
           </p>
-          <p className="text-xs text-orange-300">{tooltipFinalizare}</p>
         </div>
       )}
 
@@ -499,7 +499,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
           )}
           <div className="flex items-center gap-2 flex-1 justify-end">
             <span className="text-xs text-slate-500 hidden sm:block">
-              {poateFinalizare ? 'Toate probele configurate' : tooltipFinalizare}
+              {nrBlocate > 0 ? tooltipFinalizare : nrIncomplete > 0 ? `${nrIncomplete} probe incomplete` : 'Gata de finalizare'}
             </span>
             <Button
               variant="success"
@@ -508,7 +508,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
               className="w-full sm:w-auto sm:min-w-[140px]"
               title={!poateFinalizare ? tooltipFinalizare : undefined}
             >
-              Finalizează înscrierea
+              {nrIncomplete > 0 && nrBlocate === 0 ? 'Finalizează parțial' : 'Finalizează înscrierea'}
             </Button>
           </div>
         </div>

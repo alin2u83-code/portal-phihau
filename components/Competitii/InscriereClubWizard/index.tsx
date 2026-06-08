@@ -280,6 +280,12 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         dataCompetitie={competitie.data_inceput}
         competitieId={competitie.id}
         clubSolicitantId={clubId}
+        skippedCategorii={skippedCategorii}
+        onToggleSkipCategorie={(catId) => setSkippedCategorii(prev => {
+          const next = new Set(prev);
+          if (next.has(catId)) next.delete(catId); else next.add(catId);
+          return next;
+        })}
         onOpenInscriereModal={(cat) => onOpenInscriereModal?.(cat)}
         onBack={() => setStep('hub')}
       />

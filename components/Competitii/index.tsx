@@ -1149,7 +1149,14 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
 
           {/* INSCRIERI TAB */}
           {activeTab === 'inscrieri' && (
-            (wizardOpen && isClubAdmin) ? (
+            loading ? (
+              <div className="flex items-center justify-center py-12 text-slate-500 text-sm">
+                <svg className="animate-spin w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Se încarcă datele competiției...
+              </div>
+            ) : (wizardOpen && isClubAdmin) ? (
               <InscriereClubWizard
                 competitie={competitie}
                 probe={probe}
@@ -3294,10 +3301,11 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
         if (error) throw error;
       } else if (editMode && echipaDejaInscrisa) {
         // Task 4: actualizare componență echipă existentă
-        if (selectedTitulari.length < categorie.sportivi_per_echipa_min) {
-          throw new Error(`Selectează minim ${categorie.sportivi_per_echipa_min} titulari`);
+        if (selectedTitulari.length === 0) {
+          throw new Error('Selectează cel puțin un titular');
         }
-        validateMixtGender(selectedTitulari);
+        const eIncompleta = selectedTitulari.length < categorie.sportivi_per_echipa_min;
+        if (!eIncompleta) validateMixtGender(selectedTitulari);
         // Ștergem membrii vechi și inserăm cei noi
         const { error: delErr } = await supabase
           .from('echipa_sportivi')
@@ -3312,18 +3320,21 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
           const { error: mErr } = await supabase.from('echipa_sportivi').insert(members);
           if (mErr) throw mErr;
         }
-        // Actualizăm denumirea cu numele clubului
-        await supabase.from('echipe_competitie').update({ denumire_echipa: numeClub.trim().toUpperCase() }).eq('id', (echipaDejaInscrisa as any).id);
+        await supabase.from('echipe_competitie')
+          .update({ denumire_echipa: numeClub.trim().toUpperCase(), echipa_incompleta: eIncompleta })
+          .eq('id', (echipaDejaInscrisa as any).id);
       } else {
-        if (selectedTitulari.length < categorie.sportivi_per_echipa_min) {
-          throw new Error(`Selectează minim ${categorie.sportivi_per_echipa_min} titulari`);
+        if (selectedTitulari.length === 0) {
+          throw new Error('Selectează cel puțin un titular');
         }
-        validateMixtGender(selectedTitulari);
+        const eIncompleta = selectedTitulari.length < categorie.sportivi_per_echipa_min;
+        if (!eIncompleta) validateMixtGender(selectedTitulari);
         const { data: ec, error: ecErr } = await supabase.from('echipe_competitie').insert({
           competitie_id: competitie.id,
           categorie_id: categorie.id,
           club_id: clubId,
           denumire_echipa: numeClub.trim().toUpperCase() || null,
+          echipa_incompleta: eIncompleta,
         }).select().single();
         if (ecErr) throw ecErr;
 
@@ -3725,6 +3736,11 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
 
       {/* Footer sticky */}
       <div className="sticky bottom-0 z-10 border-t border-slate-700 bg-slate-900/95 backdrop-blur-sm px-4 py-3 sm:px-6 rounded-b-2xl">
+        {isTeam && selectedTitulari.length > 0 && selectedTitulari.length < categorie.sportivi_per_echipa_min && (
+          <p className="text-xs text-amber-400 mb-2">
+            Echipă incompletă ({selectedTitulari.length}/{categorie.sportivi_per_echipa_min} titulari) — se va salva cu flag "incompletă". Poți solicita completare din alt club ulterior.
+          </p>
+        )}
         {!(isTeam && echipaDejaInscrisa && !editMode) ? (
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <Button variant="secondary" onClick={handleClose} disabled={loading} className="w-full sm:w-auto h-11">Anulează</Button>

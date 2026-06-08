@@ -26,6 +26,8 @@ import { AdminPanel } from './AdminPanel';
 import { InscriereModal } from './InscriereModal';
 import { InscrieriView } from './InscrieriView';
 import { MigrareModal, EvenimentLegacy } from './MigrareModal';
+import { useCompetitieFilters, aplicaFiltreCategorie } from '../../hooks/useCompetitieFilters';
+import { CompetitieFilterBar } from './CompetitieFilterBar';
 
 interface CompetitiiProps {
   permissions: Permissions;
@@ -72,14 +74,19 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   // Task 5: expand/collapse tabele per categorie (tab Categorii)
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
 
+  // Sistem Filtrare Unificat — instanțiat O SINGURĂ DATĂ la nivel CompetitieDetail (D-01)
+  const { filtre, toggleGen, setFiltre, resetFiltre, nrFiltreActive } = useCompetitieFilters();
+
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
   const isClubAdmin = permissions.isAdminClub;
 
   // Persistă tab-ul activ în sessionStorage la fiecare schimbare
+  // INSC-03: resetFiltre() la fiecare schimbare de tab — filtrele se șterg automat
   const handleSetActiveTab = useCallback((tab: 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub') => {
+    resetFiltre();
     setActiveTab(tab);
     ssSet(SS_KEY_TAB, tab);
-  }, []);
+  }, [resetFiltre]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -114,9 +121,14 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
       });
   }, [competitie.legacy_eveniment_id]);
 
-  const filteredCategorii = selectedProbaId
-    ? categorii.filter(c => c.proba_id === selectedProbaId)
-    : categorii;
+  // TAB-02/TAB-03: filteredCategorii combină selectedProbaId (pills probă standalone)
+  // cu filtrele complete din useCompetitieFilters (gen, vârstă, grad)
+  const filteredCategorii = useMemo(() => {
+    const baza = selectedProbaId
+      ? categorii.filter(c => c.proba_id === selectedProbaId)
+      : categorii;
+    return aplicaFiltreCategorie(baza, filtre);
+  }, [categorii, selectedProbaId, filtre]);
 
   const inscrieriCount = (catId: string) =>
     inscrieri.filter(i => i.categorie_id === catId && i.status?.toLowerCase() !== 'retras').length +

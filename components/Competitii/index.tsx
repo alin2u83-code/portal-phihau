@@ -2804,11 +2804,24 @@ const InscrieriView: React.FC<InscrieriViewProps> = ({
   };
 
   const handleRetrage = async (id: string, type: 'inscris' | 'echipa') => {
-    const table = type === 'inscris' ? 'inscrieri_competitie' : 'echipe_competitie';
-    const statusRetras = type === 'inscris' ? 'retras' : 'retrasa';
-    const { error } = await supabase.from(table).update({ status: statusRetras }).eq('id', id);
-    if (error) { showError("Eroare", error.message); return; }
-    if (type === 'echipa') setEchipeRetraseLocal(prev => new Set(prev).add(id));
+    if (type === 'inscris') {
+      // DELETE definitiv din inscrieri_competitie (confirmat de utilizator)
+      // NOTA RLS: dacă DELETE este blocat, adaugă în Supabase Dashboard:
+      // CREATE POLICY "club_admin_delete_inscrieri" ON inscrieri_competitie
+      //   FOR DELETE USING (
+      //     club_id IN (
+      //       SELECT club_id FROM roluri_utilizatori
+      //       WHERE user_id = auth.uid() AND rol_denumire IN ('ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE')
+      //     )
+      //   );
+      const { error } = await supabase.from('inscrieri_competitie').delete().eq('id', id);
+      if (error) { showError("Eroare retragere", error.message); return; }
+    } else {
+      // Echipe rămân cu status update (nu DELETE — confirmat doar pentru inscrieri individuale)
+      const { error } = await supabase.from('echipe_competitie').update({ status: 'retrasa' }).eq('id', id);
+      if (error) { showError("Eroare retragere echipă", error.message); return; }
+      setEchipeRetraseLocal(prev => new Set(prev).add(id));
+    }
     onRefresh();
   };
 
@@ -3151,7 +3164,16 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
     const ins = inscrieri.find(i => i.categorie_id === categorie.id && i.sportiv_id === sportivId && i.status?.toLowerCase() !== 'retras');
     if (!ins) return;
     setRetragereLoading(sportivId);
-    const { error } = await supabase.from('inscrieri_competitie').update({ status: 'retras' }).eq('id', ins.id);
+    // DELETE definitiv din inscrieri_competitie (confirmat de utilizator)
+    // NOTA: necesită politică RLS pentru DELETE pe inscrieri_competitie:
+    // CREATE POLICY "club_admin_delete_inscrieri" ON inscrieri_competitie
+    //   FOR DELETE USING (
+    //     club_id IN (
+    //       SELECT club_id FROM roluri_utilizatori
+    //       WHERE user_id = auth.uid() AND rol_denumire IN ('ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE')
+    //     )
+    //   );
+    const { error } = await supabase.from('inscrieri_competitie').delete().eq('id', ins.id);
     if (error) {
       showError('Eroare retragere', error.message);
     } else {
@@ -3577,15 +3599,6 @@ const InscriereModal: React.FC<InscriereModalProps> = ({
                     );
                   })()}
                 </span>
-                {allEligibiliNeinscrisi.length > 1 && (
-                  <button
-                    onClick={handleSelectAll}
-                    style={{ touchAction: 'manipulation' }}
-                    className="text-xs font-medium text-brand-primary hover:underline transition-colors min-h-[32px] px-2 w-full sm:w-auto"
-                  >
-                    {allSelected ? 'Deselectează toți' : `Selectează toți (${allEligibiliNeinscrisi.length})`}
-                  </button>
-                )}
               </div>
 
               {/* Categorii MIXT: afișare separată pe gen Masculin / Feminin */}

@@ -238,6 +238,8 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         sportivi={sportivi}
         grade={grade}
         dataCompetitie={competitie.data_inceput}
+        competitieId={competitie.id}
+        clubSolicitantId={clubId}
         onOpenInscriereModal={(cat) => onOpenInscriereModal?.(cat, () => setStep('hub'))}
         onBack={() => setStep('hub')}
       />

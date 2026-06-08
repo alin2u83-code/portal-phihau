@@ -158,7 +158,7 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 07-01-PLAN.md — Hook instanțiere în CompetitieDetail + resetFiltre în handleSetActiveTab + CompetitieFilterBar în tab Categorii (TAB-01, TAB-02, TAB-03, INSC-03)
+- [x] 07-01-PLAN.md — Hook instanțiere în CompetitieDetail + resetFiltre în handleSetActiveTab + CompetitieFilterBar în tab Categorii (TAB-01, TAB-02, TAB-03, INSC-03)
 - [ ] 07-02-PLAN.md — InscrieriView refactorizare: elimină 7 useState + bloc JSX 104 linii, adaugă props + CompetitieFilterBar (INSC-01, INSC-02, INSC-03)
 - [ ] 07-03-PLAN.md — RaportInscrieri: adaugă 6 props noi + CompetitieFilterBar + filtrare categorii (RAP-01, RAP-02)
 - [ ] 07-04-PLAN.md — CategoriiTemplateManager: înlocuiește filterGenSet cu filtre.gen din hook (TMPL-01, TMPL-02)
@@ -178,4 +178,4 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 | 4. Stagii Completare | 3/3 | Complete   | 2026-06-05 |
 | 5. Color Theme System | 3/3 | Complete   | 2026-06-06 |
 | 6. Infrastructură Filtrare | 1/1 | Complete   | 2026-06-08 |
-| 7. Aplicare Filtre pe Tab-uri | 0/4 | Not started | - |
+| 7. Aplicare Filtre pe Tab-uri | 1/4 | In Progress|  |

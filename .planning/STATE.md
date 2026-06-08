@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 05 Plan 02 finalizat
+status: executing
 stopped_at: Phase 6 context gathered
-last_updated: "2026-06-08T18:54:05.624Z"
-last_activity: 2026-06-06 -- Phase 05 Plan 02 finalizat (ThemeContext + Button migration)
+last_updated: "2026-06-08T18:57:20.816Z"
+last_activity: 2026-06-08 -- Phase 06 execution started
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 9
+  total_plans: 10
   completed_plans: 9
   percent: 57
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** Adminul/instructorul poate gestiona complet antrenamentele unei grupe (vizualizare calendar, adăugare one-off, anulare cu motiv) și poate înregistra sportivi la stagii cu facturi corecte.
-**Current focus:** Phase 04 — stagii-completare
+**Current focus:** Phase 06 — infrastructur-filtrare-unificat
 
 ## Current Position
 
-Phase: 05 (color-theme-system) — IN PROGRESS
-Plan: 2 of 3 finalizat (Plan 03 în așteptare)
-Status: Phase 05 Plan 02 finalizat
-Last activity: 2026-06-06 -- Phase 05 Plan 02 finalizat (ThemeContext + Button migration)
+Phase: 06 (infrastructur-filtrare-unificat) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 06
+Last activity: 2026-06-08 -- Phase 06 execution started
 
 Progress: [####░░░░░░] 67%
 

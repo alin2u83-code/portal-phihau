@@ -137,7 +137,7 @@ Plans:
 
 **Plans**: 1 planPlans:
 
-- [ ] 06-01-PLAN.md — useCompetitieFilters hook + aplicaFiltreCategorie pură + CompetitieFilterBar componentă prezentațională (INFR-01, INFR-02, INFR-03)
+- [x] 06-01-PLAN.md — useCompetitieFilters hook + aplicaFiltreCategorie pură + CompetitieFilterBar componentă prezentațională (INFR-01, INFR-02, INFR-03)
 
 **UI hint**: yes
 
@@ -169,5 +169,5 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 | 3. Calendar & CRUD Antrenamente | 0/? | Not started | - |
 | 4. Stagii Completare | 3/3 | Complete   | 2026-06-05 |
 | 5. Color Theme System | 3/3 | Complete   | 2026-06-06 |
-| 6. Infrastructură Filtrare | 0/1 | Not started | - |
+| 6. Infrastructură Filtrare | 1/1 | Complete   | 2026-06-08 |
 | 7. Aplicare Filtre pe Tab-uri | 0/? | Not started | - |

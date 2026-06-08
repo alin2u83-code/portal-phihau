@@ -221,7 +221,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
           </svg>
-          <span>Categorii <span className="text-sm font-normal opacity-75">({categorii.length})</span></span>
+          <span>Categorii <span className="text-sm font-normal opacity-75">({filteredCategorii.length})</span></span>
         </button>
         {isAdmin && (
           <button onClick={() => handleSetActiveTab('admin')} style={{ touchAction: 'manipulation' }}
@@ -299,26 +299,16 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           {/* CATEGORII TAB */}
           {activeTab === 'categorii' && (
             <div className="space-y-3">
-              {/* Filter by proba */}
-              {probe.length > 1 && (
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => setSelectedProbaId('')}
-                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${!selectedProbaId ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400'}`}
-                  >
-                    Toate ({categorii.length})
-                  </button>
-                  {probe.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => setSelectedProbaId(p.id)}
-                      className={`px-3 py-1 text-xs rounded-full border transition-colors ${selectedProbaId === p.id ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400'}`}
-                    >
-                      {p.denumire} ({categorii.filter(c => c.proba_id === p.id).length})
-                    </button>
-                  ))}
-                </div>
-              )}
+              {/* TAB-01: CompetitieFilterBar înlocuiește pills probe standalone */}
+              <CompetitieFilterBar
+                filtre={filtre}
+                toggleGen={toggleGen}
+                setFiltre={setFiltre}
+                resetFiltre={resetFiltre}
+                nrFiltreActive={nrFiltreActive}
+                probe={probe}
+                grade={grade}
+              />
 
               {/* Category list */}
               <div className="-mx-4 sm:mx-0 overflow-x-auto">

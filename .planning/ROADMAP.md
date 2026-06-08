@@ -135,7 +135,8 @@ Plans:
   2. `components/Competitii/CompetitieFilterBar.tsx` acceptă props de la hook și randează chips gen, inputs vârstă range, inputs grad range, pills probă + badge filtre active — zero state propriu
   3. Funcție pură `aplicaFiltreCategorie(categorii, filtre)` în hook sau utils — extrasă din CategoriiTemplateManager, returnează array filtrat
 
-**Plans**: 1 planPlans:
+**Plans**: 1 plan
+Plans:
 
 - [x] 06-01-PLAN.md — useCompetitieFilters hook + aplicaFiltreCategorie pură + CompetitieFilterBar componentă prezentațională (INFR-01, INFR-02, INFR-03)
 
@@ -154,7 +155,14 @@ Plans:
   3. Tab Raport: `RaportInscrieri.tsx` primește filtre și afișează `CompetitieFilterBar` — datele de raport se filtrează consistent
   4. Tab Template: `CategoriiTemplateManager.tsx` folosește `useCompetitieFilters` + `CompetitieFilterBar` în loc de filterGenSet local — zero regresii pentru admin
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+
+- [ ] 07-01-PLAN.md — Hook instanțiere în CompetitieDetail + resetFiltre în handleSetActiveTab + CompetitieFilterBar în tab Categorii (TAB-01, TAB-02, TAB-03, INSC-03)
+- [ ] 07-02-PLAN.md — InscrieriView refactorizare: elimină 7 useState + bloc JSX 104 linii, adaugă props + CompetitieFilterBar (INSC-01, INSC-02, INSC-03)
+- [ ] 07-03-PLAN.md — RaportInscrieri: adaugă 6 props noi + CompetitieFilterBar + filtrare categorii (RAP-01, RAP-02)
+- [ ] 07-04-PLAN.md — CategoriiTemplateManager: înlocuiește filterGenSet cu filtre.gen din hook (TMPL-01, TMPL-02)
+
 **UI hint**: yes
 
 ## Progress
@@ -170,4 +178,4 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 | 4. Stagii Completare | 3/3 | Complete   | 2026-06-05 |
 | 5. Color Theme System | 3/3 | Complete   | 2026-06-06 |
 | 6. Infrastructură Filtrare | 1/1 | Complete   | 2026-06-08 |
-| 7. Aplicare Filtre pe Tab-uri | 0/? | Not started | - |
+| 7. Aplicare Filtre pe Tab-uri | 0/4 | Not started | - |

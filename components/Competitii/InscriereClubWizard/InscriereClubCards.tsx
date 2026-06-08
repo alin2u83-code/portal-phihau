@@ -23,6 +23,8 @@ interface CardProba {
   motivBlocat?: string;
   /** count categorii echipă cu 0 eligibili */
   categoriiExcluse: number;
+  /** probă marcată explicit cu "Nu participăm" de utilizator */
+  isExplicitSkip: boolean;
 }
 
 // -----------------------------------------------
@@ -37,8 +39,11 @@ export interface InscriereClubCardsProps extends InscriereClubWizardProps {
   echipeFormate: EchipaFormata[];
   probeSkipped: Set<string>;
   excludedFromIndividual: Set<string>;
+  skippedCategorii: Set<string>;
   /** Deschide ecranul de editare quyen pentru o probă individuală */
   onDeschideProba: (probaId: string) => void;
+  /** Toggle "Nu participăm" per probă */
+  onToggleSkipProba?: (probaId: string) => void;
   /** Finalizează înscrierea (merge la Pas4) */
   onFinalizare: () => void;
   /** Previzualizare fișă PDF */
@@ -57,15 +62,15 @@ function calculeazaStatusCard(
   const {
     categorii, sportivi, grade, selectedSportivi, autoCategorie,
     quyenAles, echipe, clubId, echipeFormate, probeSkipped, excludedFromIndividual,
-    competitie,
+    competitie, skippedCategorii,
   } = props;
 
   const catProba = categorii.filter(c => c.proba_id === proba.id);
   const isSkipped = probeSkipped.has(proba.id);
 
-  // Probă sărită explicit → exclus
+  // Probă sărită explicit → exclus (cu flag isExplicitSkip)
   if (isSkipped) {
-    return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
+    return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: true };
   }
 
   // Probe individuale (thao_quyen, thao_lo)
@@ -73,9 +78,9 @@ function calculeazaStatusCard(
   if (tipIndiv) {
     if (selectedSportivi.size === 0 || autoCategorie.size === 0) {
       if (catProba.length === 0) {
-        return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
+        return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: false };
       }
-      return { proba, status: 'incomplet', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
+      return { proba, status: 'incomplet', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: false };
     }
 
     // Sportivii din selecție care au categorie auto-asignată pe această probă
@@ -91,7 +96,7 @@ function calculeazaStatusCard(
     const nrTotal = sportiviProba.length;
 
     if (nrTotal === 0) {
-      return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
+      return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: false };
     }
 
     const nrComplet = sportiviProba.filter(({ id, cat }) => {
@@ -112,6 +117,7 @@ function calculeazaStatusCard(
         nrTotal,
         motivBlocat: `${nrFaraQ1} sportiv${nrFaraQ1 !== 1 ? 'i' : ''} fără Q1`,
         categoriiExcluse: 0,
+        isExplicitSkip: false,
       };
     }
 
@@ -122,6 +128,7 @@ function calculeazaStatusCard(
       nrComplet,
       nrTotal,
       categoriiExcluse: 0,
+      isExplicitSkip: false,
     };
   }
 
@@ -129,7 +136,7 @@ function calculeazaStatusCard(
   // Card activ dacă există categorii (fără filtru eligibilitate — ca tab Categorii).
   if (proba.tip_proba === 'giao_dau') {
     if (catProba.length === 0) {
-      return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
+      return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: false };
     }
     const echipeProba = echipeFormate.filter(e => {
       const cat = categorii.find(c => c.id === e.categorieId);
@@ -143,6 +150,7 @@ function calculeazaStatusCard(
       nrComplet: areEchipeConfigurate ? 1 : 0,
       nrTotal: 1,
       categoriiExcluse: 0,
+      isExplicitSkip: false,
     };
   }
 
@@ -170,6 +178,8 @@ function calculeazaStatusCard(
       }
 
       nrTotal++;
+      // categorie marcată explicit "Nu participăm" → contorizată ca configurată
+      if (skippedCategorii.has(cat.id)) { nrComplet++; continue; }
       const echipaDB = echipe.find(e =>
         e.categorie_id === cat.id &&
         e.club_id === clubId &&
@@ -185,7 +195,7 @@ function calculeazaStatusCard(
     }
 
     if (nrTotal === 0) {
-      return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse };
+      return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse, isExplicitSkip: false };
     }
 
     return {
@@ -195,11 +205,12 @@ function calculeazaStatusCard(
       nrComplet,
       nrTotal,
       categoriiExcluse,
+      isExplicitSkip: false,
     };
   }
 
   // Fallback — probă fără categorii → exclus
-  return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0 };
+  return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: false };
 }
 
 // -----------------------------------------------
@@ -209,7 +220,8 @@ function calculeazaStatusCard(
 const CardProbaItem: React.FC<{
   card: CardProba;
   onDeschide: () => void;
-}> = ({ card, onDeschide }) => {
+  onToggleSkip?: () => void;
+}> = ({ card, onDeschide, onToggleSkip }) => {
   const { proba, status, nrComplet, nrTotal, motivBlocat, categoriiExcluse } = card;
   const info = PROBA_INFO[proba.tip_proba];
   const colorKey = info?.color ?? 'amber';
@@ -319,12 +331,35 @@ const CardProbaItem: React.FC<{
           </div>
         )}
 
-        {/* CTA */}
+        {/* CTA + Nu participăm */}
         {!isExclus && (
-          <div className="flex items-center justify-end pt-1">
+          <div className="flex items-center justify-between pt-1">
             <span className="text-xs font-semibold text-brand-primary">
               {isComplet ? 'Modifică →' : 'Configurează →'}
             </span>
+            {onToggleSkip && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onToggleSkip(); }}
+                style={{ touchAction: 'manipulation' }}
+                className="text-xs text-slate-500 underline hover:text-slate-300 transition-colors"
+              >
+                Nu participăm
+              </button>
+            )}
+          </div>
+        )}
+        {/* Undo skip */}
+        {card.isExplicitSkip && onToggleSkip && (
+          <div className="pt-1 flex justify-end">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onToggleSkip(); }}
+              style={{ touchAction: 'manipulation' }}
+              className="text-xs text-brand-primary underline hover:text-white transition-colors"
+            >
+              ← Participăm
+            </button>
           </div>
         )}
       </div>
@@ -340,7 +375,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const {
     competitie, probe, categorii,
     onBack, onDeschideProba, onFinalizare, onPrevizualizare,
-    selectedSportivi,
+    selectedSportivi, onToggleSkipProba,
   } = props;
 
   const [filtruHub, setFiltruHub] = useState<'toate' | 'nefinalizate'>('toate');
@@ -353,11 +388,13 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const cards = useMemo<CardProba[]>(
     () => probeActive.map(p => calculeazaStatusCard(p, props)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [probeActive, props.selectedSportivi, props.autoCategorie, props.quyenAles, props.echipeFormate, props.probeSkipped, props.excludedFromIndividual, props.echipe, props.sportivi, props.grade, props.categorii]
+    [probeActive, props.selectedSportivi, props.autoCategorie, props.quyenAles, props.echipeFormate, props.probeSkipped, props.excludedFromIndividual, props.echipe, props.sportivi, props.grade, props.categorii, props.skippedCategorii]
   );
 
   const cardsFiltrate = useMemo(
-    () => filtruHub === 'nefinalizate' ? cards.filter(c => c.status !== 'completat' && c.status !== 'exclus') : cards,
+    () => filtruHub === 'nefinalizate'
+      ? cards.filter(c => c.status !== 'completat' && (c.status !== 'exclus' || c.isExplicitSkip))
+      : cards,
     [cards, filtruHub]
   );
 
@@ -432,6 +469,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
             key={card.proba.id}
             card={card}
             onDeschide={() => onDeschideProba(card.proba.id)}
+            onToggleSkip={onToggleSkipProba ? () => onToggleSkipProba(card.proba.id) : undefined}
           />
         ))}
         {cardsFiltrate.length === 0 && (

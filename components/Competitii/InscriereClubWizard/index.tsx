@@ -36,6 +36,40 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   // Sportivi excluși de la Thao Quyen individual
   const [excludedFromIndividual, setExcludedFromIndividual] = useState<Set<string>>(new Set());
 
+  // Categorii marcate explicit "Nu participăm" (song_luyen/sincron)
+  const [skippedCategorii, setSkippedCategorii] = useState<Set<string>>(new Set());
+
+  // Ref pentru inițializare din inscrieri existente (rulează o singură dată)
+  const initializedFromInscrieri = React.useRef(false);
+
+  // P1: reconstruiește selectedSportivi + autoCategorie + quyenAles din inscrieri existente
+  useEffect(() => {
+    if (initializedFromInscrieri.current || inscrieri.length === 0) return;
+    const probeIndivIds = new Set(
+      probe.filter(p => p.tip_proba === 'thao_quyen_individual' || p.tip_proba === 'thao_lo_individual').map(p => p.id)
+    );
+    const catMap = new Map(categorii.filter(c => c.tip_participare === 'individual').map(c => [c.id, c]));
+    const inscrieriIndiv = inscrieri.filter(i => {
+      if (i.club_id !== clubId || i.status === 'retras') return false;
+      const cat = catMap.get(i.categorie_id);
+      return cat && probeIndivIds.has(cat.proba_id ?? '');
+    });
+    if (inscrieriIndiv.length === 0) return;
+    initializedFromInscrieri.current = true;
+    const newSportivi = new Set<string>();
+    const newAuto = new Map<string, import('../../../types').CategorieCompetitie>();
+    const newQuyen = new Map<string, { q1: string; q2: string }>();
+    for (const ins of inscrieriIndiv) {
+      const cat = catMap.get(ins.categorie_id)!;
+      newSportivi.add(ins.sportiv_id);
+      newAuto.set(ins.sportiv_id, cat);
+      if (ins.inlantuire_id) newQuyen.set(ins.sportiv_id, { q1: ins.inlantuire_id, q2: ins.inlantuire_id_2 ?? '' });
+    }
+    setSelectedSportivi(prev => new Set([...prev, ...newSportivi]));
+    setAutoCategorie(prev => prev.size > 0 ? prev : newAuto);
+    setQuyenAles(prev => prev.size > 0 ? prev : newQuyen);
+  }, [inscrieri, categorii, probe, clubId]);
+
   const handleToggleExclus = useCallback((sportivId: string) => {
     setExcludedFromIndividual(prev => {
       const next = new Set(prev);
@@ -185,6 +219,12 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         echipeFormate={echipeFormate}
         probeSkipped={probeSkippedWizard}
         excludedFromIndividual={excludedFromIndividual}
+        skippedCategorii={skippedCategorii}
+        onToggleSkipProba={(probaId) => setProbeSkippedWizard(prev => {
+          const next = new Set(prev);
+          if (next.has(probaId)) next.delete(probaId); else next.add(probaId);
+          return next;
+        })}
         onDeschideProba={handleDeschideProba}
         onFinalizare={() => {
           // Calculează probe skipped înainte de a merge la sumar — doar probe individuale
@@ -240,7 +280,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         dataCompetitie={competitie.data_inceput}
         competitieId={competitie.id}
         clubSolicitantId={clubId}
-        onOpenInscriereModal={(cat) => onOpenInscriereModal?.(cat, () => setStep('hub'))}
+        onOpenInscriereModal={(cat) => onOpenInscriereModal?.(cat)}
         onBack={() => setStep('hub')}
       />
     );

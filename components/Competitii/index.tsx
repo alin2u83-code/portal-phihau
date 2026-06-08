@@ -508,6 +508,11 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                   vizeSportivi={vizeSportivi}
                   sportivi={filteredData.sportivi.filter((s: Sportiv) => s.status === 'Activ')}
                   onRefresh={fetchData}
+                  filtre={filtre}
+                  toggleGen={toggleGen}
+                  setFiltre={setFiltre}
+                  resetFiltre={resetFiltre}
+                  nrFiltreActive={nrFiltreActive}
                 />
               </div>
             )

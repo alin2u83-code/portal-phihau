@@ -1,0 +1,13 @@
+{
+  "source_path": "C:\\Users\\lungu\\portal-phihau\\docs\\adservio-ui-research.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "Adservio UI Research — Note & Absențe",
+  "summary": "UI research capturing Adservio Romanian school platform frontend patterns (Chakra UI, navigation, tables, modals) as design reference for portal-phihau.",
+  "scope": ["adservio", "UI patterns", "note", "absente", "Chakra UI", "design reference"],
+  "cross_refs": ["scripts/adservio-output/"],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

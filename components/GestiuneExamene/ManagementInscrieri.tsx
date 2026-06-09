@@ -1,4 +1,5 @@
 ﻿import React, { useState, useMemo, useEffect, useCallback, useTransition } from 'react';
+import { useSortConfig, applySortConfig } from '../../hooks/useSortConfig';
 import { SesiuneExamen, Sportiv, InscriereExamen, Grad, Plata, PretConfig, IstoricGrade } from '../../types';
 import { Button, Input, Modal, Select, Card } from '../ui';
 import { TrashIcon, PlusIcon, EditIcon, XCircleIcon, CheckCircleIcon } from '../icons';
@@ -580,74 +581,36 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         return new Set((allInscrieri || []).filter(i => i.sesiune_id === sesiune.id).map(i => i.sportiv_id));
     }, [allInscrieri, sesiune.id]);
     
-    const [sortConfigs, setSortConfigs] = useState<Array<{ key: keyof InscriereExamen | 'nume_sportiv' | 'grad_actual' | 'grad_vizat', direction: 'asc' | 'desc' }>>([]);
-
-    const requestSort = (key: keyof InscriereExamen | 'nume_sportiv' | 'grad_actual' | 'grad_vizat', shiftKey: boolean) => {
-        setSortConfigs(prev => {
-            const existing = prev.find(c => c.key === key);
-            let next: Array<{ key: keyof InscriereExamen | 'nume_sportiv' | 'grad_actual' | 'grad_vizat', direction: 'asc' | 'desc' }> = [];
-            
-            if (shiftKey) {
-                // Multi-sort
-                if (existing) {
-                    if (existing.direction === 'asc') {
-                        next = prev.map(c => c.key === key ? { ...c, direction: 'desc' } : c);
-                    } else {
-                        next = prev.filter(c => c.key !== key);
-                    }
-                } else {
-                    next = [...prev, { key, direction: 'asc' }];
-                }
-            } else {
-                // Single sort
-                if (existing && existing.direction === 'asc') {
-                    next = [{ key, direction: 'desc' }];
-                } else {
-                    next = [{ key, direction: 'asc' }];
-                }
-            }
-            return next;
-        });
-    };
+    const { sortConfig: sortConfigs, requestSort: requestSortRaw } = useSortConfig();
+    const requestSort = (key: string, shiftKey: boolean) => requestSortRaw(key, shiftKey);
 
     const getGradOrdine = (i: InscriereExamen) => i.grades?.ordine ?? (i as any).grad_ordine ?? 0;
 
     const participantiInscrisi = useMemo(() => {
-        let data = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id && i.grad_sustinut_id != null);
+        const raw = (allInscrieri || []).filter(i => i.sesiune_id === sesiune.id && i.grad_sustinut_id != null);
 
+        let data: typeof raw;
         if (sortConfigs.length > 0) {
-            data.sort((a, b) => {
-                for (const sort of sortConfigs) {
-                    let aVal: any;
-                    let bVal: any;
-
-                    if (sort.key === 'nume_sportiv') {
-                        aVal = (a.sportiv_nume || a.sportivi?.nume || '') + ' ' + (a.sportiv_prenume || a.sportivi?.prenume || '');
-                        bVal = (b.sportiv_nume || b.sportivi?.nume || '') + ' ' + (b.sportiv_prenume || b.sportivi?.prenume || '');
-                    } else if (sort.key === 'grad_actual') {
-                        aVal = a.nume_grad_actual || '';
-                        bVal = b.nume_grad_actual || '';
-                    } else if (sort.key === 'grad_vizat') {
-                        aVal = getGradOrdine(a);
-                        bVal = getGradOrdine(b);
-                    } else {
-                        aVal = a[sort.key as keyof InscriereExamen];
-                        bVal = b[sort.key as keyof InscriereExamen];
+            data = applySortConfig(
+                raw,
+                sortConfigs,
+                (item, key) => {
+                    if (key === 'nume_sportiv') {
+                        return (item.sportiv_nume || item.sportivi?.nume || '') + ' ' + (item.sportiv_prenume || item.sportivi?.prenume || '');
                     }
-
-                    if (aVal < bVal) return sort.direction === 'asc' ? -1 : 1;
-                    if (aVal > bVal) return sort.direction === 'asc' ? 1 : -1;
+                    if (key === 'grad_actual') return item.nume_grad_actual || '';
+                    if (key === 'grad_vizat') return getGradOrdine(item);
+                    return item[key as keyof InscriereExamen];
+                },
+                (a, b) => {
+                    const numeA = (a.sportiv_nume || a.sportivi?.nume || '').toLowerCase();
+                    const numeB = (b.sportiv_nume || b.sportivi?.nume || '').toLowerCase();
+                    return numeA.localeCompare(numeB);
                 }
-
-                // --- MODIFICARE AICI: Tie-breaker alfabetic ---
-                // Dacă execuția ajunge aici, înseamnă că criteriile de sortare de mai sus sunt egale
-                const numeA = (a.sportiv_nume || a.sportivi?.nume || '').toLowerCase();
-                const numeB = (b.sportiv_nume || b.sportivi?.nume || '').toLowerCase();
-                return numeA.localeCompare(numeB);
-            });
+            );
         } else {
-            // Sortarea implicită (deja include tie-breaker)
-            data.sort((a, b) => {
+            // Sortarea implicită: grad descrescător + nume alfabetic
+            data = [...raw].sort((a, b) => {
                 const gradeA = getGradOrdine(a);
                 const gradeB = getGradOrdine(b);
                 if (gradeA !== gradeB) return gradeB - gradeA;

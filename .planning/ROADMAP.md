@@ -182,7 +182,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 
-- [ ] 08-01-PLAN.md — Extindere Button (pill/ghost/outline/leftIcon/rightIcon/xs/lg) + ConfirmButton exportat (BTN-01, BTN-02)
+- [x] 08-01-PLAN.md — Extindere Button (pill/ghost/outline/leftIcon/rightIcon/xs/lg) + ConfirmButton exportat (BTN-01, BTN-02)
 - [ ] 08-02-PLAN.md — ButtonCatalog.tsx + wiring types.ts/LazyComponents/AppRouter/NavMenu (BTN-03, BTN-04)
 
 **UI hint**: yes
@@ -201,4 +201,4 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 | 5. Color Theme System | 3/3 | Complete   | 2026-06-06 |
 | 6. Infrastructură Filtrare | 1/1 | Complete   | 2026-06-08 |
 | 7. Aplicare Filtre pe Tab-uri | 4/4 | Complete   | 2026-06-09 |
-| 8. Button Design System | 0/2 | Not started | - |
+| 8. Button Design System | 1/2 | In Progress|  |

@@ -100,8 +100,23 @@ export const RaportInscrieri: React.FC<RaportInscrieriProps> = ({
 
   if (raport.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-        <p className="text-sm">Niciun sportiv înscris momentan.</p>
+      <div className="space-y-4">
+        <CompetitieFilterBar
+          filtre={filtre}
+          toggleGen={toggleGen}
+          setFiltre={setFiltre}
+          resetFiltre={resetFiltre}
+          nrFiltreActive={nrFiltreActive}
+          probe={probe}
+          grade={grade}
+        />
+        <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+          <p className="text-sm">
+            {nrFiltreActive > 0
+              ? 'Niciun sportiv corespunde filtrelor aplicate.'
+              : 'Niciun sportiv înscris momentan.'}
+          </p>
+        </div>
       </div>
     );
   }

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Permissions } from '../types';
 import { useNavigation } from '../contexts/NavigationContext';
 import { adminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
-import { ShieldCheckIcon, ChevronDownIcon } from './icons';
+import { ShieldCheckIcon, ChevronDownIcon, PaletteIcon } from './icons';
 import { useNotifications } from '../contexts/NotificationContext';
 
 interface NavMenuProps {
@@ -201,7 +201,7 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
               setOpenSubmenu={setOpenSubmenu}
           />
           <NavItem
-              item={{ label: 'Button Catalog', view: 'button-catalog', icon: ShieldCheckIcon }}
+              item={{ label: 'Button Catalog', view: 'button-catalog', icon: PaletteIcon }}
               isExpanded={isExpanded}
               isActive={'button-catalog' === activeView}
               onNavigate={onNavigate}

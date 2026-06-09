@@ -317,8 +317,8 @@ interface ModalProps {
 }
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, persistent = false }) => {
-  if (!isOpen) return null;
   const titleId = React.useId();
+  if (!isOpen) return null;
 
   return ReactDOM.createPortal(
     <div className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in" onClick={() => !persistent && onClose()} role="dialog" aria-modal="true" aria-labelledby={titleId}>

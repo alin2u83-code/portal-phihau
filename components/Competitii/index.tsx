@@ -71,8 +71,6 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [probaFormOpen, setProbaFormOpen] = useState(false);
   // Task 1: vizualizare sportivi înscriși per categorie
   const [viewInscrieriCatId, setViewInscrieriCatId] = useState<string | null>(null);
-  // Task 5: expand/collapse tabele per categorie (tab Categorii)
-  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
 
   // Sistem Filtrare Unificat — instanțiat O SINGURĂ DATĂ la nivel CompetitieDetail (D-01)
   const { filtre, toggleGen, setFiltre, resetFiltre, nrFiltreActive } = useCompetitieFilters();
@@ -99,7 +97,6 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     setProbe((probeRes.data || []) as ProbaCompetitie[]);
     const loadedCats = (catRes.data || []) as CategorieCompetitie[];
     setCategorii(loadedCats);
-    setExpandedCats(new Set(loadedCats.map(c => c.id)));
     setInscrieri((inRes.data || []) as InscriereCompetitie[]);
     setEchipe((echRes.data || []) as EchipaCompetitie[]);
     setLoading(false);

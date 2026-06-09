@@ -20,6 +20,7 @@ Două axe de lucru paralele:
 - [ ] **Phase 3: Calendar & CRUD Antrenamente** - Calendar lunar, add one-off, anulare cu motiv
 - [ ] **Phase 4: Stagii Completare** - Stagii club, preț dinamic, verificare facturi, export participanți
 - [ ] **Phase 5: Color Theme System** - Sistem teme CSS vars, ThemeEditor, Button follow-theme, Supabase persist
+- [ ] **Phase 8: Button Design System** - Extindere Button cu variante pill/ghost/outline, icoane, ConfirmButton, catalog vizual SUPER_ADMIN
 
 ## Phase Details
 
@@ -165,10 +166,31 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 8: Button Design System
+
+**Goal**: Button component extins backward-compatible (pill, ghost, outline, leftIcon, rightIcon, xs/lg) + ConfirmButton + catalog vizual SUPER_ADMIN — zero regresii în componentele existente
+**Mode**: mvp
+**Depends on**: Phase 5 (Color Theme System — CSS vars)
+**Requirements**: BTN-01, BTN-02, BTN-03, BTN-04
+**Success Criteria** (what must be TRUE):
+
+  1. `Button` din `components/ui.tsx` acceptă `pill?: boolean`, `ghost?: boolean`, `outline?: boolean`, `leftIcon?: ReactNode`, `rightIcon?: ReactNode`, `size?: 'xs' | 'sm' | 'md' | 'lg'` — API existent neschimbat, zero breaking changes
+  2. `ConfirmButton` componentă nouă exportată din `components/ui.tsx`: la primul click afișează "Ești sigur? [Da] [Nu]" inline; la [Da] apelează `onConfirm`; la [Nu] revine la starea inițială
+  3. `components/ButtonCatalog.tsx` pagina existentă afișată ca `activeView='button-catalog'` — vizibilă în Sidebar doar pentru `SUPER_ADMIN_FEDERATIE` — arată toate variantele × size × state (normal/hover/disabled/loading)
+  4. Nicio componentă existentă din aplicație nu arată erori TypeScript sau comportament schimbat față de înainte
+
+**Plans**: 2 plans
+Plans:
+
+- [ ] 08-01-PLAN.md — Extindere Button (pill/ghost/outline/leftIcon/rightIcon/xs/lg) + ConfirmButton exportat (BTN-01, BTN-02)
+- [ ] 08-02-PLAN.md — ButtonCatalog.tsx + wiring types.ts/LazyComponents/AppRouter/NavMenu (BTN-03, BTN-04)
+
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1, parallel cu 2-3) | 6 → 7
+Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1, parallel cu 2-3) | 6 → 7 | 8 (independent)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -179,3 +201,4 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 | 5. Color Theme System | 3/3 | Complete   | 2026-06-06 |
 | 6. Infrastructură Filtrare | 1/1 | Complete   | 2026-06-08 |
 | 7. Aplicare Filtre pe Tab-uri | 4/4 | Complete   | 2026-06-09 |
+| 8. Button Design System | 0/2 | Not started | - |

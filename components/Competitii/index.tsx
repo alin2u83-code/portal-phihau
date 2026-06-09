@@ -102,6 +102,20 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     setLoading(false);
   }, [competitie.id]);
 
+  // Refresh silențios — nu setează loading=true, nu remontează wizard-ul
+  const fetchDataSilent = useCallback(async () => {
+    const [probeRes, catRes, inRes, echRes] = await Promise.all([
+      supabase.from('probe_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
+      supabase.from('categorii_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
+      supabase.from('inscrieri_competitie').select('*, sportiv:sportivi(id, nume, prenume, grad_actual_id, data_nasterii, club_id, cluburi(id, nume))').eq('competitie_id', competitie.id),
+      supabase.from('echipe_competitie').select('*, club:cluburi(id, nume), echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume, club_id, cluburi(id, nume)))').eq('competitie_id', competitie.id),
+    ]);
+    setProbe((probeRes.data || []) as ProbaCompetitie[]);
+    setCategorii((catRes.data || []) as CategorieCompetitie[]);
+    setInscrieri((inRes.data || []) as InscriereCompetitie[]);
+    setEchipe((echRes.data || []) as EchipaCompetitie[]);
+  }, [competitie.id]);
+
   useEffect(() => { fetchData(); }, [fetchData]);
 
   useEffect(() => {
@@ -662,7 +676,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             const goToHub = goToHubAfterModalRef.current;
             goToHubAfterModalRef.current = null;
             setInscriereModal(null);
-            fetchData();
+            fetchDataSilent();
             goToHub?.();
           }}
         />

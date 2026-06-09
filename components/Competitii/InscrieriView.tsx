@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, startTransition } from 'react';
 import { Competitie, CategorieCompetitie, ProbaCompetitie, InscriereCompetitie, EchipaCompetitie, Sportiv, Grad } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { Button, Card } from '../ui';
@@ -89,7 +89,7 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
       if (error) { showError("Eroare retragere echipă", error.message); return; }
       setEchipeRetraseLocal(prev => new Set(prev).add(id));
     }
-    onRefresh();
+    startTransition(() => onRefresh());
   };
 
   const individualExpanded = expandedProbe.has('__individual__');
@@ -176,7 +176,7 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                           <Button size="sm" variant="success" className="text-xs !py-1 ml-1"
                             onClick={async () => {
                               await supabase.from('inscrieri_competitie').update({ status: 'confirmat' }).eq('id', ins.id);
-                              onRefresh();
+                              startTransition(() => onRefresh());
                             }}>
                             Confirmă
                           </Button>

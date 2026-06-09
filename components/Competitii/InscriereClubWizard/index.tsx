@@ -21,7 +21,14 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   const [step, setStep] = useState<1 | 'hub' | 2 | 3 | 4>('hub');
   // Proba deschisă din hub (pentru Pas2 / Pas3)
   const [probaDeschisFocusId, setProbaDeschisFocusId] = useState<string | null>(null);
-  const [selectedSportivi, setSelectedSportivi] = useState<Set<string>>(new Set());
+  // Selecție per probă — fiecare probă individuală își ține propriul Set<sportiviId>
+  const [selectedSportiviMap, setSelectedSportiviMap] = useState<Map<string, Set<string>>>(new Map());
+  // Set merged pentru componente care nu disting proba (Pas4, InscriereClubCards, computeAutoCategorie)
+  const selectedSportivi = useMemo(() => {
+    const merged = new Set<string>();
+    for (const set of selectedSportiviMap.values()) for (const id of set) merged.add(id);
+    return merged;
+  }, [selectedSportiviMap]);
 
   // Pas2: categorii auto-asignate + quyen ales
   const [autoCategorie, setAutoCategorie] = useState<Map<string, import('../../../types').CategorieCompetitie>>(new Map());
@@ -58,13 +65,18 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     initializedFromInscrieri.current = true;
     const newAuto = new Map<string, import('../../../types').CategorieCompetitie>();
     const newQuyen = new Map<string, { q1: string; q2: string }>();
+    const newSelectedMap = new Map<string, Set<string>>();
     for (const ins of inscrieriIndiv) {
       const cat = catMap.get(ins.categorie_id)!;
       newAuto.set(ins.sportiv_id, cat);
       if (ins.inlantuire_id) newQuyen.set(ins.sportiv_id, { q1: ins.inlantuire_id, q2: ins.inlantuire_id_2 ?? '' });
+      const probaId = cat.proba_id ?? '';
+      if (!newSelectedMap.has(probaId)) newSelectedMap.set(probaId, new Set());
+      newSelectedMap.get(probaId)!.add(ins.sportiv_id);
     }
     setAutoCategorie(prev => prev.size > 0 ? prev : newAuto);
     setQuyenAles(prev => prev.size > 0 ? prev : newQuyen);
+    setSelectedSportiviMap(prev => prev.size > 0 ? prev : newSelectedMap);
   }, [inscrieri, categorii, probe, clubId]);
 
   const handleToggleExclus = useCallback((sportivId: string) => {
@@ -100,14 +112,6 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         echipaSkip: false,
       }));
       setEchipeFormate(initiale);
-      const sportiviDinEchipe = new Set<string>();
-      initiale.forEach(e => {
-        e.titulari.forEach(id => sportiviDinEchipe.add(id));
-        e.rezerve.forEach(id => sportiviDinEchipe.add(id));
-      });
-      if (sportiviDinEchipe.size > 0) {
-        setSelectedSportivi(prev => new Set([...prev, ...sportiviDinEchipe]));
-      }
     })();
   }, []); // run once on mount
 
@@ -126,11 +130,14 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   const lastComputedSportiviRef = React.useRef<string>('');
 
   const handleToggle = (id: string) => {
-    setSelectedSportivi(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+    if (!probaDeschisFocusId) return;
+    const probaId = probaDeschisFocusId;
+    setSelectedSportiviMap(prev => {
+      const newMap = new Map(prev);
+      const set = new Set(newMap.get(probaId) ?? []);
+      if (set.has(id)) set.delete(id); else set.add(id);
+      newMap.set(probaId, set);
+      return newMap;
     });
   };
 
@@ -149,7 +156,8 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   }, [selectedSportivi, sportivi, categorii, grade, competitie.data_inceput]);
 
   const handlePas1Continua = () => {
-    const currentKey = Array.from(selectedSportivi).sort().join(',');
+    const currentProbaSet = selectedSportiviMap.get(probaDeschisFocusId ?? '') ?? new Set();
+    const currentKey = Array.from(currentProbaSet).sort().join(',');
     if (currentKey !== lastComputedSportiviRef.current) {
       computeAutoCategorie();
       lastComputedSportiviRef.current = currentKey;
@@ -181,7 +189,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         categorii={categorii.filter(c => c.proba_id === probaDeschisFocusId)}
         inscrieri={inscrieri}
         vizeSportivi={vizeSportivi}
-        selected={selectedSportivi}
+        selected={selectedSportiviMap.get(probaDeschisFocusId ?? '') ?? new Set()}
         myClubId={myClubId}
         varsteCompetitie={varsteCompetitie}
         onToggle={handleToggle}
@@ -244,7 +252,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         sportivi={sportivi}
         grade={grade}
         categorii={categorii}
-        selectedSportivi={selectedSportivi}
+        selectedSportivi={selectedSportiviMap.get(probaDeschisFocusId ?? '') ?? new Set()}
         autoCategorie={autoCategorie}
         quyenAles={quyenAles}
         onUpdateQuyenAles={setQuyenAles}

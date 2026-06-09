@@ -1,4 +1,4 @@
-// components/Competitii/constants.ts
+// components/Competitii/constants.tsx
 import React from 'react';
 import { VizaSportiv } from '../../types';
 import { TIP_COMPETITIE_LABELS } from '../../utils/competitiiTemplates';

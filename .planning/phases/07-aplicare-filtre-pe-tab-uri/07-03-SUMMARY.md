@@ -113,3 +113,12 @@ None - no external service configuration required.
 ---
 *Phase: 07-aplicare-filtre-pe-tab-uri*
 *Completed: 2026-06-09*
+
+## Self-Check: PASSED
+- components/Competitii/RaportInscrieri.tsx: FOUND
+- components/Competitii/index.tsx: FOUND
+- components/Competitii/CompetitieDetail.tsx: FOUND
+- .planning/phases/07-aplicare-filtre-pe-tab-uri/07-03-SUMMARY.md: FOUND
+- commit 2778e78: FOUND
+- commit 0ef4979: FOUND
+- npm run lint: zero erori

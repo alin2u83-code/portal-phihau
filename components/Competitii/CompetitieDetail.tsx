@@ -1,52 +1,32 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Permissions, Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, SolicitareEchipaIncompleta, Sportiv, Grad, TipProba } from '../../types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Permissions, Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, Sportiv } from '../../types';
 import { supabase } from '../../supabaseClient';
+import { useCompetitieFilters } from '../../hooks/useCompetitieFilters';
+import { Button } from '../ui';
+import { ArrowLeftIcon } from '../icons';
 import { useData } from '../../contexts/DataContext';
-import { Button, Card } from '../ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from '../icons';
-import { useError } from '../ErrorProvider';
-import { TIP_PROBA_LABELS, TIP_COMPETITIE_LABELS } from '../../utils/competitiiTemplates';
-import { useTipuriCompetitie } from '../../hooks/useTipuriCompetitie';
-import CategoriiTemplateManager from './CategoriiTemplateManager';
 import { VizaSportiv } from '../../types';
+import { useError } from '../ErrorProvider';
+import { TipuriLabelsContext, fmtDate, statusLabel, tipBadge, SS_KEY_TAB, ssGet, ssSet } from './constants';
+import { TIP_PROBA_LABELS, TIP_COMPETITIE_LABELS } from '../../utils/competitiiTemplates';
+import { RaportInscrieri } from './RaportInscrieri';
+import { FinanciarView } from './FinanciarView';
+import { AdminPanel } from './AdminPanel';
+import { InscrieriView } from './InscrieriView';
+import { InscriereModal } from './InscriereModal';
+import CategoriiTemplateManager from './CategoriiTemplateManager';
 import InscriereClubWizard from './InscriereClubWizard';
 import { TipuriCompetitieAdmin } from './TipuriCompetitieAdmin';
 import { CereriInterclubAdmin } from './CereriInterclubAdmin';
 
-import {
-  SS_KEY_COMP_ID, SS_KEY_TAB, ssGet, ssSet, ssDel,
-  areVizaFRAM, WarningVizaFRAM,
-  fmtDate, statusLabel, tipBadge, TipuriLabelsContext,
-} from './constants';
-import { CompetitieForm } from './CompetitieForm';
-import { RaportInscrieri } from './RaportInscrieri';
-import { FinanciarView } from './FinanciarView';
-import { ProbaForm } from './ProbaForm';
-import { AdminPanel } from './AdminPanel';
-import { InscriereModal } from './InscriereModal';
-import { InscrieriView } from './InscrieriView';
-import { MigrareModal, EvenimentLegacy } from './MigrareModal';
-import { useCompetitieFilters, aplicaFiltreCategorie } from '../../hooks/useCompetitieFilters';
-import { CompetitieFilterBar } from './CompetitieFilterBar';
-
-interface CompetitiiProps {
-  permissions: Permissions;
-  onBack: () => void;
-}
-
-type View = 'list' | 'detail' | 'inscrieri';
-
-// -----------------------------------------------
-// COMPETITION DETAIL (categories + registrations view)
-// -----------------------------------------------
-interface CompetitieDetailProps {
+export interface CompetitieDetailProps {
   competitie: Competitie;
   permissions: Permissions;
   onBack: () => void;
   onUpdated: (c: Competitie) => void;
 }
 
-const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated }) => {
+export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated }) => {
   const tipuriLabelsCtx = React.useContext(TipuriLabelsContext);
   const { filteredData, grade, currentUser, vizeSportivi, activeRoleContext } = useData();
   const { showError } = useError();
@@ -73,20 +53,16 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [viewInscrieriCatId, setViewInscrieriCatId] = useState<string | null>(null);
   // Task 5: expand/collapse tabele per categorie (tab Categorii)
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
-
-  // Sistem Filtrare Unificat — instanțiat O SINGURĂ DATĂ la nivel CompetitieDetail (D-01)
   const { filtre, toggleGen, setFiltre, resetFiltre, nrFiltreActive } = useCompetitieFilters();
 
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
   const isClubAdmin = permissions.isAdminClub;
 
   // Persistă tab-ul activ în sessionStorage la fiecare schimbare
-  // INSC-03: resetFiltre() la fiecare schimbare de tab — filtrele se șterg automat
   const handleSetActiveTab = useCallback((tab: 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub') => {
-    resetFiltre();
     setActiveTab(tab);
     ssSet(SS_KEY_TAB, tab);
-  }, [resetFiltre]);
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -121,14 +97,9 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
       });
   }, [competitie.legacy_eveniment_id]);
 
-  // TAB-02/TAB-03: filteredCategorii combină selectedProbaId (pills probă standalone)
-  // cu filtrele complete din useCompetitieFilters (gen, vârstă, grad)
-  const filteredCategorii = useMemo(() => {
-    const baza = selectedProbaId
-      ? categorii.filter(c => c.proba_id === selectedProbaId)
-      : categorii;
-    return aplicaFiltreCategorie(baza, filtre);
-  }, [categorii, selectedProbaId, filtre]);
+  const filteredCategorii = selectedProbaId
+    ? categorii.filter(c => c.proba_id === selectedProbaId)
+    : categorii;
 
   const inscrieriCount = (catId: string) =>
     inscrieri.filter(i => i.categorie_id === catId && i.status?.toLowerCase() !== 'retras').length +
@@ -221,7 +192,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
           </svg>
-          <span>Categorii <span className="text-sm font-normal opacity-75">({filteredCategorii.length})</span></span>
+          <span>Categorii <span className="text-sm font-normal opacity-75">({categorii.length})</span></span>
         </button>
         {isAdmin && (
           <button onClick={() => handleSetActiveTab('admin')} style={{ touchAction: 'manipulation' }}
@@ -299,16 +270,26 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           {/* CATEGORII TAB */}
           {activeTab === 'categorii' && (
             <div className="space-y-3">
-              {/* TAB-01: CompetitieFilterBar înlocuiește pills probe standalone */}
-              <CompetitieFilterBar
-                filtre={filtre}
-                toggleGen={toggleGen}
-                setFiltre={setFiltre}
-                resetFiltre={resetFiltre}
-                nrFiltreActive={nrFiltreActive}
-                probe={probe}
-                grade={grade}
-              />
+              {/* Filter by proba */}
+              {probe.length > 1 && (
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setSelectedProbaId('')}
+                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${!selectedProbaId ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400'}`}
+                  >
+                    Toate ({categorii.length})
+                  </button>
+                  {probe.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => setSelectedProbaId(p.id)}
+                      className={`px-3 py-1 text-xs rounded-full border transition-colors ${selectedProbaId === p.id ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400'}`}
+                    >
+                      {p.denumire} ({categorii.filter(c => c.proba_id === p.id).length})
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Category list */}
               <div className="-mx-4 sm:mx-0 overflow-x-auto">
@@ -580,7 +561,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             </div>
           )}
 
-          {/* ADMIN TAB */}
+          {/* FINANCIAR TAB */}
           {activeTab === 'financiar' && isAdmin && (
             <FinanciarView
               competitie={competitie}
@@ -667,262 +648,5 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
         />
       )}
     </div>
-  );
-};
-
-// -----------------------------------------------
-// MAIN COMPONENT
-// -----------------------------------------------
-
-export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, onBack }) => {
-  const { showError } = useError();
-  const [competitii, setCompetitii] = useState<Competitie[]>([]);
-  const [legacyEvents, setLegacyEvents] = useState<EvenimentLegacy[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<View>('list');
-  const [selectedComp, setSelectedComp] = useState<Competitie | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editComp, setEditComp] = useState<Competitie | null>(null);
-  const [search, setSearch] = useState('');
-  const [migrareEv, setMigrareEv] = useState<EvenimentLegacy | null>(null);
-  const savedScrollRef = useRef(0);
-  // ID-ul competiției salvat la mount — restaurat după ce lista se încarcă
-  const pendingRestoreId = useRef<string | null>(ssGet(SS_KEY_COMP_ID));
-  const { labels: tipuriLabels } = useTipuriCompetitie();
-
-  const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
-
-  const fetchCompetitii = useCallback(async () => {
-    setLoading(true);
-    const [{ data, error }, { data: legacyData }] = await Promise.all([
-      supabase.from('competitii').select().order('data_inceput', { ascending: false }),
-      supabase.from('evenimente').select('id,denumire,data,data_sfarsit,locatie,organizator,probe_disponibile,club_id').eq('tip', 'Competitie').order('data', { ascending: false }),
-    ]);
-    if (error) { showError("Eroare", error.message); }
-    const competitiiData = (data || []) as Competitie[];
-    setCompetitii(competitiiData);
-    // Exclude evenimentele deja migrate (au legacy_eveniment_id setat în competitii)
-    const migratedIds = new Set(competitiiData.map(c => c.legacy_eveniment_id).filter(Boolean));
-    setLegacyEvents(((legacyData || []) as EvenimentLegacy[]).filter(e => !migratedIds.has(e.id)));
-    setLoading(false);
-
-    // Cerința 1 — restaurare stare după refresh
-    if (pendingRestoreId.current) {
-      const found = competitiiData.find(c => c.id === pendingRestoreId.current);
-      if (found) {
-        setSelectedComp(found);
-        setView('detail');
-      }
-      pendingRestoreId.current = null;
-    }
-  }, [showError]);
-
-  useEffect(() => { fetchCompetitii(); }, [fetchCompetitii]);
-
-  const filteredCompetitii = competitii.filter(c =>
-    c.denumire.toLowerCase().includes(search.toLowerCase()) ||
-    (c.locatie || '').toLowerCase().includes(search.toLowerCase())
-  );
-
-  const filteredLegacy = legacyEvents.filter(e =>
-    e.denumire.toLowerCase().includes(search.toLowerCase()) ||
-    (e.locatie || '').toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Ștergi această competiție și toate datele aferente?')) return;
-    const { error } = await supabase.from('competitii').delete().eq('id', id);
-    if (error) showError("Eroare", error.message);
-    else setCompetitii(prev => prev.filter(c => c.id !== id));
-  };
-
-  if (view === 'detail' && selectedComp) {
-    return (
-      <CompetitieDetail
-        competitie={selectedComp}
-        permissions={permissions}
-        onBack={() => {
-          setView('list');
-          setSelectedComp(null);
-          ssDel(SS_KEY_COMP_ID);
-          ssDel(SS_KEY_TAB);
-          requestAnimationFrame(() => {
-            try {
-              window.scrollTo({ top: savedScrollRef.current, left: 0, behavior: 'instant' as ScrollBehavior });
-            } catch {
-              window.scrollTo(0, savedScrollRef.current);
-            }
-          });
-        }}
-        onUpdated={(updated) => {
-          setSelectedComp(updated);
-          setCompetitii(prev => prev.map(c => c.id === updated.id ? updated : c));
-        }}
-      />
-    );
-  }
-
-  return (
-    <TipuriLabelsContext.Provider value={tipuriLabels}>
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <Button variant="secondary" size="sm" onClick={onBack} className="!p-2">
-            <ArrowLeftIcon className="w-4 h-4" />
-          </Button>
-          <h2 className="text-xl font-bold text-white">Competiții Qwan Ki Do</h2>
-        </div>
-        {isAdmin && (
-          <Button variant="success" onClick={() => { setEditComp(null); setFormOpen(true); }}>
-            <PlusIcon className="w-4 h-4 mr-1" /> Adaugă Competiție
-          </Button>
-        )}
-      </div>
-
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Caută competiție..."
-          className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-sm text-white placeholder-slate-500"
-        />
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {Object.entries(statusLabel).map(([k, { label, color }]) => (
-          <div key={k} className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-            <div className="text-xl font-bold text-white">{competitii.filter(c => c.status === k).length}</div>
-            <div className={`text-xs mt-0.5 px-1.5 py-0.5 rounded-full inline-block ${color}`}>{label}</div>
-          </div>
-        ))}
-        {legacyEvents.length > 0 && (
-          <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-            <div className="text-xl font-bold text-white">{legacyEvents.length}</div>
-            <div className="text-xs mt-0.5 px-1.5 py-0.5 rounded-full inline-block bg-slate-700 text-slate-300">Legacy</div>
-          </div>
-        )}
-      </div>
-
-      {/* List */}
-      {loading ? (
-        <div className="text-center text-slate-400 py-12">Se încarcă...</div>
-      ) : (
-        <div className="space-y-2">
-          {filteredCompetitii.map(comp => (
-            <Card
-              key={comp.id}
-              className="p-4 cursor-pointer hover:border-brand-primary/50 transition-colors"
-              style={{ touchAction: 'manipulation' }}
-              onClick={() => { savedScrollRef.current = window.scrollY; setSelectedComp(comp); ssSet(SS_KEY_COMP_ID, comp.id); setView('detail'); }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-bold text-white">{comp.denumire}</h3>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${tipBadge[comp.tip]}`}>
-                      {tipuriLabels.get(comp.tip) ?? TIP_COMPETITIE_LABELS[comp.tip as keyof typeof TIP_COMPETITIE_LABELS] ?? comp.tip}
-                    </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${statusLabel[comp.status]?.color}`}>
-                      {statusLabel[comp.status]?.label}
-                    </span>
-                  </div>
-                  <div className="text-sm text-slate-400 mt-1">
-                    {fmtDate(comp.data_inceput)} – {fmtDate(comp.data_sfarsit)}
-                    {comp.locatie && ` · ${comp.locatie}`}
-                    {comp.deadline_inscrieri && ` · Deadline: ${fmtDate(comp.deadline_inscrieri)}`}
-                  </div>
-                </div>
-                {isAdmin && (
-                  <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                    <Button size="sm" variant="secondary" className="!p-2"
-                      onClick={() => { setEditComp(comp); setFormOpen(true); }}>
-                      <EditIcon className="w-3 h-3" />
-                    </Button>
-                    <Button size="sm" variant="danger" className="!p-2"
-                      onClick={() => handleDelete(comp.id)}>
-                      <TrashIcon className="w-3 h-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-              {comp.observatii && (
-                <div className="text-xs text-slate-500 mt-2">{comp.observatii}</div>
-              )}
-            </Card>
-          ))}
-          {filteredLegacy.length > 0 && (
-            <div className="pt-2 pb-1">
-              <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
-                Competiții din sistemul vechi — necesită migrare
-              </p>
-            </div>
-          )}
-          {filteredLegacy.map(ev => (
-            <Card key={`legacy-${ev.id}`} className="p-4 border-dashed border-amber-800/40">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-bold text-white">{ev.denumire}</h3>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-300 border border-amber-700/50">
-                      Legacy
-                    </span>
-                  </div>
-                  <div className="text-sm text-slate-400 mt-1">
-                    {fmtDate(ev.data)}{ev.data_sfarsit && ev.data_sfarsit !== ev.data ? ` – ${fmtDate(ev.data_sfarsit)}` : ''}
-                    {ev.locatie && ` · ${ev.locatie}`}
-                    {ev.organizator && ` · ${ev.organizator}`}
-                  </div>
-                  {ev.probe_disponibile && ev.probe_disponibile.length > 0 && (
-                    <div className="text-xs text-slate-500 mt-1">Probe: {ev.probe_disponibile.join(', ')}</div>
-                  )}
-                </div>
-                {isAdmin && (
-                  <Button size="sm" variant="secondary" onClick={() => setMigrareEv(ev)}>
-                    Migrează
-                  </Button>
-                )}
-              </div>
-            </Card>
-          ))}
-          {filteredCompetitii.length === 0 && filteredLegacy.length === 0 && !loading && (
-            <div className="text-center text-slate-500 py-16 italic">
-              {isAdmin
-                ? 'Nicio competiție creată. Apasă "Adaugă Competiție" pentru a începe.'
-                : 'Nu există competiții disponibile momentan.'}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Form modal */}
-      <CompetitieForm
-        isOpen={formOpen}
-        onClose={() => setFormOpen(false)}
-        comp={editComp}
-        onSaved={(comp) => {
-          if (editComp) {
-            setCompetitii(prev => prev.map(c => c.id === comp.id ? comp : c));
-          } else {
-            setCompetitii(prev => [comp, ...prev]);
-          }
-        }}
-      />
-
-      {/* Migrare legacy modal */}
-      <MigrareModal
-        ev={migrareEv}
-        onClose={() => setMigrareEv(null)}
-        onMigrated={(newComp, legacyId) => {
-          setCompetitii(prev => [newComp, ...prev]);
-          setLegacyEvents(prev => prev.filter(e => e.id !== legacyId));
-          setMigrareEv(null);
-        }}
-      />
-    </div>
-    </TipuriLabelsContext.Provider>
   );
 };

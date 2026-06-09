@@ -627,6 +627,10 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
               probe={probe}
               categoriiExistente={categorii}
               onImported={(cats) => setCategorii(prev => [...prev, ...cats])}
+              filtre={filtre}
+              toggleGen={toggleGen}
+              resetFiltreHook={resetFiltre}
+              nrFiltreActiveHook={nrFiltreActive}
             />
           )}
 

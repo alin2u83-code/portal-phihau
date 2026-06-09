@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Permissions, Grad, ProbaCompetitie, CategorieCompetitie } from '../../types';
+import type { CompetitieFiltre } from '../../hooks/useCompetitieFilters';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
 import { Button, Modal, Input, Select, SearchableSelect } from '../ui';
@@ -231,10 +232,29 @@ interface CategoriiTemplateManagerProps {
   categoriiExistente?: CategorieCompetitie[];
   /** Apelat după ce un/mai multe template-uri sunt importate ca categorii */
   onImported?: (cats: CategorieCompetitie[]) => void;
+  /** Filtre din useCompetitieFilters (gen selectat) — opțional pentru utilizare standalone */
+  filtre?: CompetitieFiltre;
+  /** Toggle gen din useCompetitieFilters */
+  toggleGen?: (gen: string) => void;
+  /** Reset filtre din useCompetitieFilters */
+  resetFiltreHook?: () => void;
+  /** Număr filtre active din useCompetitieFilters */
+  nrFiltreActiveHook?: number;
 }
+
+// Constantă stabilă pentru fallback standalone — evită new Set() la fiecare render
+const FILTRE_FALLBACK: CompetitieFiltre = {
+  gen: new Set(),
+  probaId: '',
+  varstaMin: '',
+  varstaMax: '',
+  gradMin: '',
+  gradMax: '',
+};
 
 const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
   permissions, competitieId, probaId, probe = [], categoriiExistente = [], onImported,
+  filtre: filtreProp, toggleGen: toggleGenProp, resetFiltreHook, nrFiltreActiveHook,
 }) => {
   const { grade } = useData();
   const { showError } = useError();
@@ -251,7 +271,8 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
 
   // --- Filtre ---
   const [filterTipProba, setFilterTipProba] = useState<string>('all');
-  const [filterGenSet, setFilterGenSet] = useState<Set<string>>(new Set());
+  // Fallback local gen pentru utilizare standalone (fără props din useCompetitieFilters)
+  const [filterGenSetLocal, setFilterGenSetLocal] = useState<Set<string>>(new Set());
   const [filterParticipare, setFilterParticipare] = useState<'all' | 'individual' | 'pereche' | 'echipa'>('all');
   const [filterVarsteValues, setFilterVarsteValues] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState('');
@@ -259,11 +280,15 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
   const [wizardOpen, setWizardOpen] = useState(false);
   const [bulkWizardOpen, setBulkWizardOpen] = useState(false);
 
-  const toggleFilterGen = (g: string) => setFilterGenSet(prev => {
+  // Rezolvare props vs fallback local — permite utilizare standalone (AppRouter) sau controlat (CompetitieDetail/index)
+  const filtre: CompetitieFiltre = filtreProp ?? { ...FILTRE_FALLBACK, gen: filterGenSetLocal };
+  const toggleGen = toggleGenProp ?? ((g: string) => setFilterGenSetLocal(prev => {
     const next = new Set(prev);
     if (next.has(g)) next.delete(g); else next.add(g);
     return next;
-  });
+  }));
+  const nrFiltreActiveHookResolved = nrFiltreActiveHook ?? (filterGenSetLocal.size > 0 ? 1 : 0);
+  const resetFiltreHookResolved = resetFiltreHook ?? (() => setFilterGenSetLocal(new Set()));
 
   const toggleVarstaValue = (v: number) => setFilterVarsteValues(prev => {
     const next = new Set(prev);
@@ -284,7 +309,7 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
   const filtered = useMemo(() => {
     return templates.filter(t => {
       if (filterTipProba !== 'all' && t.tip_proba !== filterTipProba) return false;
-      if (filterGenSet.size > 0 && !filterGenSet.has(t.gen)) return false;
+      if (filtre.gen.size > 0 && !filtre.gen.has(t.gen)) return false;
       if (filterParticipare !== 'all' && t.tip_participare !== filterParticipare) return false;
       if (filterVarsteValues.size > 0) {
         const match = Array.from(filterVarsteValues).some(v => v >= t.varsta_min && (t.varsta_max === null || v <= t.varsta_max));
@@ -293,7 +318,7 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
       if (search.trim() && !t.denumire.toLowerCase().includes(search.trim().toLowerCase())) return false;
       return true;
     });
-  }, [templates, filterTipProba, filterGenSet, filterParticipare, filterVarsteValues, search]);
+  }, [templates, filterTipProba, filtre, filterParticipare, filterVarsteValues, search]);
 
   const probeMap = useMemo(() => {
     const m: Record<string, string> = {};
@@ -380,14 +405,14 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
 
   const nrFiltreActive =
     (filterTipProba !== 'all' ? 1 : 0) +
-    (filterGenSet.size > 0 ? 1 : 0) +
+    (nrFiltreActiveHookResolved > 0 ? 1 : 0) +
     (filterParticipare !== 'all' ? 1 : 0) +
     (filterVarsteValues.size > 0 ? 1 : 0) +
     (search.trim() ? 1 : 0);
 
   const resetFiltre = () => {
     setFilterTipProba('all');
-    setFilterGenSet(new Set());
+    resetFiltreHookResolved();
     setFilterParticipare('all');
     setFilterVarsteValues(new Set());
     setSearch('');
@@ -485,9 +510,9 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
               {GEN_OPTIONS.map(g => (
                 <button
                   key={g}
-                  onClick={() => toggleFilterGen(g)}
+                  onClick={() => toggleGen(g)}
                   style={{ touchAction: 'manipulation' }}
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${filterGenSet.has(g) ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400 hover:text-white'}`}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${filtre.gen.has(g) ? 'bg-brand-primary text-white border-brand-primary' : 'border-slate-600 text-slate-400 hover:border-slate-400 hover:text-white'}`}
                 >{g}</button>
               ))}
             </div>

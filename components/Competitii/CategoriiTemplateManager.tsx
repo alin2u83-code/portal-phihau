@@ -619,7 +619,7 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
                     <td className="p-2 text-right">
                       <div className="flex gap-1 justify-end items-center">
                         {isImportContext && (
-                          <Button size="sm" variant="info" className="!px-2 !py-1 !text-[11px]" onClick={() => handleImportOne(t)} disabled={isImporting}>
+                          <Button size="sm" variant="info" className="!px-2 !py-1 !text-[11px]" onClick={() => handleImportOne(t)} disabled={importingIds.size > 0}>
                             {isImporting ? '...' : 'Import'}
                           </Button>
                         )}

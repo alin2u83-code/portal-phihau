@@ -209,8 +209,12 @@ export const ConfirmButton: React.FC<ConfirmButtonProps> = ({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const startConfirming = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
     setConfirming(true);
-    timerRef.current = setTimeout(() => setConfirming(false), 3000);
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      setConfirming(false);
+    }, 3000);
   };
 
   const handleConfirm = () => {

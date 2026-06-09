@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sportiv, Grupa, Grad } from '../../types';
+import type { SortConfigEntry } from '../../hooks/useSortConfig';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { GradBadge } from '../../utils/grades';
 import { Button, Card, RoleBadge } from '../ui';
@@ -18,7 +19,7 @@ interface SportiviTableProps {
   onDelete: (sportiv: Sportiv) => void;
   onResetParola?: (sportiv: Sportiv) => void;
   requestSort: (key: string) => void;
-  sortConfig: { key: string; direction: 'asc' | 'desc' }[];
+  sortConfig: SortConfigEntry[];
   searchTerm?: string;
   onSearchChange?: (value: string) => void;
   selectedIds?: Set<string>;

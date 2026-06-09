@@ -8,6 +8,7 @@ import { ProgramEditor } from '../Grupe/ProgramEditor';
 import { adaugaSportiv, actualizeazaSportiv } from '../../services/sportivService';
 import { useError } from '../ErrorProvider';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useSortConfig, applySortConfig } from '../../hooks/useSortConfig';
 import { MartialArtsSkeleton } from '../MartialArtsSkeleton';
 import { SportiviFilter } from './SportiviFilter';
 import { SportiviTable } from './SportiviTable';
@@ -66,7 +67,7 @@ export const Sportivi: React.FC<{
     const grupe = filteredData?.grupe || [];
 
     const [, startTransition] = useTransition();
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }[]>([]);
+    const { sortConfig, requestSort } = useSortConfig();
     const [selectedSportivIds, setSelectedSportivIds] = useState<Set<string>>(new Set());
     const [bulkGrupaId, setBulkGrupaId] = useState('');
     const [bulkLoading, setBulkLoading] = useState(false);
@@ -354,21 +355,6 @@ export const Sportivi: React.FC<{
         handleFilterChange('searchTerm', value);
     };
     
-    const requestSort = (key: string) => {
-        setSortConfig(prev => {
-            const existing = prev.find(s => s.key === key);
-            if (existing) {
-                if (existing.direction === 'asc') {
-                    return prev.map(s => s.key === key ? { ...s, direction: 'desc' } : s);
-                } else {
-                    return prev.filter(s => s.key !== key);
-                }
-            } else {
-                return [...prev, { key, direction: 'asc' }];
-            }
-        });
-    };
-
     const handleBulkAssignGroup = async (overrideGrupaId?: string | null, overrideGrupaName?: string) => {
         if (!supabase || selectedSportivIds.size === 0) return;
         if (bulkGrupaId === '__new__' && overrideGrupaId === undefined) {
@@ -474,29 +460,17 @@ export const Sportivi: React.FC<{
     };
 
     const sortedAndFilteredSportivi = useMemo(() => {
-        let sortableItems = [...sportivi];
-        if (sortConfig.length > 0) {
-            sortableItems.sort((a, b) => {
-                for (const { key, direction } of sortConfig) {
-                    let aVal: any, bVal: any;
-                    
-                    if (key === 'grad_actual_id') {
-                        const gradA = grade.find(g => g.id === a.grad_actual_id);
-                        const gradB = grade.find(g => g.id === b.grad_actual_id);
-                        aVal = gradA ? gradA.ordine : -1;
-                        bVal = gradB ? gradB.ordine : -1;
-                    } else {
-                        aVal = a[key as keyof Sportiv] as any;
-                        bVal = b[key as keyof Sportiv] as any;
-                    }
-
-                    if (aVal < bVal) return direction === 'asc' ? -1 : 1;
-                    if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+        return applySortConfig(
+            sportivi,
+            sortConfig,
+            (item, key) => {
+                if (key === 'grad_actual_id') {
+                    return grade.find(g => g.id === item.grad_actual_id)?.ordine ?? -1;
                 }
-                return 0;
-            });
-        }
-        return sortableItems;
+                return item[key as keyof Sportiv] as unknown;
+            },
+            undefined
+        );
     }, [sportivi, sortConfig, grade]);
 
 

@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
-import { Competitie, CategorieCompetitie, ProbaCompetitie, InscriereCompetitie, EchipaCompetitie } from '../../types';
+import { Competitie, CategorieCompetitie, ProbaCompetitie, InscriereCompetitie, EchipaCompetitie, Grad } from '../../types';
+import { aplicaFiltreCategorie } from '../../hooks/useCompetitieFilters';
+import type { CompetitieFiltre } from '../../hooks/useCompetitieFilters';
+import { CompetitieFilterBar } from './CompetitieFilterBar';
 
 export interface RaportInscrieriProps {
   competitie: Competitie;
@@ -9,10 +12,17 @@ export interface RaportInscrieriProps {
   echipe: EchipaCompetitie[];
   isAdmin: boolean;
   myClubId: string | null;
+  filtre: CompetitieFiltre;
+  toggleGen: (gen: string) => void;
+  setFiltre: (partial: Partial<CompetitieFiltre>) => void;
+  resetFiltre: () => void;
+  nrFiltreActive: number;
+  grade: Grad[];
 }
 
 export const RaportInscrieri: React.FC<RaportInscrieriProps> = ({
   competitie, categorii, probe, inscrieri, echipe, isAdmin, myClubId,
+  filtre, toggleGen, setFiltre, resetFiltre, nrFiltreActive, grade,
 }) => {
   interface ParticipareRaport {
     tip: 'individual' | 'echipa';
@@ -29,11 +39,20 @@ export const RaportInscrieri: React.FC<RaportInscrieriProps> = ({
     participari: ParticipareRaport[];
   }
 
+  const categoriiVizibile = useMemo(
+    () => new Set(aplicaFiltreCategorie(categorii, filtre).map(c => c.id)),
+    [categorii, filtre]
+  );
+
   const filteredIns = inscrieri.filter(i =>
-    i.status?.toLowerCase() !== 'retras' && (isAdmin || i.club_id === myClubId)
+    i.status?.toLowerCase() !== 'retras' &&
+    (isAdmin || i.club_id === myClubId) &&
+    categoriiVizibile.has(i.categorie_id)
   );
   const filteredEc = echipe.filter(e =>
-    e.status?.toLowerCase() !== 'retrasa' && (isAdmin || e.club_id === myClubId)
+    e.status?.toLowerCase() !== 'retrasa' &&
+    (isAdmin || e.club_id === myClubId) &&
+    categoriiVizibile.has(e.categorie_id)
   );
 
   const raport = useMemo<SportivRaport[]>(() => {
@@ -102,6 +121,16 @@ export const RaportInscrieri: React.FC<RaportInscrieriProps> = ({
           Imprimă
         </button>
       </div>
+
+      <CompetitieFilterBar
+        filtre={filtre}
+        toggleGen={toggleGen}
+        setFiltre={setFiltre}
+        resetFiltre={resetFiltre}
+        nrFiltreActive={nrFiltreActive}
+        probe={probe}
+        grade={grade}
+      />
 
       <div className="border border-[var(--t-border)] rounded-xl overflow-hidden">
         <div className="divide-y divide-[var(--t-border)]">

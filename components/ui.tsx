@@ -63,6 +63,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
     secondary: {
       backgroundColor: isHovered ? 'var(--t-secondary-hover)' : 'var(--t-secondary)',
       color: 'var(--t-secondary-fg)',
+      border: '1px solid var(--t-text-muted)',
     },
     danger: {
       backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-danger) 80%, #000)' : 'var(--t-status-danger)',
@@ -88,7 +89,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
     ghost_secondary: {
       backgroundColor: isHovered ? 'var(--t-surface-2)' : 'transparent',
       color: 'var(--t-secondary-fg)',
-      border: '1px solid var(--t-border)',
+      border: '1px solid var(--t-text-muted)',
     },
     ghost_danger: {
       backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-danger) 10%, transparent)' : 'transparent',
@@ -118,7 +119,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
     outline_secondary: {
       backgroundColor: isHovered ? 'var(--t-surface-2)' : 'transparent',
       color: 'var(--t-secondary-fg)',
-      border: '2px solid var(--t-border)',
+      border: '2px solid var(--t-text-muted)',
     },
     outline_danger: {
       backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-danger) 10%, transparent)' : 'transparent',

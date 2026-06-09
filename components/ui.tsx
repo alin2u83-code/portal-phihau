@@ -189,6 +189,64 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   );
 };
 
+export interface ConfirmButtonProps extends Omit<ButtonProps & { as?: 'label'; htmlFor?: string }, 'onClick' | 'as'> {
+  onConfirm: () => void;
+  confirmText?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+}
+
+export const ConfirmButton: React.FC<ConfirmButtonProps> = ({
+  onConfirm,
+  confirmText = 'Ești sigur?',
+  confirmLabel = 'Da',
+  cancelLabel = 'Nu',
+  children,
+  variant = 'danger',
+  ...buttonProps
+}) => {
+  const [confirming, setConfirming] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const startConfirming = () => {
+    setConfirming(true);
+    timerRef.current = setTimeout(() => setConfirming(false), 3000);
+  };
+
+  const handleConfirm = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setConfirming(false);
+    onConfirm();
+  };
+
+  const handleCancel = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setConfirming(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  if (confirming) {
+    return (
+      <span className="inline-flex items-center gap-2">
+        <span className="text-sm text-slate-400">{confirmText}</span>
+        <Button size="sm" variant={variant} onClick={handleConfirm}>{confirmLabel}</Button>
+        <Button size="sm" variant="secondary" onClick={handleCancel}>{cancelLabel}</Button>
+      </span>
+    );
+  }
+
+  return (
+    <Button variant={variant} onClick={startConfirming} {...buttonProps}>
+      {children}
+    </Button>
+  );
+};
+
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   className?: string;

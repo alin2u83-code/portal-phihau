@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useSortConfig, applySortConfig, SortConfigEntry } from '../../../hooks/useSortConfig';
 import {
   Competitie, CategorieCompetitie, InscriereCompetitie, Sportiv, Grad, VizaSportiv,
 } from '../../../types';
@@ -181,12 +182,13 @@ interface RandTabelSportivProps {
   varsta: number | null;
   gradNume: string | null;
   gradAnomalie?: boolean;
+  gen?: string | null;
   onToggle: () => void;
 }
 
 const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
   sportiv, isSelected, isDisabled, isDejaInscris,
-  eligibilitate, varsta, gradNume, gradAnomalie, onToggle,
+  eligibilitate, varsta, gradNume, gradAnomalie, gen, onToggle,
 }) => {
   return (
     <tr
@@ -221,6 +223,9 @@ const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
         </div>
       </td>
       <td className="p-3 text-sm text-slate-400">
+        {gen === 'Masculin' ? 'M' : gen === 'Feminin' ? 'F' : <span className="text-slate-600 italic">—</span>}
+      </td>
+      <td className="p-3 text-sm text-slate-400">
         {varsta !== null ? `${varsta} ani` : <span className="text-slate-600 italic">—</span>}
       </td>
       <td className="p-3 text-sm text-slate-400">
@@ -241,6 +246,15 @@ const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
       </td>
     </tr>
   );
+};
+
+// -----------------------------------------------
+// SORT INDICATOR
+// -----------------------------------------------
+const SortIndicator: React.FC<{ sortConfig: SortConfigEntry[]; columnKey: string }> = ({ sortConfig, columnKey }) => {
+  const entry = sortConfig.find(s => s.key === columnKey);
+  if (!entry) return <span className="text-slate-600 text-[10px]">⇅</span>;
+  return <span className="text-brand-primary text-[10px]">{entry.direction === 'asc' ? '↑' : '↓'}</span>;
 };
 
 // -----------------------------------------------
@@ -272,6 +286,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   const [filterVarstaMax, setFilterVarstaMax] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showDejaInscrisi, setShowDejaInscrisi] = useState(false);
+  const { sortConfig, requestSort: requestSortPas1 } = useSortConfig();
 
   const anComp = new Date(competitie.data_inceput).getFullYear();
 
@@ -369,6 +384,18 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   const enrichedVizibil = showDejaInscrisi
     ? enrichedFiltrat
     : enrichedFiltrat.filter(e => !e.isDejaInscris);
+
+  const enrichedSortat = applySortConfig(
+    enrichedVizibil,
+    sortConfig,
+    (item, key) => {
+      if (key === 'nume') return `${item.sportiv.nume} ${item.sportiv.prenume}`.toLowerCase();
+      if (key === 'grad') return grade.find(g => g.id === item.sportiv.grad_actual_id)?.ordine ?? -1;
+      if (key === 'varsta') return item.varsta ?? -1;
+      if (key === 'gen') return item.sportiv.gen ?? '';
+      return '';
+    }
+  );
 
   const selectableIds = useMemo(
     () => enrichedFiltrat.filter(e => !e.isDisabled).map(e => e.sportiv.id),
@@ -632,7 +659,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
         <>
           {/* MOBIL: carduri */}
           <div className="flex flex-col gap-2 md:hidden">
-            {enrichedVizibil.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
+            {enrichedSortat.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
               <CardSportiv
                 key={sportiv.id}
                 sportiv={sportiv}
@@ -662,14 +689,41 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                       className="w-4 h-4 rounded accent-brand-primary cursor-pointer"
                     />
                   </th>
-                  <th className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                    Sportiv
+                  <th
+                    className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-white group"
+                    onClick={() => requestSortPas1('nume')}
+                  >
+                    <span className="flex items-center gap-1">
+                      Sportiv
+                      <SortIndicator sortConfig={sortConfig} columnKey="nume" />
+                    </span>
                   </th>
-                  <th className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                    Varsta la competitie
+                  <th
+                    className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-white group"
+                    onClick={() => requestSortPas1('gen')}
+                  >
+                    <span className="flex items-center gap-1">
+                      Gen
+                      <SortIndicator sortConfig={sortConfig} columnKey="gen" />
+                    </span>
                   </th>
-                  <th className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                    Grad
+                  <th
+                    className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-white group"
+                    onClick={() => requestSortPas1('varsta')}
+                  >
+                    <span className="flex items-center gap-1">
+                      Varsta la competitie
+                      <SortIndicator sortConfig={sortConfig} columnKey="varsta" />
+                    </span>
+                  </th>
+                  <th
+                    className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-white group"
+                    onClick={() => requestSortPas1('grad')}
+                  >
+                    <span className="flex items-center gap-1">
+                      Grad
+                      <SortIndicator sortConfig={sortConfig} columnKey="grad" />
+                    </span>
                   </th>
                   <th className="p-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
                     Status
@@ -677,7 +731,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                 </tr>
               </thead>
               <tbody className="bg-slate-800/20">
-                {enrichedVizibil.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
+                {enrichedSortat.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
                   <RandTabelSportiv
                     key={sportiv.id}
                     sportiv={sportiv}
@@ -688,6 +742,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                     varsta={varsta}
                     gradNume={gradNume}
                     gradAnomalie={gradAnomalie}
+                    gen={sportiv.gen}
                     onToggle={() => !isDisabled && onToggle(sportiv.id)}
                   />
                 ))}

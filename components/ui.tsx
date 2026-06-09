@@ -170,7 +170,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
       <label
         htmlFor={htmlFor}
         className={`${finalClassName} ${(disabled || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
-        style={activeStyle}
+        style={{ ...activeStyle, ...(props.style as React.CSSProperties | undefined) }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         {...props}
@@ -180,14 +180,15 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
     );
   }
 
+  const { style: propStyle, ...restProps } = props as React.ButtonHTMLAttributes<HTMLButtonElement> & typeof props;
   return (
     <button
       className={finalClassName}
-      style={activeStyle}
+      style={{ ...activeStyle, ...propStyle }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       disabled={disabled || isLoading}
-      {...props}
+      {...restProps}
     >
       {content}
     </button>

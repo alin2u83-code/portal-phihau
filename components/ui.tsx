@@ -5,8 +5,13 @@ import { Rol, Club } from '../types';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'info' | 'warning';
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   isLoading?: boolean;
+  pill?: boolean;
+  ghost?: boolean;
+  outline?: boolean;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
 }
 
 export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> = ({
@@ -18,15 +23,23 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   disabled,
   as,
   htmlFor,
+  pill,
+  ghost,
+  outline,
+  leftIcon,
+  rightIcon,
   ...props
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const baseClasses = "inline-flex items-center justify-center rounded-xl font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap";
+  const roundedClass = pill ? 'rounded-full' : 'rounded-xl';
+  const baseClasses = `inline-flex items-center justify-center ${roundedClass} font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap`;
 
-  const sizeClasses = {
+  const sizeClasses: Record<'xs' | 'sm' | 'md' | 'lg', string> = {
+    xs: 'px-3 py-1 text-xs',
     sm: "px-4 py-2 text-sm", // Increased touch target
     md: "px-6 py-3 text-base", // Larger for mobile
+    lg: 'px-8 py-4 text-lg',
   };
 
   const variantClasses = {
@@ -63,9 +76,73 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
       backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-warning) 80%, #000)' : 'var(--t-status-warning)',
       color: '#ffffff',
     },
+    ghost_primary: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-primary) 10%, transparent)' : 'transparent',
+      color: 'var(--t-primary)',
+      border: '1px solid var(--t-primary)',
+    },
+    ghost_secondary: {
+      backgroundColor: isHovered ? 'var(--t-surface-2)' : 'transparent',
+      color: 'var(--t-secondary-fg)',
+      border: '1px solid var(--t-border)',
+    },
+    ghost_danger: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-danger) 10%, transparent)' : 'transparent',
+      color: 'var(--t-status-danger)',
+      border: '1px solid var(--t-status-danger)',
+    },
+    ghost_success: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-success) 10%, transparent)' : 'transparent',
+      color: 'var(--t-status-success)',
+      border: '1px solid var(--t-status-success)',
+    },
+    ghost_info: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-info) 10%, transparent)' : 'transparent',
+      color: 'var(--t-status-info)',
+      border: '1px solid var(--t-status-info)',
+    },
+    ghost_warning: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-warning) 10%, transparent)' : 'transparent',
+      color: 'var(--t-status-warning)',
+      border: '1px solid var(--t-status-warning)',
+    },
+    outline_primary: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-primary) 10%, transparent)' : 'transparent',
+      color: 'var(--t-primary)',
+      border: '2px solid var(--t-primary)',
+    },
+    outline_secondary: {
+      backgroundColor: isHovered ? 'var(--t-surface-2)' : 'transparent',
+      color: 'var(--t-secondary-fg)',
+      border: '2px solid var(--t-border)',
+    },
+    outline_danger: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-danger) 10%, transparent)' : 'transparent',
+      color: 'var(--t-status-danger)',
+      border: '2px solid var(--t-status-danger)',
+    },
+    outline_success: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-success) 10%, transparent)' : 'transparent',
+      color: 'var(--t-status-success)',
+      border: '2px solid var(--t-status-success)',
+    },
+    outline_info: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-info) 10%, transparent)' : 'transparent',
+      color: 'var(--t-status-info)',
+      border: '2px solid var(--t-status-info)',
+    },
+    outline_warning: {
+      backgroundColor: isHovered ? 'color-mix(in srgb, var(--t-status-warning) 10%, transparent)' : 'transparent',
+      color: 'var(--t-status-warning)',
+      border: '2px solid var(--t-status-warning)',
+    },
   };
 
-  const finalClassName = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className} touch-manipulation`; // Added touch-manipulation
+  const stylePrefix = ghost ? 'ghost_' : outline ? 'outline_' : '';
+  const styleKey = `${stylePrefix}${variant}`;
+  const activeStyle = variantStyles[styleKey] ?? variantStyles[variant] ?? {};
+
+  const finalClassName = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className ?? ''} touch-manipulation`; // Added touch-manipulation
 
   const content = isLoading ? (
     <span className="flex items-center gap-2">
@@ -75,6 +152,12 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
       </svg>
       Procesare...
     </span>
+  ) : (leftIcon || rightIcon) ? (
+    <span className="flex items-center gap-2">
+      {leftIcon}
+      {children}
+      {rightIcon}
+    </span>
   ) : children;
 
   if (as === 'label') {
@@ -82,7 +165,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
       <label
         htmlFor={htmlFor}
         className={`${finalClassName} ${(disabled || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
-        style={variantStyles[variant]}
+        style={activeStyle}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         {...(props as any)}
@@ -95,7 +178,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   return (
     <button
       className={finalClassName}
-      style={variantStyles[variant]}
+      style={activeStyle}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       disabled={disabled || isLoading}

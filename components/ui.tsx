@@ -172,7 +172,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
         style={activeStyle}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        {...(props as any)}
+        {...props}
       >
         {content}
       </label>

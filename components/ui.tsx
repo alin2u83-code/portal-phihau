@@ -32,6 +32,10 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
+  useEffect(() => {
+    if (disabled || isLoading) setIsHovered(false);
+  }, [disabled, isLoading]);
+
   const roundedClass = pill ? 'rounded-full' : 'rounded-xl';
   const baseClasses = `inline-flex items-center justify-center ${roundedClass} font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap`;
 

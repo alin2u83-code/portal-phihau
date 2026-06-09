@@ -70,6 +70,7 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
   };
 
   const handleRetrage = async (id: string, type: 'inscris' | 'echipa') => {
+    if (!window.confirm('Sigur vrei să retragi această înscriere? Acțiunea nu poate fi anulată.')) return;
     if (type === 'inscris') {
       // DELETE definitiv din inscrieri_competitie (confirmat de utilizator)
       // NOTA RLS: dacă DELETE este blocat, adaugă în Supabase Dashboard:

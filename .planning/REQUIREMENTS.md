@@ -25,8 +25,8 @@
 
 ### Tab Raport
 
-- [ ] **RAP-01**: `CompetitieFilterBar` afișată deasupra datelor de raport
-- [ ] **RAP-02**: Filtrele aplicate pe datele agregate din raport (per club/categorie)
+- [x] **RAP-01**: `CompetitieFilterBar` afișată deasupra datelor de raport
+- [x] **RAP-02**: Filtrele aplicate pe datele agregate din raport (per club/categorie)
 
 ### Tab Template (Admin)
 
@@ -67,12 +67,13 @@
 | INSC-01 | Phase 7 | Pending |
 | INSC-02 | Phase 7 | Pending |
 | INSC-03 | Phase 7 | Pending |
-| RAP-01 | Phase 7 | Pending |
-| RAP-02 | Phase 7 | Pending |
+| RAP-01 | Phase 7 | Complete |
+| RAP-02 | Phase 7 | Complete |
 | TMPL-01 | Phase 7 | Pending |
 | TMPL-02 | Phase 7 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 13 total
 - Mapped to phases: 13
 - Unmapped: 0 ✓

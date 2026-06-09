@@ -253,7 +253,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Card: React.FC<CardProps> = ({ children, className, ...props }) => (
-  <div className={`bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl p-4 shadow-lg backdrop-blur-sm ${className}`} {...props}>
+  <div className={`bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl p-4 shadow-lg backdrop-blur-sm ${className ?? ''}`} {...props}>
     {children}
   </div>
 );
@@ -282,7 +282,7 @@ export const StatCard: React.FC<StatCardProps> = ({ label, value, icon: Icon, ac
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-xl border ${c.border} bg-gradient-to-br ${c.bg} to-slate-800/80 p-4 shadow-lg backdrop-blur-sm transition-all duration-200 ${onClick ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : ''} ${className}`}
+      className={`relative overflow-hidden rounded-xl border ${c.border} bg-gradient-to-br ${c.bg} to-slate-800/80 p-4 shadow-lg backdrop-blur-sm transition-all duration-200 ${onClick ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : ''} ${className ?? ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -516,7 +516,7 @@ export const Stepper: React.FC<{ value: number; onChange: (newValue: number) => 
 };
 
 export const Skeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={`animate-pulse bg-slate-700 rounded ${className}`}></div>
+  <div className={`animate-pulse bg-slate-700 rounded ${className ?? ''}`}></div>
 );
 
 export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
@@ -574,7 +574,7 @@ export const Badge: React.FC<{ children: React.ReactNode, variant?: 'green' | 'r
     },
   };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${className}`} style={variantStyles[variant]}>
+    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${className ?? ''}`} style={variantStyles[variant]}>
       {children}
     </span>
   );
@@ -594,7 +594,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ label, containerClassN
       </div>
       <input
         {...props}
-        className={`w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl pl-10 pr-4 py-3 text-base sm:text-sm text-[var(--t-text)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm touch-manipulation appearance-none ${className}`}
+        className={`w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl pl-10 pr-4 py-3 text-base sm:text-sm text-[var(--t-text)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm touch-manipulation appearance-none ${className ?? ''}`}
       />
     </div>
   </div>
@@ -815,7 +815,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   // ---- MOBIL: select nativ ----
   if (isMobile) {
     return (
-      <div className={`w-full ${className}`}>
+      <div className={`w-full ${className ?? ''}`}>
         {label && (
           <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">
             {label}
@@ -844,7 +844,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
 
   // ---- DESKTOP: combobox custom ----
   return (
-    <div className={`w-full relative ${className}`} ref={containerRef}>
+    <div className={`w-full relative ${className ?? ''}`} ref={containerRef}>
       {label && (
         <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">
           {label}

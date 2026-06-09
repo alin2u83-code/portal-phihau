@@ -57,3 +57,6 @@ export const CereriInscriere = lazy(() => import('./Sportivi/CereriInscriere').t
 export const ActivitatiNationale = lazy(() => import('./ActivitatiNationale').then(m => ({ default: m.ActivitatiNationale })));
 export const InlantuciriAdmin = lazy(() => import('./Grade/InlantuciriAdmin').then(m => ({ default: m.InlantuciriAdmin })));
 export const AdminSMS = lazy(() => import('./SMS/AdminSMS').then(m => ({ default: m.AdminSMS })));
+export const ButtonCatalog = lazy(() =>
+  import('./ButtonCatalog').then(m => ({ default: m.ButtonCatalog }))
+);

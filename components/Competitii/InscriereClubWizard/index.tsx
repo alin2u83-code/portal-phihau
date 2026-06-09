@@ -56,16 +56,13 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     });
     if (inscrieriIndiv.length === 0) return;
     initializedFromInscrieri.current = true;
-    const newSportivi = new Set<string>();
     const newAuto = new Map<string, import('../../../types').CategorieCompetitie>();
     const newQuyen = new Map<string, { q1: string; q2: string }>();
     for (const ins of inscrieriIndiv) {
       const cat = catMap.get(ins.categorie_id)!;
-      newSportivi.add(ins.sportiv_id);
       newAuto.set(ins.sportiv_id, cat);
       if (ins.inlantuire_id) newQuyen.set(ins.sportiv_id, { q1: ins.inlantuire_id, q2: ins.inlantuire_id_2 ?? '' });
     }
-    setSelectedSportivi(prev => new Set([...prev, ...newSportivi]));
     setAutoCategorie(prev => prev.size > 0 ? prev : newAuto);
     setQuyenAles(prev => prev.size > 0 ? prev : newQuyen);
   }, [inscrieri, categorii, probe, clubId]);

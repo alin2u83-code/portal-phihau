@@ -271,6 +271,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   const [filterVarstaMin, setFilterVarstaMin] = useState('');
   const [filterVarstaMax, setFilterVarstaMax] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showDejaInscrisi, setShowDejaInscrisi] = useState(false);
 
   const anComp = new Date(competitie.data_inceput).getFullYear();
 
@@ -365,6 +366,10 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
     [enriched]
   );
 
+  const enrichedVizibil = showDejaInscrisi
+    ? enrichedFiltrat
+    : enrichedFiltrat.filter(e => !e.isDejaInscris);
+
   const selectableIds = useMemo(
     () => enrichedFiltrat.filter(e => !e.isDisabled).map(e => e.sportiv.id),
     [enrichedFiltrat]
@@ -417,6 +422,21 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
           </button>
         )}
       </div>
+
+      {/* Toggle înscriși */}
+      {dejaInscrisiSet.size > 0 && (
+        <button
+          onClick={() => setShowDejaInscrisi(v => !v)}
+          style={{ touchAction: 'manipulation' }}
+          className={`text-xs px-3 py-2 rounded-lg border transition-colors flex items-center gap-1.5 min-h-[40px] ${
+            showDejaInscrisi
+              ? 'border-blue-500 text-blue-300 bg-blue-900/20'
+              : 'border-slate-600 text-slate-400 hover:text-white hover:border-slate-500'
+          }`}
+        >
+          {showDejaInscrisi ? 'Ascunde înscriși' : `Arată înscriși (${dejaInscrisiSet.size})`}
+        </button>
+      )}
 
       {/* Filtre avansate */}
       <div>
@@ -604,7 +624,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
       )}
 
       {/* Lista sportivi */}
-      {enrichedFiltrat.length === 0 ? (
+      {enrichedVizibil.length === 0 ? (
         <div className="text-center text-slate-500 py-12 italic text-sm">
           {search ? 'Niciun sportiv gasit pentru cautarea ta.' : 'Nu exista sportivi activi in club.'}
         </div>
@@ -612,7 +632,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
         <>
           {/* MOBIL: carduri */}
           <div className="flex flex-col gap-2 md:hidden">
-            {enrichedFiltrat.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
+            {enrichedVizibil.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
               <CardSportiv
                 key={sportiv.id}
                 sportiv={sportiv}
@@ -657,7 +677,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                 </tr>
               </thead>
               <tbody className="bg-slate-800/20">
-                {enrichedFiltrat.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
+                {enrichedVizibil.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
                   <RandTabelSportiv
                     key={sportiv.id}
                     sportiv={sportiv}

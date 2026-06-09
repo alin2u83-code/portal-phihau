@@ -20,7 +20,7 @@ Două axe de lucru paralele:
 - [ ] **Phase 3: Calendar & CRUD Antrenamente** - Calendar lunar, add one-off, anulare cu motiv
 - [ ] **Phase 4: Stagii Completare** - Stagii club, preț dinamic, verificare facturi, export participanți
 - [ ] **Phase 5: Color Theme System** - Sistem teme CSS vars, ThemeEditor, Button follow-theme, Supabase persist
-- [ ] **Phase 8: Button Design System** - Extindere Button cu variante pill/ghost/outline, icoane, ConfirmButton, catalog vizual SUPER_ADMIN
+- [x] **Phase 8: Button Design System** - Extindere Button cu variante pill/ghost/outline, icoane, ConfirmButton, catalog vizual SUPER_ADMIN (completed 2026-06-09)
 
 ## Phase Details
 
@@ -183,7 +183,7 @@ Plans:
 Plans:
 
 - [x] 08-01-PLAN.md — Extindere Button (pill/ghost/outline/leftIcon/rightIcon/xs/lg) + ConfirmButton exportat (BTN-01, BTN-02)
-- [ ] 08-02-PLAN.md — ButtonCatalog.tsx + wiring types.ts/LazyComponents/AppRouter/NavMenu (BTN-03, BTN-04)
+- [x] 08-02-PLAN.md — ButtonCatalog.tsx + wiring types.ts/LazyComponents/AppRouter/NavMenu (BTN-03, BTN-04)
 
 **UI hint**: yes
 
@@ -201,4 +201,4 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 | 5. Color Theme System | 3/3 | Complete   | 2026-06-06 |
 | 6. Infrastructură Filtrare | 1/1 | Complete   | 2026-06-08 |
 | 7. Aplicare Filtre pe Tab-uri | 4/4 | Complete   | 2026-06-09 |
-| 8. Button Design System | 1/2 | In Progress|  |
+| 8. Button Design System | 2/2 | Complete   | 2026-06-09 |

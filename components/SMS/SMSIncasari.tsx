@@ -426,7 +426,7 @@ export const SMSIncasari: React.FC<SMSIncasariProps> = ({
             className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
               filter === tab.key
                 ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white hover:bg-slate-700/60'
+                : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700/60'
             }`}
           >
             {tab.label}

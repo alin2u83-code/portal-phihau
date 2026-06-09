@@ -207,7 +207,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'raport'
                 ? 'bg-brand-primary text-white'
-                : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'
             }`}
           >
             Raport
@@ -237,7 +237,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'financiar'
                 ? 'bg-brand-primary text-white'
-                : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'
             }`}
           >
             Financiar
@@ -250,7 +250,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'template'
                 ? 'bg-emerald-700 text-white'
-                : 'text-emerald-400 hover:text-white hover:bg-slate-700'
+                : 'bg-slate-800 border border-emerald-700/60 text-emerald-400 hover:text-white hover:bg-slate-700'
             }`}
           >
             Template-uri
@@ -263,7 +263,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'cereri_interclub'
                 ? 'bg-indigo-700 text-white'
-                : 'text-indigo-400 hover:text-white hover:bg-slate-700'
+                : 'bg-slate-800 border border-indigo-700/60 text-indigo-400 hover:text-white hover:bg-slate-700'
             }`}
           >
             Cereri inter-club

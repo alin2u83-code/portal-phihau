@@ -5,7 +5,7 @@ milestone_name: milestone
 status: executing
 stopped_at: Phase 6 context gathered
 last_updated: "2026-06-09T19:23:04.573Z"
-last_activity: 2026-06-09 -- Phase 08 execution started
+last_activity: 2026-06-09 -- Completed quick task 260609-vvj: Butoane ghost/transparente vizibilitate
 progress:
   total_phases: 8
   completed_phases: 7
@@ -77,6 +77,12 @@ Recent decisions affecting current work:
 ### Pending Todos
 
 None yet.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260609-vvj | Butoane ghost/transparente - adauga border si culoare pentru vizibilitate | 2026-06-09 | 86f64bb | [260609-vvj-butoane-ghost-transparente-adauga-border](./quick/260609-vvj-butoane-ghost-transparente-adauga-border/) |
 
 ### Blockers/Concerns
 

@@ -1,0 +1,104 @@
+<h2>Layout Mobil/Tabletă — Wizard Competiții</h2>
+<p class="subtitle">Cum vrei să arate lista sportivilor și filtrele pe ecran mic (360–768px)?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:16px;font-family:monospace;font-size:11px;color:#94a3b8;border-radius:8px">
+      <div style="background:#1e293b;border-radius:6px;padding:8px;margin-bottom:6px;color:#fff;font-size:12px">🔍 Caută după nume...</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
+        <span style="background:#312e81;color:#a5b4fc;border-radius:99px;padding:2px 8px;font-size:10px">Toate</span>
+        <span style="background:#1e293b;color:#64748b;border-radius:99px;padding:2px 8px;font-size:10px">Galben</span>
+        <span style="background:#1e293b;color:#64748b;border-radius:99px;padding:2px 8px;font-size:10px">Verde</span>
+        <span style="background:#1e293b;color:#64748b;border-radius:99px;padding:2px 8px;font-size:10px">Maro</span>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:8px">
+        <div style="flex:1;background:#1e293b;border-radius:6px;padding:4px 6px;font-size:10px">👤 Gen: Toate ▾</div>
+        <div style="flex:1;background:#1e293b;border-radius:6px;padding:4px 6px;font-size:10px">📅 Vârstă: Toate ▾</div>
+      </div>
+      <div style="background:#1e293b;border-radius:6px;padding:8px;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;background:#4338ca;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0">PI</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-size:11px;font-weight:600">Popescu Ion</div>
+          <div style="color:#64748b;font-size:9px">Verde · 12 ani · M</div>
+        </div>
+        <div style="width:18px;height:18px;background:#374151;border-radius:4px"></div>
+      </div>
+      <div style="background:#1e293b;border-radius:6px;padding:8px;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;background:#059669;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0">MA</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-size:11px;font-weight:600">Matei Ana</div>
+          <div style="color:#64748b;font-size:9px">Galben · 10 ani · F</div>
+        </div>
+        <div style="width:18px;height:18px;background:#374151;border-radius:4px"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Filtre stacked + listă</h3>
+      <p>Search full-width, grade pills pe rând, gen+vârstă ca dropdowns compacte pe același rând. Fiecare sportiv = rând compact cu avatar+info+checkbox.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:16px;font-family:monospace;font-size:11px;color:#94a3b8;border-radius:8px">
+      <div style="display:flex;gap:4px;margin-bottom:6px">
+        <div style="flex:1;background:#1e293b;border-radius:6px;padding:6px;font-size:10px;color:#fff">🔍 Caută...</div>
+        <div style="background:#4338ca;border-radius:6px;padding:6px 10px;font-size:10px;color:#fff">⚙ Filtre (2)</div>
+      </div>
+      <div style="background:#1e293b;border-radius:6px;padding:8px;margin-bottom:6px">
+        <div style="color:#a5b4fc;font-size:10px;margin-bottom:4px">FILTRE ACTIVE:</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <span style="background:#312e81;color:#a5b4fc;border-radius:99px;padding:2px 8px;font-size:9px">Grad: Verde ✕</span>
+          <span style="background:#312e81;color:#a5b4fc;border-radius:99px;padding:2px 8px;font-size:9px">Gen: M ✕</span>
+        </div>
+      </div>
+      <div style="background:#1e293b;border-radius:6px;padding:8px;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;background:#4338ca;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0">PI</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-size:11px;font-weight:600">Popescu Ion</div>
+          <div style="color:#64748b;font-size:9px">Verde · 12 ani · M</div>
+        </div>
+        <div style="width:18px;height:18px;background:#374151;border-radius:4px"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Filter drawer (buton)</h3>
+      <p>Search + buton "Filtre (N active)" compact. Filtrele se deschid într-un panel colapsibil cu toate opțiunile. Filtrele active apar ca pills cu X. Economisește spațiu vertical pe mobil.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:16px;font-family:monospace;font-size:11px;color:#94a3b8;border-radius:8px">
+      <div style="background:#1e293b;border-radius:6px;padding:8px;margin-bottom:6px;color:#fff;font-size:12px">🔍 Caută după nume...</div>
+      <div style="display:flex;overflow-x:auto;gap:4px;margin-bottom:6px;padding-bottom:2px">
+        <span style="background:#1e293b;color:#64748b;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">Toate gradele</span>
+        <span style="background:#312e81;color:#a5b4fc;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">Verde ✓</span>
+        <span style="background:#1e293b;color:#64748b;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">Galben</span>
+        <span style="background:#1e293b;color:#64748b;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">Maro</span>
+      </div>
+      <div style="display:flex;overflow-x:auto;gap:4px;margin-bottom:6px">
+        <span style="background:#1e293b;color:#64748b;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">Toate gen.</span>
+        <span style="background:#0c4a6e;color:#7dd3fc;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">Masculin ✓</span>
+        <span style="background:#1e293b;color:#64748b;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">Feminin</span>
+      </div>
+      <div style="display:flex;overflow-x:auto;gap:4px;margin-bottom:6px">
+        <span style="background:#1e293b;color:#64748b;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">Toate vârstele</span>
+        <span style="background:#1e293b;color:#64748b;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">U10</span>
+        <span style="background:#1e293b;color:#64748b;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">U12</span>
+        <span style="background:#1e293b;color:#64748b;border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap">U14</span>
+      </div>
+      <div style="background:#1e293b;border-radius:6px;padding:8px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;background:#4338ca;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0">PI</div>
+        <div style="flex:1"><div style="color:#fff;font-size:11px;font-weight:600">Popescu Ion</div></div>
+        <div style="width:18px;height:18px;background:#374151;border-radius:4px"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Scrollable pills rows</h3>
+      <p>3 rânduri de pills scrollabile orizontal: grad / gen / vârstă. Fiecare rând scroll-ează independent. Simplu vizual, dar ocupă mai mult spațiu vertical decât B.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px">Click pe un card pentru a-l selecta, apoi răspunde în terminal.</p>

@@ -1,0 +1,44 @@
+<h2>Ce înseamnă „butoane vizibile în toată aplicația"?</h2>
+<p class="subtitle">Ajută-mă să înțeleg problema înainte de a proiecta soluția</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Problema de contrast / vizibilitate</h3>
+      <p>Butoanele se pierd pe fundal întunecat — nu se văd clar că sunt clickabile. Vrei contrast mai mare, mai „pop".</p>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button style="background:#3730a3;color:white;padding:8px 16px;border-radius:8px;border:none;font-size:13px">Adaugă sportiv</button>
+        <button style="background:#1e293b;color:#94a3b8;padding:8px 16px;border-radius:8px;border:1px solid #334155;font-size:13px">Anulează</button>
+        <span style="color:#ef4444;font-size:12px;margin-top:4px">← greu de distins pe dark bg</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Butoane care urmează culoarea temei</h3>
+      <p>Butoanele arată consistent, dar vrei ca culoarea lor „primary" să se schimbe cu tema aleasă — ca în Office.</p>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button style="background:#0078d4;color:white;padding:8px 16px;border-radius:8px;border:none;font-size:13px">Adaugă sportiv</button>
+        <button style="background:#217346;color:white;padding:8px 16px;border-radius:8px;border:none;font-size:13px">Adaugă sportiv</button>
+        <button style="background:#c43e1c;color:white;padding:8px 16px;border-radius:8px;border:none;font-size:13px">Adaugă sportiv</button>
+        <span style="color:#94a3b8;font-size:12px">← aceeași componentă, culori diferite per temă</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Ambele: contrast mai bun + sistem de teme</h3>
+      <p>Butoanele actuale sunt prea slabe vizual, ȘI vrei un sistem de teme ca în Office unde poți schimba culorile per club/per utilizator.</p>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button style="background:#0ea5e9;color:white;padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;box-shadow:0 0 12px rgba(14,165,233,0.4)">Adaugă sportiv</button>
+        <button style="background:#1e293b;color:#e2e8f0;padding:8px 16px;border-radius:8px;border:1px solid #0ea5e9;font-size:13px">Anulează</button>
+        <span style="color:#94a3b8;font-size:12px">← contrast clar + follow theme</span>
+      </div>
+    </div>
+  </div>
+</div>

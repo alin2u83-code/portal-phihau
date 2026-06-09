@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Vizual — Sistem Teme</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  min-height: 100vh;
+  padding: 32px 24px 64px;
+}
+
+h1 { font-size: 22px; font-weight: 800; color: #f1f5f9; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #64748b; margin-bottom: 40px; }
+
+/* ── LAYOUT ── */
+.diagram { display: flex; flex-direction: column; gap: 0; max-width: 960px; margin: 0 auto; }
+
+/* ── LAYER ── */
+.layer {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  position: relative;
+}
+
+.layer-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #475569;
+  padding: 8px 0;
+  flex-shrink: 0;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.layer-content {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* Layer colors */
+.layer-user .layer-content { background: #1e1b4b; border: 1px solid #3730a3; }
+.layer-user .layer-label { color: #818cf8; }
+.layer-state .layer-content { background: #0c2340; border: 1px solid #1d4ed8; }
+.layer-state .layer-label { color: #60a5fa; }
+.layer-css .layer-content { background: #0c2e1e; border: 1px solid #15803d; }
+.layer-css .layer-label { color: #4ade80; }
+.layer-ui .layer-content { background: #1c1408; border: 1px solid #a16207; }
+.layer-ui .layer-label { color: #fbbf24; }
+
+/* ── ARROW ── */
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+  gap: 8px;
+  position: relative;
+}
+
+.arrow-line {
+  flex: 1;
+  height: 2px;
+  max-width: 200px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow-down {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 6px 0;
+  margin-left: 28px;
+}
+
+.arrow-down .arrow-stick {
+  width: 2px;
+  height: 20px;
+  background: #334155;
+}
+
+.arrow-down .arrow-head {
+  width: 0; height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 10px solid #334155;
+}
+
+.arrow-down .arrow-label {
+  font-size: 10px;
+  color: #475569;
+  margin-top: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── BOX ── */
+.box {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.box-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.box-value {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+
+.box-value .kw { color: #7dd3fc; }
+.box-value .val { color: #86efac; }
+.box-value .str { color: #fde68a; }
+.box-value .cm { color: #475569; }
+.box-value .fn { color: #c084fc; }
+
+/* ── HIGHLIGHT BOX ── */
+.hbox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  font-size: 12px;
+}
+
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── FLOW SECTION ── */
+.flow-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 40px 0 16px;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flow-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #1e293b;
+}
+
+/* ── HORIZONTAL FLOW ── */
+.hflow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  max-width: 960px;
+  margin: 0 auto 0;
+  overflow-x: auto;
+  padding: 8px 0 16px;
+}
+
+.hflow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.hflow-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.hflow-box {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+  width: 110px;
+}
+
+.hflow-box-title { font-size: 12px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+.hflow-box-sub { font-size: 10px; color: #64748b; line-height: 1.4; }
+
+.hflow-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+.harrow-line {
+  width: 40px;
+  height: 2px;
+  background: #334155;
+  position: relative;
+}
+
+.harrow-line::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -4px;
+  width: 0; height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid #334155;
+}
+
+.harrow-label { font-size: 9px; color: #475569; margin-top: 5px; white-space: nowrap; }
+
+/* ── TOKEN MAP ── */
+.token-map {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.token-group {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.token-group-header {
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.token-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 11px;
+}
+
+.token-row:last-child { border-bottom: none; }
+
+.token-swatch {
+  width: 16px; height: 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+.token-name { color: #7dd3fc; font-family: monospace; flex: 1; }
+.token-affects { color: #64748b; font-size: 10px; }
+
+/* ── BEFORE/AFTER ── */
+.ba-grid {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.ba-card {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.ba-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ba-before .ba-header { background: #2d1515; color: #f87171; }
+.ba-after .ba-header { background: #0f2d1a; color: #4ade80; }
+
+.ba-code {
+  background: #0f172a;
+  padding: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #e2e8f0;
+}
+
+.ba-arrow-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 40px;
+}
+
+.ba-arrow-icon { font-size: 24px; color: #475569; }
+
+/* ── STORAGE ── */
+.storage-grid {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.storage-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.storage-icon { font-size: 24px; margin-bottom: 8px; }
+.storage-title { font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+.storage-desc { font-size: 11px; color: #64748b; line-height: 1.5; }
+.storage-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* ── HIGHLIGHT CALLOUT ── */
+.callout {
+  max-width: 960px;
+  margin: 0 auto 24px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border-left: 3px solid;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.callout-warn { background: #1c1007; border-color: #d97706; }
+.callout-info { background: #071526; border-color: #2563eb; }
+.callout-ok { background: #071a0e; border-color: #16a34a; }
+
+.callout-icon { font-size: 18px; flex-shrink: 0; }
+.callout-text { font-size: 12px; line-height: 1.6; color: #cbd5e1; }
+.callout-text strong { color: #f1f5f9; }
+
+@media (max-width: 600px) {
+  .storage-grid { grid-template-columns: 1fr; }
+  .ba-grid { grid-template-columns: 1fr; }
+  .ba-arrow-wrap { display: none; }
+  .hflow { gap: 0; }
+}
+</style>
+</head>
+<body>
+
+<div style="max-width:960px; margin:0 auto 40px">
+  <h1>Cum funcționează sistemul de teme</h1>
+  <p class="subtitle">Model vizual — de la click utilizator până la pixel pe ecran</p>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- FLOW PRINCIPAL -->
+<!-- ══════════════════════════════════════════ -->
+
+<div class="flow-title">① Fluxul principal — de la acțiune la rezultat</div>
+
+<div class="hflow">
+
+  <div class="hflow-step">
+    <div class="hflow-icon">👤</div>
+    <div class="hflow-box" style="border-color:#6366f1">
+      <div class="hflow-box-title">Utilizator</div>
+      <div class="hflow-box-sub">Alege preset<br>"Ocean" sau<br>schimbă o culoare</div>
+    </div>
+  </div>
+
+  <div class="hflow-arrow">
+    <div class="harrow-line"></div>
+    <div class="harrow-label">click</div>
+  </div>
+
+  <div class="hflow-step">
+    <div class="hflow-icon">⚙️</div>
+    <div class="hflow-box" style="border-color:#3b82f6">
+      <div class="hflow-box-title">themeStore</div>
+      <div class="hflow-box-sub">Zustand store<br>stochează<br>obiectul temei</div>
+    </div>
+  </div>
+
+  <div class="hflow-arrow">
+    <div class="harrow-line"></div>
+    <div class="harrow-label">applyTheme()</div>
+  </div>
+
+  <div class="hflow-step">
+    <div class="hflow-icon">🎨</div>
+    <div class="hflow-box" style="border-color:#22c55e">
+      <div class="hflow-box-title">CSS Vars</div>
+      <div class="hflow-box-sub">document.root<br>.style.setProperty<br>pe fiecare token</div>
+    </div>
+  </div>
+
+  <div class="hflow-arrow">
+    <div class="harrow-line"></div>
+    <div class="harrow-label">cascade</div>
+  </div>
+
+  <div class="hflow-step">
+    <div class="hflow-icon">🖥️</div>
+    <div class="hflow-box" style="border-color:#f59e0b">
+      <div class="hflow-box-title">Browser</div>
+      <div class="hflow-box-sub">Recalculează<br>toate elementele<br>care folosesc var()</div>
+    </div>
+  </div>
+
+  <div class="hflow-arrow">
+    <div class="harrow-line"></div>
+    <div class="harrow-label">instant</div>
+  </div>
+
+  <div class="hflow-step">
+    <div class="hflow-icon">✅</div>
+    <div class="hflow-box" style="border-color:#10b981">
+      <div class="hflow-box-title">UI Actualizat</div>
+      <div class="hflow-box-sub">Sidebar, header,<br>tabele, butoane<br>— toate odată</div>
+    </div>
+  </div>
+
+  <div class="hflow-arrow">
+    <div class="harrow-line"></div>
+    <div class="harrow-label">persist</div>
+  </div>
+
+  <div class="hflow-step">
+    <div class="hflow-icon">💾</div>
+    <div class="hflow-box" style="border-color:#8b5cf6">
+      <div class="hflow-box-title">localStorage</div>
+      <div class="hflow-box-sub">Salvează tema<br>— supraviețuiește<br>refresh</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="callout callout-ok" style="margin-top:8px">
+  <div class="callout-icon">⚡</div>
+  <div class="callout-text">
+    <strong>Zero re-rendere React.</strong> CSS custom properties se propagă prin cascade nativ browser — React nu știe că s-a schimbat ceva. Niciun useState, niciun useEffect pe componente. O singură funcție <code>applyTheme()</code> schimbă toată aplicația.
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════ -->
+<!-- TOKEN MAP -->
+<!-- ══════════════════════════════════════════ -->
+
+<div class="flow-title">② Tokenuri CSS — ce controlează fiecare</div>
+
+<div class="token-map">
+
+  <div class="token-group">
+    <div class="token-group-header" style="color: #818cf8; background: rgba(99,102,241,0.1)">🧭 Sidebar & Nav</div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#1e3a5f"></div>
+      <span class="token-name">--sb-bg</span>
+      <span class="token-affects">fundal</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#cbd5e1"></div>
+      <span class="token-name">--sb-text</span>
+      <span class="token-affects">text nav</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#3b82f6"></div>
+      <span class="token-name">--sb-active</span>
+      <span class="token-affects">item activ</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#ffffff"></div>
+      <span class="token-name">--sb-act-text</span>
+      <span class="token-affects">text activ</span>
+    </div>
+  </div>
+
+  <div class="token-group">
+    <div class="token-group-header" style="color: #60a5fa; background: rgba(59,130,246,0.1)">📄 Fundal & Suprafețe</div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#f4f6fa"></div>
+      <span class="token-name">--bg</span>
+      <span class="token-affects">pagina</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#ffffff"></div>
+      <span class="token-name">--bg-card</span>
+      <span class="token-affects">carduri</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#ffffff"></div>
+      <span class="token-name">--bg-header</span>
+      <span class="token-affects">bara sus</span>
+    </div>
+  </div>
+
+  <div class="token-group">
+    <div class="token-group-header" style="color: #4ade80; background: rgba(34,197,94,0.1)">🎯 Accent & Butoane</div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#2563eb"></div>
+      <span class="token-name">--accent</span>
+      <span class="token-affects">btn primary</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#1d4ed8"></div>
+      <span class="token-name">--accent-hover</span>
+      <span class="token-affects">hover</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#ffffff"></div>
+      <span class="token-name">--accent-text</span>
+      <span class="token-affects">text pe btn</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#dbeafe"></div>
+      <span class="token-name">--accent-subtle</span>
+      <span class="token-affects">badge, hover</span>
+    </div>
+  </div>
+
+  <div class="token-group">
+    <div class="token-group-header" style="color: #fbbf24; background: rgba(245,158,11,0.1)">✏️ Tipografie</div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#1e293b"></div>
+      <span class="token-name">--text</span>
+      <span class="token-affects">titluri, corp</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#64748b"></div>
+      <span class="token-name">--text-muted</span>
+      <span class="token-affects">subtitluri</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#e2e8f0"></div>
+      <span class="token-name">--border</span>
+      <span class="token-affects">separatoare</span>
+    </div>
+  </div>
+
+  <div class="token-group">
+    <div class="token-group-header" style="color: #f472b6; background: rgba(244,114,182,0.1)">📊 Tabele</div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#f1f5f9"></div>
+      <span class="token-name">--tbl-header</span>
+      <span class="token-affects">cap tabel</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#f8fafc"></div>
+      <span class="token-name">--tbl-stripe</span>
+      <span class="token-affects">rând par</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#eff6ff"></div>
+      <span class="token-name">--tbl-hover</span>
+      <span class="token-affects">hover rând</span>
+    </div>
+  </div>
+
+  <div class="token-group">
+    <div class="token-group-header" style="color: #a3e635; background: rgba(163,230,53,0.1)">📐 Geometrie</div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#334155; border-radius:4px"></div>
+      <span class="token-name">--radius</span>
+      <span class="token-affects">colțuri</span>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:#334155"></div>
+      <span class="token-name">--sidebar-w</span>
+      <span class="token-affects">lățime nav</span>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════ -->
+<!-- BEFORE / AFTER -->
+<!-- ══════════════════════════════════════════ -->
+
+<div class="flow-title" style="margin-top:48px">③ Înainte vs După — cum se schimbă codul</div>
+
+<div class="callout callout-warn">
+  <div class="callout-icon">⚠️</div>
+  <div class="callout-text">
+    <strong>Problema actuală:</strong> Culorile sunt hardcodate Tailwind (bg-slate-800, text-blue-600) în fiecare componentă. Schimbi tema = schimbi 100+ fișiere. Imposibil de întreținut.
+  </div>
+</div>
+
+<div class="ba-grid">
+  <div class="ba-card ba-before">
+    <div class="ba-header">❌ Înainte — culori hardcodate</div>
+    <div class="ba-code">
+<span style="color:#64748b">/* Sidebar.tsx */</span>
+&lt;div className=<span style="color:#fde68a">"bg-slate-800 text-slate-300"</span>&gt;
+  &lt;nav className=<span style="color:#fde68a">"bg-blue-600 text-white"</span>&gt;
+    <span style="color:#64748b">/* item activ */</span>
+  &lt;/nav&gt;
+&lt;/div&gt;
+
+<span style="color:#64748b">/* Table.tsx */</span>
+&lt;thead className=<span style="color:#fde68a">"bg-slate-100 text-slate-600"</span>&gt;
+&lt;tr className=<span style="color:#fde68a">"even:bg-slate-50 hover:bg-blue-50"</span>&gt;
+
+<span style="color:#64748b">/* Button.tsx */</span>
+&lt;button className=<span style="color:#fde68a">"bg-blue-600 hover:bg-blue-700"</span>&gt;
+
+<span style="color:#f87171">→ Tema nouă = modific 80+ fișiere</span>
+<span style="color:#f87171">→ Imposibil consistent</span>
+    </div>
+  </div>
+
+  <div class="ba-arrow-wrap">
+    <div class="ba-arrow-icon">→</div>
+  </div>
+
+  <div class="ba-card ba-after">
+    <div class="ba-header">✅ După — tokenuri CSS</div>
+    <div class="ba-code">
+<span style="color:#64748b">/* Sidebar.tsx */</span>
+&lt;div style=<span style="color:#fde68a">{{background:'var(--sb-bg)',</span>
+          <span style="color:#fde68a"> color:'var(--sb-text)'}}</span>&gt;
+  &lt;nav style=<span style="color:#fde68a">{{background:'var(--sb-active)'}}</span>&gt;
+  &lt;/nav&gt;
+&lt;/div&gt;
+
+<span style="color:#64748b">/* Table.tsx */</span>
+&lt;thead style=<span style="color:#fde68a">{{background:'var(--tbl-header)'}}</span>&gt;
+<span style="color:#64748b">/* CSS: tr:nth-child(even){background:var(--tbl-stripe)} */</span>
+
+<span style="color:#64748b">/* Button.tsx */</span>
+&lt;button style=<span style="color:#fde68a">{{background:'var(--accent)'}}</span>&gt;
+
+<span style="color:#4ade80">→ Tema nouă = 1 funcție applyTheme()</span>
+<span style="color:#4ade80">→ Tot se schimbă instant</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════ -->
+<!-- STOCARE -->
+<!-- ══════════════════════════════════════════ -->
+
+<div class="flow-title" style="margin-top:48px">④ Unde se stochează tema</div>
+
+<div class="storage-grid">
+
+  <div class="storage-card">
+    <div class="storage-icon">⚡</div>
+    <div class="storage-title">CSS Custom Properties</div>
+    <div class="storage-desc">
+      Stare live pe <code>document.documentElement</code>. Se aplică instant. Se pierde la refresh dacă nu e salvată. Sursa de adevăr pentru browser.
+    </div>
+    <span class="storage-badge" style="background:#1e3a5f; color:#7dd3fc">Runtime</span>
+  </div>
+
+  <div class="storage-card">
+    <div class="storage-icon">📦</div>
+    <div class="storage-title">localStorage</div>
+    <div class="storage-desc">
+      JSON cu toate tokenurile. Se citește la startup și se aplică înainte de primul render. Supraviețuiește refresh și restart browser.
+    </div>
+    <span class="storage-badge" style="background:#14532d; color:#4ade80">Persistent client</span>
+  </div>
+
+  <div class="storage-card">
+    <div class="storage-icon">☁️</div>
+    <div class="storage-title">Supabase (opțional)</div>
+    <div class="storage-desc">
+      Coloana <code>tema_preferata</code> pe tabelul <code>utilizatori</code>. Sincronizează tema pe toate dispozitivele utilizatorului. Necesită migrație DB.
+    </div>
+    <span class="storage-badge" style="background:#2d1a4c; color:#c084fc">Persistent cloud</span>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════ -->
+<!-- STARTUP SEQUENCE -->
+<!-- ══════════════════════════════════════════ -->
+
+<div class="flow-title" style="margin-top:48px">⑤ Secvența la pornire — tema se aplică fără flash</div>
+
+<div class="hflow">
+
+  <div class="hflow-step">
+    <div class="hflow-icon">🌐</div>
+    <div class="hflow-box" style="border-color:#334155">
+      <div class="hflow-box-title">index.html</div>
+      <div class="hflow-box-sub">Script inline<br>citește localStorage<br><em>înainte de React</em></div>
+    </div>
+  </div>
+
+  <div class="hflow-arrow">
+    <div class="harrow-line"></div>
+    <div class="harrow-label">sync</div>
+  </div>
+
+  <div class="hflow-step">
+    <div class="hflow-icon">🎨</div>
+    <div class="hflow-box" style="border-color:#22c55e">
+      <div class="hflow-box-title">CSS Vars</div>
+      <div class="hflow-box-sub">Setate pe :root<br>înainte de<br>primul paint</div>
+    </div>
+  </div>
+
+  <div class="hflow-arrow">
+    <div class="harrow-line"></div>
+    <div class="harrow-label">mount</div>
+  </div>
+
+  <div class="hflow-step">
+    <div class="hflow-icon">⚛️</div>
+    <div class="hflow-box" style="border-color:#60a5fa">
+      <div class="hflow-box-title">React Mount</div>
+      <div class="hflow-box-sub">App se randează<br>deja cu culorile<br>corecte</div>
+    </div>
+  </div>
+
+  <div class="hflow-arrow">
+    <div class="harrow-line"></div>
+    <div class="harrow-label">sync store</div>
+  </div>
+
+  <div class="hflow-step">
+    <div class="hflow-icon">⚙️</div>
+    <div class="hflow-box" style="border-color:#8b5cf6">
+      <div class="hflow-box-title">themeStore</div>
+      <div class="hflow-box-sub">Zustand citește<br>localStorage și<br>sincronizează</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="callout callout-warn">
+  <div class="callout-icon">⚠️</div>
+  <div class="callout-text">
+    <strong>FOUC (Flash of Unstyled Content)</strong> — dacă nu setezi CSS vars înainte de React mount, utilizatorul vede 1 frame cu tema default înainte de tema lui. Rezolvare: <code>&lt;script&gt;</code> inline în <code>&lt;head&gt;</code> din index.html (nu în React).
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════ -->
+<!-- LEGATURA CU IMPECCABLE -->
+<!-- ══════════════════════════════════════════ -->
+
+<div class="flow-title" style="margin-top:48px">⑥ Ce rezolvă automat din audit Impeccable</div>
+
+<div style="max-width:960px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:12px">
+
+  <div style="background:rgba(220,38,38,0.08); border:1px solid rgba(220,38,38,0.3); border-radius:10px; padding:14px">
+    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#f87171; margin-bottom:10px">❌ Probleme actuale (Impeccable)</div>
+    <div class="hbox">
+      <div class="hbox-item">
+        <div class="dot" style="background:#ef4444"></div>
+        <div style="font-size:11px; color:#fca5a5">48× gray-on-color — WCAG AAA fail</div>
+      </div>
+      <div class="hbox-item">
+        <div class="dot" style="background:#ef4444"></div>
+        <div style="font-size:11px; color:#fca5a5">border-l-4 hardcodat în 30 fișiere</div>
+      </div>
+      <div class="hbox-item">
+        <div class="dot" style="background:#f97316"></div>
+        <div style="font-size:11px; color:#fed7aa">Nicio scalabilitate — culori ad-hoc</div>
+      </div>
+      <div class="hbox-item">
+        <div class="dot" style="background:#f97316"></div>
+        <div style="font-size:11px; color:#fed7aa">Dark mode imposibil fără refactor</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:rgba(22,163,74,0.08); border:1px solid rgba(22,163,74,0.3); border-radius:10px; padding:14px">
+    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#4ade80; margin-bottom:10px">✅ Ce rezolvă token system</div>
+    <div class="hbox">
+      <div class="hbox-item">
+        <div class="dot" style="background:#22c55e"></div>
+        <div style="font-size:11px; color:#bbf7d0">Preset-urile au contrast calculat — zero gray-on-color</div>
+      </div>
+      <div class="hbox-item">
+        <div class="dot" style="background:#22c55e"></div>
+        <div style="font-size:11px; color:#bbf7d0">border-l-4 → var(--accent) + 1 loc</div>
+      </div>
+      <div class="hbox-item">
+        <div class="dot" style="background:#22c55e"></div>
+        <div style="font-size:11px; color:#bbf7d0">Dark mode = un preset nou, zero refactor</div>
+      </div>
+      <div class="hbox-item">
+        <div class="dot" style="background:#22c55e"></div>
+        <div style="font-size:11px; color:#bbf7d0">Fiecare temă nouă = ~20 linii JSON</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="callout callout-info" style="margin-top:24px">
+  <div class="callout-icon">💡</div>
+  <div class="callout-text">
+    <strong>Pașii de implementare:</strong><br>
+    1. Definești tokenurile în <code>themeTokens.ts</code> (obiect cu cheile CSS var)<br>
+    2. Funcție <code>applyTheme(tokens)</code> → setează pe document.root<br>
+    3. Zustand store <code>useThemeStore</code> → apelează applyTheme la schimbare<br>
+    4. Script inline în index.html → citește localStorage și aplică tema la startup<br>
+    5. Înlocuiești Tailwind hardcodat cu <code>style={{background:'var(--sb-bg)'}}</code> progresiv — nu totul odată
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview Breadcrumb Nav</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
+
+  .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #64748b; padding: 16px 20px 6px; }
+
+  /* ─── LAYOUT SHELL ───────────────────────────── */
+  .shell { display: flex; height: 340px; margin: 0 20px 24px; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; }
+  .sidebar { width: 64px; background: #0f172a; border-right: 1px solid #1e293b; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 8px; }
+  .sidebar-icon { width: 36px; height: 36px; border-radius: 8px; background: #1e293b; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
+  .sidebar-icon.active { background: #3b82f6; }
+  .content { flex: 1; display: flex; flex-direction: column; }
+
+  /* ─── HEADER ─────────────────────────────────── */
+  .header {
+    height: 56px; background: rgba(15,23,42,.97); border-bottom: 1px solid #1e293b;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; gap: 8px; flex-shrink: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  /* back btn */
+  .back-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: #1e293b; border: 1px solid #334155;
+    color: #cbd5e1; border-radius: 8px; padding: 5px 10px;
+    font-size: 12px; font-weight: 500; cursor: pointer; flex-shrink: 0;
+    transition: background .15s;
+  }
+  .back-btn:hover { background: #334155; }
+  .back-btn svg { width: 14px; height: 14px; }
+
+  /* breadcrumb */
+  .breadcrumb { display: flex; align-items: center; gap: 4px; min-width: 0; }
+  .crumb {
+    font-size: 12px; color: #64748b; cursor: pointer; white-space: nowrap;
+    padding: 2px 4px; border-radius: 4px; transition: color .15s;
+  }
+  .crumb:hover { color: #94a3b8; }
+  .crumb.current { color: #f1f5f9; font-weight: 600; cursor: default; }
+  .crumb.current:hover { color: #f1f5f9; }
+  .sep { color: #334155; font-size: 11px; flex-shrink: 0; }
+
+  /* avatar placeholder */
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: #3b82f6; display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700; flex-shrink:0; }
+  .bell { width: 28px; height: 28px; border-radius: 8px; background: #1e293b; display:flex;align-items:center;justify-content:center;font-size:14px; }
+
+  /* page body */
+  .page-body { flex: 1; padding: 20px; }
+  .page-card { background: #1e293b; border-radius: 10px; padding: 16px; height: 100%; opacity: .5; }
+
+  /* ─── SCENARIO TABS ──────────────────────────── */
+  .tabs { display: flex; gap: 6px; padding: 0 20px 10px; }
+  .tab { font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 20px; cursor: pointer; border: 1px solid #1e293b; color: #64748b; background: transparent; transition: all .15s; }
+  .tab.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+
+  /* ─── ANNOTATIONS ────────────────────────────── */
+  .anno { display: flex; align-items: flex-start; gap: 8px; margin: 0 20px 10px; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 10px 14px; }
+  .anno-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .anno-text { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+  .anno-text strong { color: #e2e8f0; }
+
+  /* ─── DIVIDER ────────────────────────────────── */
+  .divider { height: 1px; background: #1e293b; margin: 20px; }
+
+  /* ─── OLD vs NEW ─────────────────────────────── */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 20px 20px; }
+  .compare-box { border: 1px solid #1e293b; border-radius: 10px; overflow: hidden; }
+  .compare-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; padding: 7px 12px; border-bottom: 1px solid #1e293b; }
+  .compare-label.old { background: #1e1a1a; color: #ef4444; }
+  .compare-label.new { background: #0f1a12; color: #22c55e; }
+  .compare-header { height: 44px; display: flex; align-items: center; padding: 0 12px; gap: 8px; background: rgba(15,23,42,.97); border-bottom: 1px solid #1e293b; }
+
+  .badge-old { background: #7f1d1d; color: #fca5a5; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+  .badge-new { background: #14532d; color: #86efac; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECȚIUNEA 1: ÎNAINTE vs DUPĂ
+════════════════════════════════════════════════════════════ -->
+<div style="padding-top:20px">
+  <div class="label">Înainte vs După — Header</div>
+  <div class="compare">
+    <!-- ÎNAINTE -->
+    <div class="compare-box">
+      <div class="compare-label old">❌ Acum — buton duce mereu la Dashboard</div>
+      <div class="compare-header">
+        <div class="back-btn" style="opacity:.7">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          <span>Înapoi</span>
+        </div>
+        <span style="font-size:13px;font-weight:600;color:#f1f5f9">Profil Sportiv</span>
+        <span class="badge-old">→ Dashboard mereu</span>
+      </div>
+    </div>
+
+    <!-- DUPĂ -->
+    <div class="compare-box">
+      <div class="compare-label new">✅ Nou — breadcrumb real + goBack()</div>
+      <div class="compare-header">
+        <div class="back-btn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </div>
+        <div class="breadcrumb">
+          <span class="crumb">Sportivi</span>
+          <span class="sep">›</span>
+          <span class="crumb current">Profil Sportiv</span>
+        </div>
+        <span class="badge-new">→ Sportivi (real)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECȚIUNEA 2: SCENARII INTERACTIVE
+════════════════════════════════════════════════════════════ -->
+
+<div class="label">Scenarii — click pe tab să vezi</div>
+<div class="tabs">
+  <button class="tab active" onclick="setScenario(0)">Root: Dashboard</button>
+  <button class="tab" onclick="setScenario(1)">1 nivel: Sportivi</button>
+  <button class="tab" onclick="setScenario(2)">2 nivele: Profil Sportiv</button>
+  <button class="tab" onclick="setScenario(3)">3 nivele: Plăți Sportiv</button>
+</div>
+
+<div class="shell">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-icon">🏠</div>
+    <div class="sidebar-icon active">👥</div>
+    <div class="sidebar-icon">📋</div>
+    <div class="sidebar-icon">🏆</div>
+    <div class="sidebar-icon">💰</div>
+    <div class="sidebar-icon">📅</div>
+  </div>
+
+  <!-- Main -->
+  <div class="content">
+    <div class="header">
+      <div class="header-left" id="header-left">
+        <!-- filled by JS -->
+      </div>
+      <div class="header-right">
+        <div class="bell">🔔</div>
+        <div class="avatar">AL</div>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="page-card" id="page-content"><!-- filled by JS --></div>
+    </div>
+  </div>
+</div>
+
+<!-- annotation -->
+<div class="anno" id="anno">
+  <div class="anno-dot" style="background:#3b82f6"></div>
+  <div class="anno-text" id="anno-text"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECȚIUNEA 3: COMPORTAMENT BREADCRUMB
+════════════════════════════════════════════════════════════ -->
+<div class="divider"></div>
+<div class="label">Comportament breadcrumb</div>
+
+<div class="anno">
+  <div class="anno-dot" style="background:#22c55e"></div>
+  <div class="anno-text">
+    <strong>← (buton):</strong> apelează <code style="color:#a78bfa">goBack()</code> din NavigationContext — merge la intrarea anterioară reală din history stack
+  </div>
+</div>
+<div class="anno">
+  <div class="anno-dot" style="background:#f59e0b"></div>
+  <div class="anno-text">
+    <strong>Nod din breadcrumb (ex: "Sportivi"):</strong> apelează <code style="color:#a78bfa">jumpToHistory(index)</code> — sare direct la acel punct, curăță history-ul de deasupra
+  </div>
+</div>
+<div class="anno">
+  <div class="anno-dot" style="background:#64748b"></div>
+  <div class="anno-text">
+    <strong>Root view (Dashboard, My Portal):</strong> buton ← ascuns, breadcrumb = doar titlul paginii + badge "Online"
+  </div>
+</div>
+<div class="anno">
+  <div class="anno-dot" style="background:#ef4444"></div>
+  <div class="anno-text">
+    <strong>Sidebar click:</strong> apelează <code style="color:#a78bfa">navigateRoot()</code> — golește history complet, breadcrumb resetat
+  </div>
+</div>
+<div class="anno">
+  <div class="anno-dot" style="background:#8b5cf6"></div>
+  <div class="anno-text">
+    <strong>Truncare la 3+ nivele:</strong> <code style="color:#94a3b8">Sportivi › ... › Profil › Plăți</code> — ellipsis în mijloc
+  </div>
+</div>
+
+<div style="height:24px"></div>
+
+<script>
+const scenarios = [
+  {
+    crumbs: [],
+    current: 'Dashboard',
+    annoColor: '#64748b',
+    anno: '<strong>Root view</strong> — buton ← nu apare, niciun breadcrumb, doar titlul + badge "Online"',
+    pageHtml: '<div style="color:#475569;font-size:13px;font-weight:600">📊 Dashboard</div>'
+  },
+  {
+    crumbs: [],
+    current: 'Sportivi',
+    annoColor: '#64748b',
+    anno: '<strong>1 nivel adânc</strong> via click sidebar → <code style="color:#a78bfa">navigateRoot()</code> — fără history, fără ←',
+    pageHtml: '<div style="color:#475569;font-size:13px;font-weight:600">👥 Lista Sportivi</div>'
+  },
+  {
+    crumbs: ['Sportivi'],
+    current: 'Profil Sportiv',
+    annoColor: '#3b82f6',
+    anno: '<strong>2 nivele</strong> — din lista Sportivi am navigat la un profil. ← duce înapoi la Sportivi.',
+    pageHtml: '<div style="color:#475569;font-size:13px;font-weight:600">👤 Profil: Ion Popescu</div>'
+  },
+  {
+    crumbs: ['Sportivi', 'Profil Sportiv'],
+    current: 'Plăți Sportiv',
+    annoColor: '#8b5cf6',
+    anno: '<strong>3 nivele</strong> — history: Sportivi → Profil → Plăți. ← duce la Profil. Click "Sportivi" în breadcrumb sare 2 pași înapoi.',
+    pageHtml: '<div style="color:#475569;font-size:13px;font-weight:600">💰 Plăți: Ion Popescu</div>'
+  }
+];
+
+function setScenario(idx) {
+  // tabs
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+
+  const s = scenarios[idx];
+  const isRoot = s.crumbs.length === 0 && ['Dashboard', 'My Portal'].includes(s.current);
+  const canGoBack = s.crumbs.length > 0;
+
+  // build header-left
+  let html = '';
+
+  // hamburger (mobile sim)
+  html += `<button class="back-btn" style="background:#1e293b;border:none;width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;opacity:.5;cursor:default" disabled>
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>`;
+
+  if (canGoBack) {
+    html += `<div class="back-btn" title="← ${s.crumbs[s.crumbs.length-1]}">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </div>`;
+  }
+
+  html += `<div class="breadcrumb">`;
+  s.crumbs.forEach((c, i) => {
+    if (i > 0) html += `<span class="sep">›</span>`;
+    html += `<span class="crumb" title="Click → sare la ${c}">${c}</span>`;
+  });
+  if (s.crumbs.length > 0) html += `<span class="sep">›</span>`;
+  html += `<span class="crumb current">${s.current}</span>`;
+  if (isRoot) {
+    html += `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#34d399;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);padding:2px 8px;border-radius:20px;margin-left:6px">
+      <span style="width:6px;height:6px;border-radius:50%;background:#34d399;animation:pulse 2s infinite"></span>Online
+    </span>`;
+  }
+  html += `</div>`;
+
+  document.getElementById('header-left').innerHTML = html;
+  document.getElementById('page-content').innerHTML = s.pageHtml;
+
+  // annotation
+  document.querySelector('#anno .anno-dot').style.background = s.annoColor;
+  document.getElementById('anno-text').innerHTML = s.anno;
+}
+
+setScenario(0);
+</script>
+
+<style>
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+code { background: rgba(167,139,250,.1); padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 11px; }
+</style>
+</body>
+</html>

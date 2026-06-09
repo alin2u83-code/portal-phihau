@@ -1,0 +1,204 @@
+<h2>Design secțiunea 2: ThemeEditor UI</h2>
+<p class="subtitle">Mockup complet al panoului de teme — 8 teme predefinite + editor culori custom</p>
+
+<div class="mockup">
+  <div class="mockup-header">ThemeEditor — modal/panou din Settings</div>
+  <div class="mockup-body" style="padding:0">
+
+    <!-- Modal container -->
+    <div style="background:#0f172a;border-radius:12px;overflow:hidden;max-width:680px;margin:0 auto">
+
+      <!-- Header -->
+      <div style="padding:18px 20px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <h3 style="margin:0;font-size:16px;color:#f8fafc">Teme aplicație</h3>
+          <p style="margin:4px 0 0;font-size:12px;color:#64748b">Schimbă aspectul portalului pentru clubul tău</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#0ea5e9;color:white">Club: Fudokan Cluj</span>
+          <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#1e293b;color:#94a3b8;border:1px solid #334155">Tu personal</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;border-bottom:1px solid #1e293b">
+        <div style="padding:10px 16px;font-size:13px;color:#0ea5e9;border-bottom:2px solid #0ea5e9;cursor:pointer">Teme predefinite</div>
+        <div style="padding:10px 16px;font-size:13px;color:#64748b;cursor:pointer">Personalizat</div>
+        <div style="padding:10px 16px;font-size:13px;color:#64748b;cursor:pointer">Temele mele</div>
+      </div>
+
+      <!-- Predefined themes grid -->
+      <div style="padding:16px">
+        <p style="font-size:12px;color:#64748b;margin:0 0 12px">Selectează o temă ca punct de start:</p>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+
+          <!-- Theme 1 - Active -->
+          <div style="border:2px solid #0ea5e9;border-radius:10px;overflow:hidden;cursor:pointer;position:relative">
+            <div style="height:40px;display:flex">
+              <div style="flex:1;background:#020617"></div>
+              <div style="flex:1;background:#0f172a"></div>
+              <div style="flex:1;background:#3b82f6"></div>
+              <div style="flex:1;background:#2563eb"></div>
+            </div>
+            <div style="padding:6px 8px;background:#0f172a">
+              <div style="font-size:11px;font-weight:600;color:#f8fafc">QwanKiDo Blue</div>
+              <div style="font-size:10px;color:#64748b">implicit</div>
+            </div>
+            <div style="position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:#0ea5e9;display:flex;align-items:center;justify-content:center">
+              <span style="color:white;font-size:9px">✓</span>
+            </div>
+          </div>
+
+          <!-- Theme 2 -->
+          <div style="border:1px solid #1e293b;border-radius:10px;overflow:hidden;cursor:pointer">
+            <div style="height:40px;display:flex">
+              <div style="flex:1;background:#020617"></div>
+              <div style="flex:1;background:#0c1526"></div>
+              <div style="flex:1;background:#1d4ed8"></div>
+              <div style="flex:1;background:#1e40af"></div>
+            </div>
+            <div style="padding:6px 8px;background:#0c1526">
+              <div style="font-size:11px;font-weight:600;color:#f8fafc">Midnight Navy</div>
+              <div style="font-size:10px;color:#64748b">deep blue</div>
+            </div>
+          </div>
+
+          <!-- Theme 3 -->
+          <div style="border:1px solid #1e293b;border-radius:10px;overflow:hidden;cursor:pointer">
+            <div style="height:40px;display:flex">
+              <div style="flex:1;background:#021208"></div>
+              <div style="flex:1;background:#052e16"></div>
+              <div style="flex:1;background:#16a34a"></div>
+              <div style="flex:1;background:#15803d"></div>
+            </div>
+            <div style="padding:6px 8px;background:#052e16">
+              <div style="font-size:11px;font-weight:600;color:#f8fafc">Forest</div>
+              <div style="font-size:10px;color:#64748b">verde martial</div>
+            </div>
+          </div>
+
+          <!-- Theme 4 -->
+          <div style="border:1px solid #1e293b;border-radius:10px;overflow:hidden;cursor:pointer">
+            <div style="height:40px;display:flex">
+              <div style="flex:1;background:#0f0505"></div>
+              <div style="flex:1;background:#1c0a0a"></div>
+              <div style="flex:1;background:#dc2626"></div>
+              <div style="flex:1;background:#b91c1c"></div>
+            </div>
+            <div style="padding:6px 8px;background:#1c0a0a">
+              <div style="font-size:11px;font-weight:600;color:#f8fafc">Crimson</div>
+              <div style="font-size:10px;color:#64748b">roșu puternic</div>
+            </div>
+          </div>
+
+          <!-- Theme 5 -->
+          <div style="border:1px solid #1e293b;border-radius:10px;overflow:hidden;cursor:pointer">
+            <div style="height:40px;display:flex">
+              <div style="flex:1;background:#0a0514"></div>
+              <div style="flex:1;background:#13082b"></div>
+              <div style="flex:1;background:#7c3aed"></div>
+              <div style="flex:1;background:#6d28d9"></div>
+            </div>
+            <div style="padding:6px 8px;background:#13082b">
+              <div style="font-size:11px;font-weight:600;color:#f8fafc">Violet</div>
+              <div style="font-size:10px;color:#64748b">mov royal</div>
+            </div>
+          </div>
+
+          <!-- Theme 6 -->
+          <div style="border:1px solid #1e293b;border-radius:10px;overflow:hidden;cursor:pointer">
+            <div style="height:40px;display:flex">
+              <div style="flex:1;background:#0c0a02"></div>
+              <div style="flex:1;background:#1c1a05"></div>
+              <div style="flex:1;background:#d97706"></div>
+              <div style="flex:1;background:#b45309"></div>
+            </div>
+            <div style="padding:6px 8px;background:#1c1a05">
+              <div style="font-size:11px;font-weight:600;color:#f8fafc">Amber</div>
+              <div style="font-size:10px;color:#64748b">auriu cald</div>
+            </div>
+          </div>
+
+          <!-- Theme 7 -->
+          <div style="border:1px solid #1e293b;border-radius:10px;overflow:hidden;cursor:pointer">
+            <div style="height:40px;display:flex">
+              <div style="flex:1;background:#020c0f"></div>
+              <div style="flex:1;background:#0c1e24"></div>
+              <div style="flex:1;background:#0891b2"></div>
+              <div style="flex:1;background:#0e7490"></div>
+            </div>
+            <div style="padding:6px 8px;background:#0c1e24">
+              <div style="font-size:11px;font-weight:600;color:#f8fafc">Ocean</div>
+              <div style="font-size:10px;color:#64748b">teal/cyan</div>
+            </div>
+          </div>
+
+          <!-- Theme 8 -->
+          <div style="border:1px solid #1e293b;border-radius:10px;overflow:hidden;cursor:pointer">
+            <div style="height:40px;display:flex">
+              <div style="flex:1;background:#030303"></div>
+              <div style="flex:1;background:#111111"></div>
+              <div style="flex:1;background:#525252"></div>
+              <div style="flex:1;background:#404040"></div>
+            </div>
+            <div style="padding:6px 8px;background:#111111">
+              <div style="font-size:11px;font-weight:600;color:#f8fafc">Graphite</div>
+              <div style="font-size:10px;color:#64748b">neutral gri</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Preview section -->
+        <div style="margin-top:16px;padding:14px;background:#020617;border-radius:8px;border:1px solid #1e293b">
+          <p style="font-size:11px;color:#64748b;margin:0 0 10px">Preview — tema selectată:</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button style="background:#3b82f6;color:white;padding:7px 14px;border-radius:8px;border:none;font-size:13px;font-weight:500">Adaugă sportiv</button>
+            <button style="background:#1e293b;color:#e2e8f0;padding:7px 14px;border-radius:8px;border:1px solid #334155;font-size:13px">Anulează</button>
+            <span style="padding:3px 10px;border-radius:20px;background:rgba(59,130,246,0.15);color:#3b82f6;font-size:12px;border:1px solid rgba(59,130,246,0.3)">Activ</span>
+            <div style="height:28px;width:1px;background:#1e293b"></div>
+            <div style="padding:7px 12px;background:#0f172a;border-radius:8px;border:1px solid #1e293b;font-size:12px;color:#94a3b8">Card component</div>
+          </div>
+        </div>
+
+        <!-- Footer actions -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
+          <span style="font-size:12px;color:#64748b">Schimbările se aplică instant</span>
+          <div style="display:flex;gap:8px">
+            <button style="background:#1e293b;color:#94a3b8;padding:7px 14px;border-radius:8px;border:1px solid #334155;font-size:13px">Aplică doar mie</button>
+            <button style="background:#3b82f6;color:white;padding:7px 14px;border-radius:8px;border:none;font-size:13px;font-weight:500">Aplică la tot clubul</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px">
+  <h3>Tab „Personalizat" — editor culori</h3>
+  <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:16px;max-width:500px">
+    <p style="font-size:12px;color:#64748b;margin:0 0 14px">Modifică individual culorile temei selectate:</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="color" value="#3b82f6" style="width:32px;height:32px;border-radius:6px;border:1px solid #334155;cursor:pointer;background:none">
+        <div><div style="font-size:12px;color:#e2e8f0">Primary</div><div style="font-size:10px;color:#64748b">--t-primary</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="color" value="#020617" style="width:32px;height:32px;border-radius:6px;border:1px solid #334155;cursor:pointer;background:none">
+        <div><div style="font-size:12px;color:#e2e8f0">Background</div><div style="font-size:10px;color:#64748b">--t-bg</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="color" value="#0f172a" style="width:32px;height:32px;border-radius:6px;border:1px solid #334155;cursor:pointer;background:none">
+        <div><div style="font-size:12px;color:#e2e8f0">Surface</div><div style="font-size:10px;color:#64748b">--t-surface</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="color" value="#1e293b" style="width:32px;height:32px;border-radius:6px;border:1px solid #334155;cursor:pointer;background:none">
+        <div><div style="font-size:12px;color:#e2e8f0">Border</div><div style="font-size:10px;color:#64748b">--t-border</div></div>
+      </div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+      <input style="flex:1;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:6px 10px;color:#f8fafc;font-size:13px" placeholder="Nume temă: ex. Fudokan Dark" />
+      <button style="background:#3b82f6;color:white;padding:6px 12px;border-radius:6px;border:none;font-size:13px;white-space:nowrap">Salvează</button>
+    </div>
+  </div>
+</div>

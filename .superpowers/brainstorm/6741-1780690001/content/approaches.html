@@ -1,0 +1,100 @@
+<h2>3 abordări pentru sistemul de teme</h2>
+<p class="subtitle">Alege abordarea arhitecturală — fiecare are alt raport efort/acoperire</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Minimal — CSS vars pe componente cheie</h3>
+      <p>12 variabile CSS semantice în <code>:root</code>. Migrezi doar <code>Button</code> + <code>Card</code> din <code>ui.tsx</code>. Restul aplicației rămâne cu Tailwind hardcodat.</p>
+      <div style="display:flex;gap:24px;margin-top:10px;flex-wrap:wrap">
+        <div>
+          <div class="label">Acoperire temă</div>
+          <div style="background:#1e293b;border-radius:6px;height:10px;width:200px;margin-top:4px">
+            <div style="background:#0ea5e9;height:10px;border-radius:6px;width:60%"></div>
+          </div>
+          <span style="font-size:12px;color:#94a3b8">~60% din UI</span>
+        </div>
+        <div>
+          <div class="label">Efort implementare</div>
+          <div style="background:#1e293b;border-radius:6px;height:10px;width:200px;margin-top:4px">
+            <div style="background:#10b981;height:10px;border-radius:6px;width:30%"></div>
+          </div>
+          <span style="font-size:12px;color:#94a3b8">2–3 zile</span>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pro</h4><ul><li>Rapid de livrat</li><li>Risc minim de regresii</li><li>Butoanele și cardurile urmează tema</li></ul></div>
+        <div class="cons"><h4>Contra</h4><ul><li>Sidebar, tabele, badge-uri rămân hardcodate</li><li>Experiență inconsistentă</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Complet — migrare întreagă ui.tsx</h3>
+      <p>Aceleași CSS vars, dar migrezi toate cele ~20 componente din <code>ui.tsx</code>: Button, Card, Modal, Badge, Input, Table, Alert, Tabs, etc.</p>
+      <div style="display:flex;gap:24px;margin-top:10px;flex-wrap:wrap">
+        <div>
+          <div class="label">Acoperire temă</div>
+          <div style="background:#1e293b;border-radius:6px;height:10px;width:200px;margin-top:4px">
+            <div style="background:#0ea5e9;height:10px;border-radius:6px;width:85%"></div>
+          </div>
+          <span style="font-size:12px;color:#94a3b8">~85% din UI</span>
+        </div>
+        <div>
+          <div class="label">Efort implementare</div>
+          <div style="background:#1e293b;border-radius:6px;height:10px;width:200px;margin-top:4px">
+            <div style="background:#f59e0b;height:10px;border-radius:6px;width:65%"></div>
+          </div>
+          <span style="font-size:12px;color:#94a3b8">5–7 zile</span>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pro</h4><ul><li>Acoperire completă fără atingerea paginilor</li><li>Paginile folosesc automat noile variabile</li><li>Un singur fișier de migrat: ui.tsx</li></ul></div>
+        <div class="cons"><h4>Contra</h4><ul><li>Risc de regresii vizuale în ui.tsx</li><li>Pagini custom (Competitii, Plati) cu clase inline rămân în afara temei</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>✦ Recomandat — Fazat (A acum, B în sprint 2)</h3>
+      <p>Livrezi rapid: ThemeEditor + CSS vars + Button tema-aware. Sprint 2: extinzi la restul ui.tsx. Utilizatorii văd schimbarea imediat fără a aștepta migrarea completă.</p>
+      <div style="display:flex;gap:24px;margin-top:10px;flex-wrap:wrap">
+        <div>
+          <div class="label">Acoperire sprint 1</div>
+          <div style="background:#1e293b;border-radius:6px;height:10px;width:200px;margin-top:4px">
+            <div style="background:#0ea5e9;height:10px;border-radius:6px;width:60%"></div>
+          </div>
+          <span style="font-size:12px;color:#94a3b8">60% → 85% după sprint 2</span>
+        </div>
+        <div>
+          <div class="label">Time-to-value</div>
+          <div style="background:#1e293b;border-radius:6px;height:10px;width:200px;margin-top:4px">
+            <div style="background:#10b981;height:10px;border-radius:6px;width:30%"></div>
+          </div>
+          <span style="font-size:12px;color:#94a3b8">2–3 zile pentru sprint 1</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding:10px;background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.2);border-radius:8px">
+        <div class="label" style="color:#0ea5e9">Sprint 1 (acum)</div>
+        <ul style="margin:6px 0 0;padding-left:18px;font-size:13px;color:#cbd5e1">
+          <li>ThemeContext + CSS vars + ThemeEditor modal</li>
+          <li>Migrare Button (toate variantele urmează tema)</li>
+          <li>8 teme predefinite + editor culori custom</li>
+          <li>Supabase: coloane tema_config pe cluburi + role_contexts</li>
+        </ul>
+        <div class="label" style="color:#64748b;margin-top:8px">Sprint 2 (după)</div>
+        <ul style="margin:6px 0 0;padding-left:18px;font-size:13px;color:#64748b">
+          <li>Migrare Card, Modal, Badge, Input, Table, Tabs, Alert</li>
+          <li>Acoperire 85%+ fără atingerea paginilor</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

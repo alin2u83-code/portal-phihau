@@ -302,6 +302,22 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         }
       }
 
+      // Retrage echipe existente pentru probe marcate "Nu participăm"
+      if (probeSkipped.size > 0) {
+        const catIdsSkipped = categorii
+          .filter(c => c.proba_id && probeSkipped.has(c.proba_id))
+          .map(c => c.id);
+        if (catIdsSkipped.length > 0) {
+          await supabase
+            .from('echipe_competitie')
+            .update({ status: 'retrasa' })
+            .eq('competitie_id', competitie.id)
+            .eq('club_id', clubId)
+            .in('categorie_id', catIdsSkipped)
+            .neq('status', 'retrasa');
+        }
+      }
+
       setSuccessMsg('Inscrierea a fost finalizata cu succes!');
       setConfirmOpen(false);
       if (skippedCount > 0) showSuccess('Info', `${skippedCount} sportivi ignorați (deja înscriși activ).`);

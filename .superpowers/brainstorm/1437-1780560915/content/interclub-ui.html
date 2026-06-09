@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inter-club UI</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f172a; color: #e2e8f0; font-family: -apple-system, sans-serif; padding: 16px; max-width: 480px; margin: 0 auto; }
+  h2 { font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 16px; }
+  h3 { font-size: 15px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #64748b; margin-bottom: 16px; }
+
+  .section { margin-bottom: 28px; }
+  .section-label { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; border-bottom: 1px solid #1e293b; padding-bottom: 6px; }
+
+  /* Team card */
+  .team-card {
+    background: #1e293b; border-radius: 12px; padding: 14px;
+    border: 1px solid #334155; margin-bottom: 10px;
+  }
+  .team-card.incomplete { border-color: #78350f; background: #1c1208; }
+  .team-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .team-name { font-size: 13px; font-weight: 700; color: #f1f5f9; }
+  .badge { border-radius: 99px; padding: 2px 8px; font-size: 10px; font-weight: 600; }
+  .badge-ok { background: #14532d; color: #4ade80; }
+  .badge-warn { background: #78350f; color: #fbbf24; }
+
+  .sportiv-slot {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 8px; margin-bottom: 4px;
+    background: #0f172a;
+  }
+  .slot-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .slot-empty {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px dashed #475569; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #475569; font-size: 12px;
+  }
+  .slot-name { font-size: 12px; color: #cbd5e1; flex: 1; }
+  .slot-meta { font-size: 10px; color: #475569; }
+  .slot-label { font-size: 10px; color: #475569; }
+
+  /* Request button */
+  .btn-interclub {
+    width: 100%; margin-top: 10px;
+    background: #1c1a08; border: 1.5px dashed #d97706;
+    border-radius: 10px; padding: 10px 14px;
+    color: #fbbf24; font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: background .15s;
+  }
+  .btn-interclub:hover { background: #292105; }
+  .btn-interclub .icon { font-size: 16px; }
+  .btn-interclub .text { flex: 1; text-align: left; }
+  .btn-interclub .text strong { display: block; font-size: 13px; }
+  .btn-interclub .text span { font-size: 11px; color: #92400e; }
+
+  /* Request sent state */
+  .request-sent {
+    width: 100%; margin-top: 10px;
+    background: #0c2a1a; border: 1px solid #166534;
+    border-radius: 10px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .request-sent .icon { font-size: 16px; }
+  .request-sent .text { flex: 1; }
+  .request-sent .text strong { display: block; font-size: 12px; color: #4ade80; }
+  .request-sent .text span { font-size: 10px; color: #166534; }
+  .badge-pending { background: #1a3a14; color: #86efac; border-radius: 99px; padding: 2px 8px; font-size: 10px; }
+
+  /* Super admin panel */
+  .admin-card {
+    background: #1e293b; border-radius: 12px; padding: 14px;
+    border: 1px solid #334155; margin-bottom: 10px;
+  }
+  .admin-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .admin-club-badge { background: #312e81; color: #a5b4fc; border-radius: 6px; padding: 3px 8px; font-size: 11px; }
+  .admin-details { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .detail-chip { background: #0f172a; border-radius: 6px; padding: 3px 8px; font-size: 11px; color: #94a3b8; }
+  .btn-row { display: flex; gap: 6px; }
+  .btn-approve { flex: 1; background: #14532d; border: none; border-radius: 8px; padding: 8px; color: #4ade80; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .btn-reject { background: #450a0a; border: none; border-radius: 8px; padding: 8px 12px; color: #f87171; font-size: 12px; cursor: pointer; }
+
+  /* Notification dot */
+  .notif-dot { display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 4px; }
+
+  .divider { border: none; border-top: 1px solid #1e293b; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- SECTION 1: Club view - team builder -->
+<h2>Club admin — Echipă incompletă</h2>
+
+<div class="section">
+  <div class="section-label">Sincron Feminin U14 — 3 titulare necesare</div>
+
+  <div class="team-card incomplete">
+    <div class="team-header">
+      <span class="team-name">Club Phihau — Echipa 1</span>
+      <span class="badge badge-warn">⚠ Incompletă</span>
+    </div>
+
+    <div class="sportiv-slot">
+      <div class="slot-avatar" style="background:#9333ea">PM</div>
+      <div class="slot-name">Popa Maria</div>
+      <div class="slot-meta">Verde 2 · 13 ani</div>
+    </div>
+    <div class="sportiv-slot">
+      <div class="slot-avatar" style="background:#0891b2">IA</div>
+      <div class="slot-name">Ionescu Ana</div>
+      <div class="slot-meta">Verde 3 · 12 ani</div>
+    </div>
+    <div class="sportiv-slot">
+      <div class="slot-empty">+</div>
+      <div class="slot-name" style="color:#475569;font-style:italic">Locul 3 — lipsă</div>
+      <div class="slot-label">Titular</div>
+    </div>
+
+    <!-- OPTIUNEA A: buton simplu -->
+    <button class="btn-interclub" onclick="showSent()">
+      <span class="icon">🤝</span>
+      <div class="text">
+        <strong>Solicită coechipier din alt club</strong>
+        <span>Cerere trimisă la super admin pentru aprobare</span>
+      </div>
+      <span style="color:#92400e">→</span>
+    </button>
+  </div>
+
+  <!-- OPTIUNEA B: după trimitere -->
+  <div id="sent-state" style="display:none">
+    <div class="team-card incomplete">
+      <div class="team-header">
+        <span class="team-name">Club Phihau — Echipa 1</span>
+        <span class="badge badge-warn">⚠ Incompletă</span>
+      </div>
+      <div class="sportiv-slot"><div class="slot-avatar" style="background:#9333ea">PM</div><div class="slot-name">Popa Maria</div><div class="slot-meta">Verde 2 · 13 ani</div></div>
+      <div class="sportiv-slot"><div class="slot-avatar" style="background:#0891b2">IA</div><div class="slot-name">Ionescu Ana</div><div class="slot-meta">Verde 3 · 12 ani</div></div>
+      <div class="sportiv-slot"><div class="slot-empty">+</div><div class="slot-name" style="color:#475569;font-style:italic">Locul 3 — în așteptare</div></div>
+      <div class="request-sent">
+        <span class="icon">📨</span>
+        <div class="text">
+          <strong>Cerere trimisă</strong>
+          <span>Așteptăm aprobarea super admin · <span class="badge-pending">pending</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- SECTION 2: Super admin view -->
+<h2>Super admin — Cereri inter-club <span class="notif-dot"></span></h2>
+
+<div class="section">
+  <div class="section-label">Campionat Național 2026 — 2 cereri pending</div>
+
+  <div class="admin-card">
+    <div class="admin-header">
+      <span class="admin-club-badge">Club Phihau</span>
+      <span style="font-size:12px;color:#94a3b8">Sincron Feminin U14</span>
+    </div>
+    <div class="admin-details">
+      <span class="detail-chip">👤 Feminin</span>
+      <span class="detail-chip">📅 U14 (12–13 ani)</span>
+      <span class="detail-chip">🥋 Verde sau superior</span>
+      <span class="detail-chip">Titular #3</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn-approve" onclick="this.textContent='✓ Aprobat'">✓ Aprobă</button>
+      <button class="btn-reject" onclick="this.textContent='✕'">✕ Respinge</button>
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-header">
+      <span class="admin-club-badge" style="background:#1a3a14;color:#4ade80">Club Ninja</span>
+      <span style="font-size:12px;color:#94a3b8">Echipă Masculin Senior</span>
+    </div>
+    <div class="admin-details">
+      <span class="detail-chip">👤 Masculin</span>
+      <span class="detail-chip">📅 Senior (18+)</span>
+      <span class="detail-chip">🥋 Maro sau superior</span>
+      <span class="detail-chip">Rezervă #1</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn-approve">✓ Aprobă</button>
+      <button class="btn-reject">✕ Respinge</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showSent() {
+  document.querySelector('.team-card.incomplete').style.display = 'none';
+  document.getElementById('sent-state').style.display = 'block';
+}
+</script>
+</body>
+</html>

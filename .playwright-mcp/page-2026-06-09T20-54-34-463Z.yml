@@ -1,0 +1,802 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e81]:
+            - generic [ref=e82] [cursor=pointer]:
+              - img [ref=e83]
+              - generic [ref=e89]: Activități Naționale
+              - img [ref=e90]
+            - generic [ref=e92]:
+              - generic [ref=e93] [cursor=pointer]: Competiții
+              - generic [ref=e95] [cursor=pointer]: Stagii
+          - generic [ref=e98] [cursor=pointer]:
+            - img [ref=e99]
+            - generic [ref=e101]: Financiar & Plăți
+            - img [ref=e102]
+          - generic [ref=e105] [cursor=pointer]:
+            - img [ref=e106]
+            - generic [ref=e109]: Setări & Admin
+            - img [ref=e110]
+          - generic [ref=e112] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e118]: Notificări
+          - generic [ref=e119] [cursor=pointer]:
+            - img [ref=e121]
+            - generic [ref=e123]: SMS
+          - generic [ref=e124] [cursor=pointer]:
+            - img [ref=e126]
+            - generic [ref=e129]: Cereri Înscriere
+          - generic [ref=e130] [cursor=pointer]:
+            - img [ref=e132]
+            - generic [ref=e135]: Istoric Activitate
+        - button "Scroll jos" [ref=e136] [cursor=pointer]:
+          - img [ref=e137]
+      - generic [ref=e139]:
+        - button "Tema" [ref=e141] [cursor=pointer]:
+          - img [ref=e142]
+          - generic [ref=e148]: Tema
+        - generic [ref=e150]:
+          - generic [ref=e151]: AL
+          - generic [ref=e152]:
+            - paragraph [ref=e153]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e154] [cursor=pointer]:
+            - img [ref=e155]
+  - button "Restrânge meniul" [ref=e158] [cursor=pointer]:
+    - img [ref=e159]
+  - banner [ref=e161]:
+    - navigation "Navigare" [ref=e163]:
+      - heading "Competiții" [level=1] [ref=e164]
+    - generic [ref=e165]:
+      - button "Temă" [ref=e167] [cursor=pointer]:
+        - img [ref=e168]
+        - generic [ref=e174]: Temă
+      - button [ref=e176] [cursor=pointer]:
+        - img [ref=e177]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e182] [cursor=pointer]:
+        - generic [ref=e183]: AL
+        - paragraph [ref=e185]:
+          - text: ALIN MIHAI
+          - generic [ref=e186]: "[ADMIN CLUB]"
+        - img [ref=e187]
+  - main [ref=e189]:
+    - generic [ref=e192]:
+      - generic [ref=e193]:
+        - button [ref=e194] [cursor=pointer]:
+          - img [ref=e195]
+        - generic [ref=e197]:
+          - heading "Cupa iunie" [level=2] [ref=e198]
+          - generic [ref=e199]:
+            - generic [ref=e200]: CN Tehnica (Quyen / Kata)
+            - generic [ref=e201]: Înscrieri deschise
+            - generic [ref=e202]: 07.06.2026 – 07.06.2026
+        - button "Refresh" [ref=e203] [cursor=pointer]:
+          - img [ref=e204]
+      - generic [ref=e206]:
+        - button "Înscrieri (14)" [ref=e207] [cursor=pointer]:
+          - img [ref=e208]
+          - generic [ref=e210]:
+            - text: Înscrieri
+            - generic [ref=e211]: (14)
+        - button "Raport" [ref=e212] [cursor=pointer]
+        - button "Categorii (152)" [ref=e213] [cursor=pointer]:
+          - img [ref=e214]
+          - generic [ref=e216]:
+            - text: Categorii
+            - generic [ref=e217]: (152)
+        - button "Refresh" [ref=e218] [cursor=pointer]:
+          - img [ref=e219]
+      - generic [ref=e834]:
+        - generic [ref=e835]:
+          - button [ref=e836] [cursor=pointer]:
+            - img [ref=e837]
+          - heading "Inscriere sportivi" [level=2] [ref=e840]
+          - generic [ref=e842]: 0 selectati
+        - textbox "Cauta sportiv dupa nume..." [ref=e844]
+        - button "Arată înscriși (4)" [ref=e845] [cursor=pointer]
+        - button "Filtre avansate ▼" [ref=e847] [cursor=pointer]:
+          - text: Filtre avansate
+          - generic [ref=e848]: ▼
+        - button "Selecteaza toti (51)" [ref=e850] [cursor=pointer]
+        - table [ref=e852]:
+          - rowgroup [ref=e853]:
+            - row "Sportiv ⇅ Gen ⇅ Varsta la competitie ⇅ Grad ⇅ Status" [ref=e854]:
+              - columnheader [ref=e855]:
+                - checkbox [ref=e856] [cursor=pointer]
+              - columnheader "Sportiv ⇅" [ref=e857] [cursor=pointer]:
+                - generic [ref=e858]:
+                  - text: Sportiv
+                  - generic [ref=e859]: ⇅
+              - columnheader "Gen ⇅" [ref=e860] [cursor=pointer]:
+                - generic [ref=e861]:
+                  - text: Gen
+                  - generic [ref=e862]: ⇅
+              - columnheader "Varsta la competitie ⇅" [ref=e863] [cursor=pointer]:
+                - generic [ref=e864]:
+                  - text: Varsta la competitie
+                  - generic [ref=e865]: ⇅
+              - columnheader "Grad ⇅" [ref=e866] [cursor=pointer]:
+                - generic [ref=e867]:
+                  - text: Grad
+                  - generic [ref=e868]: ⇅
+              - columnheader "Status" [ref=e869]
+          - rowgroup [ref=e870]:
+            - row "ALBU THEODOR M 9 ani 3 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e871] [cursor=pointer]:
+              - cell [ref=e872]:
+                - checkbox [ref=e873]
+              - cell "ALBU THEODOR" [ref=e874]:
+                - generic [ref=e876]: ALBU THEODOR
+              - cell "M" [ref=e877]
+              - cell "9 ani" [ref=e878]
+              - cell "3 Câp Roșu ⚠ neactualizat" [ref=e879]:
+                - generic [ref=e880]:
+                  - text: 3 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e881]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e882]:
+                - generic "Fără viză FRAM" [ref=e883]
+            - row "AMORARITI ALEXANDRU M 10 ani Centura Violet Fără viză FRAM" [ref=e884] [cursor=pointer]:
+              - cell [ref=e885]:
+                - checkbox [ref=e886]
+              - cell "AMORARITI ALEXANDRU" [ref=e887]:
+                - generic [ref=e889]: AMORARITI ALEXANDRU
+              - cell "M" [ref=e890]
+              - cell "10 ani" [ref=e891]
+              - cell "Centura Violet" [ref=e892]:
+                - generic [ref=e893]: Centura Violet
+              - cell "Fără viză FRAM" [ref=e894]:
+                - generic "Fără viză FRAM" [ref=e895]
+            - row "BALMUS FILIP M 10 ani C.V. 1 Câp Alb Fără viză FRAM" [ref=e896] [cursor=pointer]:
+              - cell [ref=e897]:
+                - checkbox [ref=e898]
+              - cell "BALMUS FILIP" [ref=e899]:
+                - generic [ref=e901]: BALMUS FILIP
+              - cell "M" [ref=e902]
+              - cell "10 ani" [ref=e903]
+              - cell "C.V. 1 Câp Alb" [ref=e904]:
+                - generic [ref=e905]: C.V. 1 Câp Alb
+              - cell "Fără viză FRAM" [ref=e906]:
+                - generic "Fără viză FRAM" [ref=e907]
+            - row "BALMUS IUSTINA F 12 ani C.V. 1 Câp Alb ⚠ neactualizat Fără viză FRAM" [ref=e908] [cursor=pointer]:
+              - cell [ref=e909]:
+                - checkbox [ref=e910]
+              - cell "BALMUS IUSTINA" [ref=e911]:
+                - generic [ref=e913]: BALMUS IUSTINA
+              - cell "F" [ref=e914]
+              - cell "12 ani" [ref=e915]
+              - cell "C.V. 1 Câp Alb ⚠ neactualizat" [ref=e916]:
+                - generic [ref=e917]:
+                  - text: C.V. 1 Câp Alb
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e918]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e919]:
+                - generic "Fără viză FRAM" [ref=e920]
+            - row "BALMUS VERONICA F 8 ani 3 Câp Roșu Fără viză FRAM" [ref=e921] [cursor=pointer]:
+              - cell [ref=e922]:
+                - checkbox [ref=e923]
+              - cell "BALMUS VERONICA" [ref=e924]:
+                - generic [ref=e926]: BALMUS VERONICA
+              - cell "F" [ref=e927]
+              - cell "8 ani" [ref=e928]
+              - cell "3 Câp Roșu" [ref=e929]:
+                - generic [ref=e930]: 3 Câp Roșu
+              - cell "Fără viză FRAM" [ref=e931]:
+                - generic "Fără viză FRAM" [ref=e932]
+            - row "BALTARIU RARES DIMITRIE M 12 ani 2 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e933] [cursor=pointer]:
+              - cell [ref=e934]:
+                - checkbox [ref=e935]
+              - cell "BALTARIU RARES DIMITRIE" [ref=e936]:
+                - generic [ref=e938]: BALTARIU RARES DIMITRIE
+              - cell "M" [ref=e939]
+              - cell "12 ani" [ref=e940]
+              - cell "2 Câp Roșu ⚠ neactualizat" [ref=e941]:
+                - generic [ref=e942]:
+                  - text: 2 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e943]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e944]:
+                - generic "Fără viză FRAM" [ref=e945]
+            - row "BARBIERU EVA CRISTINA F 11 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e946] [cursor=pointer]:
+              - cell [ref=e947]:
+                - checkbox [ref=e948]
+              - cell "BARBIERU EVA CRISTINA" [ref=e949]:
+                - generic [ref=e951]: BARBIERU EVA CRISTINA
+              - cell "F" [ref=e952]
+              - cell "11 ani" [ref=e953]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e954]:
+                - generic [ref=e955]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e956]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e957]:
+                - generic "Fără viză FRAM" [ref=e958]
+            - row "CABALAU BOGDAN PAUL ROALD M 12 ani 3 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e959] [cursor=pointer]:
+              - cell [ref=e960]:
+                - checkbox [ref=e961]
+              - cell "CABALAU BOGDAN PAUL ROALD" [ref=e962]:
+                - generic [ref=e964]: CABALAU BOGDAN PAUL ROALD
+              - cell "M" [ref=e965]
+              - cell "12 ani" [ref=e966]
+              - cell "3 Câp Roșu ⚠ neactualizat" [ref=e967]:
+                - generic [ref=e968]:
+                  - text: 3 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e969]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e970]:
+                - generic "Fără viză FRAM" [ref=e971]
+            - row "CALISKAN ESRA F 11 ani 3 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e972] [cursor=pointer]:
+              - cell [ref=e973]:
+                - checkbox [ref=e974]
+              - cell "CALISKAN ESRA" [ref=e975]:
+                - generic [ref=e977]: CALISKAN ESRA
+              - cell "F" [ref=e978]
+              - cell "11 ani" [ref=e979]
+              - cell "3 Câp Roșu ⚠ neactualizat" [ref=e980]:
+                - generic [ref=e981]:
+                  - text: 3 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e982]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e983]:
+                - generic "Fără viză FRAM" [ref=e984]
+            - row "CAREJA ANTONIA ELENA F 11 ani C.V. 2 Câp Alb Fără viză FRAM" [ref=e985] [cursor=pointer]:
+              - cell [ref=e986]:
+                - checkbox [ref=e987]
+              - cell "CAREJA ANTONIA ELENA" [ref=e988]:
+                - generic [ref=e990]: CAREJA ANTONIA ELENA
+              - cell "F" [ref=e991]
+              - cell "11 ani" [ref=e992]
+              - cell "C.V. 2 Câp Alb" [ref=e993]:
+                - generic [ref=e994]: C.V. 2 Câp Alb
+              - cell "Fără viză FRAM" [ref=e995]:
+                - generic "Fără viză FRAM" [ref=e996]
+            - row "CIRSTEA BIANCA ELENA F 9 ani 4 Câp Roșu Fără viză FRAM" [ref=e997] [cursor=pointer]:
+              - cell [ref=e998]:
+                - checkbox [ref=e999]
+              - cell "CIRSTEA BIANCA ELENA" [ref=e1000]:
+                - generic [ref=e1002]: CIRSTEA BIANCA ELENA
+              - cell "F" [ref=e1003]
+              - cell "9 ani" [ref=e1004]
+              - cell "4 Câp Roșu" [ref=e1005]:
+                - generic [ref=e1006]: 4 Câp Roșu
+              - cell "Fără viză FRAM" [ref=e1007]:
+                - generic "Fără viză FRAM" [ref=e1008]
+            - row "CONDURACHE SOFIA GABRIELA F 9 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1009] [cursor=pointer]:
+              - cell [ref=e1010]:
+                - checkbox [ref=e1011]
+              - cell "CONDURACHE SOFIA GABRIELA" [ref=e1012]:
+                - generic [ref=e1014]: CONDURACHE SOFIA GABRIELA
+              - cell "F" [ref=e1015]
+              - cell "9 ani" [ref=e1016]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1017]:
+                - generic [ref=e1018]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1019]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1020]:
+                - generic "Fără viză FRAM" [ref=e1021]
+            - row "CUCIUREANU ROBERT ANDREI M 9 ani 3 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1022] [cursor=pointer]:
+              - cell [ref=e1023]:
+                - checkbox [ref=e1024]
+              - cell "CUCIUREANU ROBERT ANDREI" [ref=e1025]:
+                - generic [ref=e1027]: CUCIUREANU ROBERT ANDREI
+              - cell "M" [ref=e1028]
+              - cell "9 ani" [ref=e1029]
+              - cell "3 Câp Roșu ⚠ neactualizat" [ref=e1030]:
+                - generic [ref=e1031]:
+                  - text: 3 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1032]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1033]:
+                - generic "Fără viză FRAM" [ref=e1034]
+            - row "DOBOS ANA MARIA F 11 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1035] [cursor=pointer]:
+              - cell [ref=e1036]:
+                - checkbox [ref=e1037]
+              - cell "DOBOS ANA MARIA" [ref=e1038]:
+                - generic [ref=e1040]: DOBOS ANA MARIA
+              - cell "F" [ref=e1041]
+              - cell "11 ani" [ref=e1042]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1043]:
+                - generic [ref=e1044]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1045]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1046]:
+                - generic "Fără viză FRAM" [ref=e1047]
+            - row "DORNEAN MIHAI ADRIAN M 12 ani 2 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1048] [cursor=pointer]:
+              - cell [ref=e1049]:
+                - checkbox [ref=e1050]
+              - cell "DORNEAN MIHAI ADRIAN" [ref=e1051]:
+                - generic [ref=e1053]: DORNEAN MIHAI ADRIAN
+              - cell "M" [ref=e1054]
+              - cell "12 ani" [ref=e1055]
+              - cell "2 Câp Roșu ⚠ neactualizat" [ref=e1056]:
+                - generic [ref=e1057]:
+                  - text: 2 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1058]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1059]:
+                - generic "Fără viză FRAM" [ref=e1060]
+            - row "DRUTU MAIA FANUTA F 12 ani Centura Violet ⚠ neactualizat Fără viză FRAM" [ref=e1061] [cursor=pointer]:
+              - cell [ref=e1062]:
+                - checkbox [ref=e1063]
+              - cell "DRUTU MAIA FANUTA" [ref=e1064]:
+                - generic [ref=e1066]: DRUTU MAIA FANUTA
+              - cell "F" [ref=e1067]
+              - cell "12 ani" [ref=e1068]
+              - cell "Centura Violet ⚠ neactualizat" [ref=e1069]:
+                - generic [ref=e1070]:
+                  - text: Centura Violet
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1071]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1072]:
+                - generic "Fără viză FRAM" [ref=e1073]
+            - row "FILIP IUSTINA F 12 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1074] [cursor=pointer]:
+              - cell [ref=e1075]:
+                - checkbox [ref=e1076]
+              - cell "FILIP IUSTINA" [ref=e1077]:
+                - generic [ref=e1079]: FILIP IUSTINA
+              - cell "F" [ref=e1080]
+              - cell "12 ani" [ref=e1081]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1082]:
+                - generic [ref=e1083]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1084]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1085]:
+                - generic "Fără viză FRAM" [ref=e1086]
+            - row "FOTACHE ALEXANDRU GEORGE M 12 ani 3 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1087] [cursor=pointer]:
+              - cell [ref=e1088]:
+                - checkbox [ref=e1089]
+              - cell "FOTACHE ALEXANDRU GEORGE" [ref=e1090]:
+                - generic [ref=e1092]: FOTACHE ALEXANDRU GEORGE
+              - cell "M" [ref=e1093]
+              - cell "12 ani" [ref=e1094]
+              - cell "3 Câp Roșu ⚠ neactualizat" [ref=e1095]:
+                - generic [ref=e1096]:
+                  - text: 3 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1097]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1098]:
+                - generic "Fără viză FRAM" [ref=e1099]
+            - row "GOMEI LUISA GABRIELA F 12 ani C.V. 1 Câp Alb ⚠ neactualizat Fără viză FRAM" [ref=e1100] [cursor=pointer]:
+              - cell [ref=e1101]:
+                - checkbox [ref=e1102]
+              - cell "GOMEI LUISA GABRIELA" [ref=e1103]:
+                - generic [ref=e1105]: GOMEI LUISA GABRIELA
+              - cell "F" [ref=e1106]
+              - cell "12 ani" [ref=e1107]
+              - cell "C.V. 1 Câp Alb ⚠ neactualizat" [ref=e1108]:
+                - generic [ref=e1109]:
+                  - text: C.V. 1 Câp Alb
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1110]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1111]:
+                - generic "Fără viză FRAM" [ref=e1112]
+            - row "GOMEI MARIAN CRISTIAN M 10 ani C.V. 1 Câp Alb Fără viză FRAM" [ref=e1113] [cursor=pointer]:
+              - cell [ref=e1114]:
+                - checkbox [ref=e1115]
+              - cell "GOMEI MARIAN CRISTIAN" [ref=e1116]:
+                - generic [ref=e1118]: GOMEI MARIAN CRISTIAN
+              - cell "M" [ref=e1119]
+              - cell "10 ani" [ref=e1120]
+              - cell "C.V. 1 Câp Alb" [ref=e1121]:
+                - generic [ref=e1122]: C.V. 1 Câp Alb
+              - cell "Fără viză FRAM" [ref=e1123]:
+                - generic "Fără viză FRAM" [ref=e1124]
+            - row "IONEL PETRINA CRISTIANA F 8 ani 3 Câp Roșu Fără viză FRAM" [ref=e1125] [cursor=pointer]:
+              - cell [ref=e1126]:
+                - checkbox [ref=e1127]
+              - cell "IONEL PETRINA CRISTIANA" [ref=e1128]:
+                - generic [ref=e1130]: IONEL PETRINA CRISTIANA
+              - cell "F" [ref=e1131]
+              - cell "8 ani" [ref=e1132]
+              - cell "3 Câp Roșu" [ref=e1133]:
+                - generic [ref=e1134]: 3 Câp Roșu
+              - cell "Fără viză FRAM" [ref=e1135]:
+                - generic "Fără viză FRAM" [ref=e1136]
+            - row "ISACILA ANTHEEA F 9 ani 2 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1137] [cursor=pointer]:
+              - cell [ref=e1138]:
+                - checkbox [ref=e1139]
+              - cell "ISACILA ANTHEEA" [ref=e1140]:
+                - generic [ref=e1142]: ISACILA ANTHEEA
+              - cell "F" [ref=e1143]
+              - cell "9 ani" [ref=e1144]
+              - cell "2 Câp Roșu ⚠ neactualizat" [ref=e1145]:
+                - generic [ref=e1146]:
+                  - text: 2 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1147]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1148]:
+                - generic "Fără viză FRAM" [ref=e1149]
+            - row "KANIA ADELA F 11 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1150] [cursor=pointer]:
+              - cell [ref=e1151]:
+                - checkbox [ref=e1152]
+              - cell "KANIA ADELA" [ref=e1153]:
+                - generic [ref=e1155]: KANIA ADELA
+              - cell "F" [ref=e1156]
+              - cell "11 ani" [ref=e1157]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1158]:
+                - generic [ref=e1159]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1160]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1161]:
+                - generic "Fără viză FRAM" [ref=e1162]
+            - row "LEOHCHI RAZVAN M 12 ani C.V. 1 Câp Alb ⚠ neactualizat Fără viză FRAM" [ref=e1163] [cursor=pointer]:
+              - cell [ref=e1164]:
+                - checkbox [ref=e1165]
+              - cell "LEOHCHI RAZVAN" [ref=e1166]:
+                - generic [ref=e1168]: LEOHCHI RAZVAN
+              - cell "M" [ref=e1169]
+              - cell "12 ani" [ref=e1170]
+              - cell "C.V. 1 Câp Alb ⚠ neactualizat" [ref=e1171]:
+                - generic [ref=e1172]:
+                  - text: C.V. 1 Câp Alb
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1173]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1174]:
+                - generic "Fără viză FRAM" [ref=e1175]
+            - row "LUCHIAN IVANA F 11 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1176] [cursor=pointer]:
+              - cell [ref=e1177]:
+                - checkbox [ref=e1178]
+              - cell "LUCHIAN IVANA" [ref=e1179]:
+                - generic [ref=e1181]: LUCHIAN IVANA
+              - cell "F" [ref=e1182]
+              - cell "11 ani" [ref=e1183]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1184]:
+                - generic [ref=e1185]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1186]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1187]:
+                - generic "Fără viză FRAM" [ref=e1188]
+            - row "LUNGU CILIAC HORAȚIU CASIAN M 7 ani 1 Câp Roșu Fără viză FRAM" [ref=e1189] [cursor=pointer]:
+              - cell [ref=e1190]:
+                - checkbox [ref=e1191]
+              - cell "LUNGU CILIAC HORAȚIU CASIAN" [ref=e1192]:
+                - generic [ref=e1194]: LUNGU CILIAC HORAȚIU CASIAN
+              - cell "M" [ref=e1195]
+              - cell "7 ani" [ref=e1196]
+              - cell "1 Câp Roșu" [ref=e1197]:
+                - generic [ref=e1198]: 1 Câp Roșu
+              - cell "Fără viză FRAM" [ref=e1199]:
+                - generic "Fără viză FRAM" [ref=e1200]
+            - row "MAFTEI ANDREI STEFAN M 12 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1201] [cursor=pointer]:
+              - cell [ref=e1202]:
+                - checkbox [ref=e1203]
+              - cell "MAFTEI ANDREI STEFAN" [ref=e1204]:
+                - generic [ref=e1206]: MAFTEI ANDREI STEFAN
+              - cell "M" [ref=e1207]
+              - cell "12 ani" [ref=e1208]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1209]:
+                - generic [ref=e1210]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1211]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1212]:
+                - generic "Fără viză FRAM" [ref=e1213]
+            - row "MANDEA MATEI M 8 ani 2 Câp Roșu Fără viză FRAM" [ref=e1214] [cursor=pointer]:
+              - cell [ref=e1215]:
+                - checkbox [ref=e1216]
+              - cell "MANDEA MATEI" [ref=e1217]:
+                - generic [ref=e1219]: MANDEA MATEI
+              - cell "M" [ref=e1220]
+              - cell "8 ani" [ref=e1221]
+              - cell "2 Câp Roșu" [ref=e1222]:
+                - generic [ref=e1223]: 2 Câp Roșu
+              - cell "Fără viză FRAM" [ref=e1224]:
+                - generic "Fără viză FRAM" [ref=e1225]
+            - row "MANDIA MARIA F 11 ani 3 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1226] [cursor=pointer]:
+              - cell [ref=e1227]:
+                - checkbox [ref=e1228]
+              - cell "MANDIA MARIA" [ref=e1229]:
+                - generic [ref=e1231]: MANDIA MARIA
+              - cell "F" [ref=e1232]
+              - cell "11 ani" [ref=e1233]
+              - cell "3 Câp Roșu ⚠ neactualizat" [ref=e1234]:
+                - generic [ref=e1235]:
+                  - text: 3 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1236]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1237]:
+                - generic "Fără viză FRAM" [ref=e1238]
+            - row "PAVALEANU IUSTIN M 11 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1239] [cursor=pointer]:
+              - cell [ref=e1240]:
+                - checkbox [ref=e1241]
+              - cell "PAVALEANU IUSTIN" [ref=e1242]:
+                - generic [ref=e1244]: PAVALEANU IUSTIN
+              - cell "M" [ref=e1245]
+              - cell "11 ani" [ref=e1246]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1247]:
+                - generic [ref=e1248]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1249]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1250]:
+                - generic "Fără viză FRAM" [ref=e1251]
+            - row "PAVEL YVONNA MARIA F 11 ani Centura Violet ⚠ neactualizat Fără viză FRAM" [ref=e1252] [cursor=pointer]:
+              - cell [ref=e1253]:
+                - checkbox [ref=e1254]
+              - cell "PAVEL YVONNA MARIA" [ref=e1255]:
+                - generic [ref=e1257]: PAVEL YVONNA MARIA
+              - cell "F" [ref=e1258]
+              - cell "11 ani" [ref=e1259]
+              - cell "Centura Violet ⚠ neactualizat" [ref=e1260]:
+                - generic [ref=e1261]:
+                  - text: Centura Violet
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1262]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1263]:
+                - generic "Fără viză FRAM" [ref=e1264]
+            - row "PETRARU MIHAI SEBASTIAN M 9 ani 3 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1265] [cursor=pointer]:
+              - cell [ref=e1266]:
+                - checkbox [ref=e1267]
+              - cell "PETRARU MIHAI SEBASTIAN" [ref=e1268]:
+                - generic [ref=e1270]: PETRARU MIHAI SEBASTIAN
+              - cell "M" [ref=e1271]
+              - cell "9 ani" [ref=e1272]
+              - cell "3 Câp Roșu ⚠ neactualizat" [ref=e1273]:
+                - generic [ref=e1274]:
+                  - text: 3 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1275]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1276]:
+                - generic "Fără viză FRAM" [ref=e1277]
+            - row "PLUGARU MIHAI IONUT M 10 ani 3 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1278] [cursor=pointer]:
+              - cell [ref=e1279]:
+                - checkbox [ref=e1280]
+              - cell "PLUGARU MIHAI IONUT" [ref=e1281]:
+                - generic [ref=e1283]: PLUGARU MIHAI IONUT
+              - cell "M" [ref=e1284]
+              - cell "10 ani" [ref=e1285]
+              - cell "3 Câp Roșu ⚠ neactualizat" [ref=e1286]:
+                - generic [ref=e1287]:
+                  - text: 3 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1288]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1289]:
+                - generic "Fără viză FRAM" [ref=e1290]
+            - row "POPA ANDREI M 12 ani Centura Violet ⚠ neactualizat Fără viză FRAM" [ref=e1291] [cursor=pointer]:
+              - cell [ref=e1292]:
+                - checkbox [ref=e1293]
+              - cell "POPA ANDREI" [ref=e1294]:
+                - generic [ref=e1296]: POPA ANDREI
+              - cell "M" [ref=e1297]
+              - cell "12 ani" [ref=e1298]
+              - cell "Centura Violet ⚠ neactualizat" [ref=e1299]:
+                - generic [ref=e1300]:
+                  - text: Centura Violet
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1301]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1302]:
+                - generic "Fără viză FRAM" [ref=e1303]
+            - row "POPA CALIN GHEORGHE M 10 ani 2 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1304] [cursor=pointer]:
+              - cell [ref=e1305]:
+                - checkbox [ref=e1306]
+              - cell "POPA CALIN GHEORGHE" [ref=e1307]:
+                - generic [ref=e1309]: POPA CALIN GHEORGHE
+              - cell "M" [ref=e1310]
+              - cell "10 ani" [ref=e1311]
+              - cell "2 Câp Roșu ⚠ neactualizat" [ref=e1312]:
+                - generic [ref=e1313]:
+                  - text: 2 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1314]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1315]:
+                - generic "Fără viză FRAM" [ref=e1316]
+            - row "POPOVICI DIANA ANASTASIA F 12 ani C.V. 1 Câp Alb ⚠ neactualizat Fără viză FRAM" [ref=e1317] [cursor=pointer]:
+              - cell [ref=e1318]:
+                - checkbox [ref=e1319]
+              - cell "POPOVICI DIANA ANASTASIA" [ref=e1320]:
+                - generic [ref=e1322]: POPOVICI DIANA ANASTASIA
+              - cell "F" [ref=e1323]
+              - cell "12 ani" [ref=e1324]
+              - cell "C.V. 1 Câp Alb ⚠ neactualizat" [ref=e1325]:
+                - generic [ref=e1326]:
+                  - text: C.V. 1 Câp Alb
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1327]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1328]:
+                - generic "Fără viză FRAM" [ref=e1329]
+            - row "RADUCANU ANASTASIA MARIA F 9 ani 2 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1330] [cursor=pointer]:
+              - cell [ref=e1331]:
+                - checkbox [ref=e1332]
+              - cell "RADUCANU ANASTASIA MARIA" [ref=e1333]:
+                - generic [ref=e1335]: RADUCANU ANASTASIA MARIA
+              - cell "F" [ref=e1336]
+              - cell "9 ani" [ref=e1337]
+              - cell "2 Câp Roșu ⚠ neactualizat" [ref=e1338]:
+                - generic [ref=e1339]:
+                  - text: 2 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1340]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1341]:
+                - generic "Fără viză FRAM" [ref=e1342]
+            - row "ROTARU ALEXANDRU GABRIEL M 11 ani 2 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1343] [cursor=pointer]:
+              - cell [ref=e1344]:
+                - checkbox [ref=e1345]
+              - cell "ROTARU ALEXANDRU GABRIEL" [ref=e1346]:
+                - generic [ref=e1348]: ROTARU ALEXANDRU GABRIEL
+              - cell "M" [ref=e1349]
+              - cell "11 ani" [ref=e1350]
+              - cell "2 Câp Roșu ⚠ neactualizat" [ref=e1351]:
+                - generic [ref=e1352]:
+                  - text: 2 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1353]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1354]:
+                - generic "Fără viză FRAM" [ref=e1355]
+            - row "ROTARU EVA MARIA F 10 ani 2 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1356] [cursor=pointer]:
+              - cell [ref=e1357]:
+                - checkbox [ref=e1358]
+              - cell "ROTARU EVA MARIA" [ref=e1359]:
+                - generic [ref=e1361]: ROTARU EVA MARIA
+              - cell "F" [ref=e1362]
+              - cell "10 ani" [ref=e1363]
+              - cell "2 Câp Roșu ⚠ neactualizat" [ref=e1364]:
+                - generic [ref=e1365]:
+                  - text: 2 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1366]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1367]:
+                - generic "Fără viză FRAM" [ref=e1368]
+            - row "RUSU CELIA F 12 ani C.V. 1 Câp Alb ⚠ neactualizat Fără viză FRAM" [ref=e1369] [cursor=pointer]:
+              - cell [ref=e1370]:
+                - checkbox [ref=e1371]
+              - cell "RUSU CELIA" [ref=e1372]:
+                - generic [ref=e1374]: RUSU CELIA
+              - cell "F" [ref=e1375]
+              - cell "12 ani" [ref=e1376]
+              - cell "C.V. 1 Câp Alb ⚠ neactualizat" [ref=e1377]:
+                - generic [ref=e1378]:
+                  - text: C.V. 1 Câp Alb
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1379]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1380]:
+                - generic "Fără viză FRAM" [ref=e1381]
+            - row "RUSU SILVIU ANDREI M 12 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1382] [cursor=pointer]:
+              - cell [ref=e1383]:
+                - checkbox [ref=e1384]
+              - cell "RUSU SILVIU ANDREI" [ref=e1385]:
+                - generic [ref=e1387]: RUSU SILVIU ANDREI
+              - cell "M" [ref=e1388]
+              - cell "12 ani" [ref=e1389]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1390]:
+                - generic [ref=e1391]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1392]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1393]:
+                - generic "Fără viză FRAM" [ref=e1394]
+            - row "SANDU ANA ADRIANA — 11 ani 2 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1395] [cursor=pointer]:
+              - cell [ref=e1396]:
+                - checkbox [ref=e1397]
+              - cell "SANDU ANA ADRIANA" [ref=e1398]:
+                - generic [ref=e1400]: SANDU ANA ADRIANA
+              - cell "—" [ref=e1401]
+              - cell "11 ani" [ref=e1402]
+              - cell "2 Câp Roșu ⚠ neactualizat" [ref=e1403]:
+                - generic [ref=e1404]:
+                  - text: 2 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1405]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1406]:
+                - generic "Fără viză FRAM" [ref=e1407]
+            - row "SAPUN DARIUS ANDREI M 12 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1408] [cursor=pointer]:
+              - cell [ref=e1409]:
+                - checkbox [ref=e1410]
+              - cell "SAPUN DARIUS ANDREI" [ref=e1411]:
+                - generic [ref=e1413]: SAPUN DARIUS ANDREI
+              - cell "M" [ref=e1414]
+              - cell "12 ani" [ref=e1415]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1416]:
+                - generic [ref=e1417]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1418]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1419]:
+                - generic "Fără viză FRAM" [ref=e1420]
+            - row "SFICA DIANA ANDREEA F 12 ani C.V. 1 Câp Alb ⚠ neactualizat Fără viză FRAM" [ref=e1421] [cursor=pointer]:
+              - cell [ref=e1422]:
+                - checkbox [ref=e1423]
+              - cell "SFICA DIANA ANDREEA" [ref=e1424]:
+                - generic [ref=e1426]: SFICA DIANA ANDREEA
+              - cell "F" [ref=e1427]
+              - cell "12 ani" [ref=e1428]
+              - cell "C.V. 1 Câp Alb ⚠ neactualizat" [ref=e1429]:
+                - generic [ref=e1430]:
+                  - text: C.V. 1 Câp Alb
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1431]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1432]:
+                - generic "Fără viză FRAM" [ref=e1433]
+            - row "SINZIANU GABRIELA F 12 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1434] [cursor=pointer]:
+              - cell [ref=e1435]:
+                - checkbox [ref=e1436]
+              - cell "SINZIANU GABRIELA" [ref=e1437]:
+                - generic [ref=e1439]: SINZIANU GABRIELA
+              - cell "F" [ref=e1440]
+              - cell "12 ani" [ref=e1441]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1442]:
+                - generic [ref=e1443]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1444]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1445]:
+                - generic "Fără viză FRAM" [ref=e1446]
+            - row "ȘTEFAN CĂLIN NICOLAE M 12 ani 1 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1447] [cursor=pointer]:
+              - cell [ref=e1448]:
+                - checkbox [ref=e1449]
+              - cell "ȘTEFAN CĂLIN NICOLAE" [ref=e1450]:
+                - generic [ref=e1452]: ȘTEFAN CĂLIN NICOLAE
+              - cell "M" [ref=e1453]
+              - cell "12 ani" [ref=e1454]
+              - cell "1 Câp Roșu ⚠ neactualizat" [ref=e1455]:
+                - generic [ref=e1456]:
+                  - text: 1 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1457]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1458]:
+                - generic "Fără viză FRAM" [ref=e1459]
+            - row "ȘTEFĂNESCU EMANUEL M 10 ani 4 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1460] [cursor=pointer]:
+              - cell [ref=e1461]:
+                - checkbox [ref=e1462]
+              - cell "ȘTEFĂNESCU EMANUEL" [ref=e1463]:
+                - generic [ref=e1465]: ȘTEFĂNESCU EMANUEL
+              - cell "M" [ref=e1466]
+              - cell "10 ani" [ref=e1467]
+              - cell "4 Câp Roșu ⚠ neactualizat" [ref=e1468]:
+                - generic [ref=e1469]:
+                  - text: 4 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1470]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1471]:
+                - generic "Fără viză FRAM" [ref=e1472]
+            - row "ȘTEICĂ VICTOR GABRIEL M 11 ani 2 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1473] [cursor=pointer]:
+              - cell [ref=e1474]:
+                - checkbox [ref=e1475]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e1476]:
+                - generic [ref=e1478]: ȘTEICĂ VICTOR GABRIEL
+              - cell "M" [ref=e1479]
+              - cell "11 ani" [ref=e1480]
+              - cell "2 Câp Roșu ⚠ neactualizat" [ref=e1481]:
+                - generic [ref=e1482]:
+                  - text: 2 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1483]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1484]:
+                - generic "Fără viză FRAM" [ref=e1485]
+            - row "SUMĂNARIU DRAGOȘ ȘTEFAN M 7 ani 2 Câp Roșu Fără viză FRAM" [ref=e1486] [cursor=pointer]:
+              - cell [ref=e1487]:
+                - checkbox [ref=e1488]
+              - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e1489]:
+                - generic [ref=e1491]: SUMĂNARIU DRAGOȘ ȘTEFAN
+              - cell "M" [ref=e1492]
+              - cell "7 ani" [ref=e1493]
+              - cell "2 Câp Roșu" [ref=e1494]:
+                - generic [ref=e1495]: 2 Câp Roșu
+              - cell "Fără viză FRAM" [ref=e1496]:
+                - generic "Fără viză FRAM" [ref=e1497]
+            - row "TULBURE DAVID ALEXANDRU M 12 ani C.V. 2 Câp Alb Fără viză FRAM" [ref=e1498] [cursor=pointer]:
+              - cell [ref=e1499]:
+                - checkbox [ref=e1500]
+              - cell "TULBURE DAVID ALEXANDRU" [ref=e1501]:
+                - generic [ref=e1503]: TULBURE DAVID ALEXANDRU
+              - cell "M" [ref=e1504]
+              - cell "12 ani" [ref=e1505]
+              - cell "C.V. 2 Câp Alb" [ref=e1506]:
+                - generic [ref=e1507]: C.V. 2 Câp Alb
+              - cell "Fără viză FRAM" [ref=e1508]:
+                - generic "Fără viză FRAM" [ref=e1509]
+            - row "VICOL MATEI STEFAN M 10 ani 2 Câp Roșu ⚠ neactualizat Fără viză FRAM" [ref=e1510] [cursor=pointer]:
+              - cell [ref=e1511]:
+                - checkbox [ref=e1512]
+              - cell "VICOL MATEI STEFAN" [ref=e1513]:
+                - generic [ref=e1515]: VICOL MATEI STEFAN
+              - cell "M" [ref=e1516]
+              - cell "10 ani" [ref=e1517]
+              - cell "2 Câp Roșu ⚠ neactualizat" [ref=e1518]:
+                - generic [ref=e1519]:
+                  - text: 2 Câp Roșu
+                  - generic "Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului" [ref=e1520]: ⚠ neactualizat
+              - cell "Fără viză FRAM" [ref=e1521]:
+                - generic "Fără viză FRAM" [ref=e1522]
+        - generic [ref=e1524]:
+          - generic [ref=e1525]: Niciun sportiv selectat
+          - button "Continua" [disabled] [ref=e1526]
+  - contentinfo [ref=e297]:
+    - paragraph [ref=e298]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e299] [cursor=pointer]:
+      - img [ref=e300]
+      - generic [ref=e303]: Asistent AI

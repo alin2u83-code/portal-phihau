@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Variant A — Theme Studio</title>
+<style>
+  :root {
+    --color-bg: #f4f6fa;
+    --color-bg-secondary: #ffffff;
+    --color-sidebar-bg: #1e3a5f;
+    --color-sidebar-text: #cbd5e1;
+    --color-sidebar-active: #3b82f6;
+    --color-sidebar-active-text: #ffffff;
+    --color-header-bg: #ffffff;
+    --color-primary: #2563eb;
+    --color-primary-hover: #1d4ed8;
+    --color-primary-text: #ffffff;
+    --color-text: #1e293b;
+    --color-text-secondary: #64748b;
+    --color-border: #e2e8f0;
+    --color-table-header-bg: #f1f5f9;
+    --color-table-header-text: #334155;
+    --color-table-stripe: #f8fafc;
+    --color-table-hover: #eff6ff;
+    --color-badge-bg: #dbeafe;
+    --color-badge-text: #1e40af;
+    --color-success: #16a34a;
+    --color-danger: #dc2626;
+    --sidebar-width: 220px;
+    --border-radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; background: #e5e7eb; }
+
+  /* ── SETTINGS PAGE LAYOUT ── */
+  .settings-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .settings-header {
+    background: var(--color-header-bg);
+    border-bottom: 1px solid var(--color-border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .settings-header h1 { font-size: 18px; font-weight: 600; color: var(--color-text); }
+  .settings-header .breadcrumb { color: var(--color-text-secondary); font-size: 13px; }
+  .settings-header .breadcrumb span { color: var(--color-primary); }
+
+  .settings-body {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── CONTROLS PANEL ── */
+  .controls-panel {
+    background: white;
+    border-right: 1px solid var(--color-border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-section {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .panel-section:last-child { border-bottom: none; flex: 1; }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  /* Preset grid */
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 0;
+  }
+
+  .preset-item {
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .preset-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .preset-item.active { border-color: var(--color-primary); }
+
+  .preset-swatch {
+    height: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+  }
+
+  .preset-swatch-sidebar { height: 100%; }
+  .preset-swatch-content { height: 100%; }
+  .preset-label { font-size: 10px; font-weight: 600; text-align: center; padding: 4px 2px; background: white; color: #374151; }
+
+  /* Presets data */
+  .preset-item[data-theme="light"] .preset-swatch-sidebar { background: #1e3a5f; }
+  .preset-item[data-theme="light"] .preset-swatch-content { background: #f4f6fa; }
+  .preset-item[data-theme="dark"] .preset-swatch-sidebar { background: #111827; }
+  .preset-item[data-theme="dark"] .preset-swatch-content { background: #1f2937; }
+  .preset-item[data-theme="ocean"] .preset-swatch-sidebar { background: #0c4a6e; }
+  .preset-item[data-theme="ocean"] .preset-swatch-content { background: #e0f2fe; }
+  .preset-item[data-theme="forest"] .preset-swatch-sidebar { background: #14532d; }
+  .preset-item[data-theme="forest"] .preset-swatch-content { background: #f0fdf4; }
+  .preset-item[data-theme="sunset"] .preset-swatch-sidebar { background: #7c2d12; }
+  .preset-item[data-theme="sunset"] .preset-swatch-content { background: #fff7ed; }
+  .preset-item[data-theme="violet"] .preset-swatch-sidebar { background: #4c1d95; }
+  .preset-item[data-theme="violet"] .preset-swatch-content { background: #f5f3ff; }
+  .preset-item[data-theme="slate"] .preset-swatch-sidebar { background: #334155; }
+  .preset-item[data-theme="slate"] .preset-swatch-content { background: #f8fafc; }
+  .preset-item[data-theme="rose"] .preset-swatch-sidebar { background: #9f1239; }
+  .preset-item[data-theme="rose"] .preset-swatch-content { background: #fff1f2; }
+
+  /* Color row */
+  .color-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .color-row:last-child { margin-bottom: 0; }
+
+  .color-label {
+    flex: 1;
+    font-size: 13px;
+    color: var(--color-text);
+  }
+
+  .color-sublabel {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    display: block;
+  }
+
+  .color-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .color-input-wrap input[type="color"] {
+    width: 36px;
+    height: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 2px;
+    cursor: pointer;
+    background: none;
+  }
+
+  .color-hex {
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--color-text-secondary);
+    width: 58px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 3px 6px;
+    outline: none;
+  }
+
+  .color-hex:focus { border-color: var(--color-primary); }
+
+  /* Typography section */
+  .font-option-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .font-option {
+    padding: 5px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    background: white;
+    color: var(--color-text);
+    transition: all 0.15s;
+  }
+
+  .font-option.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+  }
+
+  .font-option:hover:not(.active) { border-color: var(--color-primary); color: var(--color-primary); }
+
+  /* Radius slider */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .slider-row label { font-size: 13px; color: var(--color-text); flex: 1; }
+
+  .slider-row input[type="range"] {
+    flex: 1;
+    accent-color: var(--color-primary);
+  }
+
+  .slider-value {
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--color-text-secondary);
+    width: 32px;
+    text-align: right;
+  }
+
+  /* Actions */
+  .panel-actions {
+    padding: 16px 20px;
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
+    background: white;
+  }
+
+  .btn {
+    padding: 8px 14px;
+    border-radius: var(--border-radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--color-primary);
+    color: var(--color-primary-text);
+    flex: 1;
+  }
+
+  .btn-primary:hover { background: var(--color-primary-hover); }
+
+  .btn-secondary {
+    background: white;
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+  }
+
+  .btn-secondary:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+  .btn-danger-ghost {
+    background: none;
+    color: var(--color-danger);
+    border: 1px solid #fecaca;
+  }
+
+  /* ── LIVE PREVIEW ── */
+  .preview-panel {
+    background: var(--color-bg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .preview-label {
+    background: white;
+    border-bottom: 1px solid var(--color-border);
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .preview-label .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary); }
+
+  .preview-app {
+    flex: 1;
+    display: grid;
+    grid-template-rows: 52px 1fr;
+    overflow: hidden;
+    margin: 16px;
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+  }
+
+  /* Preview Header */
+  .preview-header {
+    background: var(--color-header-bg);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .preview-logo {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .preview-header-spacer { flex: 1; }
+
+  .preview-header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .preview-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .preview-notif {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: var(--color-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  /* Preview Content */
+  .preview-content {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    overflow: hidden;
+    background: var(--color-bg);
+  }
+
+  /* Preview Sidebar */
+  .preview-sidebar {
+    background: var(--color-sidebar-bg);
+    padding: 12px 8px;
+    overflow: hidden;
+  }
+
+  .preview-nav-item {
+    padding: 7px 10px;
+    border-radius: 6px;
+    margin-bottom: 2px;
+    font-size: 12px;
+    color: var(--color-sidebar-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .preview-nav-item.active {
+    background: var(--color-sidebar-active);
+    color: var(--color-sidebar-active-text);
+  }
+
+  .preview-nav-item .nav-icon { width: 14px; height: 14px; border-radius: 3px; background: currentColor; opacity: 0.6; flex-shrink: 0; }
+  .preview-nav-item.active .nav-icon { opacity: 1; }
+
+  .preview-nav-group {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-sidebar-text);
+    opacity: 0.5;
+    padding: 8px 10px 4px;
+    margin-top: 6px;
+  }
+
+  /* Preview Main */
+  .preview-main {
+    padding: 12px;
+    overflow: hidden;
+    background: var(--color-bg);
+  }
+
+  .preview-page-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 10px;
+  }
+
+  .preview-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .preview-stat-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: 8px 10px;
+  }
+
+  .preview-stat-value { font-size: 18px; font-weight: 700; color: var(--color-primary); }
+  .preview-stat-label { font-size: 10px; color: var(--color-text-secondary); margin-top: 1px; }
+
+  /* Preview Table */
+  .preview-table-wrap {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+  }
+
+  .preview-table-header-bar {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .preview-table-title { font-size: 12px; font-weight: 600; color: var(--color-text); }
+
+  .preview-btn {
+    padding: 4px 10px;
+    background: var(--color-primary);
+    color: var(--color-primary-text);
+    border: none;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+  }
+
+  table.preview-table { width: 100%; border-collapse: collapse; }
+
+  table.preview-table th {
+    background: var(--color-table-header-bg);
+    color: var(--color-table-header-text);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 6px 10px;
+    text-align: left;
+  }
+
+  table.preview-table td {
+    padding: 6px 10px;
+    font-size: 11px;
+    color: var(--color-text);
+    border-top: 1px solid var(--color-border);
+  }
+
+  table.preview-table tr:nth-child(even) td { background: var(--color-table-stripe); }
+  table.preview-table tr:hover td { background: var(--color-table-hover); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 700;
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .settings-body {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+
+    .controls-panel {
+      border-right: none;
+      border-bottom: 1px solid var(--color-border);
+      max-height: 50vh;
+    }
+
+    .preview-panel { min-height: 50vh; }
+  }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--color-border); margin: 8px 0; }
+</style>
+</head>
+<body>
+
+<div class="settings-page">
+
+  <!-- Header -->
+  <div class="settings-header">
+    <div style="color: var(--color-text-secondary); font-size:13px">
+      Setări → <span style="color: var(--color-primary); font-weight:600">Personalizare Temă</span>
+    </div>
+    <div style="flex:1"></div>
+    <div style="font-size:11px; color: var(--color-text-secondary)">
+      Modificările se aplică instant în preview →
+    </div>
+  </div>
+
+  <div class="settings-body">
+
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+
+      <!-- Presets -->
+      <div class="panel-section">
+        <div class="section-title">Teme predefinite</div>
+        <div class="preset-grid">
+          <div class="preset-item active" data-theme="light" onclick="applyPreset('light', this)">
+            <div class="preset-swatch">
+              <div class="preset-swatch-sidebar"></div>
+              <div class="preset-swatch-content"></div>
+            </div>
+            <div class="preset-label">Classic</div>
+          </div>
+          <div class="preset-item" data-theme="dark" onclick="applyPreset('dark', this)">
+            <div class="preset-swatch">
+              <div class="preset-swatch-sidebar"></div>
+              <div class="preset-swatch-content"></div>
+            </div>
+            <div class="preset-label">Dark</div>
+          </div>
+          <div class="preset-item" data-theme="ocean" onclick="applyPreset('ocean', this)">
+            <div class="preset-swatch">
+              <div class="preset-swatch-sidebar"></div>
+              <div class="preset-swatch-content"></div>
+            </div>
+            <div class="preset-label">Ocean</div>
+          </div>
+          <div class="preset-item" data-theme="forest" onclick="applyPreset('forest', this)">
+            <div class="preset-swatch">
+              <div class="preset-swatch-sidebar"></div>
+              <div class="preset-swatch-content"></div>
+            </div>
+            <div class="preset-label">Forest</div>
+          </div>
+          <div class="preset-item" data-theme="sunset" onclick="applyPreset('sunset', this)">
+            <div class="preset-swatch">
+              <div class="preset-swatch-sidebar"></div>
+              <div class="preset-swatch-content"></div>
+            </div>
+            <div class="preset-label">Sunset</div>
+          </div>
+          <div class="preset-item" data-theme="violet" onclick="applyPreset('violet', this)">
+            <div class="preset-swatch">
+              <div class="preset-swatch-sidebar"></div>
+              <div class="preset-swatch-content"></div>
+            </div>
+            <div class="preset-label">Violet</div>
+          </div>
+          <div class="preset-item" data-theme="slate" onclick="applyPreset('slate', this)">
+            <div class="preset-swatch">
+              <div class="preset-swatch-sidebar"></div>
+              <div class="preset-swatch-content"></div>
+            </div>
+            <div class="preset-label">Slate</div>
+          </div>
+          <div class="preset-item" data-theme="rose" onclick="applyPreset('rose', this)">
+            <div class="preset-swatch">
+              <div class="preset-swatch-sidebar"></div>
+              <div class="preset-swatch-content"></div>
+            </div>
+            <div class="preset-label">Rose</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="panel-section">
+        <div class="section-title">Sidebar & Navigare</div>
+        <div class="color-row">
+          <div class="color-label">Fundal sidebar <span class="color-sublabel">Meniu lateral stânga</span></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-sidebar-bg" value="#1e3a5f" oninput="setColor('--color-sidebar-bg', this.value); syncHex('hex-sidebar-bg', this.value)">
+            <input type="text" class="color-hex" id="hex-sidebar-bg" value="#1e3a5f" oninput="hexChange('c-sidebar-bg','--color-sidebar-bg',this.value)">
+          </div>
+        </div>
+        <div class="color-row">
+          <div class="color-label">Text & iconițe <span class="color-sublabel">Elemente inactive</span></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-sidebar-text" value="#cbd5e1" oninput="setColor('--color-sidebar-text', this.value); syncHex('hex-sidebar-text', this.value)">
+            <input type="text" class="color-hex" id="hex-sidebar-text" value="#cbd5e1" oninput="hexChange('c-sidebar-text','--color-sidebar-text',this.value)">
+          </div>
+        </div>
+        <div class="color-row">
+          <div class="color-label">Item activ <span class="color-sublabel">Pagina curentă</span></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-sidebar-active" value="#3b82f6" oninput="setColor('--color-sidebar-active', this.value); syncHex('hex-sidebar-active', this.value)">
+            <input type="text" class="color-hex" id="hex-sidebar-active" value="#3b82f6" oninput="hexChange('c-sidebar-active','--color-sidebar-active',this.value)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Conținut -->
+      <div class="panel-section">
+        <div class="section-title">Fundal & Conținut</div>
+        <div class="color-row">
+          <div class="color-label">Fundal pagină <span class="color-sublabel">Zona principală</span></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-bg" value="#f4f6fa" oninput="setColor('--color-bg', this.value); syncHex('hex-bg', this.value)">
+            <input type="text" class="color-hex" id="hex-bg" value="#f4f6fa" oninput="hexChange('c-bg','--color-bg',this.value)">
+          </div>
+        </div>
+        <div class="color-row">
+          <div class="color-label">Carduri & paneluri <span class="color-sublabel">Suprafețe secundare</span></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-bg2" value="#ffffff" oninput="setColor('--color-bg-secondary', this.value); syncHex('hex-bg2', this.value)">
+            <input type="text" class="color-hex" id="hex-bg2" value="#ffffff" oninput="hexChange('c-bg2','--color-bg-secondary',this.value)">
+          </div>
+        </div>
+        <div class="color-row">
+          <div class="color-label">Header <span class="color-sublabel">Bara de sus</span></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-header" value="#ffffff" oninput="setColor('--color-header-bg', this.value); syncHex('hex-header', this.value)">
+            <input type="text" class="color-hex" id="hex-header" value="#ffffff" oninput="hexChange('c-header','--color-header-bg',this.value)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Butoane & Accent -->
+      <div class="panel-section">
+        <div class="section-title">Culoare Accent & Butoane</div>
+        <div class="color-row">
+          <div class="color-label">Culoare primară <span class="color-sublabel">Butoane, linkuri, focus</span></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-primary" value="#2563eb" oninput="setColor('--color-primary', this.value); syncHex('hex-primary', this.value)">
+            <input type="text" class="color-hex" id="hex-primary" value="#2563eb" oninput="hexChange('c-primary','--color-primary',this.value)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Text -->
+      <div class="panel-section">
+        <div class="section-title">Tipografie</div>
+        <div class="color-row">
+          <div class="color-label">Text principal</div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-text" value="#1e293b" oninput="setColor('--color-text', this.value); syncHex('hex-text', this.value)">
+            <input type="text" class="color-hex" id="hex-text" value="#1e293b" oninput="hexChange('c-text','--color-text',this.value)">
+          </div>
+        </div>
+        <div class="color-row">
+          <div class="color-label">Text secundar <span class="color-sublabel">Subtitluri, descrieri</span></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-text2" value="#64748b" oninput="setColor('--color-text-secondary', this.value); syncHex('hex-text2', this.value)">
+            <input type="text" class="color-hex" id="hex-text2" value="#64748b" oninput="hexChange('c-text2','--color-text-secondary',this.value)">
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div style="margin-bottom:8px; font-size:12px; color: var(--color-text-secondary)">Font</div>
+        <div class="font-option-group">
+          <div class="font-option active" onclick="setFont(this, 'system-ui, -apple-system, sans-serif')" style="font-family: system-ui">System UI</div>
+          <div class="font-option" onclick="setFont(this, 'Inter, sans-serif')" style="font-family: 'Inter'">Inter</div>
+          <div class="font-option" onclick="setFont(this, 'Georgia, serif')" style="font-family: Georgia">Georgia</div>
+          <div class="font-option" onclick="setFont(this, 'Courier New, monospace')" style="font-family: 'Courier New'">Mono</div>
+        </div>
+      </div>
+
+      <!-- Tabele -->
+      <div class="panel-section">
+        <div class="section-title">Tabele</div>
+        <div class="color-row">
+          <div class="color-label">Header tabel</div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-th" value="#f1f5f9" oninput="setColor('--color-table-header-bg', this.value); syncHex('hex-th', this.value)">
+            <input type="text" class="color-hex" id="hex-th" value="#f1f5f9" oninput="hexChange('c-th','--color-table-header-bg',this.value)">
+          </div>
+        </div>
+        <div class="color-row">
+          <div class="color-label">Rând alternativ</div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-stripe" value="#f8fafc" oninput="setColor('--color-table-stripe', this.value); syncHex('hex-stripe', this.value)">
+            <input type="text" class="color-hex" id="hex-stripe" value="#f8fafc" oninput="hexChange('c-stripe','--color-table-stripe',this.value)">
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div style="margin-bottom:8px; font-size:12px; color: var(--color-text-secondary)">Raza borduri</div>
+        <div class="slider-row">
+          <label>Colțuri card</label>
+          <input type="range" min="0" max="20" value="8" id="sl-radius" oninput="document.documentElement.style.setProperty('--border-radius', this.value + 'px'); document.getElementById('sl-radius-val').textContent = this.value + 'px'">
+          <span class="slider-value" id="sl-radius-val">8px</span>
+        </div>
+        <div class="slider-row">
+          <label>Lățime sidebar</label>
+          <input type="range" min="160" max="280" value="220" id="sl-sidebar" oninput="document.documentElement.style.setProperty('--sidebar-width', this.value + 'px'); document.getElementById('sl-sidebar-val').textContent = this.value + 'px'">
+          <span class="slider-value" id="sl-sidebar-val">220px</span>
+        </div>
+      </div>
+
+    </div><!-- /controls -->
+
+    <!-- Actions (bottom of controls) -->
+
+    <!-- Live Preview Panel -->
+    <div class="preview-panel">
+      <div class="preview-label">
+        <div class="dot"></div>
+        Preview live — modificările se aplică instant
+      </div>
+
+      <div class="preview-app">
+        <!-- App Header -->
+        <div class="preview-header">
+          <div class="preview-logo">⚡ PhiHau</div>
+          <div style="font-size:11px; color: var(--color-text-secondary); margin-left: 8px;">Portal QwanKiDo</div>
+          <div class="preview-header-spacer"></div>
+          <div class="preview-header-actions">
+            <div class="preview-notif">🔔</div>
+            <div class="preview-avatar">AL</div>
+          </div>
+        </div>
+
+        <!-- App Body -->
+        <div class="preview-content">
+          <!-- Sidebar -->
+          <div class="preview-sidebar">
+            <div class="preview-nav-group">PRINCIPAL</div>
+            <div class="preview-nav-item active">
+              <div class="nav-icon"></div>Dashboard
+            </div>
+            <div class="preview-nav-item">
+              <div class="nav-icon"></div>Sportivi
+            </div>
+            <div class="preview-nav-item">
+              <div class="nav-icon"></div>Grupe
+            </div>
+            <div class="preview-nav-group">ACTIVITATE</div>
+            <div class="preview-nav-item">
+              <div class="nav-icon"></div>Prezență
+            </div>
+            <div class="preview-nav-item">
+              <div class="nav-icon"></div>Examene
+            </div>
+            <div class="preview-nav-item">
+              <div class="nav-icon"></div>Competiții
+            </div>
+            <div class="preview-nav-group">FINANCIAR</div>
+            <div class="preview-nav-item">
+              <div class="nav-icon"></div>Plăți
+            </div>
+          </div>
+
+          <!-- Main Content -->
+          <div class="preview-main">
+            <div class="preview-page-title">Dashboard Club</div>
+
+            <div class="preview-stats">
+              <div class="preview-stat-card">
+                <div class="preview-stat-value">142</div>
+                <div class="preview-stat-label">Sportivi activi</div>
+              </div>
+              <div class="preview-stat-card">
+                <div class="preview-stat-value">8</div>
+                <div class="preview-stat-label">Grupe active</div>
+              </div>
+              <div class="preview-stat-card">
+                <div class="preview-stat-value">94%</div>
+                <div class="preview-stat-label">Prezență medie</div>
+              </div>
+            </div>
+
+            <div class="preview-table-wrap">
+              <div class="preview-table-header-bar">
+                <span class="preview-table-title">Sportivi recenți</span>
+                <button class="preview-btn">+ Adaugă</button>
+              </div>
+              <table class="preview-table">
+                <thead>
+                  <tr>
+                    <th>Nume</th>
+                    <th>Grad</th>
+                    <th>Stare</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Ionescu Alexandru</td>
+                    <td>Albastru 1</td>
+                    <td><span class="badge">Activ</span></td>
+                  </tr>
+                  <tr>
+                    <td>Popescu Maria</td>
+                    <td>Galben</td>
+                    <td><span class="badge">Activ</span></td>
+                  </tr>
+                  <tr>
+                    <td>Dumitrescu Ion</td>
+                    <td>Verde 2</td>
+                    <td><span class="badge">Activ</span></td>
+                  </tr>
+                  <tr>
+                    <td>Stanescu Ana</td>
+                    <td>Alb</td>
+                    <td><span class="badge">Activ</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action bar below preview -->
+      <div style="padding: 12px 16px; background: white; border-top: 1px solid var(--color-border); display: flex; gap: 8px; align-items: center;">
+        <button class="btn btn-primary" onclick="saveTheme()">💾 Salvează tema</button>
+        <button class="btn btn-secondary" onclick="exportCSS()">📋 Copiază CSS</button>
+        <button class="btn btn-secondary" onclick="resetTheme()">↺ Reset</button>
+        <div style="flex:1"></div>
+        <div id="save-feedback" style="font-size:12px; color: var(--color-success); opacity:0; transition: opacity 0.3s;">✓ Salvat!</div>
+      </div>
+    </div>
+
+  </div><!-- /settings-body -->
+</div>
+
+<script>
+const root = document.documentElement;
+
+function setColor(prop, val) {
+  root.style.setProperty(prop, val);
+}
+
+function syncHex(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val;
+}
+
+function hexChange(colorId, prop, val) {
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    root.style.setProperty(prop, val);
+    const el = document.getElementById(colorId);
+    if (el) el.value = val;
+  }
+}
+
+function setFont(btn, family) {
+  document.querySelectorAll('.font-option').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  root.style.setProperty('font-family', family);
+  document.querySelector('.preview-app').style.fontFamily = family;
+}
+
+const PRESETS = {
+  light: {
+    '--color-bg': '#f4f6fa',
+    '--color-bg-secondary': '#ffffff',
+    '--color-sidebar-bg': '#1e3a5f',
+    '--color-sidebar-text': '#cbd5e1',
+    '--color-sidebar-active': '#3b82f6',
+    '--color-header-bg': '#ffffff',
+    '--color-primary': '#2563eb',
+    '--color-text': '#1e293b',
+    '--color-text-secondary': '#64748b',
+    '--color-border': '#e2e8f0',
+    '--color-table-header-bg': '#f1f5f9',
+    '--color-table-stripe': '#f8fafc',
+    '--color-table-hover': '#eff6ff',
+    '--color-badge-bg': '#dbeafe',
+    '--color-badge-text': '#1e40af',
+  },
+  dark: {
+    '--color-bg': '#111827',
+    '--color-bg-secondary': '#1f2937',
+    '--color-sidebar-bg': '#0f172a',
+    '--color-sidebar-text': '#94a3b8',
+    '--color-sidebar-active': '#3b82f6',
+    '--color-header-bg': '#1f2937',
+    '--color-primary': '#60a5fa',
+    '--color-text': '#f1f5f9',
+    '--color-text-secondary': '#94a3b8',
+    '--color-border': '#374151',
+    '--color-table-header-bg': '#374151',
+    '--color-table-stripe': '#1f2937',
+    '--color-table-hover': '#2d3748',
+    '--color-badge-bg': '#1e3a5f',
+    '--color-badge-text': '#93c5fd',
+  },
+  ocean: {
+    '--color-bg': '#e0f2fe',
+    '--color-bg-secondary': '#ffffff',
+    '--color-sidebar-bg': '#0c4a6e',
+    '--color-sidebar-text': '#bae6fd',
+    '--color-sidebar-active': '#0ea5e9',
+    '--color-header-bg': '#ffffff',
+    '--color-primary': '#0284c7',
+    '--color-text': '#0c4a6e',
+    '--color-text-secondary': '#0369a1',
+    '--color-border': '#bae6fd',
+    '--color-table-header-bg': '#e0f2fe',
+    '--color-table-stripe': '#f0f9ff',
+    '--color-table-hover': '#e0f2fe',
+    '--color-badge-bg': '#e0f2fe',
+    '--color-badge-text': '#0369a1',
+  },
+  forest: {
+    '--color-bg': '#f0fdf4',
+    '--color-bg-secondary': '#ffffff',
+    '--color-sidebar-bg': '#14532d',
+    '--color-sidebar-text': '#bbf7d0',
+    '--color-sidebar-active': '#16a34a',
+    '--color-header-bg': '#ffffff',
+    '--color-primary': '#15803d',
+    '--color-text': '#14532d',
+    '--color-text-secondary': '#166534',
+    '--color-border': '#bbf7d0',
+    '--color-table-header-bg': '#dcfce7',
+    '--color-table-stripe': '#f0fdf4',
+    '--color-table-hover': '#dcfce7',
+    '--color-badge-bg': '#dcfce7',
+    '--color-badge-text': '#166534',
+  },
+  sunset: {
+    '--color-bg': '#fff7ed',
+    '--color-bg-secondary': '#ffffff',
+    '--color-sidebar-bg': '#7c2d12',
+    '--color-sidebar-text': '#fed7aa',
+    '--color-sidebar-active': '#ea580c',
+    '--color-header-bg': '#ffffff',
+    '--color-primary': '#ea580c',
+    '--color-text': '#431407',
+    '--color-text-secondary': '#9a3412',
+    '--color-border': '#fed7aa',
+    '--color-table-header-bg': '#ffedd5',
+    '--color-table-stripe': '#fff7ed',
+    '--color-table-hover': '#ffedd5',
+    '--color-badge-bg': '#ffedd5',
+    '--color-badge-text': '#9a3412',
+  },
+  violet: {
+    '--color-bg': '#f5f3ff',
+    '--color-bg-secondary': '#ffffff',
+    '--color-sidebar-bg': '#4c1d95',
+    '--color-sidebar-text': '#ddd6fe',
+    '--color-sidebar-active': '#7c3aed',
+    '--color-header-bg': '#ffffff',
+    '--color-primary': '#7c3aed',
+    '--color-text': '#2e1065',
+    '--color-text-secondary': '#5b21b6',
+    '--color-border': '#ddd6fe',
+    '--color-table-header-bg': '#ede9fe',
+    '--color-table-stripe': '#f5f3ff',
+    '--color-table-hover': '#ede9fe',
+    '--color-badge-bg': '#ede9fe',
+    '--color-badge-text': '#5b21b6',
+  },
+  slate: {
+    '--color-bg': '#f8fafc',
+    '--color-bg-secondary': '#ffffff',
+    '--color-sidebar-bg': '#334155',
+    '--color-sidebar-text': '#cbd5e1',
+    '--color-sidebar-active': '#475569',
+    '--color-header-bg': '#ffffff',
+    '--color-primary': '#475569',
+    '--color-text': '#0f172a',
+    '--color-text-secondary': '#475569',
+    '--color-border': '#e2e8f0',
+    '--color-table-header-bg': '#f1f5f9',
+    '--color-table-stripe': '#f8fafc',
+    '--color-table-hover': '#f1f5f9',
+    '--color-badge-bg': '#f1f5f9',
+    '--color-badge-text': '#475569',
+  },
+  rose: {
+    '--color-bg': '#fff1f2',
+    '--color-bg-secondary': '#ffffff',
+    '--color-sidebar-bg': '#9f1239',
+    '--color-sidebar-text': '#fecdd3',
+    '--color-sidebar-active': '#e11d48',
+    '--color-header-bg': '#ffffff',
+    '--color-primary': '#e11d48',
+    '--color-text': '#4c0519',
+    '--color-text-secondary': '#9f1239',
+    '--color-border': '#fecdd3',
+    '--color-table-header-bg': '#ffe4e6',
+    '--color-table-stripe': '#fff1f2',
+    '--color-table-hover': '#ffe4e6',
+    '--color-badge-bg': '#ffe4e6',
+    '--color-badge-text': '#9f1239',
+  }
+};
+
+const COLOR_MAP = {
+  'light': { sidebar: '#1e3a5f', bg: '#f4f6fa', primary: '#2563eb', header: '#ffffff', text: '#1e293b', text2: '#64748b', th: '#f1f5f9', stripe: '#f8fafc', sbtext: '#cbd5e1', sbactive: '#3b82f6', bg2: '#ffffff' },
+  'dark':  { sidebar: '#0f172a', bg: '#111827', primary: '#60a5fa', header: '#1f2937', text: '#f1f5f9', text2: '#94a3b8', th: '#374151', stripe: '#1f2937', sbtext: '#94a3b8', sbactive: '#3b82f6', bg2: '#1f2937' },
+  'ocean': { sidebar: '#0c4a6e', bg: '#e0f2fe', primary: '#0284c7', header: '#ffffff', text: '#0c4a6e', text2: '#0369a1', th: '#e0f2fe', stripe: '#f0f9ff', sbtext: '#bae6fd', sbactive: '#0ea5e9', bg2: '#ffffff' },
+  'forest':{ sidebar: '#14532d', bg: '#f0fdf4', primary: '#15803d', header: '#ffffff', text: '#14532d', text2: '#166534', th: '#dcfce7', stripe: '#f0fdf4', sbtext: '#bbf7d0', sbactive: '#16a34a', bg2: '#ffffff' },
+  'sunset':{ sidebar: '#7c2d12', bg: '#fff7ed', primary: '#ea580c', header: '#ffffff', text: '#431407', text2: '#9a3412', th: '#ffedd5', stripe: '#fff7ed', sbtext: '#fed7aa', sbactive: '#ea580c', bg2: '#ffffff' },
+  'violet':{ sidebar: '#4c1d95', bg: '#f5f3ff', primary: '#7c3aed', header: '#ffffff', text: '#2e1065', text2: '#5b21b6', th: '#ede9fe', stripe: '#f5f3ff', sbtext: '#ddd6fe', sbactive: '#7c3aed', bg2: '#ffffff' },
+  'slate': { sidebar: '#334155', bg: '#f8fafc', primary: '#475569', header: '#ffffff', text: '#0f172a', text2: '#475569', th: '#f1f5f9', stripe: '#f8fafc', sbtext: '#cbd5e1', sbactive: '#475569', bg2: '#ffffff' },
+  'rose':  { sidebar: '#9f1239', bg: '#fff1f2', primary: '#e11d48', header: '#ffffff', text: '#4c0519', text2: '#9f1239', th: '#ffe4e6', stripe: '#fff1f2', sbtext: '#fecdd3', sbactive: '#e11d48', bg2: '#ffffff' },
+};
+
+function applyPreset(name, el) {
+  document.querySelectorAll('.preset-item').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+
+  const p = PRESETS[name];
+  if (!p) return;
+  Object.entries(p).forEach(([k, v]) => root.style.setProperty(k, v));
+
+  // Sync all inputs
+  const m = COLOR_MAP[name];
+  if (m) {
+    syncColorInput('c-sidebar-bg', 'hex-sidebar-bg', m.sidebar);
+    syncColorInput('c-bg', 'hex-bg', m.bg);
+    syncColorInput('c-primary', 'hex-primary', m.primary);
+    syncColorInput('c-header', 'hex-header', m.header);
+    syncColorInput('c-text', 'hex-text', m.text);
+    syncColorInput('c-text2', 'hex-text2', m.text2);
+    syncColorInput('c-th', 'hex-th', m.th);
+    syncColorInput('c-stripe', 'hex-stripe', m.stripe);
+    syncColorInput('c-sidebar-text', 'hex-sidebar-text', m.sbtext);
+    syncColorInput('c-sidebar-active', 'hex-sidebar-active', m.sbactive);
+    syncColorInput('c-bg2', 'hex-bg2', m.bg2);
+  }
+}
+
+function syncColorInput(colorId, hexId, val) {
+  const c = document.getElementById(colorId);
+  const h = document.getElementById(hexId);
+  if (c) c.value = val;
+  if (h) h.value = val;
+}
+
+function saveTheme() {
+  const theme = {};
+  ['--color-bg','--color-bg-secondary','--color-sidebar-bg','--color-sidebar-text',
+   '--color-sidebar-active','--color-header-bg','--color-primary','--color-text',
+   '--color-text-secondary','--color-border','--color-table-header-bg','--color-table-stripe'].forEach(k => {
+    theme[k] = getComputedStyle(root).getPropertyValue(k).trim();
+  });
+  localStorage.setItem('phihau-theme', JSON.stringify(theme));
+  const fb = document.getElementById('save-feedback');
+  fb.style.opacity = '1';
+  setTimeout(() => fb.style.opacity = '0', 2000);
+}
+
+function exportCSS() {
+  const vars = ['--color-bg','--color-bg-secondary','--color-sidebar-bg','--color-sidebar-text',
+   '--color-sidebar-active','--color-header-bg','--color-primary','--color-text',
+   '--color-text-secondary','--color-border','--color-table-header-bg','--color-table-stripe',
+   '--border-radius','--sidebar-width'];
+  const css = ':root {\n' + vars.map(k => `  ${k}: ${getComputedStyle(root).getPropertyValue(k).trim()};`).join('\n') + '\n}';
+  navigator.clipboard.writeText(css).then(() => {
+    const fb = document.getElementById('save-feedback');
+    fb.textContent = '✓ CSS copiat!';
+    fb.style.opacity = '1';
+    setTimeout(() => { fb.style.opacity = '0'; fb.textContent = '✓ Salvat!'; }, 2000);
+  });
+}
+
+function resetTheme() {
+  applyPreset('light', document.querySelector('.preset-item[data-theme="light"]'));
+  document.getElementById('sl-radius').value = 8;
+  document.getElementById('sl-radius-val').textContent = '8px';
+  root.style.setProperty('--border-radius', '8px');
+  document.getElementById('sl-sidebar').value = 220;
+  document.getElementById('sl-sidebar-val').textContent = '220px';
+  root.style.setProperty('--sidebar-width', '220px');
+}
+</script>
+</body>
+</html>

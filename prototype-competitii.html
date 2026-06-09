@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototip — Competiții PhiHau</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --success: #16a34a;
+    --success-light: #dcfce7;
+    --warning: #d97706;
+    --warning-light: #fef3c7;
+    --danger: #dc2626;
+    --danger-light: #fee2e2;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-100); color: var(--gray-800); }
+
+  /* NAV */
+  .nav { background: white; border-bottom: 1px solid var(--gray-200); padding: 12px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+  .nav-back { background: none; border: none; cursor: pointer; padding: 6px; border-radius: 6px; display: flex; align-items: center; gap: 6px; color: var(--primary); font-size: 14px; font-weight: 500; }
+  .nav-back:hover { background: var(--gray-100); }
+  .nav-title { font-weight: 600; font-size: 16px; flex: 1; }
+
+  /* TABS */
+  .tabs { display: flex; background: white; border-bottom: 1px solid var(--gray-200); overflow-x: auto; padding: 0 16px; }
+  .tab { padding: 12px 16px; border: none; background: none; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--gray-600); border-bottom: 2px solid transparent; white-space: nowrap; }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* SCREENS */
+  .screen { display: none; padding: 16px; max-width: 900px; margin: 0 auto; }
+  .screen.active { display: block; }
+
+  /* CARDS GRID */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 480px) { .cards-grid { grid-template-columns: 1fr; } }
+
+  .probe-card { background: white; border: 2px solid var(--gray-200); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; position: relative; }
+  .probe-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(37,99,235,0.15); }
+  .probe-card.complete { border-color: var(--success); background: linear-gradient(135deg, white, #f0fdf4); }
+  .probe-card.blocked { border-color: var(--warning); background: var(--warning-light); cursor: not-allowed; }
+
+  .probe-card-icon { font-size: 28px; margin-bottom: 10px; }
+  .probe-card-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .probe-card-sub { font-size: 12px; color: var(--gray-600); }
+  .checkmark { position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
+  .badge-count { display: inline-block; background: var(--primary); color: white; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-top: 6px; }
+  .badge-warning { background: var(--warning); }
+  .badge-success { background: var(--success); }
+
+  /* SECTION TITLE */
+  .section-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .section-sub { font-size: 13px; color: var(--gray-600); margin-bottom: 20px; }
+
+  /* QUYEN SCREEN */
+  .athlete-row { background: white; border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--gray-200); }
+  .athlete-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0; }
+  .athlete-name { font-weight: 500; font-size: 14px; flex: 1; }
+  .athlete-grade { font-size: 11px; color: var(--gray-600); }
+  .quyen-select { border: 1px solid var(--gray-300); border-radius: 6px; padding: 6px 10px; font-size: 13px; min-width: 160px; }
+  .quyen-select.missing { border-color: var(--danger); background: var(--danger-light); }
+  .quyen-select.set { border-color: var(--success); }
+
+  /* BANNER BLOCARE */
+  .banner { border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px; }
+  .banner-warning { background: var(--warning-light); border: 1px solid #fcd34d; }
+  .banner-success { background: var(--success-light); border: 1px solid #86efac; }
+  .banner-info { background: #eff6ff; border: 1px solid #bfdbfe; }
+  .banner-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .banner-text { font-size: 13px; }
+  .banner-text strong { display: block; font-weight: 600; margin-bottom: 2px; }
+
+  /* BUTTONS */
+  .btn { border: none; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-primary:disabled { background: var(--gray-300); color: var(--gray-400); cursor: not-allowed; }
+  .btn-secondary { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
+  .btn-secondary:hover { background: var(--gray-50); }
+  .btn-success { background: var(--success); color: white; }
+  .btn-success:hover { background: #15803d; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* FOOTER ACTIONS */
+  .footer-actions { position: sticky; bottom: 0; background: white; border-top: 1px solid var(--gray-200); padding: 12px 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+  @media (max-width: 480px) { .footer-actions { flex-direction: column; } .footer-actions .btn { width: 100%; justify-content: center; } }
+
+  /* ECHIPE */
+  .categorie-card { background: white; border: 1px solid var(--gray-200); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .categorie-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .categorie-name { font-weight: 600; font-size: 15px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: var(--success-light); color: var(--success); }
+  .badge-red { background: var(--danger-light); color: var(--danger); }
+  .badge-gray { background: var(--gray-100); color: var(--gray-600); }
+  .badge-yellow { background: var(--warning-light); color: var(--warning); }
+
+  .sportiv-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--gray-100); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500; margin: 3px; }
+  .sportiv-chip.selectat { background: #dbeafe; color: var(--primary); }
+  .sportiv-chip .remove { cursor: pointer; color: var(--gray-400); font-size: 14px; }
+  .sportiv-chip .remove:hover { color: var(--danger); }
+
+  /* DIALOG OVERLAY */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .overlay.open { display: flex; }
+  .dialog { background: white; border-radius: 16px; padding: 24px; max-width: 320px; width: 100%; text-align: center; }
+  .dialog-icon { font-size: 40px; margin-bottom: 12px; }
+  .dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .dialog-sub { font-size: 14px; color: var(--gray-600); margin-bottom: 20px; }
+  .dialog-actions { display: flex; gap: 10px; }
+  .dialog-actions .btn { flex: 1; justify-content: center; }
+
+  /* TOAST */
+  .toast-container { position: fixed; top: 16px; right: 16px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+  .toast { background: white; border-radius: 10px; padding: 12px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-left: 4px solid; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; min-width: 260px; animation: slideIn 0.3s ease; }
+  .toast-success { border-color: var(--success); }
+  .toast-warning { border-color: var(--warning); }
+  .toast-info { border-color: var(--primary); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* FINALIZARE */
+  .finalizare-card { background: white; border-radius: 12px; padding: 20px; border: 1px solid var(--gray-200); }
+  .finalizare-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
+  .finalizare-row:last-child { border-bottom: none; }
+
+  /* SECTION DIVIDER */
+  .divider { height: 1px; background: var(--gray-200); margin: 16px 0; }
+
+  /* LABEL */
+  label { font-size: 13px; font-weight: 500; color: var(--gray-700); display: block; margin-bottom: 4px; }
+
+  /* LEGEND */
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; font-size: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* PROGRESS INDICATOR */
+  .progress-bar { display: flex; gap: 4px; margin-bottom: 20px; }
+  .progress-step { flex: 1; height: 4px; border-radius: 2px; background: var(--gray-200); }
+  .progress-step.done { background: var(--success); }
+  .progress-step.active { background: var(--primary); }
+
+  .tag { display: inline-block; background: var(--gray-100); border-radius: 6px; padding: 2px 8px; font-size: 11px; color: var(--gray-600); margin-right: 4px; }
+
+  /* DEMO LABEL */
+  .demo-note { background: #1e3a5f; color: white; padding: 8px 16px; font-size: 11px; text-align: center; }
+
+  /* INELIGIBIL */
+  .ineligibil-row { opacity: 0.4; text-decoration: line-through; pointer-events: none; }
+  .eligibil-only-msg { color: var(--success); font-size: 12px; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="demo-note">🔬 PROTOTIP INTERACTIV — Portal PhiHau | Modulul Competiții — 6 modificări propuse</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- EXIT APP DIALOG -->
+<div class="overlay" id="exitDialog">
+  <div class="dialog">
+    <div class="dialog-icon">📱</div>
+    <div class="dialog-title">Ieși din aplicație?</div>
+    <div class="dialog-sub">Datele nesalvate vor fi pierdute.</div>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" onclick="closeDialog('exitDialog')">Rămân</button>
+      <button class="btn btn-danger" onclick="showToast('info', '🚪 Ieșit din aplicație (simulat)')">Da, iese</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUYEN REDIRECT DIALOG -->
+<div class="overlay" id="quyenDialog">
+  <div class="dialog">
+    <div class="dialog-icon">⚠️</div>
+    <div class="dialog-title">Quyen neselectat</div>
+    <div class="dialog-sub">3 sportivi nu au quyen selectat. Vei fi redirecționat la selecția de quyen.</div>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" onclick="closeDialog('quyenDialog')">Anulează</button>
+      <button class="btn btn-primary" onclick="redirectToQuyen()">→ Selectează quyen</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav" id="mainNav">
+  <button class="nav-back" onclick="handleBack()">
+    ← <span id="navBackLabel">Competiții</span>
+  </button>
+  <span class="nav-title" id="navTitle">Campionat Național 2026</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="showScreen('hub')">📋 Probe</button>
+  <button class="tab" onclick="showScreen('quyen')">🥋 Quyen</button>
+  <button class="tab" onclick="showScreen('echipe')">👥 Echipe</button>
+  <button class="tab" onclick="showScreen('finalizare')">✅ Finalizare</button>
+  <button class="tab" onclick="showScreen('dashboard')">🏠 Dashboard</button>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SCREEN 1: HUB CARDURI (Modificarea 6) -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="screen active" id="screen-hub">
+  <div style="padding-top:8px">
+    <p class="section-title">Înscriere Competiție</p>
+    <p class="section-sub">Alege probele la care participi, rezolvă fiecare, apoi finalizează.</p>
+
+    <div class="banner banner-info">
+      <span class="banner-icon">ℹ️</span>
+      <div class="banner-text">
+        <strong>Flux nou fără pași</strong>
+        Apasă orice card de probă, completează sportivii, revii cu ← înapoi. Poți rezolva probele în orice ordine.
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-bar">
+      <div class="progress-step done" title="Sportivi selectați"></div>
+      <div class="progress-step active" title="Quyen"></div>
+      <div class="progress-step" title="Echipe"></div>
+      <div class="progress-step" title="Finalizare"></div>
+    </div>
+    <p style="font-size:12px;color:var(--gray-600);margin-bottom:16px;">2 din 4 probe completate</p>
+
+    <div class="cards-grid">
+      <!-- Card 1: Completat -->
+      <div class="probe-card complete" onclick="showScreen('hub'); showToast('success', '✅ Sportivi deja selectați')">
+        <div class="checkmark">✓</div>
+        <div class="probe-card-icon">🧍</div>
+        <div class="probe-card-title">Kata Individual</div>
+        <div class="probe-card-sub">Forme individuale</div>
+        <div class="badge-count badge-success">8 sportivi</div>
+      </div>
+
+      <!-- Card 2: Blocat - lipsesc quyene -->
+      <div class="probe-card blocked" onclick="openDialog('quyenDialog')">
+        <div class="probe-card-icon">🥋</div>
+        <div class="probe-card-title">Thao Quyen</div>
+        <div class="probe-card-sub">Forme tradiționale</div>
+        <div class="badge-count badge-warning">⚠️ 3 fără quyen</div>
+      </div>
+
+      <!-- Card 3: Necompletat -->
+      <div class="probe-card" onclick="showScreen('echipe')">
+        <div class="probe-card-icon">👥</div>
+        <div class="probe-card-title">Kata Echipe</div>
+        <div class="probe-card-sub">3 membri per echipă</div>
+        <div class="badge-count">5 eligibili</div>
+      </div>
+
+      <!-- Card 4: Completat -->
+      <div class="probe-card complete" onclick="showToast('success', '✅ Echipe deja formate')">
+        <div class="checkmark">✓</div>
+        <div class="probe-card-icon">⚔️</div>
+        <div class="probe-card-title">Combat Individual</div>
+        <div class="probe-card-sub">Contact sport</div>
+        <div class="badge-count badge-success">6 sportivi</div>
+      </div>
+
+      <!-- Card 5: Fara sportivi - auto-skip -->
+      <div class="probe-card" style="opacity:0.5;cursor:default;border-style:dashed" title="Auto-exclus: niciun sportiv eligibil">
+        <div class="probe-card-icon">🏆</div>
+        <div class="probe-card-title">Combat Echipe</div>
+        <div class="probe-card-sub" style="color:var(--danger)">0 sportivi eligibili</div>
+        <div class="badge-count" style="background:var(--gray-400)">Nu participăm</div>
+      </div>
+
+      <!-- Card 6: Necompletat -->
+      <div class="probe-card" onclick="showToast('info', '→ Deschide proba Giao Dau...')">
+        <div class="probe-card-icon">🥊</div>
+        <div class="probe-card-title">Giao Dau</div>
+        <div class="probe-card-sub">Combat tradițional</div>
+        <div class="badge-count">4 eligibili</div>
+      </div>
+    </div>
+
+    <div class="banner banner-warning">
+      <span class="banner-icon">⚠️</span>
+      <div class="banner-text">
+        <strong>1 probă necesită atenție</strong>
+        Thao Quyen: 3 sportivi fără quyen selectat. Nu poți finaliza înscrierea până nu rezolvi.
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> Completat</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--warning)"></div> Necesită atenție</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gray-300)"></div> Necompletat</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gray-200);border:1px dashed var(--gray-400)"></div> Auto-exclus</div>
+    </div>
+  </div>
+
+  <div class="footer-actions">
+    <button class="btn btn-secondary" onclick="showToast('info', '← Înapoi la lista competiții')">← Lista competiții</button>
+    <button class="btn btn-secondary" onclick="showScreen('finalizare')">📄 Previzualizare fișă</button>
+    <button class="btn btn-primary" onclick="openDialog('quyenDialog')" disabled title="Rezolvă mai întâi Thao Quyen">🔒 Finalizează înscrierea</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SCREEN 2: QUYEN (Modificările 1 & 2) -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="screen" id="screen-quyen">
+  <p class="section-title">Thao Quyen — Selecție</p>
+  <p class="section-sub">Fiecare sportiv trebuie să aibă un quyen selectat pentru a continua.</p>
+
+  <div class="banner banner-warning" id="bannerQuyenBlocare">
+    <span class="banner-icon">🔒</span>
+    <div class="banner-text">
+      <strong>3 sportivi fără quyen selectat</strong>
+      Nu poți avansa până când toți sportivii au quyen ales.
+      <br><br>
+      <button class="btn btn-sm btn-secondary" onclick="autoSelectQ1All()">⚡ Setează Q1 automat pentru toți cei fără selecție</button>
+    </div>
+  </div>
+
+  <div id="athleteListQuyen">
+    <!-- Sportivi randate dinamic -->
+  </div>
+
+  <div class="footer-actions">
+    <button class="btn btn-secondary" onclick="showScreen('hub')">← Înapoi la probe</button>
+    <button class="btn btn-primary" id="btnContinuaQuyen" onclick="continueFromQuyen()" disabled>
+      Continuă →
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SCREEN 3: ECHIPE (Modificarea 3 & 5) -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="screen" id="screen-echipe">
+  <p class="section-title">Kata Echipe — Formare</p>
+  <p class="section-sub">Categoriile fără sportivi eligibili sunt excluse automat.</p>
+
+  <div class="banner banner-success">
+    <span class="banner-icon">✅</span>
+    <div class="banner-text">
+      <strong>2 categorii excluse automat</strong>
+      U12 Fete și Seniori Masculin nu au sportivi eligibili — marcate automat ca "Nu participăm".
+    </div>
+  </div>
+
+  <!-- Categorie cu sportivi -->
+  <div class="categorie-card">
+    <div class="categorie-header">
+      <div>
+        <div class="categorie-name">U18 Masculin</div>
+        <div style="font-size:12px;color:var(--gray-600)">Vârstă: 14-17 ani | Grad: Kyu 5-Kyu 1</div>
+      </div>
+      <span class="badge badge-green">4 eligibili</span>
+    </div>
+    <div style="margin-bottom:10px">
+      <span class="eligibil-only-msg">✓ Afișați doar sportivi eligibili (grad + vârstă + sex)</span>
+    </div>
+    <div style="margin-bottom:10px">
+      <span class="sportiv-chip selectat">Mihai P. <span class="remove" onclick="showToast('info', 'Eliminat din echipă')">×</span></span>
+      <span class="sportiv-chip selectat">Andrei C. <span class="remove" onclick="showToast('info', 'Eliminat din echipă')">×</span></span>
+      <span class="sportiv-chip selectat">Radu M. <span class="remove" onclick="showToast('info', 'Eliminat din echipă')">×</span></span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="sportiv-chip" onclick="this.classList.toggle('selectat');showToast('success','Adăugat în echipă')">+ David O.</span>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:12px;color:var(--gray-600)">Echipă completă: 3/3 sportivi ✓</div>
+  </div>
+
+  <!-- Categorie cu sportivi -->
+  <div class="categorie-card">
+    <div class="categorie-header">
+      <div>
+        <div class="categorie-name">U18 Feminin</div>
+        <div style="font-size:12px;color:var(--gray-600)">Vârstă: 14-17 ani | Grad: Kyu 5-Kyu 1</div>
+      </div>
+      <span class="badge badge-yellow">2 eligibili</span>
+    </div>
+    <span class="eligibil-only-msg">✓ Afișați doar sportivi eligibili</span>
+    <div style="margin:10px 0">
+      <span class="sportiv-chip selectat">Elena R. <span class="remove" onclick="showToast('info','Eliminat')">×</span></span>
+      <span class="sportiv-chip" onclick="this.classList.toggle('selectat');showToast('success','Adăugat')">+ Maria D.</span>
+    </div>
+    <div style="font-size:12px;color:var(--warning)">⚠️ Echipă incompletă: 1/3 sportivi (minim 3 necesari)</div>
+  </div>
+
+  <!-- Categorie exclusa automat -->
+  <div class="categorie-card" style="opacity:0.5;border-style:dashed">
+    <div class="categorie-header">
+      <div>
+        <div class="categorie-name" style="text-decoration:line-through">U12 Fete</div>
+        <div style="font-size:12px;color:var(--gray-600)">Vârstă: 8-11 ani</div>
+      </div>
+      <span class="badge badge-gray">Exclusă automat</span>
+    </div>
+    <div style="font-size:12px;color:var(--gray-600)">0 sportivi eligibili → marcat automat "Nu participăm"</div>
+  </div>
+
+  <div class="footer-actions">
+    <button class="btn btn-secondary" onclick="showScreen('hub')">← Înapoi la probe</button>
+    <button class="btn btn-primary" onclick="showScreen('hub');showToast('success','✅ Echipe salvate')">Salvează echipele ✓</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SCREEN 4: FINALIZARE -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="screen" id="screen-finalizare">
+  <p class="section-title">Fișă Competiție — Preview</p>
+  <p class="section-sub">Verifică înscrierea înainte de trimitere.</p>
+
+  <div class="finalizare-card" style="margin-bottom:16px">
+    <div style="font-weight:700;font-size:15px;margin-bottom:12px">📋 Campionat Național QwanKiDo 2026</div>
+    <div class="finalizare-row">
+      <span>Club</span><strong>Clubul Sportiv Phoenix</strong>
+    </div>
+    <div class="finalizare-row">
+      <span>Total sportivi înscriși</span><strong>12 sportivi</strong>
+    </div>
+    <div class="finalizare-row">
+      <span>Probe active</span><strong>4 din 6</strong>
+    </div>
+    <div class="finalizare-row">
+      <span>Probe excluse automat</span><strong style="color:var(--gray-500)">2 (0 sportivi eligibili)</strong>
+    </div>
+    <div class="divider"></div>
+    <div class="finalizare-row">
+      <span>Kata Individual</span><span class="badge badge-green">✓ 8 sportivi</span>
+    </div>
+    <div class="finalizare-row">
+      <span>Thao Quyen</span><span class="badge" style="background:var(--warning-light);color:var(--warning)">⚠️ 3 fără quyen</span>
+    </div>
+    <div class="finalizare-row">
+      <span>Kata Echipe</span><span class="badge badge-green">✓ 2 echipe</span>
+    </div>
+    <div class="finalizare-row">
+      <span>Combat Individual</span><span class="badge badge-green">✓ 6 sportivi</span>
+    </div>
+    <div class="finalizare-row">
+      <span>Combat Echipe</span><span class="badge badge-gray">Nu participăm</span>
+    </div>
+    <div class="finalizare-row">
+      <span>Giao Dau</span><span class="badge badge-gray">Nu participăm</span>
+    </div>
+  </div>
+
+  <div class="banner banner-warning">
+    <span class="banner-icon">🔒</span>
+    <div class="banner-text">
+      <strong>Nu poți finaliza înscrierea</strong>
+      Thao Quyen: 3 sportivi fără quyen. <a href="#" onclick="showScreen('quyen');return false" style="color:var(--primary)">→ Rezolvă acum</a>
+    </div>
+  </div>
+
+  <div class="footer-actions">
+    <button class="btn btn-secondary" onclick="showScreen('hub')">← Înapoi la probe</button>
+    <button class="btn btn-secondary" onclick="showToast('info','📥 Export PDF...')">📄 Export PDF</button>
+    <button class="btn btn-primary" disabled title="Rezolvă mai întâi Thao Quyen">🔒 Finalizează înscrierea</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SCREEN 5: DASHBOARD (pentru test Back button) -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="screen" id="screen-dashboard">
+  <div style="text-align:center;padding:40px 20px">
+    <div style="font-size:48px;margin-bottom:16px">🏠</div>
+    <div class="section-title">Dashboard</div>
+    <div class="section-sub" style="margin-top:8px">Ești pe pagina principală.</div>
+
+    <div class="banner banner-info" style="text-align:left;margin-top:24px">
+      <span class="banner-icon">📱</span>
+      <div class="banner-text">
+        <strong>Testează butonul Back hardware (Modificarea 4)</strong>
+        Pe mobil/tabletă, apăsarea butonului Back al dispozitivului când ești pe Dashboard va afișa dialogul de confirmare ieșire din aplicație.
+        <br><br>
+        <button class="btn btn-sm btn-secondary" onclick="openDialog('exitDialog')">Simulează Back pe Dashboard →</button>
+      </div>
+    </div>
+
+    <div class="banner banner-info" style="text-align:left;margin-top:12px">
+      <span class="banner-icon">🔙</span>
+      <div class="banner-text">
+        <strong>Back pe alte pagini</strong>
+        Pe orice altă pagină, Back navighează la ecranul anterior din aplicație (nu ieșire browser).
+        <br><br>
+        <button class="btn btn-sm btn-secondary" onclick="showScreen('hub')">→ Mergi pe o altă pagină și testează</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-actions" style="justify-content:center">
+    <button class="btn btn-danger" onclick="openDialog('exitDialog')">📱 Simulează Back hardware</button>
+  </div>
+</div>
+
+<script>
+// === STATE ===
+let currentScreen = 'hub';
+const screenHistory = ['hub'];
+
+const athletes = [
+  { id: 1, name: 'Mihai P.', grade: 'Kyu 3', initials: 'MP', q1: null, q1Options: ['Thao Lu Quyen', 'Bat Quyen'] },
+  { id: 2, name: 'Andrei C.', grade: 'Kyu 2', initials: 'AC', q1: 'Thao Lu Quyen', q1Options: ['Thao Lu Quyen', 'Bat Quyen', 'Ngu Lo Quyen'] },
+  { id: 3, name: 'Elena R.', grade: 'Kyu 4', initials: 'ER', q1: null, q1Options: ['Thao Lu Quyen'] },  // auto-select
+  { id: 4, name: 'Radu M.', grade: 'Kyu 1', initials: 'RM', q1: null, q1Options: ['Thao Lu Quyen', 'Bat Quyen'] },
+  { id: 5, name: 'Maria D.', grade: 'Kyu 3', initials: 'MD', q1: 'Bat Quyen', q1Options: ['Thao Lu Quyen', 'Bat Quyen'] },
+  { id: 6, name: 'David O.', grade: 'Kyu 2', initials: 'DO', q1: null, q1Options: ['Thao Lu Quyen'] },  // auto-select
+];
+
+// === INIT ===
+function init() {
+  // Modificarea 1: auto-select pentru sportivii cu un singur quyen
+  let autoSelected = 0;
+  athletes.forEach(a => {
+    if (!a.q1 && a.q1Options.length === 1) {
+      a.q1 = a.q1Options[0];
+      autoSelected++;
+    }
+  });
+  if (autoSelected > 0) {
+    setTimeout(() => showToast('success', `⚡ Auto-selectat quyen pentru ${autoSelected} sportivi (opțiune unică)`), 500);
+  }
+  renderAthletes();
+  updateQuyenBlocker();
+}
+
+function renderAthletes() {
+  const container = document.getElementById('athleteListQuyen');
+  container.innerHTML = athletes.map(a => {
+    const hasQ1 = !!a.q1;
+    const multipleOptions = a.q1Options.length > 1;
+    return `
+      <div class="athlete-row" id="athlete-row-${a.id}">
+        <div class="athlete-avatar">${a.initials}</div>
+        <div style="flex:1">
+          <div class="athlete-name">${a.name}</div>
+          <div class="athlete-grade"><span class="tag">${a.grade}</span></div>
+        </div>
+        <div>
+          <select class="quyen-select ${hasQ1 ? 'set' : 'missing'}"
+                  onchange="setQ1(${a.id}, this.value)"
+                  ${a.q1Options.length === 1 ? 'disabled title="Auto-selectat (opțiune unică)"' : ''}>
+            <option value="">-- Alege quyen --</option>
+            ${a.q1Options.map(o => `<option value="${o}" ${a.q1 === o ? 'selected' : ''}>${o}</option>`).join('')}
+          </select>
+          ${!hasQ1 ? '<div style="font-size:11px;color:var(--danger);margin-top:3px">⚠️ Necesar</div>' : ''}
+          ${a.q1Options.length === 1 ? '<div style="font-size:11px;color:var(--success);margin-top:3px">⚡ Auto-selectat</div>' : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function setQ1(athleteId, value) {
+  const a = athletes.find(x => x.id === athleteId);
+  a.q1 = value || null;
+  renderAthletes();
+  updateQuyenBlocker();
+  if (value) showToast('success', `✓ Quyen selectat pentru ${a.name}`);
+}
+
+function updateQuyenBlocker() {
+  const missing = athletes.filter(a => !a.q1);
+  const btn = document.getElementById('btnContinuaQuyen');
+  const banner = document.getElementById('bannerQuyenBlocare');
+
+  if (missing.length === 0) {
+    btn.disabled = false;
+    banner.style.display = 'none';
+    showToast('success', '✅ Toți sportivii au quyen selectat!');
+  } else {
+    btn.disabled = true;
+    banner.style.display = 'flex';
+    banner.querySelector('strong').textContent = `${missing.length} sportivi fără quyen selectat`;
+  }
+}
+
+function autoSelectQ1All() {
+  let count = 0;
+  athletes.forEach(a => {
+    if (!a.q1) {
+      a.q1 = a.q1Options[0]; // primul quyen disponibil
+      count++;
+    }
+  });
+  renderAthletes();
+  updateQuyenBlocker();
+  showToast('success', `⚡ Setat primul quyen pentru ${count} sportivi`);
+}
+
+function continueFromQuyen() {
+  const missing = athletes.filter(a => !a.q1);
+  if (missing.length > 0) {
+    showToast('warning', `🔒 ${missing.length} sportivi fără quyen — nu poți continua`);
+    return;
+  }
+  showScreen('hub');
+  showToast('success', '✅ Quyen completat! Proba Thao Quyen e rezolvată.');
+}
+
+function redirectToQuyen() {
+  closeDialog('quyenDialog');
+  showScreen('quyen');
+}
+
+// === NAVIGATION ===
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+
+  if (currentScreen !== name) {
+    screenHistory.push(name);
+    currentScreen = name;
+  }
+
+  const titles = {
+    hub: 'Campionat Național 2026',
+    quyen: 'Thao Quyen — Selecție',
+    echipe: 'Kata Echipe — Formare',
+    finalizare: 'Fișă Competiție',
+    dashboard: 'Dashboard'
+  };
+  const backLabels = {
+    hub: 'Competiții',
+    quyen: 'Probe',
+    echipe: 'Probe',
+    finalizare: 'Probe',
+    dashboard: ''
+  };
+
+  document.getElementById('navTitle').textContent = titles[name] || name;
+  document.getElementById('navBackLabel').textContent = backLabels[name] || 'Înapoi';
+
+  // Pe dashboard, ascunde butonul back normal (va fi handled de hardware)
+  const navBack = document.querySelector('.nav-back');
+  if (name === 'dashboard') {
+    navBack.style.display = 'none';
+  } else {
+    navBack.style.display = 'flex';
+  }
+}
+
+function handleBack() {
+  if (currentScreen === 'dashboard') {
+    openDialog('exitDialog');
+    return;
+  }
+  if (screenHistory.length > 1) {
+    screenHistory.pop();
+    const prev = screenHistory[screenHistory.length - 1];
+    currentScreen = prev;
+    showScreen(prev);
+  } else {
+    showToast('info', '← Înapoi la lista de competiții');
+  }
+}
+
+// Simulare hardware back button (keyboard shortcut în prototip)
+document.addEventListener('keydown', e => {
+  if (e.key === 'Backspace' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+    handleBack();
+  }
+});
+
+// === DIALOGS ===
+function openDialog(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeDialog(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// === TOASTS ===
+function showToast(type, message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  const icons = { success: '✅', warning: '⚠️', info: 'ℹ️', danger: '❌' };
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+// === TABS SYNC ===
+document.querySelectorAll('.tab').forEach((tab, i) => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+// === START ===
+init();
+</script>
+</body>
+</html>

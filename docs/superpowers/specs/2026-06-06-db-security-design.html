@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Securitate Bază de Date — Portal PhiHau</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #1a1d27;
+    --bg3: #242838;
+    --border: #2e3347;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --accent: #6366f1;
+    --accent2: #818cf8;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --orange: #f97316;
+    --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.7; }
+
+  /* Layout */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 260px; background: var(--bg2); border-right: 1px solid var(--border); padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0; }
+  .main { flex: 1; padding: 40px 48px; max-width: 960px; }
+
+  /* Sidebar */
+  .sidebar-logo { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  .sidebar-logo h2 { font-size: 14px; font-weight: 700; color: var(--accent2); }
+  .sidebar-logo p { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .nav-section { padding: 8px 20px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+  .nav-item { display: block; padding: 7px 20px; font-size: 13px; color: var(--text-dim); text-decoration: none; border-left: 3px solid transparent; transition: all 0.15s; }
+  .nav-item:hover { color: var(--text); background: var(--bg3); border-left-color: var(--accent); }
+  .nav-item.active { color: var(--accent2); border-left-color: var(--accent); background: rgba(99,102,241,0.08); }
+
+  /* Score badge */
+  .score-hero { background: linear-gradient(135deg, var(--bg2) 0%, #1e2240 100%); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 32px; display: flex; align-items: center; gap: 32px; }
+  .score-circle { width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(var(--accent) 55%, var(--bg3) 55%); display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+  .score-circle::before { content: ''; position: absolute; width: 78px; height: 78px; border-radius: 50%; background: var(--bg2); }
+  .score-inner { position: relative; z-index: 1; text-align: center; }
+  .score-number { font-size: 22px; font-weight: 800; color: var(--text); display: block; }
+  .score-label { font-size: 10px; color: var(--text-dim); }
+  .score-arrow { font-size: 28px; color: var(--text-dim); }
+  .score-target .score-circle { background: conic-gradient(var(--green) 95%, var(--bg3) 95%); }
+  .score-info h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .score-info p { color: var(--text-dim); font-size: 14px; }
+
+  /* Headings */
+  h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  h2 { font-size: 20px; font-weight: 700; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); color: var(--accent2); }
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 12px; color: var(--text); }
+  h4 { font-size: 14px; font-weight: 600; margin: 20px 0 8px; color: var(--text-dim); }
+  .subtitle { color: var(--text-dim); font-size: 14px; margin-bottom: 32px; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--bg3); color: var(--text-dim); font-weight: 600; padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* Cards */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin: 16px 0; }
+  .card.danger { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.05); }
+  .card.success { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.05); }
+  .card.warning { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.05); }
+  .card.info { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.05); }
+
+  /* Badges */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-red { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+  .badge-green { background: rgba(34,197,94,0.2); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+  .badge-yellow { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+  .badge-blue { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+  .badge-purple { background: rgba(99,102,241,0.2); color: var(--accent2); border: 1px solid rgba(99,102,241,0.3); }
+
+  /* Code */
+  pre { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; overflow-x: auto; margin: 12px 0; font-size: 12.5px; line-height: 1.6; }
+  code { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; }
+  p code, li code { background: var(--bg3); padding: 1px 6px; border-radius: 4px; font-size: 12px; color: #c4b5fd; }
+
+  /* Phase cards */
+  .phase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .phase-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .phase-card.p1 { border-top: 3px solid var(--red); }
+  .phase-card.p2 { border-top: 3px solid var(--yellow); }
+  .phase-card.p3 { border-top: 3px solid var(--green); }
+  .phase-num { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .phase-card.p1 .phase-num { color: var(--red); }
+  .phase-card.p2 .phase-num { color: var(--yellow); }
+  .phase-card.p3 .phase-num { color: var(--green); }
+  .phase-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .phase-duration { font-size: 12px; color: var(--text-dim); }
+  .phase-score { font-size: 13px; font-weight: 700; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+  /* Layers diagram */
+  .layers { margin: 20px 0; }
+  .layer { padding: 16px 20px; border-left: 4px solid; margin-bottom: 4px; border-radius: 0 8px 8px 0; }
+  .layer-4 { background: rgba(99,102,241,0.1); border-color: var(--accent); }
+  .layer-3 { background: rgba(59,130,246,0.1); border-color: var(--blue); }
+  .layer-2 { background: rgba(245,158,11,0.1); border-color: var(--yellow); }
+  .layer-1 { background: rgba(239,68,68,0.1); border-color: var(--red); }
+  .layer-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 2px; }
+  .layer-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .layer-desc { font-size: 12px; color: var(--text-dim); }
+
+  /* Checklist */
+  .checklist { list-style: none; }
+  .checklist li { padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; font-size: 13px; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Progress bar */
+  .progress-row { display: flex; align-items: center; gap: 12px; margin: 8px 0; font-size: 13px; }
+  .progress-label { width: 200px; flex-shrink: 0; }
+  .progress-bar { flex: 1; background: var(--bg3); border-radius: 4px; height: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; }
+  .progress-score { width: 60px; text-align: right; font-weight: 700; font-size: 12px; }
+
+  /* Alert box */
+  .alert { border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 13px; display: flex; gap: 10px; align-items: flex-start; }
+  .alert-icon { flex-shrink: 0; font-size: 16px; }
+  .alert.warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); }
+  .alert.info { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); }
+  .alert.danger { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); }
+
+  /* Footer */
+  .doc-footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 12px; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; }
+    .main { padding: 24px 20px; }
+    .phase-grid { grid-template-columns: 1fr; }
+    .score-hero { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>Portal PhiHau</h2>
+      <p>Securitate Baza de Date</p>
+    </div>
+    <span class="nav-section">Cuprins</span>
+    <a class="nav-item active" href="#protejam">1. Ce protejăm</a>
+    <a class="nav-item" href="#scor">2. Scor curent</a>
+    <a class="nav-item" href="#straturi">3. Straturi protecție</a>
+    <a class="nav-item" href="#faza1">4. Faza 1 — Ușile și yălile</a>
+    <a class="nav-item" href="#faza2">5. Faza 2 — Supraveghere & Seif</a>
+    <a class="nav-item" href="#faza3">6. Faza 3 — Alarma & Rutina</a>
+    <a class="nav-item" href="#sql">7. SQL implementare</a>
+    <a class="nav-item" href="#checklist">8. Checklist</a>
+    <a class="nav-item" href="#scor-final">9. Scor final 9.5/10</a>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+    <h1>Securitate Bază de Date</h1>
+    <p class="subtitle">Portal PhiHau · Abordare Defense in Depth · 2026-06-06</p>
+
+    <!-- Score hero -->
+    <div class="score-hero">
+      <div class="score-circle">
+        <div class="score-inner">
+          <span class="score-number">5.5</span>
+          <span class="score-label">ACUM</span>
+        </div>
+      </div>
+      <div class="score-arrow">→</div>
+      <div class="score-circle score-target">
+        <div class="score-inner">
+          <span class="score-number">9.5</span>
+          <span class="score-label">ȚINTĂ</span>
+        </div>
+      </div>
+      <div class="score-info">
+        <h3>+4 puncte în 3 faze progresive</h3>
+        <p>Defense in Depth: fiecare strat blochează independent.<br>Dacă unul cedează, celelalte protejează datele sportivilor.</p>
+      </div>
+    </div>
+
+    <!-- Section 1 -->
+    <h2 id="protejam">1. Ce protejăm</h2>
+    <p>Portal PhiHau gestionează date pentru <strong>3500+ sportivi</strong> din 35 cluburi. Datele sensibile:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Date</th><th>Nivel risc</th><th>De ce contează</th></tr>
+        <tr>
+          <td><strong>CNP</strong> (cod numeric personal)</td>
+          <td><span class="badge badge-red">CRITIC</span></td>
+          <td>Identificator național — GDPR, furt identitate</td>
+        </tr>
+        <tr>
+          <td><strong>Date financiare</strong> (plăți, facturi)</td>
+          <td><span class="badge badge-red">RIDICAT</span></td>
+          <td>Istoricul complet plăți per sportiv</td>
+        </tr>
+        <tr>
+          <td><strong>Date minori</strong> (foto, info personale)</td>
+          <td><span class="badge badge-red">RIDICAT</span></td>
+          <td>Protecție specială legală pentru sub 18 ani</td>
+        </tr>
+        <tr>
+          <td><strong>Parole și sesiuni</strong></td>
+          <td><span class="badge badge-yellow">RIDICAT</span></td>
+          <td>Acces la cont = acces la toate datele de mai sus</td>
+        </tr>
+        <tr>
+          <td><strong>Date medicale</strong> (viză medicală)</td>
+          <td><span class="badge badge-blue">MEDIU</span></td>
+          <td>Expirare viză, stare sănătate</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="alert warn">
+      <span class="alert-icon">⚠</span>
+      <div><strong>Cine atacă și cum:</strong> Atacator care ghicește parola unui admin · Angajat care exportă date masiv · Cheie de acces expusă accidental în cod · Furt direct al backup-ului bazei de date</div>
+    </div>
+
+    <!-- Section 2 -->
+    <h2 id="scor">2. Scorul curent și ce lipsește</h2>
+
+    <h3>Ce funcționează deja ✅</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Mecanism</th><th>Descriere</th><th>Scor</th></tr>
+        <tr><td>RLS (Row Level Security)</td><td>~40 tabele au reguli cine ce poate vedea</td><td><span class="badge badge-green">+2.0</span></td></tr>
+        <tr><td>Autentificare Supabase</td><td>Email + parolă, JWT tokens, sesiuni</td><td><span class="badge badge-green">+0.5</span></td></tr>
+        <tr><td>RBAC (roluri)</td><td>4 roluri: SUPER_ADMIN → ADMIN_CLUB → INSTRUCTOR → SPORTIV</td><td><span class="badge badge-green">+1.0</span></td></tr>
+        <tr><td>Funcții SQL securizate</td><td>search_path fixat pe funcții SECURITY DEFINER</td><td><span class="badge badge-green">+0.5</span></td></tr>
+      </table>
+    </div>
+
+    <h3>Ce lipsește ❌</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Gap</th><th>Risc concret</th><th>Scor pierdut</th></tr>
+        <tr>
+          <td><strong>Fără MFA</strong></td>
+          <td>Parola unui admin = acces la CNP-urile tuturor</td>
+          <td><span class="badge badge-red">-1.0</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fără audit log</strong></td>
+          <td>Cineva exportă 3500 CNP-uri — nu știi cine, când</td>
+          <td><span class="badge badge-red">-1.0</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fără FORCE RLS</strong></td>
+          <td>Service role key (Vercel/Claude) bypass RLS complet</td>
+          <td><span class="badge badge-red">-0.5</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fără auto-RLS</strong></td>
+          <td>Tabele noi create fără RLS = expuse complet</td>
+          <td><span class="badge badge-yellow">-0.5</span></td>
+        </tr>
+        <tr>
+          <td><strong>CNP neencriptat</strong></td>
+          <td>Furt backup = CNP-uri în clar</td>
+          <td><span class="badge badge-yellow">-0.5</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fără rate limiting</strong></td>
+          <td>Atacator poate testa parole sau descărca date masiv</td>
+          <td><span class="badge badge-yellow">-0.5</span></td>
+        </tr>
+        <tr>
+          <td><strong>Deconturi vizibile toți</strong></td>
+          <td>Orice user logat vede deconturile federației</td>
+          <td><span class="badge badge-blue">-0.3</span></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Section 3 -->
+    <h2 id="straturi">3. Cum funcționează protecția în straturi</h2>
+    <p>Fiecare strat blochează independent. Dacă unul cedează, celelalte rămân.</p>
+
+    <div class="layers">
+      <div class="layer layer-4">
+        <div class="layer-label">Strat 4 — Monitoring</div>
+        <div class="layer-title">Alarma care sună dacă cineva sparge ușa</div>
+        <div class="layer-desc">Alerting anomalii · Audit log review · Key rotation automată</div>
+      </div>
+      <div class="layer layer-3">
+        <div class="layer-label">Strat 3 — Aplicație</div>
+        <div class="layer-title">Paznicul de la intrare</div>
+        <div class="layer-desc">Rate limiting · MFA obligatoriu admini · Validare input · Masking UI</div>
+      </div>
+      <div class="layer layer-2">
+        <div class="layer-label">Strat 2 — API / Supabase Auth</div>
+        <div class="layer-title">Controlul de identitate</div>
+        <div class="layer-desc">JWT tokens · Sesiuni scurte · RLS header injection</div>
+      </div>
+      <div class="layer layer-1">
+        <div class="layer-label">Strat 1 — Baza de date (PostgreSQL)</div>
+        <div class="layer-title">Yala pe fiecare cameră</div>
+        <div class="layer-desc">RLS + FORCE RLS · Audit triggers · pgcrypto CNP · Funcții sigure</div>
+      </div>
+    </div>
+
+    <!-- Phase overview -->
+    <h2>Cele 3 faze</h2>
+    <div class="phase-grid">
+      <div class="phase-card p1">
+        <div class="phase-num">Faza 1</div>
+        <div class="phase-title">Ușile și yălile</div>
+        <div class="phase-duration">Durată: 2-3 zile</div>
+        <div class="phase-score">Scor după: <strong style="color:var(--yellow)">7.8/10</strong></div>
+      </div>
+      <div class="phase-card p2">
+        <div class="phase-num">Faza 2</div>
+        <div class="phase-title">Supraveghere & Seif</div>
+        <div class="phase-duration">Durată: 1 săptămână</div>
+        <div class="phase-score">Scor după: <strong style="color:var(--yellow)">9.3/10</strong></div>
+      </div>
+      <div class="phase-card p3">
+        <div class="phase-num">Faza 3</div>
+        <div class="phase-title">Alarma & Rutina</div>
+        <div class="phase-duration">Durată: 1 săptămână</div>
+        <div class="phase-score">Scor după: <strong style="color:var(--green)">9.5/10</strong></div>
+      </div>
+    </div>
+
+    <!-- Section 4 -->
+    <h2 id="faza1">4. Faza 1 — Ușile și yălile</h2>
+    <p>Înainte de orice altceva — asigurăm că fiecare cameră are yală și că cheile nu pot fi duplicate.</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>#</th><th>Ce facem</th><th>De ce contează</th><th>Efort</th></tr>
+        <tr>
+          <td><strong>4.1</strong></td>
+          <td>FORCE ROW LEVEL SECURITY pe toate tabelele</td>
+          <td>Chiar dacă Vercel/Claude Code au cheia clădirii, nu pot intra în camere</td>
+          <td>1h</td>
+        </tr>
+        <tr>
+          <td><strong>4.2</strong></td>
+          <td>Auto-RLS trigger pentru tabele noi</td>
+          <td>Orice tabel nou creat în viitor primește automat yală</td>
+          <td>1h</td>
+        </tr>
+        <tr>
+          <td><strong>4.3</strong></td>
+          <td>MFA TOTP obligatoriu pentru admini</td>
+          <td>Cineva îți fură parola? Fără telefon nu poate intra</td>
+          <td>3-4h</td>
+        </tr>
+        <tr>
+          <td><strong>4.4</strong></td>
+          <td>Audit și rotire service role keys</td>
+          <td>Verificăm cine mai are chei și le schimbăm pe cele vechi</td>
+          <td>1h</td>
+        </tr>
+        <tr>
+          <td><strong>4.5</strong></td>
+          <td>Fix vizibilitate deconturi federație</td>
+          <td>Momentan orice user logat le vede — trebuie doar adminii</td>
+          <td>30min</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>SQL — FORCE RLS</h3>
+    <pre><code>-- Migration: force_rls_all_tables.sql
+DO $$
+DECLARE
+    t record;
+BEGIN
+    FOR t IN
+        SELECT tablename FROM pg_tables WHERE schemaname = 'public'
+    LOOP
+        EXECUTE format('ALTER TABLE public.%I FORCE ROW LEVEL SECURITY', t.tablename);
+        RAISE NOTICE 'FORCE RLS applied: %', t.tablename;
+    END LOOP;
+END;
+$$;</code></pre>
+
+    <h3>SQL — Auto-RLS trigger</h3>
+    <pre><code>-- Migration: auto_rls_trigger.sql
+CREATE OR REPLACE FUNCTION public.rls_auto_enable()
+RETURNS EVENT_TRIGGER LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = pg_catalog
+AS $$
+DECLARE cmd record;
+BEGIN
+    FOR cmd IN
+        SELECT * FROM pg_event_trigger_ddl_commands()
+        WHERE command_tag IN ('CREATE TABLE', 'CREATE TABLE AS')
+          AND object_type IN ('table', 'partitioned table')
+    LOOP
+        IF cmd.schema_name = 'public' THEN
+            EXECUTE format('ALTER TABLE %s ENABLE ROW LEVEL SECURITY', cmd.object_identity);
+        END IF;
+    END LOOP;
+END;
+$$;
+
+DROP EVENT TRIGGER IF EXISTS ensure_rls_on_create;
+CREATE EVENT TRIGGER ensure_rls_on_create
+ON ddl_command_end WHEN TAG IN ('CREATE TABLE')
+EXECUTE FUNCTION public.rls_auto_enable();</code></pre>
+
+    <div class="alert info">
+      <span class="alert-icon">ℹ</span>
+      <div><strong>MFA în Supabase Dashboard:</strong> Authentication → Settings → Multi-Factor Authentication → Enable TOTP. Enforcement în aplicație via hook <code>useMFAGuard</code> care verifică <code>session.user.factors</code>.</div>
+    </div>
+
+    <!-- Section 5 -->
+    <h2 id="faza2">5. Faza 2 — Camera de supraveghere și seiful</h2>
+    <p>Acum că ușile sunt încuiate, instalăm camera de supraveghere și punem datele importante în seif.</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>#</th><th>Ce facem</th><th>De ce contează</th><th>Efort</th></tr>
+        <tr>
+          <td><strong>5.1</strong></td>
+          <td>Tabel audit_log + triggers automate</td>
+          <td>Orice modificare înregistrată: cine, ce, când, de pe ce cont</td>
+          <td>2-3h</td>
+        </tr>
+        <tr>
+          <td><strong>5.2</strong></td>
+          <td>Encriptare CNP cu pgcrypto</td>
+          <td>Furt backup = CNP-uri ca text aiurea, nu cifre reale</td>
+          <td>2-3h</td>
+        </tr>
+        <tr>
+          <td><strong>5.3</strong></td>
+          <td>Rate limiting pe API și Auth</td>
+          <td>Blochează automat încercări masive de parole sau descărcare date</td>
+          <td>2h</td>
+        </tr>
+        <tr>
+          <td><strong>5.4</strong></td>
+          <td>Masking CNP per rol</td>
+          <td>Instructor vede ****1234, nu CNP complet</td>
+          <td>2h</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>SQL — Tabel audit_log</h3>
+    <pre><code>-- Migration: create_audit_log.sql
+CREATE TABLE public.audit_log (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    user_id         UUID REFERENCES auth.users(id),
+    role_context_id UUID,
+    tabel           TEXT NOT NULL,
+    operatie        TEXT NOT NULL CHECK (operatie IN ('INSERT','UPDATE','DELETE','SELECT_SENSIBIL')),
+    rand_id         UUID,
+    date_vechi      JSONB,
+    date_noi        JSONB,
+    ip_address      INET,
+    user_agent      TEXT
+);
+
+ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
+
+-- Oricine poate inserta (triggers fac asta automat)
+CREATE POLICY "audit_insert" ON public.audit_log
+    FOR INSERT TO authenticated WITH CHECK (true);
+
+-- Doar super admin citește
+CREATE POLICY "audit_select_admin" ON public.audit_log
+    FOR SELECT TO authenticated
+    USING (EXISTS (
+        SELECT 1 FROM public.utilizator_roluri_multicont
+        WHERE user_id = auth.uid()
+        AND rol_denumire IN ('SUPER_ADMIN_FEDERATIE', 'ADMIN')
+    ));
+
+-- Nimeni nu poate șterge (zero politici DELETE = blocat de RLS)
+
+CREATE INDEX idx_audit_log_user ON public.audit_log(user_id);
+CREATE INDEX idx_audit_log_time ON public.audit_log(created_at DESC);</code></pre>
+
+    <h3>SQL — Trigger audit automat</h3>
+    <pre><code>-- Funcție reutilizabilă pe orice tabel
+CREATE OR REPLACE FUNCTION public.audit_trigger_fn()
+RETURNS TRIGGER LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+    INSERT INTO public.audit_log (user_id, tabel, operatie, rand_id, date_vechi, date_noi)
+    VALUES (
+        auth.uid(), TG_TABLE_NAME, TG_OP,
+        COALESCE(NEW.id, OLD.id),
+        CASE WHEN TG_OP IN ('UPDATE','DELETE') THEN row_to_json(OLD)::jsonb END,
+        CASE WHEN TG_OP IN ('INSERT','UPDATE') THEN row_to_json(NEW)::jsonb END
+    );
+    RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+-- Aplică pe tabele cu date sensibile
+CREATE TRIGGER audit_sportivi
+    AFTER INSERT OR UPDATE OR DELETE ON public.sportivi
+    FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_fn();
+
+CREATE TRIGGER audit_plati
+    AFTER INSERT OR UPDATE OR DELETE ON public.plati
+    FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_fn();</code></pre>
+
+    <h3>SQL — Encriptare CNP</h3>
+    <pre><code>-- Activează extensia pgcrypto
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Funcții encrypt/decrypt
+CREATE OR REPLACE FUNCTION public.encrypt_cnp(cnp_plain TEXT)
+RETURNS TEXT LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+    SELECT encode(
+        pgp_sym_encrypt(cnp_plain, current_setting('app.cnp_encryption_key')),
+        'base64'
+    );
+$$;
+
+CREATE OR REPLACE FUNCTION public.decrypt_cnp(cnp_encrypted TEXT)
+RETURNS TEXT LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+    SELECT pgp_sym_decrypt(
+        decode(cnp_encrypted, 'base64'),
+        current_setting('app.cnp_encryption_key')
+    );
+$$;
+
+-- Migrare date existente (ONE-TIME)
+UPDATE public.sportivi
+SET cnp = public.encrypt_cnp(cnp)
+WHERE cnp IS NOT NULL AND length(cnp) = 13;</code></pre>
+
+    <div class="alert warn">
+      <span class="alert-icon">⚠</span>
+      <div><strong>GDPR:</strong> Audit log conține date personale (user_id, date_vechi cu CNP). Politică retenție: <strong>max 2 ani</strong>. Adaugă cron job pentru ștergere automată înregistrări mai vechi de 2 ani.</div>
+    </div>
+
+    <!-- Section 6 -->
+    <h2 id="faza3">6. Faza 3 — Alarma și rutina</h2>
+    <p>Ultimul strat: sistemul te anunță singur când ceva e suspect și există o rutină clară de mentenanță.</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>#</th><th>Ce facem</th><th>De ce contează</th><th>Efort</th></tr>
+        <tr>
+          <td><strong>6.1</strong></td>
+          <td>Alerting automat anomalii</td>
+          <td>Descărcare masivă date / login din țară nouă → notificare instant</td>
+          <td>4h</td>
+        </tr>
+        <tr>
+          <td><strong>6.2</strong></td>
+          <td>Proces rotire keys documentat</td>
+          <td>Schimbi yala periodic, nu o folosești 5 ani</td>
+          <td>1h</td>
+        </tr>
+        <tr>
+          <td><strong>6.3</strong></td>
+          <td>Checklist lunar securitate</td>
+          <td>5 minute/lună verifici că totul e în ordine</td>
+          <td>30min</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>Rotire keys — calendar</h3>
+    <div class="card info">
+      <p><strong>Service role key:</strong> Rotire la fiecare <strong>90 de zile</strong> → Supabase Dashboard → Settings → API → Regenerate → Actualizează în Vercel env vars</p>
+      <p style="margin-top:8px"><strong>JWT secret:</strong> Rotire la fiecare <strong>180 de zile</strong> sau după orice incident de securitate → Atenție: invalidează toate sesiunile active</p>
+    </div>
+
+    <h3>Checklist lunar (5 minute)</h3>
+    <ul class="checklist">
+      <li><div class="check-box"></div>Supabase Security Advisor → zero ERRORS sau WARNINGS noi</li>
+      <li><div class="check-box"></div>Verifică audit_log: operații suspecte în ultima lună?</li>
+      <li><div class="check-box"></div>Utilizatori inactivi >90 zile → dezactivează conturile</li>
+      <li><div class="check-box"></div>MFA activ pe toți adminii — verifică în Authentication → Users</li>
+      <li><div class="check-box"></div>Ultima rotație service role key < 90 zile?</li>
+      <li><div class="check-box"></div><code>git grep "service_role" src/</code> → niciun secret în cod</li>
+    </ul>
+
+    <!-- Section 7 -->
+    <h2 id="sql">7. Ordine rulare migrații SQL</h2>
+    <pre><code>-- FAZA 1 (rulează în Supabase SQL Editor)
+1. sql/migrations/force_rls_all_tables.sql
+2. sql/migrations/auto_rls_trigger.sql
+3. sql/migrations/fix_deconturi_select_policy.sql
+
+-- FAZA 2
+4. sql/migrations/create_audit_log.sql
+5. sql/migrations/add_audit_triggers_sensibile.sql
+6. sql/migrations/pgcrypto_setup.sql
+7. sql/migrations/encrypt_existing_cnp.sql    -- rulează noaptea, offline
+8. sql/migrations/create_sportivi_instructor_view.sql
+
+-- CONFIGURARE în Supabase Dashboard (nu SQL)
+9.  Authentication → MFA → Enable TOTP
+10. Authentication → Rate Limits → Configure limits
+11. Vault → Add secret: cnp_encryption_key</code></pre>
+
+    <h3>Verificare post-implementare</h3>
+    <pre><code>-- Verifică FORCE RLS pe toate tabelele
+SELECT tablename, rowsecurity, forcerowsecurity
+FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;
+-- Așteptat: rowsecurity=true, forcerowsecurity=true pe TOATE
+
+-- Testează audit log
+SELECT * FROM public.audit_log ORDER BY created_at DESC LIMIT 5;
+
+-- Verifică CNP encriptat (nu trebuie să mai arate 13 cifre)
+SELECT id, cnp FROM public.sportivi LIMIT 3;
+
+-- Verifică decriptarea funcționează
+SELECT id, public.decrypt_cnp(cnp) as cnp_real FROM public.sportivi LIMIT 3;</code></pre>
+
+    <!-- Section 8 -->
+    <h2 id="checklist">8. Checklist complet implementare</h2>
+
+    <h3>Faza 1 — Critice (3 zile)</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>#</th><th>Task</th><th>Fișier</th><th>Efort</th><th>Status</th></tr>
+        <tr><td>1</td><td>FORCE RLS pe toate tabelele</td><td><code>force_rls_all_tables.sql</code></td><td>1h</td><td>☐</td></tr>
+        <tr><td>2</td><td>Auto-RLS trigger tabele noi</td><td><code>auto_rls_trigger.sql</code></td><td>1h</td><td>☐</td></tr>
+        <tr><td>3</td><td>Activează MFA în Supabase Dashboard</td><td>Dashboard manual</td><td>30min</td><td>☐</td></tr>
+        <tr><td>4</td><td><code>useMFAGuard</code> hook + redirect setup-mfa</td><td><code>hooks/useMFAGuard.ts</code></td><td>3h</td><td>☐</td></tr>
+        <tr><td>5</td><td>Fix deconturi_federatie SELECT policy</td><td><code>fix_deconturi_select.sql</code></td><td>30min</td><td>☐</td></tr>
+        <tr><td>6</td><td>Audit + rotire service role key</td><td>Vercel Dashboard + bash</td><td>1h</td><td>☐</td></tr>
+      </table>
+    </div>
+
+    <h3>Faza 2 — Importante (1 săptămână)</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>#</th><th>Task</th><th>Fișier</th><th>Efort</th><th>Status</th></tr>
+        <tr><td>7</td><td>Creare tabel audit_log + RLS</td><td><code>create_audit_log.sql</code></td><td>2h</td><td>☐</td></tr>
+        <tr><td>8</td><td>Trigger audit pe tabele sensibile</td><td><code>audit_triggers.sql</code></td><td>3h</td><td>☐</td></tr>
+        <tr><td>9</td><td>Activare pgcrypto + funcții encrypt/decrypt</td><td><code>pgcrypto_setup.sql</code></td><td>2h</td><td>☐</td></tr>
+        <tr><td>10</td><td>Migrare CNP-uri existente (encrypt)</td><td><code>encrypt_existing_cnp.sql</code></td><td>2h</td><td>☐</td></tr>
+        <tr><td>11</td><td>Rate limiting Supabase Auth</td><td>Dashboard manual</td><td>30min</td><td>☐</td></tr>
+        <tr><td>12</td><td>Rate limiting Vercel middleware</td><td><code>middleware.ts</code></td><td>2h</td><td>☐</td></tr>
+        <tr><td>13</td><td>View sportivi_instructor cu CNP mascat</td><td><code>sportivi_instructor_view.sql</code></td><td>2h</td><td>☐</td></tr>
+      </table>
+    </div>
+
+    <h3>Faza 3 — Advanced (1 săptămână)</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>#</th><th>Task</th><th>Fișier</th><th>Efort</th><th>Status</th></tr>
+        <tr><td>14</td><td>Edge Function alerting anomalii</td><td><code>supabase/functions/security-alert/</code></td><td>4h</td><td>☐</td></tr>
+        <tr><td>15</td><td>Doc proces key rotation</td><td><code>docs/security/key-rotation-log.md</code></td><td>1h</td><td>☐</td></tr>
+        <tr><td>16</td><td>Checklist lunar securitate</td><td><code>docs/security/checklist-lunar.md</code></td><td>30min</td><td>☐</td></tr>
+      </table>
+    </div>
+
+    <!-- Section 9 -->
+    <h2 id="scor-final">9. Cum ajungem la 9.5/10</h2>
+
+    <div class="progress-row">
+      <span class="progress-label">RLS &amp; acces DB</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:35%;background:var(--green)"></div></div>
+      <span class="progress-score" style="color:var(--text-dim)">2.0 → <strong style="color:var(--green)">3.5</strong></span>
+    </div>
+    <div class="progress-row">
+      <span class="progress-label">Autentificare</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:15%;background:var(--blue)"></div></div>
+      <span class="progress-score" style="color:var(--text-dim)">0.5 → <strong style="color:var(--blue)">1.5</strong></span>
+    </div>
+    <div class="progress-row">
+      <span class="progress-label">Audit &amp; detectie</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:15%;background:var(--accent)"></div></div>
+      <span class="progress-score" style="color:var(--text-dim)">0.0 → <strong style="color:var(--accent)">1.5</strong></span>
+    </div>
+    <div class="progress-row">
+      <span class="progress-label">Encriptare date</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:10%;background:var(--yellow)"></div></div>
+      <span class="progress-score" style="color:var(--text-dim)">0.0 → <strong style="color:var(--yellow)">1.0</strong></span>
+    </div>
+    <div class="progress-row">
+      <span class="progress-label">Protecție API</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:7%;background:var(--orange)"></div></div>
+      <span class="progress-score" style="color:var(--text-dim)">0.0 → <strong style="color:var(--orange)">0.7</strong></span>
+    </div>
+    <div class="progress-row">
+      <span class="progress-label">Procese &amp; rutine</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:8%;background:var(--text-dim)"></div></div>
+      <span class="progress-score" style="color:var(--text-dim)">0.5 → <strong>0.8</strong></span>
+    </div>
+
+    <br>
+    <div class="card success">
+      <h3 style="color:var(--green);margin-top:0">Total: 5.5 → 9.5/10</h3>
+      <p>Un scor de 9.5/10 înseamnă că <strong>ai făcut tot ce poți face în mod rezonabil</strong> pentru a proteja datele sportivilor tăi.</p>
+      <p style="margin-top:8px;color:var(--text-dim);font-size:13px">Cele 0.5 puncte rămase = vulnerabilități în afara controlului tău: zero-day în Supabase/PostgreSQL, factorul uman (phishing). MFA reduce riscul dar nu îl elimină complet.</p>
+    </div>
+
+    <div class="doc-footer">
+      <p>Document generat: 2026-06-06 · Proiect: portal-phihau · Abordare: Defense in Depth</p>
+      <p>Spec complet: <code>docs/superpowers/specs/2026-06-06-db-security-design.md</code></p>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Highlight active nav item on scroll
+  const sections = document.querySelectorAll('h2[id]');
+  const navItems = document.querySelectorAll('.nav-item');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navItems.forEach(item => item.classList.remove('active'));
+        const active = document.querySelector(`.nav-item[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.5 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

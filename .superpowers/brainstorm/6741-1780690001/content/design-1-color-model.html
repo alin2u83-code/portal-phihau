@@ -1,0 +1,131 @@
+<h2>Design secțiunea 1: Modelul de culori</h2>
+<p class="subtitle">12 variabile CSS semantice — ca Office, dar adaptat pentru dark-mode app</p>
+
+<div class="section">
+  <h3>Structura temei (inspirat Office)</h3>
+  <p style="color:#94a3b8;font-size:13px;margin-bottom:16px">Office folosește: 2 dark + 2 light + 6 accente. Noi folosim același principiu adaptat pentru dark app:</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px">
+      <div class="label" style="color:#64748b;margin-bottom:8px">FUNDAL (2 niveluri)</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <div style="width:36px;height:36px;border-radius:6px;background:#020617;border:1px solid #334155"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-bg</code>
+          <div style="font-size:11px;color:#64748b">pagina principală</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="width:36px;height:36px;border-radius:6px;background:#0f172a;border:1px solid #334155"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-surface</code>
+          <div style="font-size:11px;color:#64748b">carduri, panouri</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px">
+      <div class="label" style="color:#64748b;margin-bottom:8px">INTERACȚIUNE (hover/elevated)</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <div style="width:36px;height:36px;border-radius:6px;background:#1e293b;border:1px solid #334155"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-surface-2</code>
+          <div style="font-size:11px;color:#64748b">hover, rânduri tabel</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="width:36px;height:36px;border-radius:6px;background:#334155;border:1px solid #475569"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-border</code>
+          <div style="font-size:11px;color:#64748b">linii separator</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px">
+      <div class="label" style="color:#64748b;margin-bottom:8px">TEXT (2 niveluri)</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <div style="width:36px;height:36px;border-radius:6px;background:#f8fafc;border:1px solid #334155"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-text</code>
+          <div style="font-size:11px;color:#64748b">titluri, conținut principal</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="width:36px;height:36px;border-radius:6px;background:#94a3b8;border:1px solid #334155"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-text-muted</code>
+          <div style="font-size:11px;color:#64748b">etichete, metadata</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px">
+      <div class="label" style="color:#64748b;margin-bottom:8px">PRIMARY — schimbă cu tema ✦</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <div style="width:36px;height:36px;border-radius:6px;background:#3b82f6"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-primary</code>
+          <div style="font-size:11px;color:#64748b">butoane, active states</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <div style="width:36px;height:36px;border-radius:6px;background:#2563eb"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-primary-hover</code>
+          <div style="font-size:11px;color:#64748b">hover pe primary</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="width:36px;height:36px;border-radius:6px;background:#ffffff;border:1px solid #e2e8f0"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-primary-fg</code>
+          <div style="font-size:11px;color:#64748b">text pe buton (de obicei alb)</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px">
+      <div class="label" style="color:#64748b;margin-bottom:8px">SECONDARY — schimbă cu tema</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <div style="width:36px;height:36px;border-radius:6px;background:#1e293b;border:1px solid #334155"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-secondary</code>
+          <div style="font-size:11px;color:#64748b">butoane ghost/outline</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <div style="width:36px;height:36px;border-radius:6px;background:#334155;border:1px solid #475569"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-secondary-hover</code>
+          <div style="font-size:11px;color:#64748b">hover pe secondary</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="width:36px;height:36px;border-radius:6px;background:#e2e8f0;border:1px solid #cbd5e1"></div>
+        <div>
+          <code style="font-size:11px;color:#0ea5e9">--t-secondary-fg</code>
+          <div style="font-size:11px;color:#64748b">text pe secondary</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:14px;border-style:dashed">
+      <div class="label" style="color:#64748b;margin-bottom:8px">STATUS — NU se schimbă cu tema</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <div style="padding:4px 10px;border-radius:20px;background:#10b981;color:white;font-size:11px">success</div>
+        <div style="padding:4px 10px;border-radius:20px;background:#ef4444;color:white;font-size:11px">danger</div>
+        <div style="padding:4px 10px;border-radius:20px;background:#f59e0b;color:white;font-size:11px">warning</div>
+        <div style="padding:4px 10px;border-radius:20px;background:#0ea5e9;color:white;font-size:11px">info</div>
+      </div>
+      <p style="font-size:11px;color:#64748b;margin-top:8px">Rămân constante — au semnificație semantică (erori, succes) care nu trebuie să urmeze branding-ul.</p>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;padding:14px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:10px">
+  <strong style="color:#93c5fd">Prefixul <code>--t-</code></strong>
+  <p style="font-size:13px;color:#94a3b8;margin-top:4px">Variabilele noi folosesc prefix <code>--t-</code> (theme) pentru a coexista cu <code>--bg-main</code>, <code>--brand-primary</code> existente. Migrarea e incrementală — nu se șterge nimic existent.</p>
+</div>

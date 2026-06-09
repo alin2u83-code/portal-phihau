@@ -1,0 +1,941 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e9]
+        - generic [ref=e11]:
+          - generic [ref=e12]: Qwan Ki Do
+          - generic [ref=e13]: Management
+      - button "Context Activ Club" [ref=e17] [cursor=pointer]:
+        - img [ref=e19]
+        - generic [ref=e22]:
+          - paragraph [ref=e23]: Context Activ
+          - paragraph [ref=e24]: Club
+        - img [ref=e25]
+      - generic [ref=e27]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e28]:
+          - generic [ref=e29] [cursor=pointer]:
+            - img [ref=e31]
+            - generic [ref=e36]: Dashboard
+          - generic [ref=e37]:
+            - generic [ref=e38] [cursor=pointer]:
+              - img [ref=e39]
+              - generic [ref=e44]: Gestiune Membri
+              - img [ref=e45]
+            - generic [ref=e1233]:
+              - generic [ref=e1234] [cursor=pointer]: Sportivi
+              - generic [ref=e1236] [cursor=pointer]: Import Sportivi
+              - generic [ref=e1238] [cursor=pointer]: Deduplicare Sportivi
+              - generic [ref=e1240] [cursor=pointer]: Familii
+              - generic [ref=e1242] [cursor=pointer]: Legitimații
+              - generic [ref=e1244] [cursor=pointer]: Nomenclator Grade
+              - generic [ref=e1246] [cursor=pointer]: Administrare Staff
+          - generic [ref=e48] [cursor=pointer]:
+            - img [ref=e49]
+            - generic [ref=e51]: Activitate Sală
+            - img [ref=e52]
+          - generic [ref=e55] [cursor=pointer]:
+            - img [ref=e56]
+            - generic [ref=e62]: Examene
+            - img [ref=e63]
+          - generic [ref=e66] [cursor=pointer]:
+            - img [ref=e67]
+            - generic [ref=e73]: Activități Naționale
+            - img [ref=e74]
+          - generic [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+            - generic [ref=e85]: Financiar & Plăți
+            - img [ref=e86]
+          - generic [ref=e89] [cursor=pointer]:
+            - img [ref=e90]
+            - generic [ref=e93]: Setări & Admin
+            - img [ref=e94]
+          - generic [ref=e96] [cursor=pointer]:
+            - img [ref=e98]
+            - generic [ref=e102]: Notificări
+          - generic [ref=e103] [cursor=pointer]:
+            - img [ref=e105]
+            - generic [ref=e107]: SMS
+          - generic [ref=e108] [cursor=pointer]:
+            - img [ref=e110]
+            - generic [ref=e113]: Cereri Înscriere
+          - generic [ref=e114] [cursor=pointer]:
+            - img [ref=e116]
+            - generic [ref=e119]: Istoric Activitate
+        - button "Scroll jos" [ref=e120] [cursor=pointer]:
+          - img [ref=e121]
+      - generic [ref=e123]:
+        - button "Tema" [ref=e125] [cursor=pointer]:
+          - img [ref=e126]
+          - generic [ref=e132]: Tema
+        - generic [ref=e134]:
+          - generic [ref=e135]: AL
+          - generic [ref=e136]:
+            - paragraph [ref=e137]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e138] [cursor=pointer]:
+            - img [ref=e139]
+  - button "Restrânge meniul" [ref=e142] [cursor=pointer]:
+    - img [ref=e143]
+  - banner [ref=e145]:
+    - generic [ref=e146]:
+      - button "Înapoi" [ref=e147] [cursor=pointer]:
+        - img [ref=e148]
+      - navigation "Navigare" [ref=e150]:
+        - button "Dashboard" [ref=e151] [cursor=pointer]
+        - generic [ref=e152]: ›
+        - generic [ref=e1454]: …
+        - generic [ref=e1249]: ›
+        - button "Profil Sportiv" [ref=e1455] [cursor=pointer]
+        - generic [ref=e1456]: ›
+        - heading "Sportivi" [level=1] [ref=e1457]
+    - generic [ref=e154]:
+      - button "Temă" [ref=e156] [cursor=pointer]:
+        - img [ref=e157]
+        - generic [ref=e163]: Temă
+      - button [ref=e165] [cursor=pointer]:
+        - img [ref=e166]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e171] [cursor=pointer]:
+        - generic [ref=e172]: AL
+        - paragraph [ref=e174]:
+          - text: ALIN MIHAI
+          - generic [ref=e175]: "[ADMIN CLUB]"
+        - img [ref=e176]
+  - main [ref=e178]:
+    - generic [ref=e1459]:
+      - generic [ref=e1460]:
+        - generic [ref=e1461]:
+          - button "Înapoi" [ref=e1462] [cursor=pointer]:
+            - img [ref=e1463]
+            - text: Înapoi
+          - heading "Management Sportivi" [level=1] [ref=e1465]
+        - generic [ref=e1466]:
+          - button "Export / Editare" [ref=e1467] [cursor=pointer]
+          - button "Import" [ref=e1468] [cursor=pointer]:
+            - img [ref=e1469]
+            - text: Import
+          - button "Link-uri Magic" [ref=e1472] [cursor=pointer]:
+            - img [ref=e1473]
+            - text: Link-uri Magic
+          - button "Adaugă Sportiv" [ref=e1476] [cursor=pointer]:
+            - img [ref=e1477]
+            - text: Adaugă Sportiv
+      - generic [ref=e1479]:
+        - generic [ref=e1481]:
+          - generic [ref=e1482]: Caută sportiv
+          - textbox "Nume, prenume..." [ref=e1483]
+        - generic [ref=e1485]:
+          - generic [ref=e1486]: Status
+          - generic [ref=e1487]:
+            - combobox [ref=e1488]:
+              - option "Toate Statusurile"
+              - option "Activ" [selected]
+              - option "Inactiv"
+            - generic:
+              - img
+        - generic [ref=e1489]:
+          - generic [ref=e1490]: Grupă
+          - generic [ref=e1491]:
+            - combobox [ref=e1492]:
+              - option "Toate Grupele" [selected]
+              - option "Fără Grupă"
+              - option "Copii Incepatori"
+              - option "Retrasi"
+              - option "Juniori si Adulti"
+              - option "Copii Avansati"
+            - generic:
+              - img
+        - generic [ref=e1493]:
+          - generic [ref=e1494]: Rol
+          - generic [ref=e1495]:
+            - combobox [ref=e1496]:
+              - option "Toate Rolurile" [selected]
+              - option "Admin"
+              - option "SUPER_ADMIN_FEDERATIE"
+              - option "ADMIN_CLUB"
+              - option "INSTRUCTOR"
+              - option "SPORTIV"
+            - generic:
+              - img
+        - generic [ref=e1497]:
+          - generic [ref=e1498]: Grad
+          - generic [ref=e1499]:
+            - combobox [ref=e1500]:
+              - option "Toate Gradele" [selected]
+              - option "Debutant"
+              - option "1 Câp Galben"
+              - option "2 Câp Galben"
+              - option "3 Câp Galben"
+              - option "4 Câp Galben"
+              - option "1 Câp Roșu"
+              - option "2 Câp Roșu"
+              - option "3 Câp Roșu"
+              - option "4 Câp Roșu"
+              - option "Centura Violet"
+              - option "C.V. 1 Câp Alb"
+              - option "C.V. 2 Câp Alb"
+              - option "C.V. 3 Câp Alb"
+              - option "C.V. 4 Câp Alb"
+              - option "1 Câp Albastru"
+              - option "2 Câp Albastru"
+              - option "3 Câp Albastru"
+              - option "4 Câp Albastru"
+              - option "Centura Neagră"
+              - option "C.N. 1 Dang"
+              - option "C.N. 2 Dang"
+              - option "C.N. 3 Dang"
+              - option "C.N. 4 Dang"
+              - option "C.N. 5 Dang"
+              - option "C.N. 6 Dang"
+              - option "C.N. 7 Dang"
+            - generic:
+              - img
+      - table [ref=e1505]:
+        - rowgroup [ref=e1506]:
+          - row "Nume Complet Grad Roluri Status Grupă Acțiuni" [ref=e1507]:
+            - columnheader [ref=e1508] [cursor=pointer]:
+              - checkbox [ref=e1509]
+            - columnheader "Nume Complet" [ref=e1510] [cursor=pointer]
+            - columnheader "Grad" [ref=e1511] [cursor=pointer]
+            - columnheader "Roluri" [ref=e1512] [cursor=pointer]
+            - columnheader "Status" [ref=e1513] [cursor=pointer]
+            - columnheader "Grupă" [ref=e1514] [cursor=pointer]
+            - columnheader "Acțiuni" [ref=e1515] [cursor=pointer]
+        - rowgroup [ref=e1516]:
+          - row "AGAFIȚEI ALEXANDRA MIHAELA(26 ani) agafitei.alexandramihaela.2901@csphihau.ro 2 Câp Roșu Sportiv Activ Retrasi Portofel" [ref=e1517] [cursor=pointer]:
+            - cell [ref=e1518]:
+              - checkbox [ref=e1520]
+            - cell "AGAFIȚEI ALEXANDRA MIHAELA(26 ani) agafitei.alexandramihaela.2901@csphihau.ro" [ref=e1521]:
+              - generic [ref=e1522]:
+                - generic [ref=e1523]:
+                  - text: AGAFIȚEI ALEXANDRA MIHAELA
+                  - generic [ref=e1524]: (26 ani)
+                - generic [ref=e1525]: agafitei.alexandramihaela.2901@csphihau.ro
+            - cell "2 Câp Roșu" [ref=e1526]:
+              - generic [ref=e1527]: 2 Câp Roșu
+            - cell "Sportiv" [ref=e1528]:
+              - generic [ref=e1530]: Sportiv
+            - cell "Activ" [ref=e1531]
+            - cell "Retrasi" [ref=e1532]:
+              - generic "Retrasi" [ref=e1533]
+            - cell "Portofel" [ref=e1534]:
+              - generic [ref=e1535]:
+                - button "Editează Profil" [ref=e1536]:
+                  - img [ref=e1537]
+                - button "Portofel" [ref=e1540]:
+                  - img [ref=e1541]
+                  - generic [ref=e1544]: Portofel
+                - button "Setări Cont de Acces" [ref=e1545]:
+                  - img [ref=e1546]
+                - button "Resetează Parola" [ref=e1549]:
+                  - img [ref=e1550]
+                - button "Șterge Sportiv" [ref=e1553]:
+                  - img [ref=e1554]
+          - row "AGRIGOROAE LAVINIA IOANA(30 ani) agrigoroae.laviniaioana.1150@csphihau.ro 1 Câp Albastru Activ Retrasi Portofel" [ref=e1557] [cursor=pointer]:
+            - cell [ref=e1558]:
+              - checkbox [ref=e1560]
+            - cell "AGRIGOROAE LAVINIA IOANA(30 ani) agrigoroae.laviniaioana.1150@csphihau.ro" [ref=e1561]:
+              - generic [ref=e1562]:
+                - generic [ref=e1563]:
+                  - text: AGRIGOROAE LAVINIA IOANA
+                  - generic [ref=e1564]: (30 ani)
+                - generic [ref=e1565]: agrigoroae.laviniaioana.1150@csphihau.ro
+            - cell "1 Câp Albastru" [ref=e1566]:
+              - generic [ref=e1567]: 1 Câp Albastru
+            - cell [ref=e1568]
+            - cell "Activ" [ref=e1569]
+            - cell "Retrasi" [ref=e1570]:
+              - generic "Retrasi" [ref=e1571]
+            - cell "Portofel" [ref=e1572]:
+              - generic [ref=e1573]:
+                - button "Editează Profil" [ref=e1574]:
+                  - img [ref=e1575]
+                - button "Portofel" [ref=e1578]:
+                  - img [ref=e1579]
+                  - generic [ref=e1582]: Portofel
+                - button "Setări Cont de Acces" [ref=e1583]:
+                  - img [ref=e1584]
+                - button "Resetează Parola" [ref=e1587]:
+                  - img [ref=e1588]
+                - button "Șterge Sportiv" [ref=e1591]:
+                  - img [ref=e1592]
+          - row "AILINCĂI DENISA(22 ani) ailincai.denisa.9388@csphihau.ro Debutant Activ Retrasi Portofel" [ref=e1595] [cursor=pointer]:
+            - cell [ref=e1596]:
+              - checkbox [ref=e1598]
+            - cell "AILINCĂI DENISA(22 ani) ailincai.denisa.9388@csphihau.ro" [ref=e1599]:
+              - generic [ref=e1600]:
+                - generic [ref=e1601]:
+                  - text: AILINCĂI DENISA
+                  - generic [ref=e1602]: (22 ani)
+                - generic [ref=e1603]: ailincai.denisa.9388@csphihau.ro
+            - cell "Debutant" [ref=e1604]:
+              - generic [ref=e1605]: Debutant
+            - cell [ref=e1606]
+            - cell "Activ" [ref=e1607]
+            - cell "Retrasi" [ref=e1608]:
+              - generic "Retrasi" [ref=e1609]
+            - cell "Portofel" [ref=e1610]:
+              - generic [ref=e1611]:
+                - button "Editează Profil" [ref=e1612]:
+                  - img [ref=e1613]
+                - button "Portofel" [ref=e1616]:
+                  - img [ref=e1617]
+                  - generic [ref=e1620]: Portofel
+                - button "Setări Cont de Acces" [ref=e1621]:
+                  - img [ref=e1622]
+                - button "Resetează Parola" [ref=e1625]:
+                  - img [ref=e1626]
+                - button "Șterge Sportiv" [ref=e1629]:
+                  - img [ref=e1630]
+          - row "AILINCĂI RAREȘ MIHAI(12 ani) ailincairares@phihau.ro Debutant Activ Retrasi Portofel" [ref=e1633] [cursor=pointer]:
+            - cell [ref=e1634]:
+              - checkbox [ref=e1636]
+            - cell "AILINCĂI RAREȘ MIHAI(12 ani) ailincairares@phihau.ro" [ref=e1637]:
+              - generic [ref=e1638]:
+                - generic [ref=e1639]:
+                  - text: AILINCĂI RAREȘ MIHAI
+                  - generic [ref=e1640]: (12 ani)
+                - generic [ref=e1641]: ailincairares@phihau.ro
+            - cell "Debutant" [ref=e1642]:
+              - generic [ref=e1643]: Debutant
+            - cell [ref=e1644]
+            - cell "Activ" [ref=e1645]
+            - cell "Retrasi" [ref=e1646]:
+              - generic "Retrasi" [ref=e1647]
+            - cell "Portofel" [ref=e1648]:
+              - generic [ref=e1649]:
+                - button "Editează Profil" [ref=e1650]:
+                  - img [ref=e1651]
+                - button "Portofel" [ref=e1654]:
+                  - img [ref=e1655]
+                  - generic [ref=e1658]: Portofel
+                - button "Setări Cont de Acces" [ref=e1659]:
+                  - img [ref=e1660]
+                - button "Șterge Sportiv" [ref=e1663]:
+                  - img [ref=e1664]
+          - row "ALBU THEODOR(9 ani) albutheodor@phihau.ro 3 Câp Roșu Activ Retrasi Portofel" [ref=e1667] [cursor=pointer]:
+            - cell [ref=e1668]:
+              - checkbox [ref=e1670]
+            - cell "ALBU THEODOR(9 ani) albutheodor@phihau.ro" [ref=e1671]:
+              - generic [ref=e1672]:
+                - generic [ref=e1673]:
+                  - text: ALBU THEODOR
+                  - generic [ref=e1674]: (9 ani)
+                - generic [ref=e1675]: albutheodor@phihau.ro
+            - cell "3 Câp Roșu" [ref=e1676]:
+              - generic [ref=e1677]: 3 Câp Roșu
+            - cell [ref=e1678]
+            - cell "Activ" [ref=e1679]
+            - cell "Retrasi" [ref=e1680]:
+              - generic "Retrasi" [ref=e1681]
+            - cell "Portofel" [ref=e1682]:
+              - generic [ref=e1683]:
+                - button "Editează Profil" [ref=e1684]:
+                  - img [ref=e1685]
+                - button "Portofel" [ref=e1688]:
+                  - img [ref=e1689]
+                  - generic [ref=e1692]: Portofel
+                - button "Setări Cont de Acces" [ref=e1693]:
+                  - img [ref=e1694]
+                - button "Șterge Sportiv" [ref=e1697]:
+                  - img [ref=e1698]
+          - row "ALISTAR ELENA NICOLETA(17 ani) alistar.elenanicoleta.192@csphihau.ro Debutant Activ Retrasi Portofel" [ref=e1701] [cursor=pointer]:
+            - cell [ref=e1702]:
+              - checkbox [ref=e1704]
+            - cell "ALISTAR ELENA NICOLETA(17 ani) alistar.elenanicoleta.192@csphihau.ro" [ref=e1705]:
+              - generic [ref=e1706]:
+                - generic [ref=e1707]:
+                  - text: ALISTAR ELENA NICOLETA
+                  - generic [ref=e1708]: (17 ani)
+                - generic [ref=e1709]: alistar.elenanicoleta.192@csphihau.ro
+            - cell "Debutant" [ref=e1710]:
+              - generic [ref=e1711]: Debutant
+            - cell [ref=e1712]
+            - cell "Activ" [ref=e1713]
+            - cell "Retrasi" [ref=e1714]:
+              - generic "Retrasi" [ref=e1715]
+            - cell "Portofel" [ref=e1716]:
+              - generic [ref=e1717]:
+                - button "Editează Profil" [ref=e1718]:
+                  - img [ref=e1719]
+                - button "Portofel" [ref=e1722]:
+                  - img [ref=e1723]
+                  - generic [ref=e1726]: Portofel
+                - button "Setări Cont de Acces" [ref=e1727]:
+                  - img [ref=e1728]
+                - button "Resetează Parola" [ref=e1731]:
+                  - img [ref=e1732]
+                - button "Șterge Sportiv" [ref=e1735]:
+                  - img [ref=e1736]
+          - row "AMARGHILOAEI DRAGOS STEFAN(24 ani) amarghiloaei.dragosstefan.3901@csphihau.ro 2 Câp Roșu Activ Retrasi Portofel" [ref=e1739] [cursor=pointer]:
+            - cell [ref=e1740]:
+              - checkbox [ref=e1742]
+            - cell "AMARGHILOAEI DRAGOS STEFAN(24 ani) amarghiloaei.dragosstefan.3901@csphihau.ro" [ref=e1743]:
+              - generic [ref=e1744]:
+                - generic [ref=e1745]:
+                  - text: AMARGHILOAEI DRAGOS STEFAN
+                  - generic [ref=e1746]: (24 ani)
+                - generic [ref=e1747]: amarghiloaei.dragosstefan.3901@csphihau.ro
+            - cell "2 Câp Roșu" [ref=e1748]:
+              - generic [ref=e1749]: 2 Câp Roșu
+            - cell [ref=e1750]
+            - cell "Activ" [ref=e1751]
+            - cell "Retrasi" [ref=e1752]:
+              - generic "Retrasi" [ref=e1753]
+            - cell "Portofel" [ref=e1754]:
+              - generic [ref=e1755]:
+                - button "Editează Profil" [ref=e1756]:
+                  - img [ref=e1757]
+                - button "Portofel" [ref=e1760]:
+                  - img [ref=e1761]
+                  - generic [ref=e1764]: Portofel
+                - button "Setări Cont de Acces" [ref=e1765]:
+                  - img [ref=e1766]
+                - button "Resetează Parola" [ref=e1769]:
+                  - img [ref=e1770]
+                - button "Șterge Sportiv" [ref=e1773]:
+                  - img [ref=e1774]
+          - row "AMARIUTEI ELENA(25 ani) amariutei.elena.6272@csphihau.ro Debutant Activ Retrasi Portofel" [ref=e1777] [cursor=pointer]:
+            - cell [ref=e1778]:
+              - checkbox [ref=e1780]
+            - cell "AMARIUTEI ELENA(25 ani) amariutei.elena.6272@csphihau.ro" [ref=e1781]:
+              - generic [ref=e1782]:
+                - generic [ref=e1783]:
+                  - text: AMARIUTEI ELENA
+                  - generic [ref=e1784]: (25 ani)
+                - generic [ref=e1785]: amariutei.elena.6272@csphihau.ro
+            - cell "Debutant" [ref=e1786]:
+              - generic [ref=e1787]: Debutant
+            - cell [ref=e1788]
+            - cell "Activ" [ref=e1789]
+            - cell "Retrasi" [ref=e1790]:
+              - generic "Retrasi" [ref=e1791]
+            - cell "Portofel" [ref=e1792]:
+              - generic [ref=e1793]:
+                - button "Editează Profil" [ref=e1794]:
+                  - img [ref=e1795]
+                - button "Portofel" [ref=e1798]:
+                  - img [ref=e1799]
+                  - generic [ref=e1802]: Portofel
+                - button "Setări Cont de Acces" [ref=e1803]:
+                  - img [ref=e1804]
+                - button "Resetează Parola" [ref=e1807]:
+                  - img [ref=e1808]
+                - button "Șterge Sportiv" [ref=e1811]:
+                  - img [ref=e1812]
+          - row "AMARIUTEI MARIA(19 ani) amariutei.maria.1601@csphihau.ro Debutant Sportiv Activ Retrasi Portofel" [ref=e1815] [cursor=pointer]:
+            - cell [ref=e1816]:
+              - checkbox [ref=e1818]
+            - cell "AMARIUTEI MARIA(19 ani) amariutei.maria.1601@csphihau.ro" [ref=e1819]:
+              - generic [ref=e1820]:
+                - generic [ref=e1821]:
+                  - text: AMARIUTEI MARIA
+                  - generic [ref=e1822]: (19 ani)
+                - generic [ref=e1823]: amariutei.maria.1601@csphihau.ro
+            - cell "Debutant" [ref=e1824]:
+              - generic [ref=e1825]: Debutant
+            - cell "Sportiv" [ref=e1826]:
+              - generic [ref=e1828]: Sportiv
+            - cell "Activ" [ref=e1829]
+            - cell "Retrasi" [ref=e1830]:
+              - generic "Retrasi" [ref=e1831]
+            - cell "Portofel" [ref=e1832]:
+              - generic [ref=e1833]:
+                - button "Editează Profil" [ref=e1834]:
+                  - img [ref=e1835]
+                - button "Portofel" [ref=e1838]:
+                  - img [ref=e1839]
+                  - generic [ref=e1842]: Portofel
+                - button "Setări Cont de Acces" [ref=e1843]:
+                  - img [ref=e1844]
+                - button "Resetează Parola" [ref=e1847]:
+                  - img [ref=e1848]
+                - button "Șterge Sportiv" [ref=e1851]:
+                  - img [ref=e1852]
+          - row "AMORARITI ALEXANDRU(10 ani) amorariti.alexandru Centura Violet Sportiv Activ Copii Avansati Portofel" [ref=e1855] [cursor=pointer]:
+            - cell [ref=e1856]:
+              - checkbox [ref=e1858]
+            - cell "AMORARITI ALEXANDRU(10 ani) amorariti.alexandru" [ref=e1859]:
+              - generic [ref=e1860]:
+                - generic [ref=e1861]:
+                  - text: AMORARITI ALEXANDRU
+                  - generic [ref=e1862]: (10 ani)
+                - generic [ref=e1863]: amorariti.alexandru
+            - cell "Centura Violet" [ref=e1864]:
+              - generic [ref=e1865]: Centura Violet
+            - cell "Sportiv" [ref=e1866]:
+              - generic [ref=e1868]: Sportiv
+            - cell "Activ" [ref=e1869]
+            - cell "Copii Avansati" [ref=e1870]:
+              - generic "Copii Avansati" [ref=e1871]
+            - cell "Portofel" [ref=e1872]:
+              - generic [ref=e1873]:
+                - button "Editează Profil" [ref=e1874]:
+                  - img [ref=e1875]
+                - button "Portofel" [ref=e1878]:
+                  - img [ref=e1879]
+                  - generic [ref=e1882]: Portofel
+                - button "Setări Cont de Acces" [ref=e1883]:
+                  - img [ref=e1884]
+                - button "Resetează Parola" [ref=e1887]:
+                  - img [ref=e1888]
+                - button "Șterge Sportiv" [ref=e1891]:
+                  - img [ref=e1892]
+          - row "ANCHIDIN RARES(20 ani) anchidin.rares.9093@csphihau.ro 1 Câp Galben Sportiv Activ Retrasi Portofel" [ref=e1895] [cursor=pointer]:
+            - cell [ref=e1896]:
+              - checkbox [ref=e1898]
+            - cell "ANCHIDIN RARES(20 ani) anchidin.rares.9093@csphihau.ro" [ref=e1899]:
+              - generic [ref=e1900]:
+                - generic [ref=e1901]:
+                  - text: ANCHIDIN RARES
+                  - generic [ref=e1902]: (20 ani)
+                - generic [ref=e1903]: anchidin.rares.9093@csphihau.ro
+            - cell "1 Câp Galben" [ref=e1904]:
+              - generic [ref=e1905]: 1 Câp Galben
+            - cell "Sportiv" [ref=e1906]:
+              - generic [ref=e1908]: Sportiv
+            - cell "Activ" [ref=e1909]
+            - cell "Retrasi" [ref=e1910]:
+              - generic "Retrasi" [ref=e1911]
+            - cell "Portofel" [ref=e1912]:
+              - generic [ref=e1913]:
+                - button "Editează Profil" [ref=e1914]:
+                  - img [ref=e1915]
+                - button "Portofel" [ref=e1918]:
+                  - img [ref=e1919]
+                  - generic [ref=e1922]: Portofel
+                - button "Setări Cont de Acces" [ref=e1923]:
+                  - img [ref=e1924]
+                - button "Resetează Parola" [ref=e1927]:
+                  - img [ref=e1928]
+                - button "Șterge Sportiv" [ref=e1931]:
+                  - img [ref=e1932]
+          - row "ANCHIDIN VLAD GAVRIL(23 ani) anchidin.vladgavril.3115@csphihau.ro 2 Câp Roșu Sportiv Activ Retrasi Portofel" [ref=e1935] [cursor=pointer]:
+            - cell [ref=e1936]:
+              - checkbox [ref=e1938]
+            - cell "ANCHIDIN VLAD GAVRIL(23 ani) anchidin.vladgavril.3115@csphihau.ro" [ref=e1939]:
+              - generic [ref=e1940]:
+                - generic [ref=e1941]:
+                  - text: ANCHIDIN VLAD GAVRIL
+                  - generic [ref=e1942]: (23 ani)
+                - generic [ref=e1943]: anchidin.vladgavril.3115@csphihau.ro
+            - cell "2 Câp Roșu" [ref=e1944]:
+              - generic [ref=e1945]: 2 Câp Roșu
+            - cell "Sportiv" [ref=e1946]:
+              - generic [ref=e1948]: Sportiv
+            - cell "Activ" [ref=e1949]
+            - cell "Retrasi" [ref=e1950]:
+              - generic "Retrasi" [ref=e1951]
+            - cell "Portofel" [ref=e1952]:
+              - generic [ref=e1953]:
+                - button "Editează Profil" [ref=e1954]:
+                  - img [ref=e1955]
+                - button "Portofel" [ref=e1958]:
+                  - img [ref=e1959]
+                  - generic [ref=e1962]: Portofel
+                - button "Setări Cont de Acces" [ref=e1963]:
+                  - img [ref=e1964]
+                - button "Resetează Parola" [ref=e1967]:
+                  - img [ref=e1968]
+                - button "Șterge Sportiv" [ref=e1971]:
+                  - img [ref=e1972]
+          - row "ANDREI DENIS ANDREI(14 ani) andrei.denisandrei.5370@csphihau.ro Debutant Sportiv Activ Retrasi Portofel" [ref=e1975] [cursor=pointer]:
+            - cell [ref=e1976]:
+              - checkbox [ref=e1978]
+            - cell "ANDREI DENIS ANDREI(14 ani) andrei.denisandrei.5370@csphihau.ro" [ref=e1979]:
+              - generic [ref=e1980]:
+                - generic [ref=e1981]:
+                  - text: ANDREI DENIS ANDREI
+                  - generic [ref=e1982]: (14 ani)
+                - generic [ref=e1983]: andrei.denisandrei.5370@csphihau.ro
+            - cell "Debutant" [ref=e1984]:
+              - generic [ref=e1985]: Debutant
+            - cell "Sportiv" [ref=e1986]:
+              - generic [ref=e1988]: Sportiv
+            - cell "Activ" [ref=e1989]
+            - cell "Retrasi" [ref=e1990]:
+              - generic "Retrasi" [ref=e1991]
+            - cell "Portofel" [ref=e1992]:
+              - generic [ref=e1993]:
+                - button "Editează Profil" [ref=e1994]:
+                  - img [ref=e1995]
+                - button "Portofel" [ref=e1998]:
+                  - img [ref=e1999]
+                  - generic [ref=e2002]: Portofel
+                - button "Setări Cont de Acces" [ref=e2003]:
+                  - img [ref=e2004]
+                - button "Resetează Parola" [ref=e2007]:
+                  - img [ref=e2008]
+                - button "Șterge Sportiv" [ref=e2011]:
+                  - img [ref=e2012]
+          - row "ANDREI MATEI STEFAN(8 ani) andreimatei@phihau.ro Debutant Activ Retrasi Portofel" [ref=e2015] [cursor=pointer]:
+            - cell [ref=e2016]:
+              - checkbox [ref=e2018]
+            - cell "ANDREI MATEI STEFAN(8 ani) andreimatei@phihau.ro" [ref=e2019]:
+              - generic [ref=e2020]:
+                - generic [ref=e2021]:
+                  - text: ANDREI MATEI STEFAN
+                  - generic [ref=e2022]: (8 ani)
+                - generic [ref=e2023]: andreimatei@phihau.ro
+            - cell "Debutant" [ref=e2024]:
+              - generic [ref=e2025]: Debutant
+            - cell [ref=e2026]
+            - cell "Activ" [ref=e2027]
+            - cell "Retrasi" [ref=e2028]:
+              - generic "Retrasi" [ref=e2029]
+            - cell "Portofel" [ref=e2030]:
+              - generic [ref=e2031]:
+                - button "Editează Profil" [ref=e2032]:
+                  - img [ref=e2033]
+                - button "Portofel" [ref=e2036]:
+                  - img [ref=e2037]
+                  - generic [ref=e2040]: Portofel
+                - button "Setări Cont de Acces" [ref=e2041]:
+                  - img [ref=e2042]
+                - button "Șterge Sportiv" [ref=e2045]:
+                  - img [ref=e2046]
+          - row "ANDRIES DANIELA MIHAELA(26 ani) andries.danielamihaela.2288@csphihau.ro C.V. 1 Câp Alb Sportiv Activ Retrasi Portofel" [ref=e2049] [cursor=pointer]:
+            - cell [ref=e2050]:
+              - checkbox [ref=e2052]
+            - cell "ANDRIES DANIELA MIHAELA(26 ani) andries.danielamihaela.2288@csphihau.ro" [ref=e2053]:
+              - generic [ref=e2054]:
+                - generic [ref=e2055]:
+                  - text: ANDRIES DANIELA MIHAELA
+                  - generic [ref=e2056]: (26 ani)
+                - generic [ref=e2057]: andries.danielamihaela.2288@csphihau.ro
+            - cell "C.V. 1 Câp Alb" [ref=e2058]:
+              - generic [ref=e2059]: C.V. 1 Câp Alb
+            - cell "Sportiv" [ref=e2060]:
+              - generic [ref=e2062]: Sportiv
+            - cell "Activ" [ref=e2063]
+            - cell "Retrasi" [ref=e2064]:
+              - generic "Retrasi" [ref=e2065]
+            - cell "Portofel" [ref=e2066]:
+              - generic [ref=e2067]:
+                - button "Editează Profil" [ref=e2068]:
+                  - img [ref=e2069]
+                - button "Portofel" [ref=e2072]:
+                  - img [ref=e2073]
+                  - generic [ref=e2076]: Portofel
+                - button "Setări Cont de Acces" [ref=e2077]:
+                  - img [ref=e2078]
+                - button "Resetează Parola" [ref=e2081]:
+                  - img [ref=e2082]
+                - button "Șterge Sportiv" [ref=e2085]:
+                  - img [ref=e2086]
+          - row "ANDRIES DIMITRIE(21 ani) andries.dimitrie.335@csphihau.ro Debutant Sportiv Activ Retrasi Portofel" [ref=e2089] [cursor=pointer]:
+            - cell [ref=e2090]:
+              - checkbox [ref=e2092]
+            - cell "ANDRIES DIMITRIE(21 ani) andries.dimitrie.335@csphihau.ro" [ref=e2093]:
+              - generic [ref=e2094]:
+                - generic [ref=e2095]:
+                  - text: ANDRIES DIMITRIE
+                  - generic [ref=e2096]: (21 ani)
+                - generic [ref=e2097]: andries.dimitrie.335@csphihau.ro
+            - cell "Debutant" [ref=e2098]:
+              - generic [ref=e2099]: Debutant
+            - cell "Sportiv" [ref=e2100]:
+              - generic [ref=e2102]: Sportiv
+            - cell "Activ" [ref=e2103]
+            - cell "Retrasi" [ref=e2104]:
+              - generic "Retrasi" [ref=e2105]
+            - cell "Portofel" [ref=e2106]:
+              - generic [ref=e2107]:
+                - button "Editează Profil" [ref=e2108]:
+                  - img [ref=e2109]
+                - button "Portofel" [ref=e2112]:
+                  - img [ref=e2113]
+                  - generic [ref=e2116]: Portofel
+                - button "Setări Cont de Acces" [ref=e2117]:
+                  - img [ref=e2118]
+                - button "Resetează Parola" [ref=e2121]:
+                  - img [ref=e2122]
+                - button "Șterge Sportiv" [ref=e2125]:
+                  - img [ref=e2126]
+          - row "ANDRIES MIHAELA(23 ani) andries.mihaela.9346@csphihau.ro Debutant Sportiv Activ Retrasi Portofel" [ref=e2129] [cursor=pointer]:
+            - cell [ref=e2130]:
+              - checkbox [ref=e2132]
+            - cell "ANDRIES MIHAELA(23 ani) andries.mihaela.9346@csphihau.ro" [ref=e2133]:
+              - generic [ref=e2134]:
+                - generic [ref=e2135]:
+                  - text: ANDRIES MIHAELA
+                  - generic [ref=e2136]: (23 ani)
+                - generic [ref=e2137]: andries.mihaela.9346@csphihau.ro
+            - cell "Debutant" [ref=e2138]:
+              - generic [ref=e2139]: Debutant
+            - cell "Sportiv" [ref=e2140]:
+              - generic [ref=e2142]: Sportiv
+            - cell "Activ" [ref=e2143]
+            - cell "Retrasi" [ref=e2144]:
+              - generic "Retrasi" [ref=e2145]
+            - cell "Portofel" [ref=e2146]:
+              - generic [ref=e2147]:
+                - button "Editează Profil" [ref=e2148]:
+                  - img [ref=e2149]
+                - button "Portofel" [ref=e2152]:
+                  - img [ref=e2153]
+                  - generic [ref=e2156]: Portofel
+                - button "Setări Cont de Acces" [ref=e2157]:
+                  - img [ref=e2158]
+                - button "Resetează Parola" [ref=e2161]:
+                  - img [ref=e2162]
+                - button "Șterge Sportiv" [ref=e2165]:
+                  - img [ref=e2166]
+          - row "ANDRIS DIANA MARIA(27 ani) andris.dianamaria.6704@csphihau.ro 1 Câp Roșu Sportiv Activ Retrasi Portofel" [ref=e2169] [cursor=pointer]:
+            - cell [ref=e2170]:
+              - checkbox [ref=e2172]
+            - cell "ANDRIS DIANA MARIA(27 ani) andris.dianamaria.6704@csphihau.ro" [ref=e2173]:
+              - generic [ref=e2174]:
+                - generic [ref=e2175]:
+                  - text: ANDRIS DIANA MARIA
+                  - generic [ref=e2176]: (27 ani)
+                - generic [ref=e2177]: andris.dianamaria.6704@csphihau.ro
+            - cell "1 Câp Roșu" [ref=e2178]:
+              - generic [ref=e2179]: 1 Câp Roșu
+            - cell "Sportiv" [ref=e2180]:
+              - generic [ref=e2182]: Sportiv
+            - cell "Activ" [ref=e2183]
+            - cell "Retrasi" [ref=e2184]:
+              - generic "Retrasi" [ref=e2185]
+            - cell "Portofel" [ref=e2186]:
+              - generic [ref=e2187]:
+                - button "Editează Profil" [ref=e2188]:
+                  - img [ref=e2189]
+                - button "Portofel" [ref=e2192]:
+                  - img [ref=e2193]
+                  - generic [ref=e2196]: Portofel
+                - button "Setări Cont de Acces" [ref=e2197]:
+                  - img [ref=e2198]
+                - button "Resetează Parola" [ref=e2201]:
+                  - img [ref=e2202]
+                - button "Șterge Sportiv" [ref=e2205]:
+                  - img [ref=e2206]
+          - row "ANDRONACHE DARIA MARIA(8 ani) andronache.dariamaria Debutant Sportiv Activ Copii Avansati Portofel" [ref=e2209] [cursor=pointer]:
+            - cell [ref=e2210]:
+              - checkbox [ref=e2212]
+            - cell "ANDRONACHE DARIA MARIA(8 ani) andronache.dariamaria" [ref=e2213]:
+              - generic [ref=e2214]:
+                - generic [ref=e2215]:
+                  - text: ANDRONACHE DARIA MARIA
+                  - generic [ref=e2216]: (8 ani)
+                - generic [ref=e2217]: andronache.dariamaria
+            - cell "Debutant" [ref=e2218]:
+              - generic [ref=e2219]: Debutant
+            - cell "Sportiv" [ref=e2220]:
+              - generic [ref=e2222]: Sportiv
+            - cell "Activ" [ref=e2223]
+            - cell "Copii Avansati" [ref=e2224]:
+              - generic "Copii Avansati" [ref=e2225]
+            - cell "Portofel" [ref=e2226]:
+              - generic [ref=e2227]:
+                - button "Editează Profil" [ref=e2228]:
+                  - img [ref=e2229]
+                - button "Portofel" [ref=e2232]:
+                  - img [ref=e2233]
+                  - generic [ref=e2236]: Portofel
+                - button "Setări Cont de Acces" [ref=e2237]:
+                  - img [ref=e2238]
+                - button "Resetează Parola" [ref=e2241]:
+                  - img [ref=e2242]
+                - button "Șterge Sportiv" [ref=e2245]:
+                  - img [ref=e2246]
+          - row "ANDRONIC COSMIN CONSTANTIN(24 ani) andronic.cosminconstantin.6590@csphihau.ro 2 Câp Roșu Sportiv Activ Retrasi Portofel" [ref=e2249] [cursor=pointer]:
+            - cell [ref=e2250]:
+              - checkbox [ref=e2252]
+            - cell "ANDRONIC COSMIN CONSTANTIN(24 ani) andronic.cosminconstantin.6590@csphihau.ro" [ref=e2253]:
+              - generic [ref=e2254]:
+                - generic [ref=e2255]:
+                  - text: ANDRONIC COSMIN CONSTANTIN
+                  - generic [ref=e2256]: (24 ani)
+                - generic [ref=e2257]: andronic.cosminconstantin.6590@csphihau.ro
+            - cell "2 Câp Roșu" [ref=e2258]:
+              - generic [ref=e2259]: 2 Câp Roșu
+            - cell "Sportiv" [ref=e2260]:
+              - generic [ref=e2262]: Sportiv
+            - cell "Activ" [ref=e2263]
+            - cell "Retrasi" [ref=e2264]:
+              - generic "Retrasi" [ref=e2265]
+            - cell "Portofel" [ref=e2266]:
+              - generic [ref=e2267]:
+                - button "Editează Profil" [ref=e2268]:
+                  - img [ref=e2269]
+                - button "Portofel" [ref=e2272]:
+                  - img [ref=e2273]
+                  - generic [ref=e2276]: Portofel
+                - button "Setări Cont de Acces" [ref=e2277]:
+                  - img [ref=e2278]
+                - button "Resetează Parola" [ref=e2281]:
+                  - img [ref=e2282]
+                - button "Șterge Sportiv" [ref=e2285]:
+                  - img [ref=e2286]
+          - row "ANECULAESI MATHIAS(11 ani) mathias.mathias Debutant Sportiv Activ Copii Incepatori Portofel" [ref=e2289] [cursor=pointer]:
+            - cell [ref=e2290]:
+              - checkbox [ref=e2292]
+            - cell "ANECULAESI MATHIAS(11 ani) mathias.mathias" [ref=e2293]:
+              - generic [ref=e2294]:
+                - generic [ref=e2295]:
+                  - text: ANECULAESI MATHIAS
+                  - generic [ref=e2296]: (11 ani)
+                - generic [ref=e2297]: mathias.mathias
+            - cell "Debutant" [ref=e2298]:
+              - generic [ref=e2299]: Debutant
+            - cell "Sportiv" [ref=e2300]:
+              - generic [ref=e2302]: Sportiv
+            - cell "Activ" [ref=e2303]
+            - cell "Copii Incepatori" [ref=e2304]:
+              - generic "Copii Incepatori" [ref=e2305]
+            - cell "Portofel" [ref=e2306]:
+              - generic [ref=e2307]:
+                - button "Editează Profil" [ref=e2308]:
+                  - img [ref=e2309]
+                - button "Portofel" [ref=e2312]:
+                  - img [ref=e2313]
+                  - generic [ref=e2316]: Portofel
+                - button "Setări Cont de Acces" [ref=e2317]:
+                  - img [ref=e2318]
+                - button "Resetează Parola" [ref=e2321]:
+                  - img [ref=e2322]
+                - button "Șterge Sportiv" [ref=e2325]:
+                  - img [ref=e2326]
+          - row "ANISOROAEI IOANA(3 ani) anisoroaei.ioana Debutant Sportiv Activ Retrasi Portofel" [ref=e2329] [cursor=pointer]:
+            - cell [ref=e2330]:
+              - checkbox [ref=e2332]
+            - cell "ANISOROAEI IOANA(3 ani) anisoroaei.ioana" [ref=e2333]:
+              - generic [ref=e2334]:
+                - generic [ref=e2335]:
+                  - text: ANISOROAEI IOANA
+                  - generic [ref=e2336]: (3 ani)
+                - generic [ref=e2337]: anisoroaei.ioana
+            - cell "Debutant" [ref=e2338]:
+              - generic [ref=e2339]: Debutant
+            - cell "Sportiv" [ref=e2340]:
+              - generic [ref=e2342]: Sportiv
+            - cell "Activ" [ref=e2343]
+            - cell "Retrasi" [ref=e2344]:
+              - generic "Retrasi" [ref=e2345]
+            - cell "Portofel" [ref=e2346]:
+              - generic [ref=e2347]:
+                - button "Editează Profil" [ref=e2348]:
+                  - img [ref=e2349]
+                - button "Portofel" [ref=e2352]:
+                  - img [ref=e2353]
+                  - generic [ref=e2356]: Portofel
+                - button "Setări Cont de Acces" [ref=e2357]:
+                  - img [ref=e2358]
+                - button "Resetează Parola" [ref=e2361]:
+                  - img [ref=e2362]
+                - button "Șterge Sportiv" [ref=e2365]:
+                  - img [ref=e2366]
+          - row "ANISOROAEI MARIA(3 ani) anisoroaei.maria Debutant Sportiv Activ Retrasi Portofel" [ref=e2369] [cursor=pointer]:
+            - cell [ref=e2370]:
+              - checkbox [ref=e2372]
+            - cell "ANISOROAEI MARIA(3 ani) anisoroaei.maria" [ref=e2373]:
+              - generic [ref=e2374]:
+                - generic [ref=e2375]:
+                  - text: ANISOROAEI MARIA
+                  - generic [ref=e2376]: (3 ani)
+                - generic [ref=e2377]: anisoroaei.maria
+            - cell "Debutant" [ref=e2378]:
+              - generic [ref=e2379]: Debutant
+            - cell "Sportiv" [ref=e2380]:
+              - generic [ref=e2382]: Sportiv
+            - cell "Activ" [ref=e2383]
+            - cell "Retrasi" [ref=e2384]:
+              - generic "Retrasi" [ref=e2385]
+            - cell "Portofel" [ref=e2386]:
+              - generic [ref=e2387]:
+                - button "Editează Profil" [ref=e2388]:
+                  - img [ref=e2389]
+                - button "Portofel" [ref=e2392]:
+                  - img [ref=e2393]
+                  - generic [ref=e2396]: Portofel
+                - button "Setări Cont de Acces" [ref=e2397]:
+                  - img [ref=e2398]
+                - button "Resetează Parola" [ref=e2401]:
+                  - img [ref=e2402]
+                - button "Șterge Sportiv" [ref=e2405]:
+                  - img [ref=e2406]
+          - row "ANISOROAEI MINA(7 ani) anisoroaei.mina Debutant Sportiv Activ Retrasi Portofel" [ref=e2409] [cursor=pointer]:
+            - cell [ref=e2410]:
+              - checkbox [ref=e2412]
+            - cell "ANISOROAEI MINA(7 ani) anisoroaei.mina" [ref=e2413]:
+              - generic [ref=e2414]:
+                - generic [ref=e2415]:
+                  - text: ANISOROAEI MINA
+                  - generic [ref=e2416]: (7 ani)
+                - generic [ref=e2417]: anisoroaei.mina
+            - cell "Debutant" [ref=e2418]:
+              - generic [ref=e2419]: Debutant
+            - cell "Sportiv" [ref=e2420]:
+              - generic [ref=e2422]: Sportiv
+            - cell "Activ" [ref=e2423]
+            - cell "Retrasi" [ref=e2424]:
+              - generic "Retrasi" [ref=e2425]
+            - cell "Portofel" [ref=e2426]:
+              - generic [ref=e2427]:
+                - button "Editează Profil" [ref=e2428]:
+                  - img [ref=e2429]
+                - button "Portofel" [ref=e2432]:
+                  - img [ref=e2433]
+                  - generic [ref=e2436]: Portofel
+                - button "Setări Cont de Acces" [ref=e2437]:
+                  - img [ref=e2438]
+                - button "Resetează Parola" [ref=e2441]:
+                  - img [ref=e2442]
+                - button "Șterge Sportiv" [ref=e2445]:
+                  - img [ref=e2446]
+          - row "ANTAL CRISTIAN(21 ani) antal.cristian.4542@csphihau.ro Debutant Sportiv Activ Retrasi Portofel" [ref=e2449] [cursor=pointer]:
+            - cell [ref=e2450]:
+              - checkbox [ref=e2452]
+            - cell "ANTAL CRISTIAN(21 ani) antal.cristian.4542@csphihau.ro" [ref=e2453]:
+              - generic [ref=e2454]:
+                - generic [ref=e2455]:
+                  - text: ANTAL CRISTIAN
+                  - generic [ref=e2456]: (21 ani)
+                - generic [ref=e2457]: antal.cristian.4542@csphihau.ro
+            - cell "Debutant" [ref=e2458]:
+              - generic [ref=e2459]: Debutant
+            - cell "Sportiv" [ref=e2460]:
+              - generic [ref=e2462]: Sportiv
+            - cell "Activ" [ref=e2463]
+            - cell "Retrasi" [ref=e2464]:
+              - generic "Retrasi" [ref=e2465]
+            - cell "Portofel" [ref=e2466]:
+              - generic [ref=e2467]:
+                - button "Editează Profil" [ref=e2468]:
+                  - img [ref=e2469]
+                - button "Portofel" [ref=e2472]:
+                  - img [ref=e2473]
+                  - generic [ref=e2476]: Portofel
+                - button "Setări Cont de Acces" [ref=e2477]:
+                  - img [ref=e2478]
+                - button "Resetează Parola" [ref=e2481]:
+                  - img [ref=e2482]
+                - button "Șterge Sportiv" [ref=e2485]:
+                  - img [ref=e2486]
+      - generic [ref=e2489]:
+        - generic [ref=e2490]:
+          - generic [ref=e2491]: 1–25 din 455
+          - generic [ref=e2492]: "|"
+          - generic [ref=e2493]:
+            - text: Afișează
+            - combobox "Afișează / pagină" [ref=e2494] [cursor=pointer]:
+              - option "10"
+              - option "25" [selected]
+              - option "50"
+              - option "100"
+              - option "Toți (455)"
+            - text: / pagină
+        - generic [ref=e2495]:
+          - button "Anterior" [disabled] [ref=e2496]
+          - generic [ref=e2497]: Pagina 1 din 19
+          - button "Următor" [ref=e2498] [cursor=pointer]
+      - button "Deschide ghidul interactiv" [ref=e2499] [cursor=pointer]:
+        - generic [ref=e2500]: "?"
+  - contentinfo [ref=e1223]:
+    - paragraph [ref=e1224]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e1225] [cursor=pointer]:
+      - img [ref=e1226]
+      - generic [ref=e1229]: Asistent AI

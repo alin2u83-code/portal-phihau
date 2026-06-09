@@ -232,13 +232,18 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         })}
         onDeschideProba={handleDeschideProba}
         onFinalizare={() => {
-          // Calculează probe skipped înainte de a merge la sumar — doar probe individuale
           const activeProbeIds = new Set<string>();
           autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });
           const probeIndividuale = probe.filter(p =>
             p.tip_proba === 'thao_quyen_individual' || p.tip_proba === 'thao_lo_individual'
           );
-          setProbeSkippedWizard(new Set(probeIndividuale.filter(p => !activeProbeIds.has(p.id)).map(p => p.id)));
+          const autoSkipped = new Set(probeIndividuale.filter(p => !activeProbeIds.has(p.id)).map(p => p.id));
+          // Merge: păstrează probe marcate manual (sincron/song_luyen) + adaugă individuale fără sportivi
+          setProbeSkippedWizard(prev => {
+            const merged = new Set(prev);
+            for (const id of autoSkipped) merged.add(id);
+            return merged;
+          });
           setStep(4);
         }}
       />

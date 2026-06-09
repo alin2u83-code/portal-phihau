@@ -1,0 +1,233 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e86]:
+            - generic [ref=e87] [cursor=pointer]:
+              - img [ref=e88]
+              - generic [ref=e94]: Activități Naționale
+              - img [ref=e95]
+            - generic [ref=e491]:
+              - generic [ref=e492] [cursor=pointer]: Competiții
+              - generic [ref=e494] [cursor=pointer]: Stagii
+          - generic [ref=e98] [cursor=pointer]:
+            - img [ref=e99]
+            - generic [ref=e101]: Financiar & Plăți
+            - img [ref=e102]
+          - generic [ref=e105] [cursor=pointer]:
+            - img [ref=e106]
+            - generic [ref=e109]: Setări & Admin
+            - img [ref=e110]
+          - generic [ref=e112] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e118]: Notificări
+          - generic [ref=e119] [cursor=pointer]:
+            - img [ref=e121]
+            - generic [ref=e123]: SMS
+          - generic [ref=e124] [cursor=pointer]:
+            - img [ref=e126]
+            - generic [ref=e129]: Cereri Înscriere
+          - generic [ref=e130] [cursor=pointer]:
+            - img [ref=e132]
+            - generic [ref=e135]: Istoric Activitate
+        - button "Scroll jos" [ref=e136] [cursor=pointer]:
+          - img [ref=e137]
+      - generic [ref=e139]:
+        - button "Tema" [ref=e141] [cursor=pointer]:
+          - img [ref=e142]
+          - generic [ref=e148]: Tema
+        - generic [ref=e150]:
+          - generic [ref=e151]: AL
+          - generic [ref=e152]:
+            - paragraph [ref=e153]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e154] [cursor=pointer]:
+            - img [ref=e155]
+  - button "Restrânge meniul" [ref=e158] [cursor=pointer]:
+    - img [ref=e159]
+  - banner [ref=e161]:
+    - navigation "Navigare" [ref=e163]:
+      - heading "Competiții" [level=1] [ref=e496]
+    - generic [ref=e165]:
+      - button "Temă" [ref=e167] [cursor=pointer]:
+        - img [ref=e168]
+        - generic [ref=e174]: Temă
+      - button [ref=e176] [cursor=pointer]:
+        - img [ref=e177]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e182] [cursor=pointer]:
+        - generic [ref=e183]: AL
+        - paragraph [ref=e185]:
+          - text: ALIN MIHAI
+          - generic [ref=e186]: "[ADMIN CLUB]"
+        - img [ref=e187]
+  - main [ref=e189]:
+    - generic [ref=e498]:
+      - generic [ref=e499]:
+        - button [ref=e500] [cursor=pointer]:
+          - img [ref=e501]
+        - generic [ref=e503]:
+          - heading "Cupa iunie" [level=2] [ref=e504]
+          - generic [ref=e505]:
+            - generic [ref=e506]: CN Tehnica (Quyen / Kata)
+            - generic [ref=e507]: Înscrieri deschise
+            - generic [ref=e508]: 07.06.2026 – 07.06.2026
+        - button "Refresh" [ref=e509] [cursor=pointer]:
+          - img [ref=e510]
+      - generic [ref=e512]:
+        - button "Înscrieri (10)" [ref=e513] [cursor=pointer]:
+          - img [ref=e514]
+          - generic [ref=e516]:
+            - text: Înscrieri
+            - generic [ref=e517]: (10)
+        - button "Raport" [ref=e518] [cursor=pointer]
+        - button "Categorii (152)" [ref=e519] [cursor=pointer]:
+          - img [ref=e520]
+          - generic [ref=e522]:
+            - text: Categorii
+            - generic [ref=e523]: (152)
+        - button "Refresh" [ref=e524] [cursor=pointer]:
+          - img [ref=e525]
+      - generic [ref=e603]:
+        - generic [ref=e604]:
+          - button [ref=e605] [cursor=pointer]:
+            - img [ref=e606]
+          - generic [ref=e608]:
+            - heading "Echipe — configurare" [level=2] [ref=e609]
+            - paragraph [ref=e610]: 7/12 categorii configurate
+        - generic [ref=e611]:
+          - heading "SINCRON" [level=2] [ref=e612]
+          - list [ref=e613]:
+            - listitem [ref=e614]:
+              - generic [ref=e615]: "1"
+              - text: Probă în grup — minim 3 titulari, maxim 5.
+            - listitem [ref=e616]:
+              - generic [ref=e617]: "2"
+              - text: Toți membrii echipei trebuie să aibă același program.
+            - listitem [ref=e618]:
+              - generic [ref=e619]: "3"
+              - text: Gradul minim din echipă determină categoria.
+        - generic [ref=e621]:
+          - button "Toate (12)" [ref=e622] [cursor=pointer]
+          - button "Completate (7)" [ref=e623] [cursor=pointer]
+          - button "Incomplete (5)" [active] [ref=e624] [cursor=pointer]
+        - generic [ref=e625]:
+          - generic [ref=e724]:
+            - generic [ref=e726]:
+              - generic [ref=e727]:
+                - generic [ref=e728]:
+                  - generic [ref=e729]: Echipa
+                  - generic [ref=e730]: Masculin
+                - paragraph [ref=e731]: 11-12 ani / Masculin / Sincron / 3-4 Cap Rosu
+                - paragraph [ref=e732]: 11–12 ani · 3 titulari · 2 eligibili
+              - generic [ref=e733]:
+                - button "Configurează" [ref=e734] [cursor=pointer]
+                - button "Nu participăm" [ref=e735] [cursor=pointer]
+            - generic [ref=e736]:
+              - generic [ref=e737]: 📨
+              - generic [ref=e738]:
+                - paragraph [ref=e739]: Cerere trimisă
+                - paragraph [ref=e740]: Super admin decide completarea
+              - button "Anulează" [ref=e741] [cursor=pointer]
+          - generic [ref=e742]:
+            - generic [ref=e744]:
+              - generic [ref=e745]:
+                - generic [ref=e746]:
+                  - generic [ref=e747]: Echipa
+                  - generic [ref=e748]: Mixt
+                - paragraph [ref=e749]: 11-12 ani / Mixt / Sincron / 3-4 Cap Rosu
+                - paragraph [ref=e750]: 11–12 ani · 3 titulari · 4 eligibili
+              - generic [ref=e751]:
+                - button "Configurează" [ref=e752] [cursor=pointer]
+                - button "Nu participăm" [ref=e753] [cursor=pointer]
+            - button "🤝 Solicită completare din alt club (3 locuri) Super admin asignează sportivi eligibili →" [ref=e754] [cursor=pointer]:
+              - generic [ref=e755]: 🤝
+              - generic [ref=e756]:
+                - paragraph [ref=e757]: Solicită completare din alt club (3 locuri)
+                - paragraph [ref=e758]: Super admin asignează sportivi eligibili
+              - generic [ref=e759]: →
+          - generic [ref=e760]:
+            - generic [ref=e762]:
+              - generic [ref=e763]:
+                - generic [ref=e764]:
+                  - generic [ref=e765]: Echipa
+                  - generic [ref=e766]: Feminin
+                - paragraph [ref=e767]: 11-12 ani / Feminin / Sincron / CV - CV 4 Cap Alb
+                - paragraph [ref=e768]: 11–12 ani · 3 titulari · 9 eligibili
+              - generic [ref=e769]:
+                - button "Configurează" [ref=e770] [cursor=pointer]
+                - button "Nu participăm" [ref=e771] [cursor=pointer]
+            - button "🤝 Solicită completare din alt club (3 locuri) Super admin asignează sportivi eligibili →" [ref=e772] [cursor=pointer]:
+              - generic [ref=e773]: 🤝
+              - generic [ref=e774]:
+                - paragraph [ref=e775]: Solicită completare din alt club (3 locuri)
+                - paragraph [ref=e776]: Super admin asignează sportivi eligibili
+              - generic [ref=e777]: →
+          - generic [ref=e778]:
+            - generic [ref=e780]:
+              - generic [ref=e781]:
+                - generic [ref=e782]:
+                  - generic [ref=e783]: Echipa
+                  - generic [ref=e784]: Masculin
+                - paragraph [ref=e785]: 11-12 ani / Masculin / Sincron / CV - CV 4 Cap Alb
+                - paragraph [ref=e786]: 11–12 ani · 3 titulari · 3 eligibili
+              - generic [ref=e787]:
+                - button "Configurează" [ref=e788] [cursor=pointer]
+                - button "Nu participăm" [ref=e789] [cursor=pointer]
+            - button "🤝 Solicită completare din alt club (3 locuri) Super admin asignează sportivi eligibili →" [ref=e790] [cursor=pointer]:
+              - generic [ref=e791]: 🤝
+              - generic [ref=e792]:
+                - paragraph [ref=e793]: Solicită completare din alt club (3 locuri)
+                - paragraph [ref=e794]: Super admin asignează sportivi eligibili
+              - generic [ref=e795]: →
+          - generic [ref=e796]:
+            - generic [ref=e798]:
+              - generic [ref=e799]:
+                - generic [ref=e800]:
+                  - generic [ref=e801]: Echipa
+                  - generic [ref=e802]: Mixt
+                - paragraph [ref=e803]: 11-12 ani / Mixt / Sincron / CV - CV 4 Cap Alb
+                - paragraph [ref=e804]: 11–12 ani · 3 titulari · 12 eligibili
+              - generic [ref=e805]:
+                - button "Configurează" [ref=e806] [cursor=pointer]
+                - button "Nu participăm" [ref=e807] [cursor=pointer]
+            - button "🤝 Solicită completare din alt club (3 locuri) Super admin asignează sportivi eligibili →" [ref=e808] [cursor=pointer]:
+              - generic [ref=e809]: 🤝
+              - generic [ref=e810]:
+                - paragraph [ref=e811]: Solicită completare din alt club (3 locuri)
+                - paragraph [ref=e812]: Super admin asignează sportivi eligibili
+              - generic [ref=e813]: →
+        - button "Înapoi la probe" [ref=e815] [cursor=pointer]
+  - contentinfo [ref=e481]:
+    - paragraph [ref=e482]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e483] [cursor=pointer]:
+      - img [ref=e484]
+      - generic [ref=e487]: Asistent AI

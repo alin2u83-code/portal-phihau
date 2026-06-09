@@ -1,0 +1,256 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e81]:
+            - generic [ref=e82] [cursor=pointer]:
+              - img [ref=e83]
+              - generic [ref=e89]: Activități Naționale
+              - img [ref=e90]
+            - generic [ref=e92]:
+              - generic [ref=e93] [cursor=pointer]: Competiții
+              - generic [ref=e95] [cursor=pointer]: Stagii
+          - generic [ref=e98] [cursor=pointer]:
+            - img [ref=e99]
+            - generic [ref=e101]: Financiar & Plăți
+            - img [ref=e102]
+          - generic [ref=e105] [cursor=pointer]:
+            - img [ref=e106]
+            - generic [ref=e109]: Setări & Admin
+            - img [ref=e110]
+          - generic [ref=e112] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e118]: Notificări
+          - generic [ref=e119] [cursor=pointer]:
+            - img [ref=e121]
+            - generic [ref=e123]: SMS
+          - generic [ref=e124] [cursor=pointer]:
+            - img [ref=e126]
+            - generic [ref=e129]: Cereri Înscriere
+          - generic [ref=e130] [cursor=pointer]:
+            - img [ref=e132]
+            - generic [ref=e135]: Istoric Activitate
+        - button "Scroll jos" [ref=e136] [cursor=pointer]:
+          - img [ref=e137]
+      - generic [ref=e139]:
+        - button "Tema" [ref=e141] [cursor=pointer]:
+          - img [ref=e142]
+          - generic [ref=e148]: Tema
+        - generic [ref=e150]:
+          - generic [ref=e151]: AL
+          - generic [ref=e152]:
+            - paragraph [ref=e153]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e154] [cursor=pointer]:
+            - img [ref=e155]
+  - button "Restrânge meniul" [ref=e158] [cursor=pointer]:
+    - img [ref=e159]
+  - banner [ref=e161]:
+    - navigation "Navigare" [ref=e163]:
+      - heading "Competiții" [level=1] [ref=e164]
+    - generic [ref=e165]:
+      - button "Temă" [ref=e167] [cursor=pointer]:
+        - img [ref=e168]
+        - generic [ref=e174]: Temă
+      - button [ref=e176] [cursor=pointer]:
+        - img [ref=e177]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e182] [cursor=pointer]:
+        - generic [ref=e183]: AL
+        - paragraph [ref=e185]:
+          - text: ALIN MIHAI
+          - generic [ref=e186]: "[ADMIN CLUB]"
+        - img [ref=e187]
+  - main [ref=e189]:
+    - generic [ref=e192]:
+      - generic [ref=e193]:
+        - button [ref=e194] [cursor=pointer]:
+          - img [ref=e195]
+        - generic [ref=e197]:
+          - heading "Cupa iunie" [level=2] [ref=e198]
+          - generic [ref=e199]:
+            - generic [ref=e200]: CN Tehnica (Quyen / Kata)
+            - generic [ref=e201]: Înscrieri deschise
+            - generic [ref=e202]: 07.06.2026 – 07.06.2026
+        - button "Refresh" [ref=e203] [cursor=pointer]:
+          - img [ref=e204]
+      - generic [ref=e206]:
+        - button "Înscrieri (14)" [ref=e232] [cursor=pointer]:
+          - img [ref=e208]
+          - generic [ref=e210]:
+            - text: Înscrieri
+            - generic [ref=e211]: (14)
+        - button "Raport" [ref=e212] [cursor=pointer]
+        - button "Categorii (152)" [ref=e233] [cursor=pointer]:
+          - img [ref=e214]
+          - generic [ref=e216]:
+            - text: Categorii
+            - generic [ref=e217]: (152)
+        - button "Refresh" [ref=e218] [cursor=pointer]:
+          - img [ref=e219]
+      - generic [ref=e316]:
+        - generic [ref=e317]:
+          - button [ref=e318] [cursor=pointer]:
+            - img [ref=e319]
+          - heading "Inscriere sportivi" [level=2] [ref=e322]
+        - generic [ref=e323]:
+          - heading "Echipe formate(14 echipe)" [level=3] [ref=e325]:
+            - text: Echipe formate
+            - generic [ref=e326]: (14 echipe)
+          - generic [ref=e327]:
+            - generic [ref=e328]:
+              - generic [ref=e329]:
+                - generic [ref=e330]:
+                  - generic [ref=e332]: Partener solicitat
+                  - generic [ref=e333]: 9-10 ani / Feminin / Sincron / 3-4 Cap Rosu
+                - generic [ref=e335]: ~150 lei (estimat)
+              - generic [ref=e337]: "T: CIRSTEA BIANCA ELENA"
+            - generic [ref=e338]:
+              - generic [ref=e339]:
+                - generic [ref=e340]:
+                  - generic [ref=e342]: Partener solicitat
+                  - generic [ref=e343]: 7-8 ani / Mixt / Song Luyen / 1-2 Cap Rosu
+                - generic [ref=e345]: ~150 lei (estimat)
+              - generic [ref=e347]: "T: LUNGU CILIAC HORAȚIU CASIAN"
+            - generic [ref=e348]:
+              - generic [ref=e349]:
+                - generic [ref=e350]:
+                  - generic [ref=e352]: Partener solicitat
+                  - generic [ref=e353]: 7-8 ani / Mixt / Song Luyen / 3-4 Cap Rosu
+                - generic [ref=e355]: ~150 lei (estimat)
+              - generic [ref=e357]: "T: BALMUS VERONICA"
+            - generic [ref=e358]:
+              - generic [ref=e359]:
+                - generic [ref=e360]:
+                  - generic [ref=e362]: Partener solicitat
+                  - generic [ref=e363]: 9-10 ani / Feminin / Sincron / CV - CV 2 Cap Alb
+                - generic [ref=e365]: ~150 lei (estimat)
+              - generic [ref=e367]: "T: ANDRICIUC NADIA"
+            - generic [ref=e368]:
+              - generic [ref=e369]:
+                - generic [ref=e371]: 7-8 ani / Feminin / Song Luyen / 3-4 Cap Rosu
+                - generic [ref=e373]: 150 lei
+              - generic [ref=e374]:
+                - generic [ref=e375]: "T: BALMUS VERONICA"
+                - generic [ref=e376]: "T: IONEL PETRINA CRISTIANA"
+            - generic [ref=e377]:
+              - generic [ref=e378]:
+                - generic [ref=e380]: 9-10 ani / Mixt / Sincron / 3-4 Cap Rosu
+                - generic [ref=e382]: 150 lei
+              - generic [ref=e383]:
+                - generic [ref=e384]: "T: ALBU THEODOR"
+                - generic [ref=e385]: "T: CIRSTEA BIANCA ELENA"
+                - generic [ref=e386]: "T: CUCIUREANU ROBERT ANDREI"
+            - generic [ref=e387]:
+              - generic [ref=e388]:
+                - generic [ref=e390]: 7-8 ani / Masculin / Song Luyen / 1-2 Cap Rosu
+                - generic [ref=e392]: 150 lei
+              - generic [ref=e393]:
+                - generic [ref=e394]: "T: LUNGU CILIAC HORAȚIU CASIAN"
+                - generic [ref=e395]: "T: SUMĂNARIU DRAGOȘ ȘTEFAN"
+            - generic [ref=e396]:
+              - generic [ref=e397]:
+                - generic [ref=e398]:
+                  - generic [ref=e400]: Partener solicitat
+                  - generic [ref=e401]: 11-12 ani / Feminin / Sincron / 3-4 Cap Rosu
+                - generic [ref=e403]: ~150 lei (estimat)
+              - generic [ref=e404]:
+                - generic [ref=e405]: "T: CALISKAN ESRA"
+                - generic [ref=e406]: "T: MANDIA MARIA"
+            - generic [ref=e407]:
+              - generic [ref=e408]:
+                - generic [ref=e409]:
+                  - generic [ref=e411]: Partener solicitat
+                  - generic [ref=e412]: 11-12 ani / Masculin / Sincron / 3-4 Cap Rosu
+                - generic [ref=e414]: ~150 lei (estimat)
+              - generic [ref=e415]:
+                - generic [ref=e416]: "T: CABALAU BOGDAN PAUL ROALD"
+                - generic [ref=e417]: "T: FOTACHE ALEXANDRU GEORGE"
+            - generic [ref=e418]:
+              - generic [ref=e419]:
+                - generic [ref=e421]: 11-12 ani / Mixt / Sincron / 3-4 Cap Rosu
+                - generic [ref=e423]: 150 lei
+              - generic [ref=e424]:
+                - generic [ref=e425]: "T: CABALAU BOGDAN PAUL ROALD"
+                - generic [ref=e426]: "T: CALISKAN ESRA"
+                - generic [ref=e427]: "T: MANDIA MARIA"
+            - generic [ref=e428]:
+              - generic [ref=e429]:
+                - generic [ref=e430]:
+                  - generic [ref=e432]: Partener solicitat
+                  - generic [ref=e433]: 9-10 ani / Mixt / Sincron / CV - CV 2 Cap Alb
+                - generic [ref=e435]: ~150 lei (estimat)
+              - generic [ref=e436]:
+                - generic [ref=e437]: "T: AMORARITI ALEXANDRU"
+                - generic [ref=e438]: "T: ANDRICIUC NADIA"
+            - generic [ref=e439]:
+              - generic [ref=e440]:
+                - generic [ref=e442]: 11-12 ani / Feminin / Sincron / CV - CV 4 Cap Alb
+                - generic [ref=e444]: 150 lei
+              - generic [ref=e445]:
+                - generic [ref=e446]: "T: ANDRICIUC SONIA"
+                - generic [ref=e447]: "T: BALMUS IUSTINA"
+                - generic [ref=e448]: "T: CAREJA ANTONIA ELENA"
+            - generic [ref=e449]:
+              - generic [ref=e450]:
+                - generic [ref=e452]: 9-10 ani / Masculin / Sincron / 3-4 Cap Rosu
+                - generic [ref=e454]: 150 lei
+              - generic [ref=e455]:
+                - generic [ref=e456]: "T: ALBU THEODOR"
+                - generic [ref=e457]: "T: PETRARU MIHAI SEBASTIAN"
+                - generic [ref=e458]: "T: CUCIUREANU ROBERT ANDREI"
+            - generic [ref=e459]:
+              - generic [ref=e460]:
+                - generic [ref=e462]: 9-10 ani / Masculin / Sincron / CV - CV 2 Cap Alb
+                - generic [ref=e464]: 150 lei
+              - generic [ref=e465]:
+                - generic [ref=e466]: "T: BALMUS FILIP"
+                - generic [ref=e467]: "T: AMORARITI ALEXANDRU"
+                - generic [ref=e468]: "T: GOMEI MARIAN CRISTIAN"
+        - generic [ref=e469]:
+          - generic [ref=e470]:
+            - generic [ref=e471]:
+              - generic [ref=e472]: "Total echipe:"
+              - generic [ref=e473]: 2100 lei
+            - generic [ref=e474]:
+              - generic [ref=e475]: "TOTAL DE ACHITAT:"
+              - generic [ref=e476]: 2100 lei
+          - paragraph [ref=e478]: Plata se efectueaza la secretariatul competitiei / prin virament bancar.
+        - generic [ref=e479]:
+          - generic [ref=e480]:
+            - button "Export fisa participare" [ref=e481] [cursor=pointer]
+            - button "Export borderou club" [ref=e482] [cursor=pointer]
+          - button "Finalizeaza inscrierea" [ref=e484] [cursor=pointer]
+  - contentinfo [ref=e222]:
+    - paragraph [ref=e223]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e224] [cursor=pointer]:
+      - img [ref=e225]
+      - generic [ref=e228]: Asistent AI

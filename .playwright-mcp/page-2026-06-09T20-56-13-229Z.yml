@@ -1,0 +1,307 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e81]:
+            - generic [ref=e82] [cursor=pointer]:
+              - img [ref=e83]
+              - generic [ref=e89]: Activități Naționale
+              - img [ref=e90]
+            - generic [ref=e92]:
+              - generic [ref=e93] [cursor=pointer]: Competiții
+              - generic [ref=e95] [cursor=pointer]: Stagii
+          - generic [ref=e98] [cursor=pointer]:
+            - img [ref=e99]
+            - generic [ref=e101]: Financiar & Plăți
+            - img [ref=e102]
+          - generic [ref=e105] [cursor=pointer]:
+            - img [ref=e106]
+            - generic [ref=e109]: Setări & Admin
+            - img [ref=e110]
+          - generic [ref=e112] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e118]: Notificări
+          - generic [ref=e119] [cursor=pointer]:
+            - img [ref=e121]
+            - generic [ref=e123]: SMS
+          - generic [ref=e124] [cursor=pointer]:
+            - img [ref=e126]
+            - generic [ref=e129]: Cereri Înscriere
+          - generic [ref=e130] [cursor=pointer]:
+            - img [ref=e132]
+            - generic [ref=e135]: Istoric Activitate
+        - button "Scroll jos" [ref=e136] [cursor=pointer]:
+          - img [ref=e137]
+      - generic [ref=e139]:
+        - button "Tema" [ref=e141] [cursor=pointer]:
+          - img [ref=e142]
+          - generic [ref=e148]: Tema
+        - generic [ref=e150]:
+          - generic [ref=e151]: AL
+          - generic [ref=e152]:
+            - paragraph [ref=e153]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e154] [cursor=pointer]:
+            - img [ref=e155]
+  - button "Restrânge meniul" [ref=e158] [cursor=pointer]:
+    - img [ref=e159]
+  - banner [ref=e161]:
+    - navigation "Navigare" [ref=e163]:
+      - heading "Competiții" [level=1] [ref=e164]
+    - generic [ref=e165]:
+      - button "Temă" [ref=e167] [cursor=pointer]:
+        - img [ref=e168]
+        - generic [ref=e174]: Temă
+      - button [ref=e176] [cursor=pointer]:
+        - img [ref=e177]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e182] [cursor=pointer]:
+        - generic [ref=e183]: AL
+        - paragraph [ref=e185]:
+          - text: ALIN MIHAI
+          - generic [ref=e186]: "[ADMIN CLUB]"
+        - img [ref=e187]
+  - main [ref=e189]:
+    - generic [ref=e192]:
+      - generic [ref=e193]:
+        - button [ref=e194] [cursor=pointer]:
+          - img [ref=e195]
+        - generic [ref=e197]:
+          - heading "Cupa iunie" [level=2] [ref=e198]
+          - generic [ref=e199]:
+            - generic [ref=e200]: CN Tehnica (Quyen / Kata)
+            - generic [ref=e201]: Înscrieri deschise
+            - generic [ref=e202]: 07.06.2026 – 07.06.2026
+        - button "Refresh" [ref=e203] [cursor=pointer]:
+          - img [ref=e204]
+      - generic [ref=e206]:
+        - button "Înscrieri (14)" [ref=e207] [cursor=pointer]:
+          - img [ref=e208]
+          - generic [ref=e210]:
+            - text: Înscrieri
+            - generic [ref=e211]: (14)
+        - button "Raport" [active] [ref=e212] [cursor=pointer]
+        - button "Categorii (152)" [ref=e213] [cursor=pointer]:
+          - img [ref=e214]
+          - generic [ref=e216]:
+            - text: Categorii
+            - generic [ref=e217]: (152)
+        - button "Refresh" [ref=e218] [cursor=pointer]:
+          - img [ref=e219]
+      - generic [ref=e307]:
+        - generic [ref=e308]:
+          - generic [ref=e309]:
+            - heading "Raport Înscrieri" [level=3] [ref=e310]
+            - generic [ref=e311]: 19 sportivi
+          - button "Imprimă" [ref=e312] [cursor=pointer]
+        - button "Filtrează" [ref=e315] [cursor=pointer]:
+          - img [ref=e316]
+          - text: Filtrează
+          - img [ref=e318]
+        - generic [ref=e321]:
+          - generic [ref=e322]:
+            - generic [ref=e323]:
+              - generic [ref=e325]: ALBU THEODOR
+              - generic [ref=e326]: 2 probe
+            - generic [ref=e327]:
+              - generic [ref=e328]:
+                - text: Sincron (perechi)
+                - generic [ref=e329]: (titular)
+              - generic [ref=e330]:
+                - text: Sincron (perechi)
+                - generic [ref=e331]: (titular)
+          - generic [ref=e332]:
+            - generic [ref=e333]:
+              - generic [ref=e335]: AMORARITI ALEXANDRU
+              - generic [ref=e336]: 2 probe
+            - generic [ref=e337]:
+              - generic [ref=e338]:
+                - text: Sincron (perechi)
+                - generic [ref=e339]: (titular)
+              - generic [ref=e340]:
+                - text: Sincron (perechi)
+                - generic [ref=e341]: (titular)
+          - generic [ref=e342]:
+            - generic [ref=e343]:
+              - generic [ref=e345]: ANDRICIUC NADIA
+              - generic [ref=e346]: 2 probe
+            - generic [ref=e347]:
+              - generic [ref=e348]:
+                - text: Sincron (perechi)
+                - generic [ref=e349]: (titular)
+              - generic [ref=e350]:
+                - text: Sincron (perechi)
+                - generic [ref=e351]: (titular)
+          - generic [ref=e352]:
+            - generic [ref=e353]:
+              - generic [ref=e355]: ANDRICIUC SONIA
+              - generic [ref=e356]: 1 probă
+            - generic [ref=e358]:
+              - text: Sincron (perechi)
+              - generic [ref=e359]: (titular)
+          - generic [ref=e360]:
+            - generic [ref=e361]:
+              - generic [ref=e363]: BALMUS FILIP
+              - generic [ref=e364]: 1 probă
+            - generic [ref=e366]:
+              - text: Sincron (perechi)
+              - generic [ref=e367]: (titular)
+          - generic [ref=e368]:
+            - generic [ref=e369]:
+              - generic [ref=e371]: BALMUS IUSTINA
+              - generic [ref=e372]: 1 probă
+            - generic [ref=e374]:
+              - text: Sincron (perechi)
+              - generic [ref=e375]: (titular)
+          - generic [ref=e376]:
+            - generic [ref=e377]:
+              - generic [ref=e379]: BALMUS VERONICA
+              - generic [ref=e380]: 2 probe
+            - generic [ref=e381]:
+              - generic [ref=e382]:
+                - text: Song Luyen (perechi)
+                - generic [ref=e383]: (titular)
+              - generic [ref=e384]:
+                - text: Song Luyen (perechi)
+                - generic [ref=e385]: (titular)
+          - generic [ref=e386]:
+            - generic [ref=e387]:
+              - generic [ref=e389]: CABALAU BOGDAN PAUL ROALD
+              - generic [ref=e390]: 2 probe
+            - generic [ref=e391]:
+              - generic [ref=e392]:
+                - text: Sincron (perechi)
+                - generic [ref=e393]: (titular)
+              - generic [ref=e394]:
+                - text: Sincron (perechi)
+                - generic [ref=e395]: (titular)
+          - generic [ref=e396]:
+            - generic [ref=e397]:
+              - generic [ref=e399]: CALISKAN ESRA
+              - generic [ref=e400]: 2 probe
+            - generic [ref=e401]:
+              - generic [ref=e402]:
+                - text: Sincron (perechi)
+                - generic [ref=e403]: (titular)
+              - generic [ref=e404]:
+                - text: Sincron (perechi)
+                - generic [ref=e405]: (titular)
+          - generic [ref=e406]:
+            - generic [ref=e407]:
+              - generic [ref=e409]: CAREJA ANTONIA ELENA
+              - generic [ref=e410]: 1 probă
+            - generic [ref=e412]:
+              - text: Sincron (perechi)
+              - generic [ref=e413]: (titular)
+          - generic [ref=e414]:
+            - generic [ref=e415]:
+              - generic [ref=e417]: CIRSTEA BIANCA ELENA
+              - generic [ref=e418]: 2 probe
+            - generic [ref=e419]:
+              - generic [ref=e420]:
+                - text: Sincron (perechi)
+                - generic [ref=e421]: (titular)
+              - generic [ref=e422]:
+                - text: Sincron (perechi)
+                - generic [ref=e423]: (titular)
+          - generic [ref=e424]:
+            - generic [ref=e425]:
+              - generic [ref=e427]: CUCIUREANU ROBERT ANDREI
+              - generic [ref=e428]: 2 probe
+            - generic [ref=e429]:
+              - generic [ref=e430]:
+                - text: Sincron (perechi)
+                - generic [ref=e431]: (titular)
+              - generic [ref=e432]:
+                - text: Sincron (perechi)
+                - generic [ref=e433]: (titular)
+          - generic [ref=e434]:
+            - generic [ref=e435]:
+              - generic [ref=e437]: FOTACHE ALEXANDRU GEORGE
+              - generic [ref=e438]: 1 probă
+            - generic [ref=e440]:
+              - text: Sincron (perechi)
+              - generic [ref=e441]: (titular)
+          - generic [ref=e442]:
+            - generic [ref=e443]:
+              - generic [ref=e445]: GOMEI MARIAN CRISTIAN
+              - generic [ref=e446]: 1 probă
+            - generic [ref=e448]:
+              - text: Sincron (perechi)
+              - generic [ref=e449]: (titular)
+          - generic [ref=e450]:
+            - generic [ref=e451]:
+              - generic [ref=e453]: IONEL PETRINA CRISTIANA
+              - generic [ref=e454]: 1 probă
+            - generic [ref=e456]:
+              - text: Song Luyen (perechi)
+              - generic [ref=e457]: (titular)
+          - generic [ref=e458]:
+            - generic [ref=e459]:
+              - generic [ref=e461]: LUNGU CILIAC HORAȚIU CASIAN
+              - generic [ref=e462]: 2 probe
+            - generic [ref=e463]:
+              - generic [ref=e464]:
+                - text: Song Luyen (perechi)
+                - generic [ref=e465]: (titular)
+              - generic [ref=e466]:
+                - text: Song Luyen (perechi)
+                - generic [ref=e467]: (titular)
+          - generic [ref=e468]:
+            - generic [ref=e469]:
+              - generic [ref=e471]: MANDIA MARIA
+              - generic [ref=e472]: 2 probe
+            - generic [ref=e473]:
+              - generic [ref=e474]:
+                - text: Sincron (perechi)
+                - generic [ref=e475]: (titular)
+              - generic [ref=e476]:
+                - text: Sincron (perechi)
+                - generic [ref=e477]: (titular)
+          - generic [ref=e478]:
+            - generic [ref=e479]:
+              - generic [ref=e481]: PETRARU MIHAI SEBASTIAN
+              - generic [ref=e482]: 1 probă
+            - generic [ref=e484]:
+              - text: Sincron (perechi)
+              - generic [ref=e485]: (titular)
+          - generic [ref=e486]:
+            - generic [ref=e487]:
+              - generic [ref=e489]: SUMĂNARIU DRAGOȘ ȘTEFAN
+              - generic [ref=e490]: 1 probă
+            - generic [ref=e492]:
+              - text: Song Luyen (perechi)
+              - generic [ref=e493]: (titular)
+  - contentinfo [ref=e297]:
+    - paragraph [ref=e298]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e299] [cursor=pointer]:
+      - img [ref=e300]
+      - generic [ref=e303]: Asistent AI

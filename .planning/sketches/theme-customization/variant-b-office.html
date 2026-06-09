@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Variant B — Office-Style Theme Picker</title>
+<style>
+  :root {
+    --c-bg: #f4f6fa;
+    --c-card: #ffffff;
+    --c-sidebar: #1e3a5f;
+    --c-sidebar-txt: #cbd5e1;
+    --c-sidebar-act: #3b82f6;
+    --c-header: #ffffff;
+    --c-accent: #2563eb;
+    --c-text: #1e293b;
+    --c-muted: #64748b;
+    --c-border: #e2e8f0;
+    --c-th: #f1f5f9;
+    --c-stripe: #f8fafc;
+    --c-hover: #eff6ff;
+    --c-badge: #dbeafe;
+    --c-badge-txt: #1e40af;
+    --radius: 8px;
+    --sidebar-w: 56px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    background: var(--c-bg);
+    height: 100vh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 48px 1fr;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--c-header);
+    border-bottom: 1px solid var(--c-border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    z-index: 100;
+    position: relative;
+  }
+
+  .topbar-logo { font-size: 15px; font-weight: 800; color: var(--c-accent); }
+  .topbar-sep { width: 1px; height: 20px; background: var(--c-border); }
+
+  .theme-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--c-border);
+    background: var(--c-bg);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--c-text);
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .theme-trigger:hover { border-color: var(--c-accent); color: var(--c-accent); }
+  .theme-trigger.active { background: var(--c-accent); color: white; border-color: var(--c-accent); }
+
+  .theme-swatch-mini {
+    width: 18px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.15);
+    overflow: hidden;
+    display: flex;
+  }
+
+  .theme-swatch-mini span { display: block; height: 100%; }
+
+  .topbar-spacer { flex: 1; }
+
+  .topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--c-muted);
+  }
+
+  .avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--c-accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── THEME DROPDOWN ── */
+  .theme-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 520px;
+    background: white;
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    z-index: 9999;
+    display: none;
+    overflow: hidden;
+  }
+
+  .theme-dropdown.open { display: block; }
+
+  .dropdown-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--c-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .dropdown-header h3 { font-size: 14px; font-weight: 700; color: var(--c-text); }
+  .dropdown-close { cursor: pointer; font-size: 18px; color: var(--c-muted); line-height: 1; padding: 2px 4px; border-radius: 4px; }
+  .dropdown-close:hover { background: var(--c-bg); }
+
+  .dropdown-body { display: grid; grid-template-columns: 200px 1fr; min-height: 280px; }
+
+  /* Preset list */
+  .preset-list { border-right: 1px solid var(--c-border); padding: 8px; }
+
+  .preset-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.1s;
+    margin-bottom: 2px;
+  }
+
+  .preset-btn:hover { background: var(--c-bg); }
+  .preset-btn.active { background: var(--c-hover); }
+
+  .preset-swatch-3 {
+    width: 32px;
+    height: 24px;
+    border-radius: 5px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 10px 1fr;
+    border: 1px solid rgba(0,0,0,0.1);
+    flex-shrink: 0;
+  }
+
+  .preset-swatch-3 .ps-side { height: 100%; }
+  .preset-swatch-3 .ps-main { height: 100%; }
+
+  .preset-btn-name { font-size: 13px; font-weight: 500; color: var(--c-text); }
+  .preset-btn-desc { font-size: 10px; color: var(--c-muted); }
+
+  .preset-btn.active .preset-btn-name { color: var(--c-accent); }
+
+  /* Override panel */
+  .override-panel { padding: 12px 14px; display: flex; flex-direction: column; gap: 0; }
+
+  .override-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-muted); margin-bottom: 10px; }
+
+  .override-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  .override-item { display: flex; flex-direction: column; gap: 4px; }
+
+  .override-item label { font-size: 11px; color: var(--c-muted); }
+
+  .override-swatch {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border: 1px solid var(--c-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    background: white;
+  }
+
+  .override-swatch:hover { border-color: var(--c-accent); }
+
+  .swatch-color {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.1);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .swatch-color input[type="color"] {
+    position: absolute;
+    inset: -4px;
+    opacity: 0;
+    cursor: pointer;
+    width: 140%;
+    height: 140%;
+  }
+
+  .swatch-name { font-size: 11px; color: var(--c-text); flex: 1; }
+  .swatch-hex { font-size: 10px; font-family: monospace; color: var(--c-muted); }
+
+  .dropdown-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--c-border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: var(--c-bg);
+  }
+
+  .ddbtn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+
+  .ddbtn-primary { background: var(--c-accent); color: white; }
+  .ddbtn-primary:hover { opacity: 0.9; }
+  .ddbtn-ghost { background: none; border: 1px solid var(--c-border); color: var(--c-text); }
+  .ddbtn-ghost:hover { border-color: var(--c-accent); color: var(--c-accent); }
+
+  .save-badge {
+    font-size: 11px;
+    color: #16a34a;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  /* ── APP LAYOUT ── */
+  .app-body {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--c-sidebar);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  .sidebar-brand {
+    padding: 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .sidebar-brand-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--c-sidebar-act);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .sidebar-nav { flex: 1; padding: 8px 4px; overflow-y: auto; }
+
+  .snav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    border-radius: 8px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    color: var(--c-sidebar-txt);
+    transition: all 0.15s;
+    font-size: 9px;
+    gap: 3px;
+  }
+
+  .snav-item:hover { background: rgba(255,255,255,0.08); }
+
+  .snav-item.active {
+    background: var(--c-sidebar-act);
+    color: white;
+  }
+
+  .snav-icon { font-size: 18px; }
+
+  /* Main content */
+  .main-content {
+    background: var(--c-bg);
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--c-text);
+    margin-bottom: 4px;
+  }
+
+  .page-subtitle { font-size: 13px; color: var(--c-muted); margin-bottom: 20px; }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .kpi-card {
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--c-accent); }
+  .kpi-value { font-size: 24px; font-weight: 800; color: var(--c-text); }
+  .kpi-label { font-size: 11px; color: var(--c-muted); margin-top: 2px; }
+  .kpi-delta { font-size: 11px; color: #16a34a; margin-top: 4px; }
+
+  .content-grid { display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
+
+  .card {
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--c-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title { font-size: 14px; font-weight: 600; color: var(--c-text); }
+  .card-action { font-size: 12px; color: var(--c-accent); cursor: pointer; font-weight: 500; }
+
+  table.data-table { width: 100%; border-collapse: collapse; }
+
+  table.data-table th {
+    background: var(--c-th);
+    color: var(--c-muted);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 8px 14px;
+    text-align: left;
+  }
+
+  table.data-table td {
+    padding: 9px 14px;
+    font-size: 12px;
+    color: var(--c-text);
+    border-top: 1px solid var(--c-border);
+  }
+
+  table.data-table tr:nth-child(even) td { background: var(--c-stripe); }
+  table.data-table tr:hover td { background: var(--c-hover); cursor: pointer; }
+
+  .badge-sm {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    background: var(--c-badge);
+    color: var(--c-badge-txt);
+  }
+
+  /* Side card */
+  .side-events { padding: 12px 14px; }
+  .event-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--c-border);
+    align-items: flex-start;
+  }
+  .event-item:last-child { border-bottom: none; }
+
+  .event-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--c-accent);
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .event-name { font-size: 12px; font-weight: 500; color: var(--c-text); }
+  .event-date { font-size: 10px; color: var(--c-muted); }
+
+  /* Btn primary */
+  .btn-accent {
+    padding: 7px 14px;
+    background: var(--c-accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-accent:hover { opacity: 0.9; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    :root { --sidebar-w: 0px; }
+    .sidebar { display: none; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .content-grid { grid-template-columns: 1fr; }
+    .theme-dropdown { width: calc(100vw - 16px); left: 8px; }
+    .dropdown-body { grid-template-columns: 1fr; }
+    .preset-list { border-right: none; border-bottom: 1px solid var(--c-border); max-height: 120px; overflow-y: auto; }
+  }
+
+  @media (max-width: 480px) {
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .topbar { padding: 0 10px; gap: 8px; }
+    .topbar-user span { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-logo">⚡ PhiHau</div>
+  <div class="topbar-sep"></div>
+
+  <!-- Theme Trigger -->
+  <div style="position:relative">
+    <div class="theme-trigger" id="theme-trigger" onclick="toggleDropdown()">
+      <div class="theme-swatch-mini" id="mini-swatch">
+        <span id="ms-side" style="background: #1e3a5f; width:40%"></span>
+        <span id="ms-main" style="background: #f4f6fa; flex:1"></span>
+      </div>
+      🎨 Temă
+    </div>
+
+    <!-- Dropdown -->
+    <div class="theme-dropdown" id="theme-dropdown">
+      <div class="dropdown-header">
+        <h3>🎨 Personalizare Temă</h3>
+        <div class="dropdown-close" onclick="toggleDropdown()">×</div>
+      </div>
+
+      <div class="dropdown-body">
+        <!-- Preset List -->
+        <div class="preset-list">
+          <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#94a3b8; padding: 4px 10px 8px;">Teme rapide</div>
+
+          <div class="preset-btn active" onclick="pickPreset('classic',this,'#1e3a5f','#f4f6fa','#2563eb')">
+            <div class="preset-swatch-3">
+              <div class="ps-side" style="background:#1e3a5f"></div>
+              <div class="ps-main" style="background:#f4f6fa"></div>
+            </div>
+            <div><div class="preset-btn-name">Classic Blue</div><div class="preset-btn-desc">Tema implicită</div></div>
+          </div>
+
+          <div class="preset-btn" onclick="pickPreset('dark',this,'#0f172a','#111827','#60a5fa')">
+            <div class="preset-swatch-3">
+              <div class="ps-side" style="background:#0f172a"></div>
+              <div class="ps-main" style="background:#111827"></div>
+            </div>
+            <div><div class="preset-btn-name">Dark Mode</div><div class="preset-btn-desc">Mod întunecat</div></div>
+          </div>
+
+          <div class="preset-btn" onclick="pickPreset('ocean',this,'#0c4a6e','#e0f2fe','#0284c7')">
+            <div class="preset-swatch-3">
+              <div class="ps-side" style="background:#0c4a6e"></div>
+              <div class="ps-main" style="background:#e0f2fe"></div>
+            </div>
+            <div><div class="preset-btn-name">Ocean</div><div class="preset-btn-desc">Albastru deschis</div></div>
+          </div>
+
+          <div class="preset-btn" onclick="pickPreset('forest',this,'#14532d','#f0fdf4','#15803d')">
+            <div class="preset-swatch-3">
+              <div class="ps-side" style="background:#14532d"></div>
+              <div class="ps-main" style="background:#f0fdf4"></div>
+            </div>
+            <div><div class="preset-btn-name">Forest</div><div class="preset-btn-desc">Verde natural</div></div>
+          </div>
+
+          <div class="preset-btn" onclick="pickPreset('violet',this,'#4c1d95','#f5f3ff','#7c3aed')">
+            <div class="preset-swatch-3">
+              <div class="ps-side" style="background:#4c1d95"></div>
+              <div class="ps-main" style="background:#f5f3ff"></div>
+            </div>
+            <div><div class="preset-btn-name">Violet</div><div class="preset-btn-desc">Purple moale</div></div>
+          </div>
+
+          <div class="preset-btn" onclick="pickPreset('sunset',this,'#7c2d12','#fff7ed','#ea580c')">
+            <div class="preset-swatch-3">
+              <div class="ps-side" style="background:#7c2d12"></div>
+              <div class="ps-main" style="background:#fff7ed"></div>
+            </div>
+            <div><div class="preset-btn-name">Sunset</div><div class="preset-btn-desc">Portocaliu cald</div></div>
+          </div>
+
+          <div class="preset-btn" onclick="pickPreset('rose',this,'#9f1239','#fff1f2','#e11d48')">
+            <div class="preset-swatch-3">
+              <div class="ps-side" style="background:#9f1239"></div>
+              <div class="ps-main" style="background:#fff1f2"></div>
+            </div>
+            <div><div class="preset-btn-name">Rose</div><div class="preset-btn-desc">Roz vibrant</div></div>
+          </div>
+        </div>
+
+        <!-- Override Panel -->
+        <div class="override-panel">
+          <div class="override-title">Ajustare culori individuale</div>
+          <div class="override-grid">
+
+            <div class="override-item">
+              <label>Sidebar fundal</label>
+              <div class="override-swatch" onclick="this.querySelector('input').click()">
+                <div class="swatch-color" id="sw-sidebar" style="background:#1e3a5f">
+                  <input type="color" value="#1e3a5f" oninput="applyOverride('--c-sidebar', this.value, 'sw-sidebar', 'hx-sidebar')">
+                </div>
+                <span class="swatch-name">Sidebar</span>
+                <span class="swatch-hex" id="hx-sidebar">#1e3a5f</span>
+              </div>
+            </div>
+
+            <div class="override-item">
+              <label>Accent / Butoane</label>
+              <div class="override-swatch" onclick="this.querySelector('input').click()">
+                <div class="swatch-color" id="sw-accent" style="background:#2563eb">
+                  <input type="color" value="#2563eb" oninput="applyOverride('--c-accent', this.value, 'sw-accent', 'hx-accent')">
+                </div>
+                <span class="swatch-name">Accent</span>
+                <span class="swatch-hex" id="hx-accent">#2563eb</span>
+              </div>
+            </div>
+
+            <div class="override-item">
+              <label>Fundal pagină</label>
+              <div class="override-swatch" onclick="this.querySelector('input').click()">
+                <div class="swatch-color" id="sw-bg" style="background:#f4f6fa">
+                  <input type="color" value="#f4f6fa" oninput="applyOverride('--c-bg', this.value, 'sw-bg', 'hx-bg')">
+                </div>
+                <span class="swatch-name">Fundal</span>
+                <span class="swatch-hex" id="hx-bg">#f4f6fa</span>
+              </div>
+            </div>
+
+            <div class="override-item">
+              <label>Carduri</label>
+              <div class="override-swatch" onclick="this.querySelector('input').click()">
+                <div class="swatch-color" id="sw-card" style="background:#ffffff">
+                  <input type="color" value="#ffffff" oninput="applyOverride('--c-card', this.value, 'sw-card', 'hx-card')">
+                </div>
+                <span class="swatch-name">Card</span>
+                <span class="swatch-hex" id="hx-card">#ffffff</span>
+              </div>
+            </div>
+
+            <div class="override-item">
+              <label>Text principal</label>
+              <div class="override-swatch" onclick="this.querySelector('input').click()">
+                <div class="swatch-color" id="sw-text" style="background:#1e293b">
+                  <input type="color" value="#1e293b" oninput="applyOverride('--c-text', this.value, 'sw-text', 'hx-text')">
+                </div>
+                <span class="swatch-name">Text</span>
+                <span class="swatch-hex" id="hx-text">#1e293b</span>
+              </div>
+            </div>
+
+            <div class="override-item">
+              <label>Header fundal</label>
+              <div class="override-swatch" onclick="this.querySelector('input').click()">
+                <div class="swatch-color" id="sw-header" style="background:#ffffff">
+                  <input type="color" value="#ffffff" oninput="applyOverride('--c-header', this.value, 'sw-header', 'hx-header')">
+                </div>
+                <span class="swatch-name">Header</span>
+                <span class="swatch-hex" id="hx-header">#ffffff</span>
+              </div>
+            </div>
+
+            <div class="override-item">
+              <label>Tabel header</label>
+              <div class="override-swatch" onclick="this.querySelector('input').click()">
+                <div class="swatch-color" id="sw-th" style="background:#f1f5f9">
+                  <input type="color" value="#f1f5f9" oninput="applyOverride('--c-th', this.value, 'sw-th', 'hx-th')">
+                </div>
+                <span class="swatch-name">Tabel head</span>
+                <span class="swatch-hex" id="hx-th">#f1f5f9</span>
+              </div>
+            </div>
+
+            <div class="override-item">
+              <label>Rând alternativ</label>
+              <div class="override-swatch" onclick="this.querySelector('input').click()">
+                <div class="swatch-color" id="sw-stripe" style="background:#f8fafc">
+                  <input type="color" value="#f8fafc" oninput="applyOverride('--c-stripe', this.value, 'sw-stripe', 'hx-stripe')">
+                </div>
+                <span class="swatch-name">Stripe</span>
+                <span class="swatch-hex" id="hx-stripe">#f8fafc</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="dropdown-footer">
+        <button class="ddbtn ddbtn-primary" onclick="saveAndClose()">💾 Aplică & Salvează</button>
+        <button class="ddbtn ddbtn-ghost" onclick="resetAll()">↺ Reset</button>
+        <div style="flex:1"></div>
+        <div class="save-badge" id="save-badge">✓ Salvat!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="topbar-spacer"></div>
+
+  <div class="topbar-user">
+    <span style="font-size:12px; color: var(--c-muted)">Admin Club</span>
+    <div class="avatar">AL</div>
+  </div>
+</div>
+
+<!-- App Body -->
+<div class="app-body" id="app-body">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-dot">⚡</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="snav-item active">
+        <div class="snav-icon">📊</div>
+        <div>Board</div>
+      </div>
+      <div class="snav-item">
+        <div class="snav-icon">👥</div>
+        <div>Sportivi</div>
+      </div>
+      <div class="snav-item">
+        <div class="snav-icon">🏃</div>
+        <div>Grupe</div>
+      </div>
+      <div class="snav-item">
+        <div class="snav-icon">✓</div>
+        <div>Prezență</div>
+      </div>
+      <div class="snav-item">
+        <div class="snav-icon">🏆</div>
+        <div>Examene</div>
+      </div>
+      <div class="snav-item">
+        <div class="snav-icon">⚔️</div>
+        <div>Competiții</div>
+      </div>
+      <div class="snav-item">
+        <div class="snav-icon">💶</div>
+        <div>Plăți</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content" onclick="closeDropdown()">
+    <div class="page-title">Dashboard Club</div>
+    <div class="page-subtitle">Bun venit, Alin! — Dă click pe 🎨 Temă pentru a personaliza interfața.</div>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-accent"></div>
+        <div class="kpi-value">142</div>
+        <div class="kpi-label">Sportivi activi</div>
+        <div class="kpi-delta">▲ 3 față de luna trecută</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-accent"></div>
+        <div class="kpi-value">8</div>
+        <div class="kpi-label">Grupe active</div>
+        <div class="kpi-delta">Fără modificări</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-accent"></div>
+        <div class="kpi-value">94%</div>
+        <div class="kpi-label">Prezență medie</div>
+        <div class="kpi-delta">▲ 2% față de mai</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-accent"></div>
+        <div class="kpi-value">3</div>
+        <div class="kpi-label">Restanțieri activi</div>
+        <div class="kpi-delta" style="color:#dc2626">▼ Necesită atenție</div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Sportivi recenți</span>
+          <button class="btn-accent">+ Adaugă sportiv</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nume</th>
+              <th>Grupă</th>
+              <th>Grad</th>
+              <th>Plăți</th>
+              <th>Stare</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ionescu Alexandru</td>
+              <td>Avansați A</td>
+              <td>Albastru 1</td>
+              <td>✓ La zi</td>
+              <td><span class="badge-sm">Activ</span></td>
+            </tr>
+            <tr>
+              <td>Popescu Maria</td>
+              <td>Beginners B</td>
+              <td>Galben</td>
+              <td>✓ La zi</td>
+              <td><span class="badge-sm">Activ</span></td>
+            </tr>
+            <tr>
+              <td>Dumitrescu Ion</td>
+              <td>Intermediari</td>
+              <td>Verde 2</td>
+              <td style="color:#dc2626">⚠ Restant</td>
+              <td><span class="badge-sm">Activ</span></td>
+            </tr>
+            <tr>
+              <td>Stanescu Ana</td>
+              <td>Beginners A</td>
+              <td>Alb</td>
+              <td>✓ La zi</td>
+              <td><span class="badge-sm">Activ</span></td>
+            </tr>
+            <tr>
+              <td>Georgescu Mihai</td>
+              <td>Avansați B</td>
+              <td>Negru 1</td>
+              <td>✓ La zi</td>
+              <td><span class="badge-sm">Activ</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Evenimente viitoare</span>
+          <span class="card-action">Vezi toate →</span>
+        </div>
+        <div class="side-events">
+          <div class="event-item">
+            <div class="event-dot"></div>
+            <div>
+              <div class="event-name">Examen grade KYU</div>
+              <div class="event-date">15 Iunie 2026 • Sala Cluj</div>
+            </div>
+          </div>
+          <div class="event-item">
+            <div class="event-dot"></div>
+            <div>
+              <div class="event-name">Competiție Tehnică națională</div>
+              <div class="event-date">22 Iunie 2026 • București</div>
+            </div>
+          </div>
+          <div class="event-item">
+            <div class="event-dot"></div>
+            <div>
+              <div class="event-name">Stagiu vară QwanKiDo</div>
+              <div class="event-date">1-5 Iulie 2026 • Sinaia</div>
+            </div>
+          </div>
+          <div class="event-item">
+            <div class="event-dot"></div>
+            <div>
+              <div class="event-name">Gala campionilor</div>
+              <div class="event-date">18 Iulie 2026 • Timișoara</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const root = document.documentElement;
+
+function toggleDropdown() {
+  const dd = document.getElementById('theme-dropdown');
+  const tr = document.getElementById('theme-trigger');
+  dd.classList.toggle('open');
+  tr.classList.toggle('active');
+}
+
+function closeDropdown() {
+  document.getElementById('theme-dropdown').classList.remove('open');
+  document.getElementById('theme-trigger').classList.remove('active');
+}
+
+function applyOverride(prop, val, swatchId, hexId) {
+  root.style.setProperty(prop, val);
+  document.getElementById(swatchId).style.background = val;
+  document.getElementById(hexId).textContent = val;
+  updateMiniSwatch();
+}
+
+function updateMiniSwatch() {
+  const s = getComputedStyle(root);
+  document.getElementById('ms-side').style.background = s.getPropertyValue('--c-sidebar').trim();
+  document.getElementById('ms-main').style.background = s.getPropertyValue('--c-bg').trim();
+}
+
+const PRESETS = {
+  classic: { '--c-sidebar':'#1e3a5f','--c-sidebar-txt':'#cbd5e1','--c-sidebar-act':'#3b82f6','--c-header':'#ffffff','--c-accent':'#2563eb','--c-bg':'#f4f6fa','--c-card':'#ffffff','--c-text':'#1e293b','--c-muted':'#64748b','--c-border':'#e2e8f0','--c-th':'#f1f5f9','--c-stripe':'#f8fafc','--c-hover':'#eff6ff','--c-badge':'#dbeafe','--c-badge-txt':'#1e40af' },
+  dark: { '--c-sidebar':'#0f172a','--c-sidebar-txt':'#94a3b8','--c-sidebar-act':'#3b82f6','--c-header':'#1f2937','--c-accent':'#60a5fa','--c-bg':'#111827','--c-card':'#1f2937','--c-text':'#f1f5f9','--c-muted':'#94a3b8','--c-border':'#374151','--c-th':'#374151','--c-stripe':'#1a2436','--c-hover':'#1e3a5f','--c-badge':'#1e3a5f','--c-badge-txt':'#93c5fd' },
+  ocean: { '--c-sidebar':'#0c4a6e','--c-sidebar-txt':'#bae6fd','--c-sidebar-act':'#0ea5e9','--c-header':'#ffffff','--c-accent':'#0284c7','--c-bg':'#e0f2fe','--c-card':'#ffffff','--c-text':'#0c4a6e','--c-muted':'#0369a1','--c-border':'#bae6fd','--c-th':'#e0f2fe','--c-stripe':'#f0f9ff','--c-hover':'#e0f2fe','--c-badge':'#e0f2fe','--c-badge-txt':'#0369a1' },
+  forest: { '--c-sidebar':'#14532d','--c-sidebar-txt':'#bbf7d0','--c-sidebar-act':'#16a34a','--c-header':'#ffffff','--c-accent':'#15803d','--c-bg':'#f0fdf4','--c-card':'#ffffff','--c-text':'#14532d','--c-muted':'#166534','--c-border':'#bbf7d0','--c-th':'#dcfce7','--c-stripe':'#f0fdf4','--c-hover':'#dcfce7','--c-badge':'#dcfce7','--c-badge-txt':'#166534' },
+  violet: { '--c-sidebar':'#4c1d95','--c-sidebar-txt':'#ddd6fe','--c-sidebar-act':'#7c3aed','--c-header':'#ffffff','--c-accent':'#7c3aed','--c-bg':'#f5f3ff','--c-card':'#ffffff','--c-text':'#2e1065','--c-muted':'#5b21b6','--c-border':'#ddd6fe','--c-th':'#ede9fe','--c-stripe':'#f5f3ff','--c-hover':'#ede9fe','--c-badge':'#ede9fe','--c-badge-txt':'#5b21b6' },
+  sunset: { '--c-sidebar':'#7c2d12','--c-sidebar-txt':'#fed7aa','--c-sidebar-act':'#ea580c','--c-header':'#ffffff','--c-accent':'#ea580c','--c-bg':'#fff7ed','--c-card':'#ffffff','--c-text':'#431407','--c-muted':'#9a3412','--c-border':'#fed7aa','--c-th':'#ffedd5','--c-stripe':'#fff7ed','--c-hover':'#ffedd5','--c-badge':'#ffedd5','--c-badge-txt':'#9a3412' },
+  rose: { '--c-sidebar':'#9f1239','--c-sidebar-txt':'#fecdd3','--c-sidebar-act':'#e11d48','--c-header':'#ffffff','--c-accent':'#e11d48','--c-bg':'#fff1f2','--c-card':'#ffffff','--c-text':'#4c0519','--c-muted':'#9f1239','--c-border':'#fecdd3','--c-th':'#ffe4e6','--c-stripe':'#fff1f2','--c-hover':'#ffe4e6','--c-badge':'#ffe4e6','--c-badge-txt':'#9f1239' },
+};
+
+const SWATCH_MAP = {
+  '--c-sidebar': ['sw-sidebar','hx-sidebar'],
+  '--c-accent':  ['sw-accent','hx-accent'],
+  '--c-bg':      ['sw-bg','hx-bg'],
+  '--c-card':    ['sw-card','hx-card'],
+  '--c-text':    ['sw-text','hx-text'],
+  '--c-header':  ['sw-header','hx-header'],
+  '--c-th':      ['sw-th','hx-th'],
+  '--c-stripe':  ['sw-stripe','hx-stripe'],
+};
+
+function pickPreset(name, el, sidebarColor, bgColor, accentColor) {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+
+  const p = PRESETS[name];
+  if (!p) return;
+  Object.entries(p).forEach(([k,v]) => root.style.setProperty(k, v));
+
+  // Sync swatches
+  Object.entries(SWATCH_MAP).forEach(([prop, [swId, hxId]]) => {
+    const val = p[prop];
+    if (val) {
+      const sw = document.getElementById(swId);
+      const hx = document.getElementById(hxId);
+      if (sw) { sw.style.background = val; sw.querySelector('input').value = val; }
+      if (hx) hx.textContent = val;
+    }
+  });
+
+  updateMiniSwatch();
+}
+
+function saveAndClose() {
+  const theme = {};
+  Object.keys(PRESETS.classic).forEach(k => {
+    theme[k] = getComputedStyle(root).getPropertyValue(k).trim();
+  });
+  localStorage.setItem('phihau-theme-v2', JSON.stringify(theme));
+  const badge = document.getElementById('save-badge');
+  badge.style.opacity = '1';
+  setTimeout(() => { badge.style.opacity = '0'; closeDropdown(); }, 1200);
+}
+
+function resetAll() {
+  pickPreset('classic', document.querySelector('.preset-btn'), '#1e3a5f', '#f4f6fa', '#2563eb');
+  document.querySelector('.preset-btn').classList.add('active');
+}
+
+// Close on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDropdown(); });
+</script>
+</body>
+</html>

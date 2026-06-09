@@ -1,0 +1,136 @@
+<h2>Design secțiunea 3: Arhitectura tehnică</h2>
+<p class="subtitle">ThemeContext + Supabase schema + migrarea Button</p>
+
+<div class="section">
+  <h3>Flux date teme (rezoluție prioritate)</h3>
+  <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:12px 0">
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 14px;text-align:center;min-width:120px">
+      <div style="font-size:11px;color:#64748b">Supabase</div>
+      <div style="font-size:13px;font-weight:600;color:#f8fafc">tema club</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">cluburi.tema_config</div>
+    </div>
+    <div style="padding:0 6px;color:#334155;font-size:20px">→</div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 14px;text-align:center;min-width:120px">
+      <div style="font-size:11px;color:#64748b">Supabase</div>
+      <div style="font-size:13px;font-weight:600;color:#f8fafc">override user</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">utilizatori.tema_config</div>
+    </div>
+    <div style="padding:0 6px;color:#334155;font-size:20px">→</div>
+    <div style="background:#1e293b;border:1px solid #0ea5e9;border-radius:8px;padding:10px 14px;text-align:center;min-width:120px">
+      <div style="font-size:11px;color:#0ea5e9">Runtime</div>
+      <div style="font-size:13px;font-weight:600;color:#f8fafc">ThemeContext</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">merge + apply</div>
+    </div>
+    <div style="padding:0 6px;color:#334155;font-size:20px">→</div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 14px;text-align:center;min-width:120px">
+      <div style="font-size:11px;color:#64748b">DOM</div>
+      <div style="font-size:13px;font-weight:600;color:#f8fafc">:root CSS vars</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">--t-primary etc.</div>
+    </div>
+    <div style="padding:0 6px;color:#334155;font-size:20px">→</div>
+    <div style="background:#0f172a;border:1px solid #3b82f6;border-radius:8px;padding:10px 14px;text-align:center;min-width:120px">
+      <div style="font-size:11px;color:#3b82f6">Componente</div>
+      <div style="font-size:13px;font-weight:600;color:#f8fafc">Button, Card...</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">urmează vars</div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:#64748b">User override suprascrie club default. Dacă niciuna nu există → tema app default (QwanKiDo Blue).</p>
+</div>
+
+<div class="section">
+  <h3>Supabase schema — 2 coloane noi</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:12px;font-family:monospace;font-size:12px">
+      <div style="color:#64748b;margin-bottom:8px">-- Migration</div>
+      <div style="color:#7dd3fc">ALTER TABLE</div> <div style="color:#f8fafc;display:inline">cluburi</div><br/>
+      <div style="color:#7dd3fc;display:inline">ADD COLUMN</div> <div style="color:#f8fafc;display:inline"> tema_config</div><br/>
+      <div style="color:#a78bfa;display:inline;padding-left:16px">jsonb DEFAULT NULL</div><span style="color:#64748b">;</span><br/><br/>
+      <div style="color:#7dd3fc">ALTER TABLE</div> <div style="color:#f8fafc;display:inline">utilizatori</div><br/>
+      <div style="color:#7dd3fc;display:inline">ADD COLUMN</div> <div style="color:#f8fafc;display:inline"> tema_config</div><br/>
+      <div style="color:#a78bfa;display:inline;padding-left:16px">jsonb DEFAULT NULL</div><span style="color:#64748b">;</span>
+    </div>
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:12px;font-family:monospace;font-size:12px">
+      <div style="color:#64748b;margin-bottom:8px">-- Format JSON stocat</div>
+      <div style="color:#f8fafc">{</div>
+      <div style="padding-left:14px;color:#86efac">"name"</div><span style="color:#f8fafc">: </span><span style="color:#fde68a">"Forest"</span><span style="color:#f8fafc">,</span><br/>
+      <div style="padding-left:14px;color:#86efac">"primary"</div><span style="color:#f8fafc">: </span><span style="color:#fde68a">"#16a34a"</span><span style="color:#f8fafc">,</span><br/>
+      <div style="padding-left:14px;color:#86efac">"bg"</div><span style="color:#f8fafc">: </span><span style="color:#fde68a">"#021208"</span><span style="color:#f8fafc">,</span><br/>
+      <div style="padding-left:14px;color:#86efac">"surface"</div><span style="color:#f8fafc">: </span><span style="color:#fde68a">"#052e16"</span><span style="color:#f8fafc">,</span><br/>
+      <div style="padding-left:14px;color:#86efac">"..."</div><br/>
+      <div style="color:#f8fafc">}</div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:#64748b;margin-top:8px">RLS: utilizatorul vede tema clubului său. ADMIN_CLUB poate scrie <code>cluburi.tema_config</code>. Orice user scrie propriul <code>utilizatori.tema_config</code>.</p>
+</div>
+
+<div class="section">
+  <h3>Migrarea Button — sprint 1</h3>
+  <div class="split">
+    <div style="background:#0f172a;border:1px solid #ef4444;border-radius:8px;padding:12px">
+      <div style="font-size:11px;color:#ef4444;margin-bottom:6px">ÎNAINTE (hardcodat)</div>
+      <pre style="font-size:11px;color:#94a3b8;margin:0;white-space:pre-wrap">primary: "bg-indigo-600
+  hover:bg-indigo-700
+  text-white"</pre>
+      <p style="font-size:11px;color:#64748b;margin:8px 0 0">Culoarea nu se schimbă niciodată — indiferent de temă.</p>
+    </div>
+    <div style="background:#0f172a;border:1px solid #10b981;border-radius:8px;padding:12px">
+      <div style="font-size:11px;color:#10b981;margin-bottom:6px">DUPĂ (urmează tema)</div>
+      <pre style="font-size:11px;color:#94a3b8;margin:0;white-space:pre-wrap">primary: {
+  backgroundColor:
+    'var(--t-primary)',
+  color:
+    'var(--t-primary-fg)'
+}</pre>
+      <p style="font-size:11px;color:#64748b;margin:8px 0 0">Hover prin CSS: <code>filter: brightness(0.9)</code> pe :hover — fără JS.</p>
+    </div>
+  </div>
+  <div style="margin-top:12px;padding:10px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:8px;font-size:12px;color:#fde68a">
+    ⚠ <strong>danger/success/info/warning</strong> rămân cu Tailwind hardcodat — nu urmează tema (culori semantice fixe).
+  </div>
+</div>
+
+<div class="section">
+  <h3>Fișiere noi/modificate — sprint 1</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+    <div style="background:#0f172a;border:1px solid #10b981;border-radius:6px;padding:8px 12px">
+      <div style="color:#10b981;font-size:10px;margin-bottom:4px">NOU</div>
+      <code style="color:#f8fafc">contexts/ThemeContext.tsx</code>
+      <div style="color:#64748b;font-size:11px">ThemeConfig type, provider, useTheme hook, CSS var injection</div>
+    </div>
+    <div style="background:#0f172a;border:1px solid #10b981;border-radius:6px;padding:8px 12px">
+      <div style="color:#10b981;font-size:10px;margin-bottom:4px">NOU</div>
+      <code style="color:#f8fafc">components/ThemeEditor.tsx</code>
+      <div style="color:#64748b;font-size:11px">Modal cu teme predefinite + editor + save to Supabase</div>
+    </div>
+    <div style="background:#0f172a;border:1px solid #10b981;font-size:11px;border-radius:6px;padding:8px 12px">
+      <div style="color:#10b981;font-size:10px;margin-bottom:4px">NOU</div>
+      <code style="color:#f8fafc">lib/themes.ts</code>
+      <div style="color:#64748b;font-size:11px">8 teme predefinite ca constante TypeScript</div>
+    </div>
+    <div style="background:#0f172a;border:1px solid #10b981;font-size:11px;border-radius:6px;padding:8px 12px">
+      <div style="color:#10b981;font-size:10px;margin-bottom:4px">NOU</div>
+      <code style="color:#f8fafc">sql/add_tema_config.sql</code>
+      <div style="color:#64748b;font-size:11px">Migration: 2 coloane + RLS policies</div>
+    </div>
+    <div style="background:#0f172a;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px">
+      <div style="color:#f59e0b;font-size:10px;margin-bottom:4px">MODIFICAT</div>
+      <code style="color:#f8fafc">components/ui.tsx</code>
+      <div style="color:#64748b;font-size:11px">Button: primary + secondary → style prop cu CSS vars</div>
+    </div>
+    <div style="background:#0f172a;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px">
+      <div style="color:#f59e0b;font-size:10px;margin-bottom:4px">MODIFICAT</div>
+      <code style="color:#f8fafc">index.tsx (App.tsx)</code>
+      <div style="color:#64748b;font-size:11px">Adaugă ThemeProvider în provider stack</div>
+    </div>
+    <div style="background:#0f172a;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px">
+      <div style="color:#f59e0b;font-size:10px;margin-bottom:4px">MODIFICAT</div>
+      <code style="color:#f8fafc">index.css</code>
+      <div style="color:#64748b;font-size:11px">Adaugă 12 --t-* vars ca default în :root</div>
+    </div>
+    <div style="background:#0f172a;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px">
+      <div style="color:#f59e0b;font-size:10px;margin-bottom:4px">MODIFICAT</div>
+      <code style="color:#f8fafc">components/Sidebar.tsx</code>
+      <div style="color:#64748b;font-size:11px">Buton „Teme" în footer sidebar (sau Settings)</div>
+    </div>
+  </div>
+</div>

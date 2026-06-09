@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Filtre Competiție</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f172a; color: #e2e8f0; font-family: -apple-system, sans-serif; padding: 16px; max-width: 420px; margin: 0 auto; }
+  h2 { font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; }
+
+  .search { width: 100%; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 9px 12px; color: #fff; font-size: 14px; outline: none; margin-bottom: 8px; }
+  .search::placeholder { color: #475569; }
+
+  .filters-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+
+  .filter-btn {
+    background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+    padding: 6px 12px; color: #94a3b8; font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; position: relative;
+    transition: all .15s; user-select: none;
+  }
+  .filter-btn.active { background: #1e3a5f; border-color: #3b82f6; color: #93c5fd; }
+  .filter-btn .count { background: #3b82f6; color: #fff; border-radius: 99px; padding: 1px 6px; font-size: 10px; font-weight: 700; }
+  .filter-btn .arrow { font-size: 9px; color: #475569; }
+
+  .reset-btn {
+    background: transparent; border: 1px solid #ef4444; border-radius: 8px;
+    padding: 6px 10px; color: #ef4444; font-size: 11px; cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .reset-btn:hover { background: #450a0a; }
+
+  /* Dropdown */
+  .dropdown-wrap { position: relative; }
+  .dropdown {
+    position: absolute; top: calc(100% + 4px); left: 0; min-width: 180px;
+    background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5); z-index: 100; overflow: hidden;
+    display: none;
+  }
+  .dropdown.open { display: block; }
+  .dropdown-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; cursor: pointer; font-size: 13px; color: #cbd5e1;
+    transition: background .1s;
+  }
+  .dropdown-item:hover { background: #334155; }
+  .dropdown-item.selected { color: #93c5fd; }
+  .dropdown-item .checkbox {
+    width: 16px; height: 16px; border: 2px solid #475569; border-radius: 4px;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+  .dropdown-item.selected .checkbox { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+
+  /* Sportiv list */
+  .sport-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .sport-item {
+    background: #1e293b; border-radius: 10px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .sport-info { flex: 1; }
+  .sport-name { font-size: 13px; font-weight: 600; color: #f1f5f9; }
+  .sport-meta { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .chk { width: 20px; height: 20px; border: 2px solid #334155; border-radius: 6px; flex-shrink: 0; }
+  .chk.sel { background: #4f46e5; border-color: #4f46e5; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; }
+
+  .count-bar { font-size: 11px; color: #64748b; margin-bottom: 6px; }
+  .count-bar span { color: #e2e8f0; font-weight: 700; }
+
+  .overlay { position: fixed; inset: 0; z-index: 50; display: none; }
+  .overlay.open { display: block; }
+</style>
+</head>
+<body>
+
+<h2>Pas 1 — Selectare sportivi</h2>
+
+<input class="search" type="text" placeholder="🔍  Caută după nume...">
+
+<div class="filters-row">
+  <!-- GRAD -->
+  <div class="dropdown-wrap">
+    <button class="filter-btn" id="btn-grad" onclick="toggle('grad')">
+      Grad <span class="arrow" id="arr-grad">▾</span>
+    </button>
+    <div class="dropdown" id="dd-grad">
+      <div class="dropdown-item" onclick="pick('grad',this,'Galben 5')"><span class="checkbox"></span> Galben 5</div>
+      <div class="dropdown-item" onclick="pick('grad',this,'Galben 4')"><span class="checkbox"></span> Galben 4</div>
+      <div class="dropdown-item" onclick="pick('grad',this,'Verde 3')"><span class="checkbox"></span> Verde 3</div>
+      <div class="dropdown-item" onclick="pick('grad',this,'Verde 2')"><span class="checkbox"></span> Verde 2</div>
+      <div class="dropdown-item" onclick="pick('grad',this,'Albastru 1')"><span class="checkbox"></span> Albastru 1</div>
+      <div class="dropdown-item" onclick="pick('grad',this,'Maro 1')"><span class="checkbox"></span> Maro 1</div>
+    </div>
+  </div>
+
+  <!-- VÂRSTĂ -->
+  <div class="dropdown-wrap">
+    <button class="filter-btn" id="btn-varsta" onclick="toggle('varsta')">
+      Vârstă <span class="arrow" id="arr-varsta">▾</span>
+    </button>
+    <div class="dropdown" id="dd-varsta">
+      <div class="dropdown-item" onclick="pick('varsta',this,'U10 (sub 10 ani)')"><span class="checkbox"></span> U10 (sub 10 ani)</div>
+      <div class="dropdown-item" onclick="pick('varsta',this,'U12 (10-11 ani)')"><span class="checkbox"></span> U12 (10-11 ani)</div>
+      <div class="dropdown-item" onclick="pick('varsta',this,'U14 (12-13 ani)')"><span class="checkbox"></span> U14 (12-13 ani)</div>
+      <div class="dropdown-item" onclick="pick('varsta',this,'U16 (14-15 ani)')"><span class="checkbox"></span> U16 (14-15 ani)</div>
+      <div class="dropdown-item" onclick="pick('varsta',this,'U18 (16-17 ani)')"><span class="checkbox"></span> U18 (16-17 ani)</div>
+      <div class="dropdown-item" onclick="pick('varsta',this,'Senior (18+)')"><span class="checkbox"></span> Senior (18+)</div>
+    </div>
+  </div>
+
+  <!-- GEN -->
+  <div class="dropdown-wrap">
+    <button class="filter-btn" id="btn-gen" onclick="toggle('gen')">
+      Gen <span class="arrow" id="arr-gen">▾</span>
+    </button>
+    <div class="dropdown" id="dd-gen">
+      <div class="dropdown-item" onclick="pick('gen',this,'Masculin')"><span class="checkbox"></span> Masculin</div>
+      <div class="dropdown-item" onclick="pick('gen',this,'Feminin')"><span class="checkbox"></span> Feminin</div>
+    </div>
+  </div>
+
+  <!-- RESET -->
+  <button class="reset-btn" onclick="resetAll()">✕ Reset</button>
+</div>
+
+<div class="count-bar">Selectați: <span id="nr-sel">1</span> din <span id="nr-total">5</span> · <span id="nr-viz">5</span> afișați</div>
+
+<div class="sport-list">
+  <div class="sport-item">
+    <div class="avatar" style="background:#4f46e5">PI</div>
+    <div class="sport-info">
+      <div class="sport-name">Popescu Ion</div>
+      <div class="sport-meta">Verde 3 · 13 ani · Masculin</div>
+    </div>
+    <div class="chk sel">✓</div>
+  </div>
+  <div class="sport-item">
+    <div class="avatar" style="background:#0891b2">MA</div>
+    <div class="sport-info">
+      <div class="sport-name">Matei Ana</div>
+      <div class="sport-meta">Galben 4 · 10 ani · Feminin</div>
+    </div>
+    <div class="chk"></div>
+  </div>
+  <div class="sport-item">
+    <div class="avatar" style="background:#16a34a">GR</div>
+    <div class="sport-info">
+      <div class="sport-name">Gheorghe Radu</div>
+      <div class="sport-meta">Galben 5 · 9 ani · Masculin</div>
+    </div>
+    <div class="chk"></div>
+  </div>
+  <div class="sport-item">
+    <div class="avatar" style="background:#9333ea">DS</div>
+    <div class="sport-info">
+      <div class="sport-name">Dumitrescu Sofia</div>
+      <div class="sport-meta">Maro 1 · 17 ani · Feminin</div>
+    </div>
+    <div class="chk"></div>
+  </div>
+  <div class="sport-item">
+    <div class="avatar" style="background:#dc2626">CM</div>
+    <div class="sport-info">
+      <div class="sport-name">Constantin Mihai</div>
+      <div class="sport-meta">Verde 2 · 12 ani · Masculin</div>
+    </div>
+    <div class="chk"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+<script>
+const state = { grad: new Set(), varsta: new Set(), gen: new Set() };
+
+function toggle(key) {
+  const dd = document.getElementById('dd-' + key);
+  const isOpen = dd.classList.contains('open');
+  closeAll();
+  if (!isOpen) {
+    dd.classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('arr-' + key).textContent = '▴';
+  }
+}
+
+function closeAll() {
+  ['grad','varsta','gen'].forEach(k => {
+    document.getElementById('dd-' + k).classList.remove('open');
+    document.getElementById('arr-' + k).textContent = '▾';
+  });
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function pick(key, el, val) {
+  if (state[key].has(val)) {
+    state[key].delete(val);
+    el.classList.remove('selected');
+    el.querySelector('.checkbox').textContent = '';
+  } else {
+    state[key].add(val);
+    el.classList.add('selected');
+    el.querySelector('.checkbox').textContent = '✓';
+  }
+  updateBtn(key);
+}
+
+function updateBtn(key) {
+  const btn = document.getElementById('btn-' + key);
+  const labels = { grad: 'Grad', varsta: 'Vârstă', gen: 'Gen' };
+  const n = state[key].size;
+  if (n === 0) {
+    btn.classList.remove('active');
+    btn.innerHTML = labels[key] + ' <span class="arrow" id="arr-' + key + '">▾</span>';
+  } else {
+    btn.classList.add('active');
+    btn.innerHTML = labels[key] + ' <span class="count">' + n + '</span> <span class="arrow" id="arr-' + key + '">▴</span>';
+  }
+}
+
+function resetAll() {
+  ['grad','varsta','gen'].forEach(k => {
+    state[k].clear();
+    document.querySelectorAll('#dd-' + k + ' .dropdown-item').forEach(el => {
+      el.classList.remove('selected');
+      el.querySelector('.checkbox').textContent = '';
+    });
+    updateBtn(k);
+  });
+  document.querySelector('.search').value = '';
+  closeAll();
+}
+</script>
+</body>
+</html>

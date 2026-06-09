@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inter-club v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f172a; color: #e2e8f0; font-family: -apple-system, sans-serif; padding: 16px; max-width: 480px; margin: 0 auto; }
+  h2 { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+  .divider { border: none; border-top: 1px solid #1e293b; margin: 24px 0; }
+
+  /* Category card */
+  .cat-card {
+    background: #1e293b; border-radius: 12px; padding: 14px;
+    border: 1px solid #334155; margin-bottom: 10px;
+  }
+  .cat-card.incomplete { border-color: #78350f; }
+  .cat-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+  .cat-name { font-size: 13px; font-weight: 700; color: #f1f5f9; }
+  .cat-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .badge { border-radius: 99px; padding: 2px 8px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+  .badge-ok { background: #14532d; color: #4ade80; }
+  .badge-warn { background: #78350f; color: #fbbf24; }
+  .badge-sent { background: #1e3a5f; color: #7dd3fc; }
+
+  .slot { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 8px; margin-bottom: 3px; background: #0f172a; }
+  .avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .slot-empty { width: 24px; height: 24px; border-radius: 50%; border: 2px dashed #475569; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #475569; font-size: 11px; }
+  .slot-name { font-size: 12px; color: #cbd5e1; flex: 1; }
+  .slot-empty-label { font-size: 11px; color: #475569; font-style: italic; flex: 1; }
+  .slot-role { font-size: 10px; color: #475569; }
+
+  /* Request button states */
+  .btn-request {
+    width: 100%; margin-top: 10px;
+    background: transparent; border: 1.5px dashed #d97706;
+    border-radius: 10px; padding: 9px 12px;
+    color: #fbbf24; font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: background .15s; text-align: left;
+  }
+  .btn-request:hover { background: #1c1208; }
+
+  .state-sent {
+    width: 100%; margin-top: 10px;
+    background: #0c1e35; border: 1px solid #1e3a5f;
+    border-radius: 10px; padding: 9px 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .state-sent .txt strong { display: block; font-size: 12px; color: #7dd3fc; }
+  .state-sent .txt span { font-size: 10px; color: #334155; }
+  .btn-cancel { background: transparent; border: none; color: #475569; font-size: 11px; cursor: pointer; text-decoration: underline; margin-left: auto; }
+
+  .state-assigned {
+    width: 100%; margin-top: 10px;
+    background: #0a1f12; border: 1px solid #166534;
+    border-radius: 10px; padding: 9px 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .state-assigned .txt strong { display: block; font-size: 12px; color: #4ade80; }
+  .state-assigned .txt span { font-size: 10px; color: #166534; }
+
+  /* Admin view */
+  .admin-card { background: #1e293b; border-radius: 12px; padding: 14px; border: 1px solid #334155; margin-bottom: 10px; }
+  .admin-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .club-tag { background: #312e81; color: #a5b4fc; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
+  .cat-tag { font-size: 12px; color: #94a3b8; }
+  .eligibility { font-size: 11px; color: #475569; margin-bottom: 10px; line-height: 1.6; }
+  .eligibility strong { color: #94a3b8; }
+  .btn-row { display: flex; gap: 6px; }
+  .btn-assign { flex: 1; background: #1e3a5f; border: none; border-radius: 8px; padding: 8px; color: #7dd3fc; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .btn-approve { flex: 1; background: #14532d; border: none; border-radius: 8px; padding: 8px; color: #4ade80; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .btn-reject { background: #1e293b; border: 1px solid #450a0a; border-radius: 8px; padding: 8px 12px; color: #f87171; font-size: 12px; cursor: pointer; }
+
+  .info-box { background: #1a1208; border: 1px solid #78350f; border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #d97706; margin-bottom: 12px; line-height: 1.5; }
+
+  .notif { display: inline-block; background: #ef4444; color: #fff; border-radius: 99px; padding: 1px 6px; font-size: 10px; font-weight: 700; margin-left: 4px; }
+</style>
+</head>
+<body>
+
+<!-- CLUB ADMIN VIEW -->
+<h2>Club admin — Categorii echipe cu locuri incomplete</h2>
+
+<!-- Categorie 1: complet -->
+<div class="cat-card">
+  <div class="cat-header">
+    <div><div class="cat-name">Sincron Feminin U14</div><div class="cat-sub">3 titulare necesare</div></div>
+    <span class="badge badge-ok">✓ Complet</span>
+  </div>
+  <div class="slot"><div class="avatar" style="background:#9333ea">PM</div><div class="slot-name">Popa Maria</div><div class="slot-role">Titular 1</div></div>
+  <div class="slot"><div class="avatar" style="background:#0891b2">IA</div><div class="slot-name">Ionescu Ana</div><div class="slot-role">Titular 2</div></div>
+  <div class="slot"><div class="avatar" style="background:#16a34a">GE</div><div class="slot-name">Gheorghe Elena</div><div class="slot-role">Titular 3</div></div>
+</div>
+
+<!-- Categorie 2: incompletă — cerere netrimisă -->
+<div class="cat-card incomplete" id="cat2">
+  <div class="cat-header">
+    <div><div class="cat-name">Sincron Masculin U16</div><div class="cat-sub">3 titulari necesari · 1 lipsă</div></div>
+    <span class="badge badge-warn">⚠ Incomplet</span>
+  </div>
+  <div class="slot"><div class="avatar" style="background:#4f46e5">PI</div><div class="slot-name">Popescu Ion</div><div class="slot-role">Titular 1</div></div>
+  <div class="slot"><div class="avatar" style="background:#0284c7">MR</div><div class="slot-name">Mihai Radu</div><div class="slot-role">Titular 2</div></div>
+  <div class="slot"><div class="slot-empty">+</div><div class="slot-empty-label">Locul 3 — lipsă</div><div class="slot-role">Titular 3</div></div>
+  <button class="btn-request" onclick="sendRequest('cat2')">
+    🤝 Solicită completare din alt club
+  </button>
+</div>
+
+<!-- Categorie 2: după trimitere cerere -->
+<div class="cat-card incomplete" id="cat2-sent" style="display:none">
+  <div class="cat-header">
+    <div><div class="cat-name">Sincron Masculin U16</div><div class="cat-sub">3 titulari necesari · 1 lipsă</div></div>
+    <span class="badge badge-sent">📨 Cerere trimisă</span>
+  </div>
+  <div class="slot"><div class="avatar" style="background:#4f46e5">PI</div><div class="slot-name">Popescu Ion</div><div class="slot-role">Titular 1</div></div>
+  <div class="slot"><div class="avatar" style="background:#0284c7">MR</div><div class="slot-name">Mihai Radu</div><div class="slot-role">Titular 2</div></div>
+  <div class="slot"><div class="slot-empty">+</div><div class="slot-empty-label">Locul 3 — în așteptare</div><div class="slot-role">Titular 3</div></div>
+  <div class="state-sent">
+    <span>📨</span>
+    <div class="txt"><strong>Cerere trimisă la super admin</strong><span>Super admin decide cine completează echipa</span></div>
+    <button class="btn-cancel" onclick="cancelRequest()">Anulează</button>
+  </div>
+</div>
+
+<!-- Categorie 3: incompletă — mai multe locuri lipsă -->
+<div class="cat-card incomplete">
+  <div class="cat-header">
+    <div><div class="cat-name">Echipă Feminină Senior</div><div class="cat-sub">5 titulare necesare · 3 lipsă</div></div>
+    <span class="badge badge-warn">⚠ Incomplet</span>
+  </div>
+  <div class="slot"><div class="avatar" style="background:#be185d">DC</div><div class="slot-name">Dinu Carmen</div><div class="slot-role">Titular 1</div></div>
+  <div class="slot"><div class="avatar" style="background:#7e22ce">ST</div><div class="slot-name">Stan Teodora</div><div class="slot-role">Titular 2</div></div>
+  <div class="slot"><div class="slot-empty">+</div><div class="slot-empty-label">Locul 3 — lipsă</div><div class="slot-role">Titular 3</div></div>
+  <div class="slot"><div class="slot-empty">+</div><div class="slot-empty-label">Locul 4 — lipsă</div><div class="slot-role">Titular 4</div></div>
+  <div class="slot"><div class="slot-empty">+</div><div class="slot-empty-label">Locul 5 — lipsă</div><div class="slot-role">Titular 5</div></div>
+  <button class="btn-request">
+    🤝 Solicită completare din alt club <span style="font-size:10px;opacity:.7">(3 locuri)</span>
+  </button>
+</div>
+
+<hr class="divider">
+
+<!-- SUPER ADMIN VIEW -->
+<h2>Super admin — Cereri completare echipe <span class="notif">3</span></h2>
+
+<div class="info-box">
+  ⏳ Înscrierea se finalizează pe <strong>15 ian 2026</strong>. Cererile de mai jos pot fi rezolvate oricând până atunci — super admin asignează sportivi din alte cluburi sau decide repartizare la finalizare.
+</div>
+
+<!-- Cerere 1 -->
+<div class="admin-card">
+  <div class="admin-top">
+    <span class="club-tag">Club Phihau</span>
+    <span class="cat-tag">Sincron Masculin U16</span>
+  </div>
+  <div class="eligibility">
+    <strong>Locuri solicitate:</strong> 1 titular (poziția 3)<br>
+    <strong>Condiții categorie:</strong> Masculin · 14–15 ani la data comp. · Verde minim
+  </div>
+  <div class="btn-row">
+    <button class="btn-assign" onclick="this.textContent='✓ Sportiv asignat'">Asignează sportiv</button>
+    <button class="btn-reject">Respinge</button>
+  </div>
+</div>
+
+<!-- Cerere 2 -->
+<div class="admin-card">
+  <div class="admin-top">
+    <span class="club-tag" style="background:#1a3a14;color:#4ade80">CS Ninja</span>
+    <span class="cat-tag">Echipă Feminină Senior</span>
+  </div>
+  <div class="eligibility">
+    <strong>Locuri solicitate:</strong> 3 titulare (pozițiile 3, 4, 5)<br>
+    <strong>Condiții categorie:</strong> Feminin · 18+ ani · Maro minim
+  </div>
+  <div class="btn-row">
+    <button class="btn-assign">Asignează sportivi</button>
+    <button class="btn-reject">Respinge</button>
+  </div>
+</div>
+
+<script>
+function sendRequest(id) {
+  document.getElementById(id).style.display = 'none';
+  document.getElementById(id + '-sent').style.display = 'block';
+}
+function cancelRequest() {
+  document.getElementById('cat2-sent').style.display = 'none';
+  document.getElementById('cat2').style.display = 'block';
+}
+</script>
+</body>
+</html>

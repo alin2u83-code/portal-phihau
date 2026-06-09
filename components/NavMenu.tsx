@@ -190,15 +190,26 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
         );
       })}
       {permissions?.isFederationAdmin && (
-        <NavItem
-            item={{ label: 'Admin Dashboard', view: 'admin-dashboard', icon: ShieldCheckIcon }}
-            isExpanded={isExpanded}
-            isActive={'admin-dashboard' === activeView}
-            onNavigate={onNavigate}
-            activeView={activeView}
-            openSubmenu={openSubmenu}
-            setOpenSubmenu={setOpenSubmenu}
-        />
+        <>
+          <NavItem
+              item={{ label: 'Admin Dashboard', view: 'admin-dashboard', icon: ShieldCheckIcon }}
+              isExpanded={isExpanded}
+              isActive={'admin-dashboard' === activeView}
+              onNavigate={onNavigate}
+              activeView={activeView}
+              openSubmenu={openSubmenu}
+              setOpenSubmenu={setOpenSubmenu}
+          />
+          <NavItem
+              item={{ label: 'Button Catalog', view: 'button-catalog', icon: ShieldCheckIcon }}
+              isExpanded={isExpanded}
+              isActive={'button-catalog' === activeView}
+              onNavigate={onNavigate}
+              activeView={activeView}
+              openSubmenu={openSubmenu}
+              setOpenSubmenu={setOpenSubmenu}
+          />
+        </>
       )}
     </nav>
 

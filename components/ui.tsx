@@ -373,19 +373,16 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       icon: <TrashIcon className="w-6 h-6" />,
       iconBg: 'bg-red-500/15 border border-red-500/30',
       iconColor: 'text-red-400',
-      btn: 'bg-red-600 hover:bg-red-500 focus:ring-2 focus:ring-red-500/40 text-white',
     },
     warning: {
       icon: <ExclamationTriangleIcon className="w-6 h-6" />,
       iconBg: 'bg-amber-500/15 border border-amber-500/30',
       iconColor: 'text-amber-400',
-      btn: 'bg-amber-600 hover:bg-amber-500 focus:ring-2 focus:ring-amber-500/40 text-white',
     },
     info: {
       icon: <AlertCircleIcon className="w-6 h-6" />,
       iconBg: 'bg-blue-500/15 border border-blue-500/30',
       iconColor: 'text-blue-400',
-      btn: 'bg-blue-600 hover:bg-blue-500 focus:ring-2 focus:ring-blue-500/40 text-white',
     },
   }[variant];
 
@@ -411,18 +408,17 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{message}</p>
         </div>
         <div className="flex gap-3 p-4 pt-0">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium bg-[var(--t-surface-2)] hover:bg-[var(--t-surface-3)] text-slate-300 hover:text-white transition-colors border border-[var(--t-border)]"
-          >
+          <Button variant="secondary" size="sm" className="flex-1" onClick={onClose}>
             {cancelLabel}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={variant === 'info' ? 'info' : variant === 'warning' ? 'warning' : 'danger'}
+            size="sm"
+            className="flex-1"
             onClick={() => { onConfirm(); onClose(); }}
-            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors focus:outline-none ${variantStyles.btn}`}
           >
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

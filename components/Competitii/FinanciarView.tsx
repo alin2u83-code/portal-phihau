@@ -69,7 +69,7 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
 
     for (const ec of echipe.filter(e => e.status?.toLowerCase() !== 'retrasa')) {
       const cat = categorii.find(c => c.id === ec.categorie_id);
-      const taxa = cat ? calculeazaTaxaEchipa(cat, competitie) : 0;
+      const taxa = cat ? calculeazaTaxaEchipa(cat, competitie) : (competitie.config_taxe?.echipa_seniori ?? competitie.taxa_echipa ?? 120);
       const numeClub = (ec as any).club?.nume ?? ec.club_id;
       const club = getOrCreate(ec.club_id, numeClub);
       club.randuri.push({

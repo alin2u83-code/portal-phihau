@@ -462,15 +462,9 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    {rand.incompleta ? (
-                      <span className="text-sm font-semibold text-amber-400">
-                        ~{rand.taxa} lei <span className="text-[10px] font-normal text-amber-600">(estimat)</span>
-                      </span>
-                    ) : (
-                      <span className="text-sm font-semibold text-green-400">
-                        {rand.taxa} lei
-                      </span>
-                    )}
+                    <span className={`text-sm font-semibold ${rand.incompleta ? 'text-amber-400' : 'text-green-400'}`}>
+                      {rand.taxa} lei
+                    </span>
                   </div>
                 </div>
 

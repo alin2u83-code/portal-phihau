@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Permissions, Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, SolicitareEchipaIncompleta, Sportiv, Grad, TipProba } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
-import { Button, Card } from '../ui';
+import { Button, Card, ConfirmModal } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { TIP_PROBA_LABELS, TIP_COMPETITIE_LABELS } from '../../utils/competitiiTemplates';
@@ -672,6 +672,8 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
   const [editComp, setEditComp] = useState<Competitie | null>(null);
   const [search, setSearch] = useState('');
   const [migrareEv, setMigrareEv] = useState<EvenimentLegacy | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+  const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
   const savedScrollRef = useRef(0);
   // ID-ul competiției salvat la mount — restaurat după ce lista se încarcă
   const pendingRestoreId = useRef<string | null>(ssGet(SS_KEY_COMP_ID));
@@ -716,11 +718,12 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
     (e.locatie || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Ștergi această competiție și toate datele aferente?')) return;
-    const { error } = await supabase.from('competitii').delete().eq('id', id);
-    if (error) showError("Eroare", error.message);
-    else setCompetitii(prev => prev.filter(c => c.id !== id));
+  const handleDelete = (id: string) => {
+    openConfirm('Ștergi această competiție și toate datele aferente?', async () => {
+      const { error } = await supabase.from('competitii').delete().eq('id', id);
+      if (error) showError("Eroare", error.message);
+      else setCompetitii(prev => prev.filter(c => c.id !== id));
+    }, { title: 'Șterge competiție', confirmLabel: 'Șterge', variant: 'danger' });
   };
 
   if (view === 'detail' && selectedComp) {
@@ -908,6 +911,16 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
           setLegacyEvents(prev => prev.filter(e => e.id !== legacyId));
           setMigrareEv(null);
         }}
+      />
+
+      <ConfirmModal
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        message={confirmDialog.message}
+        title={confirmDialog.title}
+        confirmLabel={confirmDialog.confirmLabel}
+        variant={confirmDialog.variant}
       />
     </div>
     </TipuriLabelsContext.Provider>

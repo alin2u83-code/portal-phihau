@@ -1,7 +1,7 @@
 import React, { useState, useMemo, startTransition } from 'react';
 import { Competitie, CategorieCompetitie, ProbaCompetitie, InscriereCompetitie, EchipaCompetitie, Sportiv, Grad } from '../../types';
 import { supabase } from '../../supabaseClient';
-import { Button, Card } from '../ui';
+import { Button, Card, ConfirmModal } from '../ui';
 import { VizaSportiv } from '../../types';
 import { useError } from '../ErrorProvider';
 import { areVizaFRAM, WarningVizaFRAM } from './constants';
@@ -39,6 +39,8 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
   const { showError } = useError();
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
   const [echipeRetraseLocal, setEchipeRetraseLocal] = useState<Set<string>>(new Set());
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+  const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
   // Expand/collapse secțiuni per probă în tab Înscrieri
   const [expandedProbe, setExpandedProbe] = useState<Set<string>>(new Set(['__individual__', '__echipe__', ...probe.map(p => p.id)]));
   const [editEchipaCategorie, setEditEchipaCategorie] = useState<CategorieCompetitie | null>(null);
@@ -70,27 +72,28 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
     });
   };
 
-  const handleRetrage = async (id: string, type: 'inscris' | 'echipa') => {
-    if (!window.confirm('Sigur vrei să retragi această înscriere? Acțiunea nu poate fi anulată.')) return;
-    if (type === 'inscris') {
-      // DELETE definitiv din inscrieri_competitie (confirmat de utilizator)
-      // NOTA RLS: dacă DELETE este blocat, adaugă în Supabase Dashboard:
-      // CREATE POLICY "club_admin_delete_inscrieri" ON inscrieri_competitie
-      //   FOR DELETE USING (
-      //     club_id IN (
-      //       SELECT club_id FROM roluri_utilizatori
-      //       WHERE user_id = auth.uid() AND rol_denumire IN ('ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE')
-      //     )
-      //   );
-      const { error } = await supabase.from('inscrieri_competitie').delete().eq('id', id);
-      if (error) { showError("Eroare retragere", error.message); return; }
-    } else {
-      // Echipe rămân cu status update (nu DELETE — confirmat doar pentru inscrieri individuale)
-      const { error } = await supabase.from('echipe_competitie').update({ status: 'retrasa' }).eq('id', id);
-      if (error) { showError("Eroare retragere echipă", error.message); return; }
-      setEchipeRetraseLocal(prev => new Set(prev).add(id));
-    }
-    startTransition(() => onRefresh());
+  const handleRetrage = (id: string, type: 'inscris' | 'echipa') => {
+    openConfirm('Sigur vrei să retragi această înscriere? Acțiunea nu poate fi anulată.', async () => {
+      if (type === 'inscris') {
+        // DELETE definitiv din inscrieri_competitie (confirmat de utilizator)
+        // NOTA RLS: dacă DELETE este blocat, adaugă în Supabase Dashboard:
+        // CREATE POLICY "club_admin_delete_inscrieri" ON inscrieri_competitie
+        //   FOR DELETE USING (
+        //     club_id IN (
+        //       SELECT club_id FROM roluri_utilizatori
+        //       WHERE user_id = auth.uid() AND rol_denumire IN ('ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE')
+        //     )
+        //   );
+        const { error } = await supabase.from('inscrieri_competitie').delete().eq('id', id);
+        if (error) { showError("Eroare retragere", error.message); return; }
+      } else {
+        // Echipe rămân cu status update (nu DELETE — confirmat doar pentru inscrieri individuale)
+        const { error } = await supabase.from('echipe_competitie').update({ status: 'retrasa' }).eq('id', id);
+        if (error) { showError("Eroare retragere echipă", error.message); return; }
+        setEchipeRetraseLocal(prev => new Set(prev).add(id));
+      }
+      startTransition(() => onRefresh());
+    }, { title: 'Retrage înscriere', confirmLabel: 'Retrage', variant: 'warning' });
   };
 
   const individualExpanded = expandedProbe.has('__individual__');
@@ -296,6 +299,16 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
           onSaved={() => { setEditEchipaCategorie(null); setEditEchipaClubId(''); onRefresh(); }}
         />
       )}
+
+      <ConfirmModal
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        message={confirmDialog.message}
+        title={confirmDialog.title}
+        confirmLabel={confirmDialog.confirmLabel}
+        variant={confirmDialog.variant}
+      />
     </div>
   );
 };

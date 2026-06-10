@@ -3,7 +3,7 @@ import { Permissions, Grad, ProbaCompetitie, CategorieCompetitie } from '../../t
 import type { CompetitieFiltre } from '../../hooks/useCompetitieFilters';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
-import { Button, Modal, Input, Select, SearchableSelect } from '../ui';
+import { Button, Modal, Input, Select, SearchableSelect, ConfirmModal } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { TIP_PROBA_LABELS, ordineToLabel } from '../../utils/competitiiTemplates';
@@ -279,6 +279,8 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
   const [filtreVisible, setFiltreVisible] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [bulkWizardOpen, setBulkWizardOpen] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+  const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 
   // Rezolvare props vs fallback local — permite utilizare standalone (AppRouter) sau controlat (CompetitieDetail/index)
   const filtre: CompetitieFiltre = filtreProp ?? { ...FILTRE_FALLBACK, gen: filterGenSetLocal };
@@ -383,11 +385,12 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
     }
   };
 
-  const handleDelete = async (t: CategorieTemplate) => {
-    if (!window.confirm(`Ștergi template-ul „${t.denumire}"?`)) return;
-    const { error } = await supabase.from('categorii_template').delete().eq('id', t.id);
-    if (error) { showError('Eroare', error.message); return; }
-    setTemplates(prev => prev.filter(x => x.id !== t.id));
+  const handleDelete = (t: CategorieTemplate) => {
+    openConfirm(`Ștergi template-ul „${t.denumire}"?`, async () => {
+      const { error } = await supabase.from('categorii_template').delete().eq('id', t.id);
+      if (error) { showError('Eroare', error.message); return; }
+      setTemplates(prev => prev.filter(x => x.id !== t.id));
+    }, { title: 'Șterge template', confirmLabel: 'Șterge', variant: 'danger' });
   };
 
   const toggleSelect = (id: string) => {
@@ -680,6 +683,16 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
           onClose={() => setBulkWizardOpen(false)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        message={confirmDialog.message}
+        title={confirmDialog.title}
+        confirmLabel={confirmDialog.confirmLabel}
+        variant={confirmDialog.variant}
+      />
     </div>
   );
 };

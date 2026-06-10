@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Grupa, Antrenament, ProgramItem } from '../types';
-import { Button, Card, Input, Select } from './ui';
+import { Button, Card, Input, Select, ConfirmModal } from './ui';
 import { ArrowLeftIcon, CalendarDaysIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -50,6 +50,8 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<Antrenament>>({});
     const { showError, showSuccess } = useError();
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+    const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 
     const selectedGrupa = useMemo(() => grupe.find(g => g.id === formState.grupaId), [grupe, formState.grupaId]);
 
@@ -181,17 +183,17 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
         });
     };
 
-    const handleDeleteExisting = async (id: string) => {
-        if (!window.confirm("Sigur doriți să ștergeți acest antrenament?")) return;
-        
-        try {
-            const { error } = await supabase.from('program_antrenamente').delete().eq('id', id);
-            if (error) throw error;
-            setAntrenamente(prev => prev.filter(a => a.id !== id));
-            showSuccess("Succes", "Antrenamentul a fost șters.");
-        } catch (err: any) {
-            showError("Eroare", err.message);
-        }
+    const handleDeleteExisting = (id: string) => {
+        openConfirm("Sigur doriți să ștergeți acest antrenament?", async () => {
+            try {
+                const { error } = await supabase.from('program_antrenamente').delete().eq('id', id);
+                if (error) throw error;
+                setAntrenamente(prev => prev.filter(a => a.id !== id));
+                showSuccess("Succes", "Antrenamentul a fost șters.");
+            } catch (err: any) {
+                showError("Eroare", err.message);
+            }
+        }, { title: 'Șterge antrenament', confirmLabel: 'Șterge', variant: 'danger' });
     };
 
     const handleToggleActive = async (id: string, currentStatus: boolean) => {
@@ -286,7 +288,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
         return dates;
     };
     
-    const handleGenerate = async () => {
+    const handleGenerate = () => {
         if (!preview) return;
 
         const newTrainingsToInsert = preview
@@ -300,38 +302,38 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                 ziua: p.ziua,
                 is_recurent: true
             }));
-            
+
         if (newTrainingsToInsert.length === 0) {
             showError("Nicio acțiune", "Nu există antrenamente noi de generat (toate sunt în conflict).");
             return;
         }
 
-        if (!window.confirm(`Sunteți pe cale să generați ${newTrainingsToInsert.length} antrenamente noi. Doriți să continuați?`)) return;
+        openConfirm(`Sunteți pe cale să generați ${newTrainingsToInsert.length} antrenamente noi. Doriți să continuați?`, async () => {
+            setLoading(true);
+            try {
+                const { data, error } = await supabase
+                    .from('program_antrenamente')
+                    .insert(newTrainingsToInsert)
+                    .select();
 
-        setLoading(true);
-        try {
-            const { data, error } = await supabase
-                .from('program_antrenamente')
-                .insert(newTrainingsToInsert)
-                .select();
+                if (error) throw error;
 
-            if (error) throw error;
+                if (data) {
+                    const newAntrenamente: Antrenament[] = data.map(dbRecord => ({
+                        ...(dbRecord as any),
+                        prezenta: []
+                    }));
 
-            if (data) {
-                const newAntrenamente: Antrenament[] = data.map(dbRecord => ({
-                    ...(dbRecord as any),
-                    prezenta: []
-                }));
-
-                setAntrenamente(prev => [...prev, ...newAntrenamente]);
-                showSuccess("Succes!", `${data.length} antrenamente au fost adăugate cu succes în calendar.`);
-                setPreview(null);
+                    setAntrenamente(prev => [...prev, ...newAntrenamente]);
+                    showSuccess("Succes!", `${data.length} antrenamente au fost adăugate cu succes în calendar.`);
+                    setPreview(null);
+                }
+            } catch (error: any) {
+                showError("Eroare la Generare", error.message || "A apărut o eroare neașteptată.");
+            } finally {
+                setLoading(false);
             }
-        } catch (error: any) {
-            showError("Eroare la Generare", error.message || "A apărut o eroare neașteptată.");
-        } finally {
-            setLoading(false);
-        }
+        }, { title: 'Generare antrenamente', confirmLabel: 'Generează', variant: 'info' });
     };
 
     return (
@@ -622,6 +624,16 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                     )}
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={confirmDialog.open}
+                onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+                onConfirm={confirmDialog.onConfirm}
+                message={confirmDialog.message}
+                title={confirmDialog.title}
+                confirmLabel={confirmDialog.confirmLabel}
+                variant={confirmDialog.variant}
+            />
         </div>
     );
 };

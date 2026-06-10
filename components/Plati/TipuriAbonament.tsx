@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { TipAbonament, User, Club, Permissions } from '../../types';
-import { Button, Input, Card, Select } from '../ui';
+import { Button, Input, Card, Select, ConfirmModal } from '../ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -26,23 +26,15 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const [toDelete, setToDelete] = useState<TipAbonament | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+    const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 
     const isMobile = useIsMobile();
     const isFederationAdmin = permissions?.isFederationAdmin ?? currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
     // Club ID for club admins: from activeRoleContext or currentUser
     const effectiveClubId = activeRoleContext?.club_id || activeRoleContext?.club?.id || currentUser?.club_id;
 
-    const handleAdd = async () => {
-        if(!supabase) { showError("Eroare Configurare", "Client Supabase neinițializat."); return; }
-        
-        const pretNum = typeof newPret === 'string' ? parseFloat(newPret) : newPret;
-        const nrMembriNum = typeof newNrMembri === 'string' ? parseInt(newNrMembri) : newNrMembri;
-
-        if (!newDenumire.trim()) { showError("Validare Eșuată", "Denumirea abonamentului este obligatorie."); return; }
-        if (isNaN(pretNum) || pretNum <= 0) { showError("Validare Eșuată", "Prețul trebuie să fie un număr pozitiv valid."); return; }
-        if (isNaN(nrMembriNum) || nrMembriNum <= 0) { showError("Validare Eșuată", "Numărul de membri trebuie să fie cel puțin 1."); return; }
-        if (nrMembriNum > 1 && !newDenumire.toLowerCase().includes('familie')) { if (!window.confirm("Ați introdus mai mult de 1 membru, dar denumirea nu conține 'Familie'. Doriți să continuați?")) { return; } }
-
+    const doAdd = async (pretNum: number, nrMembriNum: number) => {
         const newAbonament: Omit<TipAbonament, 'id'> & { club_id?: string | null } = {
             denumire: newDenumire.trim(),
             pret: pretNum,
@@ -54,17 +46,35 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         } else if (effectiveClubId) {
             newAbonament.club_id = effectiveClubId;
         }
-        
+
         setLoading(true);
         const { data, error: insertError } = await supabase.from('tipuri_abonament').insert(newAbonament).select().single();
         setLoading(false);
 
-        if(insertError) { showError("Eroare la adăugare", insertError); }
+        if (insertError) { showError("Eroare la adăugare", insertError); }
         else if (data) {
             setTipuriAbonament(prev => [...prev, data as TipAbonament]);
             setNewDenumire(''); setNewPret(''); setNewNrMembri(1); setNewClubId('');
             showSuccess("Succes", "Tipul de abonament a fost adăugat.");
         }
+    };
+
+    const handleAdd = () => {
+        if (!supabase) { showError("Eroare Configurare", "Client Supabase neinițializat."); return; }
+
+        const pretNum = typeof newPret === 'string' ? parseFloat(newPret) : newPret;
+        const nrMembriNum = typeof newNrMembri === 'string' ? parseInt(newNrMembri) : newNrMembri;
+
+        if (!newDenumire.trim()) { showError("Validare Eșuată", "Denumirea abonamentului este obligatorie."); return; }
+        if (isNaN(pretNum) || pretNum <= 0) { showError("Validare Eșuată", "Prețul trebuie să fie un număr pozitiv valid."); return; }
+        if (isNaN(nrMembriNum) || nrMembriNum <= 0) { showError("Validare Eșuată", "Numărul de membri trebuie să fie cel puțin 1."); return; }
+
+        if (nrMembriNum > 1 && !newDenumire.toLowerCase().includes('familie')) {
+            openConfirm("Ați introdus mai mult de 1 membru, dar denumirea nu conține 'Familie'. Doriți să continuați?", () => doAdd(pretNum, nrMembriNum), { title: 'Verificare denumire', confirmLabel: 'Continuă', variant: 'warning' });
+            return;
+        }
+
+        doAdd(pretNum, nrMembriNum);
     };
 
     const handleEdit = async (id: string, field: keyof TipAbonament, value: string | number) => {
@@ -235,6 +245,15 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                 </ul>
             </div>
             <ConfirmDeleteModal isOpen={!!toDelete} onClose={() => setToDelete(null)} onConfirm={() => { if(toDelete) confirmDelete(toDelete.id) }} tableName="Tipuri Abonament" isLoading={isDeleting} />
+            <ConfirmModal
+                isOpen={confirmDialog.open}
+                onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+                onConfirm={confirmDialog.onConfirm}
+                message={confirmDialog.message}
+                title={confirmDialog.title}
+                confirmLabel={confirmDialog.confirmLabel}
+                variant={confirmDialog.variant}
+            />
         </div>
     );
 };

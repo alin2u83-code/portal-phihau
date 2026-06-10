@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Button, Card, Modal, Input } from './ui';
+import { Button, Card, Modal, Input, ConfirmModal } from './ui';
 import { ArrowLeftIcon, ShieldCheckIcon, CogIcon, EditIcon, DocumentArrowDownIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -67,7 +67,9 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRest
     const [progressMessage, setProgressMessage] = useState('');
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
     const [loading, setLoading] = useState<Record<string, boolean>>({});
-    
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+    const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
+
     // --- State & Memo pentru Audit ---
     const [editingSportiv, setEditingSportiv] = useState<Sportiv | null>(null);
 
@@ -166,15 +168,7 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRest
         }
     };
     
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        if (!window.confirm(`ATENȚIE!\n\nSunteți pe cale să restaurați datele din fișierul "${file.name}".\n\nAceastă acțiune este IREVERSIBILĂ și va ȘTERGE TOATE datele curente din tabelele manageriate, înlocuindu-le cu cele din fișierul de backup.\n\nSunteți absolut sigur că doriți să continuați?`)) {
-            event.target.value = ''; // Reset file input
-            return;
-        }
-
+    const doRestoreFile = (file: File) => {
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
@@ -184,11 +178,21 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRest
                 await processRestore(backupData);
             } catch (err: any) {
                 showError("Eroare la Restaurare", `Fișierul de backup este invalid sau corupt. ${err.message}`);
-            } finally {
-                event.target.value = '';
             }
         };
         reader.readAsText(file);
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        event.target.value = ''; // Reset file input immediately
+
+        openConfirm(
+            `Sunteți pe cale să restaurați datele din fișierul "${file.name}".\n\nAceastă acțiune este IREVERSIBILĂ și va ȘTERGE TOATE datele curente din tabelele manageriate, înlocuindu-le cu cele din fișierul de backup.\n\nSunteți absolut sigur că doriți să continuați?`,
+            () => doRestoreFile(file),
+            { title: 'ATENȚIE - Restaurare date', confirmLabel: 'Restaurez, sunt sigur', variant: 'danger' }
+        );
     };
     
     const processRestore = async (backupData: { [key: string]: any[] }) => {
@@ -274,6 +278,16 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBack, onDataRest
             </Card>
 
             <QuickEditModal sportiv={editingSportiv} onClose={() => setEditingSportiv(null)} onSave={handleQuickSave} />
+
+            <ConfirmModal
+                isOpen={confirmDialog.open}
+                onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+                onConfirm={confirmDialog.onConfirm}
+                message={confirmDialog.message}
+                title={confirmDialog.title}
+                confirmLabel={confirmDialog.confirmLabel}
+                variant={confirmDialog.variant}
+            />
         </div>
     );
 };

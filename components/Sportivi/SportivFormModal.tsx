@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sportiv, Grupa, Grad, Familie, TipAbonament, Club, User, Rol } from '../../types';
-import { Modal, Button } from '../ui';
+import { Modal, Button, ConfirmModal } from '../ui';
 import { useError } from '../ErrorProvider';
 import { useSportivForm } from '../../hooks/useSportivForm';
 import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
@@ -42,6 +42,8 @@ export const SportivFormModal: React.FC<{
     const [isFormValid, setIsFormValid] = useState(false);
     const [isGrupaModalOpen, setIsGrupaModalOpen] = useState(false);
     const [isFamilieModalOpen, setIsFamilieModalOpen] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+    const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 
     const { handleCreateFamily } = useFamilyManager(familii, setFamilii, [], () => {});
 
@@ -79,7 +81,12 @@ export const SportivFormModal: React.FC<{
     }, [setFormData, setIsDirty]);
 
     const handleClose = () => {
-        if (isDirty && !window.confirm("Ai modificări nesalvate. Ești sigur că vrei să închizi?")) {
+        if (isDirty) {
+            openConfirm("Ai modificări nesalvate. Ești sigur că vrei să închizi?", onClose, {
+                title: 'Modificări nesalvate',
+                confirmLabel: 'Închide fără salvare',
+                variant: 'warning',
+            });
             return;
         }
         onClose();
@@ -173,6 +180,15 @@ export const SportivFormModal: React.FC<{
             <QuickAddModal title="Adaugă Familie" label="Nume Familie" isOpen={isFamilieModalOpen} onClose={() => setIsFamilieModalOpen(false)} onSave={async (n) => {
                 await handleCreateFamily(n, [], formData.club_id || currentUser?.club_id);
             }} />
+            <ConfirmModal
+                isOpen={confirmDialog.open}
+                onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+                onConfirm={confirmDialog.onConfirm}
+                message={confirmDialog.message}
+                title={confirmDialog.title}
+                confirmLabel={confirmDialog.confirmLabel}
+                variant={confirmDialog.variant}
+            />
         </>
     );
 };

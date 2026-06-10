@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../supabaseClient';
 import { Grupa, ProgramItem } from '../../types';
-import { Button, Card, Input } from '../ui';
+import { Button, Card, Input, ConfirmModal } from '../ui';
 import { ArrowLeftIcon, CalendarDaysIcon, CheckCircleIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { formatTime } from '../../utils/date';
@@ -42,6 +42,8 @@ export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ on
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [previewData, setPreviewData] = useState<GeneratedInstance[]>([]);
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+    const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
     const { showError, showSuccess } = useError();
 
     // 1. Fetch Groups and Schedules
@@ -165,26 +167,26 @@ export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ on
     };
 
     // 4. Save to Database
-    const handleSave = async () => {
+    const handleSave = () => {
         if (previewData.length === 0) return;
-        
-        if (!window.confirm(`Confirmați generarea a ${previewData.length} antrenamente?`)) return;
 
-        setLoading(true);
-        try {
-            // Remove display property before insert
-            const toInsert = previewData.map(({ grupaNume, ...rest }) => rest);
-            
-            const { error } = await supabase.from('program_antrenamente').insert(toInsert);
-            if (error) throw error;
+        openConfirm(`Confirmați generarea a ${previewData.length} antrenamente?`, async () => {
+            setLoading(true);
+            try {
+                // Remove display property before insert
+                const toInsert = previewData.map(({ grupaNume, ...rest }) => rest);
 
-            showSuccess("Generare reușită", `${previewData.length} antrenamente au fost create.`);
-            onBack();
-        } catch (err: any) {
-            showError("Eroare salvare", err.message);
-        } finally {
-            setLoading(false);
-        }
+                const { error } = await supabase.from('program_antrenamente').insert(toInsert);
+                if (error) throw error;
+
+                showSuccess("Generare reușită", `${previewData.length} antrenamente au fost create.`);
+                onBack();
+            } catch (err: any) {
+                showError("Eroare salvare", err.message);
+            } finally {
+                setLoading(false);
+            }
+        }, { title: 'Confirmare generare', confirmLabel: 'Generează', variant: 'info' });
     };
 
     return (
@@ -298,6 +300,16 @@ export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ on
                     </Card>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={confirmDialog.open}
+                onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+                onConfirm={confirmDialog.onConfirm}
+                message={confirmDialog.message}
+                title={confirmDialog.title}
+                confirmLabel={confirmDialog.confirmLabel}
+                variant={confirmDialog.variant}
+            />
         </div>
     );
 };

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, Grad } from '../../types';
 import { supabase } from '../../supabaseClient';
-import { Button } from '../ui';
+import { Button, ConfirmModal } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon } from '../icons';
 import { TIP_PROBA_LABELS } from '../../utils/competitiiTemplates';
 import { VizaSportiv } from '../../types';
@@ -43,6 +43,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
   const [generareOpen, setGenerareOpen] = useState(false);
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+  const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 
   const inscrieriCount = (catId: string) =>
     inscrieri.filter(i => i.categorie_id === catId && i.status?.toLowerCase() !== 'retras').length +
@@ -62,18 +64,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     return sportiv && !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
   }).length;
 
-  const handleDeleteCategorie = async (id: string) => {
-    if (!window.confirm('Ștergi această categorie? Toate înscrierile aferente vor fi șterse.')) return;
-    const { error } = await supabase.from('categorii_competitie').delete().eq('id', id);
-    if (error) { showError('Eroare', error.message); return; }
-    setCategorii(prev => prev.filter(c => c.id !== id));
+  const handleDeleteCategorie = (id: string) => {
+    openConfirm('Ștergi această categorie? Toate înscrierile aferente vor fi șterse.', async () => {
+      const { error } = await supabase.from('categorii_competitie').delete().eq('id', id);
+      if (error) { showError('Eroare', error.message); return; }
+      setCategorii(prev => prev.filter(c => c.id !== id));
+    }, { title: 'Șterge categorie', confirmLabel: 'Șterge', variant: 'danger' });
   };
 
-  const handleDeleteProba = async (id: string) => {
-    if (!window.confirm('Ștergi această probă? Categoriile asociate vor rămâne fără probă.')) return;
-    const { error } = await supabase.from('probe_competitie').delete().eq('id', id);
-    if (error) { showError('Eroare', error.message); return; }
-    setProbe(prev => prev.filter(p => p.id !== id));
+  const handleDeleteProba = (id: string) => {
+    openConfirm('Ștergi această probă? Categoriile asociate vor rămâne fără probă.', async () => {
+      const { error } = await supabase.from('probe_competitie').delete().eq('id', id);
+      if (error) { showError('Eroare', error.message); return; }
+      setProbe(prev => prev.filter(p => p.id !== id));
+    }, { title: 'Șterge probă', confirmLabel: 'Șterge', variant: 'danger' });
   };
 
   // Group categorii by proba for stats
@@ -319,6 +323,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           categorii={categorii}
         />
       )}
+
+      <ConfirmModal
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        message={confirmDialog.message}
+        title={confirmDialog.title}
+        confirmLabel={confirmDialog.confirmLabel}
+        variant={confirmDialog.variant}
+      />
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useTransition, useEffect, useRef } from 'reac
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../supabaseClient';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata, ProgramItem } from '../../types';
-import { Button, Modal, Input, CredentialeContModal } from '../ui';
+import { Button, Modal, Input, CredentialeContModal, ConfirmModal } from '../ui';
 import { PlusIcon, UploadCloudIcon, ArrowLeftIcon } from '../icons';
 import { ProgramEditor } from '../Grupe/ProgramEditor';
 import { adaugaSportiv, actualizeazaSportiv } from '../../services/sportivService';
@@ -96,6 +96,8 @@ export const Sportivi: React.FC<{
     const [bulkLinkuriTotal, setBulkLinkuriTotal] = useState(0);
     const [bulkLinkuriCopiedAll, setBulkLinkuriCopiedAll] = useState(false);
     const [bulkLinkuriCopiedId, setBulkLinkuriCopiedId] = useState<string | null>(null);
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+    const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 
     const handleOpenAddSportiv = () => {
         setSportivToEdit(null);
@@ -523,15 +525,21 @@ export const Sportivi: React.FC<{
 
                 if (existingSportiv) {
                     if (existingSportiv.club_id !== targetClubId) {
-                        const confirmTransfer = window.confirm("Acest sportiv este înregistrat la un alt club. Doriți să îl transferați în clubul dumneavoastră?");
-                        if (!confirmTransfer) return { success: false, error: "Transfer anulat." };
-                        
-                        // Transfer logic: update club_id
-                        const { error: updateError } = await supabase
-                            .from('sportivi')
-                            .update({ club_id: targetClubId })
-                            .eq('id', existingSportiv.id);
-                        if (updateError) throw updateError;
+                        // Store pending transfer context and open confirm modal
+                        const doTransferAndContinue = async () => {
+                            try {
+                                const { error: updateError } = await supabase
+                                    .from('sportivi')
+                                    .update({ club_id: targetClubId })
+                                    .eq('id', existingSportiv.id);
+                                if (updateError) throw updateError;
+                                await handleSave(formData);
+                            } catch (err: any) {
+                                showError("Eroare la transfer", err.message);
+                            }
+                        };
+                        openConfirm("Acest sportiv este înregistrat la un alt club. Doriți să îl transferați în clubul dumneavoastră?", doTransferAndContinue, { title: 'Transfer sportiv', confirmLabel: 'Transferă', variant: 'info' });
+                        return { success: false, error: "Așteptare confirmare transfer." };
                     }
                 }
 
@@ -1102,6 +1110,16 @@ export const Sportivi: React.FC<{
                     </div>
                 </div>
             </Modal>
+
+            <ConfirmModal
+                isOpen={confirmDialog.open}
+                onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+                onConfirm={confirmDialog.onConfirm}
+                message={confirmDialog.message}
+                title={confirmDialog.title}
+                confirmLabel={confirmDialog.confirmLabel}
+                variant={confirmDialog.variant}
+            />
         </div>
     );
 };

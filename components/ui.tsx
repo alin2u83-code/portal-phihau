@@ -1,6 +1,6 @@
 import React, { ReactNode, useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { XIcon, SearchIcon, ChevronDownIcon } from './icons';
+import { XIcon, SearchIcon, ChevronDownIcon, TrashIcon, ExclamationTriangleIcon, AlertCircleIcon } from './icons';
 import { Rol, Club } from '../types';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -338,6 +338,91 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         </div>
         <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 overscroll-contain">
           {children}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+interface ConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title?: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: 'danger' | 'warning' | 'info';
+}
+
+export const ConfirmModal: React.FC<ConfirmModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmLabel = 'Confirmă',
+  cancelLabel = 'Anulează',
+  variant = 'danger',
+}) => {
+  if (!isOpen) return null;
+
+  const variantStyles = {
+    danger: {
+      icon: <TrashIcon className="w-6 h-6" />,
+      iconBg: 'bg-red-500/15 border border-red-500/30',
+      iconColor: 'text-red-400',
+      btn: 'bg-red-600 hover:bg-red-500 focus:ring-2 focus:ring-red-500/40 text-white',
+    },
+    warning: {
+      icon: <ExclamationTriangleIcon className="w-6 h-6" />,
+      iconBg: 'bg-amber-500/15 border border-amber-500/30',
+      iconColor: 'text-amber-400',
+      btn: 'bg-amber-600 hover:bg-amber-500 focus:ring-2 focus:ring-amber-500/40 text-white',
+    },
+    info: {
+      icon: <AlertCircleIcon className="w-6 h-6" />,
+      iconBg: 'bg-blue-500/15 border border-blue-500/30',
+      iconColor: 'text-blue-400',
+      btn: 'bg-blue-600 hover:bg-blue-500 focus:ring-2 focus:ring-blue-500/40 text-white',
+    },
+  }[variant];
+
+  return ReactDOM.createPortal(
+    <div
+      className="fixed inset-0 bg-black/75 z-[10000] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="bg-[var(--t-bg)] border border-[var(--t-border)] w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+        style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}
+      >
+        <div className="p-6 flex flex-col items-center text-center gap-4">
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center ${variantStyles.iconBg}`}>
+            <span className={variantStyles.iconColor}>{variantStyles.icon}</span>
+          </div>
+          {title && (
+            <h3 className="text-lg font-bold text-white">{title}</h3>
+          )}
+          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{message}</p>
+        </div>
+        <div className="flex gap-3 p-4 pt-0">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium bg-[var(--t-surface-2)] hover:bg-[var(--t-surface-3)] text-slate-300 hover:text-white transition-colors border border-[var(--t-border)]"
+          >
+            {cancelLabel}
+          </button>
+          <button
+            onClick={() => { onConfirm(); onClose(); }}
+            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors focus:outline-none ${variantStyles.btn}`}
+          >
+            {confirmLabel}
+          </button>
         </div>
       </div>
     </div>,

@@ -4,7 +4,7 @@ import { useInlantuiri } from '../../hooks/useInlantuiri';
 import { InlantuireFormModal } from './InlantuireFormModal';
 import { InlantuireGradePanel } from './InlantuireGradePanel';
 import { MatriceGradePanel, TabMatrice } from './MatriceGradePanel';
-import { Button, Badge } from '../ui';
+import { Button, Badge, ConfirmModal } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronRightIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 
@@ -51,6 +51,8 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
 
   const [viewMode, setViewMode] = useState<ViewMode>('per-inlantuire');
   const [activeTab, setActiveTab] = useState<TabMatrice>('thao_quyen');
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+  const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 
   const canEdit = permissions.isSuperAdmin || permissions.isFederationAdmin;
 
@@ -75,12 +77,13 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
     if (error) throw new Error(error.message);
   };
 
-  const handleDelete = async (item: Inlantuire) => {
-    if (!window.confirm(`Ștergi înlănțuirea "${item.denumire}"? Se vor șterge și toate asocierile cu grade.`)) return;
-    setDeleting(item.id);
-    const error = await deleteInlantuire(item.id);
-    if (error) showError('Eroare ștergere', error.message);
-    setDeleting(null);
+  const handleDelete = (item: Inlantuire) => {
+    openConfirm(`Ștergi înlănțuirea "${item.denumire}"? Se vor șterge și toate asocierile cu grade.`, async () => {
+      setDeleting(item.id);
+      const error = await deleteInlantuire(item.id);
+      if (error) showError('Eroare ștergere', error.message);
+      setDeleting(null);
+    }, { title: 'Șterge înlănțuire', confirmLabel: 'Șterge', variant: 'danger' });
   };
 
   const toggleExpand = (id: string) => setExpanded(prev => prev === id ? null : id);
@@ -239,6 +242,16 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
           onClose={() => setFormOpen(false)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={confirmDialog.open}
+        onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        message={confirmDialog.message}
+        title={confirmDialog.title}
+        confirmLabel={confirmDialog.confirmLabel}
+        variant={confirmDialog.variant}
+      />
     </div>
   );
 };

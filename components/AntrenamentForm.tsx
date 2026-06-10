@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Input, Select } from './ui';
+import { Modal, Button, Input, Select, ConfirmModal } from './ui';
 import { Antrenament, Grupa } from '../types';
 import { useAttendanceData } from '../hooks/useAttendanceData';
 import { useError } from './ErrorProvider';
@@ -22,7 +22,9 @@ export const AntrenamentForm: React.FC<{
     const [formState, setFormState] = useState(getInitialState());
     const [loading, setLoading] = useState(false);
     const [conflicts, setConflicts] = useState<Antrenament[]>([]);
-    
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+    const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
+
     // We need to fetch existing trainings to check for conflicts
     const { allTrainings } = useAttendanceData(grupe.length > 0 ? grupe[0].club_id : null, !isOpen);
     const { showError } = useError();
@@ -84,14 +86,7 @@ export const AntrenamentForm: React.FC<{
     }, [formState.data, formState.ora_start, formState.ora_sfarsit, formState.grupa_id, formState.ziua, formState.is_recurent, allTrainings, isOpen]);
 
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        if (conflicts.length > 0) {
-            const confirm = window.confirm("Există conflicte de orar cu alte antrenamente. Doriți să salvați oricum?");
-            if (!confirm) return;
-        }
-
+    const doSave = async () => {
         setLoading(true);
         // Clean up data based on type
         const submitData = { ...formState };
@@ -105,7 +100,23 @@ export const AntrenamentForm: React.FC<{
         onClose();
     };
 
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (conflicts.length > 0) {
+            openConfirm("Există conflicte de orar cu alte antrenamente. Doriți să salvați oricum?", doSave, {
+                title: 'Conflicte de orar',
+                confirmLabel: 'Salvează oricum',
+                variant: 'warning',
+            });
+            return;
+        }
+
+        doSave();
+    };
+
     return (
+        <>
         <Modal isOpen={isOpen} onClose={onClose} title={formState.is_recurent ? "Adaugă Antrenament Recurent" : "Creează Antrenament Personalizat"}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 mb-2">
@@ -161,5 +172,15 @@ export const AntrenamentForm: React.FC<{
                 </div>
             </form>
         </Modal>
+        <ConfirmModal
+            isOpen={confirmDialog.open}
+            onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+            onConfirm={confirmDialog.onConfirm}
+            message={confirmDialog.message}
+            title={confirmDialog.title}
+            confirmLabel={confirmDialog.confirmLabel}
+            variant={confirmDialog.variant}
+        />
+        </>
     );
 };

@@ -10,7 +10,7 @@
   --bg-card: #0f172a; /* slate-900 */
   --bg-card-hover: #1e293b; /* slate-800 */
   --bg-input: #1e293b; /* slate-800 */
-  --bg-table-header: #0f172a; /* slate-900 */
+  --bg-table-header: #1e293b; /* slate-800 — distinct de bg-card */
   --bg-table-row-hover: #1e293b; /* slate-800 */
   
   --text-primary: #f8fafc; /* slate-50 */

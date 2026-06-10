@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
-import { Card, Button } from '../ui';
+import { Card, Button, ConfirmModal } from '../ui';
 import { EditIcon, UploadCloudIcon, BookOpenIcon, UserPlusIcon } from '../icons';
 import { ManagementInscrieri } from './ManagementInscrieri';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, DecontFederatie, IstoricGrade } from '../../types';
@@ -39,6 +39,7 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const [isTutorialOpen, setIsTutorialOpen] = useState(false);
     const [isImportSportiviOpen, setIsImportSportiviOpen] = useState(false);
     const [isExportOpen, setIsExportOpen] = useState(false);
+    const [confirmFinalize, setConfirmFinalize] = useState<{ message: string; variant: 'danger' | 'warning' } | null>(null);
 
     useEffect(() => {
         if (detailsRef.current) {
@@ -52,17 +53,23 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
         }
     }, []);
 
-    const handleFinalizeExam = async () => {
+    const handleFinalizeExam = () => {
         const admisiCount = props.inscrieri.filter(i => i.rezultat === 'Admis').length;
         if (admisiCount === 0) {
-            if (!confirm("Atenție: Niciun sportiv nu este marcat ca 'Admis'. Dacă nu ați salvat rezultatele, vă rugăm să o faceți înainte de a finaliza examenul. Doriți să continuați finalizarea oricum?")) {
-                return;
-            }
+            setConfirmFinalize({
+                message: "Atenție: Niciun sportiv nu este marcat ca 'Admis'. Dacă nu ați salvat rezultatele, vă rugăm să o faceți înainte de a finaliza examenul. Doriți să continuați finalizarea oricum?",
+                variant: 'warning',
+            });
         } else {
-            if (!confirm("Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se vor actualiza gradele sportivilor admiși. Doriți să continuați?")) {
-                return;
-            }
+            setConfirmFinalize({
+                message: "Această acțiune este ireversibilă. Se va marca examenul ca finalizat și se vor actualiza gradele sportivilor admiși. Doriți să continuați?",
+                variant: 'danger',
+            });
         }
+    };
+
+    const handleConfirmFinalize = async () => {
+        setConfirmFinalize(null);
         await props.onFinalize(props.sesiune.id, props.inscrieri, props.sesiune, props.grade);
     };
 
@@ -148,6 +155,19 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                 inscrieri={props.allInscrieri}
                 grade={props.grade}
             />
+
+            {confirmFinalize && (
+                <ConfirmModal
+                    isOpen
+                    title="Finalizare Examen"
+                    message={confirmFinalize.message}
+                    confirmLabel="Finalizează"
+                    cancelLabel="Anulează"
+                    variant={confirmFinalize.variant}
+                    onClose={() => setConfirmFinalize(null)}
+                    onConfirm={handleConfirmFinalize}
+                />
+            )}
         </div>
     );
 };

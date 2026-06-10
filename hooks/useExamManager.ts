@@ -114,13 +114,12 @@ export const useExamManager = (
                         }
                     }
 
-                    // Check if istoric_grade exists
+                    // Check dacă gradul există deja (orice sesiune) — constraint UNIQUE (sportiv_id, grad_id)
                     const { data: existingIstoric } = await supabase
                         .from('istoric_grade')
                         .select('id')
                         .eq('sportiv_id', inscriere.sportiv_id)
                         .eq('grad_id', targetGradId)
-                        .eq('sesiune_examen_id', sesiuneId)
                         .maybeSingle();
                     
                     if (!existingIstoric) {

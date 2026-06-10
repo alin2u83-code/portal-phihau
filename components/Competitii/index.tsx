@@ -200,44 +200,38 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scroll-smooth scrollbar-hide">
+      {/* Tabs — scroll orizontal conținut, fără să lărgească pagina */}
+      <div className="overflow-x-hidden -mx-4">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 px-4 scroll-smooth scrollbar-hide">
         <button onClick={() => handleSetActiveTab('inscrieri')} style={{ touchAction: 'manipulation' }}
-          className={`shrink-0 h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'inscrieri' ? 'bg-brand-primary text-white shadow-lg' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
-          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          className={`shrink-0 h-9 flex items-center gap-1.5 px-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'inscrieri' ? 'bg-brand-primary text-white shadow-md' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
-          <span>Înscrieri <span className="text-sm font-normal opacity-75">({
+          Înscrieri <span className="opacity-70">({
             isAdmin
               ? inscrieri.length + echipe.length
               : inscrieri.filter(i => i.club_id === myClubId && i.status?.toLowerCase() !== 'retras').length
                 + echipe.filter(e => e.club_id === myClubId && e.status?.toLowerCase() !== 'retrasa').length
-          })</span></span>
+          })</span>
         </button>
         {(isAdmin || isClubAdmin) && (
-          <button
-            onClick={() => handleSetActiveTab('raport')}
-            style={{ touchAction: 'manipulation' }}
-            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-              activeTab === 'raport'
-                ? 'bg-brand-primary text-white'
-                : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'
-            }`}
-          >
+          <button onClick={() => handleSetActiveTab('raport')} style={{ touchAction: 'manipulation' }}
+            className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'raport' ? 'bg-brand-primary text-white' : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'}`}>
             Raport
           </button>
         )}
         <button onClick={() => handleSetActiveTab('categorii')} style={{ touchAction: 'manipulation' }}
-          className={`shrink-0 h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'categorii' ? 'bg-slate-600 text-white shadow-lg' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
-          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          className={`shrink-0 h-9 flex items-center gap-1.5 px-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'categorii' ? 'bg-slate-600 text-white shadow-md' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
           </svg>
-          <span>Categorii <span className="text-sm font-normal opacity-75">({filteredCategorii.length})</span></span>
+          Categorii <span className="opacity-70">({filteredCategorii.length})</span>
         </button>
         {isAdmin && (
           <button onClick={() => handleSetActiveTab('admin')} style={{ touchAction: 'manipulation' }}
-            className={`h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'admin' ? 'bg-yellow-600 text-white shadow-lg' : 'bg-slate-800 text-yellow-400 hover:bg-slate-700 border border-slate-700'}`}>
-            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            className={`shrink-0 h-9 flex items-center gap-1.5 px-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'admin' ? 'bg-yellow-600 text-white shadow-md' : 'bg-slate-800 text-yellow-400 hover:bg-slate-700 border border-slate-700'}`}>
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
@@ -245,47 +239,26 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           </button>
         )}
         {isAdmin && (
-          <button
-            onClick={() => handleSetActiveTab('financiar')}
-            style={{ touchAction: 'manipulation' }}
-            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-              activeTab === 'financiar'
-                ? 'bg-brand-primary text-white'
-                : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'
-            }`}
-          >
+          <button onClick={() => handleSetActiveTab('financiar')} style={{ touchAction: 'manipulation' }}
+            className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'financiar' ? 'bg-brand-primary text-white' : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'}`}>
             Financiar
           </button>
         )}
         {isAdmin && (
-          <button
-            onClick={() => handleSetActiveTab('template')}
-            style={{ touchAction: 'manipulation' }}
-            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-              activeTab === 'template'
-                ? 'bg-emerald-700 text-white'
-                : 'bg-slate-800 border border-emerald-700/60 text-emerald-400 hover:text-white hover:bg-slate-700'
-            }`}
-          >
+          <button onClick={() => handleSetActiveTab('template')} style={{ touchAction: 'manipulation' }}
+            className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'template' ? 'bg-emerald-700 text-white' : 'bg-slate-800 border border-emerald-700/60 text-emerald-400 hover:text-white hover:bg-slate-700'}`}>
             Template-uri
           </button>
         )}
         {permissions.isSuperAdmin && (
-          <button
-            onClick={() => handleSetActiveTab('cereri_interclub')}
-            style={{ touchAction: 'manipulation' }}
-            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-              activeTab === 'cereri_interclub'
-                ? 'bg-indigo-700 text-white'
-                : 'bg-slate-800 border border-indigo-700/60 text-indigo-400 hover:text-white hover:bg-slate-700'
-            }`}
-          >
+          <button onClick={() => handleSetActiveTab('cereri_interclub')} style={{ touchAction: 'manipulation' }}
+            className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'cereri_interclub' ? 'bg-indigo-700 text-white' : 'bg-slate-800 border border-indigo-700/60 text-indigo-400 hover:text-white hover:bg-slate-700'}`}>
             Cereri inter-club
           </button>
         )}
         {competitie.legacy_eveniment_id && (
           <button onClick={() => handleSetActiveTab('rezultate_legacy')} style={{ touchAction: 'manipulation' }}
-            className={`h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'rezultate_legacy' ? 'bg-amber-700 text-white shadow-lg' : 'bg-slate-800 text-amber-400 hover:bg-slate-700 border border-slate-700'}`}>
+            className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'rezultate_legacy' ? 'bg-amber-700 text-white' : 'bg-slate-800 text-amber-400 hover:bg-slate-700 border border-slate-700'}`}>
             Rezultate Vechi
           </button>
         )}
@@ -294,13 +267,14 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           disabled={loading}
           title="Reîncarcă datele competiției"
           style={{ touchAction: 'manipulation' }}
-          className="h-12 w-12 flex items-center justify-center rounded-lg border border-slate-600 bg-slate-800 text-slate-400 hover:text-white hover:border-slate-400 transition-colors disabled:opacity-40 shrink-0 ml-auto"
+          className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-600 bg-slate-800 text-slate-400 hover:text-white hover:border-slate-400 transition-colors disabled:opacity-40 shrink-0 ml-auto"
           aria-label="Refresh"
         >
-          <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         </button>
+        </div>
       </div>
 
       {loading ? (
@@ -323,7 +297,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
 
               {/* Category list */}
               <div className="-mx-4 sm:mx-0 overflow-x-auto">
-                <table className="w-full text-sm text-slate-300 min-w-[480px]">
+                <table className="w-full text-sm text-slate-300 min-w-[320px]">
                   <thead>
                     <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
                       <th className="p-2 text-left w-10">#</th>
@@ -558,7 +532,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 <div className="text-center text-slate-500 py-8 italic">Nicio înregistrare găsită în sistemul vechi.</div>
               ) : (
                 <div className="-mx-4 sm:mx-0 overflow-x-auto">
-                  <table className="w-full text-sm text-slate-300 min-w-[480px]">
+                  <table className="w-full text-sm text-slate-300 min-w-[320px]">
                     <thead>
                       <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="text-xs uppercase">
                         <th className="p-2 text-left">#</th>

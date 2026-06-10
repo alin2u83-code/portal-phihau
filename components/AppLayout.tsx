@@ -77,7 +77,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 onOpenThemeEditor={() => setIsThemeEditorOpen(true)}
             />
 
-            <main className={`flex-1 transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'} min-h-screen`}>
+            <main className={`flex-1 min-w-0 overflow-x-hidden transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'} min-h-screen`}>
                 <div className="p-4 pb-32 md:p-6 md:pb-28 lg:p-8 lg:pb-28 max-w-7xl mx-auto animate-fade-in">
                     <ErrorBoundary onNavigate={setActiveView}>
                         <ClubGuard>

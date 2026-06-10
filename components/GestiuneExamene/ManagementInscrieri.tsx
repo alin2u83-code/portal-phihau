@@ -55,22 +55,30 @@ const getDefaultNextGradeId = (sportiv: Sportiv, allGrades: Grad[]): string => {
  */
 const getAgeBasedSuggestion = (sportiv: Sportiv, sesiuneData: string, grade: Grad[]): string | null => {
     const age = getAgeOnDate(sportiv.data_nasterii, sesiuneData);
-    
-    // Constrângere: Sub 12 ani nu pot susține examene de Dang (Centură Neagră)
     const isDangGrade = (g: Grad) => g.nume.toLowerCase().includes('dang');
-    
-    if (age < 12) {
-        // Dacă sistemul ar sugera un Dang, îl limităm la ultimul grad de copii/juniori disponibil
-        // (Această logică va fi aplicată și în RPC-ul de pe server, dar o dublăm aici pentru UX)
+
+    // Gradul următor secvențial (ordine + 1)
+    const nextGradeId = getDefaultNextGradeId(sportiv, grade);
+    if (!nextGradeId) return null;
+    const nextGrade = grade.find(g => g.id === nextGradeId);
+    if (!nextGrade) return null;
+
+    // Sub 12 ani: blochează grade Dang
+    if (age < 12 && isDangGrade(nextGrade)) return null;
+
+    // Sub 13 ani: capează la ultimul grad Roșu
+    if (age < 13) {
+        const maxRosuOrdine = Math.max(
+            ...grade
+                .filter(g => g.nume.toLowerCase().includes('roș') || g.nume.toLowerCase().includes('rosu'))
+                .map(g => g.ordine),
+            0
+        );
+        if (nextGrade.ordine > maxRosuOrdine) return null;
+        return nextGradeId;
     }
 
-    if (age >= 13) {
-        const albastru = grade.find(g => g.nume.toLowerCase().includes('albastru') && !isDangGrade(g));
-        return albastru ? albastru.id : null;
-    } else if (age >= 7) {
-        const rosu = grade.find(g => g.nume.toLowerCase().includes('roșu') || g.nume.toLowerCase().includes('rosu'));
-        return rosu ? rosu.id : null;
-    }
+    // 13+ ani: lasă RPC-ul să decidă
     return null;
 };
 
@@ -147,6 +155,12 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
 
     const handleSave = async () => {
         if (!selectedSportivId || !gradVizatId) return;
+        const gradVizat = grade.find(g => g.id === gradVizatId);
+        const gradActual = grade.find(g => g.id === selectedSportiv?.grad_actual_id);
+        if (gradVizat && gradActual && gradVizat.ordine <= gradActual.ordine) {
+            showError('Grad invalid', `${selectedSportiv?.nume} are deja gradul "${gradActual.nume}". Gradul vizat trebuie să fie superior.`);
+            return;
+        }
         setLoading(true);
         await onSave([{ sportiv_id: selectedSportivId, grad_sustinut_id: gradVizatId }]);
         setLoading(false);

@@ -6,6 +6,7 @@ import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConf
 import { ImportExcelExamen } from './ImportExcelExamen';
 import { ImportTutorial } from './ImportTutorial';
 import { ImportSportiviExamen } from './ImportSportiviExamen';
+import { ExportExamenModal } from './ExportExamenModal';
 
 export interface DetaliiSesiuneProps {
     sesiune: SesiuneExamen;
@@ -37,6 +38,7 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
     const [isImportOpen, setIsImportOpen] = useState(false);
     const [isTutorialOpen, setIsTutorialOpen] = useState(false);
     const [isImportSportiviOpen, setIsImportSportiviOpen] = useState(false);
+    const [isExportOpen, setIsExportOpen] = useState(false);
 
     useEffect(() => {
         if (detailsRef.current) {
@@ -93,6 +95,12 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                         <Button variant="secondary" onClick={() => setIsImportOpen(true)} title="Import din fișier XLS (Ex. Local sau Examen de Grad)">
                             <UploadCloudIcon className="w-4 h-4 mr-2" /> Import XLS
                         </Button>
+                        <Button variant="secondary" onClick={() => setIsExportOpen(true)} title="Export fișe examen (Notare + Validare)">
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Export Fișe
+                        </Button>
                         <Button variant="secondary" onClick={props.onEdit}>
                             <EditIcon className="w-4 h-4 mr-2" /> Editează
                         </Button>
@@ -131,6 +139,14 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                 setSportivi={props.setSportivi}
                 setInscrieri={props.setInscrieri}
                 setIstoricGrade={props.setIstoricGrade}
+            />
+
+            <ExportExamenModal
+                isOpen={isExportOpen}
+                onClose={() => setIsExportOpen(false)}
+                sesiune={props.sesiune}
+                inscrieri={props.allInscrieri}
+                grade={props.grade}
             />
         </div>
     );

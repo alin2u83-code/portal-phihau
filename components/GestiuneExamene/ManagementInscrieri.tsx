@@ -11,6 +11,7 @@ import { getPretProdus } from '../../utils/pricing';
 import { getEligibleGrade } from '../../utils/eligibility';
 import { sendBulkNotifications } from '../../utils/notifications';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
+import { ExportExamenModal } from './ExportExamenModal';
 
 import { useData } from '../../contexts/DataContext';
 
@@ -550,6 +551,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const { showError, showSuccess } = useError();
     const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
     const [isSingleAddModalOpen, setIsSingleAddModalOpen] = useState(false);
+    const [isExportOpen, setIsExportOpen] = useState(false);
 
     // State for EDIT modal
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -1491,8 +1493,20 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                             {participantiInscrisi.length}
                         </span>
                     </h3>
-                    {!isReadOnly && (
-                        <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setIsExportOpen(true)}
+                            title="Export fișe examen (Notare + Validare)"
+                        >
+                            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Export Fișe
+                        </Button>
+                        {!isReadOnly && (
+                            <>
                             {participantiInscrisi.some(i => (rezultateLocale[i.id] || i.rezultat) !== 'Admis') && (
                                 <Button
                                     variant="success"
@@ -1516,8 +1530,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                                     Sincronizare ({desyncedInscrieri.length})
                                 </Button>
                             )}
-                        </div>
-                    )}
+                            </>
+                        )}
+                    </div>
                 </div>
                 <ResponsiveTable 
                     columns={columns}
@@ -1632,6 +1647,14 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 grade={grade}
                 sesiuneData={sesiune.data}
                 inscrisiIds={inscrisiInSesiuneIds}
+            />
+
+            <ExportExamenModal
+                isOpen={isExportOpen}
+                onClose={() => setIsExportOpen(false)}
+                sesiune={sesiune}
+                inscrieri={allInscrieri}
+                grade={grade}
             />
 
             <Modal isOpen={showAdmitAllConfirm} onClose={() => setShowAdmitAllConfirm(false)} title="Confirmare Admitere">

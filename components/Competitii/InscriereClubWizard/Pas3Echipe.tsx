@@ -294,10 +294,10 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                 </div>
               </div>
 
-              {/* Buton cerere inter-club — vizibil doar pe categorii incomplete cu eligibili, nesărite */}
-              {areEligibili && !eCompleta && !isCatSkipped && (() => {
+              {/* Buton cerere inter-club — vizibil pe categorii cu eligibili, nesărite (inclusiv echipe complete) */}
+              {areEligibili && !isCatSkipped && (() => {
                 const statusCerere = cereriInterclub.get(cat.id);
-                const nrLocuriLipsa = titMin - nrTitulari;
+                const nrLocuriLipsa = Math.max(1, titMin - nrTitulari);
 
                 if (statusCerere === 'pending') {
                   return (

@@ -45,7 +45,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         .from('users')
         .select('tema_config')
         .eq('id', currentUser.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         // Utilizatorul nu are override sau eroare — folosim tema clubului sau default

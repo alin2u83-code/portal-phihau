@@ -560,7 +560,7 @@ const CategoriiTemplateManager: React.FC<CategoriiTemplateManagerProps> = ({
         </div>
       ) : (
         <div className="-mx-4 sm:mx-0 overflow-x-auto border border-[var(--t-border)] rounded-xl">
-          <table className="w-full text-sm text-slate-300 min-w-[640px]">
+          <table className="w-full text-sm text-slate-300 min-w-[320px]">
             <thead>
               <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)] text-xs uppercase">
                 {isImportContext && (

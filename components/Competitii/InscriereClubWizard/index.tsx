@@ -88,9 +88,11 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     });
   }, []);
 
-  // Fetch echipe salvate în BD la mount pentru editare
+  // Fetch echipe din BD — la mount și la revenire în hub/pas4 (Pas3 salvează direct în DB)
   useEffect(() => {
+    if (step !== 'hub' && step !== 4) return;
     if (!clubId || !competitie?.id) return;
+    let cancelled = false;
     (async () => {
       const { data: echipeDB } = await supabase
         .from('echipe_competitie')
@@ -98,7 +100,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         .eq('competitie_id', competitie.id)
         .eq('club_id', clubId)
         .neq('status', 'retrasa');
-      if (!echipeDB || echipeDB.length === 0) return;
+      if (cancelled || !echipeDB) return;
       const initiale: EchipaFormata[] = (echipeDB as any[]).map(e => ({
         categorieId: e.categorie_id,
         dbId: e.id,
@@ -113,7 +115,8 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       }));
       setEchipeFormate(initiale);
     })();
-  }, []); // run once on mount
+    return () => { cancelled = true; };
+  }, [step, clubId, competitie?.id, numeClub]);
 
   // Vârstele individuale prezente în competiție (din toate categoriile)
   const varsteCompetitie = useMemo(() => {
@@ -313,6 +316,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       quyenAles={quyenAles}
       echipeFormate={echipeFormate}
       probeSkipped={probeSkippedWizard}
+      skippedCategorii={skippedCategorii}
       excludedFromIndividual={excludedFromIndividual}
       clubId={clubId}
       numeClub={numeClub}

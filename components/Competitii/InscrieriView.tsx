@@ -19,6 +19,7 @@ export interface InscrieriViewProps {
   grade: Grad[];
   isAdmin: boolean;
   isClubAdmin: boolean;
+  isSuperAdmin?: boolean;
   myClubId: string | null;
   numeClub: string;
   vizeSportivi: VizaSportiv[];
@@ -32,7 +33,7 @@ export interface InscrieriViewProps {
 }
 
 export const InscrieriView: React.FC<InscrieriViewProps> = ({
-  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, myClubId, numeClub, vizeSportivi, sportivi, onRefresh,
+  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, isSuperAdmin, myClubId, numeClub, vizeSportivi, sportivi, onRefresh,
   filtre, toggleGen, setFiltre, resetFiltre, nrFiltreActive
 }) => {
   const { showError } = useError();
@@ -124,7 +125,7 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
           </button>
           {individualExpanded && (
           <div className="-mx-4 sm:mx-0 overflow-x-auto">
-            <table className="w-full text-sm text-slate-300 min-w-[480px]">
+            <table className="w-full text-sm text-slate-300 min-w-[320px]">
               <thead>
                 <tr className="border-b border-slate-700">
                   <th className="p-2 text-left">Sportiv</th>
@@ -168,19 +169,21 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                           : <span className="text-red-400 text-xs">Neachitată</span>}
                       </td>
                       <td className="p-2 text-right">
-                        {ins.status === 'inscris' && (isAdmin || ins.club_id === myClubId) && (
-                          <Button size="sm" variant="danger" onClick={() => handleRetrage(ins.id, 'inscris')}
-                            className="text-xs !py-1">Retrage</Button>
-                        )}
-                        {isAdmin && ins.status !== 'confirmat' && ins.status !== 'retras' && (
-                          <Button size="sm" variant="success" className="text-xs !py-1 ml-1"
-                            onClick={async () => {
-                              await supabase.from('inscrieri_competitie').update({ status: 'confirmat' }).eq('id', ins.id);
-                              startTransition(() => onRefresh());
-                            }}>
-                            Confirmă
-                          </Button>
-                        )}
+                        <div className="flex flex-col sm:flex-row gap-1 items-end sm:items-center justify-end">
+                          {!isSuperAdmin && ins.status === 'inscris' && (isAdmin || ins.club_id === myClubId) && (
+                            <Button size="sm" variant="danger" onClick={() => handleRetrage(ins.id, 'inscris')}
+                              className="text-xs !py-1">Retrage</Button>
+                          )}
+                          {!isSuperAdmin && isAdmin && ins.status !== 'confirmat' && ins.status !== 'retras' && (
+                            <Button size="sm" variant="success" className="text-xs !py-1"
+                              onClick={async () => {
+                                await supabase.from('inscrieri_competitie').update({ status: 'confirmat' }).eq('id', ins.id);
+                                startTransition(() => onRefresh());
+                              }}>
+                              Confirmă
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -255,7 +258,7 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                           Editează componența
                         </Button>
                       )}
-                      {ec.status === 'inscrisa' && (isAdmin || ec.club_id === myClubId) && (
+                      {!isSuperAdmin && ec.status === 'inscrisa' && (isAdmin || ec.club_id === myClubId) && (
                         <Button size="sm" variant="danger" className="text-xs !py-1"
                           onClick={() => handleRetrage(ec.id, 'echipa')}>Retrage</Button>
                       )}

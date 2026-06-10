@@ -26,6 +26,7 @@ export interface Pas4Props {
   quyenAles: QuyenAlesMap;
   echipeFormate: EchipaFormata[];
   probeSkipped: Set<string>;
+  skippedCategorii?: Set<string>;
   excludedFromIndividual: Set<string>;
   clubId: string;
   numeClub: string;
@@ -54,7 +55,7 @@ interface RandEchipa {
 const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   competitie, sportivi, grade, categorii,
   selectedSportivi, autoCategorie, quyenAles, echipeFormate,
-  probeSkipped, excludedFromIndividual, clubId, numeClub, onBack, onSaved,
+  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, onBack, onSaved,
 }) => {
   const { showError, showSuccess } = useError();
   const [saving, setSaving] = useState(false);
@@ -118,9 +119,10 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       if (!r.categorie) return false;
       if (r.categorie.proba_id && probeSkipped.has(r.categorie.proba_id)) return false;
       if (r.echipa?.echipaSkip) return false;
+      if (skippedCategorii?.has(r.categorie.id)) return false;
       return true;
     });
-  }, [echipeFormate, categorii, competitie, sportivi, probeSkipped]);
+  }, [echipeFormate, categorii, competitie, sportivi, probeSkipped, skippedCategorii]);
 
   const totalIndividual = useMemo(
     () => randuriIndividuale.reduce((acc, r) => acc + r.taxa, 0),

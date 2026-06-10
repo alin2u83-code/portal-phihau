@@ -203,7 +203,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
       {/* Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scroll-smooth scrollbar-hide">
         <button onClick={() => handleSetActiveTab('inscrieri')} style={{ touchAction: 'manipulation' }}
-          className={`flex-1 min-w-[120px] h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'inscrieri' ? 'bg-brand-primary text-white shadow-lg' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
+          className={`shrink-0 h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'inscrieri' ? 'bg-brand-primary text-white shadow-lg' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
           <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
@@ -228,7 +228,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           </button>
         )}
         <button onClick={() => handleSetActiveTab('categorii')} style={{ touchAction: 'manipulation' }}
-          className={`flex-1 min-w-[120px] h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'categorii' ? 'bg-slate-600 text-white shadow-lg' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
+          className={`shrink-0 h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-base font-semibold transition-colors whitespace-nowrap ${activeTab === 'categorii' ? 'bg-slate-600 text-white shadow-lg' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'}`}>
           <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
           </svg>
@@ -376,9 +376,6 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                             </td>
                             {canRegister && isClubAdmin && (
                               <td className="p-2 text-right">
-                                <Button size="sm" variant="info" onClick={() => setInscriereModal(cat)}>
-                                  Înscrie
-                                </Button>
                               </td>
                             )}
                           </tr>
@@ -514,6 +511,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                   grade={grade}
                   isAdmin={isAdmin}
                   isClubAdmin={isClubAdmin}
+                  isSuperAdmin={permissions.isSuperAdmin}
                   myClubId={myClubId || null}
                   numeClub={currentUser?.cluburi?.nume ?? ''}
                   vizeSportivi={vizeSportivi}

@@ -258,13 +258,14 @@ const CardProbaItem: React.FC<{
         : `${nrComplet}/${nrTotal} completate`;
 
   return (
-    <button
-      type="button"
+    <div
+      role={!isExclus ? 'button' : undefined}
+      tabIndex={!isExclus ? 0 : undefined}
       onClick={!isExclus ? onDeschide : undefined}
-      disabled={isExclus}
+      onKeyDown={!isExclus ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDeschide(); } } : undefined}
       style={{ touchAction: 'manipulation' }}
       className={`w-full text-left rounded-xl border bg-slate-800/40 transition-all ${borderCls} ${
-        !isExclus ? 'hover:bg-slate-700/50 active:scale-[0.99]' : 'cursor-default'
+        !isExclus ? 'hover:bg-slate-700/50 active:scale-[0.99] cursor-pointer' : 'cursor-default'
       }`}
     >
       {/* Header card */}
@@ -400,7 +401,7 @@ const CardProbaItem: React.FC<{
           </div>
         )}
       </div>
-    </button>
+    </div>
   );
 };
 

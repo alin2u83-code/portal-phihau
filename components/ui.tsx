@@ -325,6 +325,19 @@ interface ModalProps {
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, persistent = false }) => {
   const titleId = React.useId();
+
+  useEffect(() => {
+    if (!isOpen || persistent) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [isOpen, onClose, persistent]);
+
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(

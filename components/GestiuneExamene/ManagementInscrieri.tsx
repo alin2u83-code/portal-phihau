@@ -1342,7 +1342,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             cellClassName: 'text-right',
             render: (inscriere) => !isReadOnly && (
                 <div className="flex items-center justify-end gap-2">
-                    <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} title="Modifică gradul vizat">
+                    <Button size="sm" variant="warning" onClick={() => handleOpenEditModal(inscriere)} title="Modifică gradul vizat">
                         <EditIcon className="w-4 h-4" />
                     </Button>
                     <Button 
@@ -1427,7 +1427,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
                     {!isReadOnly && (
                         <div className="flex gap-2 pt-2 border-t border-slate-700/60">
-                            <Button size="sm" variant="secondary" onClick={() => handleOpenEditModal(inscriere)} className="flex-1 justify-center">
+                            <Button size="sm" variant="warning" onClick={() => handleOpenEditModal(inscriere)} className="flex-1 justify-center">
                                 <EditIcon className="w-3.5 h-3.5 mr-1.5" /> Editează
                             </Button>
                             <Button size="sm" variant="danger" onClick={() => handleInitiateDelete(inscriere)} className="flex-1 justify-center">
@@ -1440,10 +1440,13 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         );
     };
 
-    // Statistici rapide
-    const statsAdmis = participantiInscrisi.filter(i => (rezultateLocale[i.id] || i.rezultat) === 'Admis').length;
-    const statsRespins = participantiInscrisi.filter(i => (rezultateLocale[i.id] || i.rezultat) === 'Respins').length;
-    const statsAsteptare = participantiInscrisi.filter(i => !i.rezultat || i.rezultat === 'Neprezentat').length;
+    // Statistici rapide — folosim rezultateLocale ca sursă primară (reflectă modificările locale)
+    const statsAdmis = participantiInscrisi.filter(i => (rezultateLocale[i.id] ?? i.rezultat ?? 'Neprezentat') === 'Admis').length;
+    const statsRespins = participantiInscrisi.filter(i => (rezultateLocale[i.id] ?? i.rezultat ?? 'Neprezentat') === 'Respins').length;
+    const statsAsteptare = participantiInscrisi.filter(i => {
+        const rez = rezultateLocale[i.id] ?? i.rezultat ?? 'Neprezentat';
+        return rez !== 'Admis' && rez !== 'Respins';
+    }).length;
 
     return (
         <div className="space-y-5">
@@ -1460,7 +1463,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         <Button onClick={() => setIsSingleAddModalOpen(true)} variant="primary" className="w-full justify-center">
                             <PlusIcon className="w-4 h-4 mr-2" /> Adaugă Individual
                         </Button>
-                        <Button onClick={() => setIsBulkAddModalOpen(true)} variant="info" className="w-full justify-center">
+                        <Button onClick={() => setIsBulkAddModalOpen(true)} variant="primary" className="w-full justify-center">
                             <PlusIcon className="w-4 h-4 mr-2" /> Adaugă Multipli
                         </Button>
                     </div>

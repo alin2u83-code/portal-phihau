@@ -85,14 +85,14 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                 </div>
 
                 {!props.isReadOnly && (
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-wrap gap-2 justify-end">
                         <Button variant="secondary" onClick={() => setIsTutorialOpen(true)} title="Ghid import XLS">
                             <BookOpenIcon className="w-4 h-4" />
                         </Button>
-                        <Button variant="secondary" onClick={() => setIsImportSportiviOpen(true)} title="Import sportivi noi și adaugă-i în sesiune">
+                        <Button variant="info" onClick={() => setIsImportSportiviOpen(true)} title="Import sportivi noi și adaugă-i în sesiune">
                             <UserPlusIcon className="w-4 h-4 mr-2" /> Import Sportivi
                         </Button>
-                        <Button variant="secondary" onClick={() => setIsImportOpen(true)} title="Import din fișier XLS (Ex. Local sau Examen de Grad)">
+                        <Button variant="info" onClick={() => setIsImportOpen(true)} title="Import din fișier XLS (Ex. Local sau Examen de Grad)">
                             <UploadCloudIcon className="w-4 h-4 mr-2" /> Import XLS
                         </Button>
                         <Button variant="secondary" onClick={() => setIsExportOpen(true)} title="Export fișe examen (Notare + Validare)">
@@ -101,7 +101,7 @@ export const DetaliiSesiune: React.FC<DetaliiSesiuneProps> = (props) => {
                             </svg>
                             Export Fișe
                         </Button>
-                        <Button variant="secondary" onClick={props.onEdit}>
+                        <Button variant="warning" onClick={props.onEdit}>
                             <EditIcon className="w-4 h-4 mr-2" /> Editează
                         </Button>
                         {props.sesiune.status !== 'Finalizat' && (

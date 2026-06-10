@@ -226,6 +226,17 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                 isFinalizing={managerLoading}
                 isReadOnly={isReadOnly}
             />
+            {/* SesiuneForm trebuie randat și în view-ul de detalii, nu doar în lista de sesiuni */}
+            <SesiuneForm
+                isOpen={isFormOpen}
+                onClose={() => setIsFormOpen(false)}
+                onSave={handleSaveSesiune}
+                sesiuneToEdit={sesiuneToEdit}
+                locatii={locatii}
+                setLocatii={setLocatii}
+                clubs={clubs}
+                currentUser={currentUser}
+            />
         </div>
      );
   }
@@ -424,7 +435,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                                 <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
                                 {!isReadOnly && (
                                     <>
-                                        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
+                                        <Button size="sm" variant="warning" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
                                         <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
                                     </>
                                 )}

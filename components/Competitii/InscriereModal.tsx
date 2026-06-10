@@ -7,6 +7,7 @@ import { filtreazaSportiviEligibili, calculeazaVarstaLaData } from '../../utils/
 import { VizaSportiv } from '../../types';
 import { useError } from '../ErrorProvider';
 import { areVizaFRAM, WarningVizaFRAM } from './constants';
+import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/taxeCompetitie';
 
 export interface InscriereModalProps {
   competitie: Competitie;
@@ -371,7 +372,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
             {categorie.rezerve_max > 0 && ` · max ${categorie.rezerve_max} rezerve`}
           </div>
           <div className="text-xs text-slate-500 mt-0.5">
-            Taxă: <strong className="text-green-400">{isTeam ? competitie.taxa_echipa : competitie.taxa_individual} lei</strong>
+            Taxă: <strong className="text-green-400">{isTeam ? calculeazaTaxaEchipa(categorie, competitie) : calculeazaTaxaIndividuala(competitie, categorie)} lei</strong>
           </div>
         </div>
 

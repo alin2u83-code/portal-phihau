@@ -243,7 +243,7 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
 
                 <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
                     <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button variant="primary" onClick={handleSave} isLoading={loading} disabled={!selectedSportivId || !gradVizatId || !hasVisa}>
+                    <Button variant="primary" onClick={handleSave} isLoading={loading} disabled={!selectedSportivId || !gradVizatId}>
                         Înscrie Sportiv
                     </Button>
                 </div>

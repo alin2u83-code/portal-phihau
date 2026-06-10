@@ -112,7 +112,9 @@ export const useDataProvider = () => {
     useEffect(() => {
         setData(prev => ({
             ...prev,
-            sportivi: sportiviData || prev.sportivi,
+            sportivi: sportiviData
+                ? [...sportiviData].sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO'))
+                : prev.sportivi,
             plati: platiData || prev.plati,
             grupe: grupeData || prev.grupe
         }));

@@ -50,7 +50,7 @@ export const AdminSportivPortal: React.FC<AdminSportivPortalProps> = (props) => 
                     onChange={e => setSelectedSportivId(e.target.value)}
                 >
                     <option value="">Alege...</option>
-                    {sportivi.sort((a,b) => a.nume.localeCompare(b.nume)).map(s => (
+                    {sportivi.sort((a,b) => a.nume.localeCompare(b.nume, 'ro-RO')).map(s => (
                         <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>
                     ))}
                 </Select>

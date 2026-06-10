@@ -292,7 +292,9 @@ export const Sportivi: React.FC<{
         clubId: sportiviClubIdFilter
     }, loadAll ? undefined : { page, pageSize }, undefined, activeRoleContext?.id, loadAll);
 
-    const sportivi = sportiviData || [];
+    const sportivi = sportiviData
+        ? [...sportiviData].sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO'))
+        : [];
     const totalPages = Math.ceil(totalSportivi / pageSize);
     
     const {

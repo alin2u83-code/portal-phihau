@@ -168,6 +168,9 @@ export interface Plata {
   eveniment_id?: string | null; // FK → evenimente.id (pentru 'Taxa Stagiu' și 'Taxa Competitie')
   luna?: number | null;         // 1–12 (pentru 'Abonament')
   an?: number | null;           // 2020–2100 (pentru 'Abonament' și 'Taxa Anuala')
+  // Câmpuri din rbv_plati_club (JOIN cu sportivi) — prezente când sportivul e din alt club
+  sportiv_nume?: string | null;
+  sportiv_prenume?: string | null;
 }
 
 export interface VizualizarePlata {

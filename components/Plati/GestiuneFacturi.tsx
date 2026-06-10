@@ -57,7 +57,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
-    const clubSportivi = useMemo(() => [...sportivi].sort((a, b) => a.nume.localeCompare(b.nume)), [sportivi]);
+    const clubSportivi = useMemo(() => [...sportivi].sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO')), [sportivi]);
     
     const clubPlati = useMemo(() => {
         return [...plati].sort((a, b) => new Date((b.data || '').toString().slice(0, 10)).getTime() - new Date((a.data || '').toString().slice(0, 10)).getTime());
@@ -131,7 +131,9 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         }
         if (plata.sportiv_id) {
             const s = sportivi.find(sp => sp.id === plata.sportiv_id);
-            return s ? formatNume(s) : 'Sportiv Șters';
+            if (s) return formatNume(s);
+            if (plata.sportiv_nume) return `${plata.sportiv_prenume || ''} ${plata.sportiv_nume}`.trim();
+            return 'Sportiv Șters';
         }
         return 'N/A';
     };

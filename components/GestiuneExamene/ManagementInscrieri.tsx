@@ -294,7 +294,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                     lastPromotionDate: lastPromotionDate.toLocaleDateString('ro-RO')
                 };
             })
-            .sort((a, b) => a.nume.localeCompare(b.nume));
+            .sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO'));
     }, [sportivi, grade, inscrisiIds, istoricGrade, vizeSportivi, sesiuneYear]);
     
     const filteredSportivi = useMemo(() => {
@@ -605,7 +605,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 (a, b) => {
                     const numeA = (a.sportiv_nume || a.sportivi?.nume || '').toLowerCase();
                     const numeB = (b.sportiv_nume || b.sportivi?.nume || '').toLowerCase();
-                    return numeA.localeCompare(numeB);
+                    return numeA.localeCompare(numeB, 'ro-RO');
                 }
             );
         } else {
@@ -616,7 +616,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 if (gradeA !== gradeB) return gradeB - gradeA;
                 const numeA = (a.sportiv_nume || a.sportivi?.nume || '').toLowerCase();
                 const numeB = (b.sportiv_nume || b.sportivi?.nume || '').toLowerCase();
-                return numeA.localeCompare(numeB);
+                return numeA.localeCompare(numeB, 'ro-RO');
             });
         }
         return data.map(i => ({

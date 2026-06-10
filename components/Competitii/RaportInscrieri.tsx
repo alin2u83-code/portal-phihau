@@ -93,7 +93,7 @@ export const RaportInscrieri: React.FC<RaportInscrieriProps> = ({
       }
     }
 
-    return Array.from(map.values()).sort((a, b) => a.nume.localeCompare(b.nume) || a.prenume.localeCompare(b.prenume));
+    return Array.from(map.values()).sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO') || a.prenume.localeCompare(b.prenume, 'ro-RO'));
   }, [filteredIns, filteredEc, categorii, probe]);
 
   const handlePrint = () => window.print();

@@ -683,25 +683,22 @@ export const Sportivi: React.FC<{
                             variant="secondary"
                             size="sm"
                             onClick={() => setIsExportTableOpen(true)}
-                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
                             className="touch-manipulation min-h-[40px]"
                         >
                             Export / Editare
                         </Button>
                         <Button
-                            variant="secondary"
+                            variant="info"
                             size="sm"
                             onClick={() => navigateTo('import-sportivi')}
-                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
                             className="touch-manipulation min-h-[40px]"
                         >
                             <UploadCloudIcon className="w-4 h-4 mr-1"/> Import
                         </Button>
                         <Button
-                            variant="secondary"
+                            variant="warning"
                             size="sm"
                             onClick={handleDeschideBulkLinkuri}
-                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.bg_card, color: currentUser?.cluburi?.theme_config?.accent_color }}
                             className="touch-manipulation min-h-[40px] flex items-center gap-1"
                             title="Generează magic link-uri pentru sportivii fără cont"
                         >
@@ -711,7 +708,6 @@ export const Sportivi: React.FC<{
                             variant="primary"
                             size="sm"
                             onClick={handleOpenAddSportiv}
-                            style={{ backgroundColor: currentUser?.cluburi?.theme_config?.accent_color, color: '#ffffff' }}
                             data-tour="sportivi-adauga"
                             className="touch-manipulation min-h-[40px]"
                         >

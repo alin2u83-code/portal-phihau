@@ -170,7 +170,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
       <label
         htmlFor={htmlFor}
         className={`${finalClassName} ${(disabled || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
-        style={{ ...activeStyle, ...(props.style as React.CSSProperties | undefined) }}
+        style={{ ...activeStyle, ...Object.fromEntries(Object.entries((props.style as Record<string,unknown>) ?? {}).filter(([,v]) => v != null)) }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         {...props}
@@ -181,10 +181,11 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   }
 
   const { style: propStyle, ...restProps } = props as React.ButtonHTMLAttributes<HTMLButtonElement> & typeof props;
+  const cleanPropStyle = propStyle ? Object.fromEntries(Object.entries(propStyle).filter(([, v]) => v != null)) : {};
   return (
     <button
       className={finalClassName}
-      style={{ ...activeStyle, ...propStyle }}
+      style={{ ...activeStyle, ...cleanPropStyle }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       disabled={disabled || isLoading}

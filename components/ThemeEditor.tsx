@@ -22,8 +22,9 @@ interface CustomThemeState {
   border: string;
   text: string;
   textMuted: string;
-  // Primary action
+  // Butoane
   primary: string;
+  secondaryBtn: string;
   // Sidebar
   sidebarBg: string;
   sidebarText: string;
@@ -51,6 +52,7 @@ const DEFAULT_CUSTOM: CustomThemeState = {
   text: DEFAULT_THEME.text,
   textMuted: DEFAULT_THEME.textMuted,
   primary: DEFAULT_THEME.primary,
+  secondaryBtn: DEFAULT_THEME.secondary,
   sidebarBg: DEFAULT_THEME.sidebarBg,
   sidebarText: DEFAULT_THEME.sidebarText,
   sidebarActive: DEFAULT_THEME.sidebarActive,
@@ -78,8 +80,8 @@ function buildCustomThemeConfig(c: CustomThemeState): ThemeConfig {
     primary: c.primary,
     primaryHover: c.primary,
     primaryFg: '#ffffff',
-    secondary: c.surface,
-    secondaryHover: c.border,
+    secondary: c.secondaryBtn,
+    secondaryHover: c.secondaryBtn,
     secondaryFg: c.text,
     sidebarBg: c.sidebarBg,
     sidebarText: c.sidebarText,
@@ -300,8 +302,21 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ isOpen, onClose }) => 
               <ColorPickerRow label="Text secundar / labels" field="textMuted" value={customTheme.textMuted} onChange={handleCustomColorChange} />
             </Section>
 
-            <Section title="Culoare Primară & Butoane">
-              <ColorPickerRow label="Culoare primară (buton, accent)" field="primary" value={customTheme.primary} onChange={handleCustomColorChange} />
+            <Section title="Butoane" defaultOpen>
+              <ColorPickerRow label="Buton primar (Adaugă, Salvează)" field="primary" value={customTheme.primary} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Buton secundar (Înapoi, acțiuni 2)" field="secondaryBtn" value={customTheme.secondaryBtn} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Buton succes (verde)" field="statusSuccess" value={customTheme.statusSuccess} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Buton eroare (roșu)" field="statusDanger" value={customTheme.statusDanger} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Buton avertizare (portocaliu)" field="statusWarning" value={customTheme.statusWarning} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Buton informare (albastru)" field="statusInfo" value={customTheme.statusInfo} onChange={handleCustomColorChange} />
+              <div className="pt-1.5 flex flex-wrap gap-2">
+                <Button variant="primary" size="xs">Primar</Button>
+                <Button variant="secondary" size="xs">Secundar</Button>
+                <Button variant="success" size="xs">Succes</Button>
+                <Button variant="danger" size="xs">Eroare</Button>
+                <Button variant="warning" size="xs">Avertizare</Button>
+                <Button variant="info" size="xs">Info</Button>
+              </div>
             </Section>
 
             <Section title="Sidebar">

@@ -51,7 +51,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
 
         const fetchSportivi = async () => {
             try {
-                const { data, error } = await supabase.from('sportivi').select('id, nume, prenume, data_nasterii');
+                const { data, error } = await supabase.from('sportivi').select('id, nume, prenume, data_nasterii, cnp, email, telefon');
                 if (error) console.error("Eroare la preluarea sportivilor existenti:", error);
                 if (data) {
                     console.log("Sportivi existenti incarcati:", data.length);
@@ -122,17 +122,13 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 const rawDate = row['DATA NASTERII']?.trim();
                 const dataNasteriiCSV = normalizeDate(rawDate);
 
-                const match1 = existingSportivi.find(s =>
-                    isSimilar(s.nume, numeCSV) && isSimilar(s.prenume, prenumeCSV) && s.data_nasterii === dataNasteriiCSV
-                );
-                const match2 = existingSportivi.find(s =>
-                    isSimilar(s.nume, numeCSV) && isSimilar(s.prenume, prenumeCSV)
-                );
-
                 const emailCSV = row['EMAIL']?.trim() || row['Email']?.trim() || row['email']?.trim();
+                const cnpCSV   = row['CNP']?.trim() || null;
+                const telefon  = row['TELEFON']?.trim() || row['Telefon']?.trim() || row['telefon']?.trim() || null;
+
                 const sportivData: any = {
                     nume: numeCSV, prenume: prenumeCSV,
-                    cnp: row['CNP']?.trim() || null,
+                    cnp: cnpCSV,
                     email: emailCSV || generateEmail(prenumeCSV, numeCSV),
                     data_nasterii: dataNasteriiCSV || null,
                     adresa: row['ADRESA']?.trim() || null,
@@ -145,7 +141,6 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                     club_id: currentClubId,
                 };
 
-                const telefon = row['TELEFON']?.trim() || row['Telefon']?.trim() || row['telefon']?.trim();
                 if (telefon) sportivData.telefon = telefon;
 
                 const rawGen = row['GEN']?.trim()?.toLowerCase();
@@ -160,10 +155,80 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                     }
                 });
 
-                if (match1) {
-                    duplicates.push({ type: 'strict', csvRow: row, existingSportiv: match1, sportivData, originalIndex: index, rawDate: rawDate || '' });
-                } else if (match2) {
-                    duplicates.push({ type: 'loose', csvRow: row, existingSportiv: match2, sportivData, originalIndex: index, rawDate: rawDate || '' });
+                // Normalizare pentru comparare
+                const norm = (s: string) =>
+                    s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+                const normTel = (t?: string | null) => {
+                    if (!t) return null;
+                    const d = t.replace(/\D/g, '');
+                    return d.length >= 10 ? (d.startsWith('40') && d.length === 11 ? '0' + d.slice(2) : d) : null;
+                };
+                const tokensPren = (p: string) => norm(p).split(' ').filter(x => x.length >= 3);
+
+                const numeN = norm(numeCSV);
+                const prenN = norm(prenumeCSV);
+                const telN  = normTel(telefon);
+                const tokPren = tokensPren(prenumeCSV);
+
+                // Găsire duplicat cu criterii extinse
+                let matchStrict: any = null;
+                let matchLoose:  any = null;
+                let motivDuplicat = '';
+
+                for (const s of existingSportivi) {
+                    const sNumeN = norm(s.nume);
+                    const sPrenN = norm(s.prenume);
+                    const sTelN  = normTel(s.telefon);
+                    const sTokPren = tokensPren(s.prenume);
+
+                    // CNP exact → strict imediat
+                    if (cnpCSV && s.cnp && cnpCSV === s.cnp.trim()) {
+                        matchStrict = s; motivDuplicat = 'CNP identic'; break;
+                    }
+
+                    // Nume + DOB exact → strict
+                    if (isSimilar(s.nume, numeCSV) && isSimilar(s.prenume, prenumeCSV) && dataNasteriiCSV && s.data_nasterii === dataNasteriiCSV) {
+                        matchStrict = s; motivDuplicat = 'Nume identic + dată naștere identică'; break;
+                    }
+
+                    // Email identic
+                    if (emailCSV && s.email && emailCSV.toLowerCase() === s.email.toLowerCase()) {
+                        if (!matchLoose) { matchLoose = s; motivDuplicat = 'Email identic'; }
+                        continue;
+                    }
+
+                    // Telefon identic
+                    if (telN && sTelN && telN === sTelN) {
+                        if (!matchLoose) { matchLoose = s; motivDuplicat = 'Telefon identic'; }
+                        continue;
+                    }
+
+                    // Nume similar fără DOB
+                    if (isSimilar(s.nume, numeCSV) && isSimilar(s.prenume, prenumeCSV)) {
+                        if (!matchLoose) { matchLoose = s; motivDuplicat = 'Nume similar'; }
+                        continue;
+                    }
+
+                    // Prenume parțial: "Casian" găsit în "Horatiu Casian" (același surname)
+                    if (sNumeN === numeN || Math.abs(sNumeN.length - numeN.length) <= 1) {
+                        const overlapTok = tokPren.some(t => sTokPren.includes(t)) || sTokPren.some(t => tokPren.includes(t));
+                        if (overlapTok && dataNasteriiCSV && s.data_nasterii === dataNasteriiCSV) {
+                            if (!matchLoose) { matchLoose = s; motivDuplicat = 'Prenume parțial + dată naștere identică'; }
+                            continue;
+                        }
+                    }
+
+                    // Cross-field: prenume CSV = surname DB (ex: importat "Casian" dar DB are prenume="Horatiu", nume="Casian")
+                    if ((prenN === sNumeN || numeN === sPrenN) && dataNasteriiCSV && s.data_nasterii === dataNasteriiCSV) {
+                        if (!matchLoose) { matchLoose = s; motivDuplicat = 'Posibil prenume/nume confundat + dată identică'; }
+                        continue;
+                    }
+                }
+
+                if (matchStrict) {
+                    duplicates.push({ type: 'strict', csvRow: row, existingSportiv: matchStrict, sportivData, originalIndex: index, rawDate: rawDate || '', motiv: motivDuplicat });
+                } else if (matchLoose) {
+                    duplicates.push({ type: 'loose', csvRow: row, existingSportiv: matchLoose, sportivData, originalIndex: index, rawDate: rawDate || '', motiv: motivDuplicat });
                 } else {
                     if (!dataNasteriiCSV) {
                         const errorMsg = rawDate ? `Data nasterii invalida: ${rawDate}` : 'Lipseste data nasterii';
@@ -348,7 +413,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 nume: d.sportivData.nume, prenume: d.sportivData.prenume,
                 dataNasteriiCSV: d.rawDate || d.sportivData.data_nasterii || '—',
                 status: 'ACTUALIZARE_AUTO',
-                motiv: 'Potrivire exacta (acelasi nume + data nasterii)',
+                motiv: d.motiv || 'Potrivire exactă',
                 sportivData: d.sportivData,
                 existingSportiv: d.existingSportiv,
                 strictIndex: i,
@@ -356,14 +421,16 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         });
 
         looseDuplicates.forEach((d, i) => {
-            let motiv = '';
-            const dataNasteriiNorm = normalizeDate(d.rawDate || '');
-            if (dataNasteriiNorm !== d.existingSportiv.data_nasterii) {
-                const csvDateDisplay = d.rawDate || '—';
-                const dbDateDisplay = formatDateForDisplay(d.existingSportiv.data_nasterii);
-                motiv = `Difera data nasterii: CSV=${csvDateDisplay} / DB=${dbDateDisplay}`;
-            } else {
-                motiv = `Nume similar: ${d.sportivData.nume} ${d.sportivData.prenume} / ${d.existingSportiv.nume} ${d.existingSportiv.prenume}`;
+            let motiv = d.motiv || '';
+            if (!motiv) {
+                const dataNasteriiNorm = normalizeDate(d.rawDate || '');
+                if (dataNasteriiNorm !== d.existingSportiv.data_nasterii) {
+                    const csvDateDisplay = d.rawDate || '—';
+                    const dbDateDisplay = formatDateForDisplay(d.existingSportiv.data_nasterii);
+                    motiv = `Diferă data nașterii: CSV=${csvDateDisplay} / DB=${dbDateDisplay}`;
+                } else {
+                    motiv = `Nume similar: ${d.sportivData.nume} ${d.sportivData.prenume} / ${d.existingSportiv.nume} ${d.existingSportiv.prenume}`;
+                }
             }
             rows.push({
                 originalIndex: d.originalIndex,

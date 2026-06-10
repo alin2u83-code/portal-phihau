@@ -64,7 +64,7 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
 
                 const { data: sp, error: spErr } = await supabase
                     .from('sportivi')
-                    .select('id, nume, prenume, data_nasterii, email, cnp, club_id, grad_actual_id, data_inscrierii, status, user_id')
+                    .select('id, nume, prenume, data_nasterii, email, cnp, telefon, club_id, grad_actual_id, data_inscrierii, status, user_id')
                     .order('nume').order('prenume');
                 if (spErr) throw spErr;
 
@@ -112,7 +112,7 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
         if (!modalInProgres) setModalPereche(null);
     };
 
-    const executaFuzionare = async () => {
+    const executaFuzionare = async (campiAlesi: Record<string, any> = {}) => {
         if (!supabase || !modalPereche) return;
 
         const primarId   = getPrimar(modalPereche);
@@ -169,6 +169,11 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
                 await supabase.from('sportivi')
                     .update({ status: 'Inactiv' })
                     .eq('id', secundarId);
+            }
+
+            // Aplică selecțiile câmp cu câmp din merge selectiv
+            if (Object.keys(campiAlesi).length > 0) {
+                await supabase.from('sportivi').update(campiAlesi).eq('id', primarId);
             }
 
             setSportivi(prev => prev.filter(s => s.id !== secundarId));

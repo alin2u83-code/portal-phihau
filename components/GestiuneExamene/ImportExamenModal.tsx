@@ -266,25 +266,35 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             header: true,
             skipEmptyLines: true,
             complete: async (results) => {
-                let rows: CsvRow[];
-                if (csvFormat === 'grila') {
-                    rows = (results.data as GrilaRow[])
-                        .filter(r => r.NUME && r.PRENUME)
-                        .map(mapGrilaToCsvRow);
-                } else if (csvFormat === 'federatie') {
-                    rows = (results.data as FederatieRow[])
-                        .filter(r => r.NUME && r.PRENUME)
-                        .map(mapFederatieToCsvRow);
-                } else {
-                    rows = (results.data as CsvRow[]).map(r => ({
-                        ...r,
-                        Data_Examen: r.Data_Examen?.trim() || sessionOverride.data,
-                        Sesiune_Denumire: r.Sesiune_Denumire?.trim() || sessionOverride.sesiune_denumire,
-                        Localitate: r.Localitate?.trim() || sessionOverride.localitate,
-                    }));
+                try {
+                    let rows: CsvRow[];
+                    if (csvFormat === 'grila') {
+                        rows = (results.data as GrilaRow[])
+                            .filter(r => r.NUME && r.PRENUME)
+                            .map(mapGrilaToCsvRow);
+                    } else if (csvFormat === 'federatie') {
+                        rows = (results.data as FederatieRow[])
+                            .filter(r => r.NUME && r.PRENUME)
+                            .map(mapFederatieToCsvRow);
+                    } else {
+                        rows = (results.data as CsvRow[]).map(r => ({
+                            ...r,
+                            Data_Examen: r.Data_Examen?.trim() || sessionOverride.data,
+                            Sesiune_Denumire: r.Sesiune_Denumire?.trim() || sessionOverride.sesiune_denumire,
+                            Localitate: r.Localitate?.trim() || sessionOverride.localitate,
+                        }));
+                    }
+                    const processed = await validateData(rows, birthdateRecords);
+                    setPreviewData(processed);
+                } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : String(err);
+                    showError('Eroare procesare CSV', msg);
+                } finally {
+                    setIsProcessing(false);
                 }
-                const processed = await validateData(rows, birthdateRecords);
-                setPreviewData(processed);
+            },
+            error: (err) => {
+                showError('Eroare citire fișier', err.message);
                 setIsProcessing(false);
             }
         });
@@ -828,10 +838,24 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Input type="file" accept=".csv" label="Fișier Examen (Obligatoriu)"
-                            onChange={(e) => setExamFile(e.target.files?.[0] || null)} />
-                        <Input type="file" accept=".csv" label="Fișier Date Naștere (Opțional)"
-                            onChange={(e) => setBirthdateFile(e.target.files?.[0] || null)} />
+                        <div className="w-full">
+                            <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">Fișier Examen (Obligatoriu)</label>
+                            <input
+                                type="file"
+                                accept=".csv"
+                                onChange={(e) => setExamFile(e.target.files?.[0] || null)}
+                                className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-sm text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer"
+                            />
+                        </div>
+                        <div className="w-full">
+                            <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">Fișier Date Naștere (Opțional)</label>
+                            <input
+                                type="file"
+                                accept=".csv"
+                                onChange={(e) => setBirthdateFile(e.target.files?.[0] || null)}
+                                className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-sm text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-slate-600 file:text-white hover:file:bg-slate-500 cursor-pointer"
+                            />
+                        </div>
                     </div>
                 </div>
 

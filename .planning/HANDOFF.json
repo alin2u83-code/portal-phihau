@@ -1,56 +1,47 @@
 {
   "version": "1.0",
-  "timestamp": "2026-06-11T00:00:00Z",
+  "timestamp": "2026-06-11T09:50:00Z",
   "phase": null,
   "phase_name": "playwright-import-examene-testing",
   "phase_dir": null,
   "plan": null,
-  "task": 5,
+  "task": 6,
   "total_tasks": 9,
   "status": "paused",
   "completed_tasks": [
     {"id": 1, "name": "Copiat fișiere test în .playwright-mcp/", "status": "done"},
     {"id": 2, "name": "Import Bulk CSV — creare sesiune nouă Iași 19.12.2023 (31 sportivi)", "status": "done"},
     {"id": 3, "name": "Identificat Bug #1: Data_Examen goală în _import.csv", "status": "done"},
-    {"id": 4, "name": "Salvat raport test: .playwright-mcp/reports/raport-import-examene-2026-06-11.md", "status": "done"}
+    {"id": 4, "name": "Salvat raport test: .playwright-mcp/reports/raport-import-examene-2026-06-11.md", "status": "done"},
+    {"id": 5, "name": "Test Import XLS cu test-examen-grad-2017.xls + fix gradColIdx dinamic", "status": "done", "commit": "2f77b20"},
+    {"id": 7, "name": "Fix Bug #1: Data_Examen goală → date override UI pentru Format Propriu", "status": "done", "commit": "09efe1e"},
+    {"id": 8, "name": "Simplificat ghidul de import (ghidOpen accordion)", "status": "done", "commit": "6049189"},
+    {"id": 9, "name": "Investigat Sincronizare (28) — comportament normal confirmat", "status": "done"}
   ],
   "remaining_tasks": [
-    {"id": 5, "name": "Test Import XLS cu test-examen-grad-2017.xls (flux 2, multi-sheet)", "status": "not_started"},
-    {"id": 6, "name": "Test re-import același CSV — verificare duplicate sesiune + înscrieri", "status": "not_started"},
-    {"id": 7, "name": "Fix Bug #1: Data_Examen goală → date override UI pentru Format Propriu în ImportExamenModal.tsx:366", "status": "not_started"},
-    {"id": 8, "name": "Simplificat ghidul de import (ghidOpen accordion) în ImportExamenModal.tsx", "status": "not_started"},
-    {"id": 9, "name": "Investigat Sincronizare (28) pe sesiunea 19.12.2023", "status": "not_started"}
+    {"id": 6, "name": "Test re-import același CSV — verificare duplicate sesiune + înscrieri", "status": "not_started"}
   ],
   "blockers": [
     {
       "description": "Playwright MCP permite upload doar din C:\\Users\\lungu\\portal-phihau\\ sau subdirectoare",
       "type": "technical",
-      "workaround": "Copiați fișierele din D:\\Qwan Ki Do\\examene total\\ în .playwright-mcp\\ înainte de test"
-    },
-    {
-      "description": "_import.csv din D:\\Qwan Ki Do\\examene total\\ au Data_Examen goală (coloana 7 empty)",
-      "type": "technical",
-      "workaround": "PowerShell: $_ -replace ',,Iarna,', ',2023-12-19,Iarna,' înainte de import"
+      "workaround": "Fișierele din D:\\ trebuie copiate în .playwright-mcp\\ înainte de test"
     }
   ],
   "human_actions_pending": [],
   "decisions": [
     {
-      "decision": "Fix Bug #1 ca UI override în ImportExamenModal.tsx (nu fix la fișierele CSV externe)",
-      "rationale": "Fișierele CSV sunt generate extern; aplicația trebuie să fie robustă la dată lipsă",
+      "decision": "Fix gradColIdx dinamic în parseExamenGrad — findIndex pe 'grad' în headerCols",
+      "rationale": "Sheet1 din XLS-urile Phi Hau are Grad la col 4, sheet-urile de grad au extra coloana Club deci Grad la col 5",
       "phase": "testing"
     },
     {
-      "decision": "Simplificat ghidul import după teste Playwright",
-      "rationale": "Utilizatorul a cerut explicit post-sesiune"
+      "decision": "Sincronizare (28) = comportament normal, nu bug",
+      "rationale": "Flux 2 pași intenționat: import setează Admis → sincronizare propagă grad în profilul sportivului",
+      "phase": "testing"
     }
   ],
-  "uncommitted_files": [
-    ".playwright-mcp/reports/raport-import-examene-2026-06-11.md",
-    ".playwright-mcp/test-import-2023.csv",
-    ".playwright-mcp/test-import-2023-fixed.csv",
-    ".playwright-mcp/test-examen-grad-2017.xls"
-  ],
-  "next_action": "Deschide sesiunea Iași 19.12.2023 din Gestiune Examene → click Import XLS → upload .playwright-mcp/test-examen-grad-2017.xls → verifică step 2 preview (match sportivi + grade) → finalizează import → verifică rezultate",
-  "context_notes": "Flux 2 (Import XLS din sesiune) netestat. Fișier pregătit: .playwright-mcp/test-examen-grad-2017.xls. Bug #1 documentat — necesită fix UI în ImportExamenModal.tsx linia 366. Utilizatorul vrea simplificarea ghidului de import după teste."
+  "uncommitted_files": [],
+  "next_action": "Test re-import CSV: deschide Import Bulk Examen → selectează test-import-2023-fixed.csv → verifică că NU creează sesiune nouă duplicată și că înscrierile fac UPDATE (nu INSERT nou)",
+  "context_notes": "Sesiunea de test e Iași 19.12.2023 (id: d5f0f88d). Acum are 63 participanți (31 din CSV + 32 din XLS). Re-import CSV trebuie să detecteze sesiunea existentă și să facă update pe cei 31, nu să creeze sesiune nouă. Bugs minore mojibake nerezolvate în ImportExcelExamen.tsx (titlu modal, buton Înapoi)."
 }

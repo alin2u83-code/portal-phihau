@@ -2,7 +2,7 @@
 import Papa from 'papaparse';
 import { supabase } from '../../supabaseClient';
 import { Grad, User, Sportiv, SesiuneExamen, Locatie } from '../../types';
-import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon, UserPlusIcon, ChevronDownIcon, BookOpenIcon } from '../icons';
+import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon, UserPlusIcon, ChevronDownIcon, BookOpenIcon, MinusCircleIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { Modal, Button, Input, Select } from '../ui';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
@@ -68,7 +68,7 @@ interface PotentialMatch extends Sportiv {
 
 interface PreviewRow extends CsvRow {
     originalIndex: number;
-    status: 'pending' | 'valid' | 'conflict' | 'create' | 'error' | 'resolved';
+    status: 'pending' | 'valid' | 'conflict' | 'create' | 'error' | 'resolved' | 'skipped';
     message: string;
     existingSportiv?: Sportiv;
     generatedCode?: string;
@@ -375,7 +375,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     const sportivId = exactBirthdateMatch.id;
                     const existingSessionId = sessionInfo.existingSessionId;
                     if (existingSessionId && inscrieriSet.has(`${sportivId}_${existingSessionId}`)) {
-                        return { ...baseRow, status: 'error', message: 'Deja înscris la această sesiune â€” sărit (există în baza de date)', existingSportiv: exactBirthdateMatch, sessionInfo, birthdate };
+                        return { ...baseRow, status: 'skipped', message: 'Deja înscris la această sesiune — sărit (există în baza de date)', existingSportiv: exactBirthdateMatch, sessionInfo, birthdate };
                     }
                     return {
                         ...baseRow,
@@ -392,7 +392,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     const sportivId = potentialMatches[0].id;
                     const existingSessionId = sessionInfo.existingSessionId;
                     if (existingSessionId && inscrieriSet.has(`${sportivId}_${existingSessionId}`)) {
-                        return { ...baseRow, status: 'error', message: 'Deja înscris la această sesiune â€” sărit (există în baza de date)', existingSportiv: potentialMatches[0], sessionInfo, birthdate };
+                        return { ...baseRow, status: 'skipped', message: 'Deja înscris la această sesiune — sărit (există în baza de date)', existingSportiv: potentialMatches[0], sessionInfo, birthdate };
                     }
                     return {
                         ...baseRow,
@@ -405,11 +405,11 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 }
 
                 // Altfel â†’ conflict manual
-                return { ...baseRow, status: 'conflict', message: 'Potriviri similare â€” alege sportivul corect', conflicts: potentialMatches, sessionInfo, birthdate };
+                return { ...baseRow, status: 'conflict', message: 'Potriviri similare — alege sportivul corect', conflicts: potentialMatches, sessionInfo, birthdate };
             }
 
             // Niciun sportiv găsit â†’ va fi creat automat
-            return { ...baseRow, status: 'create', message: `Sportiv nou â€” va fi creat și înregistrat la examen`, generatedCode: undefined, sessionInfo, birthdate };
+            return { ...baseRow, status: 'create', message: `Sportiv nou — va fi creat și înregistrat la examen`, generatedCode: undefined, sessionInfo, birthdate };
         });
 
         return Promise.all(validationPromises);
@@ -628,6 +628,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                 row.status === 'valid' || row.status === 'resolved' ? 'Importat'
                 : row.status === 'create' ? 'Sportiv Nou'
                 : row.status === 'conflict' ? 'Conflict nerezolvat'
+                : row.status === 'skipped' ? 'Sărit (deja există)'
                 : 'Eroare';
             return [
                 `${row.Nume} ${row.Prenume}`,
@@ -704,7 +705,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     <ConflictResolver row={row} onResolve={handleResolution} />
                 ) : (
                     <div className="flex items-center gap-2">
-                        {row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}
+                        {row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : row.status === 'skipped' ? <MinusCircleIcon className="w-5 h-5 text-slate-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}
                         <span className="text-xs">{row.message}</span>
                     </div>
                 )
@@ -715,7 +716,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     const renderMobileItem = (row: PreviewRow) => {
         const grad = grades.find(g => String(g.ordine) === String(row.Grad_Nou_Ordine));
         return (
-        <div className={`mb-4 p-4 rounded-lg border-l-4 bg-slate-800/50 ${row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? 'border-green-500' : row.status === 'conflict' ? 'border-amber-500' : 'border-red-500'}`}>
+        <div className={`mb-4 p-4 rounded-lg border-l-4 bg-slate-800/50 ${row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? 'border-green-500' : row.status === 'conflict' ? 'border-amber-500' : row.status === 'skipped' ? 'border-slate-500' : 'border-red-500'}`}>
             <div className="flex justify-between items-start mb-2">
                 <div>
                     <p className="font-bold text-white text-lg">{row.Nume} {row.Prenume}</p>
@@ -736,7 +737,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     <ConflictResolver row={row} onResolve={handleResolution} />
                 ) : (
                     <div className="flex items-center gap-2">
-                        {row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}
+                        {row.status === 'valid' || row.status === 'resolved' || row.status === 'create' ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : row.status === 'skipped' ? <MinusCircleIcon className="w-5 h-5 text-slate-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}
                         <span className="text-xs text-slate-300">{row.message}</span>
                     </div>
                 )}
@@ -867,6 +868,12 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                 <p className="text-2xl font-bold text-blue-400">{previewData.filter(r => r.status === 'create').length}</p>
                                 <p className="text-xs text-slate-400">Sportivi Noi (creați automat)</p>
                             </div>
+                            {previewData.filter(r => r.status === 'skipped').length > 0 && (
+                                <div className="bg-slate-800 rounded-lg p-3 text-center border border-slate-600 col-span-2 md:col-span-1">
+                                    <p className="text-2xl font-bold text-slate-400">{previewData.filter(r => r.status === 'skipped').length}</p>
+                                    <p className="text-xs text-slate-400">Sărite (deja există)</p>
+                                </div>
+                            )}
                             {previewData.filter(r => r.status === 'error').length > 0 && (
                                 <div className="bg-red-900/30 rounded-lg p-3 text-center border border-red-800 col-span-2 md:col-span-1">
                                     <p className="text-2xl font-bold text-red-400">{previewData.filter(r => r.status === 'error').length}</p>

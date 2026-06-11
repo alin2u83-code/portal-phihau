@@ -1,47 +1,24 @@
 {
-  "version": "1.0",
-  "timestamp": "2026-06-11T09:50:00Z",
-  "phase": null,
-  "phase_name": "playwright-import-examene-testing",
-  "phase_dir": null,
-  "plan": null,
-  "task": 6,
-  "total_tasks": 9,
-  "status": "paused",
-  "completed_tasks": [
-    {"id": 1, "name": "Copiat fișiere test în .playwright-mcp/", "status": "done"},
-    {"id": 2, "name": "Import Bulk CSV — creare sesiune nouă Iași 19.12.2023 (31 sportivi)", "status": "done"},
-    {"id": 3, "name": "Identificat Bug #1: Data_Examen goală în _import.csv", "status": "done"},
-    {"id": 4, "name": "Salvat raport test: .playwright-mcp/reports/raport-import-examene-2026-06-11.md", "status": "done"},
-    {"id": 5, "name": "Test Import XLS cu test-examen-grad-2017.xls + fix gradColIdx dinamic", "status": "done", "commit": "2f77b20"},
-    {"id": 7, "name": "Fix Bug #1: Data_Examen goală → date override UI pentru Format Propriu", "status": "done", "commit": "09efe1e"},
-    {"id": 8, "name": "Simplificat ghidul de import (ghidOpen accordion)", "status": "done", "commit": "6049189"},
-    {"id": 9, "name": "Investigat Sincronizare (28) — comportament normal confirmat", "status": "done"}
+  "timestamp": "2026-06-11T17:10:00.000Z",
+  "context": "default",
+  "handoff_type": "interrupt",
+  "stop_reason": "context_exhaustion_79pct",
+  "session_summary": "Debug XLS import Fălticeni — sportivi inexistenți. Două fix-uri aplicate.",
+  "completed": [
+    "Diagnostic script: .playwright-mcp/debug-match-sportivi.mjs — run against live DB, found 39 exact / 5 fuzzy / 4 inexistent",
+    "Fix #1 importExcelExamenService.ts: prefix-matching pentru nume cu cratime (PANDELEA FLAVIUS-NICOLAS-Ioan). Score boost la 0.93 când normInput e prefix al numeDB cu ratio >= 0.5",
+    "Fix #2 ImportExcelExamen.tsx: eroare 23505 (duplicate key) tratată ca 'skip' cu motiv 'Deja înscris', nu ca eroare blocantă",
+    "Playwright: verificat vizual — PANDELEA FLAVIUS apare ca fuzzy 93% după fix",
+    "Import executat: 46 sportivi din fișier, 2 sportivi noi creați (BADIU, MAXIM)"
   ],
-  "remaining_tasks": [
-    {"id": 6, "name": "Test re-import același CSV — verificare duplicate sesiune + înscrieri", "status": "not_started"}
+  "pending": [
+    "PGRST204 error pt PÎNZARU MIHAI la creare sportiv nou: 'Could not find the roluri field' — linia ~227 ImportExcelExamen.tsx, insert include câmpul roluri care nu există în schema tabelului sportivi",
+    "Verificare dacă upsert onConflict='sportiv_id,sesiune_id' e corect sau trebuie alt index — acum 23505 se skip-uiește",
+    "3 sportivi lipsă din DB (BADIU, MAXIM, PÎNZARU) — BADIU și MAXIM au fost creați, PÎNZARU a eșuat cu PGRST204"
   ],
-  "blockers": [
-    {
-      "description": "Playwright MCP permite upload doar din C:\\Users\\lungu\\portal-phihau\\ sau subdirectoare",
-      "type": "technical",
-      "workaround": "Fișierele din D:\\ trebuie copiate în .playwright-mcp\\ înainte de test"
-    }
+  "files_modified": [
+    "services/importExcelExamenService.ts",
+    "components/GestiuneExamene/ImportExcelExamen.tsx"
   ],
-  "human_actions_pending": [],
-  "decisions": [
-    {
-      "decision": "Fix gradColIdx dinamic în parseExamenGrad — findIndex pe 'grad' în headerCols",
-      "rationale": "Sheet1 din XLS-urile Phi Hau are Grad la col 4, sheet-urile de grad au extra coloana Club deci Grad la col 5",
-      "phase": "testing"
-    },
-    {
-      "decision": "Sincronizare (28) = comportament normal, nu bug",
-      "rationale": "Flux 2 pași intenționat: import setează Admis → sincronizare propagă grad în profilul sportivului",
-      "phase": "testing"
-    }
-  ],
-  "uncommitted_files": [],
-  "next_action": "Test re-import CSV: deschide Import Bulk Examen → selectează test-import-2023-fixed.csv → verifică că NU creează sesiune nouă duplicată și că înscrierile fac UPDATE (nu INSERT nou)",
-  "context_notes": "Sesiunea de test e Iași 19.12.2023 (id: d5f0f88d). Acum are 63 participanți (31 din CSV + 32 din XLS). Re-import CSV trebuie să detecteze sesiunea existentă și să facă update pe cei 31, nu să creeze sesiune nouă. Bugs minore mojibake nerezolvate în ImportExcelExamen.tsx (titlu modal, buton Înapoi)."
+  "resume_instructions": "Citește services/importExcelExamenService.ts funcția matchSportiv pentru prefix fix. Citește ImportExcelExamen.tsx zona insert sportiv nou (cca linia 220-240) pentru PGRST204 fix."
 }

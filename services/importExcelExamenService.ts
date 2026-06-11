@@ -111,7 +111,17 @@ export function matchSportiv(
     for (const s of sportivi) {
         const numeDB1 = normalizeStr(`${s.nume} ${s.prenume}`);
         const numeDB2 = normalizeStr(`${s.prenume} ${s.nume}`);
-        const score = Math.max(similarity(normInput, numeDB1), similarity(normInput, numeDB2));
+        let score = Math.max(similarity(normInput, numeDB1), similarity(normInput, numeDB2));
+
+        // Prefix-matching: "PANDELEA FLAVIUS" (XLS) → "PANDELEA FLAVIUS-NICOLAS-IOAN" (DB)
+        // Cratimele se concatenează după normalizeStr, deci input scurt poate fi prefix al DB.
+        if (normInput.length >= 5) {
+            if ((numeDB1.startsWith(normInput) && normInput.length / numeDB1.length >= 0.5) ||
+                (numeDB2.startsWith(normInput) && normInput.length / numeDB2.length >= 0.5)) {
+                score = Math.max(score, 0.93);
+            }
+        }
+
         if (score >= 0.7) candidates.push({ sportiv: s, score });
         if (score > bestScore) { bestScore = score; bestMatch = s; }
     }

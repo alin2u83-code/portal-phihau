@@ -296,6 +296,18 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     .maybeSingle();
 
                 if (errI) {
+                    // 23505 = deja înscris în această sesiune (re-import) → skip, nu eroare
+                    if (errI.code === '23505') {
+                        raportRanduri.push({
+                            numeRaw: rand.numeRaw,
+                            gradNume: rand.gradNume,
+                            rezultat: rand.rezultat,
+                            status: 'skip',
+                            motiv: 'Deja înscris în această sesiune (re-import)',
+                            sportivNou: esteNou,
+                        });
+                        continue;
+                    }
                     console.error(`[ImportExcel] Eroare înscriere ${rand.numeRaw}:`, errI);
                     raportRanduri.push({
                         numeRaw: rand.numeRaw,

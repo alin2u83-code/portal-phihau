@@ -64,6 +64,13 @@ function excelDateToString(serial: number): string {
     return date.toISOString().split('T')[0];
 }
 
+/** Conversie DD.MM.YYYY sau DD-MM-YYYY → YYYY-MM-DD; fallback: slice(0,10) */
+function parseDateDMY(raw: string): string {
+    const m = raw.trim().match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})$/);
+    if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    return raw.slice(0, 10);
+}
+
 /** Normalizare string pentru comparare (diacritice → ASCII, lowercase, trim) */
 export function normalizeStr(s: string): string {
     return (s || '')
@@ -472,9 +479,9 @@ export function matchGrad(gradNume: string, grade: Grad[]): Grad | undefined {
 
 function detectFormat(wb: XLSX.WorkBook): FormatExcel {
     const sheetNames = wb.SheetNames;
-    // Ex. Local are 1 sheet cu "T Ex locale" sau similar
     if (sheetNames.length === 1) return 'ex_local';
-    // Examen de Grad are sheet-uri numite după grade
+    // Format federație (ex. Fălticeni): multi-sheet cu sheet dedicat 'T Ex locale'
+    if (sheetNames.includes('T Ex locale')) return 'ex_local';
     return 'examen_grad';
 }
 
@@ -486,7 +493,9 @@ function parseExLocal(
     grade: Grad[]
 ): RezultatParsare {
     const erori: string[] = [];
-    const ws = wb.Sheets[wb.SheetNames[0]];
+    // Format federație multi-sheet: citește din 'T Ex locale', altfel primul sheet
+    const targetSheet = wb.SheetNames.includes('T Ex locale') ? 'T Ex locale' : wb.SheetNames[0];
+    const ws = wb.Sheets[targetSheet];
     const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
     // Metadata
@@ -501,7 +510,7 @@ function parseExLocal(
                 if (typeof rawDate === 'number' && rawDate > 30000) {
                     metadata.data = excelDateToString(rawDate);
                 } else if (rawDate) {
-                    metadata.data = String(rawDate).slice(0, 10);
+                    metadata.data = parseDateDMY(String(rawDate));
                 }
             }
             if (v === 'Localitatea:' || v === 'Localitatea') {
@@ -621,7 +630,7 @@ function parseExamenGrad(
                         const raw = row[c + 1];
                         metadata.data = typeof raw === 'number' && raw > 30000
                             ? excelDateToString(raw)
-                            : String(raw).slice(0, 10);
+                            : parseDateDMY(String(raw));
                     }
                     if ((v === 'Localitatea :' || v === 'Localitatea:') && row[c + 1]) {
                         metadata.localitate = String(row[c + 1]).trim();

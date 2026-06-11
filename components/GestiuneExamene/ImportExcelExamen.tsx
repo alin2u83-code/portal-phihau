@@ -223,7 +223,6 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                             data_inscrierii: new Date().toISOString().split('T')[0],
                             grad_actual_id: rand.gradId || DEBUTANT_GRAD_ID,
                             club_id: sesiune.club_id || null,
-                            roluri: [],
                             familie_id: null,
                             tip_abonament_id: null,
                             participa_vacanta: false,

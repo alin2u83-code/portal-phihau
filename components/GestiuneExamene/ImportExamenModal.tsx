@@ -2,7 +2,7 @@
 import Papa from 'papaparse';
 import { supabase } from '../../supabaseClient';
 import { Grad, User, Sportiv, SesiuneExamen, Locatie } from '../../types';
-import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon, UserPlusIcon, ChevronDownIcon, BookOpenIcon, ClipboardCheckIcon } from '../icons';
+import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon, UserPlusIcon, ChevronDownIcon, BookOpenIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { Modal, Button, Input, Select } from '../ui';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
@@ -119,9 +119,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     const [birthdateFile, setBirthdateFile] = useState<File | null>(null);
     const [csvFormat, setCsvFormat] = useState<CsvFormat>('own');
     const [sessionOverride, setSessionOverride] = useState({ data: '', sesiune_denumire: '', localitate: '' });
-    const [ghidOpen, setGhidOpen] = useState(true);
-    const [downloadingRef, setDownloadingRef] = useState(false);
-    const [copiedFormula, setCopiedFormula] = useState(false);
+    const [ghidOpen, setGhidOpen] = useState(false);
     const [importProgress, setImportProgress] = useState<{ done: number; total: number } | null>(null);
 
     useEffect(() => {
@@ -142,31 +140,13 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         }
     }, [isOpen, showError]);
 
-    const downloadReferenceFile = async () => {
-        if (!supabase) return;
-        setDownloadingRef(true);
-        const { data, error } = await supabase
-            .from('sportivi')
-            .select('id, nume, prenume, data_nasterii, grad_actual_id')
-            .order('nume');
-        setDownloadingRef(false);
-        if (error) { showError('Eroare', error.message); return; }
-        const rows = (data || []).map(s => {
-            const grad = grades.find(g => g.id === s.grad_actual_id);
-            return {
-                ID: s.id,
-                Nume: s.nume,
-                Prenume: s.prenume,
-                Data_Nasterii: s.data_nasterii ? String(s.data_nasterii).slice(0, 10) : '',
-                Grad_Actual: grad?.nume || '',
-            };
-        });
-        const csv = Papa.unparse(rows);
-        const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+    const downloadTemplate = () => {
+        const headers = 'Nume,Prenume,CNP,Grad_Nou_Ordine,Rezultat,Contributie,Data_Examen,Sesiune_Denumire,Localitate';
+        const blob = new Blob(['\uFEFF' + headers + '\r\n'], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'referinta_sportivi.csv');
+        link.setAttribute('download', 'template_import_examen.csv');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -786,90 +766,25 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     </button>
 
                     {ghidOpen && (
-                        <div className="p-5 space-y-5 bg-slate-900/50 text-sm">
-
-                            {/* Pași */}
-                            <div>
-                                <h3 className="font-bold text-white mb-2">Cum pregătești fișierul CSV</h3>
-                                <ol className="space-y-1 list-decimal pl-5 text-slate-300">
-                                    <li>Descarcă <strong>Lista de referință sportivi</strong> (butonul de mai jos) â€” conține ID, Nume, Prenume, Data Nașterii și Grad Actual.</li>
-                                    <li>Deschide lista în Excel. Salvează foaia ca <code className="bg-slate-800 px-1 rounded">Referinta</code> în același fișier cu grila de examen.</li>
-                                    <li>În coloana <strong>ID</strong> din grilă, lipește formula de mai jos â€” caută automat ID-ul după <em>Nume + Prenume + Data Nașterii</em>.</li>
-                                    <li>Coloana <strong>Data Nașterii</strong> trebuie să fie în format <code className="bg-slate-800 px-1 rounded">yyyy-mm-dd</code> (ex: <code className="bg-slate-800 px-1 rounded">2010-05-20</code>). Dacă Excel o afișează altfel, formatează coloana ca <strong>Text</strong> înainte de export CSV.</li>
-                                    <li>Gradul trebuie scris <strong>exact ca în tabelul de mai jos</strong> â€” sau folosește numărul de ordine.</li>
-                                    <li>Exportă ca <code className="bg-slate-800 px-1 rounded">.csv</code> și încarcă mai jos.</li>
-                                </ol>
-                            </div>
-
-                            {/* Referință sportivi */}
+                        <div className="p-4 space-y-3 bg-slate-900/50 text-sm text-slate-300">
+                            <p>Pregătește un fișier <strong className="text-white">.csv</strong> cu coloanele în ordinea:</p>
+                            <code className="block bg-slate-800 px-3 py-2 rounded text-xs text-green-400 font-mono break-all">
+                                Nume, Prenume, CNP, Grad_Nou_Ordine, Rezultat, Contributie, Data_Examen, Sesiune_Denumire, Localitate
+                            </code>
+                            <ul className="space-y-1 list-disc pl-4 text-xs text-slate-400">
+                                <li><strong className="text-slate-300">Grad_Nou_Ordine</strong> — numărul de ordine al gradului (ex: <code className="bg-slate-800 px-1 rounded">10</code>)</li>
+                                <li><strong className="text-slate-300">Rezultat</strong> — <code className="bg-slate-800 px-1 rounded">Admis</code> / <code className="bg-slate-800 px-1 rounded">Respins</code> / <code className="bg-slate-800 px-1 rounded">Neprezentat</code></li>
+                                <li><strong className="text-slate-300">Data_Examen</strong> — format <code className="bg-slate-800 px-1 rounded">yyyy-mm-dd</code> (ex: <code className="bg-slate-800 px-1 rounded">2024-03-15</code>), sau completezi câmpul fallback de mai jos</li>
+                            </ul>
                             <div className="flex items-center justify-between bg-slate-800 rounded-lg p-3">
                                 <div>
-                                    <p className="font-semibold text-white">Lista de referință sportivi</p>
-                                    <p className="text-xs text-slate-400">CSV cu: ID, Nume, Prenume, Data_Nasterii, Grad_Actual</p>
+                                    <p className="font-semibold text-white text-xs">Template gol</p>
+                                    <p className="text-xs text-slate-400">CSV cu header-ul corect, gata de completat</p>
                                 </div>
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={downloadReferenceFile}
-                                    isLoading={downloadingRef}
-                                    disabled={grades.length === 0}
-                                >
+                                <Button variant="secondary" size="sm" onClick={downloadTemplate}>
                                     <DocumentArrowDownIcon className="w-4 h-4 mr-1" /> Descarcă
                                 </Button>
                             </div>
-
-                            {/* Formula Excel */}
-                            <div>
-                                <h3 className="font-bold text-white mb-1">Formula Excel pentru extragerea ID-ului</h3>
-                                <p className="text-xs text-slate-400 mb-2">
-                                    Dacă în grila ta <strong>A2=Nume, B2=Prenume, C2=Data_Nasterii</strong>, pune formula în coloana ID:
-                                </p>
-                                <div className="flex items-start gap-2">
-                                    <pre className="flex-1 bg-slate-950 border border-slate-700 rounded p-3 text-xs text-green-400 font-mono whitespace-pre-wrap overflow-x-auto">
-{`=IFERROR(
-  INDEX(Referinta!$A:$A,
-    MATCH(A2&"|"&B2&"|"&TEXT(C2,"YYYY-MM-DD"),
-          Referinta!$B:$B&"|"&Referinta!$C:$C&"|"&TEXT(Referinta!$D:$D,"YYYY-MM-DD"),
-          0)
-  ),
-  "NEGĂSIT"
-)`}
-                                    </pre>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(
-                                                `=IFERROR(INDEX(Referinta!$A:$A,MATCH(A2&"|"&B2&"|"&TEXT(C2,"YYYY-MM-DD"),Referinta!$B:$B&"|"&Referinta!$C:$C&"|"&TEXT(Referinta!$D:$D,"YYYY-MM-DD"),0)),"NEGĂSIT")`
-                                            );
-                                            setCopiedFormula(true);
-                                            setTimeout(() => setCopiedFormula(false), 2000);
-                                        }}
-                                        className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white"
-                                        title="Copiază formula"
-                                    >
-                                        <ClipboardCheckIcon className="w-4 h-4" />
-                                        {copiedFormula ? 'Copiat!' : 'Copiază'}
-                                    </button>
-                                </div>
-                                <p className="text-xs text-slate-500 mt-1">
-                                    âš ï¸ În Excel 365 apasă <kbd className="bg-slate-700 px-1 rounded">Enter</kbd> direct. În Excel mai vechi (pre-2019) apasă <kbd className="bg-slate-700 px-1 rounded">Ctrl+Shift+Enter</kbd>.
-                                </p>
-                            </div>
-
-                            {/* Tabel grade */}
-                            <div>
-                                <h3 className="font-bold text-white mb-2">Grade valide (scrieți exact această denumire în CSV)</h3>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                                    {grades.map(g => (
-                                        <div key={g.id} className="flex items-center gap-2 bg-slate-800 rounded px-3 py-1.5">
-                                            <span className="text-xs font-mono text-brand-secondary w-4 text-right">{g.ordine}</span>
-                                            <span className="text-xs text-white">{g.nume}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                                <p className="text-xs text-slate-500 mt-2">Coloana din CSV: <code className="bg-slate-800 px-1 rounded">Grad sustinut</code> (Format Grilă) sau <code className="bg-slate-800 px-1 rounded">Gradul sustinut</code> (Format Federație). Numărul din coloana <strong>Ord.</strong> poate fi folosit direct în loc de denumire.</p>
-                            </div>
-
                         </div>
                     )}
                 </div>

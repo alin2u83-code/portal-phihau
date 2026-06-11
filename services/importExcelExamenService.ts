@@ -653,6 +653,14 @@ function parseExamenGrad(
         }
         if (headerRow === -1) continue;
 
+        // Detectare dinamică index coloana Grad (Sheet1 are Grad la col 4, sheet-urile de grad la col 5)
+        const headerCols = rows[headerRow];
+        const gradColIdx = headerCols.findIndex((h: any) =>
+            String(h).trim().toLowerCase().startsWith('grad')
+        );
+        const gIdx = gradColIdx >= 0 ? gradColIdx : 5;
+        const noteBase = gIdx + 1;
+
         // Grad din sheet name (e.g. "1 CR", "2 CR", "C.V 1 CA")
         const gradDinSheet = matchGrad(sheetName, grade);
 
@@ -667,14 +675,14 @@ function parseExamenGrad(
             if (!numeFamily && !numeGiven) continue;
 
             const numeRaw = `${numeFamily} ${numeGiven}`.trim();
-            const gradNume = String(row[5] || sheetName).trim();
+            const gradNume = String(row[gIdx] || sheetName).trim();
 
             const note = {
-                tehnica: typeof row[6] === 'number' ? row[6] : undefined,
-                doc_luyen: typeof row[7] === 'number' ? row[7] : undefined,
-                song_doi: typeof row[8] === 'number' ? row[8] : undefined,
-                thao_quyen: typeof row[9] === 'number' ? row[9] : undefined,
-                nota_generala: typeof row[10] === 'number' ? row[10] : undefined,
+                tehnica: typeof row[noteBase] === 'number' ? row[noteBase] : undefined,
+                doc_luyen: typeof row[noteBase + 1] === 'number' ? row[noteBase + 1] : undefined,
+                song_doi: typeof row[noteBase + 2] === 'number' ? row[noteBase + 2] : undefined,
+                thao_quyen: typeof row[noteBase + 3] === 'number' ? row[noteBase + 3] : undefined,
+                nota_generala: typeof row[noteBase + 4] === 'number' ? row[noteBase + 4] : undefined,
             };
             const areNote = Object.values(note).some(v => v !== undefined);
 

@@ -138,6 +138,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             setExamFile(null);
             setBirthdateFile(null);
             setImportProgress(null);
+            setSessionOverride({ data: '', sesiune_denumire: '', localitate: '' });
         }
     }, [isOpen, showError]);
 
@@ -295,7 +296,12 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         .filter(r => r.NUME && r.PRENUME)
                         .map(mapFederatieToCsvRow);
                 } else {
-                    rows = results.data as CsvRow[];
+                    rows = (results.data as CsvRow[]).map(r => ({
+                        ...r,
+                        Data_Examen: r.Data_Examen?.trim() || sessionOverride.data,
+                        Sesiune_Denumire: r.Sesiune_Denumire?.trim() || sessionOverride.sesiune_denumire,
+                        Localitate: r.Localitate?.trim() || sessionOverride.localitate,
+                    }));
                 }
                 const processed = await validateData(rows, birthdateRecords);
                 setPreviewData(processed);
@@ -879,19 +885,31 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         <option value="federatie">Format Tabel Federație</option>
                     </Select>
 
-                    {csvFormat !== 'own' && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                            <p className="md:col-span-3 text-xs text-slate-400 font-semibold">Detalii sesiune (nu sunt în CSV-ul extern):</p>
-                            <Input label="Data Examenului *" type="date" value={sessionOverride.data}
-                                onChange={e => setSessionOverride(p => ({ ...p, data: e.target.value }))} />
-                            <Input label="Denumire Sesiune *" value={sessionOverride.sesiune_denumire}
-                                onChange={e => setSessionOverride(p => ({ ...p, sesiune_denumire: e.target.value }))}
-                                placeholder="ex: Examen Iarnă 2026" />
-                            <Input label="Localitate *" value={sessionOverride.localitate}
-                                onChange={e => setSessionOverride(p => ({ ...p, localitate: e.target.value }))}
-                                placeholder="ex: Iași" />
-                        </div>
-                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <p className="md:col-span-3 text-xs text-slate-400 font-semibold">
+                            {csvFormat === 'own'
+                                ? 'Valori implicite pentru câmpuri goale din CSV (opțional):'
+                                : 'Detalii sesiune (nu sunt în CSV-ul extern):'}
+                        </p>
+                        <Input
+                            label={csvFormat === 'own' ? 'Data Examenului (fallback)' : 'Data Examenului *'}
+                            type="date"
+                            value={sessionOverride.data}
+                            onChange={e => setSessionOverride(p => ({ ...p, data: e.target.value }))}
+                        />
+                        <Input
+                            label={csvFormat === 'own' ? 'Denumire Sesiune (fallback)' : 'Denumire Sesiune *'}
+                            value={sessionOverride.sesiune_denumire}
+                            onChange={e => setSessionOverride(p => ({ ...p, sesiune_denumire: e.target.value }))}
+                            placeholder="ex: Examen Iarnă 2026"
+                        />
+                        <Input
+                            label={csvFormat === 'own' ? 'Localitate (fallback)' : 'Localitate *'}
+                            value={sessionOverride.localitate}
+                            onChange={e => setSessionOverride(p => ({ ...p, localitate: e.target.value }))}
+                            placeholder="ex: Iași"
+                        />
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Input type="file" accept=".csv" label="Fișier Examen (Obligatoriu)"

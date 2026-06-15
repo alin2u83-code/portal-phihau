@@ -103,9 +103,14 @@ const TabAntrenamente: React.FC<{
 
     // --- Navigare lună ---
     const navigateMonth = (direction: -1 | 1) => {
-        const d = new Date(date);
-        d.setMonth(d.getMonth() + direction);
-        setDate(d.toLocaleDateString('sv-SE'));
+        // Folosim aritmetică directă pe an/lună pentru a evita overflow-ul setMonth()
+        // Ex: Jan 31 + 1 lună cu setMonth() → Mar 3 (overflow); cu aritmetică → Feb 01
+        const yr = parseInt(date.substring(0, 4), 10);
+        const mo = parseInt(date.substring(5, 7), 10) - 1; // 0-indexed
+        const newDate = new Date(yr, mo + direction, 1);
+        const yyyy = newDate.getFullYear();
+        const mm = String(newDate.getMonth() + 1).padStart(2, '0');
+        setDate(`${yyyy}-${mm}-01`);
         setSelectedDate(null); // Pitfall 4 — reset selectedDate la schimbarea lunii
     };
 

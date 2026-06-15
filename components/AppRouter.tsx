@@ -232,7 +232,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'tipuri-abonament':
                                 return renderProtected(<Lazy.TipuriAbonamentManagement onBack={handleBackToDashboard} tipuriAbonament={filteredData.tipuriAbonament} setTipuriAbonament={setTipuriAbonament} currentUser={currentUser!} clubs={clubs} activeRoleContext={activeRoleContext} permissions={permissions}/>, isAtLeastClubAdmin);
                             case 'configurare-preturi':
-                                return renderProtected(<Lazy.ConfigurarePreturi grade={grade} onBack={handleBackToDashboard} />, permissions.isSuperAdmin);
+                                return renderProtected(<Lazy.ConfigurarePreturi grade={grade} onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
                             case 'grade':
                                 return renderProtected(<Lazy.GradeManagement grade={grade} setGrade={setGrade} onBack={handleBackToDashboard} canEdit={permissions.isSuperAdmin} />, isAtLeastClubAdmin);
                             case 'reduceri':

@@ -45,7 +45,7 @@ Declared values (multiples of 4 only). Source: Tailwind defaults + existing patt
 Exceptions:
 - Calendar cell touch target: min 40px height (aligns with `min-h-[40px]` pattern from TabSportivi buttons)
 - Day panel row min height: 44px (touch-friendly action buttons per mobile requirements)
-- Dot size: 6px diameter (`w-1.5 h-1.5`) — below scale, acceptable for decorative indicator only
+- Dot size: 8px diameter (`w-2 h-2`) — grid-aligned (multiple of 4), acceptable for decorative indicator
 
 ---
 
@@ -56,7 +56,7 @@ Source: `index.css` CSS variables + existing patterns in `GrupaDetailView.tsx`.
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 | Antrenament row text (ore start-sfarsit), panel labels |
-| Label | 12px (`text-xs`) | 600 (semibold) | 1.4 | Dot overflow indicator (`text-[9px]` exception — see below), week day headers, badge text |
+| Label | 12px (`text-xs`) | 700 (bold) | 1.4 | Dot overflow indicator (`text-[9px]` exception — see below), week day headers, badge text |
 | Heading | 16px (`text-base`) | 700 (bold) | 1.25 | Calendar month header "Lună An" (ex: "Iunie 2026"), day number when today |
 | Display | 20px (`text-xl`) | 700 (bold) | 1.2 | Grupa name in GrupaDetailView header (inherited — do not change) |
 
@@ -142,11 +142,11 @@ All components reused from `components/ui.tsx`. No new components created.
 ```
 [CalendarHeader]
   ChevronLeft  |  "Lună An" (Heading 16px bold)  |  ChevronRight
-  [Week header row: L M M J V S D — Label 12px semibold slate-400]
+  [Week header row: L M M J V S D — Label 12px bold slate-400]
   [Grid cells: 7 columns × 4-6 rows]
     [Cell]
       [Day number: 14px, bold if today]
-      [Dot row: max 3 dots (6px) + "..." if overflow]
+      [Dot row: max 3 dots (8px) + "..." if overflow]
 ```
 
 - Grid: `grid grid-cols-7` with Tailwind div — no external calendar library
@@ -181,7 +181,7 @@ All components reused from `components/ui.tsx`. No new components created.
   [Input: Data — type="date", pre-filled selectedDate || todayLocal]
   [Input: Ora start — type="time", default "18:00"]
   [Input: Ora sfarsit — type="time", default "19:30"]
-  [Footer: Button "Salvează" (primary) | Button "Anulează" (secondary)]
+  [Footer: Button "Salvează Antrenament" (primary) | Button "Anulează" (secondary)]
 ```
 
 ### ModalAnulare (D-10)
@@ -236,7 +236,7 @@ Source: D-06, D-07, CONTEXT.md decisions.
 | Anulare submit | "Anulează Antrenament" | Danger variant — describes the action |
 | Anulare cancel | "Renunță" | Secondary variant |
 | Adaugare modal title | "Adaugă Antrenament" | |
-| Adaugare submit | "Salvează" | Primary variant |
+| Adaugare submit | "Salvează Antrenament" | Primary variant |
 | Adaugare cancel | "Anulează" | Secondary variant |
 | Stergere confirm | "Ești sigur?" / "Da" / "Nu" | ConfirmButton default text (D-12) |
 | Stergere toast success | "Antrenamentul a fost șters." | Via showSuccess() |

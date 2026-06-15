@@ -17,7 +17,7 @@ Două axe de lucru paralele:
 
 - [x] **Phase 1: DB & Types** - Migrație `program_antrenamente` + tip preț stagiu + update Antrenament type (completed 2026-06-04)
 - [ ] **Phase 2: Navigare Grupe Drill-Down** - Card → GrupaDetailView cu tab-uri Antrenamente | Orar | Sportivi
-- [ ] **Phase 3: Calendar & CRUD Antrenamente** - Calendar lunar, add one-off, anulare cu motiv
+- [x] **Phase 3: Calendar & CRUD Antrenamente** - Calendar lunar, add one-off, anulare cu motiv (completed 2026-06-15)
 - [ ] **Phase 4: Stagii Completare** - Stagii club, preț dinamic, verificare facturi, export participanți
 - [ ] **Phase 5: Color Theme System** - Sistem teme CSS vars, ThemeEditor, Button follow-theme, Supabase persist
 - [x] **Phase 8: Button Design System** - Extindere Button cu variante pill/ghost/outline, icoane, ConfirmButton, catalog vizual SUPER_ADMIN (completed 2026-06-09)
@@ -199,7 +199,7 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 |-------|----------------|--------|-----------|
 | 1. DB & Types | 1/1 | Complete   | 2026-06-04 |
 | 2. Navigare Grupe Drill-Down | 2/2 | Complete   | 2026-06-04 |
-| 3. Calendar & CRUD Antrenamente | 1/1 | Complete   | 2026-06-15 |
+| 3. Calendar & CRUD Antrenamente | 1/1 | Complete    | 2026-06-15 |
 | 4. Stagii Completare | 3/3 | Complete   | 2026-06-05 |
 | 5. Color Theme System | 3/3 | Complete   | 2026-06-06 |
 | 6. Infrastructură Filtrare | 1/1 | Complete   | 2026-06-08 |

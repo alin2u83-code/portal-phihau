@@ -114,7 +114,16 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
 
     const filteredIstoric = useMemo(() => {
         if (!istoricPlatiDetaliat) return [];
-        return istoricPlatiDetaliat
+        // Deduplicare: un JOIN Supabase poate returna același rând de mai multe ori
+        // când există mai multe tranzacții pe aceeași plată. Păstrăm prima apariție per combinație unică.
+        const seen = new Set<string>();
+        const deduplicated = istoricPlatiDetaliat.filter(t => {
+            const key = t.tranzactie_id ? `trz:${t.tranzactie_id}` : `plt:${t.plata_id}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+        return deduplicated
             .filter(t => {
                 // Tab "Încasări" arată doar plăți efectuate (cu dată de plată)
                 if (!t.data_plata_string) return false;
@@ -150,8 +159,12 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         return Array.from(s).sort().reverse();
     }, [istoricPlatiDetaliat]);
 
+    // Luna curentă ca string YYYY-MM
+    const lunaCurenta = new Date().toISOString().slice(0, 7);
+
     const raportLunarData = useMemo(() => {
-        const luna = selectedMonth || luniDisponibile[0] || '';
+        // Prioritizează luna curentă; dacă nu există date pentru ea, cade pe prima disponibilă
+        const luna = selectedMonth || (luniDisponibile.includes(lunaCurenta) ? lunaCurenta : luniDisponibile[0]) || '';
         if (!luna) return { incasari: 0, restante: [], luna: '' };
         const incasari = (istoricPlatiDetaliat || [])
             .filter(t => t.data_plata_string?.toString().startsWith(luna))

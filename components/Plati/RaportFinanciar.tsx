@@ -553,7 +553,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     <Card>
                         <Select
                             label="Luna"
-                            value={selectedMonth || luniDisponibile[0] || ''}
+                            value={selectedMonth || (luniDisponibile.includes(lunaCurenta) ? lunaCurenta : luniDisponibile[0]) || ''}
                             onChange={e => setSelectedMonth(e.target.value)}
                             className="max-w-xs"
                         >

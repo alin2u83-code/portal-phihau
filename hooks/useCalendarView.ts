@@ -61,7 +61,9 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
         setLoading(false);
     };
 
-    const handleSaveCustom = async (data: any, clubId?: string) => {
+    // CR-03: returnează boolean — true = succes, false = eroare
+    // Callerul trebuie să verifice valoarea returnată înainte de a închide modalul
+    const handleSaveCustom = async (data: any, clubId?: string): Promise<boolean> => {
         if (data.is_recurent) {
             const { error } = await supabase.from('orar_saptamanal').insert({
                 ziua: data.ziua,
@@ -73,10 +75,11 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
             });
             if (error) {
                 showError("Eroare la salvare orar", error.message);
-            } else {
-                showSuccess("Succes", "Antrenamentul recurent a fost adăugat în orar.");
-                await handleGenerate();
+                return false;
             }
+            showSuccess("Succes", "Antrenamentul recurent a fost adăugat în orar.");
+            await handleGenerate();
+            return true;
         } else {
             const { data: newAntrenament, error } = await supabase.from('program_antrenamente')
                 .insert(data)
@@ -85,10 +88,13 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
 
             if (error) {
                 showError("Eroare", error.message);
-            } else if (newAntrenament) {
+                return false;
+            }
+            if (newAntrenament) {
                 showSuccess("Succes", "Antrenamentul personalizat a fost adăugat.");
                 await fetchAntrenamente();
             }
+            return true;
         }
     };
 

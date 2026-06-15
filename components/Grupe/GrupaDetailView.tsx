@@ -162,14 +162,15 @@ const TabAntrenamente: React.FC<{
 
     // --- Submit adăugare one-off ---
     const handleSubmitAdaugare = async () => {
-        await handleSaveCustom({
+        // CR-03: închide modalul DOAR dacă salvarea a reușit
+        const ok = await handleSaveCustom({
             grupa_id: grupa.id,
             is_recurent: false,
             data: formData.data,
             ora_start: formData.ora_start,
             ora_sfarsit: formData.ora_sfarsit,
         }, grupa.club_id ?? undefined); // Pitfall 6 — club_id obligatoriu pentru RLS
-        setIsModalAdaugareOpen(false);
+        if (ok) setIsModalAdaugareOpen(false);
     };
 
     // --- Antrenamente pentru ziua selectată ---

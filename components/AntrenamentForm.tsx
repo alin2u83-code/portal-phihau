@@ -7,7 +7,7 @@ import { useError } from './ErrorProvider';
 export const AntrenamentForm: React.FC<{
     isOpen: boolean; 
     onClose: () => void; 
-    onSave: (data: any) => Promise<void>;
+    onSave: (data: any) => Promise<boolean | void>;
     grupaId: string | null; 
     grupe: Grupa[];
 }> = ({ isOpen, onClose, onSave, grupaId, grupe }) => {
@@ -95,9 +95,10 @@ export const AntrenamentForm: React.FC<{
         } else {
             delete (submitData as any).ziua;
         }
-        await onSave(submitData);
+        const result = await onSave(submitData);
         setLoading(false);
-        onClose();
+        // Dacă onSave returnează false explicit, modalul rămâne deschis (eroare de salvare)
+        if (result !== false) onClose();
     };
 
     const handleSubmit = (e: React.FormEvent) => {

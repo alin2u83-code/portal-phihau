@@ -70,8 +70,9 @@ const TabAntrenamente: React.FC<{
     } = useCalendarView(grupa.id);
 
     // --- Derivate lună curentă ---
-    const currentYear = parseInt(date.substring(0, 4));
-    const currentMonth = parseInt(date.substring(5, 7)) - 1; // 0-indexed
+    // WR-06: radix explicit 10 pentru a preveni comportament neașteptat
+    const currentYear = parseInt(date.substring(0, 4), 10);
+    const currentMonth = parseInt(date.substring(5, 7), 10) - 1; // 0-indexed
 
     // --- Grupare antrenamente pe zile ---
     const antrenamenteByDate = useMemo(() => {
@@ -420,23 +421,29 @@ const TabOrar: React.FC<{ grupa: GrupaWithDetails }> = ({ grupa }) => {
     const queryClient = useQueryClient();
     const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
-    // Reset când se schimbă grupa — dependency pe grupa.id (string), NU pe grupa (obiect) — Pitfall 2
+    // Reset când se schimbă grupa sau când props-ul program se actualizează după un refetch
+    // WR-03: adăugat grupa.program ca dependință pentru a re-sincroniza state-ul local
     React.useEffect(() => {
         setProgram(grupa.program || []);
-    }, [grupa.id]);
+    }, [grupa.id, grupa.program]);
 
     const handleSave = async () => {
         setLoading(true);
         try {
-            await supabase.from('orar_saptamanal').delete().eq('grupa_id', grupa.id);
+            // CR-02: verificăm eroarea de delete — dacă eșuează nu pierdem datele existente
+            const { error: deleteError } = await supabase
+                .from('orar_saptamanal')
+                .delete()
+                .eq('grupa_id', grupa.id);
+            if (deleteError) throw deleteError;
             const toInsert = program.map(({ id, ...rest }) => ({
                 ...rest,
                 grupa_id: grupa.id,
                 club_id: grupa.club_id,
             }));
             if (toInsert.length > 0) {
-                const { error } = await supabase.from('orar_saptamanal').insert(toInsert);
-                if (error) throw error;
+                const { error: insertError } = await supabase.from('orar_saptamanal').insert(toInsert);
+                if (insertError) throw insertError;
             }
             // clearCache ÎNAINTE de invalidateQueries — Pitfall 3
             Object.keys(localStorage)

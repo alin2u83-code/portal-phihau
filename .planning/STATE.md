@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-06-15T20:08:26.590Z"
-last_activity: 2026-06-09 -- Phase 08 execution started
+status: complete
+stopped_at: Phase 03 plan 03-01 complete — checkpoint approved
+last_updated: "2026-06-15T21:00:00.000Z"
+last_activity: 2026-06-15 -- Phase 03 plan 03-01 complete (checkpoint approved)
 progress:
   total_phases: 8
   completed_phases: 7
-  total_plans: 16
+  total_plans: 17
   completed_plans: 16
   percent: 88
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** Adminul/instructorul poate gestiona complet antrenamentele unei grupe (vizualizare calendar, adăugare one-off, anulare cu motiv) și poate înregistra sportivi la stagii cu facturi corecte.
-**Current focus:** Phase 08 — button-design-system
+**Current focus:** Phase 03 — calendar-crud-antrenamente
 
 ## Current Position
 
-Phase: 08 (button-design-system) — EXECUTING
-Plan: 1 of 2
-Status: Ready to execute
-Last activity: 2026-06-09 -- Phase 08 execution started
+Phase: 03 (calendar-crud-antrenamente) — COMPLETE
+Plan: 1 of 1 (all plans complete)
+Status: Phase 03 complete
+Last activity: 2026-06-15 -- Phase 03 plan 03-01 complete (checkpoint approved)
 
 Progress: [##########] 100%
 
@@ -100,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-15T19:53:36.755Z
-Stopped at: Phase 3 UI-SPEC approved
-Resume file: .planning/phases/03-calendar-crud-antrenamente/03-UI-SPEC.md
+Last session: 2026-06-15T21:00:00.000Z
+Stopped at: Phase 03 complete — all plans done
+Resume file: None

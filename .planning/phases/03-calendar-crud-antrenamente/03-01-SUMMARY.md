@@ -44,7 +44,7 @@ decisions:
 metrics:
   duration: "~18 minute"
   completed: "2026-06-15"
-  tasks_completed: 3
+  tasks_completed: 4
   tasks_total: 4
   files_modified: 1
 ---
@@ -62,7 +62,7 @@ metrics:
 | 1 | CalendarGrid lunar cu dot-uri + navigare lună (CAL-01) | 02d3e16 | Done |
 | 2 | DayPanel + CRUD anulare/reactivare/ștergere + ModalAnulare (CAL-02, CAL-03) | 02d3e16 | Done |
 | 3 | ModalAdaugare one-off + buton header Adaugă Antrenament (CAL-04) | 02d3e16 | Done |
-| 4 | Verificare vizuală end-to-end | — | Checkpoint |
+| 4 | Verificare vizuală end-to-end | — | Approved by human |
 
 *Notă: Toate cele 3 taskuri auto sunt în același fișier și au fost implementate atomic într-un singur commit (02d3e16).*
 
@@ -156,3 +156,18 @@ Niciun threat flag nou față de planul inițial.
 - `02d3e16` — feat(03-01): implement TabAntrenamente calendar lunar cu CRUD complet — FOUND
 
 ## Self-Check: PASSED
+
+---
+
+## Checkpoint Outcome
+
+**Task 4 — Verificare vizuală end-to-end:** APPROVED by human (2026-06-15)
+
+Human confirmed visual verification of:
+- Calendar lunar cu dot-uri verde/roșu per status antrenament
+- DayPanel expand-on-click cu acțiuni Anulează / Reactivează / Șterge
+- Modal Anulare cu câmp motiv obligatoriu
+- Modal Adaugă Antrenament one-off cu câmpuri dată/oră
+- Buton "Adaugă Antrenament" în header, vizibil doar pe tab Antrenamente
+
+Plan 03-01 complet.

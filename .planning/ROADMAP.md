@@ -79,7 +79,7 @@ Plans:
 
 **Plans**: 1 planPlans:
 
-- [ ] 03-01-PLAN.md — TabAntrenamente: calendar lunar dot-uri + DayPanel CRUD + modale adăugare/anulare (CAL-01, CAL-02, CAL-03, CAL-04)
+- [x] 03-01-PLAN.md — TabAntrenamente: calendar lunar dot-uri + DayPanel CRUD + modale adăugare/anulare (CAL-01, CAL-02, CAL-03, CAL-04)
 
 **UI hint**: yes
 
@@ -199,7 +199,7 @@ Phases execute in numeric order: 1 → 2 → 3 (depends on 2) | 4 (depends on 1,
 |-------|----------------|--------|-----------|
 | 1. DB & Types | 1/1 | Complete   | 2026-06-04 |
 | 2. Navigare Grupe Drill-Down | 2/2 | Complete   | 2026-06-04 |
-| 3. Calendar & CRUD Antrenamente | 0/1 | Planned     | - |
+| 3. Calendar & CRUD Antrenamente | 1/1 | Complete   | 2026-06-15 |
 | 4. Stagii Completare | 3/3 | Complete   | 2026-06-05 |
 | 5. Color Theme System | 3/3 | Complete   | 2026-06-06 |
 | 6. Infrastructură Filtrare | 1/1 | Complete   | 2026-06-08 |

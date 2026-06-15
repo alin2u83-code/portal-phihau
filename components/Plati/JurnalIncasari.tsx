@@ -2,13 +2,14 @@
 import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie, Reducere, TipPlata, User, Permissions } from '../../types';
 import { Button, Input, Select, Card, Modal } from '../ui';
 import { getPretValabil, getPretProdus } from '../../utils/pricing';
-import { ArrowLeftIcon, PlusIcon, TrashIcon } from '../icons';
+import { ArrowLeftIcon, PlusIcon, TrashIcon, ChevronDownIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useData } from '../../contexts/DataContext';
 import { sendNotification } from '../../utils/notifications';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
+import { PeriodFilterBar } from './PeriodFilterBar';
 
 const QuickAddTipPlataModal: React.FC<{ 
   isOpen: boolean; 
@@ -175,6 +176,8 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const { showError, showSuccess } = useError();
     const [tranzactieToDelete, setTranzactieToDelete] = useState<Tranzactie | null>(null);
+    const [avansExpanded, setAvansExpanded] = useState(false);
+    const [periodFilter, setPeriodFilter] = useState({ startDate: '', endDate: '' });
 
     const isMultiple = platiInitiale.length > 1;
 
@@ -540,12 +543,22 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
     const sortedTranzactii = useMemo(() => {
         if (!tranzactii) return [];
-        return [...tranzactii].sort((a,b) => {
-            const dateA = a.data_platii ? new Date((a.data_platii || '').toString().slice(0, 10)).getTime() : 0;
-            const dateB = b.data_platii ? new Date((b.data_platii || '').toString().slice(0, 10)).getTime() : 0;
-            return dateB - dateA;
-        });
-    }, [tranzactii]);
+        const { startDate, endDate } = periodFilter;
+        return [...tranzactii]
+            .filter(t => {
+                if (!startDate && !endDate) return true;
+                const d = t.data_platii ? new Date((t.data_platii || '').toString().slice(0, 10)) : null;
+                if (!d || isNaN(d.getTime())) return false;
+                if (startDate && d < new Date(startDate)) return false;
+                if (endDate) { const e = new Date(endDate); e.setHours(23, 59, 59, 999); if (d > e) return false; }
+                return true;
+            })
+            .sort((a, b) => {
+                const dateA = a.data_platii ? new Date((a.data_platii || '').toString().slice(0, 10)).getTime() : 0;
+                const dateB = b.data_platii ? new Date((b.data_platii || '').toString().slice(0, 10)).getTime() : 0;
+                return dateB - dateA;
+            });
+    }, [tranzactii, periodFilter]);
 
     const columns: Column<Tranzactie>[] = [
         {
@@ -626,7 +639,6 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     return (
         <div className="space-y-6">
             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
-            <AdaugaAvans sportivi={sportivi} familii={familii} setTranzactii={setTranzactii} />
             <Card>
                 <h3 className="text-xl font-bold text-white mb-4">{platiInitiale.length > 0 ? (isMultiple ? `Încasare Colectivă (${platiInitiale.length} facturi)` : "Încasare Datorie") : "Încasare Directă Nouă (Generează Factură & Încasare)"}</h3>
                 <form onSubmit={handleSaveIncasare} className="space-y-4">
@@ -715,15 +727,40 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 </form>
             </Card>
             <Card className="p-0 overflow-hidden">
-                <div className="bg-[var(--bg-table-header)] p-4 border-b border-[var(--border-color)] font-bold">Istoric Încasări Recente</div>
+                <div className="bg-[var(--bg-table-header)] p-4 border-b border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center gap-3">
+                    <span className="font-bold text-white shrink-0">Istoric Încasări</span>
+                    <PeriodFilterBar
+                        startDate={periodFilter.startDate}
+                        endDate={periodFilter.endDate}
+                        onChange={(startDate, endDate) => setPeriodFilter({ startDate, endDate })}
+                    />
+                </div>
                 <div className="overflow-x-auto">
-                    <ResponsiveTable 
+                    <ResponsiveTable
                         columns={columns}
-                        data={sortedTranzactii.slice(0, 10)}
+                        data={sortedTranzactii}
                         renderMobileItem={renderMobileItem}
                     />
                 </div>
             </Card>
+
+            {/* Avans — colapsibil, la final */}
+            <div className="border border-slate-700 rounded-xl overflow-hidden">
+                <button
+                    type="button"
+                    onClick={() => setAvansExpanded(prev => !prev)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-800/60 hover:bg-slate-800 transition-colors"
+                >
+                    <span className="text-sm font-semibold text-slate-300">Înregistrează Sumă în Avans</span>
+                    <ChevronDownIcon className={`w-4 h-4 text-slate-400 transition-transform ${avansExpanded ? 'rotate-180' : ''}`} />
+                </button>
+                {avansExpanded && (
+                    <div className="p-4">
+                        <AdaugaAvans sportivi={sportivi} familii={familii} setTranzactii={setTranzactii} />
+                    </div>
+                )}
+            </div>
+
             <QuickAddTipPlataModal isOpen={isQuickAddOpen} onClose={() => setIsQuickAddOpen(false)} onSave={handleQuickAddTipPlata} />
             <ConfirmDeleteModal isOpen={!!tranzactieToDelete} onClose={() => setTranzactieToDelete(null)} onConfirm={handleDeleteTranzactie} tableName="Tranzacție" isLoading={loading} customMessage="Sunteți sigur că doriți să ștergeți această încasare? Statusul facturilor asociate va fi resetat." />
         </div>

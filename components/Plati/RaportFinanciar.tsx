@@ -1,6 +1,7 @@
 ﻿import React, { useMemo, useState } from 'react';
 import { IstoricPlataDetaliat, Sportiv, Familie, Plata, Tranzactie } from '../../types';
 import { Card, Input, Select, Button } from '../ui';
+import { PeriodFilterBar } from './PeriodFilterBar';
 import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon, ExclamationTriangleIcon, CheckCircleIcon, WalletIcon, XIcon, TrendingUpIcon, UsersIcon, DownloadIcon, DocumentArrowDownIcon } from '../icons';
 import { RevenueBarChart } from './RevenueBarChart';
 import { PaymentTypePieChart } from './PaymentTypePieChart';
@@ -379,9 +380,13 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         </button>
                         {filtersOpen && (
                             <div className="px-4 pb-4 border-t border-[var(--t-border)]">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-3">
-                                    <Input label="De la" type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} />
-                                    <Input label="Până la" type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />
+                                <div className="pt-3 space-y-3">
+                                    <PeriodFilterBar
+                                        startDate={filters.startDate}
+                                        endDate={filters.endDate}
+                                        onChange={(startDate, endDate) => setFilters((prev: typeof filters) => ({ ...prev, startDate, endDate }))}
+                                    />
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                     <Select label="Sportiv" name="sportivId" value={filters.sportivId} onChange={handleFilterChange} disabled={!!filters.familieId}>
                                         <option value="">Toți</option>
                                         {sportivi.map(s => <option key={s.id} value={s.id}>{formatNume(s)}</option>)}
@@ -400,6 +405,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                             Resetează
                                         </button>
                                     </div>
+                                </div>
                                 </div>
                             </div>
                         )}

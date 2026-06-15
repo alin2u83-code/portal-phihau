@@ -1,7 +1,7 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
-import { Plata, Sportiv, User, TipPlata, Familie, Tranzactie, Reducere, PretConfig, TipAbonament } from '../../types';
+import { Plata, IstoricPlataDetaliat, Sportiv, User, TipPlata, Familie, Tranzactie, Reducere, PretConfig, TipAbonament } from '../../types';
 import { Button, Card, Input, Select, Modal, SearchInput } from '../ui';
-import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, WalletIcon, CheckCircleIcon } from '../icons';
+import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, WalletIcon, CheckCircleIcon, EyeIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
@@ -10,6 +10,8 @@ import { useData } from '../../contexts/DataContext';
 import { getPretValabil, getPretProdus } from '../../utils/pricing';
 import { formatNume } from '../../utils/formatareSportiv';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
+import { PeriodFilterBar } from './PeriodFilterBar';
+import { FacturaChitantaModal } from './FacturaChitantaModal';
 
 interface GestiuneFacturiProps {
     onBack: () => void;
@@ -47,8 +49,10 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
 
     const [plataToEdit, setPlataToEdit] = useState<Plata | null>(null);
     const [editStatus, setEditStatus] = useState<Plata['status']>('Neachitat');
+    const [editSumaTotal, setEditSumaTotal] = useState('');
+    const [editSumaRamasa, setEditSumaRamasa] = useState('');
     const [isEditLoading, setIsEditLoading] = useState(false);
-    
+
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -56,6 +60,9 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+
+    const [plataForView, setPlataForView] = useState<Plata | null>(null);
+    const [periodFilter, setPeriodFilter] = useState({ startDate: '', endDate: '' });
 
     const clubSportivi = useMemo(() => [...sportivi].sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO')), [sportivi]);
     
@@ -140,12 +147,20 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
 
     const filteredPlati = useMemo(() => {
         const query = searchQuery.toLowerCase();
+        const { startDate, endDate } = periodFilter;
         return clubPlati.filter(p => {
             const entityName = getEntityName(p).toLowerCase();
             const desc = p.descriere.toLowerCase();
-            return entityName.includes(query) || desc.includes(query);
+            if (!entityName.includes(query) && !desc.includes(query)) return false;
+            if (startDate || endDate) {
+                const d = p.data ? new Date(p.data.toString().slice(0, 10)) : null;
+                if (!d || isNaN(d.getTime())) return false;
+                if (startDate && d < new Date(startDate)) return false;
+                if (endDate) { const e = new Date(endDate); e.setHours(23, 59, 59, 999); if (d > e) return false; }
+            }
+            return true;
         });
-    }, [clubPlati, searchQuery, sportivi, familii]);
+    }, [clubPlati, searchQuery, sportivi, familii, periodFilter]);
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -226,12 +241,28 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const handleOpenEdit = (plata: Plata) => {
         setPlataToEdit(plata);
         setEditStatus(plata.status);
+        setEditSumaTotal((plata.suma_initiala ?? plata.suma).toFixed(2));
+        setEditSumaRamasa(plata.suma.toFixed(2));
     };
 
     const handleSaveEdit = async () => {
         if (!plataToEdit || !supabase) return;
+        const sumaTotal = parseFloat(editSumaTotal);
+        const sumaRamasa = parseFloat(editSumaRamasa);
+        if (isNaN(sumaTotal) || sumaTotal < 0 || isNaN(sumaRamasa) || sumaRamasa < 0) {
+            showError("Sume invalide", "Introduceți valori numerice pozitive.");
+            return;
+        }
+        if (sumaRamasa > sumaTotal) {
+            showError("Sumă invalidă", "Suma rămasă nu poate depăși suma totală.");
+            return;
+        }
         setIsEditLoading(true);
-        const { data, error } = await supabase.from('plati').update({ status: editStatus }).eq('id', plataToEdit.id).select().maybeSingle();
+        const { data, error } = await supabase.from('plati').update({
+            status: editStatus,
+            suma_initiala: sumaTotal,
+            suma: sumaRamasa,
+        }).eq('id', plataToEdit.id).select().maybeSingle();
         setIsEditLoading(false);
 
         if (error) {
@@ -240,7 +271,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         } else if (data) {
             setPlati(prev => prev.map(p => p.id === data.id ? data : p));
             setPlataToEdit(null);
-            showSuccess("Succes", "Statusul facturii a fost actualizat.");
+            showSuccess("Succes", "Factura a fost actualizată.");
         }
     };
 
@@ -416,7 +447,8 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                             <WalletIcon className="w-4 h-4" />
                         </Button>
                     )}
-                    <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(p)} title="Editează Status"><EditIcon className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="secondary" onClick={() => setPlataForView(p)} title="Vizualizează factura"><EyeIcon className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(p)} title="Editează"><EditIcon className="w-4 h-4" /></Button>
                     <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} title="Șterge"><TrashIcon className="w-4 h-4" /></Button>
                 </div>
             )
@@ -448,7 +480,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 <p className="text-sm font-bold text-emerald-400 text-right"><span className="text-slate-500 font-normal">Încasat:</span> {((p.suma_initiala || p.suma) - p.suma).toFixed(2)} lei</p>
             </div>
 
-            <div className="flex justify-end gap-2 mt-4 pt-2 border-t border-slate-700">
+            <div className="flex flex-wrap justify-end gap-2 mt-4 pt-2 border-t border-slate-700">
                 {p.status !== 'Achitat' && (
                     <Button size="sm" variant="success" onClick={() => {
                         setPlataForPayment(p);
@@ -457,6 +489,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                         <WalletIcon className="w-4 h-4 mr-2" /> Încasează
                     </Button>
                 )}
+                <Button size="sm" variant="secondary" onClick={() => setPlataForView(p)} className="flex-1 justify-center"><EyeIcon className="w-4 h-4 mr-2" /> Vizualizează</Button>
                 <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(p)} className="flex-1 justify-center"><EditIcon className="w-4 h-4 mr-2" /> Editează</Button>
                 <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} className="flex-1 justify-center"><TrashIcon className="w-4 h-4 mr-2" /> Șterge</Button>
             </div>
@@ -543,22 +576,29 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             </Card>
 
             <Card className="p-0 overflow-hidden">
-                <div className="p-4 bg-slate-700/50 font-bold text-white flex justify-between items-center flex-wrap gap-4">
-                    <span>Facturi Recente</span>
-                    <SearchInput
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Caută după nume sau descriere..."
-                        containerClassName="w-full md:w-64"
+                <div className="p-4 bg-slate-700/50 flex flex-col gap-3">
+                    <div className="flex justify-between items-center flex-wrap gap-4">
+                        <span className="font-bold text-white">Facturi Recente</span>
+                        <SearchInput
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Caută după nume sau descriere..."
+                            containerClassName="w-full md:w-64"
+                        />
+                    </div>
+                    <PeriodFilterBar
+                        startDate={periodFilter.startDate}
+                        endDate={periodFilter.endDate}
+                        onChange={(startDate, endDate) => setPeriodFilter({ startDate, endDate })}
                     />
                 </div>
                 <div className="overflow-x-auto max-h-[60vh]">
-                    <ResponsiveTable 
+                    <ResponsiveTable
                         columns={columns}
                         data={filteredPlati}
                         renderMobileItem={renderMobileItem}
                     />
-                     {filteredPlati.length === 0 && <p className="p-12 text-center text-slate-500 italic">Nicio factură găsită.</p>}
+                    {filteredPlati.length === 0 && <p className="p-12 text-center text-slate-500 italic">Nicio factură găsită.</p>}
                 </div>
             </Card>
 
@@ -593,17 +633,44 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             )}
 
             {plataToEdit && (
-                <Modal isOpen={!!plataToEdit} onClose={() => setPlataToEdit(null)} title="Modifică Status Factură">
+                <Modal isOpen={!!plataToEdit} onClose={() => setPlataToEdit(null)} title="Editează Factură">
                     <div className="space-y-4">
-                        <p>Modifică statusul pentru factura: <strong>{plataToEdit.descriere}</strong></p>
-                        <Select label="Status Nou" value={editStatus} onChange={e => setEditStatus(e.target.value as Plata['status'])}>
+                        <p className="text-slate-300 text-sm">Factură: <strong className="text-white">{plataToEdit.descriere}</strong></p>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input
+                                label="Sumă Totală Factură (RON)"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={editSumaTotal}
+                                onChange={e => setEditSumaTotal(e.target.value)}
+                            />
+                            <Input
+                                label="Sumă Rămasă de Plată (RON)"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={editSumaRamasa}
+                                onChange={e => setEditSumaRamasa(e.target.value)}
+                            />
+                        </div>
+                        <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700 text-sm text-slate-400 flex justify-between">
+                            <span>Suma încasată (calculat):</span>
+                            <span className="text-emerald-400 font-bold">
+                                {Math.max(0, (parseFloat(editSumaTotal) || 0) - (parseFloat(editSumaRamasa) || 0)).toFixed(2)} RON
+                            </span>
+                        </div>
+
+                        <Select label="Status" value={editStatus} onChange={e => setEditStatus(e.target.value as Plata['status'])}>
                             <option value="Neachitat">Neachitat</option>
                             <option value="Achitat Parțial">Achitat Parțial</option>
                             <option value="Achitat">Achitat</option>
                         </Select>
+
                         <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
                             <Button variant="secondary" onClick={() => setPlataToEdit(null)} disabled={isEditLoading}>Anulează</Button>
-                            <Button variant="success" onClick={handleSaveEdit} isLoading={isEditLoading}>Salvează</Button>
+                            <Button variant="success" onClick={handleSaveEdit} isLoading={isEditLoading}>Salvează Modificările</Button>
                         </div>
                     </div>
                 </Modal>
@@ -616,6 +683,39 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 tableName="factură"
                 isLoading={isDeleting}
             />
+
+            {plataForView && (() => {
+                const s = sportivi.find(sp => sp.id === plataForView.sportiv_id);
+                const f = familii.find(fam => fam.id === plataForView.familie_id);
+                const entityName = s ? formatNume(s) : f ? `Familia ${f.nume}` : plataForView.sportiv_nume ? `${plataForView.sportiv_prenume || ''} ${plataForView.sportiv_nume}`.trim() : '—';
+                const sumaTotal = plataForView.suma_initiala ?? plataForView.suma;
+                const incasat = sumaTotal - plataForView.suma;
+                const plataIstoric: IstoricPlataDetaliat = {
+                    plata_id: plataForView.id,
+                    sportiv_id: plataForView.sportiv_id,
+                    familie_id: plataForView.familie_id,
+                    nume_complet_sportiv: entityName,
+                    descriere: plataForView.descriere,
+                    suma_datorata: sumaTotal,
+                    status: plataForView.status,
+                    data_emitere: plataForView.data,
+                    total_incasat: incasat,
+                    rest_de_plata: plataForView.suma,
+                    tranzactie_id: null,
+                    data_plata_string: null,
+                    suma_incasata: incasat > 0 ? incasat : null,
+                    metoda_plata: null,
+                };
+                return (
+                    <FacturaChitantaModal
+                        mode="factura"
+                        plata={plataIstoric}
+                        sportiv={s}
+                        familie={f}
+                        onClose={() => setPlataForView(null)}
+                    />
+                );
+            })()}
         </div>
     );
 };

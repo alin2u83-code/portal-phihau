@@ -77,8 +77,7 @@ Plans:
   3. Modal "Anulare Antrenament": câmp text liber "Motiv anulare" (required) → update status='anulat' + motiv_anulare în DB
   4. Buton "Adaugă Antrenament" → formular one-off: grupă (pre-filled), dată, oră start, oră sfârșit → insert în `program_antrenamente` cu `is_recurent=false`
 
-**Plans**: 1 plan
-Plans:
+**Plans**: 1 planPlans:
 
 - [ ] 03-01-PLAN.md — TabAntrenamente: calendar lunar dot-uri + DayPanel CRUD + modale adăugare/anulare (CAL-01, CAL-02, CAL-03, CAL-04)
 

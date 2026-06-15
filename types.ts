@@ -144,6 +144,7 @@ export interface Tranzactie {
   plata_ids: string[];
   sportiv_id: string | null;
   familie_id: string | null;
+  club_id?: string | null;
   suma: number;
   data_platii: string;
   metoda_plata: 'Cash' | 'Transfer Bancar';

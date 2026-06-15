@@ -166,6 +166,8 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
   ) : children;
 
   if (as === 'label') {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { onMouseEnter: _ome, onMouseLeave: _oml, style: _s, ...labelSafeProps } = props as React.ButtonHTMLAttributes<HTMLButtonElement> & { onMouseEnter?: unknown; onMouseLeave?: unknown; style?: unknown };
     return (
       <label
         htmlFor={htmlFor}
@@ -173,7 +175,7 @@ export const Button: React.FC<ButtonProps & { as?: 'label', htmlFor?: string }> 
         style={{ ...activeStyle, ...Object.fromEntries(Object.entries((props.style as Record<string,unknown>) ?? {}).filter(([,v]) => v != null)) }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        {...props}
+        {...(labelSafeProps as unknown as React.LabelHTMLAttributes<HTMLLabelElement>)}
       >
         {content}
       </label>

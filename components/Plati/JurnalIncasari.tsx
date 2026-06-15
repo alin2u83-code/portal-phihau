@@ -143,7 +143,7 @@ const AdaugaAvans: React.FC<{
     return (
         <Card>
             <h3 className="text-xl font-bold text-white mb-4">Adaugă Sumă în Avans</h3>
-            <form onSubmit={handleSaveAvans} className="space-y-4">
+            <form onSubmit={handleSaveAvans} className="space-y-4" noValidate>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Select label="Pentru Familia" value={familieId} onChange={e => setFamilieId(e.target.value)} required>
                         <option value="">Selectează...</option>

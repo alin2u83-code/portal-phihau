@@ -47,12 +47,23 @@ export const useFilteredData = ({
     locatii
 }: UseFilteredDataProps) => {
     return useMemo(() => {
-        // Filtrare defensivă în memorie: ADMIN_CLUB/INSTRUCTOR văd doar antrenamentele clubului lor.
-        // DB-ul filtrează deja prin get_active_club_id() pe view, dar dublăm protecția.
+        // Filtrare defensivă în memorie: non-federație vede doar datele clubului activ.
+        // RLS permite acces la toate cluburile unde userul are rol — filtrul activ restricționează la contextul curent.
         const isFederationRole = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'ADMIN';
-        const filteredAntrenamente = (!isFederationRole && activeClubId)
+        const shouldFilter = !isFederationRole && !!activeClubId;
+
+        const filteredAntrenamente = shouldFilter
             ? (antrenamente || []).filter(a => a.club_id === activeClubId)
             : (antrenamente || []);
+        const filteredPlati = shouldFilter
+            ? (plati || []).filter(p => p.club_id === activeClubId)
+            : (plati || []);
+        const filteredTranzactii = shouldFilter
+            ? (tranzactii || []).filter(t => t.club_id === activeClubId)
+            : (tranzactii || []);
+        const filteredFamilii = shouldFilter
+            ? (familii || []).filter(f => !f.club_id || f.club_id === activeClubId)
+            : (familii || []);
 
         return {
             sportivi: sportivi || [],
@@ -60,12 +71,12 @@ export const useFilteredData = ({
             inscrieriExamene: inscrieriExamene || [],
             antrenamente: filteredAntrenamente,
             grupe: grupe || [],
-            plati: plati || [],
-            tranzactii: tranzactii || [],
+            plati: filteredPlati,
+            tranzactii: filteredTranzactii,
             evenimente: evenimente || [],
             rezultate: rezultate || [],
             tipuriAbonament: tipuriAbonament || [],
-            familii: familii || [],
+            familii: filteredFamilii,
             anunturiPrezenta: anunturiPrezenta || [],
             reduceri: reduceri || [],
             deconturiFederatie: deconturiFederatie || [],

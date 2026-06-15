@@ -157,6 +157,9 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
         );
         queryClient.invalidateQueries({ queryKey: ['sportivi'] });
         queryClient.invalidateQueries({ queryKey: ['grupe'] });
+        // WR-02: invalidăm și cache-ul per-grupă folosit de TabSportivi din GrupaDetailView
+        // fără acest apel, lista de sportivi din tab rămâne stale până la 5 minute
+        queryClient.invalidateQueries({ queryKey: ['sportivi-grupa', grupaForAdaugaSportivi.id] });
         showSuccess(
             "Succes",
             `${sportiviIds.length} sportiv${sportiviIds.length !== 1 ? 'i adăugați' : ' adăugat'} în ${grupaForAdaugaSportivi.denumire}.`

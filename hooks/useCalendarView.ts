@@ -16,26 +16,31 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
     const { showError, showSuccess } = useError();
 
     const fetchAntrenamente = useCallback(async () => {
+        // WR-04: try/finally garantează că loading se resetează chiar dacă supabase
+        // aruncă excepție necaptată (timeout, eroare de rețea neașteptată).
         setLoading(true);
-        // Fetch the full month range based on the current `date` (month navigation)
-        const startOfMonth = date.substring(0, 7) + '-01';
-        const d = new Date(date);
-        const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).toLocaleDateString('sv-SE');
+        try {
+            // Fetch the full month range based on the current `date` (month navigation)
+            const startOfMonth = date.substring(0, 7) + '-01';
+            const d = new Date(date);
+            const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).toLocaleDateString('sv-SE');
 
-        const { data, error } = await supabase.from('program_antrenamente')
-            .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status_id)')
-            .eq('grupa_id', grupaId)
-            .gte('data', startOfMonth)
-            .lte('data', endOfMonth)
-            .order('data')
-            .order('ora_start');
+            const { data, error } = await supabase.from('program_antrenamente')
+                .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+                .eq('grupa_id', grupaId)
+                .gte('data', startOfMonth)
+                .lte('data', endOfMonth)
+                .order('data')
+                .order('ora_start');
 
-        if (error) {
-            showError("Eroare la încărcarea calendarului", error.message);
-        } else {
-            setAntrenamente((data || []).map(a => ({ ...a, prezenta: a.prezenta || [] })));
+            if (error) {
+                showError("Eroare la încărcarea calendarului", error.message);
+            } else {
+                setAntrenamente((data || []).map(a => ({ ...a, prezenta: a.prezenta || [] })));
+            }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, [grupaId, date, showError]);
 
     useEffect(() => {
@@ -43,22 +48,20 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
     }, [fetchAntrenamente]);
 
     const handleGenerate = async () => {
+        // CR-04: eliminat fallback-ul global (fără grupaId) care insera antrenamente
+        // pentru TOATE grupele clubului când generarea per-grupă eșua.
+        // WR-05: folosim finally pentru a garanta că loading se resetează indiferent
+        // dacă fetchAntrenamente() aruncă excepție după generare.
         setLoading(true);
         try {
             await generateTrainingsFromSchedule(daysToGenerate, grupaId);
             showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile.`);
             await fetchAntrenamente();
         } catch (error: any) {
-            // Fallback to global generation if group-specific fails (legacy support)
-            try {
-                await generateTrainingsFromSchedule(daysToGenerate);
-                showSuccess("Succes", `Calendarul a fost populat pentru următoarele ${daysToGenerate} zile (Global).`);
-                await fetchAntrenamente();
-            } catch (error2: any) {
-                showError("Eroare generare", error2.message);
-            }
+            showError("Eroare generare", error.message);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     // CR-03: returnează boolean — true = succes, false = eroare

@@ -775,7 +775,40 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
             {editingPlata && (
                 <Modal isOpen={!!editingPlata} onClose={() => setEditingPlata(null)} title="Editează Plată">
-                    <div className="space-y-4"><Input label="Descriere" value={editingPlata.descriere} onChange={e => setEditingPlata({...editingPlata, descriere: e.target.value})} /><Input label="Sumă" type="number" value={editingPlata.suma} onChange={e => setEditingPlata({...editingPlata, suma: parseFloat(e.target.value) || 0})} /><div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setEditingPlata(null)}>Anulează</Button><Button variant="success" onClick={handleSaveEdit} isLoading={isSaving}>Salvează</Button></div></div>
+                    <div className="space-y-4">
+                        <Input
+                            label="Descriere"
+                            value={editingPlata.descriere}
+                            onChange={e => setEditingPlata({...editingPlata, descriere: e.target.value})}
+                        />
+                        <Input
+                            label="Sumă (RON)"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={editingPlata.suma}
+                            onChange={e => setEditingPlata({...editingPlata, suma: parseFloat(e.target.value) || 0})}
+                        />
+                        <Select
+                            label="Status"
+                            value={editingPlata.status}
+                            onChange={e => setEditingPlata({...editingPlata, status: e.target.value as Plata['status']})}
+                        >
+                            <option value="Neachitat">Neachitat</option>
+                            <option value="Achitat Parțial">Achitat Parțial</option>
+                            <option value="Achitat">Achitat</option>
+                        </Select>
+                        <Input
+                            label="Data scadentă"
+                            type="date"
+                            value={(editingPlata.data || '').toString().slice(0, 10)}
+                            onChange={e => setEditingPlata({...editingPlata, data: e.target.value})}
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button variant="secondary" onClick={() => setEditingPlata(null)}>Anulează</Button>
+                            <Button variant="success" onClick={handleSaveEdit} isLoading={isSaving}>Salvează</Button>
+                        </div>
+                    </div>
                 </Modal>
             )}
             <ConfirmDeleteModal isOpen={!!plataToDelete} onClose={() => setPlataToDelete(null)} onConfirm={() => { if(plataToDelete) confirmDelete(plataToDelete.id) }} tableName="Plată" isLoading={isDeleting} />

@@ -1,83 +1,47 @@
-# Requirements: Sistem Filtrare Unificat — Competiții
+# Requirements — v1.1 Rapoarte & Analytics per Club
 
-**Defined:** 2026-06-04
-**Core Value:** Orice admin sau instructor poate filtra rapid sportivii/categoriile după gen + vârstă + grad simultan, pe orice tab din competiție, folosind o interfață identică pretutindeni.
+**Defined:** 2026-06-16
+**Core Value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare.
 
-## v1 Requirements
+## Milestone v1.1 Requirements
 
-### Infrastructură (Hook + Componentă)
+### Financiar
 
-- [ ] **INFR-01**: Hook `useCompetitieFilters` extras din codul existent — gestionează starea filtrelor (gen, vârstă min/max, grad min/max, probă) și returnează funcțiile de toggle/reset
-- [ ] **INFR-02**: Componentă `CompetitieFilterBar` inline — afișează chips gen, inputs vârstă range, inputs grad range, pills probă + badge număr filtre active
-- [ ] **INFR-03**: Funcție pură `aplicaFiltreCategorie(categorii, filtre)` — logica AND extrasă din tab Template, reutilizabilă pe orice tip de date
+- [ ] **FIN-01**: Admin de club poate vedea tabelul restanțelor per sportiv: nume sportiv, sumă totală datorată, data celei mai vechi facturi neachitate
+- [ ] **FIN-02**: Admin poate filtra restanțele pe interval dată (câmp "De la" și "Până la" — aplicate pe data_scadenta a facturilor neachitate)
+- [ ] **FIN-03**: Admin poate exporta tabelul restanțelor în format CSV (compatibil Excel)
+- [ ] **FIN-04**: Admin poate exporta tabelul restanțelor în format PDF (antet cu numele clubului, data generării, tabel cu coloane: sportiv, sumă, vechime)
 
-### Tab Categorii
+### Grade & Examene
 
-- [ ] **TAB-01**: Filtrul de probă (pills existente) integrat în `CompetitieFilterBar` — nu dispare, devine parte din bara unificată
-- [ ] **TAB-02**: Filtrele gen + vârstă + grad aplicate pe lista de categorii din tab Categorii
-- [ ] **TAB-03**: Numărul de categorii afișate se actualizează live la modificarea filtrelor
+- [ ] **GRD-01**: Admin poate vedea distribuția gradelor actuale în club — grafic + tabel cu nr. sportivi per grad (afișează toate gradele, inclusiv cele cu 0 sportivi)
+- [ ] **GRD-02**: Admin poate vedea promovabilitatea per sesiune de examen: % promovați, nr. prezenți, nr. promovați — pentru toate sesiunile clubului
+- [ ] **GRD-03**: Admin poate vedea lista sportivilor eligibili pentru next grad (condiție: timp minim la gradul curent — luat din nomenclatorul de grade dacă există, altfel configurat)
+- [ ] **GRD-04**: Admin poate vedea istoricul examenelor per sportiv: timeline cu grad obținut, dată examen, sesiune — selectând sportivul dintr-un dropdown sau din lista de sportivi
 
-### Tab Înscrieri
+## Future Requirements (deferred)
 
-- [ ] **INSC-01**: `CompetitieFilterBar` afișată deasupra listei de sportivi înscriși
-- [ ] **INSC-02**: Filtrele gen + vârstă + grad filtrează sportivii înscriși după datele lor (gen, data_nasterii, grad_actual_id)
-- [ ] **INSC-03**: Filtrele se resetează la schimbarea tab-ului activ
+- Dashboard federație cu agregate multi-club (SUPER_ADMIN) — v2.0
+- Raport prezență antrenamente per club/grupă — v2.0
+- Notificări WhatsApp/email din interfața de raport — v2.0
+- Predicții AI: sportivi cu risc abandon, recomandare sesiune examen — v3.0
 
-### Tab Raport
+## Out of Scope (v1.1)
 
-- [x] **RAP-01**: `CompetitieFilterBar` afișată deasupra datelor de raport
-- [x] **RAP-02**: Filtrele aplicate pe datele agregate din raport (per club/categorie)
-
-### Tab Template (Admin)
-
-- [ ] **TMPL-01**: Codul local de filtrare din tab Template (`filterGen`, `filterVarstaMin/Max`, `filterGradMin/Max`) înlocuit cu `useCompetitieFilters` + `CompetitieFilterBar`
-- [ ] **TMPL-02**: Comportament identic cu cel existent — nicio regresia vizibilă pentru admin
-
-## v2 Requirements
-
-### Persistență filtre
-
-- **PERS-01**: Filtrele active salvate în localStorage per competiție — reluate la revenire pe pagină
-- **PERS-02**: Filtrele active exportate ca URL params — sharable
-
-### Filtre avansate
-
-- **ADV-01**: Filtru după club (pentru super admin — vizualizare cross-club)
-- **ADV-02**: Filtru după status (înscris/retras/confirmat)
-
-## Out of Scope
-
-| Feature | Reason |
-|---------|--------|
-| Wizard Înscriere (Pas2/3/4) | Wizard are logică proprie de eligibilitate — nu e filtrare vizuală |
-| Tab Admin, Financiar, Cereri Interclub | Nu conțin liste de categorii/sportivi filtrabile în același sens |
-| Filtrare server-side (query Supabase) | Date deja în memorie — overhead nejustificat |
-| Filtre URL-persistente | v2 — complexitate nejustificată pentru uz intern curent |
+- Migrații DB — tabele existente (plati, examene, rezultate_examene, grade, sportivi) conțin toate datele necesare
+- Filtrare server-side nouă — React Query cache suficient
+- Rapoarte pentru INSTRUCTOR — ADMIN_CLUB și SUPER_ADMIN only în v1.1
+- Sold pozitiv / avansuri — raportul se focusează pe restanțe (status='Neachitat')
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| INFR-01 | Phase 6 | Pending |
-| INFR-02 | Phase 6 | Pending |
-| INFR-03 | Phase 6 | Pending |
-| TAB-01 | Phase 7 | Pending |
-| TAB-02 | Phase 7 | Pending |
-| TAB-03 | Phase 7 | Pending |
-| INSC-01 | Phase 7 | Pending |
-| INSC-02 | Phase 7 | Pending |
-| INSC-03 | Phase 7 | Pending |
-| RAP-01 | Phase 7 | Complete |
-| RAP-02 | Phase 7 | Complete |
-| TMPL-01 | Phase 7 | Pending |
-| TMPL-02 | Phase 7 | Pending |
-
-**Coverage:**
-
-- v1 requirements: 13 total
-- Mapped to phases: 13
-- Unmapped: 0 ✓
-
----
-*Requirements defined: 2026-06-04*
-*Last updated: 2026-06-04 after initial definition*
+| REQ-ID | Phase | Plan |
+|--------|-------|------|
+| FIN-01 | — | — |
+| FIN-02 | — | — |
+| FIN-03 | — | — |
+| FIN-04 | — | — |
+| GRD-01 | — | — |
+| GRD-02 | — | — |
+| GRD-03 | — | — |
+| GRD-04 | — | — |

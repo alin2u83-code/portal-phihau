@@ -642,7 +642,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                 <table className="w-full text-sm text-left">
                                     <thead>
                                         <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
-                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Scadență</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Dată emitere</th>
                                             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Sportiv</th>
                                             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Descriere</th>
                                             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Status</th>

@@ -514,7 +514,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                 CSV
                             </button>
                             <button
-                                onClick={() => exportIncasariPDF(filteredIstoric, totalIncasari)}
+                                onClick={() => exportIncasariPDF(filteredIstoric, totalIncasari, undefined, undefined, clubNume)}
                                 disabled={filteredIstoric.length === 0}
                                 title="Export PDF"
                                 className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 text-xs font-semibold text-white

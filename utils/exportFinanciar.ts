@@ -53,6 +53,7 @@ export async function exportIncasariPDF(
     total: number,
     filename = 'incasari.pdf',
     titlu = 'Raport Încasări',
+    clubNume = 'Club QwanKiDo',
 ) {
     // Dynamic import — nu blochează bundle-ul inițial
     const { jsPDF } = await import('jspdf');
@@ -64,7 +65,7 @@ export async function exportIncasariPDF(
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     doc.setTextColor(30, 41, 59);
-    doc.text('Club Qwan Ki Do', 14, 14);
+    doc.text(clubNume, 14, 14);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);

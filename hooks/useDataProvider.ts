@@ -490,10 +490,10 @@ export const useDataProvider = () => {
         return () => subscription.unsubscribe();
     }, []); // rulat o singură dată — ref-ul asigură că refreshRoles e mereu curent
 
-    const createSetter = <K extends keyof AppData>(key: K) => 
-        useCallback((value: React.SetStateAction<AppData[K]>) => {
+    const createSetter = <K extends keyof AppData>(key: K) =>
+        (value: React.SetStateAction<AppData[K]>) => {
             setData(prev => ({ ...prev, [key]: typeof value === 'function' ? (value as any)(prev[key]) : value }));
-        }, []);
+        };
 
     const loading = loadingData || rolesLoading || attendanceData.loading || accessLoading;
     const combinedError = error || rolesError || attendanceData.error;

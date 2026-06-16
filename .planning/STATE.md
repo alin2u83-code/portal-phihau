@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 03 complete — all plans done
-last_updated: "2026-06-15T20:24:20.504Z"
-last_activity: 2026-06-15
+status: executing
+stopped_at: context exhaustion at 76% (2026-06-16)
+last_updated: "2026-06-16T08:32:51.121Z"
+last_activity: 2026-06-16 -- Phase 04 execution started
 progress:
   total_phases: 8
   completed_phases: 8
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04)
 
 **Core value:** Adminul/instructorul poate gestiona complet antrenamentele unei grupe (vizualizare calendar, adăugare one-off, anulare cu motiv) și poate înregistra sportivi la stagii cu facturi corecte.
-**Current focus:** Phase 03 — calendar-crud-antrenamente
+**Current focus:** Phase 04 — stagii-completare
 
 ## Current Position
 
-Phase: 04
-Plan: Not started
-Status: Phase 03 complete
-Last activity: 2026-06-15
+Phase: 04 (stagii-completare) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 04
+Last activity: 2026-06-16 -- Phase 04 execution started
 
 Progress: [##########] 100%
 
@@ -100,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-15T21:00:00.000Z
-Stopped at: Phase 03 complete — all plans done
-Resume file: None
+Last session: 2026-06-16T08:07:06.854Z
+Stopped at: context exhaustion at 76% (2026-06-16)
+Resume file: .planning/phases/04-stagii-completare/04-CONTEXT.md

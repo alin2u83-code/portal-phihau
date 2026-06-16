@@ -1,24 +1,40 @@
 {
-  "timestamp": "2026-06-11T17:10:00.000Z",
-  "context": "default",
-  "handoff_type": "interrupt",
-  "stop_reason": "context_exhaustion_79pct",
-  "session_summary": "Debug XLS import Fălticeni — sportivi inexistenți. Două fix-uri aplicate.",
-  "completed": [
-    "Diagnostic script: .playwright-mcp/debug-match-sportivi.mjs — run against live DB, found 39 exact / 5 fuzzy / 4 inexistent",
-    "Fix #1 importExcelExamenService.ts: prefix-matching pentru nume cu cratime (PANDELEA FLAVIUS-NICOLAS-Ioan). Score boost la 0.93 când normInput e prefix al numeDB cu ratio >= 0.5",
-    "Fix #2 ImportExcelExamen.tsx: eroare 23505 (duplicate key) tratată ca 'skip' cu motiv 'Deja înscris', nu ca eroare blocantă",
-    "Playwright: verificat vizual — PANDELEA FLAVIUS apare ca fuzzy 93% după fix",
-    "Import executat: 46 sportivi din fișier, 2 sportivi noi creați (BADIU, MAXIM)"
+  "version": "1.0",
+  "timestamp": "2026-06-16T13:00:00Z",
+  "phase": "04",
+  "phase_name": "stagii-completare",
+  "phase_dir": ".planning/phases/04-stagii-completare",
+  "plan": 3,
+  "task": 3,
+  "total_tasks": 3,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "Schema DB + types.ts (pret_copii/grade/centuri, eveniment_id FK)", "status": "done", "commit": "9ff764c"},
+    {"id": 2, "name": "preturiConfig fetch + EvenimentForm price fields + calculeazaCategorieStagiu + handleAddParticipant", "status": "done", "commit": "3c23d26"},
+    {"id": 3, "name": "Raport Participanți tabel 5 coloane + exportParticipantiCSV", "status": "done", "commit": "46be7a0"},
+    {"id": 4, "name": "Code review (8 findings: CR-01..WR-05) all fixed", "status": "done", "commit": "8d64d7a"},
+    {"id": 5, "name": "Phase verification — human checkpoint approved", "status": "done", "commit": "bc4593b"}
   ],
-  "pending": [
-    "PGRST204 error pt PÎNZARU MIHAI la creare sportiv nou: 'Could not find the roluri field' — linia ~227 ImportExcelExamen.tsx, insert include câmpul roluri care nu există în schema tabelului sportivi",
-    "Verificare dacă upsert onConflict='sportiv_id,sesiune_id' e corect sau trebuie alt index — acum 23505 se skip-uiește",
-    "3 sportivi lipsă din DB (BADIU, MAXIM, PÎNZARU) — BADIU și MAXIM au fost creați, PÎNZARU a eșuat cu PGRST204"
+  "remaining_tasks": [],
+  "blockers": [],
+  "human_actions_pending": [
+    {
+      "action": "Apply SQL migration manually in Supabase Dashboard",
+      "context": "sql/ directory is gitignored. File exists at sql/migrations/add_pret_per_categorie_stagiu.sql — adds pret_copii/pret_grade/pret_centuri on evenimente + eveniment_id FK on plati with ON DELETE SET NULL",
+      "blocking": false
+    }
   ],
-  "files_modified": [
-    "services/importExcelExamenService.ts",
-    "components/GestiuneExamene/ImportExcelExamen.tsx"
+  "decisions": [
+    {"decision": "sql/ stays gitignored — apply migration manually", "rationale": "Project convention, sensitive DB structure", "phase": "04"},
+    {"decision": "Strict eveniment_id match only in platiParticipanti useMemo (no loose fallback)", "rationale": "CR-02 — loose fallback caused wrong-athlete payment cross-contamination", "phase": "04"},
+    {"decision": "No useCallback in createSetter factory in useDataProvider.ts", "rationale": "CR-03 — useState setData is already stable; useCallback inside non-hook function violated Rules of Hooks", "phase": "04"},
+    {"decision": "compensating delete on partial handleAddParticipant failure", "rationale": "CR-01 — plati insert first, then rezultate, with rollback delete if plati fails", "phase": "04"}
   ],
-  "resume_instructions": "Citește services/importExcelExamenService.ts funcția matchSportiv pentru prefix fix. Citește ImportExcelExamen.tsx zona insert sportiv nou (cca linia 220-240) pentru PGRST204 fix."
+  "uncommitted_files": [
+    "components/Sportivi/ImportSportiviPage/index.tsx",
+    ".planning/STATE.md",
+    ".planning/config.json"
+  ],
+  "next_action": "Phase 04 COMPLETE. Next phase: 02-02 (buton Detalii pe GrupaCard + wiring in Grupe/index.tsx) OR Phase 05 (Color Theme System). Run /gsd-plan-phase 5 or /gsd-execute-phase 2 to continue.",
+  "context_notes": "Phase 04 ended cleanly — human verification approved all 5 visual tests. SQL migration exists on disk but not committed (sql/ gitignored — apply via Supabase Dashboard). ImportSportiviPage has uncommitted changes from a separate debug session (unrelated to Phase 04). Phase 02-02 plan was never executed (02-01 done, 02-02 pending)."
 }

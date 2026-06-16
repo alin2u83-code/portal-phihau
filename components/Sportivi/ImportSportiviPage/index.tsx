@@ -9,8 +9,13 @@ import { formatDateForDisplay } from './utils';
 import { Pas0Upload } from './Pas0Upload';
 import { Pas1Revizuire } from './Pas1Revizuire';
 import { Pas2Raport } from './Pas2Raport';
+import { useData } from '../../../contexts/DataContext';
+import { usePermissions } from '../../../hooks/usePermissions';
 
 export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+    const { clubs, activeRoleContext } = useData();
+    const permissions = usePermissions(activeRoleContext);
+
     const [file, setFile] = useState<File | null>(null);
     const [importing, setImporting] = useState(false);
     const [existingSportivi, setExistingSportivi] = useState<any[]>([]);
@@ -20,13 +25,20 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
     const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
     const [excludedStrictIndices, setExcludedStrictIndices] = useState<Set<number>>(new Set());
     const [currentClubId, setCurrentClubId] = useState<string | null>(null);
+    const [selectedClubIdOverride, setSelectedClubIdOverride] = useState<string>('');
     const [showConfirm, setShowConfirm] = useState(false);
     const [importResult, setImportResult] = useState<ImportResult | null>(null);
     const [overwriteMode, setOverwriteMode] = useState(false);
     const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
     useEffect(() => {
-        console.log("ImportSportiviPage montat. Versiune: 2.0.0");
+        console.log("ImportSportiviPage montat. Versiune: 2.1.0");
+        // Preferă club-ul din contextul activ; fallback pe rolul primar
+        if (activeRoleContext?.club_id) {
+            console.log("Club ID din context activ:", activeRoleContext.club_id);
+            setCurrentClubId(activeRoleContext.club_id);
+            return;
+        }
         const fetchContext = async () => {
             try {
                 const { data: { user } } = await supabase.auth.getUser();
@@ -38,8 +50,8 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                         .eq('is_primary', true)
                         .single();
                     if (error) console.error("Eroare la preluarea contextului clubului:", error);
-                    if (data) {
-                        console.log("Club ID setat:", data.club_id);
+                    if (data?.club_id) {
+                        console.log("Club ID din rol primar:", data.club_id);
                         setCurrentClubId(data.club_id);
                     }
                 }
@@ -89,9 +101,17 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         });
     };
 
+    const effectiveClubId = permissions.isFederationAdmin
+        ? (selectedClubIdOverride || currentClubId)
+        : currentClubId;
+
     const handleAnalyze = async () => {
         if (!file) {
             toast.error("Te rugam sa selectezi un fisier mai intai.");
+            return;
+        }
+        if (permissions.isFederationAdmin && !effectiveClubId) {
+            toast.error("Selectează clubul destinație înainte de a analiza fișierul.");
             return;
         }
         console.log("Incepere analiza fisier:", file.name);
@@ -138,7 +158,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                     nr_legitimatie: row[' NR. PASAPORT SPORTIV ']?.trim() || null,
                     status: 'Activ',
                     data_inscrierii: new Date().toISOString().split('T')[0],
-                    club_id: currentClubId,
+                    club_id: effectiveClubId,
                 };
 
                 if (telefon) sportivData.telefon = telefon;
@@ -495,12 +515,41 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
     }
 
     return (
-        <Pas0Upload
-            file={file}
-            importing={importing}
-            onFileChange={e => { if (e.target.files) setFile(e.target.files[0]); }}
-            onAnalyze={handleAnalyze}
-            onBack={onBack}
-        />
+        <div className="space-y-4">
+            {permissions.isFederationAdmin && (
+                <div className="bg-slate-800/60 border border-blue-500/30 rounded-xl p-4">
+                    <label className="block text-sm font-medium text-blue-300 mb-2">
+                        Club destinație import
+                        <span className="text-red-400 ml-1">*</span>
+                    </label>
+                    <select
+                        value={selectedClubIdOverride}
+                        onChange={e => setSelectedClubIdOverride(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">— Selectează clubul —</option>
+                        {clubs
+                            .slice()
+                            .sort((a, b) => a.nume.localeCompare(b.nume, 'ro'))
+                            .map(c => (
+                                <option key={c.id} value={c.id}>{c.nume}</option>
+                            ))
+                        }
+                    </select>
+                    {!selectedClubIdOverride && (
+                        <p className="text-xs text-amber-400 mt-1">
+                            Trebuie să selectezi clubul înainte de a importa.
+                        </p>
+                    )}
+                </div>
+            )}
+            <Pas0Upload
+                file={file}
+                importing={importing}
+                onFileChange={e => { if (e.target.files) setFile(e.target.files[0]); }}
+                onAnalyze={handleAnalyze}
+                onBack={onBack}
+            />
+        </div>
     );
 };

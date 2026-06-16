@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Rapoarte-Analytics
-status: planning
-last_updated: "2026-06-16T11:05:33.386Z"
+status: in_progress
+last_updated: "2026-06-16T00:00:00.000Z"
 last_activity: 2026-06-16
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,23 +17,27 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-04)
+See: .planning/PROJECT.md (updated 2026-06-16)
 
-**Core value:** Adminul/instructorul poate gestiona complet antrenamentele unei grupe (vizualizare calendar, adăugare one-off, anulare cu motiv) și poate înregistra sportivi la stagii cu facturi corecte.
-**Current focus:** Phase 04 — stagii-completare
+**Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
+**Current focus:** Phase 09 — Raport Financiar
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 9 — Raport Financiar
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-16 — Milestone v1.1 started
+Status: Not started
+Last activity: 2026-06-16 — Roadmap v1.1 creat
+
+```
+Progress: [░░░░░░░░░░] 0% (0/2 phases)
+```
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 1
+- Total plans completed: 0
 - Average duration: -
 - Total execution time: -
 
@@ -41,7 +45,7 @@ Last activity: 2026-06-16 — Milestone v1.1 started
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 03 | 1 | - | - |
+| — | — | — | — |
 
 **Recent Trend:**
 
@@ -49,8 +53,6 @@ Last activity: 2026-06-16 — Milestone v1.1 started
 - Trend: -
 
 *Updated after each plan completion*
-| Phase 01-db-types P01 | 127s | 2 tasks | 3 files |
-| Phase 07-aplicare-filtre-pe-tab-uri P03 | 12 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -59,17 +61,12 @@ Last activity: 2026-06-16 — Milestone v1.1 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- GrupaDetailView componentă separată — drill-down clar, nu supraîncarcă GrupaCard
-- Calendar lunar cu dot-uri + expand-on-click — fără librării externe
-- Preț per tip stagiu pe `tipuri_stagii.pret` (coloană simplă)
-- StagiiCompetitii.tsx rămâne baza pentru stagii club — completăm, nu rescriem
-- [Phase 01-01]: status CHECK constraint 'planificat'|'anulat'|'efectuat' cu bloc DO idempotent
-- [Phase 01-01]: motiv_anulare nullable TEXT fara DEFAULT (NULL = nespecificat)
-- [Phase 01-01]: pret NUMERIC(10,2) nullable pe tipuri_stagii, NULL = fallback taxa globala
-- [Phase 01-01]: Antrenament.status/motiv_anulare optional in types.ts + TipStagiu interface exportata
-- [Phase 05-02]: ThemeContext uses users table (not utilizatori) — actual DB schema
-- [Phase 05-02]: clubThemeRef (useRef) avoids effect dependency loop between club and user theme effects
-- [Phase 05-02]: Button primary/secondary hover via useState(isHovered) + style prop (no Tailwind hover class)
+- Zero migrații DB în v1.1 — tabele existente (plati, examene, rezultate_examene, grade, sportivi, rbv_sportivi_complet) au toate datele necesare
+- Rapoarte în componente separate (nu inline în module existente) — complexitate justifică componente dedicate
+- Recharts (v2.15.4) pentru grafice — deja instalat
+- jsPDF + jspdf-autotable pentru PDF export — deja instalat
+- PapaParse pentru CSV export — deja instalat
+- Filtrare client-side pe date deja cached în React Query — fără query-uri noi Supabase
 
 ### Pending Todos
 
@@ -81,11 +78,13 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260609-vvj | Butoane ghost/transparente - adauga border si culoare pentru vizibilitate | 2026-06-09 | 86f64bb | [260609-vvj-butoane-ghost-transparente-adauga-border](./quick/260609-vvj-butoane-ghost-transparente-adauga-border/) |
 | 260610-ka8 | export Excel fise examen (notare + validare) | 2026-06-10 | 380b989 | [260610-ka8-export-excel-fise-examen-notare-validare](./quick/260610-ka8-export-excel-fise-examen-notare-validare/) |
+| 260615-financiar | Filtre perioade + editare sume în modulul Financiar | 2026-06-15 | - | [260615-financiar-filtre-perioade-editare-sume](./quick/260615-financiar-filtre-perioade-editare-sume/) |
 
 ### Blockers/Concerns
 
-- `program_antrenamente` — confirma că `status` coloană există și cu ce enum values înainte de Phase 1
-- `motiv_anulare` coloană lipsă — necesită migrație Supabase
+None at roadmap creation. De verificat înainte de Phase 9:
+- `rbv_sportivi_complet` view — confirmă că include `grad_curent_id` și `data_grad_curent` (sau echivalent) pentru calculul eligibilitate next grad
+- `grade` tabel — verifică dacă are coloana `timp_minim_luni` sau echivalent pentru condiția de eligibilitate GRD-03
 
 ## Deferred Items
 
@@ -94,9 +93,13 @@ None yet.
 | v2 | WhatsApp la anulare antrenament | Deferred | 2026-06-04 |
 | v2 | Calendar săptămânal (week view) | Deferred | 2026-06-04 |
 | v2 | Stagii cu probe CVD extins | Deferred | 2026-06-04 |
+| v2 | Dashboard federație cu agregate multi-club (SUPER_ADMIN) | Deferred | 2026-06-16 |
+| v2 | Raport prezență antrenamente per club/grupă | Deferred | 2026-06-16 |
+| v2 | Notificări WhatsApp/email din interfața de raport | Deferred | 2026-06-16 |
+| v3 | Predicții AI: sportivi cu risc abandon, recomandare sesiune examen | Deferred | 2026-06-16 |
 
 ## Session Continuity
 
-Last session: 2026-06-16T08:41:53.510Z
-Stopped at: context exhaustion at 91% (2026-06-16)
-Resume file: .planning/phases/04-stagii-completare/04-CONTEXT.md
+Last session: 2026-06-16
+Stopped at: Roadmap v1.1 creat — ready to plan Phase 9
+Resume file: .planning/phases/09-raport-financiar/ (TBD — creat la /gsd-plan-phase 9)

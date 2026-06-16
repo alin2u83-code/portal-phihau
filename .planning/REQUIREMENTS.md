@@ -37,11 +37,11 @@
 
 | REQ-ID | Phase | Plan |
 |--------|-------|------|
-| FIN-01 | — | — |
-| FIN-02 | — | — |
-| FIN-03 | — | — |
-| FIN-04 | — | — |
-| GRD-01 | — | — |
-| GRD-02 | — | — |
-| GRD-03 | — | — |
-| GRD-04 | — | — |
+| FIN-01 | Phase 9 | — |
+| FIN-02 | Phase 9 | — |
+| FIN-03 | Phase 9 | — |
+| FIN-04 | Phase 9 | — |
+| GRD-01 | Phase 10 | — |
+| GRD-02 | Phase 10 | — |
+| GRD-03 | Phase 10 | — |
+| GRD-04 | Phase 10 | — |

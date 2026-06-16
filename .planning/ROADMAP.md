@@ -13,7 +13,7 @@ Toate datele vin din tabele existente (plati, examene, rezultate_examene, grade,
 
 ## Phases
 
-- [ ] **Phase 9: Raport Financiar** - Tabel restanțe per sportiv cu filtrare dată și export CSV/PDF
+- [x] **Phase 9: Raport Financiar** - Tabel restanțe per sportiv cu filtrare dată și export CSV/PDF (completed 2026-06-16)
 - [ ] **Phase 10: Raport Grade & Examene** - Distribuție grade, promovabilitate, eligibili, istoric per sportiv
 
 ## Phase Details
@@ -25,13 +25,17 @@ Toate datele vin din tabele existente (plati, examene, rezultate_examene, grade,
 **Depends on**: Nothing (independent from Phase 10)
 **Requirements**: FIN-01, FIN-02, FIN-03, FIN-04
 **Success Criteria** (what must be TRUE):
+
   1. Adminul vede un tabel cu toți sportivii care au facturi neachitate: coloana Sportiv, Sumă Totală Datorată, Data Celei Mai Vechi Facturi Neachitate — sortat descrescător după sumă
   2. Două câmpuri "De la" / "Până la" filtrează tabelul pe `data_scadenta` — tabelul se actualizează live fără reload
   3. Butonul "Export CSV" descarcă un fișier `.csv` cu datele din tabelul curent (filtrele aplicate) — compatibil Excel cu separatorul `;`
   4. Butonul "Export PDF" descarcă un fișier `.pdf` cu antet conținând numele clubului și data generării, urmat de tabelul formatat (Sportiv | Sumă | Vechime)
+
 **Plans**: 1 plan
 Plans:
-- [ ] 09-01-PLAN.md — Tab Restanțe (tabel + filtru perioadă + export CSV/PDF) — FIN-01..FIN-04
+
+- [x] 09-01-PLAN.md — Tab Restanțe (tabel + filtru perioadă + export CSV/PDF) — FIN-01..FIN-04
+
 **UI hint**: yes
 
 ### Phase 10: Raport Grade & Examene
@@ -41,10 +45,12 @@ Plans:
 **Depends on**: Nothing (independent from Phase 9)
 **Requirements**: GRD-01, GRD-02, GRD-03, GRD-04
 **Success Criteria** (what must be TRUE):
+
   1. Tab sau secțiune "Distribuție Grade" afișează grafic Recharts (bar sau pie) + tabel cu numărul de sportivi per grad — afișează toate gradele din nomenclator, inclusiv cele cu 0 sportivi
   2. Tab sau secțiune "Promovabilitate" afișează per fiecare sesiune de examen a clubului: dată sesiune, nr. prezenți, nr. promovați, % promovați — ordonat cronologic descrescător
   3. Tab sau secțiune "Eligibili Next Grad" afișează lista sportivilor care îndeplinesc condiția de timp minim la gradul curent — cu afișarea numelui, gradului curent și timpului petrecut la grad
   4. Selectând un sportiv din dropdown sau din lista de sportivi, adminul vede timeline-ul examenelor acelui sportiv: data, sesiunea, gradul obținut, rezultat Promovat/Respins
+
 **Plans**: TBD
 **UI hint**: yes
 
@@ -55,7 +61,7 @@ Phase 9 și 10 sunt independente — pot fi executate în orice ordine. Recomand
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 9. Raport Financiar | 0/? | Not started | - |
+| 9. Raport Financiar | 1/1 | Complete   | 2026-06-16 |
 | 10. Raport Grade & Examene | 0/? | Not started | - |
 
 ---

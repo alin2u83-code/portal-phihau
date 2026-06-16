@@ -7,7 +7,7 @@ import { RevenueBarChart } from './RevenueBarChart';
 import { PaymentTypePieChart } from './PaymentTypePieChart';
 import { AgingReport } from './AgingReport';
 import { FamilyPaymentCard } from './FamilyPaymentCard';
-import { exportIncasariCSV, exportIncasariPDF } from '../../utils/exportFinanciar';
+import { exportIncasariCSV, exportIncasariPDF, exportRestanteCSV, exportRestantePDF, RestantaRow } from '../../utils/exportFinanciar';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
@@ -48,12 +48,14 @@ const formatSum = (n?: number | null) =>
 export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     istoricPlatiDetaliat, sportivi, familii, plati, setPlati, setTranzactii, onBack, onViewSportiv
 }) => {
-    const { currentUser } = useData();
+    const { currentUser, activeRoleContext, clubs } = useData();
     const { showError, showSuccess } = useError();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
-    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii'>('incasari');
+    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii' | 'restante'>('incasari');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
+    const [restanteStart, setRestanteStart] = useState('');
+    const [restanteEnd, setRestanteEnd] = useState('');
 
     // Payment modal state
     const [plataToIncaseze, setPlataToIncaseze] = useState<IstoricPlataDetaliat | null>(null);
@@ -266,6 +268,56 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         return { luna, total: lunares.length, achitate: achitate.length, neachitate: neachitate.length, listaNeachitate: neachitate, totalSuma, incasatSuma };
     }, [plati, lunaAbonamente, luniAbonamente]);
 
+    // ─── Club Nume (pentru export PDF antet) ────────────────────────────────────
+    const clubNume = clubs?.find((c: any) => c.id === activeRoleContext?.club_id)?.nume ?? 'Club QwanKiDo';
+
+    // ─── Tab Restanțe ────────────────────────────────────────────────────────────
+    const restanteRows = useMemo((): RestantaRow[] => {
+        const neachitate = (plati || []).filter(p => {
+            if (p.status === 'Achitat') return false;
+            if (!restanteStart && !restanteEnd) return true;
+            const d = new Date(p.data.toString().slice(0, 10));
+            if (isNaN(d.getTime())) return true;
+            if (restanteStart && d < new Date(restanteStart)) return false;
+            if (restanteEnd) {
+                const eEnd = new Date(restanteEnd);
+                eEnd.setHours(23, 59, 59, 999);
+                if (d > eEnd) return false;
+            }
+            return true;
+        });
+
+        const byId: Record<string, { sume: number[]; date: string[] }> = {};
+        for (const p of neachitate) {
+            const sid = p.sportiv_id ?? p.familie_id ?? '__necunoscut__';
+            if (!byId[sid]) byId[sid] = { sume: [], date: [] };
+            byId[sid].sume.push(p.suma);
+            if (p.data) byId[sid].date.push(p.data.toString().slice(0, 10));
+        }
+
+        return Object.entries(byId)
+            .map(([sid, { sume, date }]) => {
+                const sp = sportivi.find(s => s.id === sid);
+                const fam = familii.find(f => f.id === sid);
+                const numeSportiv = sp
+                    ? formatNume(sp)
+                    : fam
+                        ? `${fam.nume} [Familie]`
+                        : '—';
+                return {
+                    sportiv_id: sid,
+                    numeSportiv,
+                    sumaTotala: sume.reduce((a, b) => a + b, 0),
+                    nrFacturi: sume.length,
+                    ceaMaiVecheScadenta: date.sort()[0] ?? '',
+                };
+            })
+            .sort((a, b) => {
+                if (b.sumaTotala !== a.sumaTotala) return b.sumaTotala - a.sumaTotala;
+                return (a.ceaMaiVecheScadenta || '').localeCompare(b.ceaMaiVecheScadenta || '');
+            });
+    }, [plati, sportivi, familii, restanteStart, restanteEnd]);
+
     const SportivLink: React.FC<{ row: IstoricPlataDetaliat }> = ({ row }) => {
         const name = row.nume_complet_sportiv || '—';
         if (!row.sportiv_id || !onViewSportiv) return <span>{name}</span>;
@@ -287,6 +339,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         { id: 'taxe_anuale' as const, label: 'Taxe Anuale',  icon: <BanknotesIcon className="w-4 h-4" /> },
         { id: 'grafice' as const,     label: 'Grafice',      icon: <TrendingUpIcon className="w-4 h-4" /> },
         { id: 'familii' as const,     label: 'Familii',      icon: <UsersIcon className="w-4 h-4" /> },
+        { id: 'restante' as const,    label: 'Restanțe',     icon: <ExclamationTriangleIcon className="w-4 h-4 text-amber-400" /> },
     ];
 
     return (

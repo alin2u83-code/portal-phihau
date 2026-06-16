@@ -1,10 +1,11 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: Rapoarte-Analytics
-status: in_progress
-last_updated: "2026-06-16T00:00:00.000Z"
-last_activity: 2026-06-16
+milestone_name: milestone
+status: Not started
+stopped_at: Phase 9 context gathered
+last_updated: "2026-06-16T11:21:05.538Z"
+last_activity: 2026-06-16 — Roadmap v1.1 creat
 progress:
   total_phases: 2
   completed_phases: 0
@@ -83,6 +84,7 @@ None yet.
 ### Blockers/Concerns
 
 None at roadmap creation. De verificat înainte de Phase 9:
+
 - `rbv_sportivi_complet` view — confirmă că include `grad_curent_id` și `data_grad_curent` (sau echivalent) pentru calculul eligibilitate next grad
 - `grade` tabel — verifică dacă are coloana `timp_minim_luni` sau echivalent pentru condiția de eligibilitate GRD-03
 
@@ -100,6 +102,6 @@ None at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-06-16
-Stopped at: Roadmap v1.1 creat — ready to plan Phase 9
-Resume file: .planning/phases/09-raport-financiar/ (TBD — creat la /gsd-plan-phase 9)
+Last session: 2026-06-16T11:21:05.527Z
+Stopped at: Phase 9 context gathered
+Resume file: .planning/phases/09-raport-financiar/09-CONTEXT.md

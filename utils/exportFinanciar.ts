@@ -129,7 +129,7 @@ export function exportRestanteCSV(
     clubNume = 'Club QwanKiDo',
     filename = 'restante.csv',
 ) {
-    const BOM = '﻿';
+    const BOM = '\uFEFF';
     const HEADER = ['Sportiv', 'Suma Totala (RON)', 'Nr Facturi', 'Cea Mai Veche Scadenta'];
 
     const csvRows = rows.map(r => [

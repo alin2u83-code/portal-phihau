@@ -272,12 +272,15 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     const clubNume = clubs?.find((c: any) => c.id === activeRoleContext?.club_id)?.nume ?? 'Club QwanKiDo';
 
     // ─── Tab Restanțe ────────────────────────────────────────────────────────────
+    // CR-01: folosim istoricPlatiDetaliat (are rest_de_plata real) în loc de plati (suma nominală)
+    // CR-02: date NaN sunt excluse când filtrul e activ (nu incluse)
+    // WR-04: cheie unică per factură orfană în loc de __necunoscut__ comun
     const restanteRows = useMemo((): RestantaRow[] => {
-        const neachitate = (plati || []).filter(p => {
+        const neachitate = (istoricPlatiDetaliat || []).filter(p => {
             if (p.status === 'Achitat') return false;
             if (!restanteStart && !restanteEnd) return true;
-            const d = new Date(p.data.toString().slice(0, 10));
-            if (isNaN(d.getTime())) return true;
+            const d = new Date(p.data_emitere.toString().slice(0, 10));
+            if (isNaN(d.getTime())) return false; // CR-02: exclude rânduri cu dată invalidă când filtrul e activ
             if (restanteStart && d < new Date(restanteStart)) return false;
             if (restanteEnd) {
                 const eEnd = new Date(restanteEnd);
@@ -289,10 +292,10 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
 
         const byId: Record<string, { sume: number[]; date: string[] }> = {};
         for (const p of neachitate) {
-            const sid = p.sportiv_id ?? p.familie_id ?? '__necunoscut__';
+            const sid = p.sportiv_id ?? p.familie_id ?? `__orfan__${p.plata_id}`; // WR-04: cheie unică
             if (!byId[sid]) byId[sid] = { sume: [], date: [] };
-            byId[sid].sume.push(p.suma);
-            if (p.data) byId[sid].date.push(p.data.toString().slice(0, 10));
+            byId[sid].sume.push(p.rest_de_plata); // CR-01: sold real, nu suma nominală
+            if (p.data_emitere) byId[sid].date.push(p.data_emitere.toString().slice(0, 10));
         }
 
         return Object.entries(byId)
@@ -316,7 +319,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                 if (b.sumaTotala !== a.sumaTotala) return b.sumaTotala - a.sumaTotala;
                 return (a.ceaMaiVecheScadenta || '').localeCompare(b.ceaMaiVecheScadenta || '');
             });
-    }, [plati, sportivi, familii, restanteStart, restanteEnd]);
+    }, [istoricPlatiDetaliat, sportivi, familii, restanteStart, restanteEnd]);
 
     const SportivLink: React.FC<{ row: IstoricPlataDetaliat }> = ({ row }) => {
         const name = row.nume_complet_sportiv || '—';

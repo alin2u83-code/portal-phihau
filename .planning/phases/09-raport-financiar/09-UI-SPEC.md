@@ -34,14 +34,14 @@ Scala 8-point, valori în multipli de 4. Toate clasele Tailwind sunt utilitare d
 
 | Token | Valoare Tailwind | Px | Usage |
 |-------|------------------|----|-------|
-| xs | `gap-1` / `p-1` | 4px | Spații între iconiță și text în butoane (`gap-1.5` = 6px acceptat) |
-| sm | `gap-2` / `p-2` | 8px | Spații între elemente inline, gap în mobile cards |
+| xs | `gap-1` / `p-1` | 4px | Spații între iconiță și text în butoane |
+| sm | `gap-2` / `p-2` | 8px | Spații între elemente inline, gap în mobile cards, gap butoane export |
 | md | `px-4 py-3` | 16px / 12px | Padding celule tabel, padding card |
 | lg | `space-y-4` | 16px (gap) | Spații verticale între secțiuni principale |
 | xl | `px-4 py-3` (header card) | 16px | Padding header bar total/export |
 | 2xl | `py-8` | 32px | Padding vertical empty state |
 
-Excepții: `px-3 py-1.5` (12px/6px) pentru butoanele export CSV/PDF — identic cu pattern existent la tab `incasari`, liniile 452–474.
+Excepții: `px-3 py-2` (12px/8px) pentru butoanele export CSV/PDF.
 
 ---
 
@@ -53,10 +53,10 @@ Sursa: `index.css` `:root` + clasele observate în `RaportFinanciar.tsx`.
 |-----|-----------------|-----------|-------------------|-------------|
 | Body / celulă tabel | `text-sm` | 14px | `font-normal` (400) | 1.5 (default Tailwind) |
 | Label / antet tabel | `text-xs font-bold uppercase tracking-wider` | 12px | `font-bold` (700) | 1.5 |
-| Sumă totală / KPI | `text-2xl font-black` (desktop) / `text-xl font-black` (mobil) | 24px / 20px | `font-black` (900) | 1.2 |
-| Heading secțiune | `text-xs uppercase tracking-wider font-semibold` | 12px | `font-semibold` (600) | 1.5 |
+| Sumă totală / KPI | `text-2xl font-bold` (desktop) / `text-xl font-bold` (mobil) | 24px / 20px | `font-bold` (700) | 1.2 |
+| Heading secțiune | `text-xs uppercase tracking-wider font-bold` | 12px | `font-bold` (700) | 1.5 |
 
-**Regula de greutăți în uz:** 400 (body/celule), 600 (semibold — label, antet KPI), 700 (bold — antet tabel), 900 (black — valori KPI și sume mari).
+**Regula de greutăți în uz:** 400 (font-normal — body/celule), 700 (font-bold — antete tabel, heading secțiuni, valori KPI și sume mari). Exact 2 greutăți.
 **Font**: Inter, `letter-spacing: 0.01em` global, heading: `letter-spacing: -0.02em`.
 
 ---
@@ -130,7 +130,7 @@ Butoane export (identice cu tab `incasari`, liniile 452–474):
 
 **CSV:**
 ```
-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 text-xs font-semibold text-slate-300
+flex items-center gap-2 px-3 py-2 text-xs font-normal text-slate-300
 bg-slate-700/60 hover:bg-slate-700 border border-slate-600/50
 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation
 ```
@@ -138,7 +138,7 @@ Iconița: `<DownloadIcon className="w-3.5 h-3.5" />` + label "CSV"
 
 **PDF:**
 ```
-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 text-xs font-semibold text-white
+flex items-center gap-2 px-3 py-2 text-xs font-bold text-white
 bg-indigo-600/70 hover:bg-indigo-600 border border-indigo-500/50
 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation
 ```
@@ -148,16 +148,16 @@ Ambele butoane `disabled` când `restanteRows.length === 0`.
 
 Suma totală (desktop, dreapta):
 ```
-hidden sm:block text-2xl md:text-3xl font-black text-amber-400
+hidden sm:block text-2xl md:text-3xl font-bold text-amber-400
 ```
 (amber în loc de emerald, deoarece restanțele sunt o valoare de alertă, nu de succes)
 
 Suma totală (mobil, inline):
 ```
-text-2xl font-black ml-auto text-amber-400 sm:hidden
+text-2xl font-bold ml-auto text-amber-400 sm:hidden
 ```
 
-Label secțiune: `text-xs text-slate-400 uppercase tracking-wider font-semibold` → "Total Restanțe"
+Label secțiune: `text-xs text-slate-400 uppercase tracking-wider font-bold` → "Total Restanțe"
 Subtext: `text-xs text-slate-500` → "{N} sportivi cu restanțe"
 
 ### Tabel desktop
@@ -202,7 +202,7 @@ Layout intern card:
 ```html
 <div className="flex items-start justify-between gap-2">
   <div className="min-w-0">
-    <p className="text-white font-semibold text-sm truncate">{numeSportiv}</p>
+    <p className="text-white font-bold text-sm truncate">{numeSportiv}</p>
     <p className="text-slate-400 text-xs mt-0.5">{nrFacturi} {nrFacturi === 1 ? 'factură' : 'facturi'} neachitate</p>
   </div>
   <p className="text-amber-400 font-bold text-sm whitespace-nowrap shrink-0">{formatSum(sumaTotala)}</p>
@@ -220,7 +220,7 @@ Conținut:
 ```html
 <div className="flex flex-col items-center gap-3 py-12 text-center">
   <CheckCircleIcon className="w-10 h-10 text-emerald-400 opacity-60" />
-  <p className="text-slate-300 font-semibold">Nicio restanță în intervalul selectat</p>
+  <p className="text-slate-300 font-bold">Nicio restanță în intervalul selectat</p>
   <p className="text-slate-500 text-sm">Toți sportivii sunt la zi cu plățile.</p>
 </div>
 ```
@@ -319,7 +319,7 @@ const [restanteEnd, setRestanteEnd] = useState('');
 |------------|-------------|
 | < 768px (`md`) | Tabel ascuns (`hidden md:block`), carduri mobile vizibile (`md:hidden`) |
 | < 640px (`sm`) | Label tab "Restanțe" ascuns (`hidden sm:inline` pe `<span>`), suma totală apare inline în bar |
-| ≥ 640px | Butoanele export reduse la `py-1.5` (`sm:py-1.5`), suma totală apare la dreapta barului |
+| ≥ 640px | Butoanele export cu `py-2` (8px), suma totală apare la dreapta barului |
 | ≥ 768px | Tabel desktop vizibil, carduri mobile ascunse |
 
 ---

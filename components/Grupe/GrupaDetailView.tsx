@@ -571,8 +571,8 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
         queryKey: ['sportivi-grupa', grupa.id],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from('sportivi')
-                .select('id, nume, prenume, grad_actual_id, grade:grad_actual_id(denumire)')
+                .from('rbv_sportivi_complet')
+                .select('id, nume, prenume, grad_actual_id, grad_nume')
                 .eq('grupa_id', grupa.id)
                 .eq('status', 'Activ');
             if (error) throw error;
@@ -615,8 +615,8 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
                             <span className="text-sm text-slate-300">
                                 {(s.nume || '')} {(s.prenume || '')}
                             </span>
-                            {s.grade?.denumire && (
-                                <span className="text-xs text-slate-500 ml-auto">{s.grade.denumire}</span>
+                            {s.grad_nume && (
+                                <span className="text-xs text-slate-500 ml-auto">{s.grad_nume}</span>
                             )}
                         </div>
                     ))}

@@ -613,7 +613,7 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
                             className="flex items-center gap-3 py-2 px-3 rounded-lg bg-slate-800/30 border border-slate-700/50"
                         >
                             <span className="text-sm text-slate-300">
-                                {(s.prenume || '')} {(s.nume || '')}
+                                {(s.nume || '')} {(s.prenume || '')}
                             </span>
                             {s.grade?.denumire && (
                                 <span className="text-xs text-slate-500 ml-auto">{s.grade.denumire}</span>

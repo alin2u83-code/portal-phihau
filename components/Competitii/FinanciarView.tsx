@@ -57,7 +57,7 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
       club.randuri.push({
         tip: 'individual',
         id: ins.id,
-        sportivNume: sp ? `${sp.prenume} ${sp.nume}` : ins.sportiv_id,
+        sportivNume: sp ? `${sp.nume} ${sp.prenume}` : ins.sportiv_id,
         categorieDenumire: cat?.denumire ?? 'Categorie',
         probaDenumire: cat?.denumire ?? '',
         taxa,

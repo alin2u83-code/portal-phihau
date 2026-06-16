@@ -398,7 +398,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     const exportParticipantiCSV = () => {
         const header = 'Sportiv,Data Inscrierii,Categorie,Taxa (lei),Status Plata';
         const rows = randuriiParticipanti.map(rand => {
-            const numeSportiv = `"${rand.sportiv?.prenume || ''} ${rand.sportiv?.nume || ''}"`;
+            const numeSportiv = `"${rand.sportiv?.nume || ''} ${rand.sportiv?.prenume || ''}"`;
             const dataInscriere = `"${rand.dataInscriere}"`;
             const categorie = `"${rand.categorie}"`;
             const taxa = rand.taxa != null ? rand.taxa.toFixed(2) : '';
@@ -429,7 +429,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     };
 
     return ( <Card> <h3 className="text-2xl font-bold text-white">{eveniment.denumire}</h3> <p className="text-[var(--t-text-muted)]">{formatDateRange(eveniment.data)} - {eveniment.locatie}</p> <div className="mt-6 border-t border-[var(--t-border)] pt-6"> <h4 className="text-xl font-semibold mb-4 text-white">Participanți Înscriși ({rezultate.length})</h4>
-    <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{(rezultate || []).map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.prenume} {s?.nume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{(rezultate || []).length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
+    <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">{(rezultate || []).map(r => { const s = sportivi.find(sp => sp.id === r.sportiv_id); const g = getSportivGrad(r.sportiv_id); return ( <div key={r.id} className="bg-slate-700/50 p-3 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4 items-center"><div className="col-span-1 md:col-span-2"><p className="font-medium">{s?.nume} {s?.prenume}</p><p className="text-xs text-slate-400">{g?.nume || 'Începător'}</p></div><p className="font-semibold">{r.rezultat}</p><Button onClick={() => setRezultatToDelete(r)} variant="danger" size="sm" className="justify-self-end"><TrashIcon /></Button></div> )})}{(rezultate || []).length === 0 && <p className="text-slate-400">Niciun participant înscris.</p>}</div>
     {permissions.isAdminClub && rezultate.length > 0 && (
       <div className="mt-6 border-t border-[var(--t-border)] pt-6">
         <div className="flex items-center justify-between mb-4">
@@ -455,7 +455,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
               {randuriiParticipanti.map((rand, i) => (
                 <tr key={i} className="border-b border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)]">
                   <td className="py-2 pr-4 font-medium">
-                    {rand.sportiv ? `${rand.sportiv.prenume} ${rand.sportiv.nume}` : '—'}
+                    {rand.sportiv ? `${rand.sportiv.nume} ${rand.sportiv.prenume}` : '—'}
                   </td>
                   <td className="py-2 pr-4 text-slate-400">{rand.dataInscriere}</td>
                   <td className="py-2 pr-4 text-slate-300">{rand.categorie}</td>
@@ -493,8 +493,8 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                     <div className="absolute z-10 w-full mt-1 bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl shadow-lg max-h-60 overflow-y-auto">
                         {sportiviFiltered.length > 0 ? sportiviFiltered.map(s => (
                             <button key={s.id} type="button" className="w-full text-left px-4 py-2 hover:bg-[var(--t-surface)] text-[var(--t-text)]"
-                                onClick={() => { setFormState(p => ({ ...p, sportivId: s.id })); setSearchSportiv(`${s.prenume} ${s.nume}`); setIsSportivDropdownOpen(false); }}>
-                                {s.prenume} {s.nume}
+                                onClick={() => { setFormState(p => ({ ...p, sportivId: s.id })); setSearchSportiv(`${s.nume} ${s.prenume}`); setIsSportivDropdownOpen(false); }}>
+                                {s.nume} {s.prenume}
                             </button>
                         )) : (
                             <div className="px-4 py-2 text-slate-500">Nu am găsit sportivi.</div>
@@ -535,7 +535,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                         <div key={r.sportiv_id} className="flex items-center gap-3 bg-slate-700/30 rounded-lg px-3 py-2">
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-white truncate">
-                                    {s.prenume} {s.nume}
+                                    {s.nume} {s.prenume}
                                 </p>
                                 {existenta && (
                                     <p className="text-xs text-amber-400/80">{existenta.arma}</p>

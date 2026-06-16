@@ -518,7 +518,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
         if (plata.sportiv_id) {
             const s = (sportivi || []).find(sp => sp.id === plata.sportiv_id);
             if (s) return `${s.nume} ${s.prenume}`;
-            if (plata.sportiv_nume) return `${plata.sportiv_prenume || ''} ${plata.sportiv_nume}`.trim();
+            if (plata.sportiv_nume) return `${plata.sportiv_nume} ${plata.sportiv_prenume || ''}`.trim();
             return 'Sportiv Șters';
         }
         return 'N/A';

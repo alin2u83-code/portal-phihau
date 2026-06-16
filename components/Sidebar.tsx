@@ -193,7 +193,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                     <UserAvatar user={currentUser} size="md" />
                     {effectiveExpanded && (
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-white truncate">{currentUser.prenume} {currentUser.nume}</p>
+                            <p className="text-sm font-semibold text-white truncate">{currentUser.nume} {currentUser.prenume}</p>
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${roleColor}`}>{roleLabel}</span>
                         </div>
                     )}

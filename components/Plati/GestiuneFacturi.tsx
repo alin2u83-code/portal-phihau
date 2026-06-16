@@ -139,7 +139,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         if (plata.sportiv_id) {
             const s = sportivi.find(sp => sp.id === plata.sportiv_id);
             if (s) return formatNume(s);
-            if (plata.sportiv_nume) return `${plata.sportiv_prenume || ''} ${plata.sportiv_nume}`.trim();
+            if (plata.sportiv_nume) return `${plata.sportiv_nume} ${plata.sportiv_prenume || ''}`.trim();
             return 'Sportiv Șters';
         }
         return 'N/A';
@@ -687,7 +687,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             {plataForView && (() => {
                 const s = sportivi.find(sp => sp.id === plataForView.sportiv_id);
                 const f = familii.find(fam => fam.id === plataForView.familie_id);
-                const entityName = s ? formatNume(s) : f ? `Familia ${f.nume}` : plataForView.sportiv_nume ? `${plataForView.sportiv_prenume || ''} ${plataForView.sportiv_nume}`.trim() : '—';
+                const entityName = s ? formatNume(s) : f ? `Familia ${f.nume}` : plataForView.sportiv_nume ? `${plataForView.sportiv_nume} ${plataForView.sportiv_prenume || ''}`.trim() : '—';
                 const sumaTotal = plataForView.suma_initiala ?? plataForView.suma;
                 const incasat = sumaTotal - plataForView.suma;
                 const plataIstoric: IstoricPlataDetaliat = {

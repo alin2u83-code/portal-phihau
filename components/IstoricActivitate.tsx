@@ -126,7 +126,7 @@ export const IstoricActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) 
             const sportiviIds = (sportiviNoi || []).map(s => s.id);
             const sportiviMap: Record<string, string> = {};
             (sportiviNoi || []).forEach(s => {
-                sportiviMap[s.id] = `${s.prenume} ${s.nume}`;
+                sportiviMap[s.id] = `${s.nume} ${s.prenume}`;
             });
 
             (sportiviNoi || []).forEach(s => {
@@ -134,8 +134,8 @@ export const IstoricActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) 
                     id: `sportiv-${s.id}`,
                     tip: 'sportiv_nou',
                     data: s.data_inscrierii,
-                    sportivNume: `${s.prenume} ${s.nume}`,
-                    titlu: `${s.prenume} ${s.nume}`,
+                    sportivNume: `${s.nume} ${s.prenume}`,
+                    titlu: `${s.nume} ${s.prenume}`,
                     descriere: `Sportiv nou înregistrat — grad inițial: ${gradeMap[s.grad_actual_id] || 'Debutant'}`,
                 });
             });
@@ -151,7 +151,7 @@ export const IstoricActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) 
                     .limit(1000);
                 (allSp || []).forEach(s => {
                     sportiviIdsClub.push(s.id);
-                    sportiviMap[s.id] = `${s.prenume} ${s.nume}`;
+                    sportiviMap[s.id] = `${s.nume} ${s.prenume}`;
                 });
             }
 

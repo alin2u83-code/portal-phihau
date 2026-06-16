@@ -94,7 +94,7 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({
         activeView,
         userRole: activeRole,
         userName: currentUser
-          ? `${currentUser.prenume || ''} ${currentUser.nume || ''}`.trim()
+          ? `${currentUser.nume || ''} ${currentUser.prenume || ''}`.trim()
           : 'Utilizator',
         clubName,
       });

@@ -7,7 +7,7 @@ import { RevenueBarChart } from './RevenueBarChart';
 import { PaymentTypePieChart } from './PaymentTypePieChart';
 import { AgingReport } from './AgingReport';
 import { FamilyPaymentCard } from './FamilyPaymentCard';
-import { exportIncasariCSV, exportIncasariPDF } from '../../utils/exportFinanciar';
+import { exportIncasariCSV, exportIncasariPDF, exportRestanteCSV, exportRestantePDF, RestantaRow } from '../../utils/exportFinanciar';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
@@ -48,12 +48,14 @@ const formatSum = (n?: number | null) =>
 export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     istoricPlatiDetaliat, sportivi, familii, plati, setPlati, setTranzactii, onBack, onViewSportiv
 }) => {
-    const { currentUser } = useData();
+    const { currentUser, activeRoleContext, clubs } = useData();
     const { showError, showSuccess } = useError();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
-    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii'>('incasari');
+    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii' | 'restante'>('incasari');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
+    const [restanteStart, setRestanteStart] = useState('');
+    const [restanteEnd, setRestanteEnd] = useState('');
 
     // Payment modal state
     const [plataToIncaseze, setPlataToIncaseze] = useState<IstoricPlataDetaliat | null>(null);
@@ -266,6 +268,56 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         return { luna, total: lunares.length, achitate: achitate.length, neachitate: neachitate.length, listaNeachitate: neachitate, totalSuma, incasatSuma };
     }, [plati, lunaAbonamente, luniAbonamente]);
 
+    // ─── Club Nume (pentru export PDF antet) ────────────────────────────────────
+    const clubNume = clubs?.find((c: any) => c.id === activeRoleContext?.club_id)?.nume ?? 'Club QwanKiDo';
+
+    // ─── Tab Restanțe ────────────────────────────────────────────────────────────
+    const restanteRows = useMemo((): RestantaRow[] => {
+        const neachitate = (plati || []).filter(p => {
+            if (p.status === 'Achitat') return false;
+            if (!restanteStart && !restanteEnd) return true;
+            const d = new Date(p.data.toString().slice(0, 10));
+            if (isNaN(d.getTime())) return true;
+            if (restanteStart && d < new Date(restanteStart)) return false;
+            if (restanteEnd) {
+                const eEnd = new Date(restanteEnd);
+                eEnd.setHours(23, 59, 59, 999);
+                if (d > eEnd) return false;
+            }
+            return true;
+        });
+
+        const byId: Record<string, { sume: number[]; date: string[] }> = {};
+        for (const p of neachitate) {
+            const sid = p.sportiv_id ?? p.familie_id ?? '__necunoscut__';
+            if (!byId[sid]) byId[sid] = { sume: [], date: [] };
+            byId[sid].sume.push(p.suma);
+            if (p.data) byId[sid].date.push(p.data.toString().slice(0, 10));
+        }
+
+        return Object.entries(byId)
+            .map(([sid, { sume, date }]) => {
+                const sp = sportivi.find(s => s.id === sid);
+                const fam = familii.find(f => f.id === sid);
+                const numeSportiv = sp
+                    ? formatNume(sp)
+                    : fam
+                        ? `${fam.nume} [Familie]`
+                        : '—';
+                return {
+                    sportiv_id: sid,
+                    numeSportiv,
+                    sumaTotala: sume.reduce((a, b) => a + b, 0),
+                    nrFacturi: sume.length,
+                    ceaMaiVecheScadenta: date.sort()[0] ?? '',
+                };
+            })
+            .sort((a, b) => {
+                if (b.sumaTotala !== a.sumaTotala) return b.sumaTotala - a.sumaTotala;
+                return (a.ceaMaiVecheScadenta || '').localeCompare(b.ceaMaiVecheScadenta || '');
+            });
+    }, [plati, sportivi, familii, restanteStart, restanteEnd]);
+
     const SportivLink: React.FC<{ row: IstoricPlataDetaliat }> = ({ row }) => {
         const name = row.nume_complet_sportiv || '—';
         if (!row.sportiv_id || !onViewSportiv) return <span>{name}</span>;
@@ -287,6 +339,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         { id: 'taxe_anuale' as const, label: 'Taxe Anuale',  icon: <BanknotesIcon className="w-4 h-4" /> },
         { id: 'grafice' as const,     label: 'Grafice',      icon: <TrendingUpIcon className="w-4 h-4" /> },
         { id: 'familii' as const,     label: 'Familii',      icon: <UsersIcon className="w-4 h-4" /> },
+        { id: 'restante' as const,    label: 'Restanțe',     icon: <ExclamationTriangleIcon className="w-4 h-4 text-amber-400" /> },
     ];
 
     return (
@@ -931,6 +984,119 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
 
                     {/* Aging report — full width */}
                     <AgingReport plati={plati} sportivi={sportivi} familii={familii} />
+                </div>
+            )}
+
+            {/* ─── TAB: RESTANȚE ─── */}
+            {activeTab === 'restante' && (
+                <div className="space-y-4">
+                    {/* Filtru perioadă */}
+                    <PeriodFilterBar
+                        startDate={restanteStart}
+                        endDate={restanteEnd}
+                        onChange={(s, e) => { setRestanteStart(s); setRestanteEnd(e); }}
+                    />
+
+                    {/* Bar total + export */}
+                    <div className="flex flex-col sm:flex-row sm:items-center bg-[var(--t-surface-2)] border border-[var(--t-border)] rounded-xl px-4 py-3 gap-3">
+                        <div className="flex items-center justify-between sm:contents gap-3">
+                            <div>
+                                <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Total Restanțe</p>
+                                <p className="text-xs text-slate-500">
+                                    {restanteRows.length > 0
+                                        ? `${restanteRows.length} sportivi cu restanțe`
+                                        : 'Niciun sportiv cu restanțe'}
+                                </p>
+                            </div>
+                            <p className="text-2xl font-bold ml-auto text-amber-400 sm:hidden">
+                                {formatSum(restanteRows.reduce((s, r) => s + r.sumaTotala, 0))}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2 sm:ml-auto">
+                            <button
+                                onClick={() => exportRestanteCSV(restanteRows, clubNume)}
+                                disabled={restanteRows.length === 0}
+                                title="Export CSV"
+                                className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 text-xs font-semibold text-slate-300
+                                           bg-slate-700/60 hover:bg-slate-700 border border-slate-600/50
+                                           rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
+                            >
+                                <DownloadIcon className="w-3.5 h-3.5" />
+                                CSV
+                            </button>
+                            <button
+                                onClick={() => exportRestantePDF(restanteRows, clubNume)}
+                                disabled={restanteRows.length === 0}
+                                title="Export PDF"
+                                className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 text-xs font-semibold text-white
+                                           bg-indigo-600/70 hover:bg-indigo-600 border border-indigo-500/50
+                                           rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
+                            >
+                                <DocumentArrowDownIcon className="w-3.5 h-3.5" />
+                                PDF
+                            </button>
+                        </div>
+                        <p className="hidden sm:block text-2xl font-bold text-amber-400">
+                            {formatSum(restanteRows.reduce((s, r) => s + r.sumaTotala, 0))}
+                        </p>
+                    </div>
+
+                    {/* Empty state */}
+                    {restanteRows.length === 0 && (
+                        <Card>
+                            <div className="flex flex-col items-center gap-3 py-12 text-center">
+                                <CheckCircleIcon className="w-10 h-10 text-emerald-400 opacity-60" />
+                                <p className="text-slate-300 font-bold">Nicio restanță în intervalul selectat</p>
+                                <p className="text-slate-500 text-sm">Toți sportivii sunt la zi cu plățile.</p>
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* Tabel desktop */}
+                    {restanteRows.length > 0 && (
+                        <div className="hidden md:block bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl overflow-hidden">
+                            <table className="w-full text-left text-sm">
+                                <thead>
+                                    <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+                                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Sportiv</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Sumă Totală (RON)</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Nr. Facturi</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Cea Mai Veche Scadență</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[var(--t-border)]">
+                                    {restanteRows.map(r => (
+                                        <tr key={r.sportiv_id} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
+                                            <td className="px-4 py-3 text-white font-medium">{r.numeSportiv}</td>
+                                            <td className="px-4 py-3 text-right font-bold text-amber-400 whitespace-nowrap">{formatSum(r.sumaTotala)}</td>
+                                            <td className="px-4 py-3 text-right text-slate-300">{r.nrFacturi}</td>
+                                            <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{formatDate(r.ceaMaiVecheScadenta)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {/* Carduri mobile */}
+                    {restanteRows.length > 0 && (
+                        <div className="md:hidden space-y-2">
+                            {restanteRows.map(r => (
+                                <div key={r.sportiv_id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <p className="text-white font-bold text-sm truncate">{r.numeSportiv}</p>
+                                            <p className="text-slate-400 text-xs mt-1">{r.nrFacturi} {r.nrFacturi === 1 ? 'factură' : 'facturi'} neachitate</p>
+                                        </div>
+                                        <p className="text-amber-400 font-bold text-sm whitespace-nowrap shrink-0">{formatSum(r.sumaTotala)}</p>
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-2">
+                                        <span className="text-xs text-slate-500">Scadent din {formatDate(r.ceaMaiVecheScadenta)}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 

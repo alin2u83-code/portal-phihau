@@ -87,9 +87,14 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
                 pret_centuri: formState.pret_centuri ? parseFloat(formState.pret_centuri) : null,
             }),
         };
-        await onSave(eventData as Omit<Eveniment, 'id'>);
-        setLoading(false);
-        onClose();
+        try {
+            await onSave(eventData as Omit<Eveniment, 'id'>);
+            onClose(); // închide formularul doar la succes
+        } catch {
+            // eroarea este afișată deja de handleSave via showError
+        } finally {
+            setLoading(false);
+        }
     };
 
     return ( <Modal isOpen={isOpen} onClose={onClose} title={evToEdit ? `Editează ${type}` : `Adaugă ${type} Nou`}> <form onSubmit={handleSubmit} className="space-y-4"> <Input label="Denumire" name="denumire" value={formState.denumire} onChange={handleChange} required /> <div className="grid grid-cols-2 gap-4"> <Input label="Data Început" name="data" type="date" value={formState.data} onChange={handleChange} required /> <Input label="Data Sfârșit" name="data_sfarsit" type="date" value={formState.data_sfarsit} onChange={handleChange} required /> </div>
@@ -134,17 +139,17 @@ const EvenimentForm: React.FC<EvenimentFormProps> = ({ isOpen, onClose, onSave, 
     <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" disabled={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div> </form> </Modal> );
 };
 
-// Calculează categoria unui sportiv pentru un stagiu pe baza vârstei și gradului
+// Calculează categoria unui sportiv pentru un stagiu pe baza vârstei și gradului.
+// Returnează null dacă data nașterii lipsește — apelantul trebuie să gestioneze cazul.
 function calculeazaCategorieStagiu(
     dataNasterii: string | undefined | null,
     dataStagiu: string,
     gradActualId: string | undefined | null,
     grade: Grad[]
-): 'copii' | 'grade' | 'centuri' {
-    if (dataNasterii) {
-        const varsta = calculeazaVarstaLaData(dataNasterii, dataStagiu);
-        if (varsta >= 7 && varsta <= 12) return 'copii';
-    }
+): 'copii' | 'grade' | 'centuri' | null {
+    if (!dataNasterii) return null; // apelantul trebuie să afișeze avertisment
+    const varsta = calculeazaVarstaLaData(dataNasterii, dataStagiu);
+    if (varsta >= 7 && varsta <= 12) return 'copii';
     if (gradActualId) {
         const grad = grade.find(g => g.id === gradActualId);
         if (grad && grad.nume && grad.nume.toLowerCase().includes('dan')) return 'centuri';
@@ -152,7 +157,9 @@ function calculeazaCategorieStagiu(
     return 'grade';
 }
 
-// Returnează taxa de participare la stagiu cu fallback pe 3 niveluri
+// Returnează taxa de participare la stagiu cu fallback pe 2 niveluri
+// Nivel 1: preț per categorie pe eveniment
+// Nivel 2: preț global din preturiConfig (tipuri_stagii.pret nu este încă implementat)
 function getTaxaStagiu(
     eveniment: Eveniment,
     categorie: 'copii' | 'grade' | 'centuri',
@@ -162,7 +169,7 @@ function getTaxaStagiu(
     if (categorie === 'copii' && eveniment.pret_copii != null) return eveniment.pret_copii;
     if (categorie === 'grade' && eveniment.pret_grade != null) return eveniment.pret_grade;
     if (categorie === 'centuri' && eveniment.pret_centuri != null) return eveniment.pret_centuri;
-    // Nivel 3: preț global din preturiConfig
+    // Nivel 2: preț global din preturiConfig
     const pretGlobal = getPretValabil(preturiConfig, 'Taxa Stagiu', eveniment.data);
     return pretGlobal?.suma ?? null;
 }
@@ -268,7 +275,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     
     const handleAddParticipant = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!permissions.isAdminClub) return;
+        if (!permissions.isAdminClub) return;  // gardă aplică pentru toate tipurile de eveniment
         if (!formState.sportivId) { showError("Date incomplete", "Vă rugăm selectați un sportiv."); return; }
 
         const sportiv = sportivi.find(s => s.id === formState.sportivId);
@@ -279,6 +286,10 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
 
         if (eveniment.tip === 'Stagiu') {
             const categorie = calculeazaCategorieStagiu(sportiv.data_nasterii, eveniment.data, sportiv.grad_actual_id, grade);
+            if (categorie === null) {
+                showError("Date incomplete", "Sportivul nu are data nașterii completată. Completați data nașterii înainte de înscriere.");
+                return;
+            }
             suma = getTaxaStagiu(eveniment, categorie, preturiConfig);
             const etichetaCategorie: Record<string, string> = { copii: 'Copii (7-12 ani)', grade: 'Grade (13+)', centuri: 'Centuri Negre' };
             categorieText = etichetaCategorie[categorie] || categorie;
@@ -292,7 +303,6 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
         try {
             const { data, error } = await supabase.from('rezultate').insert(newRezultat).select().single();
             if (error) throw error;
-            setRezultate(prev => [...prev, data as Rezultat]);
 
             if (suma != null && suma > 0) {
                 const newPlata: Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null; eveniment_id?: string | null } = {
@@ -308,14 +318,19 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                     eveniment_id: eveniment.id,
                 };
                 const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
-                if(plataError) throw plataError;
+                if (plataError) {
+                    // Compensating delete — menține consistența DB
+                    await supabase.from('rezultate').delete().eq('id', data.id);
+                    throw plataError;
+                }
                 setPlati(prev => [...prev, plataData as Plata]);
             }
+            // Actualizăm state local doar după ce ambele scrieri DB au reușit
+            setRezultate(prev => [...prev, data as Rezultat]);
             showSuccess("Succes", `Sportivul a fost înscris${suma != null && suma > 0 ? ' și taxa generată' : ''}.`);
             setFormState({ sportivId: '', rezultat: 'Participare', probe: [] });
             setSearchSportiv('');
         } catch (err) {
-            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
             showError("Eroare la înscriere", err);
         }
     };
@@ -339,23 +354,23 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
         const sportiv = sportivi.find(s => s.id === formState.sportivId);
         if (!sportiv) return null;
         const categorie = calculeazaCategorieStagiu(sportiv.data_nasterii, eveniment.data, sportiv.grad_actual_id, grade);
+        if (categorie === null) return { suma: null, categorie: 'Lipsă dată naștere', missingBirthDate: true };
         const suma = getTaxaStagiu(eveniment, categorie, preturiConfig);
         const etichetaCategorie: Record<string, string> = { copii: 'Copii (7-12 ani)', grade: 'Grade (13+)', centuri: 'Centuri Negre' };
-        return { suma, categorie: etichetaCategorie[categorie] || categorie };
+        return { suma, categorie: etichetaCategorie[categorie] || categorie, missingBirthDate: false };
     }, [formState.sportivId, eveniment, sportivi, grade, preturiConfig]);
 
-    // Mapă sportivId → Plata pentru participanți la acest eveniment
+    // Mapă sportivId → Plata pentru participanți la acest eveniment (strict match pe eveniment_id)
     const platiParticipanti = useMemo(() => {
         const map = new Map<string, Plata>();
         filteredData.plati
             .filter(p =>
                 p.tip === 'Taxa Stagiu' &&
-                (p.eveniment_id === eveniment.id ||
-                    (p.eveniment_id == null && rezultate.some(r => r.sportiv_id === p.sportiv_id)))
+                p.eveniment_id === eveniment.id   // strict match — evită contaminare cross-eveniment
             )
             .forEach(p => { if (p.sportiv_id) map.set(p.sportiv_id, p); });
         return map;
-    }, [filteredData.plati, eveniment.id, rezultate]);
+    }, [filteredData.plati, eveniment.id]);
 
     // Rânduri tabel participanți: combină rezultate cu plăți
     const randuriiParticipanti = useMemo(() => {
@@ -364,7 +379,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
             const sportiv = sportivi.find(s => s.id === r.sportiv_id);
             const plata = platiParticipanti.get(r.sportiv_id);
             const categorie = sportiv
-                ? calculeazaCategorieStagiu(sportiv.data_nasterii, eveniment.data, sportiv.grad_actual_id, grade)
+                ? (calculeazaCategorieStagiu(sportiv.data_nasterii, eveniment.data, sportiv.grad_actual_id, grade) ?? 'grade')
                 : 'grade';
             const dataInscriere = r.created_at
                 ? new Date(r.created_at).toLocaleDateString('ro-RO')
@@ -567,6 +582,7 @@ interface StagiiCompetitiiProps { type: 'Stagiu' | 'Competitie'; onBack: () => v
 export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ type, onBack, permissions }) => {
     const {
         setEvenimente,
+        setPlati,
         currentUser,
         filteredData
     } = useData();
@@ -588,15 +604,15 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
     const handleSave = async (evData: Omit<Eveniment, 'id'>) => {
         if (evToEdit) {
             const { data, error } = await supabase.from('evenimente').update(evData).eq('id', evToEdit.id).select().maybeSingle();
-            if (error) { 
-                console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
-                showError("Eroare la actualizare", error); 
+            if (error) {
+                showError("Eroare la actualizare", error);
+                throw error; // propagă eroarea — handleSubmit nu va închide formularul
             } else if (data) { setEvenimente(prev => prev.map(e => e.id === data.id ? data : e)); showSuccess("Succes", `${type} actualizat.`); }
         } else {
             const { data, error } = await supabase.from('evenimente').insert(evData).select().maybeSingle();
-            if (error) { 
-                console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
-                showError("Eroare la adăugare", error); 
+            if (error) {
+                showError("Eroare la adăugare", error);
+                throw error; // propagă eroarea — handleSubmit nu va închide formularul
             } else if (data) { setEvenimente(prev => [...prev, data]); showSuccess("Succes", `${type} adăugat.`); }
         }
     };
@@ -604,14 +620,15 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
     const confirmDelete = async (id: string) => {
         setIsDeleting(true);
         try {
+            await supabase.from('plati').delete().eq('eveniment_id', id);
             await supabase.from('rezultate').delete().eq('eveniment_id', id);
             await supabase.from('evenimente').delete().eq('id', id);
             setEvenimente(prev => prev.filter(e => e.id !== id));
+            setPlati(prev => prev.filter(p => p.eveniment_id !== id));
             if (selectedEvenimentId === id) setSelectedEvenimentId(null);
             showSuccess("Succes", `${type} și înscrierile asociate au fost șterse.`);
-        } catch(err) { 
-            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
-            showError("Eroare la ștergere", err); 
+        } catch(err) {
+            showError("Eroare la ștergere", err);
         }
         finally { setIsDeleting(false); setEvToDelete(null); }
     };

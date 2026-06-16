@@ -148,7 +148,7 @@ Ambele butoane `disabled` când `restanteRows.length === 0`.
 
 Suma totală (desktop, dreapta):
 ```
-hidden sm:block text-2xl md:text-3xl font-bold text-amber-400
+hidden sm:block text-2xl font-bold text-amber-400
 ```
 (amber în loc de emerald, deoarece restanțele sunt o valoare de alertă, nu de succes)
 
@@ -203,7 +203,7 @@ Layout intern card:
 <div className="flex items-start justify-between gap-2">
   <div className="min-w-0">
     <p className="text-white font-bold text-sm truncate">{numeSportiv}</p>
-    <p className="text-slate-400 text-xs mt-0.5">{nrFacturi} {nrFacturi === 1 ? 'factură' : 'facturi'} neachitate</p>
+    <p className="text-slate-400 text-xs mt-1">{nrFacturi} {nrFacturi === 1 ? 'factură' : 'facturi'} neachitate</p>
   </div>
   <p className="text-amber-400 font-bold text-sm whitespace-nowrap shrink-0">{formatSum(sumaTotala)}</p>
 </div>

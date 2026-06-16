@@ -162,8 +162,8 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         return Array.from(s).sort().reverse();
     }, [istoricPlatiDetaliat]);
 
-    // Luna curentă ca string YYYY-MM
-    const lunaCurenta = new Date().toISOString().slice(0, 7);
+    // Luna curentă ca string YYYY-MM — memoizată pentru a evita derivări stale la miezul nopții
+    const lunaCurenta = useMemo(() => new Date().toISOString().slice(0, 7), []);
 
     const raportLunarData = useMemo(() => {
         // Prioritizează luna curentă; dacă nu există date pentru ea, cade pe prima disponibilă
@@ -176,7 +176,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             p.data_emitere?.toString().startsWith(luna) && p.status !== 'Achitat'
         );
         return { incasari, restante, luna };
-    }, [selectedMonth, luniDisponibile, istoricPlatiDetaliat]);
+    }, [selectedMonth, luniDisponibile, istoricPlatiDetaliat, lunaCurenta]);
 
     const totalRestante = useMemo(() =>
         raportLunarData.restante.reduce((s, p) => s + (p.suma_datorata || 0), 0),

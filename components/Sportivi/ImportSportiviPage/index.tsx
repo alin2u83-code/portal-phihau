@@ -8,6 +8,7 @@ import { ImportStep, ImportResult, UnifiedRow } from './types';
 import { formatDateForDisplay } from './utils';
 import { Pas0Upload } from './Pas0Upload';
 import { Pas05Configurare } from './Pas05Configurare';
+import { WizardSteps } from './WizardSteps';
 import { Pas1Revizuire } from './Pas1Revizuire';
 import { ImportConfig, FieldComparison } from './types';
 import { COL_TO_DB, KNOWN_COLS } from './utils';
@@ -69,7 +70,8 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
 
         const fetchSportivi = async () => {
             try {
-                const { data, error } = await supabase.from('sportivi').select('id, nume, prenume, data_nasterii, cnp, email, telefon, gen, adresa, locul_nasterii, nr_legitimatie, cetatenia');
+                const { data, error } = await supabase.from('sportivi').select('id, nume, prenume, data_nasterii, cnp, email, telefon, gen, adresa, locul_nasterii, cetatenia');
+                if (error) toast.error(`Eroare la încărcarea sportivilor: ${error.message}`);
                 if (error) console.error("Eroare la preluarea sportivilor existenti:", error);
                 if (data) {
                     console.log("Sportivi existenti incarcati:", data.length);
@@ -594,12 +596,18 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
     };
 
     if (step === 2 && importResult) {
-        return <Pas2Raport importResult={importResult} onBack={onBack} />;
+        return (
+            <div className="space-y-0">
+                <WizardSteps current={2} />
+                <Pas2Raport importResult={importResult} onBack={onBack} />
+            </div>
+        );
     }
 
     if (step === 0.5) {
         return (
             <div className="space-y-4">
+                <WizardSteps current={0.5} />
                 {permissions.isFederationAdmin && (
                     <div className="bg-slate-800/60 border border-blue-500/30 rounded-xl p-4">
                         <label className="block text-sm font-medium text-blue-300 mb-2">
@@ -641,6 +649,8 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         const seVaImporta = validNouCount + activeAutoUpdates + selectedLooseCount;
 
         return (
+            <div className="space-y-0">
+            <WizardSteps current={1} />
             <Pas1Revizuire
                 unifiedRows={unifiedRows}
                 selectedIndices={selectedIndices}
@@ -697,11 +707,13 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 onBack={() => setStep(0.5)}
                 onCancelConfirm={() => setShowConfirm(false)}
             />
+            </div>
         );
     }
 
     return (
         <div className="space-y-4">
+            <WizardSteps current={0} />
             {permissions.isFederationAdmin && (
                 <div className="bg-slate-800/60 border border-blue-500/30 rounded-xl p-4">
                     <label className="block text-sm font-medium text-blue-300 mb-2">

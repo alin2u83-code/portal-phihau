@@ -1,4 +1,4 @@
-export type ImportStep = 0 | 1 | 2;
+export type ImportStep = 0 | 0.5 | 1 | 2;
 
 export interface ImportResult {
     adaugati: { id: string; nume: string; prenume: string; data_nasterii: string | null }[];
@@ -6,7 +6,23 @@ export interface ImportResult {
     omisi: { rand: number; nume: string; prenume: string; motiv: string }[];
 }
 
-export type RowStatus = 'NOU' | 'ACTUALIZARE_AUTO' | 'POSIBIL_DUPLICAT' | 'EROARE';
+export type RowStatus = 'NOU' | 'ACTUALIZARE_AUTO' | 'POSIBIL_DUPLICAT' | 'EROARE' | 'OMIS';
+
+export interface FieldComparison {
+    fieldKey: string;
+    label: string;
+    dbValue: string | null;
+    fileValue: string | null;
+    status: 'identical' | 'db_empty' | 'conflict';
+    selected: boolean;
+}
+
+export interface ImportConfig {
+    addNew: boolean;
+    updateExisting: boolean;
+    selectedColumns: string[];
+    allColumns: string[];
+}
 
 export interface UnifiedRow {
     originalIndex: number;
@@ -19,4 +35,5 @@ export interface UnifiedRow {
     existingSportiv?: any;
     looseIndex?: number;
     strictIndex?: number;
+    fieldComparisons?: FieldComparison[];
 }

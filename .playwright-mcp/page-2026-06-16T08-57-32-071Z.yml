@@ -1,0 +1,177 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e81]:
+            - generic [ref=e82] [cursor=pointer]:
+              - img [ref=e83]
+              - generic [ref=e89]: Activități Naționale
+              - img [ref=e90]
+            - generic [ref=e6163]:
+              - generic [ref=e6164] [cursor=pointer]: Competiții
+              - generic [ref=e6166] [cursor=pointer]: Stagii
+          - generic [ref=e93] [cursor=pointer]:
+            - img [ref=e94]
+            - generic [ref=e96]: Financiar & Plăți
+            - img [ref=e97]
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e117]: Setări & Admin
+            - img [ref=e118]
+          - generic [ref=e120] [cursor=pointer]:
+            - img [ref=e122]
+            - generic [ref=e126]: Notificări
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e131]: SMS
+          - generic [ref=e132] [cursor=pointer]:
+            - img [ref=e134]
+            - generic [ref=e137]: Cereri Înscriere
+          - generic [ref=e138] [cursor=pointer]:
+            - img [ref=e140]
+            - generic [ref=e143]: Istoric Activitate
+        - button "Scroll jos" [ref=e144] [cursor=pointer]:
+          - img [ref=e145]
+      - generic [ref=e147]:
+        - button "Tema" [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+          - generic [ref=e156]: Tema
+        - generic [ref=e158]:
+          - generic [ref=e159]: AL
+          - generic [ref=e160]:
+            - paragraph [ref=e161]: LUNGU ALIN MIHAI
+            - text: Admin Club
+          - button "Deconectare" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+  - button "Restrânge meniul" [ref=e166] [cursor=pointer]:
+    - img [ref=e167]
+  - banner [ref=e169]:
+    - navigation "Navigare" [ref=e171]:
+      - heading "Competiții" [level=1] [ref=e6190]
+    - generic [ref=e173]:
+      - button "Temă" [ref=e175] [cursor=pointer]:
+        - img [ref=e176]
+        - generic [ref=e182]: Temă
+      - button [ref=e184] [cursor=pointer]:
+        - img [ref=e185]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e190] [cursor=pointer]:
+        - generic [ref=e191]: AL
+        - paragraph [ref=e193]:
+          - text: ALIN MIHAI
+          - generic [ref=e194]: "[ADMIN CLUB]"
+        - img [ref=e195]
+  - main [ref=e197]:
+    - generic [ref=e6391]:
+      - generic [ref=e6392]:
+        - button [ref=e6393] [cursor=pointer]:
+          - img [ref=e6394]
+        - generic [ref=e6396]:
+          - heading "Campionat National de Co Vo Dao" [level=2] [ref=e6397]
+          - generic [ref=e6398]:
+            - generic [ref=e6399]: CN Co Vo Dao (Arme)
+            - generic [ref=e6400]: Finalizată
+            - generic [ref=e6401]: 06.12.2025 – 07.12.2025
+            - generic [ref=e6402]: Sala Polivalenta Onesti
+        - button "Refresh" [ref=e6403] [cursor=pointer]:
+          - img [ref=e6404]
+      - generic [ref=e6407]:
+        - button "Înscrieri (0)" [ref=e6408] [cursor=pointer]:
+          - img [ref=e6409]
+          - text: Înscrieri
+          - generic [ref=e6411]: (0)
+        - button "Raport" [ref=e6412] [cursor=pointer]
+        - button "Categorii (88)" [ref=e6413] [cursor=pointer]:
+          - img [ref=e6414]
+          - text: Categorii
+          - generic [ref=e6416]: (88)
+        - button "Refresh" [ref=e6417] [cursor=pointer]:
+          - img [ref=e6418]
+      - generic [ref=e6420]:
+        - generic [ref=e6421]:
+          - button [ref=e6422] [cursor=pointer]:
+            - img [ref=e6423]
+          - generic [ref=e6425]:
+            - heading "Înscriere club" [level=2] [ref=e6426]
+            - paragraph [ref=e6427]: Campionat National de Co Vo Dao · 0 sportivi selectati
+          - generic [ref=e6429]: 3 necesita atentie
+        - generic [ref=e6430]:
+          - button "Toate" [ref=e6431] [cursor=pointer]
+          - button "Nefinalizate" [ref=e6432] [cursor=pointer]
+        - generic [ref=e6433]:
+          - button "Thao Lo Individual (arme) Thao Lo Individual (arme) 0/0 completate Configurează → Opțiuni probă" [ref=e6434] [cursor=pointer]:
+            - generic [ref=e6436]:
+              - generic [ref=e6437]:
+                - paragraph [ref=e6438]: Thao Lo Individual (arme)
+                - paragraph [ref=e6439]: Thao Lo Individual (arme)
+              - img [ref=e6441]
+            - generic [ref=e6444]:
+              - generic [ref=e6445]: 0/0 completate
+              - generic [ref=e6446]:
+                - generic [ref=e6447]: Configurează →
+                - button "Opțiuni probă" [ref=e6449]: ⋮
+          - button "Song Luyen (perechi) Song Luyen pe Echipe (arme) 0/17 completate 17 categorii (7 excluse auto) Configurează → Opțiuni probă" [ref=e6450] [cursor=pointer]:
+            - generic [ref=e6452]:
+              - generic [ref=e6453]:
+                - paragraph [ref=e6454]: Song Luyen (perechi)
+                - paragraph [ref=e6455]: Song Luyen pe Echipe (arme)
+              - img [ref=e6457]
+            - generic [ref=e6460]:
+              - generic [ref=e6461]: 0/17 completate
+              - generic [ref=e6462]:
+                - generic [ref=e6463]: 17 categorii
+                - generic [ref=e6464]: (7 excluse auto)
+              - generic [ref=e6466]:
+                - generic [ref=e6467]: Configurează →
+                - button "Opțiuni probă" [ref=e6469]: ⋮
+          - button "Giao Dau (lupte) Giao Dau Individual (arme) 0/1 completate 1 categorie Configurează → Opțiuni probă" [ref=e6470] [cursor=pointer]:
+            - generic [ref=e6472]:
+              - generic [ref=e6473]:
+                - paragraph [ref=e6474]: Giao Dau (lupte)
+                - paragraph [ref=e6475]: Giao Dau Individual (arme)
+              - img [ref=e6477]
+            - generic [ref=e6480]:
+              - generic [ref=e6481]: 0/1 completate
+              - generic [ref=e6483]: 1 categorie
+              - generic [ref=e6485]:
+                - generic [ref=e6486]: Configurează →
+                - button "Opțiuni probă" [ref=e6488]: ⋮
+        - generic [ref=e6489]:
+          - paragraph [ref=e6490]: "Atenție — probe incomplete:"
+          - paragraph [ref=e6491]: 3 probe incomplete. Poți finaliza cu categorii parțiale — sportivii neconfigurati nu vor fi înscriși.
+        - generic [ref=e6494]:
+          - generic [ref=e6495]: 3 probe incomplete
+          - button "Finalizează parțial" [ref=e6496] [cursor=pointer]
+  - contentinfo [ref=e6153]:
+    - paragraph [ref=e6154]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e6155] [cursor=pointer]:
+      - img [ref=e6156]
+      - generic [ref=e6159]: Asistent AI

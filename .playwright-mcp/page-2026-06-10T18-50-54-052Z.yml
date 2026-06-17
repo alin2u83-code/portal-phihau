@@ -1,0 +1,379 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Federație
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e78]:
+            - generic [ref=e79] [cursor=pointer]:
+              - img [ref=e80]
+              - generic [ref=e86]: Examene
+              - img [ref=e87]
+            - generic [ref=e987]:
+              - generic [ref=e988] [cursor=pointer]: Sesiuni Examene
+              - generic [ref=e990] [cursor=pointer]: Rapoarte Examen
+          - generic [ref=e90] [cursor=pointer]:
+            - img [ref=e91]
+            - generic [ref=e97]: Activități Naționale
+            - img [ref=e98]
+          - generic [ref=e101] [cursor=pointer]:
+            - img [ref=e102]
+            - generic [ref=e105]: Setări & Admin
+            - img [ref=e106]
+          - generic [ref=e108] [cursor=pointer]:
+            - img [ref=e110]
+            - generic [ref=e112]: Rapoarte
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e115]
+            - generic [ref=e119]: Notificări
+          - generic [ref=e120] [cursor=pointer]:
+            - img [ref=e122]
+            - generic [ref=e124]: SMS
+          - generic [ref=e125] [cursor=pointer]:
+            - img [ref=e127]
+            - generic [ref=e130]: Cereri Înscriere
+          - generic [ref=e131] [cursor=pointer]:
+            - img [ref=e133]
+            - generic [ref=e136]: Istoric Activitate
+          - generic [ref=e137] [cursor=pointer]:
+            - img [ref=e139]
+            - generic [ref=e142]: Admin Dashboard
+          - generic [ref=e143] [cursor=pointer]:
+            - img [ref=e145]
+            - generic [ref=e151]: Button Catalog
+        - button "Scroll jos" [ref=e152] [cursor=pointer]:
+          - img [ref=e153]
+      - generic [ref=e155]:
+        - button "Tema" [ref=e157] [cursor=pointer]:
+          - img [ref=e158]
+          - generic [ref=e164]: Tema
+        - generic [ref=e166]:
+          - generic [ref=e167]: AL
+          - generic [ref=e168]:
+            - paragraph [ref=e169]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e170] [cursor=pointer]:
+            - img [ref=e171]
+  - button "Restrânge meniul" [ref=e174] [cursor=pointer]:
+    - img [ref=e175]
+  - banner [ref=e177]:
+    - navigation "Navigare" [ref=e179]:
+      - heading "Examene" [level=1] [ref=e10305]
+    - generic [ref=e181]:
+      - button "Temă" [ref=e183] [cursor=pointer]:
+        - img [ref=e184]
+        - generic [ref=e190]: Temă
+      - button [ref=e192] [cursor=pointer]:
+        - img [ref=e193]
+      - button "AL ALIN MIHAI [SUPER ADMIN]" [ref=e198] [cursor=pointer]:
+        - generic [ref=e199]: AL
+        - paragraph [ref=e201]:
+          - text: ALIN MIHAI
+          - generic [ref=e202]: "[SUPER ADMIN]"
+        - img [ref=e203]
+  - main [ref=e205]:
+    - generic [ref=e10307]:
+      - button "Înapoi la listă" [ref=e10308] [cursor=pointer]:
+        - img [ref=e10309]
+        - text: Înapoi la listă
+      - generic [ref=e10311]:
+        - generic [ref=e10312]:
+          - generic [ref=e10313]:
+            - heading "Iasi - 10.06.2026" [level=3] [ref=e10314]
+            - paragraph [ref=e10315]: "Comisia: Lungu Alin, Mardare Alexandra"
+            - text: Programat
+          - generic [ref=e10316]:
+            - button "Ghid import XLS" [ref=e10317] [cursor=pointer]:
+              - img [ref=e10318]
+            - button "Import Sportivi" [ref=e10321] [cursor=pointer]:
+              - img [ref=e10322]
+              - text: Import Sportivi
+            - button "Import XLS" [ref=e10325] [cursor=pointer]:
+              - img [ref=e10326]
+              - text: Import XLS
+            - button "Export Fișe" [ref=e10329] [cursor=pointer]:
+              - img [ref=e10330]
+              - text: Export Fișe
+            - button "Editează" [ref=e10332] [cursor=pointer]:
+              - img [ref=e10333]
+              - text: Editează
+            - button "Finalizează Examen" [ref=e10336] [cursor=pointer]
+        - generic [ref=e10337]:
+          - generic [ref=e10338]:
+            - generic [ref=e10340]:
+              - heading "Înscriere Participanți" [level=3] [ref=e10341]
+              - paragraph [ref=e10342]: Adaugă sportivi individual sau selectează mai mulți odată
+            - generic [ref=e10343]:
+              - button "Adaugă Individual" [ref=e10344] [cursor=pointer]:
+                - img [ref=e10345]
+                - text: Adaugă Individual
+              - button "Adaugă Multipli" [ref=e10346] [cursor=pointer]:
+                - img [ref=e10347]
+                - text: Adaugă Multipli
+          - generic [ref=e10348]:
+            - generic [ref=e10349]:
+              - paragraph [ref=e10350]: "0"
+              - paragraph [ref=e10351]: Admiși
+            - generic [ref=e10352]:
+              - paragraph [ref=e10353]: "0"
+              - paragraph [ref=e10354]: În așteptare
+            - generic [ref=e10355]:
+              - paragraph [ref=e10356]: "0"
+              - paragraph [ref=e10357]: Respinși
+          - generic [ref=e10358]:
+            - generic [ref=e10359]:
+              - heading "Participanți Înscriși11" [level=3] [ref=e10360]
+              - generic [ref=e10361]:
+                - button "Export Fișe" [ref=e10362] [cursor=pointer]:
+                  - img [ref=e10363]
+                  - text: Export Fișe
+                - button "Admite Toți" [ref=e10365] [cursor=pointer]
+            - generic [ref=e10366]:
+              - table [ref=e10368]:
+                - rowgroup [ref=e10369]:
+                  - row "Nume Sportiv Grad Actual Grad Vizat Status Plată Rezultat Acțiuni" [ref=e10370]:
+                    - columnheader "Nume Sportiv" [ref=e10371] [cursor=pointer]
+                    - columnheader "Grad Actual" [ref=e10372] [cursor=pointer]
+                    - columnheader "Grad Vizat" [ref=e10373] [cursor=pointer]
+                    - columnheader "Status Plată" [ref=e10374] [cursor=pointer]
+                    - columnheader "Rezultat" [ref=e10375] [cursor=pointer]
+                    - columnheader "Acțiuni" [ref=e10376] [cursor=pointer]
+                - rowgroup [ref=e10377]:
+                  - row "BALMUS IUSTINA C.V. 1 Câp Alb C.V. 2 Câp Alb Achitat În așteptare" [ref=e10378]:
+                    - cell "BALMUS IUSTINA" [ref=e10379]:
+                      - paragraph [ref=e10380] [cursor=pointer]: BALMUS IUSTINA
+                    - cell "C.V. 1 Câp Alb" [ref=e10381]
+                    - cell "C.V. 2 Câp Alb" [ref=e10382]
+                    - cell "Achitat" [ref=e10383]:
+                      - generic [ref=e10385]: Achitat
+                    - cell "În așteptare" [ref=e10386]:
+                      - generic [ref=e10388]:
+                        - combobox [ref=e10389]:
+                          - option "În așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e10390]:
+                      - generic [ref=e10391]:
+                        - button "Modifică gradul vizat" [ref=e10392] [cursor=pointer]:
+                          - img [ref=e10393]
+                        - button "Retrage înscriere" [ref=e10396] [cursor=pointer]:
+                          - img [ref=e10397]
+                  - row "POPOVICI DIANA ANASTASIA C.V. 1 Câp Alb C.V. 2 Câp Alb Achitat În așteptare" [ref=e10400]:
+                    - cell "POPOVICI DIANA ANASTASIA" [ref=e10401]:
+                      - paragraph [ref=e10402] [cursor=pointer]: POPOVICI DIANA ANASTASIA
+                    - cell "C.V. 1 Câp Alb" [ref=e10403]
+                    - cell "C.V. 2 Câp Alb" [ref=e10404]
+                    - cell "Achitat" [ref=e10405]:
+                      - generic [ref=e10407]: Achitat
+                    - cell "În așteptare" [ref=e10408]:
+                      - generic [ref=e10410]:
+                        - combobox [ref=e10411]:
+                          - option "În așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e10412]:
+                      - generic [ref=e10413]:
+                        - button "Modifică gradul vizat" [ref=e10414] [cursor=pointer]:
+                          - img [ref=e10415]
+                        - button "Retrage înscriere" [ref=e10418] [cursor=pointer]:
+                          - img [ref=e10419]
+                  - row "SFICA DIANA ANDREEA C.V. 1 Câp Alb C.V. 2 Câp Alb Neachitat În așteptare" [ref=e10422]:
+                    - cell "SFICA DIANA ANDREEA" [ref=e10423]:
+                      - paragraph [ref=e10424] [cursor=pointer]: SFICA DIANA ANDREEA
+                    - cell "C.V. 1 Câp Alb" [ref=e10425]
+                    - cell "C.V. 2 Câp Alb" [ref=e10426]
+                    - cell "Neachitat" [ref=e10427]:
+                      - generic [ref=e10429]: Neachitat
+                    - cell "În așteptare" [ref=e10430]:
+                      - generic [ref=e10432]:
+                        - combobox [ref=e10433]:
+                          - option "În așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e10434]:
+                      - generic [ref=e10435]:
+                        - button "Modifică gradul vizat" [ref=e10436] [cursor=pointer]:
+                          - img [ref=e10437]
+                        - button "Retrage înscriere" [ref=e10440] [cursor=pointer]:
+                          - img [ref=e10441]
+                  - row "AMORARITI ALEXANDRU Centura Violet C.V. 1 Câp Alb Neachitat În așteptare" [ref=e10444]:
+                    - cell "AMORARITI ALEXANDRU" [ref=e10445]:
+                      - paragraph [ref=e10446] [cursor=pointer]: AMORARITI ALEXANDRU
+                    - cell "Centura Violet" [ref=e10447]
+                    - cell "C.V. 1 Câp Alb" [ref=e10448]
+                    - cell "Neachitat" [ref=e10449]:
+                      - generic [ref=e10451]: Neachitat
+                    - cell "În așteptare" [ref=e10452]:
+                      - generic [ref=e10454]:
+                        - combobox [ref=e10455]:
+                          - option "În așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e10456]:
+                      - generic [ref=e10457]:
+                        - button "Modifică gradul vizat" [ref=e10458] [cursor=pointer]:
+                          - img [ref=e10459]
+                        - button "Retrage înscriere" [ref=e10462] [cursor=pointer]:
+                          - img [ref=e10463]
+                  - row "ȘTEFĂNESCU EMANUEL 4 Câp Roșu Centura Violet Achitat În așteptare" [ref=e10466]:
+                    - cell "ȘTEFĂNESCU EMANUEL" [ref=e10467]:
+                      - paragraph [ref=e10468] [cursor=pointer]: ȘTEFĂNESCU EMANUEL
+                    - cell "4 Câp Roșu" [ref=e10469]
+                    - cell "Centura Violet" [ref=e10470]
+                    - cell "Achitat" [ref=e10471]:
+                      - generic [ref=e10473]: Achitat
+                    - cell "În așteptare" [ref=e10474]:
+                      - generic [ref=e10476]:
+                        - combobox [ref=e10477]:
+                          - option "În așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e10478]:
+                      - generic [ref=e10479]:
+                        - button "Modifică gradul vizat" [ref=e10480] [cursor=pointer]:
+                          - img [ref=e10481]
+                        - button "Retrage înscriere" [ref=e10484] [cursor=pointer]:
+                          - img [ref=e10485]
+                  - row "BALMUS VERONICA 3 Câp Roșu 4 Câp Roșu Achitat În așteptare" [ref=e10488]:
+                    - cell "BALMUS VERONICA" [ref=e10489]:
+                      - paragraph [ref=e10490] [cursor=pointer]: BALMUS VERONICA
+                    - cell "3 Câp Roșu" [ref=e10491]
+                    - cell "4 Câp Roșu" [ref=e10492]
+                    - cell "Achitat" [ref=e10493]:
+                      - generic [ref=e10495]: Achitat
+                    - cell "În așteptare" [ref=e10496]:
+                      - generic [ref=e10498]:
+                        - combobox [ref=e10499]:
+                          - option "În așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e10500]:
+                      - generic [ref=e10501]:
+                        - button "Modifică gradul vizat" [ref=e10502] [cursor=pointer]:
+                          - img [ref=e10503]
+                        - button "Retrage înscriere" [ref=e10506] [cursor=pointer]:
+                          - img [ref=e10507]
+                  - row "MANDIA MARIA 3 Câp Roșu 4 Câp Roșu Achitat În așteptare" [ref=e10510]:
+                    - cell "MANDIA MARIA" [ref=e10511]:
+                      - paragraph [ref=e10512] [cursor=pointer]: MANDIA MARIA
+                    - cell "3 Câp Roșu" [ref=e10513]
+                    - cell "4 Câp Roșu" [ref=e10514]
+                    - cell "Achitat" [ref=e10515]:
+                      - generic [ref=e10517]: Achitat
+                    - cell "În așteptare" [ref=e10518]:
+                      - generic [ref=e10520]:
+                        - combobox [ref=e10521]:
+                          - option "În așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e10522]:
+                      - generic [ref=e10523]:
+                        - button "Modifică gradul vizat" [ref=e10524] [cursor=pointer]:
+                          - img [ref=e10525]
+                        - button "Retrage înscriere" [ref=e10528] [cursor=pointer]:
+                          - img [ref=e10529]
+                  - row "SUMĂNARIU DRAGOȘ ȘTEFAN 2 Câp Roșu 3 Câp Roșu Achitat În așteptare" [ref=e10532]:
+                    - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e10533]:
+                      - paragraph [ref=e10534] [cursor=pointer]: SUMĂNARIU DRAGOȘ ȘTEFAN
+                    - cell "2 Câp Roșu" [ref=e10535]
+                    - cell "3 Câp Roșu" [ref=e10536]
+                    - cell "Achitat" [ref=e10537]:
+                      - generic [ref=e10539]: Achitat
+                    - cell "În așteptare" [ref=e10540]:
+                      - generic [ref=e10542]:
+                        - combobox [ref=e10543]:
+                          - option "În așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e10544]:
+                      - generic [ref=e10545]:
+                        - button "Modifică gradul vizat" [ref=e10546] [cursor=pointer]:
+                          - img [ref=e10547]
+                        - button "Retrage înscriere" [ref=e10550] [cursor=pointer]:
+                          - img [ref=e10551]
+                  - row "ȘTEICĂ VICTOR GABRIEL 2 Câp Roșu 3 Câp Roșu Achitat În așteptare" [ref=e10554]:
+                    - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e10555]:
+                      - paragraph [ref=e10556] [cursor=pointer]: ȘTEICĂ VICTOR GABRIEL
+                    - cell "2 Câp Roșu" [ref=e10557]
+                    - cell "3 Câp Roșu" [ref=e10558]
+                    - cell "Achitat" [ref=e10559]:
+                      - generic [ref=e10561]: Achitat
+                    - cell "În așteptare" [ref=e10562]:
+                      - generic [ref=e10564]:
+                        - combobox [ref=e10565]:
+                          - option "În așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e10566]:
+                      - generic [ref=e10567]:
+                        - button "Modifică gradul vizat" [ref=e10568] [cursor=pointer]:
+                          - img [ref=e10569]
+                        - button "Retrage înscriere" [ref=e10572] [cursor=pointer]:
+                          - img [ref=e10573]
+                  - row "DANAILA HORATIU 1 Câp Galben 1 Câp Roșu Neachitat În așteptare" [ref=e10576]:
+                    - cell "DANAILA HORATIU" [ref=e10577]:
+                      - paragraph [ref=e10578] [cursor=pointer]: DANAILA HORATIU
+                    - cell "1 Câp Galben" [ref=e10579]
+                    - cell "1 Câp Roșu" [ref=e10580]
+                    - cell "Neachitat" [ref=e10581]:
+                      - generic [ref=e10583]: Neachitat
+                    - cell "În așteptare" [ref=e10584]:
+                      - generic [ref=e10586]:
+                        - combobox [ref=e10587]:
+                          - option "În așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e10588]:
+                      - generic [ref=e10589]:
+                        - button "Modifică gradul vizat" [ref=e10590] [cursor=pointer]:
+                          - img [ref=e10591]
+                        - button "Retrage înscriere" [ref=e10594] [cursor=pointer]:
+                          - img [ref=e10595]
+              - generic [ref=e10598]:
+                - button "Anterior" [disabled] [ref=e10599]
+                - generic [ref=e10600]: Pagina 1 din 2
+                - button "Următor" [ref=e10601] [cursor=pointer]
+  - contentinfo [ref=e975]:
+    - paragraph [ref=e976]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e977] [cursor=pointer]:
+      - img [ref=e978]
+      - generic [ref=e1305]: Asistent AI

@@ -1,0 +1,389 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e9]
+        - generic [ref=e11]:
+          - generic [ref=e12]: Qwan Ki Do
+          - generic [ref=e13]: Management
+      - button "Context Activ Federație" [ref=e17] [cursor=pointer]:
+        - img [ref=e19]
+        - generic [ref=e22]:
+          - paragraph [ref=e23]: Context Activ
+          - paragraph [ref=e24]: Federație
+        - img [ref=e25]
+      - generic [ref=e27]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e28]:
+          - generic [ref=e29] [cursor=pointer]:
+            - img [ref=e31]
+            - generic [ref=e36]: Dashboard
+          - generic [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+            - generic [ref=e44]: Gestiune Membri
+            - img [ref=e45]
+          - generic [ref=e47]:
+            - generic [ref=e48] [cursor=pointer]:
+              - img [ref=e49]
+              - generic [ref=e55]: Examene
+              - img [ref=e56]
+            - generic [ref=e58]:
+              - generic [ref=e59] [cursor=pointer]: Sesiuni Examene
+              - generic [ref=e61] [cursor=pointer]: Rapoarte Examen
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e71]: Activități Naționale
+            - img [ref=e72]
+          - generic [ref=e75] [cursor=pointer]:
+            - img [ref=e76]
+            - generic [ref=e79]: Setări & Admin
+            - img [ref=e80]
+          - generic [ref=e82] [cursor=pointer]:
+            - img [ref=e84]
+            - generic [ref=e86]: Rapoarte
+          - generic [ref=e87] [cursor=pointer]:
+            - img [ref=e89]
+            - generic [ref=e93]: Notificări
+          - generic [ref=e94] [cursor=pointer]:
+            - img [ref=e96]
+            - generic [ref=e98]: SMS
+          - generic [ref=e99] [cursor=pointer]:
+            - img [ref=e101]
+            - generic [ref=e104]: Cereri Înscriere
+          - generic [ref=e105] [cursor=pointer]:
+            - img [ref=e107]
+            - generic [ref=e110]: Istoric Activitate
+          - generic [ref=e111] [cursor=pointer]:
+            - img [ref=e113]
+            - generic [ref=e116]: Admin Dashboard
+          - generic [ref=e117] [cursor=pointer]:
+            - img [ref=e119]
+            - generic [ref=e125]: Button Catalog
+        - button "Scroll jos" [ref=e126] [cursor=pointer]:
+          - img [ref=e127]
+      - generic [ref=e129]:
+        - button "Tema" [ref=e131] [cursor=pointer]:
+          - img [ref=e132]
+          - generic [ref=e138]: Tema
+        - generic [ref=e140]:
+          - generic [ref=e141]: AL
+          - generic [ref=e142]:
+            - paragraph [ref=e143]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e144] [cursor=pointer]:
+            - img [ref=e145]
+  - button "Restrânge meniul" [ref=e148] [cursor=pointer]:
+    - img [ref=e149]
+  - banner [ref=e151]:
+    - navigation "Navigare" [ref=e153]:
+      - heading "Examene" [level=1] [ref=e154]
+    - generic [ref=e155]:
+      - button "Temă" [ref=e157] [cursor=pointer]:
+        - img [ref=e158]
+        - generic [ref=e164]: Temă
+      - button [ref=e166] [cursor=pointer]:
+        - img [ref=e167]
+      - button "AL ALIN MIHAI [SUPER ADMIN]" [ref=e172] [cursor=pointer]:
+        - generic [ref=e173]: AL
+        - paragraph [ref=e175]:
+          - text: ALIN MIHAI
+          - generic [ref=e176]: "[SUPER ADMIN]"
+        - img [ref=e177]
+  - main [ref=e179]:
+    - generic [ref=e182]:
+      - button "Meniu" [ref=e183] [cursor=pointer]:
+        - img [ref=e184]
+        - text: Meniu
+      - generic [ref=e186]:
+        - heading "Gestiune Sesiuni Examen" [level=1] [ref=e187]
+        - generic [ref=e188]:
+          - button "Generează Factură Examen" [ref=e189] [cursor=pointer]:
+            - img [ref=e190]
+            - text: Generează Factură Examen
+          - button "Ghid Import" [ref=e193] [cursor=pointer]:
+            - img [ref=e194]
+            - text: Ghid Import
+          - button "Import Bulk Examen" [ref=e197] [cursor=pointer]:
+            - img [ref=e198]
+            - text: Import Bulk Examen
+          - button "Adaugă Sesiune" [ref=e201] [cursor=pointer]:
+            - img [ref=e202]
+            - text: Adaugă Sesiune
+      - generic [ref=e203]:
+        - generic [ref=e204]:
+          - generic [ref=e205]:
+            - generic [ref=e206]:
+              - generic [ref=e207]: De la — Lună
+              - combobox [ref=e208]:
+                - option "Orice lună" [selected]
+                - option "Ianuarie"
+                - option "Februarie"
+                - option "Martie"
+                - option "Aprilie"
+                - option "Mai"
+                - option "Iunie"
+                - option "Iulie"
+                - option "August"
+                - option "Septembrie"
+                - option "Octombrie"
+                - option "Noiembrie"
+                - option "Decembrie"
+            - generic [ref=e209]:
+              - generic [ref=e210]: De la — An
+              - combobox [ref=e211]:
+                - option "Orice an"
+                - option "2021"
+                - option "2022"
+                - option "2023" [selected]
+                - option "2024"
+                - option "2025"
+                - option "2026"
+                - option "2027"
+                - option "2028"
+          - generic [ref=e213]: —
+          - generic [ref=e214]:
+            - generic [ref=e215]:
+              - generic [ref=e216]: Până la — Lună
+              - combobox [ref=e217]:
+                - option "Orice lună" [selected]
+                - option "Ianuarie"
+                - option "Februarie"
+                - option "Martie"
+                - option "Aprilie"
+                - option "Mai"
+                - option "Iunie"
+                - option "Iulie"
+                - option "August"
+                - option "Septembrie"
+                - option "Octombrie"
+                - option "Noiembrie"
+                - option "Decembrie"
+            - generic [ref=e218]:
+              - generic [ref=e219]: Până la — An
+              - combobox [ref=e220]:
+                - option "Orice an" [selected]
+                - option "2021"
+                - option "2022"
+                - option "2023"
+                - option "2024"
+                - option "2025"
+                - option "2026"
+                - option "2027"
+                - option "2028"
+          - button "Resetează filtrele de perioadă" [ref=e1201] [cursor=pointer]
+        - generic [ref=e1202]: "Interval activ: Ianuarie 2023 → prezent"
+        - generic [ref=e221]:
+          - generic [ref=e222]: "Rapid:"
+          - button "Ultimele 6 luni" [ref=e223] [cursor=pointer]
+          - button "Anul acesta" [ref=e224] [cursor=pointer]
+          - button "Anul trecut" [ref=e225] [cursor=pointer]
+      - generic [ref=e226]:
+        - generic [ref=e227]:
+          - generic [ref=e228]: Filtrează după locație
+          - generic [ref=e229]:
+            - combobox [ref=e230]:
+              - option "Toate locațiile" [selected]
+              - option "Iasi"
+              - option "Bacau"
+              - option "Falticeni"
+            - generic:
+              - img
+        - generic [ref=e231]:
+          - generic [ref=e232]: Filtrează după club
+          - generic [ref=e233]:
+            - combobox [ref=e234]:
+              - option "Toate cluburile" [selected]
+              - option "Club Bogdan"
+              - option "Federația Română de Qwan Ki Do"
+              - option "Thoi Son Brasov"
+              - option "Am Duong"
+              - option "Long Ho Cluj"
+              - option "C.S. Phi Hau"
+              - option "Kim Long Dao Falticeni"
+              - option "Hong Ha"
+              - option "Hâc Long Dao Brașov"
+              - option "ACS Phuong Bao"
+              - option "Long Dao"
+            - generic:
+              - img
+        - generic [ref=e235]:
+          - generic [ref=e236]: Filtrează după status
+          - generic [ref=e237]:
+            - combobox [ref=e238]:
+              - option "Toate statusurile" [selected]
+              - option "Programat"
+              - option "Finalizat"
+            - generic:
+              - img
+      - generic [ref=e239]:
+        - generic [ref=e240]:
+          - generic [ref=e241]:
+            - generic [ref=e242]:
+              - generic [ref=e243]: Finalizat
+              - generic [ref=e244]: 11.06.2026
+            - heading "Falticeni" [level=3] [ref=e245]
+            - paragraph [ref=e246]: Kim Long Dao Falticeni
+          - generic [ref=e247]:
+            - generic [ref=e248]: 61 participanți
+            - generic [ref=e249]:
+              - button "Vezi Detalii" [ref=e250] [cursor=pointer]
+              - button [ref=e251] [cursor=pointer]:
+                - img [ref=e252]
+              - button [ref=e255] [cursor=pointer]:
+                - img [ref=e256]
+        - generic [ref=e259]:
+          - generic [ref=e260]:
+            - generic [ref=e261]:
+              - generic [ref=e262]: Finalizat
+              - generic [ref=e263]: 10.06.2026
+            - heading "Iasi" [level=3] [ref=e264]
+            - paragraph [ref=e265]: C.S. Phi Hau
+          - generic [ref=e266]:
+            - generic [ref=e267]: 11 participanți
+            - generic [ref=e268]:
+              - button "Vezi Detalii" [ref=e269] [cursor=pointer]
+              - button [ref=e270] [cursor=pointer]:
+                - img [ref=e271]
+              - button [ref=e274] [cursor=pointer]:
+                - img [ref=e275]
+        - generic [ref=e278]:
+          - generic [ref=e279]:
+            - generic [ref=e280]:
+              - generic [ref=e281]: Finalizat
+              - generic [ref=e282]: 14.01.2026
+            - heading "Falticeni" [level=3] [ref=e283]
+            - paragraph [ref=e284]: Kim Long Dao Falticeni
+          - generic [ref=e285]:
+            - generic [ref=e286]: 0 participanți
+            - generic [ref=e287]:
+              - button "Vezi Detalii" [ref=e288] [cursor=pointer]
+              - button [ref=e289] [cursor=pointer]:
+                - img [ref=e290]
+              - button [ref=e293] [cursor=pointer]:
+                - img [ref=e294]
+        - generic [ref=e297]:
+          - generic [ref=e298]:
+            - generic [ref=e299]:
+              - generic [ref=e300]: Finalizat
+              - generic [ref=e301]: 18.12.2025
+            - heading "Iasi" [level=3] [ref=e302]
+            - paragraph [ref=e303]: C.S. Phi Hau
+          - generic [ref=e304]:
+            - generic [ref=e305]: 17 participanți
+            - generic [ref=e306]:
+              - button "Vezi Detalii" [ref=e307] [cursor=pointer]
+              - button [ref=e308] [cursor=pointer]:
+                - img [ref=e309]
+              - button [ref=e312] [cursor=pointer]:
+                - img [ref=e313]
+        - generic [ref=e316]:
+          - generic [ref=e317]:
+            - generic [ref=e318]:
+              - generic [ref=e319]: Finalizat
+              - generic [ref=e320]: 08.07.2025
+            - heading "Iasi" [level=3] [ref=e321]
+            - paragraph [ref=e322]: C.S. Phi Hau
+          - generic [ref=e323]:
+            - generic [ref=e324]: 3 participanți
+            - generic [ref=e325]:
+              - button "Vezi Detalii" [ref=e326] [cursor=pointer]
+              - button [ref=e327] [cursor=pointer]:
+                - img [ref=e328]
+              - button [ref=e331] [cursor=pointer]:
+                - img [ref=e332]
+        - generic [ref=e335]:
+          - generic [ref=e336]:
+            - generic [ref=e337]:
+              - generic [ref=e338]: Programat
+              - generic [ref=e339]: 17.06.2025
+            - heading "Iasi" [level=3] [ref=e340]
+            - paragraph [ref=e341]: C.S. Phi Hau
+          - generic [ref=e342]:
+            - generic [ref=e343]: 25 participanți
+            - generic [ref=e344]:
+              - button "Vezi Detalii" [ref=e345] [cursor=pointer]
+              - button [ref=e346] [cursor=pointer]:
+                - img [ref=e347]
+              - button [ref=e350] [cursor=pointer]:
+                - img [ref=e351]
+        - generic [ref=e354]:
+          - generic [ref=e355]:
+            - generic [ref=e356]:
+              - generic [ref=e357]: Programat
+              - generic [ref=e358]: 11.06.2025
+            - heading "Falticeni" [level=3] [ref=e359]
+            - paragraph [ref=e360]: Kim Long Dao Falticeni
+          - generic [ref=e361]:
+            - generic [ref=e362]: 0 participanți
+            - generic [ref=e363]:
+              - button "Vezi Detalii" [ref=e364] [cursor=pointer]
+              - button [ref=e365] [cursor=pointer]:
+                - img [ref=e366]
+              - button [ref=e369] [cursor=pointer]:
+                - img [ref=e370]
+        - generic [ref=e373]:
+          - generic [ref=e374]:
+            - generic [ref=e375]:
+              - generic [ref=e376]: Programat
+              - generic [ref=e377]: 17.12.2024
+            - heading "Iasi" [level=3] [ref=e378]
+            - paragraph [ref=e379]: C.S. Phi Hau
+          - generic [ref=e380]:
+            - generic [ref=e381]: 23 participanți
+            - generic [ref=e382]:
+              - button "Vezi Detalii" [ref=e383] [cursor=pointer]
+              - button [ref=e384] [cursor=pointer]:
+                - img [ref=e385]
+              - button [ref=e388] [cursor=pointer]:
+                - img [ref=e389]
+        - generic [ref=e392]:
+          - generic [ref=e393]:
+            - generic [ref=e394]:
+              - generic [ref=e395]: Programat
+              - generic [ref=e396]: 18.06.2024
+            - heading "Iasi" [level=3] [ref=e397]
+            - paragraph [ref=e398]: C.S. Phi Hau
+          - generic [ref=e399]:
+            - generic [ref=e400]: 32 participanți
+            - generic [ref=e401]:
+              - button "Vezi Detalii" [ref=e402] [cursor=pointer]
+              - button [ref=e403] [cursor=pointer]:
+                - img [ref=e404]
+              - button [ref=e407] [cursor=pointer]:
+                - img [ref=e408]
+        - generic [ref=e411]:
+          - generic [ref=e412]:
+            - generic [ref=e413]:
+              - generic [ref=e414]: Programat
+              - generic [ref=e415]: 19.12.2023
+            - heading "Iasi" [level=3] [ref=e416]
+            - paragraph [ref=e417]: C.S. Phi Hau
+          - generic [ref=e418]:
+            - generic [ref=e419]: 31 participanți
+            - generic [ref=e420]:
+              - button "Vezi Detalii" [ref=e421] [cursor=pointer]
+              - button [ref=e422] [cursor=pointer]:
+                - img [ref=e423]
+              - button [ref=e426] [cursor=pointer]:
+                - img [ref=e427]
+        - generic [ref=e430]:
+          - generic [ref=e431]:
+            - generic [ref=e432]:
+              - generic [ref=e433]: Programat
+              - generic [ref=e434]: 15.06.2023
+            - heading "Iasi" [level=3] [ref=e435]
+            - paragraph [ref=e436]: C.S. Phi Hau
+          - generic [ref=e437]:
+            - generic [ref=e438]: 46 participanți
+            - generic [ref=e439]:
+              - button "Vezi Detalii" [ref=e440] [cursor=pointer]
+              - button [ref=e441] [cursor=pointer]:
+                - img [ref=e442]
+              - button [ref=e445] [cursor=pointer]:
+                - img [ref=e446]
+  - contentinfo [ref=e1190]:
+    - paragraph [ref=e1191]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e1192] [cursor=pointer]:
+      - img [ref=e1193]
+      - generic [ref=e1196]: Asistent AI

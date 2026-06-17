@@ -1,0 +1,1928 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e81]:
+            - generic [ref=e82] [cursor=pointer]:
+              - img [ref=e83]
+              - generic [ref=e89]: Activități Naționale
+              - img [ref=e90]
+            - generic [ref=e6163]:
+              - generic [ref=e6164] [cursor=pointer]: Competiții
+              - generic [ref=e6166] [cursor=pointer]: Stagii
+          - generic [ref=e93] [cursor=pointer]:
+            - img [ref=e94]
+            - generic [ref=e96]: Financiar & Plăți
+            - img [ref=e97]
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e117]: Setări & Admin
+            - img [ref=e118]
+          - generic [ref=e120] [cursor=pointer]:
+            - img [ref=e122]
+            - generic [ref=e126]: Notificări
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e131]: SMS
+          - generic [ref=e132] [cursor=pointer]:
+            - img [ref=e134]
+            - generic [ref=e137]: Cereri Înscriere
+          - generic [ref=e138] [cursor=pointer]:
+            - img [ref=e140]
+            - generic [ref=e143]: Istoric Activitate
+        - button "Scroll jos" [ref=e144] [cursor=pointer]:
+          - img [ref=e145]
+      - generic [ref=e147]:
+        - button "Tema" [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+          - generic [ref=e156]: Tema
+        - generic [ref=e158]:
+          - generic [ref=e159]: AL
+          - generic [ref=e160]:
+            - paragraph [ref=e161]: LUNGU ALIN MIHAI
+            - text: Admin Club
+          - button "Deconectare" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+  - button "Restrânge meniul" [ref=e166] [cursor=pointer]:
+    - img [ref=e167]
+  - banner [ref=e169]:
+    - navigation "Navigare" [ref=e171]:
+      - heading "Plăți Scadente" [level=1] [ref=e172]
+    - generic [ref=e173]:
+      - button "Temă" [ref=e175] [cursor=pointer]:
+        - img [ref=e176]
+        - generic [ref=e182]: Temă
+      - button [ref=e184] [cursor=pointer]:
+        - img [ref=e185]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e190] [cursor=pointer]:
+        - generic [ref=e191]: AL
+        - paragraph [ref=e193]:
+          - text: ALIN MIHAI
+          - generic [ref=e194]: "[ADMIN CLUB]"
+        - img [ref=e195]
+  - main [ref=e197]:
+    - generic [ref=e200]:
+      - button "Meniu" [ref=e201] [cursor=pointer]:
+        - img [ref=e202]
+        - text: Meniu
+      - heading "Management Facturi & Plăți" [level=1] [ref=e204]
+      - generic [ref=e205]:
+        - generic [ref=e206]:
+          - generic [ref=e207]: Status
+          - generic [ref=e208]:
+            - combobox [ref=e209]:
+              - option "Toate Statusurile"
+              - option "Scadent (Neachitat/Parțial)" [selected]
+              - option "Doar Neachitat"
+              - option "Doar Achitat Parțial"
+              - option "Achitat"
+            - generic:
+              - img
+        - generic [ref=e210]:
+          - generic [ref=e211]: Tip Plată
+          - generic [ref=e212]:
+            - combobox [ref=e213]:
+              - option "Toate Tipurile" [selected]
+              - option "Abonament"
+              - option "FRAM"
+              - option "FRQKD"
+              - option "Taxa Examen"
+              - option "Taxa Stagiu"
+            - generic:
+              - img
+        - generic [ref=e214]:
+          - generic [ref=e215]: Caută Sportiv / Familie
+          - generic [ref=e216]:
+            - generic:
+              - img
+            - textbox "Nume sportiv sau familie..." [ref=e217]
+        - button "Resetează Filtre" [ref=e219] [cursor=pointer]
+      - button "Generează Abonamente" [ref=e222] [cursor=pointer]
+      - table [ref=e225]:
+        - rowgroup [ref=e226]:
+          - row "Data Plătitor Descriere Sumă Status Acțiuni" [ref=e227]:
+            - columnheader [ref=e228]:
+              - checkbox [ref=e229]
+            - columnheader "Data" [ref=e230]
+            - columnheader "Plătitor" [ref=e231]
+            - columnheader "Descriere" [ref=e232]
+            - columnheader "Sumă" [ref=e233]
+            - columnheader "Status" [ref=e234]
+            - columnheader "Acțiuni" [ref=e235]
+        - rowgroup [ref=e236]:
+          - row "10.06.2026 DANAILA HORATIU Taxa examen 2 Câp Galben 100.00 RON Scadent" [ref=e297]:
+            - cell [ref=e298]:
+              - checkbox [ref=e299]
+            - cell "10.06.2026" [ref=e300]
+            - cell "DANAILA HORATIU" [ref=e301] [cursor=pointer]
+            - cell "Taxa examen 2 Câp Galben" [ref=e302]:
+              - generic [ref=e303]: Taxa examen 2 Câp Galben
+            - cell "100.00 RON" [ref=e304]:
+              - generic [ref=e305]: 100.00 RON
+            - cell "Scadent" [ref=e306]
+            - cell [ref=e307]:
+              - generic [ref=e308]:
+                - button "Încasează Rapid" [ref=e309] [cursor=pointer]:
+                  - img [ref=e310]
+                - button [ref=e313] [cursor=pointer]:
+                  - img [ref=e314]
+                - button [ref=e317] [cursor=pointer]:
+                  - img [ref=e318]
+          - row "10.06.2026 AMORARITI ALEXANDRU Taxa examen C.V. 1 Câp Alb 100.00 RON Scadent" [ref=e421]:
+            - cell [ref=e422]:
+              - checkbox [ref=e423]
+            - cell "10.06.2026" [ref=e424]
+            - cell "AMORARITI ALEXANDRU" [ref=e425] [cursor=pointer]
+            - cell "Taxa examen C.V. 1 Câp Alb" [ref=e426]:
+              - generic [ref=e427]: Taxa examen C.V. 1 Câp Alb
+            - cell "100.00 RON" [ref=e428]:
+              - generic [ref=e429]: 100.00 RON
+            - cell "Scadent" [ref=e430]
+            - cell [ref=e431]:
+              - generic [ref=e432]:
+                - button "Încasează Rapid" [ref=e433] [cursor=pointer]:
+                  - img [ref=e434]
+                - button [ref=e437] [cursor=pointer]:
+                  - img [ref=e438]
+                - button [ref=e441] [cursor=pointer]:
+                  - img [ref=e442]
+          - row "10.06.2026 STRATON ALESSIA TEODORA Taxa examen 1 Câp Galben 100.00 RON Scadent" [ref=e445]:
+            - cell [ref=e446]:
+              - checkbox [ref=e447]
+            - cell "10.06.2026" [ref=e448]
+            - cell "STRATON ALESSIA TEODORA" [ref=e449] [cursor=pointer]
+            - cell "Taxa examen 1 Câp Galben" [ref=e450]:
+              - generic [ref=e451]: Taxa examen 1 Câp Galben
+            - cell "100.00 RON" [ref=e452]:
+              - generic [ref=e453]: 100.00 RON
+            - cell "Scadent" [ref=e454]
+            - cell [ref=e455]:
+              - generic [ref=e456]:
+                - button "Încasează Rapid" [ref=e457] [cursor=pointer]:
+                  - img [ref=e458]
+                - button [ref=e461] [cursor=pointer]:
+                  - img [ref=e462]
+                - button [ref=e465] [cursor=pointer]:
+                  - img [ref=e466]
+          - row "02.06.2026 AMORARITI ALEXANDRU Abonament iunie 2026 220.00 RON Scadent" [ref=e489]:
+            - cell [ref=e490]:
+              - checkbox [ref=e491]
+            - cell "02.06.2026" [ref=e492]
+            - cell "AMORARITI ALEXANDRU" [ref=e493] [cursor=pointer]
+            - cell "Abonament iunie 2026" [ref=e494]:
+              - generic [ref=e495]: Abonament iunie 2026
+            - cell "220.00 RON" [ref=e496]:
+              - generic [ref=e497]: 220.00 RON
+            - cell "Scadent" [ref=e498]
+            - cell [ref=e499]:
+              - generic [ref=e500]:
+                - button "Încasează Rapid" [ref=e501] [cursor=pointer]:
+                  - img [ref=e502]
+                - button [ref=e505] [cursor=pointer]:
+                  - img [ref=e506]
+                - button [ref=e509] [cursor=pointer]:
+                  - img [ref=e510]
+          - row "02.06.2026 STRATON ALESSIA TEODORA Abonament iunie 2026 220.00 RON Scadent" [ref=e513]:
+            - cell [ref=e514]:
+              - checkbox [ref=e515]
+            - cell "02.06.2026" [ref=e516]
+            - cell "STRATON ALESSIA TEODORA" [ref=e517] [cursor=pointer]
+            - cell "Abonament iunie 2026" [ref=e518]:
+              - generic [ref=e519]: Abonament iunie 2026
+            - cell "220.00 RON" [ref=e520]:
+              - generic [ref=e521]: 220.00 RON
+            - cell "Scadent" [ref=e522]
+            - cell [ref=e523]:
+              - generic [ref=e524]:
+                - button "Încasează Rapid" [ref=e525] [cursor=pointer]:
+                  - img [ref=e526]
+                - button [ref=e529] [cursor=pointer]:
+                  - img [ref=e530]
+                - button [ref=e533] [cursor=pointer]:
+                  - img [ref=e534]
+          - row "02.06.2026 LEOHCHI RAZVAN Abonament iunie 2026 220.00 RON Scadent" [ref=e537]:
+            - cell [ref=e538]:
+              - checkbox [ref=e539]
+            - cell "02.06.2026" [ref=e540]
+            - cell "LEOHCHI RAZVAN" [ref=e541] [cursor=pointer]
+            - cell "Abonament iunie 2026" [ref=e542]:
+              - generic [ref=e543]: Abonament iunie 2026
+            - cell "220.00 RON" [ref=e544]:
+              - generic [ref=e545]: 220.00 RON
+            - cell "Scadent" [ref=e546]
+            - cell [ref=e547]:
+              - generic [ref=e548]:
+                - button "Încasează Rapid" [ref=e549] [cursor=pointer]:
+                  - img [ref=e550]
+                - button [ref=e553] [cursor=pointer]:
+                  - img [ref=e554]
+                - button [ref=e557] [cursor=pointer]:
+                  - img [ref=e558]
+          - row "02.06.2026 POPA ANDREI Abonament iunie 2026 220.00 RON Scadent" [ref=e561]:
+            - cell [ref=e562]:
+              - checkbox [ref=e563]
+            - cell "02.06.2026" [ref=e564]
+            - cell "POPA ANDREI" [ref=e565] [cursor=pointer]
+            - cell "Abonament iunie 2026" [ref=e566]:
+              - generic [ref=e567]: Abonament iunie 2026
+            - cell "220.00 RON" [ref=e568]:
+              - generic [ref=e569]: 220.00 RON
+            - cell "Scadent" [ref=e570]
+            - cell [ref=e571]:
+              - generic [ref=e572]:
+                - button "Încasează Rapid" [ref=e573] [cursor=pointer]:
+                  - img [ref=e574]
+                - button [ref=e577] [cursor=pointer]:
+                  - img [ref=e578]
+                - button [ref=e581] [cursor=pointer]:
+                  - img [ref=e582]
+          - row "02.06.2026 BORS EMILIA Abonament iunie 2026 220.00 RON Scadent" [ref=e585]:
+            - cell [ref=e586]:
+              - checkbox [ref=e587]
+            - cell "02.06.2026" [ref=e588]
+            - cell "BORS EMILIA" [ref=e589] [cursor=pointer]
+            - cell "Abonament iunie 2026" [ref=e590]:
+              - generic [ref=e591]: Abonament iunie 2026
+            - cell "220.00 RON" [ref=e592]:
+              - generic [ref=e593]: 220.00 RON
+            - cell "Scadent" [ref=e594]
+            - cell [ref=e595]:
+              - generic [ref=e596]:
+                - button "Încasează Rapid" [ref=e597] [cursor=pointer]:
+                  - img [ref=e598]
+                - button [ref=e601] [cursor=pointer]:
+                  - img [ref=e602]
+                - button [ref=e605] [cursor=pointer]:
+                  - img [ref=e606]
+          - row "02.06.2026 LUNGU CILIAC HORAȚIU CASIAN Abonament iunie 2026 200.00 RON Scadent" [ref=e609]:
+            - cell [ref=e610]:
+              - checkbox [ref=e611]
+            - cell "02.06.2026" [ref=e612]
+            - cell "LUNGU CILIAC HORAȚIU CASIAN" [ref=e613] [cursor=pointer]
+            - cell "Abonament iunie 2026" [ref=e614]:
+              - generic [ref=e615]: Abonament iunie 2026
+            - cell "200.00 RON" [ref=e616]:
+              - generic [ref=e617]: 200.00 RON
+            - cell "Scadent" [ref=e618]
+            - cell [ref=e619]:
+              - generic [ref=e620]:
+                - button "Încasează Rapid" [ref=e621] [cursor=pointer]:
+                  - img [ref=e622]
+                - button [ref=e625] [cursor=pointer]:
+                  - img [ref=e626]
+                - button [ref=e629] [cursor=pointer]:
+                  - img [ref=e630]
+          - row "02.06.2026 ȘTEICĂ VICTOR GABRIEL Abonament iunie 2026 220.00 RON Scadent" [ref=e633]:
+            - cell [ref=e634]:
+              - checkbox [ref=e635]
+            - cell "02.06.2026" [ref=e636]
+            - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e637] [cursor=pointer]
+            - cell "Abonament iunie 2026" [ref=e638]:
+              - generic [ref=e639]: Abonament iunie 2026
+            - cell "220.00 RON" [ref=e640]:
+              - generic [ref=e641]: 220.00 RON
+            - cell "Scadent" [ref=e642]
+            - cell [ref=e643]:
+              - generic [ref=e644]:
+                - button "Încasează Rapid" [ref=e645] [cursor=pointer]:
+                  - img [ref=e646]
+                - button [ref=e649] [cursor=pointer]:
+                  - img [ref=e650]
+                - button [ref=e653] [cursor=pointer]:
+                  - img [ref=e654]
+          - row "02.06.2026 POPOVICI DIANA ANASTASIA Abonament iunie 2026 220.00 RON Scadent" [ref=e657]:
+            - cell [ref=e658]:
+              - checkbox [ref=e659]
+            - cell "02.06.2026" [ref=e660]
+            - cell "POPOVICI DIANA ANASTASIA" [ref=e661] [cursor=pointer]
+            - cell "Abonament iunie 2026" [ref=e662]:
+              - generic [ref=e663]: Abonament iunie 2026
+            - cell "220.00 RON" [ref=e664]:
+              - generic [ref=e665]: 220.00 RON
+            - cell "Scadent" [ref=e666]
+            - cell [ref=e667]:
+              - generic [ref=e668]:
+                - button "Încasează Rapid" [ref=e669] [cursor=pointer]:
+                  - img [ref=e670]
+                - button [ref=e673] [cursor=pointer]:
+                  - img [ref=e674]
+                - button [ref=e677] [cursor=pointer]:
+                  - img [ref=e678]
+          - row "02.06.2026 ANDRONACHE DARIA MARIA Abonament iunie 2026 220.00 RON Scadent" [ref=e681]:
+            - cell [ref=e682]:
+              - checkbox [ref=e683]
+            - cell "02.06.2026" [ref=e684]
+            - cell "ANDRONACHE DARIA MARIA" [ref=e685] [cursor=pointer]
+            - cell "Abonament iunie 2026" [ref=e686]:
+              - generic [ref=e687]: Abonament iunie 2026
+            - cell "220.00 RON" [ref=e688]:
+              - generic [ref=e689]: 220.00 RON
+            - cell "Scadent" [ref=e690]
+            - cell [ref=e691]:
+              - generic [ref=e692]:
+                - button "Încasează Rapid" [ref=e693] [cursor=pointer]:
+                  - img [ref=e694]
+                - button [ref=e697] [cursor=pointer]:
+                  - img [ref=e698]
+                - button [ref=e701] [cursor=pointer]:
+                  - img [ref=e702]
+          - row "02.06.2026 ȘTEFĂNESCU EMANUEL Abonament iunie 2026 220.00 RON Scadent" [ref=e705]:
+            - cell [ref=e706]:
+              - checkbox [ref=e707]
+            - cell "02.06.2026" [ref=e708]
+            - cell "ȘTEFĂNESCU EMANUEL" [ref=e709] [cursor=pointer]
+            - cell "Abonament iunie 2026" [ref=e710]:
+              - generic [ref=e711]: Abonament iunie 2026
+            - cell "220.00 RON" [ref=e712]:
+              - generic [ref=e713]: 220.00 RON
+            - cell "Scadent" [ref=e714]
+            - cell [ref=e715]:
+              - generic [ref=e716]:
+                - button "Încasează Rapid" [ref=e717] [cursor=pointer]:
+                  - img [ref=e718]
+                - button [ref=e721] [cursor=pointer]:
+                  - img [ref=e722]
+                - button [ref=e725] [cursor=pointer]:
+                  - img [ref=e726]
+          - row "02.06.2026 Familia Gomei Abonament Familie iunie 2026 330.00 RON Scadent" [ref=e889]:
+            - cell [ref=e890]:
+              - checkbox [ref=e891]
+            - cell "02.06.2026" [ref=e892]
+            - cell "Familia Gomei" [ref=e893] [cursor=pointer]
+            - cell "Abonament Familie iunie 2026" [ref=e894]:
+              - generic [ref=e895]: Abonament Familie iunie 2026
+            - cell "330.00 RON" [ref=e896]:
+              - generic [ref=e897]: 330.00 RON
+            - cell "Scadent" [ref=e898]
+            - cell [ref=e899]:
+              - generic [ref=e900]:
+                - button "Încasează Rapid" [ref=e901] [cursor=pointer]:
+                  - img [ref=e902]
+                - button [ref=e905] [cursor=pointer]:
+                  - img [ref=e906]
+                - button [ref=e909] [cursor=pointer]:
+                  - img [ref=e910]
+          - row "06.05.2026 AMORARITI ALEXANDRU Abonament mai 2026 220.00 RON Restant!" [ref=e933]:
+            - cell [ref=e934]:
+              - checkbox [ref=e935]
+            - cell "06.05.2026" [ref=e936]
+            - cell "AMORARITI ALEXANDRU" [ref=e937] [cursor=pointer]
+            - cell "Abonament mai 2026" [ref=e938]:
+              - generic [ref=e939]: Abonament mai 2026
+            - cell "220.00 RON" [ref=e940]:
+              - generic [ref=e941]: 220.00 RON
+            - cell "Restant!" [ref=e942]
+            - cell [ref=e943]:
+              - generic [ref=e944]:
+                - button "Încasează Rapid" [ref=e945] [cursor=pointer]:
+                  - img [ref=e946]
+                - button [ref=e949] [cursor=pointer]:
+                  - img [ref=e950]
+                - button [ref=e953] [cursor=pointer]:
+                  - img [ref=e954]
+          - row "06.05.2026 MANDIA MARIA Abonament mai 2026 220.00 RON Restant!" [ref=e957]:
+            - cell [ref=e958]:
+              - checkbox [ref=e959]
+            - cell "06.05.2026" [ref=e960]
+            - cell "MANDIA MARIA" [ref=e961] [cursor=pointer]
+            - cell "Abonament mai 2026" [ref=e962]:
+              - generic [ref=e963]: Abonament mai 2026
+            - cell "220.00 RON" [ref=e964]:
+              - generic [ref=e965]: 220.00 RON
+            - cell "Restant!" [ref=e966]
+            - cell [ref=e967]:
+              - generic [ref=e968]:
+                - button "Încasează Rapid" [ref=e969] [cursor=pointer]:
+                  - img [ref=e970]
+                - button [ref=e973] [cursor=pointer]:
+                  - img [ref=e974]
+                - button [ref=e977] [cursor=pointer]:
+                  - img [ref=e978]
+          - row "06.05.2026 STRATON ALESSIA TEODORA Abonament mai 2026 220.00 RON Restant!" [ref=e981]:
+            - cell [ref=e982]:
+              - checkbox [ref=e983]
+            - cell "06.05.2026" [ref=e984]
+            - cell "STRATON ALESSIA TEODORA" [ref=e985] [cursor=pointer]
+            - cell "Abonament mai 2026" [ref=e986]:
+              - generic [ref=e987]: Abonament mai 2026
+            - cell "220.00 RON" [ref=e988]:
+              - generic [ref=e989]: 220.00 RON
+            - cell "Restant!" [ref=e990]
+            - cell [ref=e991]:
+              - generic [ref=e992]:
+                - button "Încasează Rapid" [ref=e993] [cursor=pointer]:
+                  - img [ref=e994]
+                - button [ref=e997] [cursor=pointer]:
+                  - img [ref=e998]
+                - button [ref=e1001] [cursor=pointer]:
+                  - img [ref=e1002]
+          - row "06.05.2026 LEOHCHI RAZVAN Abonament mai 2026 220.00 RON Restant!" [ref=e1005]:
+            - cell [ref=e1006]:
+              - checkbox [ref=e1007]
+            - cell "06.05.2026" [ref=e1008]
+            - cell "LEOHCHI RAZVAN" [ref=e1009] [cursor=pointer]
+            - cell "Abonament mai 2026" [ref=e1010]:
+              - generic [ref=e1011]: Abonament mai 2026
+            - cell "220.00 RON" [ref=e1012]:
+              - generic [ref=e1013]: 220.00 RON
+            - cell "Restant!" [ref=e1014]
+            - cell [ref=e1015]:
+              - generic [ref=e1016]:
+                - button "Încasează Rapid" [ref=e1017] [cursor=pointer]:
+                  - img [ref=e1018]
+                - button [ref=e1021] [cursor=pointer]:
+                  - img [ref=e1022]
+                - button [ref=e1025] [cursor=pointer]:
+                  - img [ref=e1026]
+          - row "06.05.2026 POPA ANDREI Abonament mai 2026 220.00 RON Restant!" [ref=e1029]:
+            - cell [ref=e1030]:
+              - checkbox [ref=e1031]
+            - cell "06.05.2026" [ref=e1032]
+            - cell "POPA ANDREI" [ref=e1033] [cursor=pointer]
+            - cell "Abonament mai 2026" [ref=e1034]:
+              - generic [ref=e1035]: Abonament mai 2026
+            - cell "220.00 RON" [ref=e1036]:
+              - generic [ref=e1037]: 220.00 RON
+            - cell "Restant!" [ref=e1038]
+            - cell [ref=e1039]:
+              - generic [ref=e1040]:
+                - button "Încasează Rapid" [ref=e1041] [cursor=pointer]:
+                  - img [ref=e1042]
+                - button [ref=e1045] [cursor=pointer]:
+                  - img [ref=e1046]
+                - button [ref=e1049] [cursor=pointer]:
+                  - img [ref=e1050]
+          - row "06.05.2026 SUMĂNARIU DRAGOȘ ȘTEFAN Abonament mai 2026 220.00 RON Restant!" [ref=e1053]:
+            - cell [ref=e1054]:
+              - checkbox [ref=e1055]
+            - cell "06.05.2026" [ref=e1056]
+            - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e1057] [cursor=pointer]
+            - cell "Abonament mai 2026" [ref=e1058]:
+              - generic [ref=e1059]: Abonament mai 2026
+            - cell "220.00 RON" [ref=e1060]:
+              - generic [ref=e1061]: 220.00 RON
+            - cell "Restant!" [ref=e1062]
+            - cell [ref=e1063]:
+              - generic [ref=e1064]:
+                - button "Încasează Rapid" [ref=e1065] [cursor=pointer]:
+                  - img [ref=e1066]
+                - button [ref=e1069] [cursor=pointer]:
+                  - img [ref=e1070]
+                - button [ref=e1073] [cursor=pointer]:
+                  - img [ref=e1074]
+          - row "06.05.2026 CRACANA ERIKA IONELA Abonament mai 2026 220.00 RON Restant!" [ref=e1097]:
+            - cell [ref=e1098]:
+              - checkbox [ref=e1099]
+            - cell "06.05.2026" [ref=e1100]
+            - cell "CRACANA ERIKA IONELA" [ref=e1101] [cursor=pointer]
+            - cell "Abonament mai 2026" [ref=e1102]:
+              - generic [ref=e1103]: Abonament mai 2026
+            - cell "220.00 RON" [ref=e1104]:
+              - generic [ref=e1105]: 220.00 RON
+            - cell "Restant!" [ref=e1106]
+            - cell [ref=e1107]:
+              - generic [ref=e1108]:
+                - button "Încasează Rapid" [ref=e1109] [cursor=pointer]:
+                  - img [ref=e1110]
+                - button [ref=e1113] [cursor=pointer]:
+                  - img [ref=e1114]
+                - button [ref=e1117] [cursor=pointer]:
+                  - img [ref=e1118]
+          - row "06.05.2026 POPOVICI DIANA ANASTASIA Abonament mai 2026 220.00 RON Restant!" [ref=e1121]:
+            - cell [ref=e1122]:
+              - checkbox [ref=e1123]
+            - cell "06.05.2026" [ref=e1124]
+            - cell "POPOVICI DIANA ANASTASIA" [ref=e1125] [cursor=pointer]
+            - cell "Abonament mai 2026" [ref=e1126]:
+              - generic [ref=e1127]: Abonament mai 2026
+            - cell "220.00 RON" [ref=e1128]:
+              - generic [ref=e1129]: 220.00 RON
+            - cell "Restant!" [ref=e1130]
+            - cell [ref=e1131]:
+              - generic [ref=e1132]:
+                - button "Încasează Rapid" [ref=e1133] [cursor=pointer]:
+                  - img [ref=e1134]
+                - button [ref=e1137] [cursor=pointer]:
+                  - img [ref=e1138]
+                - button [ref=e1141] [cursor=pointer]:
+                  - img [ref=e1142]
+          - row "06.05.2026 CAREJA ANTONIA ELENA Abonament mai 2026 220.00 RON Restant!" [ref=e1145]:
+            - cell [ref=e1146]:
+              - checkbox [ref=e1147]
+            - cell "06.05.2026" [ref=e1148]
+            - cell "CAREJA ANTONIA ELENA" [ref=e1149] [cursor=pointer]
+            - cell "Abonament mai 2026" [ref=e1150]:
+              - generic [ref=e1151]: Abonament mai 2026
+            - cell "220.00 RON" [ref=e1152]:
+              - generic [ref=e1153]: 220.00 RON
+            - cell "Restant!" [ref=e1154]
+            - cell [ref=e1155]:
+              - generic [ref=e1156]:
+                - button "Încasează Rapid" [ref=e1157] [cursor=pointer]:
+                  - img [ref=e1158]
+                - button [ref=e1161] [cursor=pointer]:
+                  - img [ref=e1162]
+                - button [ref=e1165] [cursor=pointer]:
+                  - img [ref=e1166]
+          - row "06.05.2026 ANECULAESI MATHIAS Abonament mai 2026 220.00 RON Restant!" [ref=e1169]:
+            - cell [ref=e1170]:
+              - checkbox [ref=e1171]
+            - cell "06.05.2026" [ref=e1172]
+            - cell "ANECULAESI MATHIAS" [ref=e1173] [cursor=pointer]
+            - cell "Abonament mai 2026" [ref=e1174]:
+              - generic [ref=e1175]: Abonament mai 2026
+            - cell "220.00 RON" [ref=e1176]:
+              - generic [ref=e1177]: 220.00 RON
+            - cell "Restant!" [ref=e1178]
+            - cell [ref=e1179]:
+              - generic [ref=e1180]:
+                - button "Încasează Rapid" [ref=e1181] [cursor=pointer]:
+                  - img [ref=e1182]
+                - button [ref=e1185] [cursor=pointer]:
+                  - img [ref=e1186]
+                - button [ref=e1189] [cursor=pointer]:
+                  - img [ref=e1190]
+          - row "06.05.2026 Familia Andriciuc Abonament Familie mai 2026 220.00 RON Restant!" [ref=e1393]:
+            - cell [ref=e1394]:
+              - checkbox [ref=e1395]
+            - cell "06.05.2026" [ref=e1396]
+            - cell "Familia Andriciuc" [ref=e1397] [cursor=pointer]
+            - cell "Abonament Familie mai 2026" [ref=e1398]:
+              - generic [ref=e1399]: Abonament Familie mai 2026
+            - cell "220.00 RON" [ref=e1400]:
+              - generic [ref=e1401]: 220.00 RON
+            - cell "Restant!" [ref=e1402]
+            - cell [ref=e1403]:
+              - generic [ref=e1404]:
+                - button "Încasează Rapid" [ref=e1405] [cursor=pointer]:
+                  - img [ref=e1406]
+                - button [ref=e1409] [cursor=pointer]:
+                  - img [ref=e1410]
+                - button [ref=e1413] [cursor=pointer]:
+                  - img [ref=e1414]
+          - row "06.05.2026 Familia Gomei Abonament Familie mai 2026 330.00 RON Restant!" [ref=e1417]:
+            - cell [ref=e1418]:
+              - checkbox [ref=e1419]
+            - cell "06.05.2026" [ref=e1420]
+            - cell "Familia Gomei" [ref=e1421] [cursor=pointer]
+            - cell "Abonament Familie mai 2026" [ref=e1422]:
+              - generic [ref=e1423]: Abonament Familie mai 2026
+            - cell "330.00 RON" [ref=e1424]:
+              - generic [ref=e1425]: 330.00 RON
+            - cell "Restant!" [ref=e1426]
+            - cell [ref=e1427]:
+              - generic [ref=e1428]:
+                - button "Încasează Rapid" [ref=e1429] [cursor=pointer]:
+                  - img [ref=e1430]
+                - button [ref=e1433] [cursor=pointer]:
+                  - img [ref=e1434]
+                - button [ref=e1437] [cursor=pointer]:
+                  - img [ref=e1438]
+          - row "02.04.2026 MARDARE ALEXANDRA NICOLETA Abonament aprilie 2026 220.00 RON Restant!" [ref=e1481]:
+            - cell [ref=e1482]:
+              - checkbox [ref=e1483]
+            - cell "02.04.2026" [ref=e1484]
+            - cell "MARDARE ALEXANDRA NICOLETA" [ref=e1485] [cursor=pointer]
+            - cell "Abonament aprilie 2026" [ref=e1486]:
+              - generic [ref=e1487]: Abonament aprilie 2026
+            - cell "220.00 RON" [ref=e1488]:
+              - generic [ref=e1489]: 220.00 RON
+            - cell "Restant!" [ref=e1490]
+            - cell [ref=e1491]:
+              - generic [ref=e1492]:
+                - button "Încasează Rapid" [ref=e1493] [cursor=pointer]:
+                  - img [ref=e1494]
+                - button [ref=e1497] [cursor=pointer]:
+                  - img [ref=e1498]
+                - button [ref=e1501] [cursor=pointer]:
+                  - img [ref=e1502]
+          - row "02.04.2026 AMORARITI ALEXANDRU Abonament aprilie 2026 220.00 RON Restant!" [ref=e1565]:
+            - cell [ref=e1566]:
+              - checkbox [ref=e1567]
+            - cell "02.04.2026" [ref=e1568]
+            - cell "AMORARITI ALEXANDRU" [ref=e1569] [cursor=pointer]
+            - cell "Abonament aprilie 2026" [ref=e1570]:
+              - generic [ref=e1571]: Abonament aprilie 2026
+            - cell "220.00 RON" [ref=e1572]:
+              - generic [ref=e1573]: 220.00 RON
+            - cell "Restant!" [ref=e1574]
+            - cell [ref=e1575]:
+              - generic [ref=e1576]:
+                - button "Încasează Rapid" [ref=e1577] [cursor=pointer]:
+                  - img [ref=e1578]
+                - button [ref=e1581] [cursor=pointer]:
+                  - img [ref=e1582]
+                - button [ref=e1585] [cursor=pointer]:
+                  - img [ref=e1586]
+          - row "02.04.2026 LEOHCHI RAZVAN Abonament aprilie 2026 220.00 RON Restant!" [ref=e1589]:
+            - cell [ref=e1590]:
+              - checkbox [ref=e1591]
+            - cell "02.04.2026" [ref=e1592]
+            - cell "LEOHCHI RAZVAN" [ref=e1593] [cursor=pointer]
+            - cell "Abonament aprilie 2026" [ref=e1594]:
+              - generic [ref=e1595]: Abonament aprilie 2026
+            - cell "220.00 RON" [ref=e1596]:
+              - generic [ref=e1597]: 220.00 RON
+            - cell "Restant!" [ref=e1598]
+            - cell [ref=e1599]:
+              - generic [ref=e1600]:
+                - button "Încasează Rapid" [ref=e1601] [cursor=pointer]:
+                  - img [ref=e1602]
+                - button [ref=e1605] [cursor=pointer]:
+                  - img [ref=e1606]
+                - button [ref=e1609] [cursor=pointer]:
+                  - img [ref=e1610]
+          - row "02.04.2026 SABIN SABIN Abonament aprilie 2026 220.00 RON Restant!" [ref=e1613]:
+            - cell [ref=e1614]:
+              - checkbox [ref=e1615]
+            - cell "02.04.2026" [ref=e1616]
+            - cell "SABIN SABIN" [ref=e1617] [cursor=pointer]
+            - cell "Abonament aprilie 2026" [ref=e1618]:
+              - generic [ref=e1619]: Abonament aprilie 2026
+            - cell "220.00 RON" [ref=e1620]:
+              - generic [ref=e1621]: 220.00 RON
+            - cell "Restant!" [ref=e1622]
+            - cell [ref=e1623]:
+              - generic [ref=e1624]:
+                - button "Încasează Rapid" [ref=e1625] [cursor=pointer]:
+                  - img [ref=e1626]
+                - button [ref=e1629] [cursor=pointer]:
+                  - img [ref=e1630]
+                - button [ref=e1633] [cursor=pointer]:
+                  - img [ref=e1634]
+          - row "02.04.2026 BEREZENCO CEZAR ANTONIO Abonament aprilie 2026 220.00 RON Restant!" [ref=e1657]:
+            - cell [ref=e1658]:
+              - checkbox [ref=e1659]
+            - cell "02.04.2026" [ref=e1660]
+            - cell "BEREZENCO CEZAR ANTONIO" [ref=e1661] [cursor=pointer]
+            - cell "Abonament aprilie 2026" [ref=e1662]:
+              - generic [ref=e1663]: Abonament aprilie 2026
+            - cell "220.00 RON" [ref=e1664]:
+              - generic [ref=e1665]: 220.00 RON
+            - cell "Restant!" [ref=e1666]
+            - cell [ref=e1667]:
+              - generic [ref=e1668]:
+                - button "Încasează Rapid" [ref=e1669] [cursor=pointer]:
+                  - img [ref=e1670]
+                - button [ref=e1673] [cursor=pointer]:
+                  - img [ref=e1674]
+                - button [ref=e1677] [cursor=pointer]:
+                  - img [ref=e1678]
+          - row "02.04.2026 ANECULAESI MATHIAS Abonament aprilie 2026 220.00 RON Restant!" [ref=e1681]:
+            - cell [ref=e1682]:
+              - checkbox [ref=e1683]
+            - cell "02.04.2026" [ref=e1684]
+            - cell "ANECULAESI MATHIAS" [ref=e1685] [cursor=pointer]
+            - cell "Abonament aprilie 2026" [ref=e1686]:
+              - generic [ref=e1687]: Abonament aprilie 2026
+            - cell "220.00 RON" [ref=e1688]:
+              - generic [ref=e1689]: 220.00 RON
+            - cell "Restant!" [ref=e1690]
+            - cell [ref=e1691]:
+              - generic [ref=e1692]:
+                - button "Încasează Rapid" [ref=e1693] [cursor=pointer]:
+                  - img [ref=e1694]
+                - button [ref=e1697] [cursor=pointer]:
+                  - img [ref=e1698]
+                - button [ref=e1701] [cursor=pointer]:
+                  - img [ref=e1702]
+          - row "02.04.2026 POPA ANDREI Abonament aprilie 2026 220.00 RON Restant!" [ref=e1725]:
+            - cell [ref=e1726]:
+              - checkbox [ref=e1727]
+            - cell "02.04.2026" [ref=e1728]
+            - cell "POPA ANDREI" [ref=e1729] [cursor=pointer]
+            - cell "Abonament aprilie 2026" [ref=e1730]:
+              - generic [ref=e1731]: Abonament aprilie 2026
+            - cell "220.00 RON" [ref=e1732]:
+              - generic [ref=e1733]: 220.00 RON
+            - cell "Restant!" [ref=e1734]
+            - cell [ref=e1735]:
+              - generic [ref=e1736]:
+                - button "Încasează Rapid" [ref=e1737] [cursor=pointer]:
+                  - img [ref=e1738]
+                - button [ref=e1741] [cursor=pointer]:
+                  - img [ref=e1742]
+                - button [ref=e1745] [cursor=pointer]:
+                  - img [ref=e1746]
+          - row "02.04.2026 SANDU ANA ADRIANA Abonament aprilie 2026 220.00 RON Restant!" [ref=e1749]:
+            - cell [ref=e1750]:
+              - checkbox [ref=e1751]
+            - cell "02.04.2026" [ref=e1752]
+            - cell "SANDU ANA ADRIANA" [ref=e1753] [cursor=pointer]
+            - cell "Abonament aprilie 2026" [ref=e1754]:
+              - generic [ref=e1755]: Abonament aprilie 2026
+            - cell "220.00 RON" [ref=e1756]:
+              - generic [ref=e1757]: 220.00 RON
+            - cell "Restant!" [ref=e1758]
+            - cell [ref=e1759]:
+              - generic [ref=e1760]:
+                - button "Încasează Rapid" [ref=e1761] [cursor=pointer]:
+                  - img [ref=e1762]
+                - button [ref=e1765] [cursor=pointer]:
+                  - img [ref=e1766]
+                - button [ref=e1769] [cursor=pointer]:
+                  - img [ref=e1770]
+          - row "02.04.2026 STRATON ALESSIA TEODORA Abonament aprilie 2026 220.00 RON Restant!" [ref=e1893]:
+            - cell [ref=e1894]:
+              - checkbox [ref=e1895]
+            - cell "02.04.2026" [ref=e1896]
+            - cell "STRATON ALESSIA TEODORA" [ref=e1897] [cursor=pointer]
+            - cell "Abonament aprilie 2026" [ref=e1898]:
+              - generic [ref=e1899]: Abonament aprilie 2026
+            - cell "220.00 RON" [ref=e1900]:
+              - generic [ref=e1901]: 220.00 RON
+            - cell "Restant!" [ref=e1902]
+            - cell [ref=e1903]:
+              - generic [ref=e1904]:
+                - button "Încasează Rapid" [ref=e1905] [cursor=pointer]:
+                  - img [ref=e1906]
+                - button [ref=e1909] [cursor=pointer]:
+                  - img [ref=e1910]
+                - button [ref=e1913] [cursor=pointer]:
+                  - img [ref=e1914]
+          - row "02.04.2026 Familia Andriciuc Abonament Familie aprilie 2026 330.00 RON Restant!" [ref=e1937]:
+            - cell [ref=e1938]:
+              - checkbox [ref=e1939]
+            - cell "02.04.2026" [ref=e1940]
+            - cell "Familia Andriciuc" [ref=e1941] [cursor=pointer]
+            - cell "Abonament Familie aprilie 2026" [ref=e1942]:
+              - generic [ref=e1943]: Abonament Familie aprilie 2026
+            - cell "330.00 RON" [ref=e1944]:
+              - generic [ref=e1945]: 330.00 RON
+            - cell "Restant!" [ref=e1946]
+            - cell [ref=e1947]:
+              - generic [ref=e1948]:
+                - button "Încasează Rapid" [ref=e1949] [cursor=pointer]:
+                  - img [ref=e1950]
+                - button [ref=e1953] [cursor=pointer]:
+                  - img [ref=e1954]
+                - button [ref=e1957] [cursor=pointer]:
+                  - img [ref=e1958]
+          - row "02.04.2026 Familia Aștefanei Abonament Familie aprilie 2026 330.00 RON Restant!" [ref=e1961]:
+            - cell [ref=e1962]:
+              - checkbox [ref=e1963]
+            - cell "02.04.2026" [ref=e1964]
+            - cell "Familia Aștefanei" [ref=e1965] [cursor=pointer]
+            - cell "Abonament Familie aprilie 2026" [ref=e1966]:
+              - generic [ref=e1967]: Abonament Familie aprilie 2026
+            - cell "330.00 RON" [ref=e1968]:
+              - generic [ref=e1969]: 330.00 RON
+            - cell "Restant!" [ref=e1970]
+            - cell [ref=e1971]:
+              - generic [ref=e1972]:
+                - button "Încasează Rapid" [ref=e1973] [cursor=pointer]:
+                  - img [ref=e1974]
+                - button [ref=e1977] [cursor=pointer]:
+                  - img [ref=e1978]
+                - button [ref=e1981] [cursor=pointer]:
+                  - img [ref=e1982]
+          - row "02.04.2026 Familia Pricop Abonament Familie aprilie 2026 330.00 RON Restant!" [ref=e1985]:
+            - cell [ref=e1986]:
+              - checkbox [ref=e1987]
+            - cell "02.04.2026" [ref=e1988]
+            - cell "Familia Pricop" [ref=e1989] [cursor=pointer]
+            - cell "Abonament Familie aprilie 2026" [ref=e1990]:
+              - generic [ref=e1991]: Abonament Familie aprilie 2026
+            - cell "330.00 RON" [ref=e1992]:
+              - generic [ref=e1993]: 330.00 RON
+            - cell "Restant!" [ref=e1994]
+            - cell [ref=e1995]:
+              - generic [ref=e1996]:
+                - button "Încasează Rapid" [ref=e1997] [cursor=pointer]:
+                  - img [ref=e1998]
+                - button [ref=e2001] [cursor=pointer]:
+                  - img [ref=e2002]
+                - button [ref=e2005] [cursor=pointer]:
+                  - img [ref=e2006]
+          - row "02.04.2026 Familia Anistoroaei Abonament Familie aprilie 2026 380.00 RON Restant!" [ref=e2009]:
+            - cell [ref=e2010]:
+              - checkbox [ref=e2011]
+            - cell "02.04.2026" [ref=e2012]
+            - cell "Familia Anistoroaei" [ref=e2013] [cursor=pointer]
+            - cell "Abonament Familie aprilie 2026" [ref=e2014]:
+              - generic [ref=e2015]: Abonament Familie aprilie 2026
+            - cell "380.00 RON" [ref=e2016]:
+              - generic [ref=e2017]: 380.00 RON
+            - cell "Restant!" [ref=e2018]
+            - cell [ref=e2019]:
+              - generic [ref=e2020]:
+                - button "Încasează Rapid" [ref=e2021] [cursor=pointer]:
+                  - img [ref=e2022]
+                - button [ref=e2025] [cursor=pointer]:
+                  - img [ref=e2026]
+                - button [ref=e2029] [cursor=pointer]:
+                  - img [ref=e2030]
+          - row "02.04.2026 LUCA MIRCEA Abonament aprilie 2026 220.00 RON Restant!" [ref=e2073]:
+            - cell [ref=e2074]:
+              - checkbox [ref=e2075]
+            - cell "02.04.2026" [ref=e2076]
+            - cell "LUCA MIRCEA" [ref=e2077] [cursor=pointer]
+            - cell "Abonament aprilie 2026" [ref=e2078]:
+              - generic [ref=e2079]: Abonament aprilie 2026
+            - cell "220.00 RON" [ref=e2080]:
+              - generic [ref=e2081]: 220.00 RON
+            - cell "Restant!" [ref=e2082]
+            - cell [ref=e2083]:
+              - generic [ref=e2084]:
+                - button "Încasează Rapid" [ref=e2085] [cursor=pointer]:
+                  - img [ref=e2086]
+                - button [ref=e2089] [cursor=pointer]:
+                  - img [ref=e2090]
+                - button [ref=e2093] [cursor=pointer]:
+                  - img [ref=e2094]
+          - row "03.03.2026 SFICA DIANA ANDREEA Abonament martie 2026 220.00 RON Restant!" [ref=e2177]:
+            - cell [ref=e2178]:
+              - checkbox [ref=e2179]
+            - cell "03.03.2026" [ref=e2180]
+            - cell "SFICA DIANA ANDREEA" [ref=e2181] [cursor=pointer]
+            - cell "Abonament martie 2026" [ref=e2182]:
+              - generic [ref=e2183]: Abonament martie 2026
+            - cell "220.00 RON" [ref=e2184]:
+              - generic [ref=e2185]: 220.00 RON
+            - cell "Restant!" [ref=e2186]
+            - cell [ref=e2187]:
+              - generic [ref=e2188]:
+                - button "Încasează Rapid" [ref=e2189] [cursor=pointer]:
+                  - img [ref=e2190]
+                - button [ref=e2193] [cursor=pointer]:
+                  - img [ref=e2194]
+                - button [ref=e2197] [cursor=pointer]:
+                  - img [ref=e2198]
+          - row "03.03.2026 SUMĂNARIU DRAGOȘ ȘTEFAN Abonament martie 2026 220.00 RON Restant!" [ref=e2201]:
+            - cell [ref=e2202]:
+              - checkbox [ref=e2203]
+            - cell "03.03.2026" [ref=e2204]
+            - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e2205] [cursor=pointer]
+            - cell "Abonament martie 2026" [ref=e2206]:
+              - generic [ref=e2207]: Abonament martie 2026
+            - cell "220.00 RON" [ref=e2208]:
+              - generic [ref=e2209]: 220.00 RON
+            - cell "Restant!" [ref=e2210]
+            - cell [ref=e2211]:
+              - generic [ref=e2212]:
+                - button "Încasează Rapid" [ref=e2213] [cursor=pointer]:
+                  - img [ref=e2214]
+                - button [ref=e2217] [cursor=pointer]:
+                  - img [ref=e2218]
+                - button [ref=e2221] [cursor=pointer]:
+                  - img [ref=e2222]
+          - row "03.03.2026 Familia Pricop Abonament Familie martie 2026 330.00 RON Restant!" [ref=e2385]:
+            - cell [ref=e2386]:
+              - checkbox [ref=e2387]
+            - cell "03.03.2026" [ref=e2388]
+            - cell "Familia Pricop" [ref=e2389] [cursor=pointer]
+            - cell "Abonament Familie martie 2026" [ref=e2390]:
+              - generic [ref=e2391]: Abonament Familie martie 2026
+            - cell "330.00 RON" [ref=e2392]:
+              - generic [ref=e2393]: 330.00 RON
+            - cell "Restant!" [ref=e2394]
+            - cell [ref=e2395]:
+              - generic [ref=e2396]:
+                - button "Încasează Rapid" [ref=e2397] [cursor=pointer]:
+                  - img [ref=e2398]
+                - button [ref=e2401] [cursor=pointer]:
+                  - img [ref=e2402]
+                - button [ref=e2405] [cursor=pointer]:
+                  - img [ref=e2406]
+          - row "03.03.2026 Familia Anistoroaei Abonament Familie martie 2026 380.00 RON Restant!" [ref=e2409]:
+            - cell [ref=e2410]:
+              - checkbox [ref=e2411]
+            - cell "03.03.2026" [ref=e2412]
+            - cell "Familia Anistoroaei" [ref=e2413] [cursor=pointer]
+            - cell "Abonament Familie martie 2026" [ref=e2414]:
+              - generic [ref=e2415]: Abonament Familie martie 2026
+            - cell "380.00 RON" [ref=e2416]:
+              - generic [ref=e2417]: 380.00 RON
+            - cell "Restant!" [ref=e2418]
+            - cell [ref=e2419]:
+              - generic [ref=e2420]:
+                - button "Încasează Rapid" [ref=e2421] [cursor=pointer]:
+                  - img [ref=e2422]
+                - button [ref=e2425] [cursor=pointer]:
+                  - img [ref=e2426]
+                - button [ref=e2429] [cursor=pointer]:
+                  - img [ref=e2430]
+          - row "03.03.2026 SANDU ANA ADRIANA Abonament martie 2026 220.00 RON Restant!" [ref=e2453]:
+            - cell [ref=e2454]:
+              - checkbox [ref=e2455]
+            - cell "03.03.2026" [ref=e2456]
+            - cell "SANDU ANA ADRIANA" [ref=e2457] [cursor=pointer]
+            - cell "Abonament martie 2026" [ref=e2458]:
+              - generic [ref=e2459]: Abonament martie 2026
+            - cell "220.00 RON" [ref=e2460]:
+              - generic [ref=e2461]: 220.00 RON
+            - cell "Restant!" [ref=e2462]
+            - cell [ref=e2463]:
+              - generic [ref=e2464]:
+                - button "Încasează Rapid" [ref=e2465] [cursor=pointer]:
+                  - img [ref=e2466]
+                - button [ref=e2469] [cursor=pointer]:
+                  - img [ref=e2470]
+                - button [ref=e2473] [cursor=pointer]:
+                  - img [ref=e2474]
+          - row "03.03.2026 STRATON ALESSIA TEODORA Abonament martie 2026 220.00 RON Restant!" [ref=e2557]:
+            - cell [ref=e2558]:
+              - checkbox [ref=e2559]
+            - cell "03.03.2026" [ref=e2560]
+            - cell "STRATON ALESSIA TEODORA" [ref=e2561] [cursor=pointer]
+            - cell "Abonament martie 2026" [ref=e2562]:
+              - generic [ref=e2563]: Abonament martie 2026
+            - cell "220.00 RON" [ref=e2564]:
+              - generic [ref=e2565]: 220.00 RON
+            - cell "Restant!" [ref=e2566]
+            - cell [ref=e2567]:
+              - generic [ref=e2568]:
+                - button "Încasează Rapid" [ref=e2569] [cursor=pointer]:
+                  - img [ref=e2570]
+                - button [ref=e2573] [cursor=pointer]:
+                  - img [ref=e2574]
+                - button [ref=e2577] [cursor=pointer]:
+                  - img [ref=e2578]
+          - row "03.03.2026 LEOHCHI RAZVAN Abonament martie 2026 220.00 RON Restant!" [ref=e2581]:
+            - cell [ref=e2582]:
+              - checkbox [ref=e2583]
+            - cell "03.03.2026" [ref=e2584]
+            - cell "LEOHCHI RAZVAN" [ref=e2585] [cursor=pointer]
+            - cell "Abonament martie 2026" [ref=e2586]:
+              - generic [ref=e2587]: Abonament martie 2026
+            - cell "220.00 RON" [ref=e2588]:
+              - generic [ref=e2589]: 220.00 RON
+            - cell "Restant!" [ref=e2590]
+            - cell [ref=e2591]:
+              - generic [ref=e2592]:
+                - button "Încasează Rapid" [ref=e2593] [cursor=pointer]:
+                  - img [ref=e2594]
+                - button [ref=e2597] [cursor=pointer]:
+                  - img [ref=e2598]
+                - button [ref=e2601] [cursor=pointer]:
+                  - img [ref=e2602]
+          - row "03.03.2026 SABIN SABIN Abonament martie 2026 220.00 RON Restant!" [ref=e2605]:
+            - cell [ref=e2606]:
+              - checkbox [ref=e2607]
+            - cell "03.03.2026" [ref=e2608]
+            - cell "SABIN SABIN" [ref=e2609] [cursor=pointer]
+            - cell "Abonament martie 2026" [ref=e2610]:
+              - generic [ref=e2611]: Abonament martie 2026
+            - cell "220.00 RON" [ref=e2612]:
+              - generic [ref=e2613]: 220.00 RON
+            - cell "Restant!" [ref=e2614]
+            - cell [ref=e2615]:
+              - generic [ref=e2616]:
+                - button "Încasează Rapid" [ref=e2617] [cursor=pointer]:
+                  - img [ref=e2618]
+                - button [ref=e2621] [cursor=pointer]:
+                  - img [ref=e2622]
+                - button [ref=e2625] [cursor=pointer]:
+                  - img [ref=e2626]
+          - row "03.03.2026 BEREZENCO CEZAR ANTONIO Abonament martie 2026 220.00 RON Restant!" [ref=e2629]:
+            - cell [ref=e2630]:
+              - checkbox [ref=e2631]
+            - cell "03.03.2026" [ref=e2632]
+            - cell "BEREZENCO CEZAR ANTONIO" [ref=e2633] [cursor=pointer]
+            - cell "Abonament martie 2026" [ref=e2634]:
+              - generic [ref=e2635]: Abonament martie 2026
+            - cell "220.00 RON" [ref=e2636]:
+              - generic [ref=e2637]: 220.00 RON
+            - cell "Restant!" [ref=e2638]
+            - cell [ref=e2639]:
+              - generic [ref=e2640]:
+                - button "Încasează Rapid" [ref=e2641] [cursor=pointer]:
+                  - img [ref=e2642]
+                - button [ref=e2645] [cursor=pointer]:
+                  - img [ref=e2646]
+                - button [ref=e2649] [cursor=pointer]:
+                  - img [ref=e2650]
+          - row "03.03.2026 TULBURE DAVID ALEXANDRU Abonament martie 2026 220.00 RON Restant!" [ref=e2653]:
+            - cell [ref=e2654]:
+              - checkbox [ref=e2655]
+            - cell "03.03.2026" [ref=e2656]
+            - cell "TULBURE DAVID ALEXANDRU" [ref=e2657] [cursor=pointer]
+            - cell "Abonament martie 2026" [ref=e2658]:
+              - generic [ref=e2659]: Abonament martie 2026
+            - cell "220.00 RON" [ref=e2660]:
+              - generic [ref=e2661]: 220.00 RON
+            - cell "Restant!" [ref=e2662]
+            - cell [ref=e2663]:
+              - generic [ref=e2664]:
+                - button "Încasează Rapid" [ref=e2665] [cursor=pointer]:
+                  - img [ref=e2666]
+                - button [ref=e2669] [cursor=pointer]:
+                  - img [ref=e2670]
+                - button [ref=e2673] [cursor=pointer]:
+                  - img [ref=e2674]
+          - row "03.03.2026 MARDARE ALEXANDRA NICOLETA Abonament martie 2026 220.00 RON Parțial" [ref=e2677]:
+            - cell [ref=e2678]:
+              - checkbox [ref=e2679]
+            - cell "03.03.2026" [ref=e2680]
+            - cell "MARDARE ALEXANDRA NICOLETA" [ref=e2681] [cursor=pointer]
+            - cell "Abonament martie 2026" [ref=e2682]:
+              - generic [ref=e2683]: Abonament martie 2026
+            - cell "220.00 RON" [ref=e2684]:
+              - generic [ref=e2685]: 220.00 RON
+            - cell "Parțial" [ref=e2686]
+            - cell [ref=e2687]:
+              - generic [ref=e2688]:
+                - button "Încasează Rapid" [ref=e2689] [cursor=pointer]:
+                  - img [ref=e2690]
+                - button [ref=e2693] [cursor=pointer]:
+                  - img [ref=e2694]
+                - button [ref=e2697] [cursor=pointer]:
+                  - img [ref=e2698]
+          - row "10.02.2026 Familia Aștefanei Abonament Familie februarie 2026 220.00 RON Restant!" [ref=e2701]:
+            - cell [ref=e2702]:
+              - checkbox [ref=e2703]
+            - cell "10.02.2026" [ref=e2704]
+            - cell "Familia Aștefanei" [ref=e2705] [cursor=pointer]
+            - cell "Abonament Familie februarie 2026" [ref=e2706]:
+              - generic [ref=e2707]: Abonament Familie februarie 2026
+            - cell "220.00 RON" [ref=e2708]:
+              - generic [ref=e2709]: 220.00 RON
+            - cell "Restant!" [ref=e2710]
+            - cell [ref=e2711]:
+              - generic [ref=e2712]:
+                - button "Încasează Rapid" [ref=e2713] [cursor=pointer]:
+                  - img [ref=e2714]
+                - button [ref=e2717] [cursor=pointer]:
+                  - img [ref=e2718]
+                - button [ref=e2721] [cursor=pointer]:
+                  - img [ref=e2722]
+          - row "10.02.2026 Familia Anistoroaei Abonament Familie februarie 2026 380.00 RON Restant!" [ref=e2725]:
+            - cell [ref=e2726]:
+              - checkbox [ref=e2727]
+            - cell "10.02.2026" [ref=e2728]
+            - cell "Familia Anistoroaei" [ref=e2729] [cursor=pointer]
+            - cell "Abonament Familie februarie 2026" [ref=e2730]:
+              - generic [ref=e2731]: Abonament Familie februarie 2026
+            - cell "380.00 RON" [ref=e2732]:
+              - generic [ref=e2733]: 380.00 RON
+            - cell "Restant!" [ref=e2734]
+            - cell [ref=e2735]:
+              - generic [ref=e2736]:
+                - button "Încasează Rapid" [ref=e2737] [cursor=pointer]:
+                  - img [ref=e2738]
+                - button [ref=e2741] [cursor=pointer]:
+                  - img [ref=e2742]
+                - button [ref=e2745] [cursor=pointer]:
+                  - img [ref=e2746]
+          - row "10.02.2026 MARDARE ALEXANDRA NICOLETA Abonament februarie 2026 220.00 RON Restant!" [ref=e2749]:
+            - cell [ref=e2750]:
+              - checkbox [ref=e2751]
+            - cell "10.02.2026" [ref=e2752]
+            - cell "MARDARE ALEXANDRA NICOLETA" [ref=e2753] [cursor=pointer]
+            - cell "Abonament februarie 2026" [ref=e2754]:
+              - generic [ref=e2755]: Abonament februarie 2026
+            - cell "220.00 RON" [ref=e2756]:
+              - generic [ref=e2757]: 220.00 RON
+            - cell "Restant!" [ref=e2758]
+            - cell [ref=e2759]:
+              - generic [ref=e2760]:
+                - button "Încasează Rapid" [ref=e2761] [cursor=pointer]:
+                  - img [ref=e2762]
+                - button [ref=e2765] [cursor=pointer]:
+                  - img [ref=e2766]
+                - button [ref=e2769] [cursor=pointer]:
+                  - img [ref=e2770]
+          - row "10.02.2026 SABIN SABIN Abonament februarie 2026 220.00 RON Restant!" [ref=e2773]:
+            - cell [ref=e2774]:
+              - checkbox [ref=e2775]
+            - cell "10.02.2026" [ref=e2776]
+            - cell "SABIN SABIN" [ref=e2777] [cursor=pointer]
+            - cell "Abonament februarie 2026" [ref=e2778]:
+              - generic [ref=e2779]: Abonament februarie 2026
+            - cell "220.00 RON" [ref=e2780]:
+              - generic [ref=e2781]: 220.00 RON
+            - cell "Restant!" [ref=e2782]
+            - cell [ref=e2783]:
+              - generic [ref=e2784]:
+                - button "Încasează Rapid" [ref=e2785] [cursor=pointer]:
+                  - img [ref=e2786]
+                - button [ref=e2789] [cursor=pointer]:
+                  - img [ref=e2790]
+                - button [ref=e2793] [cursor=pointer]:
+                  - img [ref=e2794]
+          - row "01.02.2026 SUMĂNARIU DRAGOȘ ȘTEFAN Abonament februarie 2026 220.00 RON Restant!" [ref=e2857]:
+            - cell [ref=e2858]:
+              - checkbox [ref=e2859]
+            - cell "01.02.2026" [ref=e2860]
+            - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e2861] [cursor=pointer]
+            - cell "Abonament februarie 2026" [ref=e2862]:
+              - generic [ref=e2863]: Abonament februarie 2026
+            - cell "220.00 RON" [ref=e2864]:
+              - generic [ref=e2865]: 220.00 RON
+            - cell "Restant!" [ref=e2866]
+            - cell [ref=e2867]:
+              - generic [ref=e2868]:
+                - button "Încasează Rapid" [ref=e2869] [cursor=pointer]:
+                  - img [ref=e2870]
+                - button [ref=e2873] [cursor=pointer]:
+                  - img [ref=e2874]
+                - button [ref=e2877] [cursor=pointer]:
+                  - img [ref=e2878]
+          - row "01.02.2026 BEREZENCO CEZAR ANTONIO Abonament februarie 2026 220.00 RON Restant!" [ref=e2881]:
+            - cell [ref=e2882]:
+              - checkbox [ref=e2883]
+            - cell "01.02.2026" [ref=e2884]
+            - cell "BEREZENCO CEZAR ANTONIO" [ref=e2885] [cursor=pointer]
+            - cell "Abonament februarie 2026" [ref=e2886]:
+              - generic [ref=e2887]: Abonament februarie 2026
+            - cell "220.00 RON" [ref=e2888]:
+              - generic [ref=e2889]: 220.00 RON
+            - cell "Restant!" [ref=e2890]
+            - cell [ref=e2891]:
+              - generic [ref=e2892]:
+                - button "Încasează Rapid" [ref=e2893] [cursor=pointer]:
+                  - img [ref=e2894]
+                - button [ref=e2897] [cursor=pointer]:
+                  - img [ref=e2898]
+                - button [ref=e2901] [cursor=pointer]:
+                  - img [ref=e2902]
+          - row "01.02.2026 STRATON ALESSIA TEODORA Abonament februarie 2026 220.00 RON Restant!" [ref=e2925]:
+            - cell [ref=e2926]:
+              - checkbox [ref=e2927]
+            - cell "01.02.2026" [ref=e2928]
+            - cell "STRATON ALESSIA TEODORA" [ref=e2929] [cursor=pointer]
+            - cell "Abonament februarie 2026" [ref=e2930]:
+              - generic [ref=e2931]: Abonament februarie 2026
+            - cell "220.00 RON" [ref=e2932]:
+              - generic [ref=e2933]: 220.00 RON
+            - cell "Restant!" [ref=e2934]
+            - cell [ref=e2935]:
+              - generic [ref=e2936]:
+                - button "Încasează Rapid" [ref=e2937] [cursor=pointer]:
+                  - img [ref=e2938]
+                - button [ref=e2941] [cursor=pointer]:
+                  - img [ref=e2942]
+                - button [ref=e2945] [cursor=pointer]:
+                  - img [ref=e2946]
+          - row "20.01.2026 PRODAN OCTAVIAN STEFAN FRAM Anul 2026 200.00 RON Restant!" [ref=e3389]:
+            - cell [ref=e3390]:
+              - checkbox [ref=e3391]
+            - cell "20.01.2026" [ref=e3392]
+            - cell "PRODAN OCTAVIAN STEFAN" [ref=e3393] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3394]:
+              - generic [ref=e3395]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3396]:
+              - generic [ref=e3397]: 200.00 RON
+            - cell "Restant!" [ref=e3398]
+            - cell [ref=e3399]:
+              - generic [ref=e3400]:
+                - button "Încasează Rapid" [ref=e3401] [cursor=pointer]:
+                  - img [ref=e3402]
+                - button [ref=e3405] [cursor=pointer]:
+                  - img [ref=e3406]
+                - button [ref=e3409] [cursor=pointer]:
+                  - img [ref=e3410]
+          - row "20.01.2026 POPA ANDREI FRAM Anul 2026 200.00 RON Restant!" [ref=e3413]:
+            - cell [ref=e3414]:
+              - checkbox [ref=e3415]
+            - cell "20.01.2026" [ref=e3416]
+            - cell "POPA ANDREI" [ref=e3417] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3418]:
+              - generic [ref=e3419]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3420]:
+              - generic [ref=e3421]: 200.00 RON
+            - cell "Restant!" [ref=e3422]
+            - cell [ref=e3423]:
+              - generic [ref=e3424]:
+                - button "Încasează Rapid" [ref=e3425] [cursor=pointer]:
+                  - img [ref=e3426]
+                - button [ref=e3429] [cursor=pointer]:
+                  - img [ref=e3430]
+                - button [ref=e3433] [cursor=pointer]:
+                  - img [ref=e3434]
+          - row "20.01.2026 SABIN SABIN FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e3437]:
+            - cell [ref=e3438]:
+              - checkbox [ref=e3439]
+            - cell "20.01.2026" [ref=e3440]
+            - cell "SABIN SABIN" [ref=e3441] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e3442]:
+              - generic [ref=e3443]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e3444]:
+              - generic [ref=e3445]: 170.00 RON
+            - cell "Restant!" [ref=e3446]
+            - cell [ref=e3447]:
+              - generic [ref=e3448]:
+                - button "Încasează Rapid" [ref=e3449] [cursor=pointer]:
+                  - img [ref=e3450]
+                - button [ref=e3453] [cursor=pointer]:
+                  - img [ref=e3454]
+                - button [ref=e3457] [cursor=pointer]:
+                  - img [ref=e3458]
+          - row "20.01.2026 SANDU ANA ADRIANA FRAM Anul 2026 200.00 RON Restant!" [ref=e3481]:
+            - cell [ref=e3482]:
+              - checkbox [ref=e3483]
+            - cell "20.01.2026" [ref=e3484]
+            - cell "SANDU ANA ADRIANA" [ref=e3485] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3486]:
+              - generic [ref=e3487]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3488]:
+              - generic [ref=e3489]: 200.00 RON
+            - cell "Restant!" [ref=e3490]
+            - cell [ref=e3491]:
+              - generic [ref=e3492]:
+                - button "Încasează Rapid" [ref=e3493] [cursor=pointer]:
+                  - img [ref=e3494]
+                - button [ref=e3497] [cursor=pointer]:
+                  - img [ref=e3498]
+                - button [ref=e3501] [cursor=pointer]:
+                  - img [ref=e3502]
+          - row "20.01.2026 ȘTEFĂNESCU EMANUEL FRAM Anul 2026 200.00 RON Restant!" [ref=e3505]:
+            - cell [ref=e3506]:
+              - checkbox [ref=e3507]
+            - cell "20.01.2026" [ref=e3508]
+            - cell "ȘTEFĂNESCU EMANUEL" [ref=e3509] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3510]:
+              - generic [ref=e3511]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3512]:
+              - generic [ref=e3513]: 200.00 RON
+            - cell "Restant!" [ref=e3514]
+            - cell [ref=e3515]:
+              - generic [ref=e3516]:
+                - button "Încasează Rapid" [ref=e3517] [cursor=pointer]:
+                  - img [ref=e3518]
+                - button [ref=e3521] [cursor=pointer]:
+                  - img [ref=e3522]
+                - button [ref=e3525] [cursor=pointer]:
+                  - img [ref=e3526]
+          - row "20.01.2026 LEOHCHI RAZVAN FRAM Anul 2026 200.00 RON Restant!" [ref=e3529]:
+            - cell [ref=e3530]:
+              - checkbox [ref=e3531]
+            - cell "20.01.2026" [ref=e3532]
+            - cell "LEOHCHI RAZVAN" [ref=e3533] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3534]:
+              - generic [ref=e3535]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3536]:
+              - generic [ref=e3537]: 200.00 RON
+            - cell "Restant!" [ref=e3538]
+            - cell [ref=e3539]:
+              - generic [ref=e3540]:
+                - button "Încasează Rapid" [ref=e3541] [cursor=pointer]:
+                  - img [ref=e3542]
+                - button [ref=e3545] [cursor=pointer]:
+                  - img [ref=e3546]
+                - button [ref=e3549] [cursor=pointer]:
+                  - img [ref=e3550]
+          - row "20.01.2026 Familia Pricop FRAM Anul 2026 200.00 RON Restant!" [ref=e3613]:
+            - cell [ref=e3614]:
+              - checkbox [ref=e3615]
+            - cell "20.01.2026" [ref=e3616]
+            - cell "Familia Pricop" [ref=e3617] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3618]:
+              - generic [ref=e3619]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3620]:
+              - generic [ref=e3621]: 200.00 RON
+            - cell "Restant!" [ref=e3622]
+            - cell [ref=e3623]:
+              - generic [ref=e3624]:
+                - button "Încasează Rapid" [ref=e3625] [cursor=pointer]:
+                  - img [ref=e3626]
+                - button [ref=e3629] [cursor=pointer]:
+                  - img [ref=e3630]
+                - button [ref=e3633] [cursor=pointer]:
+                  - img [ref=e3634]
+          - row "20.01.2026 Familia Pricop FRAM Anul 2026 200.00 RON Restant!" [ref=e3637]:
+            - cell [ref=e3638]:
+              - checkbox [ref=e3639]
+            - cell "20.01.2026" [ref=e3640]
+            - cell "Familia Pricop" [ref=e3641] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3642]:
+              - generic [ref=e3643]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3644]:
+              - generic [ref=e3645]: 200.00 RON
+            - cell "Restant!" [ref=e3646]
+            - cell [ref=e3647]:
+              - generic [ref=e3648]:
+                - button "Încasează Rapid" [ref=e3649] [cursor=pointer]:
+                  - img [ref=e3650]
+                - button [ref=e3653] [cursor=pointer]:
+                  - img [ref=e3654]
+                - button [ref=e3657] [cursor=pointer]:
+                  - img [ref=e3658]
+          - row "20.01.2026 SABIN SABIN FRAM Anul 2026 200.00 RON Restant!" [ref=e3661]:
+            - cell [ref=e3662]:
+              - checkbox [ref=e3663]
+            - cell "20.01.2026" [ref=e3664]
+            - cell "SABIN SABIN" [ref=e3665] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3666]:
+              - generic [ref=e3667]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3668]:
+              - generic [ref=e3669]: 200.00 RON
+            - cell "Restant!" [ref=e3670]
+            - cell [ref=e3671]:
+              - generic [ref=e3672]:
+                - button "Încasează Rapid" [ref=e3673] [cursor=pointer]:
+                  - img [ref=e3674]
+                - button [ref=e3677] [cursor=pointer]:
+                  - img [ref=e3678]
+                - button [ref=e3681] [cursor=pointer]:
+                  - img [ref=e3682]
+          - row "20.01.2026 Familia Anistoroaei FRAM Anul 2026 200.00 RON Restant!" [ref=e3685]:
+            - cell [ref=e3686]:
+              - checkbox [ref=e3687]
+            - cell "20.01.2026" [ref=e3688]
+            - cell "Familia Anistoroaei" [ref=e3689] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3690]:
+              - generic [ref=e3691]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3692]:
+              - generic [ref=e3693]: 200.00 RON
+            - cell "Restant!" [ref=e3694]
+            - cell [ref=e3695]:
+              - generic [ref=e3696]:
+                - button "Încasează Rapid" [ref=e3697] [cursor=pointer]:
+                  - img [ref=e3698]
+                - button [ref=e3701] [cursor=pointer]:
+                  - img [ref=e3702]
+                - button [ref=e3705] [cursor=pointer]:
+                  - img [ref=e3706]
+          - row "20.01.2026 Familia Andriciuc FRAM Anul 2026 200.00 RON Restant!" [ref=e3709]:
+            - cell [ref=e3710]:
+              - checkbox [ref=e3711]
+            - cell "20.01.2026" [ref=e3712]
+            - cell "Familia Andriciuc" [ref=e3713] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3714]:
+              - generic [ref=e3715]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3716]:
+              - generic [ref=e3717]: 200.00 RON
+            - cell "Restant!" [ref=e3718]
+            - cell [ref=e3719]:
+              - generic [ref=e3720]:
+                - button "Încasează Rapid" [ref=e3721] [cursor=pointer]:
+                  - img [ref=e3722]
+                - button [ref=e3725] [cursor=pointer]:
+                  - img [ref=e3726]
+                - button [ref=e3729] [cursor=pointer]:
+                  - img [ref=e3730]
+          - row "20.01.2026 SUMĂNARIU DRAGOȘ ȘTEFAN FRAM Anul 2026 200.00 RON Restant!" [ref=e3733]:
+            - cell [ref=e3734]:
+              - checkbox [ref=e3735]
+            - cell "20.01.2026" [ref=e3736]
+            - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e3737] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3738]:
+              - generic [ref=e3739]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3740]:
+              - generic [ref=e3741]: 200.00 RON
+            - cell "Restant!" [ref=e3742]
+            - cell [ref=e3743]:
+              - generic [ref=e3744]:
+                - button "Încasează Rapid" [ref=e3745] [cursor=pointer]:
+                  - img [ref=e3746]
+                - button [ref=e3749] [cursor=pointer]:
+                  - img [ref=e3750]
+                - button [ref=e3753] [cursor=pointer]:
+                  - img [ref=e3754]
+          - row "20.01.2026 STRATON ALESSIA TEODORA FRAM Anul 2026 200.00 RON Restant!" [ref=e3757]:
+            - cell [ref=e3758]:
+              - checkbox [ref=e3759]
+            - cell "20.01.2026" [ref=e3760]
+            - cell "STRATON ALESSIA TEODORA" [ref=e3761] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3762]:
+              - generic [ref=e3763]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3764]:
+              - generic [ref=e3765]: 200.00 RON
+            - cell "Restant!" [ref=e3766]
+            - cell [ref=e3767]:
+              - generic [ref=e3768]:
+                - button "Încasează Rapid" [ref=e3769] [cursor=pointer]:
+                  - img [ref=e3770]
+                - button [ref=e3773] [cursor=pointer]:
+                  - img [ref=e3774]
+                - button [ref=e3777] [cursor=pointer]:
+                  - img [ref=e3778]
+          - row "20.01.2026 BEREZENCO CEZAR ANTONIO FRAM Anul 2026 200.00 RON Restant!" [ref=e3781]:
+            - cell [ref=e3782]:
+              - checkbox [ref=e3783]
+            - cell "20.01.2026" [ref=e3784]
+            - cell "BEREZENCO CEZAR ANTONIO" [ref=e3785] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3786]:
+              - generic [ref=e3787]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3788]:
+              - generic [ref=e3789]: 200.00 RON
+            - cell "Restant!" [ref=e3790]
+            - cell [ref=e3791]:
+              - generic [ref=e3792]:
+                - button "Încasează Rapid" [ref=e3793] [cursor=pointer]:
+                  - img [ref=e3794]
+                - button [ref=e3797] [cursor=pointer]:
+                  - img [ref=e3798]
+                - button [ref=e3801] [cursor=pointer]:
+                  - img [ref=e3802]
+          - row "20.01.2026 Familia Anistoroaei FRAM Anul 2026 200.00 RON Restant!" [ref=e3805]:
+            - cell [ref=e3806]:
+              - checkbox [ref=e3807]
+            - cell "20.01.2026" [ref=e3808]
+            - cell "Familia Anistoroaei" [ref=e3809] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3810]:
+              - generic [ref=e3811]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3812]:
+              - generic [ref=e3813]: 200.00 RON
+            - cell "Restant!" [ref=e3814]
+            - cell [ref=e3815]:
+              - generic [ref=e3816]:
+                - button "Încasează Rapid" [ref=e3817] [cursor=pointer]:
+                  - img [ref=e3818]
+                - button [ref=e3821] [cursor=pointer]:
+                  - img [ref=e3822]
+                - button [ref=e3825] [cursor=pointer]:
+                  - img [ref=e3826]
+          - row "20.01.2026 Familia Anistoroaei FRAM Anul 2026 200.00 RON Restant!" [ref=e3929]:
+            - cell [ref=e3930]:
+              - checkbox [ref=e3931]
+            - cell "20.01.2026" [ref=e3932]
+            - cell "Familia Anistoroaei" [ref=e3933] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3934]:
+              - generic [ref=e3935]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3936]:
+              - generic [ref=e3937]: 200.00 RON
+            - cell "Restant!" [ref=e3938]
+            - cell [ref=e3939]:
+              - generic [ref=e3940]:
+                - button "Încasează Rapid" [ref=e3941] [cursor=pointer]:
+                  - img [ref=e3942]
+                - button [ref=e3945] [cursor=pointer]:
+                  - img [ref=e3946]
+                - button [ref=e3949] [cursor=pointer]:
+                  - img [ref=e3950]
+          - row "20.01.2026 Familia Anistoroaei FRAM Anul 2026 200.00 RON Restant!" [ref=e3953]:
+            - cell [ref=e3954]:
+              - checkbox [ref=e3955]
+            - cell "20.01.2026" [ref=e3956]
+            - cell "Familia Anistoroaei" [ref=e3957] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3958]:
+              - generic [ref=e3959]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3960]:
+              - generic [ref=e3961]: 200.00 RON
+            - cell "Restant!" [ref=e3962]
+            - cell [ref=e3963]:
+              - generic [ref=e3964]:
+                - button "Încasează Rapid" [ref=e3965] [cursor=pointer]:
+                  - img [ref=e3966]
+                - button [ref=e3969] [cursor=pointer]:
+                  - img [ref=e3970]
+                - button [ref=e3973] [cursor=pointer]:
+                  - img [ref=e3974]
+          - row "20.01.2026 Familia Andriciuc FRAM Anul 2026 200.00 RON Restant!" [ref=e3977]:
+            - cell [ref=e3978]:
+              - checkbox [ref=e3979]
+            - cell "20.01.2026" [ref=e3980]
+            - cell "Familia Andriciuc" [ref=e3981] [cursor=pointer]
+            - cell "FRAM Anul 2026" [ref=e3982]:
+              - generic [ref=e3983]: FRAM Anul 2026
+            - cell "200.00 RON" [ref=e3984]:
+              - generic [ref=e3985]: 200.00 RON
+            - cell "Restant!" [ref=e3986]
+            - cell [ref=e3987]:
+              - generic [ref=e3988]:
+                - button "Încasează Rapid" [ref=e3989] [cursor=pointer]:
+                  - img [ref=e3990]
+                - button [ref=e3993] [cursor=pointer]:
+                  - img [ref=e3994]
+                - button [ref=e3997] [cursor=pointer]:
+                  - img [ref=e3998]
+          - row "20.01.2026 SANDU ANA ADRIANA FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4001]:
+            - cell [ref=e4002]:
+              - checkbox [ref=e4003]
+            - cell "20.01.2026" [ref=e4004]
+            - cell "SANDU ANA ADRIANA" [ref=e4005] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4006]:
+              - generic [ref=e4007]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4008]:
+              - generic [ref=e4009]: 170.00 RON
+            - cell "Restant!" [ref=e4010]
+            - cell [ref=e4011]:
+              - generic [ref=e4012]:
+                - button "Încasează Rapid" [ref=e4013] [cursor=pointer]:
+                  - img [ref=e4014]
+                - button [ref=e4017] [cursor=pointer]:
+                  - img [ref=e4018]
+                - button [ref=e4021] [cursor=pointer]:
+                  - img [ref=e4022]
+          - row "20.01.2026 ȘTEFĂNESCU EMANUEL FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4025]:
+            - cell [ref=e4026]:
+              - checkbox [ref=e4027]
+            - cell "20.01.2026" [ref=e4028]
+            - cell "ȘTEFĂNESCU EMANUEL" [ref=e4029] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4030]:
+              - generic [ref=e4031]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4032]:
+              - generic [ref=e4033]: 170.00 RON
+            - cell "Restant!" [ref=e4034]
+            - cell [ref=e4035]:
+              - generic [ref=e4036]:
+                - button "Încasează Rapid" [ref=e4037] [cursor=pointer]:
+                  - img [ref=e4038]
+                - button [ref=e4041] [cursor=pointer]:
+                  - img [ref=e4042]
+                - button [ref=e4045] [cursor=pointer]:
+                  - img [ref=e4046]
+          - row "20.01.2026 MARDARE ALEXANDRA NICOLETA FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4049]:
+            - cell [ref=e4050]:
+              - checkbox [ref=e4051]
+            - cell "20.01.2026" [ref=e4052]
+            - cell "MARDARE ALEXANDRA NICOLETA" [ref=e4053] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4054]:
+              - generic [ref=e4055]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4056]:
+              - generic [ref=e4057]: 170.00 RON
+            - cell "Restant!" [ref=e4058]
+            - cell [ref=e4059]:
+              - generic [ref=e4060]:
+                - button "Încasează Rapid" [ref=e4061] [cursor=pointer]:
+                  - img [ref=e4062]
+                - button [ref=e4065] [cursor=pointer]:
+                  - img [ref=e4066]
+                - button [ref=e4069] [cursor=pointer]:
+                  - img [ref=e4070]
+          - row "20.01.2026 LUNGU ALIN MIHAI FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4073]:
+            - cell [ref=e4074]:
+              - checkbox [ref=e4075]
+            - cell "20.01.2026" [ref=e4076]
+            - cell "LUNGU ALIN MIHAI" [ref=e4077] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4078]:
+              - generic [ref=e4079]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4080]:
+              - generic [ref=e4081]: 170.00 RON
+            - cell "Restant!" [ref=e4082]
+            - cell [ref=e4083]:
+              - generic [ref=e4084]:
+                - button "Încasează Rapid" [ref=e4085] [cursor=pointer]:
+                  - img [ref=e4086]
+                - button [ref=e4089] [cursor=pointer]:
+                  - img [ref=e4090]
+                - button [ref=e4093] [cursor=pointer]:
+                  - img [ref=e4094]
+          - row "20.01.2026 LEOHCHI RAZVAN FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4097]:
+            - cell [ref=e4098]:
+              - checkbox [ref=e4099]
+            - cell "20.01.2026" [ref=e4100]
+            - cell "LEOHCHI RAZVAN" [ref=e4101] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4102]:
+              - generic [ref=e4103]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4104]:
+              - generic [ref=e4105]: 170.00 RON
+            - cell "Restant!" [ref=e4106]
+            - cell [ref=e4107]:
+              - generic [ref=e4108]:
+                - button "Încasează Rapid" [ref=e4109] [cursor=pointer]:
+                  - img [ref=e4110]
+                - button [ref=e4113] [cursor=pointer]:
+                  - img [ref=e4114]
+                - button [ref=e4117] [cursor=pointer]:
+                  - img [ref=e4118]
+          - row "20.01.2026 PRODAN OCTAVIAN STEFAN FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4121]:
+            - cell [ref=e4122]:
+              - checkbox [ref=e4123]
+            - cell "20.01.2026" [ref=e4124]
+            - cell "PRODAN OCTAVIAN STEFAN" [ref=e4125] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4126]:
+              - generic [ref=e4127]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4128]:
+              - generic [ref=e4129]: 170.00 RON
+            - cell "Restant!" [ref=e4130]
+            - cell [ref=e4131]:
+              - generic [ref=e4132]:
+                - button "Încasează Rapid" [ref=e4133] [cursor=pointer]:
+                  - img [ref=e4134]
+                - button [ref=e4137] [cursor=pointer]:
+                  - img [ref=e4138]
+                - button [ref=e4141] [cursor=pointer]:
+                  - img [ref=e4142]
+          - row "20.01.2026 POPA ANDREI FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4145]:
+            - cell [ref=e4146]:
+              - checkbox [ref=e4147]
+            - cell "20.01.2026" [ref=e4148]
+            - cell "POPA ANDREI" [ref=e4149] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4150]:
+              - generic [ref=e4151]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4152]:
+              - generic [ref=e4153]: 170.00 RON
+            - cell "Restant!" [ref=e4154]
+            - cell [ref=e4155]:
+              - generic [ref=e4156]:
+                - button "Încasează Rapid" [ref=e4157] [cursor=pointer]:
+                  - img [ref=e4158]
+                - button [ref=e4161] [cursor=pointer]:
+                  - img [ref=e4162]
+                - button [ref=e4165] [cursor=pointer]:
+                  - img [ref=e4166]
+          - row "20.01.2026 MANDIA MARIA FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4169]:
+            - cell [ref=e4170]:
+              - checkbox [ref=e4171]
+            - cell "20.01.2026" [ref=e4172]
+            - cell "MANDIA MARIA" [ref=e4173] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4174]:
+              - generic [ref=e4175]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4176]:
+              - generic [ref=e4177]: 170.00 RON
+            - cell "Restant!" [ref=e4178]
+            - cell [ref=e4179]:
+              - generic [ref=e4180]:
+                - button "Încasează Rapid" [ref=e4181] [cursor=pointer]:
+                  - img [ref=e4182]
+                - button [ref=e4185] [cursor=pointer]:
+                  - img [ref=e4186]
+                - button [ref=e4189] [cursor=pointer]:
+                  - img [ref=e4190]
+          - row "20.01.2026 Familia Pricop FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4313]:
+            - cell [ref=e4314]:
+              - checkbox [ref=e4315]
+            - cell "20.01.2026" [ref=e4316]
+            - cell "Familia Pricop" [ref=e4317] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4318]:
+              - generic [ref=e4319]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4320]:
+              - generic [ref=e4321]: 170.00 RON
+            - cell "Restant!" [ref=e4322]
+            - cell [ref=e4323]:
+              - generic [ref=e4324]:
+                - button "Încasează Rapid" [ref=e4325] [cursor=pointer]:
+                  - img [ref=e4326]
+                - button [ref=e4329] [cursor=pointer]:
+                  - img [ref=e4330]
+                - button [ref=e4333] [cursor=pointer]:
+                  - img [ref=e4334]
+          - row "20.01.2026 Familia Pricop FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4437]:
+            - cell [ref=e4438]:
+              - checkbox [ref=e4439]
+            - cell "20.01.2026" [ref=e4440]
+            - cell "Familia Pricop" [ref=e4441] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4442]:
+              - generic [ref=e4443]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4444]:
+              - generic [ref=e4445]: 170.00 RON
+            - cell "Restant!" [ref=e4446]
+            - cell [ref=e4447]:
+              - generic [ref=e4448]:
+                - button "Încasează Rapid" [ref=e4449] [cursor=pointer]:
+                  - img [ref=e4450]
+                - button [ref=e4453] [cursor=pointer]:
+                  - img [ref=e4454]
+                - button [ref=e4457] [cursor=pointer]:
+                  - img [ref=e4458]
+          - row "20.01.2026 Familia Anistoroaei FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4461]:
+            - cell [ref=e4462]:
+              - checkbox [ref=e4463]
+            - cell "20.01.2026" [ref=e4464]
+            - cell "Familia Anistoroaei" [ref=e4465] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4466]:
+              - generic [ref=e4467]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4468]:
+              - generic [ref=e4469]: 170.00 RON
+            - cell "Restant!" [ref=e4470]
+            - cell [ref=e4471]:
+              - generic [ref=e4472]:
+                - button "Încasează Rapid" [ref=e4473] [cursor=pointer]:
+                  - img [ref=e4474]
+                - button [ref=e4477] [cursor=pointer]:
+                  - img [ref=e4478]
+                - button [ref=e4481] [cursor=pointer]:
+                  - img [ref=e4482]
+          - row "20.01.2026 Familia Andriciuc FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4485]:
+            - cell [ref=e4486]:
+              - checkbox [ref=e4487]
+            - cell "20.01.2026" [ref=e4488]
+            - cell "Familia Andriciuc" [ref=e4489] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4490]:
+              - generic [ref=e4491]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4492]:
+              - generic [ref=e4493]: 170.00 RON
+            - cell "Restant!" [ref=e4494]
+            - cell [ref=e4495]:
+              - generic [ref=e4496]:
+                - button "Încasează Rapid" [ref=e4497] [cursor=pointer]:
+                  - img [ref=e4498]
+                - button [ref=e4501] [cursor=pointer]:
+                  - img [ref=e4502]
+                - button [ref=e4505] [cursor=pointer]:
+                  - img [ref=e4506]
+          - row "20.01.2026 SUMĂNARIU DRAGOȘ ȘTEFAN FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4509]:
+            - cell [ref=e4510]:
+              - checkbox [ref=e4511]
+            - cell "20.01.2026" [ref=e4512]
+            - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e4513] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4514]:
+              - generic [ref=e4515]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4516]:
+              - generic [ref=e4517]: 170.00 RON
+            - cell "Restant!" [ref=e4518]
+            - cell [ref=e4519]:
+              - generic [ref=e4520]:
+                - button "Încasează Rapid" [ref=e4521] [cursor=pointer]:
+                  - img [ref=e4522]
+                - button [ref=e4525] [cursor=pointer]:
+                  - img [ref=e4526]
+                - button [ref=e4529] [cursor=pointer]:
+                  - img [ref=e4530]
+          - row "20.01.2026 STRATON ALESSIA TEODORA FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4533]:
+            - cell [ref=e4534]:
+              - checkbox [ref=e4535]
+            - cell "20.01.2026" [ref=e4536]
+            - cell "STRATON ALESSIA TEODORA" [ref=e4537] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4538]:
+              - generic [ref=e4539]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4540]:
+              - generic [ref=e4541]: 170.00 RON
+            - cell "Restant!" [ref=e4542]
+            - cell [ref=e4543]:
+              - generic [ref=e4544]:
+                - button "Încasează Rapid" [ref=e4545] [cursor=pointer]:
+                  - img [ref=e4546]
+                - button [ref=e4549] [cursor=pointer]:
+                  - img [ref=e4550]
+                - button [ref=e4553] [cursor=pointer]:
+                  - img [ref=e4554]
+          - row "20.01.2026 BEREZENCO CEZAR ANTONIO FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4557]:
+            - cell [ref=e4558]:
+              - checkbox [ref=e4559]
+            - cell "20.01.2026" [ref=e4560]
+            - cell "BEREZENCO CEZAR ANTONIO" [ref=e4561] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4562]:
+              - generic [ref=e4563]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4564]:
+              - generic [ref=e4565]: 170.00 RON
+            - cell "Restant!" [ref=e4566]
+            - cell [ref=e4567]:
+              - generic [ref=e4568]:
+                - button "Încasează Rapid" [ref=e4569] [cursor=pointer]:
+                  - img [ref=e4570]
+                - button [ref=e4573] [cursor=pointer]:
+                  - img [ref=e4574]
+                - button [ref=e4577] [cursor=pointer]:
+                  - img [ref=e4578]
+          - row "20.01.2026 Familia Anistoroaei FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4581]:
+            - cell [ref=e4582]:
+              - checkbox [ref=e4583]
+            - cell "20.01.2026" [ref=e4584]
+            - cell "Familia Anistoroaei" [ref=e4585] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4586]:
+              - generic [ref=e4587]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4588]:
+              - generic [ref=e4589]: 170.00 RON
+            - cell "Restant!" [ref=e4590]
+            - cell [ref=e4591]:
+              - generic [ref=e4592]:
+                - button "Încasează Rapid" [ref=e4593] [cursor=pointer]:
+                  - img [ref=e4594]
+                - button [ref=e4597] [cursor=pointer]:
+                  - img [ref=e4598]
+                - button [ref=e4601] [cursor=pointer]:
+                  - img [ref=e4602]
+          - row "20.01.2026 Familia Anistoroaei FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4605]:
+            - cell [ref=e4606]:
+              - checkbox [ref=e4607]
+            - cell "20.01.2026" [ref=e4608]
+            - cell "Familia Anistoroaei" [ref=e4609] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4610]:
+              - generic [ref=e4611]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4612]:
+              - generic [ref=e4613]: 170.00 RON
+            - cell "Restant!" [ref=e4614]
+            - cell [ref=e4615]:
+              - generic [ref=e4616]:
+                - button "Încasează Rapid" [ref=e4617] [cursor=pointer]:
+                  - img [ref=e4618]
+                - button [ref=e4621] [cursor=pointer]:
+                  - img [ref=e4622]
+                - button [ref=e4625] [cursor=pointer]:
+                  - img [ref=e4626]
+          - row "20.01.2026 Familia Anistoroaei FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4629]:
+            - cell [ref=e4630]:
+              - checkbox [ref=e4631]
+            - cell "20.01.2026" [ref=e4632]
+            - cell "Familia Anistoroaei" [ref=e4633] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4634]:
+              - generic [ref=e4635]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4636]:
+              - generic [ref=e4637]: 170.00 RON
+            - cell "Restant!" [ref=e4638]
+            - cell [ref=e4639]:
+              - generic [ref=e4640]:
+                - button "Încasează Rapid" [ref=e4641] [cursor=pointer]:
+                  - img [ref=e4642]
+                - button [ref=e4645] [cursor=pointer]:
+                  - img [ref=e4646]
+                - button [ref=e4649] [cursor=pointer]:
+                  - img [ref=e4650]
+          - row "20.01.2026 Familia Andriciuc FRQKD Sezonul 2025-2026 170.00 RON Restant!" [ref=e4653]:
+            - cell [ref=e4654]:
+              - checkbox [ref=e4655]
+            - cell "20.01.2026" [ref=e4656]
+            - cell "Familia Andriciuc" [ref=e4657] [cursor=pointer]
+            - cell "FRQKD Sezonul 2025-2026" [ref=e4658]:
+              - generic [ref=e4659]: FRQKD Sezonul 2025-2026
+            - cell "170.00 RON" [ref=e4660]:
+              - generic [ref=e4661]: 170.00 RON
+            - cell "Restant!" [ref=e4662]
+            - cell [ref=e4663]:
+              - generic [ref=e4664]:
+                - button "Încasează Rapid" [ref=e4665] [cursor=pointer]:
+                  - img [ref=e4666]
+                - button [ref=e4669] [cursor=pointer]:
+                  - img [ref=e4670]
+                - button [ref=e4673] [cursor=pointer]:
+                  - img [ref=e4674]
+          - row "12.01.2026 SUMĂNARIU DRAGOȘ ȘTEFAN Abonament Individual ianuarie 2026 220.00 RON Restant!" [ref=e4997]:
+            - cell [ref=e4998]:
+              - checkbox [ref=e4999]
+            - cell "12.01.2026" [ref=e5000]
+            - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e5001] [cursor=pointer]
+            - cell "Abonament Individual ianuarie 2026" [ref=e5002]:
+              - generic [ref=e5003]: Abonament Individual ianuarie 2026
+            - cell "220.00 RON" [ref=e5004]:
+              - generic [ref=e5005]: 220.00 RON
+            - cell "Restant!" [ref=e5006]
+            - cell [ref=e5007]:
+              - generic [ref=e5008]:
+                - button "Încasează Rapid" [ref=e5009] [cursor=pointer]:
+                  - img [ref=e5010]
+                - button [ref=e5013] [cursor=pointer]:
+                  - img [ref=e5014]
+                - button [ref=e5017] [cursor=pointer]:
+                  - img [ref=e5018]
+          - row "11.01.2026 MARDARE ALEXANDRA NICOLETA Taxa Stagiu National de Qwan Ki Do 100.00 RON Restant!" [ref=e5281]:
+            - cell [ref=e5282]:
+              - checkbox [ref=e5283]
+            - cell "11.01.2026" [ref=e5284]
+            - cell "MARDARE ALEXANDRA NICOLETA" [ref=e5285] [cursor=pointer]
+            - cell "Taxa Stagiu National de Qwan Ki Do" [ref=e5286]:
+              - generic [ref=e5287]: Taxa Stagiu National de Qwan Ki Do
+            - cell "100.00 RON" [ref=e5288]:
+              - generic [ref=e5289]: 100.00 RON
+            - cell "Restant!" [ref=e5290]
+            - cell [ref=e5291]:
+              - generic [ref=e5292]:
+                - button "Încasează Rapid" [ref=e5293] [cursor=pointer]:
+                  - img [ref=e5294]
+                - button [ref=e5297] [cursor=pointer]:
+                  - img [ref=e5298]
+                - button [ref=e5301] [cursor=pointer]:
+                  - img [ref=e5302]
+          - row "18.12.2025 ȘTEFĂNESCU EMANUEL Taxa examen grad 4 Câp Roșu 100.00 RON Restant!" [ref=e5825]:
+            - cell [ref=e5826]:
+              - checkbox [ref=e5827]
+            - cell "18.12.2025" [ref=e5828]
+            - cell "ȘTEFĂNESCU EMANUEL" [ref=e5829] [cursor=pointer]
+            - cell "Taxa examen grad 4 Câp Roșu" [ref=e5830]:
+              - generic [ref=e5831]: Taxa examen grad 4 Câp Roșu
+            - cell "100.00 RON" [ref=e5832]:
+              - generic [ref=e5833]: 100.00 RON
+            - cell "Restant!" [ref=e5834]
+            - cell [ref=e5835]:
+              - generic [ref=e5836]:
+                - button "Încasează Rapid" [ref=e5837] [cursor=pointer]:
+                  - img [ref=e5838]
+                - button [ref=e5841] [cursor=pointer]:
+                  - img [ref=e5842]
+                - button [ref=e5845] [cursor=pointer]:
+                  - img [ref=e5846]
+          - row "09.06.2022 Familia Balmus Taxă Examen - 1 Câp Roșu 100.00 RON Restant!" [ref=e6129]:
+            - cell [ref=e6130]:
+              - checkbox [ref=e6131]
+            - cell "09.06.2022" [ref=e6132]
+            - cell "Familia Balmus" [ref=e6133] [cursor=pointer]
+            - cell "Taxă Examen - 1 Câp Roșu" [ref=e6134]:
+              - generic [ref=e6135]: Taxă Examen - 1 Câp Roșu
+            - cell "100.00 RON" [ref=e6136]:
+              - generic [ref=e6137]: 100.00 RON
+            - cell "Restant!" [ref=e6138]
+            - cell [ref=e6139]:
+              - generic [ref=e6140]:
+                - button "Încasează Rapid" [ref=e6141] [cursor=pointer]:
+                  - img [ref=e6142]
+                - button [ref=e6145] [cursor=pointer]:
+                  - img [ref=e6146]
+                - button [ref=e6149] [cursor=pointer]:
+                  - img [ref=e6150]
+  - contentinfo [ref=e6153]:
+    - paragraph [ref=e6154]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e6155] [cursor=pointer]:
+      - img [ref=e6156]
+      - generic [ref=e6159]: Asistent AI

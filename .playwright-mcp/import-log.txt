@@ -1,0 +1,44 @@
+=== NAVIGATE ===
+[BROWSER ERROR] Failed to load resource: the server responded with a status of 401 ()
+[BROWSER ERROR] Failed to load resource: the server responded with a status of 401 ()
+[BROWSER ERROR] Failed to load resource: the server responded with a status of 401 ()
+[BROWSER ERROR] Failed to load resource: the server responded with a status of 401 ()
+[BROWSER ERROR] Failed to load resource: the server responded with a status of 401 ()
+[BROWSER ERROR] Failed to load resource: the server responded with a status of 401 ()
+Login needed
+[BROWSER ERROR] Failed to load resource: the server responded with a status of 401 ()
+[BROWSER ERROR] Failed to load resource: the server responded with a status of 401 ()
+Role selection, picking Super Admin
+=== SPORTIVI ===
+=== IMPORT ===
+[BROWSER LOG] ImportSportiviPage montat. Versiune: 2.1.0
+[BROWSER LOG] ImportSportiviPage montat. Versiune: 2.1.0
+=== SELECT CLUB ===
+Club options: — Selectează clubul — | ACS Phuong Bao  | Am Duong  | C.S. Phi Hau | Club Bogdan | Federația Română de Qwan Ki Do | Hâc Long Dao Brașov | Hong Ha | Kim Long Dao Falticeni | Long Dao | Long Ho Cluj | Thoi Son Brasov
+Selected club: Kim Long Dao Falticeni
+=== UPLOAD ===
+CSV uploaded
+=== ANALYZE ===
+[BROWSER LOG] Incepere analiza fisier: lista-max-import.csv
+Clicked Analizează, waiting for step 1...
+Step 1 - Revizuire appeared!
+=== EXECUTE IMPORT ===
+Clicking: "Finalizeaza Import (115 sportivi)"
+Confirmation dialog detected, clicking confirm...
+Waiting for import to complete...
+Import completion not detected: page.waitForSelector: Timeout 60000ms exceeded.
+Call log:
+[2m  - waiting for locator('text=Import f
+=== FINAL RESULTS ===
+
+    Qwan Ki DoManagementContext ActivFederațieDashboardGestiune MembriExameneActivități NaționaleSetări & AdminRapoarteNotificăriSMSCereri ÎnscriereIstoric ActivitateAdmin DashboardButton CatalogTemaALALIN MIHAI LUNGUSuper AdminQwan Ki DoManagementContext ActivFederațieDashboardGestiune MembriExameneActivități NaționaleSetări & AdminRapoarteNotificăriSMSCereri ÎnscriereIstoric ActivitateAdmin DashboardButton CatalogTemaALALIN MIHAI LUNGUSuper AdminDashboardOnlineTemăALALIN MIHAI [SUPER ADMIN]Bună ziua, LUNGU!Ce facem azi?Prezență RapidăNiciun antrenament programat aziMembriSportiviFamiliiNomenclator GradeAdministrare StaffActivitate SalăExamene & CompetițiiAdministrativ & PlățiRealizat cu AI de Alin LunguAsistent AI
+    
+      // Dezregistrează service worker-e vechi (rămase din configurații PWA anterioare)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var r of registrations) { r.unregister(); }
+        });
+      }
+    
+    
+  

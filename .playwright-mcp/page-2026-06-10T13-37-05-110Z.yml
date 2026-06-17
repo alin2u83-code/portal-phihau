@@ -1,0 +1,176 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Federație
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e53]:
+            - generic [ref=e54] [cursor=pointer]:
+              - img [ref=e55]
+              - generic [ref=e60]: Gestiune Membri
+              - img [ref=e61]
+            - generic [ref=e511]:
+              - generic [ref=e512] [cursor=pointer]: Sportivi
+              - generic [ref=e514] [cursor=pointer]: Import Sportivi
+              - generic [ref=e516] [cursor=pointer]: Deduplicare Sportivi
+              - generic [ref=e518] [cursor=pointer]: Familii
+              - generic [ref=e520] [cursor=pointer]: Legitimații
+              - generic [ref=e522] [cursor=pointer]: Nomenclator Grade
+              - generic [ref=e524] [cursor=pointer]: Administrare Staff
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e71]: Examene
+            - img [ref=e72]
+          - generic [ref=e80] [cursor=pointer]:
+            - img [ref=e81]
+            - generic [ref=e87]: Activități Naționale
+            - img [ref=e88]
+          - generic [ref=e91] [cursor=pointer]:
+            - img [ref=e92]
+            - generic [ref=e95]: Setări & Admin
+            - img [ref=e96]
+          - generic [ref=e98] [cursor=pointer]:
+            - img [ref=e100]
+            - generic [ref=e102]: Rapoarte
+          - generic [ref=e103] [cursor=pointer]:
+            - img [ref=e105]
+            - generic [ref=e109]: Notificări
+          - generic [ref=e110] [cursor=pointer]:
+            - img [ref=e112]
+            - generic [ref=e114]: SMS
+          - generic [ref=e115] [cursor=pointer]:
+            - img [ref=e117]
+            - generic [ref=e120]: Cereri Înscriere
+          - generic [ref=e121] [cursor=pointer]:
+            - img [ref=e123]
+            - generic [ref=e126]: Istoric Activitate
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e132]: Admin Dashboard
+          - generic [ref=e133] [cursor=pointer]:
+            - img [ref=e135]
+            - generic [ref=e141]: Button Catalog
+        - button "Scroll jos" [ref=e142] [cursor=pointer]:
+          - img [ref=e143]
+      - generic [ref=e145]:
+        - button "Tema" [ref=e147] [cursor=pointer]:
+          - img [ref=e148]
+          - generic [ref=e154]: Tema
+        - generic [ref=e156]:
+          - generic [ref=e157]: AL
+          - generic [ref=e158]:
+            - paragraph [ref=e159]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e160] [cursor=pointer]:
+            - img [ref=e161]
+  - banner [ref=e164]:
+    - generic [ref=e165]:
+      - button "Deschide meniu" [ref=e166] [cursor=pointer]:
+        - img [ref=e167]
+      - button "Înapoi" [ref=e2841] [cursor=pointer]:
+        - img [ref=e2842]
+      - navigation "Navigare" [ref=e168]:
+        - heading "Profil Sportiv" [level=1] [ref=e2844]
+    - generic [ref=e170]:
+      - button "Personalizare temă" [ref=e172] [cursor=pointer]:
+        - img [ref=e173]
+      - button [ref=e180] [cursor=pointer]:
+        - img [ref=e181]
+      - button "AL" [ref=e185] [cursor=pointer]:
+        - generic [ref=e186]: AL
+  - main [ref=e187]:
+    - generic [ref=e2862]:
+      - button "Management Sportivi" [ref=e2863] [cursor=pointer]:
+        - img [ref=e2864]
+        - generic [ref=e2866]: Management Sportivi
+      - generic [ref=e2867]:
+        - generic [ref=e2868]:
+          - generic [ref=e2869]:
+            - generic [ref=e2871]:
+              - generic [ref=e2872]: AA
+              - img [ref=e2874] [cursor=pointer]
+            - generic [ref=e2878]: 2 Câp Roșu
+          - generic [ref=e2879]:
+            - heading "AGAFIȚEI ALEXANDRA MIHAELA" [level=1] [ref=e2880]
+            - paragraph [ref=e2881]: Retrasi
+            - generic [ref=e2883]: Activ
+        - generic [ref=e2884]:
+          - button "Editare" [ref=e2885] [cursor=pointer]:
+            - img [ref=e2886]
+            - text: Editare
+          - button "Portofel" [ref=e2889] [cursor=pointer]:
+            - img [ref=e2890]
+            - text: Portofel
+          - button "Plăți" [ref=e2893] [cursor=pointer]:
+            - img [ref=e2894]
+            - text: Plăți
+          - button "Examene" [ref=e2896] [cursor=pointer]:
+            - img [ref=e2897]
+            - text: Examene
+          - button "Șterge" [ref=e2903] [cursor=pointer]:
+            - img [ref=e2904]
+            - text: Șterge
+      - generic [ref=e2907]:
+        - button "Profil & Activitate" [ref=e2908] [cursor=pointer]:
+          - img [ref=e2909]
+          - text: Profil & Activitate
+        - button "Contact & Info" [active] [ref=e2913] [cursor=pointer]:
+          - img [ref=e2914]
+          - text: Contact & Info
+        - button "Evoluție & Grade" [ref=e2917] [cursor=pointer]:
+          - img [ref=e2918]
+          - text: Evoluție & Grade
+        - button "Istoric Financiar" [ref=e2924] [cursor=pointer]:
+          - img [ref=e2925]
+          - text: Istoric Financiar
+      - generic [ref=e3064]:
+        - generic [ref=e3065]:
+          - heading "Informații Personale" [level=3] [ref=e3066]
+          - generic [ref=e3067]:
+            - generic [ref=e3069]:
+              - term [ref=e3070]: CNP
+              - definition [ref=e3071]: N/A
+            - generic [ref=e3073]:
+              - term [ref=e3074]: Data Nașterii
+              - definition [ref=e3075]: 20.01.2000
+            - generic [ref=e3077]:
+              - term [ref=e3078]: Gen
+              - definition [ref=e3079]: Feminin
+            - generic [ref=e3081]:
+              - term [ref=e3082]: Înălțime
+              - definition [ref=e3083]: Nespecificat
+        - generic [ref=e3084]:
+          - heading "Contact & Adresă" [level=3] [ref=e3085]
+          - generic [ref=e3086]:
+            - generic [ref=e3088]:
+              - term [ref=e3089]: Email
+              - definition [ref=e3090]: agafitei.alexandramihaela.2901@csphihau.ro
+            - generic [ref=e3092]:
+              - term [ref=e3093]: Telefon
+              - definition [ref=e3094]: N/A
+            - generic [ref=e3096]:
+              - term [ref=e3097]: Adresă
+              - definition [ref=e3098]: N/A
+            - generic [ref=e3100]:
+              - term [ref=e3101]: Club
+              - definition [ref=e3102]: C.S. Phi Hau
+          - button "Transferă la alt Club" [ref=e3104] [cursor=pointer]:
+            - img [ref=e3105]
+            - text: Transferă la alt Club
+  - button "Asistent AI" [ref=e506] [cursor=pointer]:
+    - img [ref=e507]

@@ -1,0 +1,381 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Federație
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e63]:
+            - generic [ref=e64] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e71]: Examene
+              - img [ref=e72]
+            - generic [ref=e74]:
+              - generic [ref=e75] [cursor=pointer]: Sesiuni Examene
+              - generic [ref=e77] [cursor=pointer]: Rapoarte Examen
+          - generic [ref=e80] [cursor=pointer]:
+            - img [ref=e81]
+            - generic [ref=e87]: Activități Naționale
+            - img [ref=e88]
+          - generic [ref=e91] [cursor=pointer]:
+            - img [ref=e92]
+            - generic [ref=e95]: Setări & Admin
+            - img [ref=e96]
+          - generic [ref=e98] [cursor=pointer]:
+            - img [ref=e100]
+            - generic [ref=e102]: Rapoarte
+          - generic [ref=e103] [cursor=pointer]:
+            - img [ref=e105]
+            - generic [ref=e109]: Notificări
+          - generic [ref=e110] [cursor=pointer]:
+            - img [ref=e112]
+            - generic [ref=e114]: SMS
+          - generic [ref=e115] [cursor=pointer]:
+            - img [ref=e117]
+            - generic [ref=e120]: Cereri Înscriere
+          - generic [ref=e121] [cursor=pointer]:
+            - img [ref=e123]
+            - generic [ref=e126]: Istoric Activitate
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e132]: Admin Dashboard
+          - generic [ref=e133] [cursor=pointer]:
+            - img [ref=e135]
+            - generic [ref=e141]: Button Catalog
+        - button "Scroll jos" [ref=e142] [cursor=pointer]:
+          - img [ref=e143]
+      - generic [ref=e145]:
+        - button "Tema" [ref=e147] [cursor=pointer]:
+          - img [ref=e148]
+          - generic [ref=e154]: Tema
+        - generic [ref=e156]:
+          - generic [ref=e157]: AL
+          - generic [ref=e158]:
+            - paragraph [ref=e159]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e160] [cursor=pointer]:
+            - img [ref=e161]
+  - button "Restrânge meniul" [ref=e164] [cursor=pointer]:
+    - img [ref=e165]
+  - banner [ref=e167]:
+    - navigation "Navigare" [ref=e169]:
+      - heading "Examene" [level=1] [ref=e170]
+    - generic [ref=e171]:
+      - button "Temă" [ref=e173] [cursor=pointer]:
+        - img [ref=e174]
+        - generic [ref=e180]: Temă
+      - button [ref=e182] [cursor=pointer]:
+        - img [ref=e183]
+      - button "AL ALIN MIHAI [SUPER ADMIN]" [ref=e188] [cursor=pointer]:
+        - generic [ref=e189]: AL
+        - paragraph [ref=e191]:
+          - text: ALIN MIHAI
+          - generic [ref=e192]: "[SUPER ADMIN]"
+        - img [ref=e193]
+  - main [ref=e195]:
+    - generic [ref=e198]:
+      - button "Înapoi la listă" [ref=e1506] [cursor=pointer]:
+        - img [ref=e200]
+        - text: Înapoi la listă
+      - generic [ref=e1507]:
+        - generic [ref=e1508]:
+          - generic [ref=e1509]:
+            - heading "Falticeni - 14.01.2026" [level=3] [ref=e1510]
+            - paragraph [ref=e1511]: "Comisia: Maxim Marius"
+            - text: Programat
+          - generic [ref=e1512]:
+            - button "Ghid import XLS" [ref=e1513] [cursor=pointer]:
+              - img [ref=e1514]
+            - button "Import Sportivi" [ref=e1517] [cursor=pointer]:
+              - img [ref=e1518]
+              - text: Import Sportivi
+            - button "Import XLS" [ref=e1521] [cursor=pointer]:
+              - img [ref=e1522]
+              - text: Import XLS
+            - button "Export Fișe" [ref=e1525] [cursor=pointer]:
+              - img [ref=e1526]
+              - text: Export Fișe
+            - button "Editează" [ref=e1528] [cursor=pointer]:
+              - img [ref=e1529]
+              - text: Editează
+            - button "Finalizează Examen" [ref=e1532] [cursor=pointer]
+        - generic [ref=e1533]:
+          - generic [ref=e1534]:
+            - generic [ref=e1536]:
+              - heading "Înscriere Participanți" [level=3] [ref=e1537]
+              - paragraph [ref=e1538]: Adaugă sportivi individual sau selectează mai mulți odată
+            - generic [ref=e1539]:
+              - button "Adaugă Individual" [ref=e1540] [cursor=pointer]:
+                - img [ref=e1541]
+                - text: Adaugă Individual
+              - button "Adaugă Multipli" [ref=e1542] [cursor=pointer]:
+                - img [ref=e1543]
+                - text: Adaugă Multipli
+          - generic [ref=e1544]:
+            - generic [ref=e1545]:
+              - paragraph [ref=e1546]: "43"
+              - paragraph [ref=e1547]: Admiși
+            - generic [ref=e1548]:
+              - paragraph [ref=e1549]: "0"
+              - paragraph [ref=e1550]: În așteptare
+            - generic [ref=e1551]:
+              - paragraph [ref=e1552]: "0"
+              - paragraph [ref=e1553]: Respinși
+          - generic [ref=e1554]:
+            - generic [ref=e1555]:
+              - heading "Participanți Înscriși43" [level=3] [ref=e1556]
+              - generic [ref=e1557]:
+                - button "Export Fișe" [ref=e1558] [cursor=pointer]:
+                  - img [ref=e1559]
+                  - text: Export Fișe
+                - button "Sincronizare (5)" [ref=e1561] [cursor=pointer]:
+                  - img [ref=e1562]
+                  - text: Sincronizare (5)
+            - generic [ref=e1564]:
+              - table [ref=e1566]:
+                - rowgroup [ref=e1567]:
+                  - row "Nume Sportiv Grad Actual Grad Vizat Status Plată Rezultat Acțiuni" [ref=e1568]:
+                    - columnheader "Nume Sportiv" [ref=e1569] [cursor=pointer]
+                    - columnheader "Grad Actual" [ref=e1570] [cursor=pointer]
+                    - columnheader "Grad Vizat" [ref=e1571] [cursor=pointer]
+                    - columnheader "Status Plată" [ref=e1572] [cursor=pointer]
+                    - columnheader "Rezultat" [ref=e1573] [cursor=pointer]
+                    - columnheader "Acțiuni" [ref=e1574] [cursor=pointer]
+                - rowgroup [ref=e1575]:
+                  - row "MOROȘANU DAMIAN ȘTEFAN Debutant C.V. 2 Câp Alb Neachitat Admis" [ref=e1576]:
+                    - cell "MOROȘANU DAMIAN ȘTEFAN" [ref=e1577]:
+                      - paragraph [ref=e1578] [cursor=pointer]: MOROȘANU DAMIAN ȘTEFAN
+                    - cell "Debutant" [ref=e1579]
+                    - cell "C.V. 2 Câp Alb" [ref=e1580]
+                    - cell "Neachitat" [ref=e1581]:
+                      - generic [ref=e1583]: Neachitat
+                    - cell "Admis" [ref=e1584]:
+                      - generic [ref=e1586]:
+                        - combobox [ref=e1587]:
+                          - option "În așteptare"
+                          - option "Admis" [selected]
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e1588]:
+                      - generic [ref=e1589]:
+                        - button "Modifică gradul vizat" [ref=e1590] [cursor=pointer]:
+                          - img [ref=e1591]
+                        - button "Retrage înscriere" [ref=e1594] [cursor=pointer]:
+                          - img [ref=e1595]
+                  - row "RADU RAZVAN Debutant C.V. 1 Câp Alb Neachitat Admis" [ref=e1598]:
+                    - cell "RADU RAZVAN" [ref=e1599]:
+                      - paragraph [ref=e1600] [cursor=pointer]: RADU RAZVAN
+                    - cell "Debutant" [ref=e1601]
+                    - cell "C.V. 1 Câp Alb" [ref=e1602]
+                    - cell "Neachitat" [ref=e1603]:
+                      - generic [ref=e1605]: Neachitat
+                    - cell "Admis" [ref=e1606]:
+                      - generic [ref=e1608]:
+                        - combobox [ref=e1609]:
+                          - option "În așteptare"
+                          - option "Admis" [selected]
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e1610]:
+                      - generic [ref=e1611]:
+                        - button "Modifică gradul vizat" [ref=e1612] [cursor=pointer]:
+                          - img [ref=e1613]
+                        - button "Retrage înscriere" [ref=e1616] [cursor=pointer]:
+                          - img [ref=e1617]
+                  - row "VLASOV ANDREI Debutant C.V. 1 Câp Alb Neachitat Admis" [ref=e1620]:
+                    - cell "VLASOV ANDREI" [ref=e1621]:
+                      - paragraph [ref=e1622] [cursor=pointer]: VLASOV ANDREI
+                    - cell "Debutant" [ref=e1623]
+                    - cell "C.V. 1 Câp Alb" [ref=e1624]
+                    - cell "Neachitat" [ref=e1625]:
+                      - generic [ref=e1627]: Neachitat
+                    - cell "Admis" [ref=e1628]:
+                      - generic [ref=e1630]:
+                        - combobox [ref=e1631]:
+                          - option "În așteptare"
+                          - option "Admis" [selected]
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e1632]:
+                      - generic [ref=e1633]:
+                        - button "Modifică gradul vizat" [ref=e1634] [cursor=pointer]:
+                          - img [ref=e1635]
+                        - button "Retrage înscriere" [ref=e1638] [cursor=pointer]:
+                          - img [ref=e1639]
+                  - row "AMARIEI ALBERT-MATEI Centura Violet Centura Violet Neachitat Admis" [ref=e1642]:
+                    - cell "AMARIEI ALBERT-MATEI" [ref=e1643]:
+                      - paragraph [ref=e1644] [cursor=pointer]: AMARIEI ALBERT-MATEI
+                    - cell "Centura Violet" [ref=e1645]
+                    - cell "Centura Violet" [ref=e1646]
+                    - cell "Neachitat" [ref=e1647]:
+                      - generic [ref=e1649]: Neachitat
+                    - cell "Admis" [ref=e1650]:
+                      - generic [ref=e1652]:
+                        - combobox [ref=e1653]:
+                          - option "În așteptare"
+                          - option "Admis" [selected]
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e1654]:
+                      - generic [ref=e1655]:
+                        - button "Modifică gradul vizat" [ref=e1656] [cursor=pointer]:
+                          - img [ref=e1657]
+                        - button "Retrage înscriere" [ref=e1660] [cursor=pointer]:
+                          - img [ref=e1661]
+                  - row "FODOR IUSTINA MARIA Centura Violet Centura Violet Neachitat Admis" [ref=e1664]:
+                    - cell "FODOR IUSTINA MARIA" [ref=e1665]:
+                      - paragraph [ref=e1666] [cursor=pointer]: FODOR IUSTINA MARIA
+                    - cell "Centura Violet" [ref=e1667]
+                    - cell "Centura Violet" [ref=e1668]
+                    - cell "Neachitat" [ref=e1669]:
+                      - generic [ref=e1671]: Neachitat
+                    - cell "Admis" [ref=e1672]:
+                      - generic [ref=e1674]:
+                        - combobox [ref=e1675]:
+                          - option "În așteptare"
+                          - option "Admis" [selected]
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e1676]:
+                      - generic [ref=e1677]:
+                        - button "Modifică gradul vizat" [ref=e1678] [cursor=pointer]:
+                          - img [ref=e1679]
+                        - button "Retrage înscriere" [ref=e1682] [cursor=pointer]:
+                          - img [ref=e1683]
+                  - row "GRIGORAȘ ROBERT ALEXANDRU Debutant Centura Violet Neachitat Admis" [ref=e1686]:
+                    - cell "GRIGORAȘ ROBERT ALEXANDRU" [ref=e1687]:
+                      - paragraph [ref=e1688] [cursor=pointer]: GRIGORAȘ ROBERT ALEXANDRU
+                    - cell "Debutant" [ref=e1689]
+                    - cell "Centura Violet" [ref=e1690]
+                    - cell "Neachitat" [ref=e1691]:
+                      - generic [ref=e1693]: Neachitat
+                    - cell "Admis" [ref=e1694]:
+                      - generic [ref=e1696]:
+                        - combobox [ref=e1697]:
+                          - option "În așteptare"
+                          - option "Admis" [selected]
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e1698]:
+                      - generic [ref=e1699]:
+                        - button "Modifică gradul vizat" [ref=e1700] [cursor=pointer]:
+                          - img [ref=e1701]
+                        - button "Retrage înscriere" [ref=e1704] [cursor=pointer]:
+                          - img [ref=e1705]
+                  - row "PÎNZARU DANIEL Debutant Centura Violet Neachitat Admis" [ref=e1708]:
+                    - cell "PÎNZARU DANIEL" [ref=e1709]:
+                      - paragraph [ref=e1710] [cursor=pointer]: PÎNZARU DANIEL
+                    - cell "Debutant" [ref=e1711]
+                    - cell "Centura Violet" [ref=e1712]
+                    - cell "Neachitat" [ref=e1713]:
+                      - generic [ref=e1715]: Neachitat
+                    - cell "Admis" [ref=e1716]:
+                      - generic [ref=e1718]:
+                        - combobox [ref=e1719]:
+                          - option "În așteptare"
+                          - option "Admis" [selected]
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e1720]:
+                      - generic [ref=e1721]:
+                        - button "Modifică gradul vizat" [ref=e1722] [cursor=pointer]:
+                          - img [ref=e1723]
+                        - button "Retrage înscriere" [ref=e1726] [cursor=pointer]:
+                          - img [ref=e1727]
+                  - row "SANDU MARCU Debutant Centura Violet Neachitat Admis" [ref=e1730]:
+                    - cell "SANDU MARCU" [ref=e1731]:
+                      - paragraph [ref=e1732] [cursor=pointer]: SANDU MARCU
+                    - cell "Debutant" [ref=e1733]
+                    - cell "Centura Violet" [ref=e1734]
+                    - cell "Neachitat" [ref=e1735]:
+                      - generic [ref=e1737]: Neachitat
+                    - cell "Admis" [ref=e1738]:
+                      - generic [ref=e1740]:
+                        - combobox [ref=e1741]:
+                          - option "În așteptare"
+                          - option "Admis" [selected]
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e1742]:
+                      - generic [ref=e1743]:
+                        - button "Modifică gradul vizat" [ref=e1744] [cursor=pointer]:
+                          - img [ref=e1745]
+                        - button "Retrage înscriere" [ref=e1748] [cursor=pointer]:
+                          - img [ref=e1749]
+                  - row "TODICĂ ANDREI Debutant Centura Violet Neachitat Admis" [ref=e1752]:
+                    - cell "TODICĂ ANDREI" [ref=e1753]:
+                      - paragraph [ref=e1754] [cursor=pointer]: TODICĂ ANDREI
+                    - cell "Debutant" [ref=e1755]
+                    - cell "Centura Violet" [ref=e1756]
+                    - cell "Neachitat" [ref=e1757]:
+                      - generic [ref=e1759]: Neachitat
+                    - cell "Admis" [ref=e1760]:
+                      - generic [ref=e1762]:
+                        - combobox [ref=e1763]:
+                          - option "În așteptare"
+                          - option "Admis" [selected]
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e1764]:
+                      - generic [ref=e1765]:
+                        - button "Modifică gradul vizat" [ref=e1766] [cursor=pointer]:
+                          - img [ref=e1767]
+                        - button "Retrage înscriere" [ref=e1770] [cursor=pointer]:
+                          - img [ref=e1771]
+                  - row "APOSTOL ANASTASIA 4 Câp Roșu 4 Câp Roșu Neachitat Admis" [ref=e1774]:
+                    - cell "APOSTOL ANASTASIA" [ref=e1775]:
+                      - paragraph [ref=e1776] [cursor=pointer]: APOSTOL ANASTASIA
+                    - cell "4 Câp Roșu" [ref=e1777]
+                    - cell "4 Câp Roșu" [ref=e1778]
+                    - cell "Neachitat" [ref=e1779]:
+                      - generic [ref=e1781]: Neachitat
+                    - cell "Admis" [ref=e1782]:
+                      - generic [ref=e1784]:
+                        - combobox [ref=e1785]:
+                          - option "În așteptare"
+                          - option "Admis" [selected]
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - cell [ref=e1786]:
+                      - generic [ref=e1787]:
+                        - button "Modifică gradul vizat" [ref=e1788] [cursor=pointer]:
+                          - img [ref=e1789]
+                        - button "Retrage înscriere" [ref=e1792] [cursor=pointer]:
+                          - img [ref=e1793]
+              - generic [ref=e1796]:
+                - button "Anterior" [disabled] [ref=e1797]
+                - generic [ref=e1798]: Pagina 1 din 5
+                - button "Următor" [ref=e1799] [cursor=pointer]
+  - contentinfo [ref=e491]:
+    - paragraph [ref=e492]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e493] [cursor=pointer]:
+      - img [ref=e494]
+      - generic [ref=e497]: Asistent AI

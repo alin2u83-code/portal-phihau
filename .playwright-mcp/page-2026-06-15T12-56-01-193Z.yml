@@ -1,0 +1,752 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e87] [cursor=pointer]:
+            - img [ref=e88]
+            - generic [ref=e94]: Activități Naționale
+            - img [ref=e95]
+          - generic [ref=e97]:
+            - generic [ref=e98] [cursor=pointer]:
+              - img [ref=e99]
+              - generic [ref=e101]: Financiar & Plăți
+              - img [ref=e102]
+            - generic [ref=e1153]:
+              - generic [ref=e1154] [cursor=pointer]: Facturi & Plăți
+              - generic [ref=e1156] [cursor=pointer]: Jurnal Încasări
+              - generic [ref=e1158] [cursor=pointer]: Raport Financiar
+              - generic [ref=e1160] [cursor=pointer]: Taxe Anuale
+              - generic [ref=e1162] [cursor=pointer]: Config. Abonamente
+              - generic [ref=e1164] [cursor=pointer]: Configurare Prețuri
+          - generic [ref=e105] [cursor=pointer]:
+            - img [ref=e106]
+            - generic [ref=e109]: Setări & Admin
+            - img [ref=e110]
+          - generic [ref=e112] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e118]: Notificări
+          - generic [ref=e119] [cursor=pointer]:
+            - img [ref=e121]
+            - generic [ref=e123]: SMS
+          - generic [ref=e124] [cursor=pointer]:
+            - img [ref=e126]
+            - generic [ref=e129]: Cereri Înscriere
+          - generic [ref=e130] [cursor=pointer]:
+            - img [ref=e132]
+            - generic [ref=e135]: Istoric Activitate
+        - button "Scroll jos" [ref=e136] [cursor=pointer]:
+          - img [ref=e137]
+      - generic [ref=e139]:
+        - button "Tema" [ref=e141] [cursor=pointer]:
+          - img [ref=e142]
+          - generic [ref=e148]: Tema
+        - generic [ref=e150]:
+          - generic [ref=e151]: AL
+          - generic [ref=e152]:
+            - paragraph [ref=e153]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e154] [cursor=pointer]:
+            - img [ref=e155]
+  - button "Restrânge meniul" [ref=e158] [cursor=pointer]:
+    - img [ref=e159]
+  - banner [ref=e161]:
+    - navigation "Navigare" [ref=e163]:
+      - heading "jurnal-incasari" [level=1] [ref=e20904]
+    - generic [ref=e165]:
+      - button "Temă" [ref=e167] [cursor=pointer]:
+        - img [ref=e168]
+        - generic [ref=e174]: Temă
+      - button [ref=e176] [cursor=pointer]:
+        - img [ref=e177]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e182] [cursor=pointer]:
+        - generic [ref=e183]: AL
+        - paragraph [ref=e185]:
+          - text: ALIN MIHAI
+          - generic [ref=e186]: "[ADMIN CLUB]"
+        - img [ref=e187]
+  - main [ref=e189]:
+    - generic [ref=e20906]:
+      - button "Înapoi" [ref=e20907] [cursor=pointer]:
+        - img [ref=e20908]
+        - text: Înapoi
+      - generic [ref=e20910]:
+        - heading "Adaugă Sumă în Avans" [level=3] [ref=e20911]
+        - generic [ref=e20912]:
+          - generic [ref=e20913]:
+            - generic [ref=e20914]:
+              - generic [ref=e20915]: Pentru Familia
+              - generic [ref=e20916]:
+                - combobox [active] [ref=e20917]:
+                  - option "Selectează..." [selected]
+                  - option "Balmus"
+                  - option "Andriciuc"
+                  - option "Aștefanei"
+                  - option "Gomei"
+                  - option "Pricop"
+                  - option "Anistoroaei"
+                - generic:
+                  - img
+            - generic [ref=e20918]:
+              - generic [ref=e20919]: Sumă Avans (RON)
+              - spinbutton [ref=e20920]
+          - generic [ref=e20921]:
+            - generic [ref=e20922]:
+              - generic [ref=e20923]: Data Plății
+              - textbox [ref=e20924]: 2026-06-15
+            - generic [ref=e20925]:
+              - generic [ref=e20926]: Metoda de Plată
+              - generic [ref=e20927]:
+                - combobox [ref=e20928]:
+                  - option "Cash" [selected]
+                  - option "Transfer Bancar"
+                - generic:
+                  - img
+          - button "Înregistrează Avans" [ref=e20930] [cursor=pointer]:
+            - img [ref=e20931]
+            - text: Înregistrează Avans
+      - generic [ref=e20932]:
+        - heading "Încasare Directă Nouă (Generează Factură & Încasare)" [level=3] [ref=e20933]
+        - generic [ref=e20934]:
+          - generic [ref=e20935]:
+            - generic [ref=e20936]:
+              - generic [ref=e20937]: Data Încasării
+              - textbox [ref=e20938]: 2026-06-15
+            - generic [ref=e20939]:
+              - generic [ref=e20940]: Plătitor Principal
+              - generic [ref=e20941]:
+                - combobox [ref=e20942]:
+                  - option "Selectează..." [selected]
+                  - option "AGAFIȚEI ALEXANDRA MIHAELA"
+                  - option "AGRIGOROAE LAVINIA IOANA"
+                  - option "AILINCĂI DENISA"
+                  - option "AILINCĂI RAREȘ MIHAI"
+                  - option "ALBU THEODOR"
+                  - option "ALISTAR ELENA NICOLETA"
+                  - option "AMARGHILOAEI DRAGOS STEFAN"
+                  - option "AMARIUTEI ELENA"
+                  - option "AMARIUTEI MARIA"
+                  - option "AMORARITI ALEXANDRU"
+                  - option "ANCHIDIN RARES"
+                  - option "ANCHIDIN VLAD GAVRIL"
+                  - option "ANDREI DENIS ANDREI"
+                  - option "ANDREI MATEI STEFAN"
+                  - option "ANDRIES DANIELA MIHAELA"
+                  - option "ANDRIES DIMITRIE"
+                  - option "ANDRIES MIHAELA"
+                  - option "ANDRIS DIANA MARIA"
+                  - option "ANDRONACHE DARIA MARIA"
+                  - option "ANDRONIC COSMIN CONSTANTIN"
+                  - option "ANECULAESI MATHIAS"
+                  - option "ANISOROAEI IOANA"
+                  - option "ANISOROAEI MARIA"
+                  - option "ANISOROAEI MINA"
+                  - option "ANTAL CRISTIAN"
+                  - option "ANTOCHE BOGDAN IONUT"
+                  - option "ARVINTE MAYA NICOLA"
+                  - option "AȘTEFANEI ALEXANDRA"
+                  - option "AVEL CASIANA PETRA"
+                  - option "AVEL LUCA"
+                  - option "AVRAM RADU STEFAN"
+                  - option "AZOITEI CONSTANTIN ALEXANDRU"
+                  - option "BADIU ANDREI-COSMIN"
+                  - option "BALAITA RARES MIHAI"
+                  - option "BALAN MARIUS"
+                  - option "BALAN ROBERT"
+                  - option "BALINT VLAD ANDREI"
+                  - option "BALMUS FILIP"
+                  - option "BALMUS IUSTINA"
+                  - option "BALMUS VERONICA"
+                  - option "BALTARIU RARES DIMITRIE"
+                  - option "BANCILA CONSTANTIN TEODOR"
+                  - option "BARBIERU ALEXIE"
+                  - option "BARBIERU CLAUDIU NICU"
+                  - option "BARBIERU EVA CRISTINA"
+                  - option "BARBIERU NICHITA"
+                  - option "BARCAN CRISTIAN MIHAIL"
+                  - option "BARGAOANU GEORGE NICOLAE"
+                  - option "BEJAN ANDREI"
+                  - option "BENCHEA ALESSANDRO MATTIA"
+                  - option "BENIA ANDREI MARIO"
+                  - option "BEREZENCO CEZAR ANTONIO"
+                  - option "BEREZENCO SOFIA IOANA"
+                  - option "BINDAC ALEXANDRU DANUT"
+                  - option "BLAJ DUMITRU ROBERT"
+                  - option "BOLDISOR IONUT COSMIN"
+                  - option "BOLDISOR MARIA SANZIANA"
+                  - option "BOLDUR ALEXANDRA MARIA"
+                  - option "BOLEA ROBERT ANDREI"
+                  - option "BONDRILĂ GABRIEL RĂZVAN"
+                  - option "BONTAS DIANA ELENA"
+                  - option "BORS EMILIA"
+                  - option "BORS TEODORA"
+                  - option "BOSTAN CLAUDIU STEFAN"
+                  - option "BOTEZ ALEX ANDREI"
+                  - option "BOTEZ ALEXANDRA"
+                  - option "BOTEZ MAIA ILINCA"
+                  - option "BOTEZ TEODORA LAURA"
+                  - option "BRANISTEANU VLADUT ALEXANDRU"
+                  - option "BRASOVEANU DENIS ANDREI"
+                  - option "BUCATARU BIANCA DIANA"
+                  - option "BUCEVSCHI MARIA CODRINA"
+                  - option "BUCEVSCHI PETRU COSMIN"
+                  - option "BUCUR ANDREEA IULIANA"
+                  - option "BUCUR TEODOR MATEI"
+                  - option "BUDAES EMMA"
+                  - option "BUDAES IULIA"
+                  - option "BUHUS RAZVAN MIHAI"
+                  - option "BULIGA DAVID ANDREI"
+                  - option "BURTEA ANDREI RARES"
+                  - option "BUTINCU ALEXANDRA MARIA"
+                  - option "BUTINCU VLAD IOAN"
+                  - option "BUTNARESCU ANDREEA"
+                  - option "BUTNARIU BIANCA"
+                  - option "BUTNARIUC EVA-MARIA"
+                  - option "CABALAU BOGDAN PAUL ROALD"
+                  - option "CADAR BOGDAN CONSTANTIN"
+                  - option "CALEU STEFANIA ELENA"
+                  - option "CALISKAN ESRA"
+                  - option "CANDEA STEFAN"
+                  - option "CAREJA ANTONIA ELENA"
+                  - option "CARP COSMIN CONSTANTIN"
+                  - option "CARSTIUC-BUTNARU MIHAI ALEXIZ"
+                  - option "CATINAS PAUL GABRIEL"
+                  - option "CENUSA TURCU VALENTINA BIANCA"
+                  - option "CHICOS CRISTIAN IOAN"
+                  - option "CHIPER EDUARD GABRIEL"
+                  - option "CHIRIAC MARIA ALEXANDRA"
+                  - option "CHIRICHES ADRIAN"
+                  - option "CHIRICHES RICARDO MATTEO"
+                  - option "CHIRICHES-GABOR ANDREI"
+                  - option "CHISCAREANU MARIA"
+                  - option "CHISCARU ANDREI CONSTANTIN"
+                  - option "CHITIMUS RARES ANDREI"
+                  - option "CIMPANU AIDA MARIA"
+                  - option "CIMPANU ELENA MEDEEA"
+                  - option "CIOBANITA PAUL ANDREI"
+                  - option "CIOBANU ANA-MARIA NICOLETA"
+                  - option "CIOBANU RARES"
+                  - option "CIOBANU TUDOR VLAD"
+                  - option "CIOCANAS HORIA ADRIAN"
+                  - option "CIOLAC ANDREI COSMIN"
+                  - option "CIRES DAVID"
+                  - option "CIRSTEA BIANCA ELENA"
+                  - option "CIRSTEA RADU GABRIEL"
+                  - option "CODREANU OVIDIU"
+                  - option "COHAL MIHNEA CONSTANTIN"
+                  - option "COJOCARIU ALEXANDRU"
+                  - option "COJOCARU RARES MIHAI"
+                  - option "CONDURACHE ANDRADA"
+                  - option "CONDURACHE SOFIA GABRIELA"
+                  - option "CORDONEANU ALEXANDRU GABRIEL"
+                  - option "COSNITA ECATERINA"
+                  - option "COSTIN ADRIANA STEFANA"
+                  - option "COTELEA TEODORA GABRIELA"
+                  - option "COTFASA MARINELA LILIANA"
+                  - option "COVACI PAUL"
+                  - option "COZMA DANA"
+                  - option "COZONAC RARES ANDREI"
+                  - option "COZONAC ROBERT CRISTIAN"
+                  - option "CRACIUN IULIA RUXANDRA"
+                  - option "CRACIUN TEODOR STEFAN"
+                  - option "CREANG IUSTIN MIHAI"
+                  - option "CRETU BIANCA DUMITRELA"
+                  - option "CRETU RARES GABRIEL"
+                  - option "CRISCHI ANGEL STEFAN"
+                  - option "CRUDU MĂLINA"
+                  - option "CUCIUREANU MARIA"
+                  - option "CUCIUREANU ROBERT ANDREI"
+                  - option "CUCOREANU IONUT COSMIN"
+                  - option "DANAILA HORATIU"
+                  - option "DARABAN COSTIN"
+                  - option "DARABAN MIHNEA TEODOR"
+                  - option "DAVID COSMIN IULIAN"
+                  - option "DAVID LAVINIA ELENA"
+                  - option "DAVID MIHAI CALIN"
+                  - option "DIACONESCU CALIN CONSTANTIN"
+                  - option "DIACONESCU DANIEL"
+                  - option "DIACONU COSMINA MARIA"
+                  - option "DIACONU DARIA MARIA"
+                  - option "DIACONU VLAD ANDREI"
+                  - option "DOBJENSCHI ELISA ELENA"
+                  - option "DOBOS ANA MARIA"
+                  - option "DOBOS CEZAR LEONARD"
+                  - option "DOBOS RAFAEL MIHAI"
+                  - option "DOBRANIS ANDREI"
+                  - option "DORCU DRAGOS"
+                  - option "DORCU EDUARD ANDREI"
+                  - option "DORCU NADIA"
+                  - option "DORNEAN MIHAI ADRIAN"
+                  - option "DOROFTEI ANDY OVIDIU"
+                  - option "DRUTU DRAGOS NICOLAS"
+                  - option "DRUTU MAIA FANUTA"
+                  - option "DUMITRESCU TIBERIU STEFAN"
+                  - option "DUMITRIU EDUARD STELIAN"
+                  - option "DUŢU GALAXIAN ILIUŢĂ"
+                  - option "ENACHE IOANA ANDREEA"
+                  - option "ENACHE IOANA ELENA"
+                  - option "ENACHI ALEXANDU"
+                  - option "FACAOARU STEFAN IONUT"
+                  - option "FARAOANU MARIO LEONARD"
+                  - option "FARCAS ALEX STEFAN"
+                  - option "FARCAS CATRINA"
+                  - option "FARCAS DANIEL CRISTIAN"
+                  - option "FARCAS DENISA IONELA"
+                  - option "FARCAS TEREZA OLIMPIA"
+                  - option "FARTADE RARES STEFAN"
+                  - option "FILIMON IASMINA TEODORA"
+                  - option "FILIP IUSTINA"
+                  - option "FLOREA PHILLIP STEFAN"
+                  - option "FOTACHE ALEXANDRU GEORGE"
+                  - option "FRACASE GABRIELA IOANA"
+                  - option "FRATIMAN COSMIN GABRIEL"
+                  - option "FRIJA ANA IRIS"
+                  - option "GACIU ALEX FLORIN"
+                  - option "GHEORGHIU DAVID"
+                  - option "GHERGHELAH ELENA SOFIA"
+                  - option "GHIULTU IOAN ALEXANDRU"
+                  - option "GOMEI LUISA GABRIELA"
+                  - option "GOMEI MARIAN CRISTIAN"
+                  - option "GRIGOROAIA ANDREI"
+                  - option "GRIGOROAIA ANDREI MIHNEA"
+                  - option "GRIGOROAIA DELIA ILINCA"
+                  - option "GRIGOROAIA ILINCA"
+                  - option "GULUSCHIEVICI ARSENIE PETRU"
+                  - option "GURĂMULTĂ ŞTEFAN SORIN"
+                  - option "HAIDAU RAZVAN CRISTIAN"
+                  - option "HARLEA FRANCESCA STEFANIA"
+                  - option "HEISU ALISSA"
+                  - option "HEISU DENIS"
+                  - option "HERLEA DENIS ALESSANDRO"
+                  - option "HERLEA DENISE VALENTINA"
+                  - option "HIRJABA ELENA RAYSA"
+                  - option "HONCIUC ANTON"
+                  - option "HORVAT ANDREI DENIS"
+                  - option "HURMUZACHE ANDREI"
+                  - option "IACOB IOANA"
+                  - option "IACOB VLADUT"
+                  - option "IANAU IONUT DORIN"
+                  - option "IASILCOVSCHI FLORIN ALEXANDRU"
+                  - option "ILIE BEATRICE MARIA"
+                  - option "INSTRUCTOR INSTRUCTOR"
+                  - option "IONEL PETRINA CRISTIANA"
+                  - option "IONITA DIANA ELENA"
+                  - option "IORDACHE ADRIAN STEFAN"
+                  - option "IORDACHE MARIA"
+                  - option "IORGA STEFAN"
+                  - option "ISAC MIHNEA TUDOR"
+                  - option "ISACILA ANTHEEA"
+                  - option "ISTOC MARIA CARINA"
+                  - option "JITARU DENIS ANDREI"
+                  - option "KANIA ADELA"
+                  - option "LEOHCHI RAZVAN"
+                  - option "LIPOVANU IASMINA ANAMARIA"
+                  - option "LIVESCU ANDREEA MARINA"
+                  - option "LUCA MIRCEA"
+                  - option "LUCHIAN IVANA"
+                  - option "LUCHIAN RUXANDRA"
+                  - option "LUCHIAN VLADIMIR"
+                  - option "LUNCANU HORIA"
+                  - option "LUNGU ALEXANDRU"
+                  - option "LUNGU ALIN MIHAI"
+                  - option "LUNGU BOGDAN IONUT"
+                  - option "LUNGU MIHAI"
+                  - option "LUNGU STEFANA"
+                  - option "LUNGU CILIAC HORAȚIU CASIAN"
+                  - option "LUPU MADALIN ROBERTO"
+                  - option "LUPU MIHAITA CRISTINEL"
+                  - option "MAEKAWA KEN"
+                  - option "MAFTEI ANDREI STEFAN"
+                  - option "MAGUREANU LOREDANA VASILICA"
+                  - option "MANDEA MATEI"
+                  - option "MANDIA MARIA"
+                  - option "MANEA ADELINA IOANA"
+                  - option "MANEA CHRISTIANA STEFANA"
+                  - option "MANEA ELIZA MARIA"
+                  - option "MANEA RARES GABRIEL"
+                  - option "MANOLACHE ALEX STEFAN"
+                  - option "MARC ALEXANDRU MIHAI"
+                  - option "MARDARE ALEXANDRA NICOLETA"
+                  - option "MARDARE ALIN PETRICA"
+                  - option "MARES EUSEBIU STEFAN"
+                  - option "MARIAN BIANCA DENISA"
+                  - option "MARTENIUC EMILIAN ANDREAS"
+                  - option "MATEES DAVID IULIAN"
+                  - option "MATEES ERICA PAULA"
+                  - option "MATEI ANDREI"
+                  - option "MAXIM TEODOR CONSTANTIN"
+                  - option "MERLUSCA ANDREEA KARLA"
+                  - option "MESTERU SARA"
+                  - option "MICLAUS ANAMARIA"
+                  - option "MIGHIU ANDREEA ALEXANDRA"
+                  - option "MIHAILA ALEX STEFAN"
+                  - option "MIHAILESCU MATEI"
+                  - option "MIHALACHE ALESSIO"
+                  - option "MIHOC MARA ECATERINA"
+                  - option "MIHOCI IONUT ALEXANDRU"
+                  - option "MILLER ROBERT MARIAN"
+                  - option "MILOS ANTONIO MARIAN"
+                  - option "MIRON MARA"
+                  - option "MITITELU RAREȘ GHEORGHIȚĂ"
+                  - option "MOCANU CRISTINEL MIHAI"
+                  - option "MOCANU DARIUS SEBASTIAN"
+                  - option "MOCOI GABRIEL MARIUS"
+                  - option "MOISA MONICA MARIA"
+                  - option "MOISE SEBASTIAN ANDREI"
+                  - option "MOLDOVANU IOANA REBECA"
+                  - option "MOLDOVEANU DENIS ANDREI"
+                  - option "MOLDOVEANU VASILE COSMIN"
+                  - option "MUNTEANU RAZVAN MIHAI"
+                  - option "MURARIU IOANA"
+                  - option "MURARIU MARIO IONUT"
+                  - option "NAIDIN RARES ALEXANDRU"
+                  - option "NASTAC DANIEL MARIAN"
+                  - option "NASTASA MIRUNA ELENA"
+                  - option "NASTASA RARES PETRU"
+                  - option "NASTASIU STEFAN ALEXANDRU"
+                  - option "NAZARET ANEXANDRU DOREL"
+                  - option "NECHITA VASILE MIHAITA"
+                  - option "NEGOITA IUSTIN GABRIEL"
+                  - option "NEGULESCU-COSTIN SASHA"
+                  - option "NEMTANU DAVID NICOLAE"
+                  - option "NEMTANU MIHAI STELIAN"
+                  - option "NICOLAE DIANA ANDREEA"
+                  - option "NICULAESCU RARES GEORGIAN"
+                  - option "NUNU COSMIN GABRIEL"
+                  - option "ODOBISTEANU TEODORA NICOLETA"
+                  - option "OGLAN BOGDAN"
+                  - option "OJOG ANA MARIA"
+                  - option "OJOG CRISTINA ELENA"
+                  - option "OLARU CATALIN ANTONIO"
+                  - option "OLARU MATEI"
+                  - option "ONEL OCTAVIAN ANDREI"
+                  - option "OPINCARU TEODORA NICOLETA"
+                  - option "PAIC RADU ALEXANDRU"
+                  - option "PALAGHIA ALIN IOACHIM"
+                  - option "PALAGHIA ANDREI TEODOR"
+                  - option "PAMFILE LUCA EMANUEL"
+                  - option "PANAITE RAZVAN"
+                  - option "PANTARU ALESSIA DARIA"
+                  - option "PARAGINA CARINA MIHAELA"
+                  - option "PARAGINA ANDRONIC COSMIN CONSTANTIN"
+                  - option "PARASCHIV IOAN DAVID"
+                  - option "PARLOG PETRU DRAGOS"
+                  - option "PASCARU AMALIA GABRIELA"
+                  - option "PASCU DENISA STEFANA"
+                  - option "PATRASC DARIUS STEFAN"
+                  - option "PAVALASC ELIZA MARIA"
+                  - option "PAVALEANU IUSTIN"
+                  - option "PAVEL ALEXANDRA IOANA"
+                  - option "PAVEL YVONNA MARIA"
+                  - option "PERJU CEZAR GABRIEL"
+                  - option "PERJU LEONA MARIA"
+                  - option "PETRACHE MARINA"
+                  - option "PETRARU MIHAI SEBASTIAN"
+                  - option "PETREA IULIA DENISA"
+                  - option "PINTILIE-MAZILU COSMIN IONUT"
+                  - option "PINTILIE-MAZILU RARES ANDREI"
+                  - option "PISTA ALEXANDRU IONUT"
+                  - option "PISTA PAUL ALEXANDRU"
+                  - option "PÎNZARU MIHAI"
+                  - option "PLESCAU DARIUS PETRUT BOGDAN"
+                  - option "PLETOSU STEFAN TEODOR"
+                  - option "PLUGARU MIHAI IONUT"
+                  - option "POENARU RAZVAN GABRIEL"
+                  - option "POENARU ROBERT FLORIN"
+                  - option "POJOGA MIHAI"
+                  - option "POPA ANDREEA"
+                  - option "POPA ANDREI"
+                  - option "POPA CALIN GHEORGHE"
+                  - option "POPA CATALIN"
+                  - option "POPA MIHAI LUCIAN"
+                  - option "POPA GALITA MATEI"
+                  - option "POPESCU MATEEA BIANCA"
+                  - option "POPESCU MATEI IONUT"
+                  - option "POPOVICI DIANA ANASTASIA"
+                  - option "POPOVICI IONUT"
+                  - option "PREDA DAVID GABRIEL"
+                  - option "PREDA IONUT MIHNEA"
+                  - option "PREDA STEFAN COSMIN"
+                  - option "PREPELITA ANDREI"
+                  - option "PRISACARU ADELIN PETRISOR"
+                  - option "PRODAN OCTAVIAN STEFAN"
+                  - option "PUSCASU ANDREI"
+                  - option "PUSCASU EDUARD VASILICA"
+                  - option "PUSCUTA TUDOR STEFAN"
+                  - option "RADU EDUARD MIHAIL"
+                  - option "RADU IUSTIN MIHAI"
+                  - option "RADUCANU ANASTASIA MARIA"
+                  - option "RAFAILA IOANA"
+                  - option "ROBU GABRIELA CATALINA"
+                  - option "ROCA BIANCA CRISTINA"
+                  - option "ROCA BRIANA ELENA"
+                  - option "ROMAN DARIA ȘTEFANIA"
+                  - option "ROSU IOAN CODRIN"
+                  - option "ROTARIU ALEXANDRA"
+                  - option "ROTARIU BOGDAN"
+                  - option "ROTARU ALEXANDRU GABRIEL"
+                  - option "ROTARU ALEXANDRU MARIAN"
+                  - option "ROTARU ANDREI"
+                  - option "ROTARU BIANCA ELENA"
+                  - option "ROTARU DARIUS GEORGE"
+                  - option "ROTARU EVA MARIA"
+                  - option "ROTARU IANIS MATEI"
+                  - option "ROTARU ILINCA STEFANIA"
+                  - option "ROTARU SEBASTIAN GABRIEL"
+                  - option "ROTARU STEFAN"
+                  - option "RUSU ADRIAN"
+                  - option "RUSU CELIA"
+                  - option "RUSU EVA SABINA ANDREEA"
+                  - option "RUSU SILVIU ANDREI"
+                  - option "SANDU ANA ADRIANA"
+                  - option "SANDU MIRUNA ANDREEA"
+                  - option "SANDU RARES ANDREI"
+                  - option "SANTA IONUT"
+                  - option "SAPATORU DARIUS ANDREI"
+                  - option "SAPUN DARIUS ANDREI"
+                  - option "SARBUSCA DENIS"
+                  - option "SARBUSCA IANIS"
+                  - option "SCHIOPU TUDOR GABRIEL"
+                  - option "SCORTANU IONUT ALEXANDRU"
+                  - option "SECIU NATAN STEFANO"
+                  - option "SFICA DIANA ANDREEA"
+                  - option "SINZIANU GABRIELA"
+                  - option "SIPOS ALEX IONUT"
+                  - option "SIRBU RAFAEL"
+                  - option "SPIRIDON ALEXANDRU ŞTEFAN"
+                  - option "STAN IANIS GABRIEL"
+                  - option "STAN IOANA SABINA"
+                  - option "STAN MATEO CATALIN"
+                  - option "STANCESCU CONSTANTIN ALEXANDRU"
+                  - option "STANCILA IONUT MARIAN"
+                  - option "STOICA RARES STEFAN"
+                  - option "STOICA ROXANA IOANA"
+                  - option "STRATON ALESSIA TEODORA"
+                  - option "STROI ROBERT ALEXANDRU"
+                  - option "SUMANARU GEORGE MATEI"
+                  - option "SUMĂNARIU DRAGOȘ ȘTEFAN"
+                  - option "SUVAC DENNIS GEORGE"
+                  - option "SUVAC GEORGE DENNIS"
+                  - option "ȘTEFAN CĂLIN NICOLAE"
+                  - option "ȘTEFĂNESCU EMANUEL"
+                  - option "ȘTEICĂ VICTOR GABRIEL"
+                  - option "TAMALCEL MIRUNA"
+                  - option "TANASA RARES CONSTANTIN"
+                  - option "TANASA RARES PETRUT"
+                  - option "TANCAU STEFAN ALEXANDRU"
+                  - option "TATARU COSTIN ALEXANDRU"
+                  - option "TATARU COSTIN TUDOR"
+                  - option "TATARU EMILIAN"
+                  - option "TICU SEBASTIAN"
+                  - option "TIFREA REMUS ANDREI"
+                  - option "TIMPAU LUCA STEFAN"
+                  - option "TODERAN ALESIA DANY OLINDA"
+                  - option "TODERASC DIANA GABRIELA"
+                  - option "TOEA ALEXANDRA DANIELLA"
+                  - option "TOPORAŞ TUDOR ANDREI"
+                  - option "TREFAS BOGDAN"
+                  - option "TRIFESCU IUSTINA ELENA"
+                  - option "TUGULIA VLAD DIMITRIE"
+                  - option "TULBURE DAVID ALEXANDRU"
+                  - option "UDREA ALEXANDRU CRISTI"
+                  - option "UNGUREANU EMA IOANA"
+                  - option "UNGUREANU IONUT"
+                  - option "UNGURIANU ANDREI"
+                  - option "URSU AURORA"
+                  - option "URSU PETRU ALEXANDRU"
+                  - option "VALEANU ANDREEA STEFANIA"
+                  - option "VALEANU IONUT GABRIEL"
+                  - option "VARARU EDUARD"
+                  - option "VARGOLICI ANDREEA ELENA"
+                  - option "VARLAN DENIS STEFAN"
+                  - option "VASILACHE MATEI"
+                  - option "VATRĂ ŞTEFAN ADRIAN"
+                  - option "VERIA MATEI"
+                  - option "VERMAN TEODORA MARIA"
+                  - option "VICOL MATEI STEFAN"
+                  - option "VINTU DANIEL ANDREI"
+                  - option "VOIDOC DAVID STEFAN"
+                  - option "ZAHARIA EMANOIL VASILICA"
+                  - option "ZAMFIR CRISTIAN GABRIEL"
+                  - option "ZAMFIR RADU IONEL"
+                  - option "ZAMFIR TUDOR RAZVAN"
+                  - option "ZAMFIROIU ALEXANDRA MIHAELA"
+                  - option "ZAMFIROIU DRAGOS STEFAN"
+                  - option "ZAPARTAN TUDOR IONUT"
+                - generic:
+                  - img
+            - generic [ref=e20943]:
+              - generic [ref=e20944]: Metodă Plată
+              - generic [ref=e20945]:
+                - combobox [ref=e20946]:
+                  - option "Cash" [selected]
+                  - option "Transfer Bancar"
+                - generic:
+                  - img
+          - generic [ref=e20948]:
+            - generic [ref=e20949]:
+              - generic [ref=e20950]: Categorie
+              - generic [ref=e20951]:
+                - combobox [ref=e20952]:
+                  - option "Abonament" [selected]
+                  - option "Echipament"
+                  - option "Taxa Competitie"
+                  - option "Taxa Examen"
+                  - option "Taxa FRAM"
+                  - option "Taxa FRQKD"
+                  - option "Taxa Stagiu"
+                - generic:
+                  - img
+            - button [ref=e20953] [cursor=pointer]:
+              - img [ref=e20954]
+          - generic [ref=e20955]:
+            - generic [ref=e20956]: Descriere Tranzacție
+            - textbox [ref=e20957]
+          - generic [ref=e20958]:
+            - text: Sumă de Plată
+            - spinbutton "Sumă de Plată" [ref=e20960]
+          - button "Finalizează Încasarea" [disabled] [ref=e20962]
+      - generic [ref=e20963]:
+        - generic [ref=e20964]: Istoric Încasări Recente
+        - table [ref=e20968]:
+          - rowgroup [ref=e20969]:
+            - row "Data Plătit de Descriere Sumă Acțiuni" [ref=e20970]:
+              - columnheader "Data" [ref=e20971]
+              - columnheader "Plătit de" [ref=e20972]
+              - columnheader "Descriere" [ref=e20973]
+              - columnheader "Sumă" [ref=e20974]
+              - columnheader "Acțiuni" [ref=e20975]
+          - rowgroup [ref=e20976]:
+            - row "14.07.2026 RUSU CELIA Încasare fără factură 220.00 RON" [ref=e20977]:
+              - cell "14.07.2026" [ref=e20978]
+              - cell "RUSU CELIA" [ref=e20979]:
+                - button "RUSU CELIA" [ref=e20980] [cursor=pointer]
+              - cell "Încasare fără factură" [ref=e20981]
+              - cell "220.00 RON" [ref=e20982]:
+                - generic [ref=e20983]: 220.00 RON
+              - cell [ref=e20984]:
+                - button [ref=e20985] [cursor=pointer]:
+                  - img [ref=e20986]
+            - row "14.07.2026 RUSU CELIA Încasare fără factură 220.00 RON" [ref=e20989]:
+              - cell "14.07.2026" [ref=e20990]
+              - cell "RUSU CELIA" [ref=e20991]:
+                - button "RUSU CELIA" [ref=e20992] [cursor=pointer]
+              - cell "Încasare fără factură" [ref=e20993]
+              - cell "220.00 RON" [ref=e20994]:
+                - generic [ref=e20995]: 220.00 RON
+              - cell [ref=e20996]:
+                - button [ref=e20997] [cursor=pointer]:
+                  - img [ref=e20998]
+            - row "11.06.2026 SFICA DIANA ANDREEA Încasare fără factură 220.00 RON" [ref=e21001]:
+              - cell "11.06.2026" [ref=e21002]
+              - cell "SFICA DIANA ANDREEA" [ref=e21003]:
+                - button "SFICA DIANA ANDREEA" [ref=e21004] [cursor=pointer]
+              - cell "Încasare fără factură" [ref=e21005]
+              - cell "220.00 RON" [ref=e21006]:
+                - generic [ref=e21007]: 220.00 RON
+              - cell [ref=e21008]:
+                - button [ref=e21009] [cursor=pointer]:
+                  - img [ref=e21010]
+            - row "10.06.2026 SUMĂNARIU DRAGOȘ ȘTEFAN Încasare fără factură 220.00 RON" [ref=e21013]:
+              - cell "10.06.2026" [ref=e21014]
+              - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e21015]:
+                - button "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e21016] [cursor=pointer]
+              - cell "Încasare fără factură" [ref=e21017]
+              - cell "220.00 RON" [ref=e21018]:
+                - generic [ref=e21019]: 220.00 RON
+              - cell [ref=e21020]:
+                - button [ref=e21021] [cursor=pointer]:
+                  - img [ref=e21022]
+            - row "10.06.2026 SUMĂNARIU DRAGOȘ ȘTEFAN Încasare fără factură 100.00 RON" [ref=e21025]:
+              - cell "10.06.2026" [ref=e21026]
+              - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e21027]:
+                - button "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e21028] [cursor=pointer]
+              - cell "Încasare fără factură" [ref=e21029]
+              - cell "100.00 RON" [ref=e21030]:
+                - generic [ref=e21031]: 100.00 RON
+              - cell [ref=e21032]:
+                - button [ref=e21033] [cursor=pointer]:
+                  - img [ref=e21034]
+            - row "10.06.2026 ȘTEFĂNESCU EMANUEL Încasare fără factură 100.00 RON" [ref=e21037]:
+              - cell "10.06.2026" [ref=e21038]
+              - cell "ȘTEFĂNESCU EMANUEL" [ref=e21039]:
+                - button "ȘTEFĂNESCU EMANUEL" [ref=e21040] [cursor=pointer]
+              - cell "Încasare fără factură" [ref=e21041]
+              - cell "100.00 RON" [ref=e21042]:
+                - generic [ref=e21043]: 100.00 RON
+              - cell [ref=e21044]:
+                - button [ref=e21045] [cursor=pointer]:
+                  - img [ref=e21046]
+            - row "10.06.2026 CAREJA ANTONIA ELENA Încasare fără factură 220.00 RON" [ref=e21049]:
+              - cell "10.06.2026" [ref=e21050]
+              - cell "CAREJA ANTONIA ELENA" [ref=e21051]:
+                - button "CAREJA ANTONIA ELENA" [ref=e21052] [cursor=pointer]
+              - cell "Încasare fără factură" [ref=e21053]
+              - cell "220.00 RON" [ref=e21054]:
+                - generic [ref=e21055]: 220.00 RON
+              - cell [ref=e21056]:
+                - button [ref=e21057] [cursor=pointer]:
+                  - img [ref=e21058]
+            - row "10.06.2026 CAREJA ANTONIA ELENA Încasare fără factură 220.00 RON" [ref=e21061]:
+              - cell "10.06.2026" [ref=e21062]
+              - cell "CAREJA ANTONIA ELENA" [ref=e21063]:
+                - button "CAREJA ANTONIA ELENA" [ref=e21064] [cursor=pointer]
+              - cell "Încasare fără factură" [ref=e21065]
+              - cell "220.00 RON" [ref=e21066]:
+                - generic [ref=e21067]: 220.00 RON
+              - cell [ref=e21068]:
+                - button [ref=e21069] [cursor=pointer]:
+                  - img [ref=e21070]
+            - row "09.06.2026 Familia Balmus Încasare fără factură 100.00 RON" [ref=e21073]:
+              - cell "09.06.2026" [ref=e21074]
+              - cell "Familia Balmus" [ref=e21075]:
+                - button "Familia Balmus" [ref=e21076] [cursor=pointer]
+              - cell "Încasare fără factură" [ref=e21077]
+              - cell "100.00 RON" [ref=e21078]:
+                - generic [ref=e21079]: 100.00 RON
+              - cell [ref=e21080]:
+                - button [ref=e21081] [cursor=pointer]:
+                  - img [ref=e21082]
+            - row "09.06.2026 Familia Balmus Încasare fără factură 100.00 RON" [ref=e21085]:
+              - cell "09.06.2026" [ref=e21086]
+              - cell "Familia Balmus" [ref=e21087]:
+                - button "Familia Balmus" [ref=e21088] [cursor=pointer]
+              - cell "Încasare fără factură" [ref=e21089]
+              - cell "100.00 RON" [ref=e21090]:
+                - generic [ref=e21091]: 100.00 RON
+              - cell [ref=e21092]:
+                - button [ref=e21093] [cursor=pointer]:
+                  - img [ref=e21094]
+  - contentinfo [ref=e1143]:
+    - paragraph [ref=e1144]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e1145] [cursor=pointer]:
+      - img [ref=e1146]
+      - generic [ref=e1149]: Asistent AI

@@ -1,0 +1,216 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6] [cursor=pointer]:
+          - img "Qwan Ki Do Romania" [ref=e9]
+          - generic [ref=e11]:
+            - generic [ref=e12]: Qwan Ki Do
+            - generic [ref=e13]: Management
+        - button "Context Activ Federație" [ref=e17] [cursor=pointer]:
+          - img [ref=e19]
+          - generic [ref=e22]:
+            - paragraph [ref=e23]: Context Activ
+            - paragraph [ref=e24]: Federație
+          - img [ref=e25]
+        - generic [ref=e27]:
+          - button "Scroll sus" [ref=e261] [cursor=pointer]:
+            - img [ref=e262]
+          - navigation [ref=e28]:
+            - generic [ref=e29] [cursor=pointer]:
+              - img [ref=e31]
+              - generic [ref=e36]: Dashboard
+            - generic [ref=e38] [cursor=pointer]:
+              - img [ref=e39]
+              - generic [ref=e44]: Gestiune Membri
+              - img [ref=e45]
+            - generic [ref=e48] [cursor=pointer]:
+              - img [ref=e49]
+              - generic [ref=e55]: Examene
+              - img [ref=e56]
+            - generic [ref=e58]:
+              - generic [ref=e59] [cursor=pointer]:
+                - img [ref=e60]
+                - generic [ref=e66]: Activități Naționale
+                - img [ref=e67]
+              - generic [ref=e264]:
+                - generic [ref=e265] [cursor=pointer]: Competiții
+                - generic [ref=e267] [cursor=pointer]: Stagii
+                - generic [ref=e269] [cursor=pointer]: Template Probe
+            - generic [ref=e70] [cursor=pointer]:
+              - img [ref=e71]
+              - generic [ref=e74]: Setări & Admin
+              - img [ref=e75]
+            - generic [ref=e77] [cursor=pointer]:
+              - img [ref=e79]
+              - generic [ref=e81]: Rapoarte
+            - generic [ref=e82] [cursor=pointer]:
+              - img [ref=e84]
+              - generic [ref=e88]: Notificări
+            - generic [ref=e89] [cursor=pointer]:
+              - img [ref=e91]
+              - generic [ref=e93]: SMS
+            - generic [ref=e94] [cursor=pointer]:
+              - img [ref=e96]
+              - generic [ref=e99]: Cereri Înscriere
+            - generic [ref=e100] [cursor=pointer]:
+              - img [ref=e102]
+              - generic [ref=e105]: Istoric Activitate
+            - generic [ref=e106] [cursor=pointer]:
+              - img [ref=e108]
+              - generic [ref=e111]: Admin Dashboard
+            - generic [ref=e112] [cursor=pointer]:
+              - img [ref=e114]
+              - generic [ref=e120]: Button Catalog
+          - button "Scroll jos":
+            - img
+        - generic [ref=e124]:
+          - button "Tema" [ref=e126] [cursor=pointer]:
+            - img [ref=e127]
+            - generic [ref=e133]: Tema
+          - generic [ref=e135]:
+            - generic [ref=e136]: AL
+            - generic [ref=e137]:
+              - paragraph [ref=e138]: ALIN MIHAI LUNGU
+              - text: Super Admin
+            - button "Deconectare" [ref=e139] [cursor=pointer]:
+              - img [ref=e140]
+    - banner [ref=e143]:
+      - generic [ref=e144]:
+        - button "Deschide meniu" [ref=e145] [cursor=pointer]:
+          - img [ref=e146]
+        - navigation "Navigare" [ref=e147]:
+          - heading "Competiții" [level=1] [ref=e271]
+      - generic [ref=e149]:
+        - button "Personalizare temă" [ref=e151] [cursor=pointer]:
+          - img [ref=e152]
+        - button [ref=e159] [cursor=pointer]:
+          - img [ref=e160]
+        - button "AL" [ref=e164] [cursor=pointer]:
+          - generic [ref=e165]: AL
+    - main [ref=e166]:
+      - generic [ref=e273]:
+        - generic [ref=e274]:
+          - generic [ref=e275]:
+            - button [ref=e276] [cursor=pointer]:
+              - img [ref=e277]
+            - heading "Competiții Qwan Ki Do" [level=2] [ref=e279]
+          - button "Adaugă Competiție" [active] [ref=e280] [cursor=pointer]:
+            - img [ref=e281]
+            - text: Adaugă Competiție
+        - textbox "Caută competiție..." [ref=e283]
+        - generic [ref=e284]:
+          - generic [ref=e285]:
+            - generic [ref=e286]: "0"
+            - generic [ref=e287]: Schiță
+          - generic [ref=e288]:
+            - generic [ref=e289]: "1"
+            - generic [ref=e290]: Înscrieri deschise
+          - generic [ref=e291]:
+            - generic [ref=e292]: "0"
+            - generic [ref=e293]: Înscrieri închise
+          - generic [ref=e294]:
+            - generic [ref=e295]: "1"
+            - generic [ref=e296]: Finalizată
+        - generic [ref=e297]:
+          - generic [ref=e299] [cursor=pointer]:
+            - generic [ref=e300]:
+              - generic [ref=e301]:
+                - heading "Cupa" [level=3] [ref=e302]
+                - generic [ref=e303]: CN Tehnica (Thao Quyen)
+                - generic [ref=e304]: Înscrieri deschise
+              - generic [ref=e305]: 10.06.2026 – 10.06.2026
+            - generic [ref=e306]:
+              - button [ref=e307]:
+                - img [ref=e308]
+              - button [ref=e311]:
+                - img [ref=e312]
+          - generic [ref=e316] [cursor=pointer]:
+            - generic [ref=e317]:
+              - generic [ref=e318]:
+                - heading "Campionat National de Co Vo Dao" [level=3] [ref=e319]
+                - generic [ref=e320]: CN Co Vo Dao (Arme)
+                - generic [ref=e321]: Finalizată
+              - generic [ref=e322]: 06.12.2025 – 07.12.2025 · Sala Polivalenta Onesti
+            - generic [ref=e323]:
+              - button [ref=e324]:
+                - img [ref=e325]
+              - button [ref=e328]:
+                - img [ref=e329]
+    - button "Asistent AI" [ref=e257] [cursor=pointer]:
+      - img [ref=e258]
+  - dialog "Adaugă Competiție Nouă" [ref=e332]:
+    - generic [ref=e333]:
+      - generic [ref=e334]:
+        - heading "Adaugă Competiție Nouă" [level=2] [ref=e335]
+        - button [ref=e336] [cursor=pointer]:
+          - img [ref=e337]
+      - generic [ref=e341]:
+        - generic [ref=e342]:
+          - generic [ref=e343]: Denumire
+          - textbox [ref=e344]
+        - generic [ref=e345]:
+          - generic [ref=e346]:
+            - generic [ref=e347]: Tip Competiție
+            - generic [ref=e348]:
+              - combobox [ref=e349]:
+                - option "CN Tehnica (Thao Quyen)" [selected]
+                - option "CN Giao Dau (Lupte)"
+                - option "CN Co Vo Dao (Arme)"
+                - option "Stagiu / Cantonament"
+              - generic:
+                - img
+          - generic [ref=e350]:
+            - generic [ref=e351]: Status
+            - generic [ref=e352]:
+              - combobox [ref=e353]:
+                - option "Schiță" [selected]
+                - option "Înscrieri deschise"
+                - option "Înscrieri închise"
+                - option "Finalizată"
+              - generic:
+                - img
+        - generic [ref=e354]:
+          - generic [ref=e355]:
+            - generic [ref=e356]: Data Început
+            - textbox [ref=e357]: 2026-06-10
+          - generic [ref=e358]:
+            - generic [ref=e359]: Data Sfârșit
+            - textbox [ref=e360]: 2026-06-10
+        - generic [ref=e361]:
+          - generic [ref=e362]: Deadline Înscrieri
+          - textbox [ref=e363]
+        - generic [ref=e364]:
+          - generic [ref=e365]:
+            - generic [ref=e366]: Locație
+            - textbox [ref=e367]
+          - generic [ref=e368]:
+            - generic [ref=e369]: Organizator
+            - textbox [ref=e370]
+        - generic [ref=e371]:
+          - paragraph [ref=e372]: Taxe înscriere (RON)
+          - generic [ref=e373]:
+            - generic [ref=e374]:
+              - generic [ref=e375]: Individual Tehnică
+              - spinbutton [ref=e376]: "80"
+            - generic [ref=e377]:
+              - generic [ref=e378]: Individual CVD
+              - spinbutton [ref=e379]: "80"
+            - generic [ref=e380]:
+              - generic [ref=e381]: Echipă Seniori
+              - spinbutton [ref=e382]: "120"
+            - generic [ref=e383]:
+              - generic [ref=e384]: Echipă Juniori
+              - spinbutton [ref=e385]: "150"
+            - generic [ref=e386]:
+              - generic [ref=e387]: CVD Echipă
+              - spinbutton [ref=e388]: "80"
+        - generic [ref=e389]:
+          - generic [ref=e390]: Observații
+          - textbox [ref=e391]
+        - generic [ref=e392] [cursor=pointer]:
+          - checkbox "Generează automat categoriile din template (~100 categorii)" [checked] [ref=e393]
+          - generic [ref=e394]: Generează automat categoriile din template (~100 categorii)
+        - generic [ref=e395]:
+          - button "Anulează" [ref=e396] [cursor=pointer]
+          - button "Creează Competiție" [ref=e397] [cursor=pointer]

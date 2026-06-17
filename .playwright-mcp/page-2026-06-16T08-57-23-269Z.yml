@@ -1,0 +1,129 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e81]:
+            - generic [ref=e82] [cursor=pointer]:
+              - img [ref=e83]
+              - generic [ref=e89]: Activități Naționale
+              - img [ref=e90]
+            - generic [ref=e6163]:
+              - generic [ref=e6164] [cursor=pointer]: Competiții
+              - generic [ref=e6166] [cursor=pointer]: Stagii
+          - generic [ref=e93] [cursor=pointer]:
+            - img [ref=e94]
+            - generic [ref=e96]: Financiar & Plăți
+            - img [ref=e97]
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e117]: Setări & Admin
+            - img [ref=e118]
+          - generic [ref=e120] [cursor=pointer]:
+            - img [ref=e122]
+            - generic [ref=e126]: Notificări
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e131]: SMS
+          - generic [ref=e132] [cursor=pointer]:
+            - img [ref=e134]
+            - generic [ref=e137]: Cereri Înscriere
+          - generic [ref=e138] [cursor=pointer]:
+            - img [ref=e140]
+            - generic [ref=e143]: Istoric Activitate
+        - button "Scroll jos" [ref=e144] [cursor=pointer]:
+          - img [ref=e145]
+      - generic [ref=e147]:
+        - button "Tema" [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+          - generic [ref=e156]: Tema
+        - generic [ref=e158]:
+          - generic [ref=e159]: AL
+          - generic [ref=e160]:
+            - paragraph [ref=e161]: LUNGU ALIN MIHAI
+            - text: Admin Club
+          - button "Deconectare" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+  - button "Restrânge meniul" [ref=e166] [cursor=pointer]:
+    - img [ref=e167]
+  - banner [ref=e169]:
+    - navigation "Navigare" [ref=e171]:
+      - heading "Competiții" [level=1] [ref=e6190]
+    - generic [ref=e173]:
+      - button "Temă" [ref=e175] [cursor=pointer]:
+        - img [ref=e176]
+        - generic [ref=e182]: Temă
+      - button [ref=e184] [cursor=pointer]:
+        - img [ref=e185]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e190] [cursor=pointer]:
+        - generic [ref=e191]: AL
+        - paragraph [ref=e193]:
+          - text: ALIN MIHAI
+          - generic [ref=e194]: "[ADMIN CLUB]"
+        - img [ref=e195]
+  - main [ref=e197]:
+    - generic [ref=e6352]:
+      - generic [ref=e6354]:
+        - button [ref=e6355] [cursor=pointer]:
+          - img [ref=e6356]
+        - heading "Competiții Qwan Ki Do" [level=2] [ref=e6358]
+      - textbox "Caută competiție..." [ref=e6360]
+      - generic [ref=e6361]:
+        - generic [ref=e6362]:
+          - generic [ref=e6363]: "0"
+          - generic [ref=e6364]: Schiță
+        - generic [ref=e6365]:
+          - generic [ref=e6366]: "1"
+          - generic [ref=e6367]: Înscrieri deschise
+        - generic [ref=e6368]:
+          - generic [ref=e6369]: "0"
+          - generic [ref=e6370]: Înscrieri închise
+        - generic [ref=e6371]:
+          - generic [ref=e6372]: "1"
+          - generic [ref=e6373]: Finalizată
+      - generic [ref=e6374]:
+        - generic [ref=e6377] [cursor=pointer]:
+          - generic [ref=e6378]:
+            - heading "Cupa" [level=3] [ref=e6379]
+            - generic [ref=e6380]: CN Tehnica (Thao Quyen)
+            - generic [ref=e6381]: Înscrieri deschise
+          - generic [ref=e6382]: 10.06.2026 – 10.06.2026
+        - generic [ref=e6385] [cursor=pointer]:
+          - generic [ref=e6386]:
+            - heading "Campionat National de Co Vo Dao" [level=3] [ref=e6387]
+            - generic [ref=e6388]: CN Co Vo Dao (Arme)
+            - generic [ref=e6389]: Finalizată
+          - generic [ref=e6390]: 06.12.2025 – 07.12.2025 · Sala Polivalenta Onesti
+  - contentinfo [ref=e6153]:
+    - paragraph [ref=e6154]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e6155] [cursor=pointer]:
+      - img [ref=e6156]
+      - generic [ref=e6159]: Asistent AI

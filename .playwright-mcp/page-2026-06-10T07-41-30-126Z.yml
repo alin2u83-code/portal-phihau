@@ -1,0 +1,3023 @@
+- generic [ref=e3]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e10]
+        - generic [ref=e12]:
+          - generic [ref=e13]: Qwan Ki Do
+          - generic [ref=e14]: Management
+      - button "Context Activ Federație" [ref=e18] [cursor=pointer]:
+        - img [ref=e20]
+        - generic [ref=e23]:
+          - paragraph [ref=e24]: Context Activ
+          - paragraph [ref=e25]: Federație
+        - img [ref=e26]
+      - generic [ref=e28]:
+        - button "Scroll sus" [ref=e4338] [cursor=pointer]:
+          - img [ref=e4339]
+        - navigation [ref=e29]:
+          - generic [ref=e30] [cursor=pointer]:
+            - img [ref=e32]
+            - generic [ref=e37]: Dashboard
+          - generic [ref=e39] [cursor=pointer]:
+            - img [ref=e40]
+            - generic [ref=e45]: Gestiune Membri
+            - img [ref=e46]
+          - generic [ref=e49] [cursor=pointer]:
+            - img [ref=e50]
+            - generic [ref=e56]: Examene
+            - img [ref=e57]
+          - generic [ref=e59]:
+            - generic [ref=e60] [cursor=pointer]:
+              - img [ref=e61]
+              - generic [ref=e67]: Activități Naționale
+              - img [ref=e68]
+            - generic [ref=e262]:
+              - generic [ref=e263] [cursor=pointer]: Competiții
+              - generic [ref=e265] [cursor=pointer]: Stagii
+              - generic [ref=e267] [cursor=pointer]: Template Probe
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e75]: Setări & Admin
+            - img [ref=e76]
+          - generic [ref=e78] [cursor=pointer]:
+            - img [ref=e80]
+            - generic [ref=e82]: Rapoarte
+          - generic [ref=e83] [cursor=pointer]:
+            - img [ref=e85]
+            - generic [ref=e89]: Notificări
+          - generic [ref=e90] [cursor=pointer]:
+            - img [ref=e92]
+            - generic [ref=e94]: SMS
+          - generic [ref=e95] [cursor=pointer]:
+            - img [ref=e97]
+            - generic [ref=e100]: Cereri Înscriere
+          - generic [ref=e101] [cursor=pointer]:
+            - img [ref=e103]
+            - generic [ref=e106]: Istoric Activitate
+          - generic [ref=e107] [cursor=pointer]:
+            - img [ref=e109]
+            - generic [ref=e112]: Admin Dashboard
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e115]
+            - generic [ref=e121]: Button Catalog
+        - button "Scroll jos":
+          - img
+      - generic [ref=e125]:
+        - button "Tema" [ref=e127] [cursor=pointer]:
+          - img [ref=e128]
+          - generic [ref=e134]: Tema
+        - generic [ref=e136]:
+          - generic [ref=e137]: AL
+          - generic [ref=e138]:
+            - paragraph [ref=e139]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e140] [cursor=pointer]:
+            - img [ref=e141]
+  - banner [ref=e144]:
+    - generic [ref=e145]:
+      - button "Deschide meniu" [ref=e146] [cursor=pointer]:
+        - img [ref=e147]
+      - navigation "Navigare" [ref=e148]:
+        - heading "template-probe" [level=1] [ref=e269]
+    - generic [ref=e150]:
+      - button "Personalizare temă" [ref=e152] [cursor=pointer]:
+        - img [ref=e153]
+      - button [ref=e160] [cursor=pointer]:
+        - img [ref=e161]
+      - button "AL" [ref=e165] [cursor=pointer]:
+        - generic [ref=e166]: AL
+  - main [ref=e167]:
+    - generic [ref=e271]:
+      - generic [ref=e272]:
+        - generic [ref=e273]:
+          - heading "Bibliotecă Categorii (Federație)" [level=3] [ref=e274]
+          - paragraph [ref=e275]: 283 din 283 template-uri
+        - generic [ref=e276]:
+          - button "Generator Bulk" [ref=e277] [cursor=pointer]:
+            - img [ref=e278]
+            - text: Generator Bulk
+          - button "Wizard Adăugare" [ref=e279] [cursor=pointer]:
+            - img [ref=e280]
+            - text: Wizard Adăugare
+          - button "Adaugă Template" [ref=e281] [cursor=pointer]:
+            - img [ref=e282]
+            - text: Adaugă Template
+      - generic [ref=e283]:
+        - button "Toate (283)" [ref=e296] [cursor=pointer]
+        - button "Thao Quyen (112)" [ref=e297] [cursor=pointer]
+        - button "Song Luyen (63)" [ref=e298] [cursor=pointer]
+        - button "Sincron (24)" [ref=e299] [cursor=pointer]
+        - button "CVD / Arme (44)" [ref=e300] [cursor=pointer]
+        - button "Giao Dau (40)" [ref=e301] [cursor=pointer]
+      - generic [ref=e290]:
+        - button "Filtre" [ref=e291] [cursor=pointer]:
+          - img [ref=e292]
+          - text: Filtre
+        - textbox "Caută denumire..." [ref=e294]
+      - table [ref=e302]:
+        - rowgroup [ref=e303]:
+          - row "Denumire Gen Acțiuni" [ref=e304]:
+            - columnheader "Denumire" [ref=e305]
+            - columnheader "Gen" [ref=e306]
+            - columnheader "Acțiuni" [ref=e307]
+        - rowgroup [ref=e308]:
+          - row "7 ani / Feminin / 1 Câp Roșu Feminin" [ref=e309]:
+            - cell "7 ani / Feminin / 1 Câp Roșu" [ref=e310]:
+              - generic [ref=e311]: 7 ani / Feminin / 1 Câp Roșu
+            - cell "Feminin" [ref=e312]
+            - cell [ref=e313]:
+              - generic [ref=e314]:
+                - button [ref=e315] [cursor=pointer]:
+                  - img [ref=e316]
+                - button [ref=e319] [cursor=pointer]:
+                  - img [ref=e320]
+          - row "7 ani / Feminin / 2 Câp Roșu Feminin" [ref=e323]:
+            - cell "7 ani / Feminin / 2 Câp Roșu" [ref=e324]:
+              - generic [ref=e325]: 7 ani / Feminin / 2 Câp Roșu
+            - cell "Feminin" [ref=e326]
+            - cell [ref=e327]:
+              - generic [ref=e328]:
+                - button [ref=e329] [cursor=pointer]:
+                  - img [ref=e330]
+                - button [ref=e333] [cursor=pointer]:
+                  - img [ref=e334]
+          - row "7 ani / Feminin / 3 Câp Roșu Feminin" [ref=e337]:
+            - cell "7 ani / Feminin / 3 Câp Roșu" [ref=e338]:
+              - generic [ref=e339]: 7 ani / Feminin / 3 Câp Roșu
+            - cell "Feminin" [ref=e340]
+            - cell [ref=e341]:
+              - generic [ref=e342]:
+                - button [ref=e343] [cursor=pointer]:
+                  - img [ref=e344]
+                - button [ref=e347] [cursor=pointer]:
+                  - img [ref=e348]
+          - row "7 ani / Feminin / 4 Câp Roșu Feminin" [ref=e351]:
+            - cell "7 ani / Feminin / 4 Câp Roșu" [ref=e352]:
+              - generic [ref=e353]: 7 ani / Feminin / 4 Câp Roșu
+            - cell "Feminin" [ref=e354]
+            - cell [ref=e355]:
+              - generic [ref=e356]:
+                - button [ref=e357] [cursor=pointer]:
+                  - img [ref=e358]
+                - button [ref=e361] [cursor=pointer]:
+                  - img [ref=e362]
+          - row "7 ani / Masculin / 1 Câp Roșu Masculin" [ref=e365]:
+            - cell "7 ani / Masculin / 1 Câp Roșu" [ref=e366]:
+              - generic [ref=e367]: 7 ani / Masculin / 1 Câp Roșu
+            - cell "Masculin" [ref=e368]
+            - cell [ref=e369]:
+              - generic [ref=e370]:
+                - button [ref=e371] [cursor=pointer]:
+                  - img [ref=e372]
+                - button [ref=e375] [cursor=pointer]:
+                  - img [ref=e376]
+          - row "7 ani / Masculin / 2 Câp Roșu Masculin" [ref=e379]:
+            - cell "7 ani / Masculin / 2 Câp Roșu" [ref=e380]:
+              - generic [ref=e381]: 7 ani / Masculin / 2 Câp Roșu
+            - cell "Masculin" [ref=e382]
+            - cell [ref=e383]:
+              - generic [ref=e384]:
+                - button [ref=e385] [cursor=pointer]:
+                  - img [ref=e386]
+                - button [ref=e389] [cursor=pointer]:
+                  - img [ref=e390]
+          - row "7 ani / Masculin / 3 Câp Roșu Masculin" [ref=e393]:
+            - cell "7 ani / Masculin / 3 Câp Roșu" [ref=e394]:
+              - generic [ref=e395]: 7 ani / Masculin / 3 Câp Roșu
+            - cell "Masculin" [ref=e396]
+            - cell [ref=e397]:
+              - generic [ref=e398]:
+                - button [ref=e399] [cursor=pointer]:
+                  - img [ref=e400]
+                - button [ref=e403] [cursor=pointer]:
+                  - img [ref=e404]
+          - row "7 ani / Masculin / 4 Câp Roșu Masculin" [ref=e407]:
+            - cell "7 ani / Masculin / 4 Câp Roșu" [ref=e408]:
+              - generic [ref=e409]: 7 ani / Masculin / 4 Câp Roșu
+            - cell "Masculin" [ref=e410]
+            - cell [ref=e411]:
+              - generic [ref=e412]:
+                - button [ref=e413] [cursor=pointer]:
+                  - img [ref=e414]
+                - button [ref=e417] [cursor=pointer]:
+                  - img [ref=e418]
+          - row "8 ani / Feminin / 1 Câp Roșu Feminin" [ref=e421]:
+            - cell "8 ani / Feminin / 1 Câp Roșu" [ref=e422]:
+              - generic [ref=e423]: 8 ani / Feminin / 1 Câp Roșu
+            - cell "Feminin" [ref=e424]
+            - cell [ref=e425]:
+              - generic [ref=e426]:
+                - button [ref=e427] [cursor=pointer]:
+                  - img [ref=e428]
+                - button [ref=e431] [cursor=pointer]:
+                  - img [ref=e432]
+          - row "8 ani / Feminin / 2 Câp Roșu Feminin" [ref=e435]:
+            - cell "8 ani / Feminin / 2 Câp Roșu" [ref=e436]:
+              - generic [ref=e437]: 8 ani / Feminin / 2 Câp Roșu
+            - cell "Feminin" [ref=e438]
+            - cell [ref=e439]:
+              - generic [ref=e440]:
+                - button [ref=e441] [cursor=pointer]:
+                  - img [ref=e442]
+                - button [ref=e445] [cursor=pointer]:
+                  - img [ref=e446]
+          - row "8 ani / Feminin / 3 Câp Roșu Feminin" [ref=e449]:
+            - cell "8 ani / Feminin / 3 Câp Roșu" [ref=e450]:
+              - generic [ref=e451]: 8 ani / Feminin / 3 Câp Roșu
+            - cell "Feminin" [ref=e452]
+            - cell [ref=e453]:
+              - generic [ref=e454]:
+                - button [ref=e455] [cursor=pointer]:
+                  - img [ref=e456]
+                - button [ref=e459] [cursor=pointer]:
+                  - img [ref=e460]
+          - row "8 ani / Feminin / 4 Câp Roșu Feminin" [ref=e463]:
+            - cell "8 ani / Feminin / 4 Câp Roșu" [ref=e464]:
+              - generic [ref=e465]: 8 ani / Feminin / 4 Câp Roșu
+            - cell "Feminin" [ref=e466]
+            - cell [ref=e467]:
+              - generic [ref=e468]:
+                - button [ref=e469] [cursor=pointer]:
+                  - img [ref=e470]
+                - button [ref=e473] [cursor=pointer]:
+                  - img [ref=e474]
+          - row "8 ani / Masculin / 1 Câp Roșu Masculin" [ref=e477]:
+            - cell "8 ani / Masculin / 1 Câp Roșu" [ref=e478]:
+              - generic [ref=e479]: 8 ani / Masculin / 1 Câp Roșu
+            - cell "Masculin" [ref=e480]
+            - cell [ref=e481]:
+              - generic [ref=e482]:
+                - button [ref=e483] [cursor=pointer]:
+                  - img [ref=e484]
+                - button [ref=e487] [cursor=pointer]:
+                  - img [ref=e488]
+          - row "8 ani / Masculin / 2 Câp Roșu Masculin" [ref=e491]:
+            - cell "8 ani / Masculin / 2 Câp Roșu" [ref=e492]:
+              - generic [ref=e493]: 8 ani / Masculin / 2 Câp Roșu
+            - cell "Masculin" [ref=e494]
+            - cell [ref=e495]:
+              - generic [ref=e496]:
+                - button [ref=e497] [cursor=pointer]:
+                  - img [ref=e498]
+                - button [ref=e501] [cursor=pointer]:
+                  - img [ref=e502]
+          - row "8 ani / Masculin / 3 Câp Roșu Masculin" [ref=e505]:
+            - cell "8 ani / Masculin / 3 Câp Roșu" [ref=e506]:
+              - generic [ref=e507]: 8 ani / Masculin / 3 Câp Roșu
+            - cell "Masculin" [ref=e508]
+            - cell [ref=e509]:
+              - generic [ref=e510]:
+                - button [ref=e511] [cursor=pointer]:
+                  - img [ref=e512]
+                - button [ref=e515] [cursor=pointer]:
+                  - img [ref=e516]
+          - row "8 ani / Masculin / 4 Câp Roșu Masculin" [ref=e519]:
+            - cell "8 ani / Masculin / 4 Câp Roșu" [ref=e520]:
+              - generic [ref=e521]: 8 ani / Masculin / 4 Câp Roșu
+            - cell "Masculin" [ref=e522]
+            - cell [ref=e523]:
+              - generic [ref=e524]:
+                - button [ref=e525] [cursor=pointer]:
+                  - img [ref=e526]
+                - button [ref=e529] [cursor=pointer]:
+                  - img [ref=e530]
+          - row "9 ani / Feminin / 1 Câp Roșu Feminin" [ref=e533]:
+            - cell "9 ani / Feminin / 1 Câp Roșu" [ref=e534]:
+              - generic [ref=e535]: 9 ani / Feminin / 1 Câp Roșu
+            - cell "Feminin" [ref=e536]
+            - cell [ref=e537]:
+              - generic [ref=e538]:
+                - button [ref=e539] [cursor=pointer]:
+                  - img [ref=e540]
+                - button [ref=e543] [cursor=pointer]:
+                  - img [ref=e544]
+          - row "9 ani / Feminin / 2 Câp Roșu Feminin" [ref=e547]:
+            - cell "9 ani / Feminin / 2 Câp Roșu" [ref=e548]:
+              - generic [ref=e549]: 9 ani / Feminin / 2 Câp Roșu
+            - cell "Feminin" [ref=e550]
+            - cell [ref=e551]:
+              - generic [ref=e552]:
+                - button [ref=e553] [cursor=pointer]:
+                  - img [ref=e554]
+                - button [ref=e557] [cursor=pointer]:
+                  - img [ref=e558]
+          - row "9 ani / Feminin / 3 Câp Roșu Feminin" [ref=e561]:
+            - cell "9 ani / Feminin / 3 Câp Roșu" [ref=e562]:
+              - generic [ref=e563]: 9 ani / Feminin / 3 Câp Roșu
+            - cell "Feminin" [ref=e564]
+            - cell [ref=e565]:
+              - generic [ref=e566]:
+                - button [ref=e567] [cursor=pointer]:
+                  - img [ref=e568]
+                - button [ref=e571] [cursor=pointer]:
+                  - img [ref=e572]
+          - row "9 ani / Feminin / 1 Cap Rosu Feminin" [ref=e575]:
+            - cell "9 ani / Feminin / 1 Cap Rosu" [ref=e576]:
+              - generic [ref=e577]: 9 ani / Feminin / 1 Cap Rosu
+            - cell "Feminin" [ref=e578]
+            - cell [ref=e579]:
+              - generic [ref=e580]:
+                - button [ref=e581] [cursor=pointer]:
+                  - img [ref=e582]
+                - button [ref=e585] [cursor=pointer]:
+                  - img [ref=e586]
+          - row "9 ani / Feminin / 4 Câp Roșu Feminin" [ref=e589]:
+            - cell "9 ani / Feminin / 4 Câp Roșu" [ref=e590]:
+              - generic [ref=e591]: 9 ani / Feminin / 4 Câp Roșu
+            - cell "Feminin" [ref=e592]
+            - cell [ref=e593]:
+              - generic [ref=e594]:
+                - button [ref=e595] [cursor=pointer]:
+                  - img [ref=e596]
+                - button [ref=e599] [cursor=pointer]:
+                  - img [ref=e600]
+          - row "9 ani / Masculin / 1 Cap Rosu Masculin" [ref=e603]:
+            - cell "9 ani / Masculin / 1 Cap Rosu" [ref=e604]:
+              - generic [ref=e605]: 9 ani / Masculin / 1 Cap Rosu
+            - cell "Masculin" [ref=e606]
+            - cell [ref=e607]:
+              - generic [ref=e608]:
+                - button [ref=e609] [cursor=pointer]:
+                  - img [ref=e610]
+                - button [ref=e613] [cursor=pointer]:
+                  - img [ref=e614]
+          - row "9 ani / Masculin / 1 Câp Roșu Masculin" [ref=e617]:
+            - cell "9 ani / Masculin / 1 Câp Roșu" [ref=e618]:
+              - generic [ref=e619]: 9 ani / Masculin / 1 Câp Roșu
+            - cell "Masculin" [ref=e620]
+            - cell [ref=e621]:
+              - generic [ref=e622]:
+                - button [ref=e623] [cursor=pointer]:
+                  - img [ref=e624]
+                - button [ref=e627] [cursor=pointer]:
+                  - img [ref=e628]
+          - row "9 ani / Feminin / 2 Cap Rosu Feminin" [ref=e631]:
+            - cell "9 ani / Feminin / 2 Cap Rosu" [ref=e632]:
+              - generic [ref=e633]: 9 ani / Feminin / 2 Cap Rosu
+            - cell "Feminin" [ref=e634]
+            - cell [ref=e635]:
+              - generic [ref=e636]:
+                - button [ref=e637] [cursor=pointer]:
+                  - img [ref=e638]
+                - button [ref=e641] [cursor=pointer]:
+                  - img [ref=e642]
+          - row "9 ani / Masculin / 2 Câp Roșu Masculin" [ref=e645]:
+            - cell "9 ani / Masculin / 2 Câp Roșu" [ref=e646]:
+              - generic [ref=e647]: 9 ani / Masculin / 2 Câp Roșu
+            - cell "Masculin" [ref=e648]
+            - cell [ref=e649]:
+              - generic [ref=e650]:
+                - button [ref=e651] [cursor=pointer]:
+                  - img [ref=e652]
+                - button [ref=e655] [cursor=pointer]:
+                  - img [ref=e656]
+          - row "9 ani / Masculin / 2 Cap Rosu Masculin" [ref=e659]:
+            - cell "9 ani / Masculin / 2 Cap Rosu" [ref=e660]:
+              - generic [ref=e661]: 9 ani / Masculin / 2 Cap Rosu
+            - cell "Masculin" [ref=e662]
+            - cell [ref=e663]:
+              - generic [ref=e664]:
+                - button [ref=e665] [cursor=pointer]:
+                  - img [ref=e666]
+                - button [ref=e669] [cursor=pointer]:
+                  - img [ref=e670]
+          - row "9 ani / Masculin / 3 Câp Roșu Masculin" [ref=e673]:
+            - cell "9 ani / Masculin / 3 Câp Roșu" [ref=e674]:
+              - generic [ref=e675]: 9 ani / Masculin / 3 Câp Roșu
+            - cell "Masculin" [ref=e676]
+            - cell [ref=e677]:
+              - generic [ref=e678]:
+                - button [ref=e679] [cursor=pointer]:
+                  - img [ref=e680]
+                - button [ref=e683] [cursor=pointer]:
+                  - img [ref=e684]
+          - row "9 ani / Feminin / 3 Cap Rosu Feminin" [ref=e687]:
+            - cell "9 ani / Feminin / 3 Cap Rosu" [ref=e688]:
+              - generic [ref=e689]: 9 ani / Feminin / 3 Cap Rosu
+            - cell "Feminin" [ref=e690]
+            - cell [ref=e691]:
+              - generic [ref=e692]:
+                - button [ref=e693] [cursor=pointer]:
+                  - img [ref=e694]
+                - button [ref=e697] [cursor=pointer]:
+                  - img [ref=e698]
+          - row "9 ani / Masculin / 4 Câp Roșu Masculin" [ref=e701]:
+            - cell "9 ani / Masculin / 4 Câp Roșu" [ref=e702]:
+              - generic [ref=e703]: 9 ani / Masculin / 4 Câp Roșu
+            - cell "Masculin" [ref=e704]
+            - cell [ref=e705]:
+              - generic [ref=e706]:
+                - button [ref=e707] [cursor=pointer]:
+                  - img [ref=e708]
+                - button [ref=e711] [cursor=pointer]:
+                  - img [ref=e712]
+          - row "9 ani / Masculin / 3 Cap Rosu Masculin" [ref=e715]:
+            - cell "9 ani / Masculin / 3 Cap Rosu" [ref=e716]:
+              - generic [ref=e717]: 9 ani / Masculin / 3 Cap Rosu
+            - cell "Masculin" [ref=e718]
+            - cell [ref=e719]:
+              - generic [ref=e720]:
+                - button [ref=e721] [cursor=pointer]:
+                  - img [ref=e722]
+                - button [ref=e725] [cursor=pointer]:
+                  - img [ref=e726]
+          - row "10 ani / Feminin / 1 Câp Roșu Feminin" [ref=e729]:
+            - cell "10 ani / Feminin / 1 Câp Roșu" [ref=e730]:
+              - generic [ref=e731]: 10 ani / Feminin / 1 Câp Roșu
+            - cell "Feminin" [ref=e732]
+            - cell [ref=e733]:
+              - generic [ref=e734]:
+                - button [ref=e735] [cursor=pointer]:
+                  - img [ref=e736]
+                - button [ref=e739] [cursor=pointer]:
+                  - img [ref=e740]
+          - row "9 ani / Feminin / 4 Cap Rosu Feminin" [ref=e743]:
+            - cell "9 ani / Feminin / 4 Cap Rosu" [ref=e744]:
+              - generic [ref=e745]: 9 ani / Feminin / 4 Cap Rosu
+            - cell "Feminin" [ref=e746]
+            - cell [ref=e747]:
+              - generic [ref=e748]:
+                - button [ref=e749] [cursor=pointer]:
+                  - img [ref=e750]
+                - button [ref=e753] [cursor=pointer]:
+                  - img [ref=e754]
+          - row "10 ani / Feminin / 2 Câp Roșu Feminin" [ref=e757]:
+            - cell "10 ani / Feminin / 2 Câp Roșu" [ref=e758]:
+              - generic [ref=e759]: 10 ani / Feminin / 2 Câp Roșu
+            - cell "Feminin" [ref=e760]
+            - cell [ref=e761]:
+              - generic [ref=e762]:
+                - button [ref=e763] [cursor=pointer]:
+                  - img [ref=e764]
+                - button [ref=e767] [cursor=pointer]:
+                  - img [ref=e768]
+          - row "9 ani / Masculin / 4 Cap Rosu Masculin" [ref=e771]:
+            - cell "9 ani / Masculin / 4 Cap Rosu" [ref=e772]:
+              - generic [ref=e773]: 9 ani / Masculin / 4 Cap Rosu
+            - cell "Masculin" [ref=e774]
+            - cell [ref=e775]:
+              - generic [ref=e776]:
+                - button [ref=e777] [cursor=pointer]:
+                  - img [ref=e778]
+                - button [ref=e781] [cursor=pointer]:
+                  - img [ref=e782]
+          - row "10 ani / Feminin / 3 Câp Roșu Feminin" [ref=e785]:
+            - cell "10 ani / Feminin / 3 Câp Roșu" [ref=e786]:
+              - generic [ref=e787]: 10 ani / Feminin / 3 Câp Roșu
+            - cell "Feminin" [ref=e788]
+            - cell [ref=e789]:
+              - generic [ref=e790]:
+                - button [ref=e791] [cursor=pointer]:
+                  - img [ref=e792]
+                - button [ref=e795] [cursor=pointer]:
+                  - img [ref=e796]
+          - row "9 ani / Feminin / Centura Violet - CV 1 Cap Alb Feminin" [ref=e799]:
+            - cell "9 ani / Feminin / Centura Violet - CV 1 Cap Alb" [ref=e800]:
+              - generic [ref=e801]: 9 ani / Feminin / Centura Violet - CV 1 Cap Alb
+            - cell "Feminin" [ref=e802]
+            - cell [ref=e803]:
+              - generic [ref=e804]:
+                - button [ref=e805] [cursor=pointer]:
+                  - img [ref=e806]
+                - button [ref=e809] [cursor=pointer]:
+                  - img [ref=e810]
+          - row "10 ani / Feminin / 4 Câp Roșu Feminin" [ref=e813]:
+            - cell "10 ani / Feminin / 4 Câp Roșu" [ref=e814]:
+              - generic [ref=e815]: 10 ani / Feminin / 4 Câp Roșu
+            - cell "Feminin" [ref=e816]
+            - cell [ref=e817]:
+              - generic [ref=e818]:
+                - button [ref=e819] [cursor=pointer]:
+                  - img [ref=e820]
+                - button [ref=e823] [cursor=pointer]:
+                  - img [ref=e824]
+          - row "9 ani / Masculin / Centura Violet - CV 1 Cap Alb Masculin" [ref=e827]:
+            - cell "9 ani / Masculin / Centura Violet - CV 1 Cap Alb" [ref=e828]:
+              - generic [ref=e829]: 9 ani / Masculin / Centura Violet - CV 1 Cap Alb
+            - cell "Masculin" [ref=e830]
+            - cell [ref=e831]:
+              - generic [ref=e832]:
+                - button [ref=e833] [cursor=pointer]:
+                  - img [ref=e834]
+                - button [ref=e837] [cursor=pointer]:
+                  - img [ref=e838]
+          - row "10 ani / Masculin / 1 Câp Roșu Masculin" [ref=e841]:
+            - cell "10 ani / Masculin / 1 Câp Roșu" [ref=e842]:
+              - generic [ref=e843]: 10 ani / Masculin / 1 Câp Roșu
+            - cell "Masculin" [ref=e844]
+            - cell [ref=e845]:
+              - generic [ref=e846]:
+                - button [ref=e847] [cursor=pointer]:
+                  - img [ref=e848]
+                - button [ref=e851] [cursor=pointer]:
+                  - img [ref=e852]
+          - row "10 ani / Feminin / 1 Cap Rosu Feminin" [ref=e855]:
+            - cell "10 ani / Feminin / 1 Cap Rosu" [ref=e856]:
+              - generic [ref=e857]: 10 ani / Feminin / 1 Cap Rosu
+            - cell "Feminin" [ref=e858]
+            - cell [ref=e859]:
+              - generic [ref=e860]:
+                - button [ref=e861] [cursor=pointer]:
+                  - img [ref=e862]
+                - button [ref=e865] [cursor=pointer]:
+                  - img [ref=e866]
+          - row "10 ani / Masculin / 2 Câp Roșu Masculin" [ref=e869]:
+            - cell "10 ani / Masculin / 2 Câp Roșu" [ref=e870]:
+              - generic [ref=e871]: 10 ani / Masculin / 2 Câp Roșu
+            - cell "Masculin" [ref=e872]
+            - cell [ref=e873]:
+              - generic [ref=e874]:
+                - button [ref=e875] [cursor=pointer]:
+                  - img [ref=e876]
+                - button [ref=e879] [cursor=pointer]:
+                  - img [ref=e880]
+          - row "10 ani / Masculin / 1 Cap Rosu Masculin" [ref=e883]:
+            - cell "10 ani / Masculin / 1 Cap Rosu" [ref=e884]:
+              - generic [ref=e885]: 10 ani / Masculin / 1 Cap Rosu
+            - cell "Masculin" [ref=e886]
+            - cell [ref=e887]:
+              - generic [ref=e888]:
+                - button [ref=e889] [cursor=pointer]:
+                  - img [ref=e890]
+                - button [ref=e893] [cursor=pointer]:
+                  - img [ref=e894]
+          - row "10 ani / Masculin / 3 Câp Roșu Masculin" [ref=e897]:
+            - cell "10 ani / Masculin / 3 Câp Roșu" [ref=e898]:
+              - generic [ref=e899]: 10 ani / Masculin / 3 Câp Roșu
+            - cell "Masculin" [ref=e900]
+            - cell [ref=e901]:
+              - generic [ref=e902]:
+                - button [ref=e903] [cursor=pointer]:
+                  - img [ref=e904]
+                - button [ref=e907] [cursor=pointer]:
+                  - img [ref=e908]
+          - row "10 ani / Feminin / 2 Cap Rosu Feminin" [ref=e911]:
+            - cell "10 ani / Feminin / 2 Cap Rosu" [ref=e912]:
+              - generic [ref=e913]: 10 ani / Feminin / 2 Cap Rosu
+            - cell "Feminin" [ref=e914]
+            - cell [ref=e915]:
+              - generic [ref=e916]:
+                - button [ref=e917] [cursor=pointer]:
+                  - img [ref=e918]
+                - button [ref=e921] [cursor=pointer]:
+                  - img [ref=e922]
+          - row "10 ani / Masculin / 4 Câp Roșu Masculin" [ref=e925]:
+            - cell "10 ani / Masculin / 4 Câp Roșu" [ref=e926]:
+              - generic [ref=e927]: 10 ani / Masculin / 4 Câp Roșu
+            - cell "Masculin" [ref=e928]
+            - cell [ref=e929]:
+              - generic [ref=e930]:
+                - button [ref=e931] [cursor=pointer]:
+                  - img [ref=e932]
+                - button [ref=e935] [cursor=pointer]:
+                  - img [ref=e936]
+          - row "10 ani / Masculin / 2 Cap Rosu Masculin" [ref=e939]:
+            - cell "10 ani / Masculin / 2 Cap Rosu" [ref=e940]:
+              - generic [ref=e941]: 10 ani / Masculin / 2 Cap Rosu
+            - cell "Masculin" [ref=e942]
+            - cell [ref=e943]:
+              - generic [ref=e944]:
+                - button [ref=e945] [cursor=pointer]:
+                  - img [ref=e946]
+                - button [ref=e949] [cursor=pointer]:
+                  - img [ref=e950]
+          - row "11 ani / Feminin / 1 Câp Roșu Feminin" [ref=e953]:
+            - cell "11 ani / Feminin / 1 Câp Roșu" [ref=e954]:
+              - generic [ref=e955]: 11 ani / Feminin / 1 Câp Roșu
+            - cell "Feminin" [ref=e956]
+            - cell [ref=e957]:
+              - generic [ref=e958]:
+                - button [ref=e959] [cursor=pointer]:
+                  - img [ref=e960]
+                - button [ref=e963] [cursor=pointer]:
+                  - img [ref=e964]
+          - row "10 ani / Feminin / 3 Cap Rosu Feminin" [ref=e967]:
+            - cell "10 ani / Feminin / 3 Cap Rosu" [ref=e968]:
+              - generic [ref=e969]: 10 ani / Feminin / 3 Cap Rosu
+            - cell "Feminin" [ref=e970]
+            - cell [ref=e971]:
+              - generic [ref=e972]:
+                - button [ref=e973] [cursor=pointer]:
+                  - img [ref=e974]
+                - button [ref=e977] [cursor=pointer]:
+                  - img [ref=e978]
+          - row "12 ani / Feminin / 3 Cap Rosu Feminin" [ref=e981]:
+            - cell "12 ani / Feminin / 3 Cap Rosu" [ref=e982]:
+              - generic [ref=e983]: 12 ani / Feminin / 3 Cap Rosu
+            - cell "Feminin" [ref=e984]
+            - cell [ref=e985]:
+              - generic [ref=e986]:
+                - button [ref=e987] [cursor=pointer]:
+                  - img [ref=e988]
+                - button [ref=e991] [cursor=pointer]:
+                  - img [ref=e992]
+          - row "11 ani / Feminin / 2 Câp Roșu Feminin" [ref=e995]:
+            - cell "11 ani / Feminin / 2 Câp Roșu" [ref=e996]:
+              - generic [ref=e997]: 11 ani / Feminin / 2 Câp Roșu
+            - cell "Feminin" [ref=e998]
+            - cell [ref=e999]:
+              - generic [ref=e1000]:
+                - button [ref=e1001] [cursor=pointer]:
+                  - img [ref=e1002]
+                - button [ref=e1005] [cursor=pointer]:
+                  - img [ref=e1006]
+          - row "10 ani / Masculin / 3 Cap Rosu Masculin" [ref=e1009]:
+            - cell "10 ani / Masculin / 3 Cap Rosu" [ref=e1010]:
+              - generic [ref=e1011]: 10 ani / Masculin / 3 Cap Rosu
+            - cell "Masculin" [ref=e1012]
+            - cell [ref=e1013]:
+              - generic [ref=e1014]:
+                - button [ref=e1015] [cursor=pointer]:
+                  - img [ref=e1016]
+                - button [ref=e1019] [cursor=pointer]:
+                  - img [ref=e1020]
+          - row "11 ani / Feminin / 3 Câp Roșu Feminin" [ref=e1023]:
+            - cell "11 ani / Feminin / 3 Câp Roșu" [ref=e1024]:
+              - generic [ref=e1025]: 11 ani / Feminin / 3 Câp Roșu
+            - cell "Feminin" [ref=e1026]
+            - cell [ref=e1027]:
+              - generic [ref=e1028]:
+                - button [ref=e1029] [cursor=pointer]:
+                  - img [ref=e1030]
+                - button [ref=e1033] [cursor=pointer]:
+                  - img [ref=e1034]
+          - row "10 ani / Feminin / 4 Cap Rosu Feminin" [ref=e1037]:
+            - cell "10 ani / Feminin / 4 Cap Rosu" [ref=e1038]:
+              - generic [ref=e1039]: 10 ani / Feminin / 4 Cap Rosu
+            - cell "Feminin" [ref=e1040]
+            - cell [ref=e1041]:
+              - generic [ref=e1042]:
+                - button [ref=e1043] [cursor=pointer]:
+                  - img [ref=e1044]
+                - button [ref=e1047] [cursor=pointer]:
+                  - img [ref=e1048]
+          - row "11 ani / Feminin / 4 Câp Roșu Feminin" [ref=e1051]:
+            - cell "11 ani / Feminin / 4 Câp Roșu" [ref=e1052]:
+              - generic [ref=e1053]: 11 ani / Feminin / 4 Câp Roșu
+            - cell "Feminin" [ref=e1054]
+            - cell [ref=e1055]:
+              - generic [ref=e1056]:
+                - button [ref=e1057] [cursor=pointer]:
+                  - img [ref=e1058]
+                - button [ref=e1061] [cursor=pointer]:
+                  - img [ref=e1062]
+          - row "10 ani / Masculin / 4 Cap Rosu Masculin" [ref=e1065]:
+            - cell "10 ani / Masculin / 4 Cap Rosu" [ref=e1066]:
+              - generic [ref=e1067]: 10 ani / Masculin / 4 Cap Rosu
+            - cell "Masculin" [ref=e1068]
+            - cell [ref=e1069]:
+              - generic [ref=e1070]:
+                - button [ref=e1071] [cursor=pointer]:
+                  - img [ref=e1072]
+                - button [ref=e1075] [cursor=pointer]:
+                  - img [ref=e1076]
+          - row "11 ani / Masculin / 1 Câp Roșu Masculin" [ref=e1079]:
+            - cell "11 ani / Masculin / 1 Câp Roșu" [ref=e1080]:
+              - generic [ref=e1081]: 11 ani / Masculin / 1 Câp Roșu
+            - cell "Masculin" [ref=e1082]
+            - cell [ref=e1083]:
+              - generic [ref=e1084]:
+                - button [ref=e1085] [cursor=pointer]:
+                  - img [ref=e1086]
+                - button [ref=e1089] [cursor=pointer]:
+                  - img [ref=e1090]
+          - row "10 ani / Feminin / Centura Violet Feminin" [ref=e1093]:
+            - cell "10 ani / Feminin / Centura Violet" [ref=e1094]:
+              - generic [ref=e1095]: 10 ani / Feminin / Centura Violet
+            - cell "Feminin" [ref=e1096]
+            - cell [ref=e1097]:
+              - generic [ref=e1098]:
+                - button [ref=e1099] [cursor=pointer]:
+                  - img [ref=e1100]
+                - button [ref=e1103] [cursor=pointer]:
+                  - img [ref=e1104]
+          - row "11 ani / Masculin / 2 Câp Roșu Masculin" [ref=e1107]:
+            - cell "11 ani / Masculin / 2 Câp Roșu" [ref=e1108]:
+              - generic [ref=e1109]: 11 ani / Masculin / 2 Câp Roșu
+            - cell "Masculin" [ref=e1110]
+            - cell [ref=e1111]:
+              - generic [ref=e1112]:
+                - button [ref=e1113] [cursor=pointer]:
+                  - img [ref=e1114]
+                - button [ref=e1117] [cursor=pointer]:
+                  - img [ref=e1118]
+          - row "10 ani / Masculin / Centura Violet Masculin" [ref=e1121]:
+            - cell "10 ani / Masculin / Centura Violet" [ref=e1122]:
+              - generic [ref=e1123]: 10 ani / Masculin / Centura Violet
+            - cell "Masculin" [ref=e1124]
+            - cell [ref=e1125]:
+              - generic [ref=e1126]:
+                - button [ref=e1127] [cursor=pointer]:
+                  - img [ref=e1128]
+                - button [ref=e1131] [cursor=pointer]:
+                  - img [ref=e1132]
+          - row "11 ani / Masculin / 3 Câp Roșu Masculin" [ref=e1135]:
+            - cell "11 ani / Masculin / 3 Câp Roșu" [ref=e1136]:
+              - generic [ref=e1137]: 11 ani / Masculin / 3 Câp Roșu
+            - cell "Masculin" [ref=e1138]
+            - cell [ref=e1139]:
+              - generic [ref=e1140]:
+                - button [ref=e1141] [cursor=pointer]:
+                  - img [ref=e1142]
+                - button [ref=e1145] [cursor=pointer]:
+                  - img [ref=e1146]
+          - row "10 ani / Feminin / CV 1-2 Cap Alb Feminin" [ref=e1149]:
+            - cell "10 ani / Feminin / CV 1-2 Cap Alb" [ref=e1150]:
+              - generic [ref=e1151]: 10 ani / Feminin / CV 1-2 Cap Alb
+            - cell "Feminin" [ref=e1152]
+            - cell [ref=e1153]:
+              - generic [ref=e1154]:
+                - button [ref=e1155] [cursor=pointer]:
+                  - img [ref=e1156]
+                - button [ref=e1159] [cursor=pointer]:
+                  - img [ref=e1160]
+          - row "11 ani / Masculin / 4 Câp Roșu Masculin" [ref=e1163]:
+            - cell "11 ani / Masculin / 4 Câp Roșu" [ref=e1164]:
+              - generic [ref=e1165]: 11 ani / Masculin / 4 Câp Roșu
+            - cell "Masculin" [ref=e1166]
+            - cell [ref=e1167]:
+              - generic [ref=e1168]:
+                - button [ref=e1169] [cursor=pointer]:
+                  - img [ref=e1170]
+                - button [ref=e1173] [cursor=pointer]:
+                  - img [ref=e1174]
+          - row "10 ani / Masculin / CV 1-2 Cap Alb Masculin" [ref=e1177]:
+            - cell "10 ani / Masculin / CV 1-2 Cap Alb" [ref=e1178]:
+              - generic [ref=e1179]: 10 ani / Masculin / CV 1-2 Cap Alb
+            - cell "Masculin" [ref=e1180]
+            - cell [ref=e1181]:
+              - generic [ref=e1182]:
+                - button [ref=e1183] [cursor=pointer]:
+                  - img [ref=e1184]
+                - button [ref=e1187] [cursor=pointer]:
+                  - img [ref=e1188]
+          - row "12 ani / Feminin / 1 Câp Roșu Feminin" [ref=e1191]:
+            - cell "12 ani / Feminin / 1 Câp Roșu" [ref=e1192]:
+              - generic [ref=e1193]: 12 ani / Feminin / 1 Câp Roșu
+            - cell "Feminin" [ref=e1194]
+            - cell [ref=e1195]:
+              - generic [ref=e1196]:
+                - button [ref=e1197] [cursor=pointer]:
+                  - img [ref=e1198]
+                - button [ref=e1201] [cursor=pointer]:
+                  - img [ref=e1202]
+          - row "11 ani / Feminin / 1 Cap Rosu Feminin" [ref=e1205]:
+            - cell "11 ani / Feminin / 1 Cap Rosu" [ref=e1206]:
+              - generic [ref=e1207]: 11 ani / Feminin / 1 Cap Rosu
+            - cell "Feminin" [ref=e1208]
+            - cell [ref=e1209]:
+              - generic [ref=e1210]:
+                - button [ref=e1211] [cursor=pointer]:
+                  - img [ref=e1212]
+                - button [ref=e1215] [cursor=pointer]:
+                  - img [ref=e1216]
+          - row "12 ani / Feminin / 2 Câp Roșu Feminin" [ref=e1219]:
+            - cell "12 ani / Feminin / 2 Câp Roșu" [ref=e1220]:
+              - generic [ref=e1221]: 12 ani / Feminin / 2 Câp Roșu
+            - cell "Feminin" [ref=e1222]
+            - cell [ref=e1223]:
+              - generic [ref=e1224]:
+                - button [ref=e1225] [cursor=pointer]:
+                  - img [ref=e1226]
+                - button [ref=e1229] [cursor=pointer]:
+                  - img [ref=e1230]
+          - row "11 ani / Masculin / 1 Cap Rosu Masculin" [ref=e1233]:
+            - cell "11 ani / Masculin / 1 Cap Rosu" [ref=e1234]:
+              - generic [ref=e1235]: 11 ani / Masculin / 1 Cap Rosu
+            - cell "Masculin" [ref=e1236]
+            - cell [ref=e1237]:
+              - generic [ref=e1238]:
+                - button [ref=e1239] [cursor=pointer]:
+                  - img [ref=e1240]
+                - button [ref=e1243] [cursor=pointer]:
+                  - img [ref=e1244]
+          - row "12 ani / Feminin / 3 Câp Roșu Feminin" [ref=e1247]:
+            - cell "12 ani / Feminin / 3 Câp Roșu" [ref=e1248]:
+              - generic [ref=e1249]: 12 ani / Feminin / 3 Câp Roșu
+            - cell "Feminin" [ref=e1250]
+            - cell [ref=e1251]:
+              - generic [ref=e1252]:
+                - button [ref=e1253] [cursor=pointer]:
+                  - img [ref=e1254]
+                - button [ref=e1257] [cursor=pointer]:
+                  - img [ref=e1258]
+          - row "11 ani / Feminin / 2 Cap Rosu Feminin" [ref=e1261]:
+            - cell "11 ani / Feminin / 2 Cap Rosu" [ref=e1262]:
+              - generic [ref=e1263]: 11 ani / Feminin / 2 Cap Rosu
+            - cell "Feminin" [ref=e1264]
+            - cell [ref=e1265]:
+              - generic [ref=e1266]:
+                - button [ref=e1267] [cursor=pointer]:
+                  - img [ref=e1268]
+                - button [ref=e1271] [cursor=pointer]:
+                  - img [ref=e1272]
+          - row "12 ani / Feminin / 4 Câp Roșu Feminin" [ref=e1275]:
+            - cell "12 ani / Feminin / 4 Câp Roșu" [ref=e1276]:
+              - generic [ref=e1277]: 12 ani / Feminin / 4 Câp Roșu
+            - cell "Feminin" [ref=e1278]
+            - cell [ref=e1279]:
+              - generic [ref=e1280]:
+                - button [ref=e1281] [cursor=pointer]:
+                  - img [ref=e1282]
+                - button [ref=e1285] [cursor=pointer]:
+                  - img [ref=e1286]
+          - row "11 ani / Masculin / 2 Cap Rosu Masculin" [ref=e1289]:
+            - cell "11 ani / Masculin / 2 Cap Rosu" [ref=e1290]:
+              - generic [ref=e1291]: 11 ani / Masculin / 2 Cap Rosu
+            - cell "Masculin" [ref=e1292]
+            - cell [ref=e1293]:
+              - generic [ref=e1294]:
+                - button [ref=e1295] [cursor=pointer]:
+                  - img [ref=e1296]
+                - button [ref=e1299] [cursor=pointer]:
+                  - img [ref=e1300]
+          - row "12 ani / Masculin / 1 Câp Roșu Masculin" [ref=e1303]:
+            - cell "12 ani / Masculin / 1 Câp Roșu" [ref=e1304]:
+              - generic [ref=e1305]: 12 ani / Masculin / 1 Câp Roșu
+            - cell "Masculin" [ref=e1306]
+            - cell [ref=e1307]:
+              - generic [ref=e1308]:
+                - button [ref=e1309] [cursor=pointer]:
+                  - img [ref=e1310]
+                - button [ref=e1313] [cursor=pointer]:
+                  - img [ref=e1314]
+          - row "11 ani / Feminin / 3 Cap Rosu Feminin" [ref=e1317]:
+            - cell "11 ani / Feminin / 3 Cap Rosu" [ref=e1318]:
+              - generic [ref=e1319]: 11 ani / Feminin / 3 Cap Rosu
+            - cell "Feminin" [ref=e1320]
+            - cell [ref=e1321]:
+              - generic [ref=e1322]:
+                - button [ref=e1323] [cursor=pointer]:
+                  - img [ref=e1324]
+                - button [ref=e1327] [cursor=pointer]:
+                  - img [ref=e1328]
+          - row "12 ani / Masculin / 2 Câp Roșu Masculin" [ref=e1331]:
+            - cell "12 ani / Masculin / 2 Câp Roșu" [ref=e1332]:
+              - generic [ref=e1333]: 12 ani / Masculin / 2 Câp Roșu
+            - cell "Masculin" [ref=e1334]
+            - cell [ref=e1335]:
+              - generic [ref=e1336]:
+                - button [ref=e1337] [cursor=pointer]:
+                  - img [ref=e1338]
+                - button [ref=e1341] [cursor=pointer]:
+                  - img [ref=e1342]
+          - row "11 ani / Masculin / 3 Cap Rosu Masculin" [ref=e1345]:
+            - cell "11 ani / Masculin / 3 Cap Rosu" [ref=e1346]:
+              - generic [ref=e1347]: 11 ani / Masculin / 3 Cap Rosu
+            - cell "Masculin" [ref=e1348]
+            - cell [ref=e1349]:
+              - generic [ref=e1350]:
+                - button [ref=e1351] [cursor=pointer]:
+                  - img [ref=e1352]
+                - button [ref=e1355] [cursor=pointer]:
+                  - img [ref=e1356]
+          - row "12 ani / Masculin / 3 Câp Roșu Masculin" [ref=e1359]:
+            - cell "12 ani / Masculin / 3 Câp Roșu" [ref=e1360]:
+              - generic [ref=e1361]: 12 ani / Masculin / 3 Câp Roșu
+            - cell "Masculin" [ref=e1362]
+            - cell [ref=e1363]:
+              - generic [ref=e1364]:
+                - button [ref=e1365] [cursor=pointer]:
+                  - img [ref=e1366]
+                - button [ref=e1369] [cursor=pointer]:
+                  - img [ref=e1370]
+          - row "11 ani / Feminin / 4 Cap Rosu Feminin" [ref=e1373]:
+            - cell "11 ani / Feminin / 4 Cap Rosu" [ref=e1374]:
+              - generic [ref=e1375]: 11 ani / Feminin / 4 Cap Rosu
+            - cell "Feminin" [ref=e1376]
+            - cell [ref=e1377]:
+              - generic [ref=e1378]:
+                - button [ref=e1379] [cursor=pointer]:
+                  - img [ref=e1380]
+                - button [ref=e1383] [cursor=pointer]:
+                  - img [ref=e1384]
+          - row "12 ani / Masculin / 4 Câp Roșu Masculin" [ref=e1387]:
+            - cell "12 ani / Masculin / 4 Câp Roșu" [ref=e1388]:
+              - generic [ref=e1389]: 12 ani / Masculin / 4 Câp Roșu
+            - cell "Masculin" [ref=e1390]
+            - cell [ref=e1391]:
+              - generic [ref=e1392]:
+                - button [ref=e1393] [cursor=pointer]:
+                  - img [ref=e1394]
+                - button [ref=e1397] [cursor=pointer]:
+                  - img [ref=e1398]
+          - row "11 ani / Masculin / 4 Cap Rosu Masculin" [ref=e1401]:
+            - cell "11 ani / Masculin / 4 Cap Rosu" [ref=e1402]:
+              - generic [ref=e1403]: 11 ani / Masculin / 4 Cap Rosu
+            - cell "Masculin" [ref=e1404]
+            - cell [ref=e1405]:
+              - generic [ref=e1406]:
+                - button [ref=e1407] [cursor=pointer]:
+                  - img [ref=e1408]
+                - button [ref=e1411] [cursor=pointer]:
+                  - img [ref=e1412]
+          - row "11 ani / Feminin / Centura Violet Feminin" [ref=e1415]:
+            - cell "11 ani / Feminin / Centura Violet" [ref=e1416]:
+              - generic [ref=e1417]: 11 ani / Feminin / Centura Violet
+            - cell "Feminin" [ref=e1418]
+            - cell [ref=e1419]:
+              - generic [ref=e1420]:
+                - button [ref=e1421] [cursor=pointer]:
+                  - img [ref=e1422]
+                - button [ref=e1425] [cursor=pointer]:
+                  - img [ref=e1426]
+          - row "11 ani / Masculin / Centura Violet Masculin" [ref=e1429]:
+            - cell "11 ani / Masculin / Centura Violet" [ref=e1430]:
+              - generic [ref=e1431]: 11 ani / Masculin / Centura Violet
+            - cell "Masculin" [ref=e1432]
+            - cell [ref=e1433]:
+              - generic [ref=e1434]:
+                - button [ref=e1435] [cursor=pointer]:
+                  - img [ref=e1436]
+                - button [ref=e1439] [cursor=pointer]:
+                  - img [ref=e1440]
+          - row "11 ani / Feminin / CV 1 Cap Alb Feminin" [ref=e1443]:
+            - cell "11 ani / Feminin / CV 1 Cap Alb" [ref=e1444]:
+              - generic [ref=e1445]: 11 ani / Feminin / CV 1 Cap Alb
+            - cell "Feminin" [ref=e1446]
+            - cell [ref=e1447]:
+              - generic [ref=e1448]:
+                - button [ref=e1449] [cursor=pointer]:
+                  - img [ref=e1450]
+                - button [ref=e1453] [cursor=pointer]:
+                  - img [ref=e1454]
+          - row "11 ani / Masculin / CV 1 Cap Alb Masculin" [ref=e1457]:
+            - cell "11 ani / Masculin / CV 1 Cap Alb" [ref=e1458]:
+              - generic [ref=e1459]: 11 ani / Masculin / CV 1 Cap Alb
+            - cell "Masculin" [ref=e1460]
+            - cell [ref=e1461]:
+              - generic [ref=e1462]:
+                - button [ref=e1463] [cursor=pointer]:
+                  - img [ref=e1464]
+                - button [ref=e1467] [cursor=pointer]:
+                  - img [ref=e1468]
+          - row "11 ani / Feminin / CV 2-3 Cap Alb Feminin" [ref=e1471]:
+            - cell "11 ani / Feminin / CV 2-3 Cap Alb" [ref=e1472]:
+              - generic [ref=e1473]: 11 ani / Feminin / CV 2-3 Cap Alb
+            - cell "Feminin" [ref=e1474]
+            - cell [ref=e1475]:
+              - generic [ref=e1476]:
+                - button [ref=e1477] [cursor=pointer]:
+                  - img [ref=e1478]
+                - button [ref=e1481] [cursor=pointer]:
+                  - img [ref=e1482]
+          - row "11 ani / Masculin / CV 2-3 Cap Alb Masculin" [ref=e1485]:
+            - cell "11 ani / Masculin / CV 2-3 Cap Alb" [ref=e1486]:
+              - generic [ref=e1487]: 11 ani / Masculin / CV 2-3 Cap Alb
+            - cell "Masculin" [ref=e1488]
+            - cell [ref=e1489]:
+              - generic [ref=e1490]:
+                - button [ref=e1491] [cursor=pointer]:
+                  - img [ref=e1492]
+                - button [ref=e1495] [cursor=pointer]:
+                  - img [ref=e1496]
+          - row "12 ani / Feminin / 1 Cap Rosu Feminin" [ref=e1499]:
+            - cell "12 ani / Feminin / 1 Cap Rosu" [ref=e1500]:
+              - generic [ref=e1501]: 12 ani / Feminin / 1 Cap Rosu
+            - cell "Feminin" [ref=e1502]
+            - cell [ref=e1503]:
+              - generic [ref=e1504]:
+                - button [ref=e1505] [cursor=pointer]:
+                  - img [ref=e1506]
+                - button [ref=e1509] [cursor=pointer]:
+                  - img [ref=e1510]
+          - row "12 ani / Masculin / 1 Cap Rosu Masculin" [ref=e1513]:
+            - cell "12 ani / Masculin / 1 Cap Rosu" [ref=e1514]:
+              - generic [ref=e1515]: 12 ani / Masculin / 1 Cap Rosu
+            - cell "Masculin" [ref=e1516]
+            - cell [ref=e1517]:
+              - generic [ref=e1518]:
+                - button [ref=e1519] [cursor=pointer]:
+                  - img [ref=e1520]
+                - button [ref=e1523] [cursor=pointer]:
+                  - img [ref=e1524]
+          - row "12 ani / Feminin / 2 Cap Rosu Feminin" [ref=e1527]:
+            - cell "12 ani / Feminin / 2 Cap Rosu" [ref=e1528]:
+              - generic [ref=e1529]: 12 ani / Feminin / 2 Cap Rosu
+            - cell "Feminin" [ref=e1530]
+            - cell [ref=e1531]:
+              - generic [ref=e1532]:
+                - button [ref=e1533] [cursor=pointer]:
+                  - img [ref=e1534]
+                - button [ref=e1537] [cursor=pointer]:
+                  - img [ref=e1538]
+          - row "12 ani / Masculin / 2 Cap Rosu Masculin" [ref=e1541]:
+            - cell "12 ani / Masculin / 2 Cap Rosu" [ref=e1542]:
+              - generic [ref=e1543]: 12 ani / Masculin / 2 Cap Rosu
+            - cell "Masculin" [ref=e1544]
+            - cell [ref=e1545]:
+              - generic [ref=e1546]:
+                - button [ref=e1547] [cursor=pointer]:
+                  - img [ref=e1548]
+                - button [ref=e1551] [cursor=pointer]:
+                  - img [ref=e1552]
+          - row "12 ani / Masculin / 3 Cap Rosu Masculin" [ref=e1555]:
+            - cell "12 ani / Masculin / 3 Cap Rosu" [ref=e1556]:
+              - generic [ref=e1557]: 12 ani / Masculin / 3 Cap Rosu
+            - cell "Masculin" [ref=e1558]
+            - cell [ref=e1559]:
+              - generic [ref=e1560]:
+                - button [ref=e1561] [cursor=pointer]:
+                  - img [ref=e1562]
+                - button [ref=e1565] [cursor=pointer]:
+                  - img [ref=e1566]
+          - row "12 ani / Feminin / 4 Cap Rosu Feminin" [ref=e1569]:
+            - cell "12 ani / Feminin / 4 Cap Rosu" [ref=e1570]:
+              - generic [ref=e1571]: 12 ani / Feminin / 4 Cap Rosu
+            - cell "Feminin" [ref=e1572]
+            - cell [ref=e1573]:
+              - generic [ref=e1574]:
+                - button [ref=e1575] [cursor=pointer]:
+                  - img [ref=e1576]
+                - button [ref=e1579] [cursor=pointer]:
+                  - img [ref=e1580]
+          - row "12 ani / Masculin / 4 Cap Rosu Masculin" [ref=e1583]:
+            - cell "12 ani / Masculin / 4 Cap Rosu" [ref=e1584]:
+              - generic [ref=e1585]: 12 ani / Masculin / 4 Cap Rosu
+            - cell "Masculin" [ref=e1586]
+            - cell [ref=e1587]:
+              - generic [ref=e1588]:
+                - button [ref=e1589] [cursor=pointer]:
+                  - img [ref=e1590]
+                - button [ref=e1593] [cursor=pointer]:
+                  - img [ref=e1594]
+          - row "12 ani / Feminin / Centura Violet Feminin" [ref=e1597]:
+            - cell "12 ani / Feminin / Centura Violet" [ref=e1598]:
+              - generic [ref=e1599]: 12 ani / Feminin / Centura Violet
+            - cell "Feminin" [ref=e1600]
+            - cell [ref=e1601]:
+              - generic [ref=e1602]:
+                - button [ref=e1603] [cursor=pointer]:
+                  - img [ref=e1604]
+                - button [ref=e1607] [cursor=pointer]:
+                  - img [ref=e1608]
+          - row "12 ani / Masculin / Centura Violet Masculin" [ref=e1611]:
+            - cell "12 ani / Masculin / Centura Violet" [ref=e1612]:
+              - generic [ref=e1613]: 12 ani / Masculin / Centura Violet
+            - cell "Masculin" [ref=e1614]
+            - cell [ref=e1615]:
+              - generic [ref=e1616]:
+                - button [ref=e1617] [cursor=pointer]:
+                  - img [ref=e1618]
+                - button [ref=e1621] [cursor=pointer]:
+                  - img [ref=e1622]
+          - row "12 ani / Feminin / CV 1 Cap Alb Feminin" [ref=e1625]:
+            - cell "12 ani / Feminin / CV 1 Cap Alb" [ref=e1626]:
+              - generic [ref=e1627]: 12 ani / Feminin / CV 1 Cap Alb
+            - cell "Feminin" [ref=e1628]
+            - cell [ref=e1629]:
+              - generic [ref=e1630]:
+                - button [ref=e1631] [cursor=pointer]:
+                  - img [ref=e1632]
+                - button [ref=e1635] [cursor=pointer]:
+                  - img [ref=e1636]
+          - row "12 ani / Masculin / CV 1 Cap Alb Masculin" [ref=e1639]:
+            - cell "12 ani / Masculin / CV 1 Cap Alb" [ref=e1640]:
+              - generic [ref=e1641]: 12 ani / Masculin / CV 1 Cap Alb
+            - cell "Masculin" [ref=e1642]
+            - cell [ref=e1643]:
+              - generic [ref=e1644]:
+                - button [ref=e1645] [cursor=pointer]:
+                  - img [ref=e1646]
+                - button [ref=e1649] [cursor=pointer]:
+                  - img [ref=e1650]
+          - row "12 ani / Feminin / CV 2 Cap Alb Feminin" [ref=e1653]:
+            - cell "12 ani / Feminin / CV 2 Cap Alb" [ref=e1654]:
+              - generic [ref=e1655]: 12 ani / Feminin / CV 2 Cap Alb
+            - cell "Feminin" [ref=e1656]
+            - cell [ref=e1657]:
+              - generic [ref=e1658]:
+                - button [ref=e1659] [cursor=pointer]:
+                  - img [ref=e1660]
+                - button [ref=e1663] [cursor=pointer]:
+                  - img [ref=e1664]
+          - row "12 ani / Masculin / CV 2 Cap Alb Masculin" [ref=e1667]:
+            - cell "12 ani / Masculin / CV 2 Cap Alb" [ref=e1668]:
+              - generic [ref=e1669]: 12 ani / Masculin / CV 2 Cap Alb
+            - cell "Masculin" [ref=e1670]
+            - cell [ref=e1671]:
+              - generic [ref=e1672]:
+                - button [ref=e1673] [cursor=pointer]:
+                  - img [ref=e1674]
+                - button [ref=e1677] [cursor=pointer]:
+                  - img [ref=e1678]
+          - row "12 ani / Feminin / CV 3-4 Cap Alb Feminin" [ref=e1681]:
+            - cell "12 ani / Feminin / CV 3-4 Cap Alb" [ref=e1682]:
+              - generic [ref=e1683]: 12 ani / Feminin / CV 3-4 Cap Alb
+            - cell "Feminin" [ref=e1684]
+            - cell [ref=e1685]:
+              - generic [ref=e1686]:
+                - button [ref=e1687] [cursor=pointer]:
+                  - img [ref=e1688]
+                - button [ref=e1691] [cursor=pointer]:
+                  - img [ref=e1692]
+          - row "12 ani / Masculin / CV 3-4 Cap Alb Masculin" [ref=e1695]:
+            - cell "12 ani / Masculin / CV 3-4 Cap Alb" [ref=e1696]:
+              - generic [ref=e1697]: 12 ani / Masculin / CV 3-4 Cap Alb
+            - cell "Masculin" [ref=e1698]
+            - cell [ref=e1699]:
+              - generic [ref=e1700]:
+                - button [ref=e1701] [cursor=pointer]:
+                  - img [ref=e1702]
+                - button [ref=e1705] [cursor=pointer]:
+                  - img [ref=e1706]
+          - row "13 ani / Feminin / 1-2 Cap Albastru Feminin" [ref=e1709]:
+            - cell "13 ani / Feminin / 1-2 Cap Albastru" [ref=e1710]:
+              - generic [ref=e1711]: 13 ani / Feminin / 1-2 Cap Albastru
+            - cell "Feminin" [ref=e1712]
+            - cell [ref=e1713]:
+              - generic [ref=e1714]:
+                - button [ref=e1715] [cursor=pointer]:
+                  - img [ref=e1716]
+                - button [ref=e1719] [cursor=pointer]:
+                  - img [ref=e1720]
+          - row "13 ani / Masculin / 1-2 Cap Albastru Masculin" [ref=e1723]:
+            - cell "13 ani / Masculin / 1-2 Cap Albastru" [ref=e1724]:
+              - generic [ref=e1725]: 13 ani / Masculin / 1-2 Cap Albastru
+            - cell "Masculin" [ref=e1726]
+            - cell [ref=e1727]:
+              - generic [ref=e1728]:
+                - button [ref=e1729] [cursor=pointer]:
+                  - img [ref=e1730]
+                - button [ref=e1733] [cursor=pointer]:
+                  - img [ref=e1734]
+          - row "14 ani / Feminin / 1 Cap Albastru Feminin" [ref=e1737]:
+            - cell "14 ani / Feminin / 1 Cap Albastru" [ref=e1738]:
+              - generic [ref=e1739]: 14 ani / Feminin / 1 Cap Albastru
+            - cell "Feminin" [ref=e1740]
+            - cell [ref=e1741]:
+              - generic [ref=e1742]:
+                - button [ref=e1743] [cursor=pointer]:
+                  - img [ref=e1744]
+                - button [ref=e1747] [cursor=pointer]:
+                  - img [ref=e1748]
+          - row "14 ani / Masculin / 1 Cap Albastru Masculin" [ref=e1751]:
+            - cell "14 ani / Masculin / 1 Cap Albastru" [ref=e1752]:
+              - generic [ref=e1753]: 14 ani / Masculin / 1 Cap Albastru
+            - cell "Masculin" [ref=e1754]
+            - cell [ref=e1755]:
+              - generic [ref=e1756]:
+                - button [ref=e1757] [cursor=pointer]:
+                  - img [ref=e1758]
+                - button [ref=e1761] [cursor=pointer]:
+                  - img [ref=e1762]
+          - row "14 ani / Feminin / 2-3 Cap Albastru Feminin" [ref=e1765]:
+            - cell "14 ani / Feminin / 2-3 Cap Albastru" [ref=e1766]:
+              - generic [ref=e1767]: 14 ani / Feminin / 2-3 Cap Albastru
+            - cell "Feminin" [ref=e1768]
+            - cell [ref=e1769]:
+              - generic [ref=e1770]:
+                - button [ref=e1771] [cursor=pointer]:
+                  - img [ref=e1772]
+                - button [ref=e1775] [cursor=pointer]:
+                  - img [ref=e1776]
+          - row "14 ani / Masculin / 2-3 Cap Albastru Masculin" [ref=e1779]:
+            - cell "14 ani / Masculin / 2-3 Cap Albastru" [ref=e1780]:
+              - generic [ref=e1781]: 14 ani / Masculin / 2-3 Cap Albastru
+            - cell "Masculin" [ref=e1782]
+            - cell [ref=e1783]:
+              - generic [ref=e1784]:
+                - button [ref=e1785] [cursor=pointer]:
+                  - img [ref=e1786]
+                - button [ref=e1789] [cursor=pointer]:
+                  - img [ref=e1790]
+          - row "15 ani / Feminin / 1 Cap Albastru Feminin" [ref=e1793]:
+            - cell "15 ani / Feminin / 1 Cap Albastru" [ref=e1794]:
+              - generic [ref=e1795]: 15 ani / Feminin / 1 Cap Albastru
+            - cell "Feminin" [ref=e1796]
+            - cell [ref=e1797]:
+              - generic [ref=e1798]:
+                - button [ref=e1799] [cursor=pointer]:
+                  - img [ref=e1800]
+                - button [ref=e1803] [cursor=pointer]:
+                  - img [ref=e1804]
+          - row "15 ani / Masculin / 1 Cap Albastru Masculin" [ref=e1807]:
+            - cell "15 ani / Masculin / 1 Cap Albastru" [ref=e1808]:
+              - generic [ref=e1809]: 15 ani / Masculin / 1 Cap Albastru
+            - cell "Masculin" [ref=e1810]
+            - cell [ref=e1811]:
+              - generic [ref=e1812]:
+                - button [ref=e1813] [cursor=pointer]:
+                  - img [ref=e1814]
+                - button [ref=e1817] [cursor=pointer]:
+                  - img [ref=e1818]
+          - row "15 ani / Feminin / 2 Cap Albastru Feminin" [ref=e1821]:
+            - cell "15 ani / Feminin / 2 Cap Albastru" [ref=e1822]:
+              - generic [ref=e1823]: 15 ani / Feminin / 2 Cap Albastru
+            - cell "Feminin" [ref=e1824]
+            - cell [ref=e1825]:
+              - generic [ref=e1826]:
+                - button [ref=e1827] [cursor=pointer]:
+                  - img [ref=e1828]
+                - button [ref=e1831] [cursor=pointer]:
+                  - img [ref=e1832]
+          - row "15 ani / Masculin / 2 Cap Albastru Masculin" [ref=e1835]:
+            - cell "15 ani / Masculin / 2 Cap Albastru" [ref=e1836]:
+              - generic [ref=e1837]: 15 ani / Masculin / 2 Cap Albastru
+            - cell "Masculin" [ref=e1838]
+            - cell [ref=e1839]:
+              - generic [ref=e1840]:
+                - button [ref=e1841] [cursor=pointer]:
+                  - img [ref=e1842]
+                - button [ref=e1845] [cursor=pointer]:
+                  - img [ref=e1846]
+          - row "15 ani / Feminin / 3-4 Cap Albastru Feminin" [ref=e1849]:
+            - cell "15 ani / Feminin / 3-4 Cap Albastru" [ref=e1850]:
+              - generic [ref=e1851]: 15 ani / Feminin / 3-4 Cap Albastru
+            - cell "Feminin" [ref=e1852]
+            - cell [ref=e1853]:
+              - generic [ref=e1854]:
+                - button [ref=e1855] [cursor=pointer]:
+                  - img [ref=e1856]
+                - button [ref=e1859] [cursor=pointer]:
+                  - img [ref=e1860]
+          - row "15 ani / Masculin / 3-4 Cap Albastru Masculin" [ref=e1863]:
+            - cell "15 ani / Masculin / 3-4 Cap Albastru" [ref=e1864]:
+              - generic [ref=e1865]: 15 ani / Masculin / 3-4 Cap Albastru
+            - cell "Masculin" [ref=e1866]
+            - cell [ref=e1867]:
+              - generic [ref=e1868]:
+                - button [ref=e1869] [cursor=pointer]:
+                  - img [ref=e1870]
+                - button [ref=e1873] [cursor=pointer]:
+                  - img [ref=e1874]
+          - row "9-10 ani / Feminin / Sincron / 3-4 Cap Rosu Feminin" [ref=e1877]:
+            - cell "9-10 ani / Feminin / Sincron / 3-4 Cap Rosu" [ref=e1878]:
+              - generic [ref=e1879]: 9-10 ani / Feminin / Sincron / 3-4 Cap Rosu
+            - cell "Feminin" [ref=e1880]
+            - cell [ref=e1881]:
+              - generic [ref=e1882]:
+                - button [ref=e1883] [cursor=pointer]:
+                  - img [ref=e1884]
+                - button [ref=e1887] [cursor=pointer]:
+                  - img [ref=e1888]
+          - row "9-10 ani / Masculin / Sincron / 3-4 Cap Rosu Masculin" [ref=e1891]:
+            - cell "9-10 ani / Masculin / Sincron / 3-4 Cap Rosu" [ref=e1892]:
+              - generic [ref=e1893]: 9-10 ani / Masculin / Sincron / 3-4 Cap Rosu
+            - cell "Masculin" [ref=e1894]
+            - cell [ref=e1895]:
+              - generic [ref=e1896]:
+                - button [ref=e1897] [cursor=pointer]:
+                  - img [ref=e1898]
+                - button [ref=e1901] [cursor=pointer]:
+                  - img [ref=e1902]
+          - row "9-10 ani / Mixt / Sincron / 3-4 Cap Rosu Mixt" [ref=e1905]:
+            - cell "9-10 ani / Mixt / Sincron / 3-4 Cap Rosu" [ref=e1906]:
+              - generic [ref=e1907]: 9-10 ani / Mixt / Sincron / 3-4 Cap Rosu
+            - cell "Mixt" [ref=e1908]
+            - cell [ref=e1909]:
+              - generic [ref=e1910]:
+                - button [ref=e1911] [cursor=pointer]:
+                  - img [ref=e1912]
+                - button [ref=e1915] [cursor=pointer]:
+                  - img [ref=e1916]
+          - row "9-10 ani / Feminin / Sincron / CV - CV 2 Cap Alb Feminin" [ref=e1919]:
+            - cell "9-10 ani / Feminin / Sincron / CV - CV 2 Cap Alb" [ref=e1920]:
+              - generic [ref=e1921]: 9-10 ani / Feminin / Sincron / CV - CV 2 Cap Alb
+            - cell "Feminin" [ref=e1922]
+            - cell [ref=e1923]:
+              - generic [ref=e1924]:
+                - button [ref=e1925] [cursor=pointer]:
+                  - img [ref=e1926]
+                - button [ref=e1929] [cursor=pointer]:
+                  - img [ref=e1930]
+          - row "9-10 ani / Masculin / Sincron / CV - CV 2 Cap Alb Masculin" [ref=e1933]:
+            - cell "9-10 ani / Masculin / Sincron / CV - CV 2 Cap Alb" [ref=e1934]:
+              - generic [ref=e1935]: 9-10 ani / Masculin / Sincron / CV - CV 2 Cap Alb
+            - cell "Masculin" [ref=e1936]
+            - cell [ref=e1937]:
+              - generic [ref=e1938]:
+                - button [ref=e1939] [cursor=pointer]:
+                  - img [ref=e1940]
+                - button [ref=e1943] [cursor=pointer]:
+                  - img [ref=e1944]
+          - row "9-10 ani / Mixt / Sincron / CV - CV 2 Cap Alb Mixt" [ref=e1947]:
+            - cell "9-10 ani / Mixt / Sincron / CV - CV 2 Cap Alb" [ref=e1948]:
+              - generic [ref=e1949]: 9-10 ani / Mixt / Sincron / CV - CV 2 Cap Alb
+            - cell "Mixt" [ref=e1950]
+            - cell [ref=e1951]:
+              - generic [ref=e1952]:
+                - button [ref=e1953] [cursor=pointer]:
+                  - img [ref=e1954]
+                - button [ref=e1957] [cursor=pointer]:
+                  - img [ref=e1958]
+          - row "13-15 ani / Feminin / Sincron Feminin" [ref=e1961]:
+            - cell "13-15 ani / Feminin / Sincron" [ref=e1962]:
+              - generic [ref=e1963]: 13-15 ani / Feminin / Sincron
+            - cell "Feminin" [ref=e1964]
+            - cell [ref=e1965]:
+              - generic [ref=e1966]:
+                - button [ref=e1967] [cursor=pointer]:
+                  - img [ref=e1968]
+                - button [ref=e1971] [cursor=pointer]:
+                  - img [ref=e1972]
+          - row "11-12 ani / Feminin / Sincron / 3-4 Cap Rosu Feminin" [ref=e1975]:
+            - cell "11-12 ani / Feminin / Sincron / 3-4 Cap Rosu" [ref=e1976]:
+              - generic [ref=e1977]: 11-12 ani / Feminin / Sincron / 3-4 Cap Rosu
+            - cell "Feminin" [ref=e1978]
+            - cell [ref=e1979]:
+              - generic [ref=e1980]:
+                - button [ref=e1981] [cursor=pointer]:
+                  - img [ref=e1982]
+                - button [ref=e1985] [cursor=pointer]:
+                  - img [ref=e1986]
+          - row "13-15 ani / Masculin / Sincron Masculin" [ref=e1989]:
+            - cell "13-15 ani / Masculin / Sincron" [ref=e1990]:
+              - generic [ref=e1991]: 13-15 ani / Masculin / Sincron
+            - cell "Masculin" [ref=e1992]
+            - cell [ref=e1993]:
+              - generic [ref=e1994]:
+                - button [ref=e1995] [cursor=pointer]:
+                  - img [ref=e1996]
+                - button [ref=e1999] [cursor=pointer]:
+                  - img [ref=e2000]
+          - row "11-12 ani / Masculin / Sincron / 3-4 Cap Rosu Masculin" [ref=e2003]:
+            - cell "11-12 ani / Masculin / Sincron / 3-4 Cap Rosu" [ref=e2004]:
+              - generic [ref=e2005]: 11-12 ani / Masculin / Sincron / 3-4 Cap Rosu
+            - cell "Masculin" [ref=e2006]
+            - cell [ref=e2007]:
+              - generic [ref=e2008]:
+                - button [ref=e2009] [cursor=pointer]:
+                  - img [ref=e2010]
+                - button [ref=e2013] [cursor=pointer]:
+                  - img [ref=e2014]
+          - row "13-15 ani / Mixt / Sincron Mixt" [ref=e2017]:
+            - cell "13-15 ani / Mixt / Sincron" [ref=e2018]:
+              - generic [ref=e2019]: 13-15 ani / Mixt / Sincron
+            - cell "Mixt" [ref=e2020]
+            - cell [ref=e2021]:
+              - generic [ref=e2022]:
+                - button [ref=e2023] [cursor=pointer]:
+                  - img [ref=e2024]
+                - button [ref=e2027] [cursor=pointer]:
+                  - img [ref=e2028]
+          - row "11-12 ani / Mixt / Sincron / 3-4 Cap Rosu Mixt" [ref=e2031]:
+            - cell "11-12 ani / Mixt / Sincron / 3-4 Cap Rosu" [ref=e2032]:
+              - generic [ref=e2033]: 11-12 ani / Mixt / Sincron / 3-4 Cap Rosu
+            - cell "Mixt" [ref=e2034]
+            - cell [ref=e2035]:
+              - generic [ref=e2036]:
+                - button [ref=e2037] [cursor=pointer]:
+                  - img [ref=e2038]
+                - button [ref=e2041] [cursor=pointer]:
+                  - img [ref=e2042]
+          - row "16-17 ani / Feminin / Sincron Feminin" [ref=e2045]:
+            - cell "16-17 ani / Feminin / Sincron" [ref=e2046]:
+              - generic [ref=e2047]: 16-17 ani / Feminin / Sincron
+            - cell "Feminin" [ref=e2048]
+            - cell [ref=e2049]:
+              - generic [ref=e2050]:
+                - button [ref=e2051] [cursor=pointer]:
+                  - img [ref=e2052]
+                - button [ref=e2055] [cursor=pointer]:
+                  - img [ref=e2056]
+          - row "11-12 ani / Feminin / Sincron / CV - CV 4 Cap Alb Feminin" [ref=e2059]:
+            - cell "11-12 ani / Feminin / Sincron / CV - CV 4 Cap Alb" [ref=e2060]:
+              - generic [ref=e2061]: 11-12 ani / Feminin / Sincron / CV - CV 4 Cap Alb
+            - cell "Feminin" [ref=e2062]
+            - cell [ref=e2063]:
+              - generic [ref=e2064]:
+                - button [ref=e2065] [cursor=pointer]:
+                  - img [ref=e2066]
+                - button [ref=e2069] [cursor=pointer]:
+                  - img [ref=e2070]
+          - row "16-17 ani / Masculin / Sincron Masculin" [ref=e2073]:
+            - cell "16-17 ani / Masculin / Sincron" [ref=e2074]:
+              - generic [ref=e2075]: 16-17 ani / Masculin / Sincron
+            - cell "Masculin" [ref=e2076]
+            - cell [ref=e2077]:
+              - generic [ref=e2078]:
+                - button [ref=e2079] [cursor=pointer]:
+                  - img [ref=e2080]
+                - button [ref=e2083] [cursor=pointer]:
+                  - img [ref=e2084]
+          - row "11-12 ani / Masculin / Sincron / CV - CV 4 Cap Alb Masculin" [ref=e2087]:
+            - cell "11-12 ani / Masculin / Sincron / CV - CV 4 Cap Alb" [ref=e2088]:
+              - generic [ref=e2089]: 11-12 ani / Masculin / Sincron / CV - CV 4 Cap Alb
+            - cell "Masculin" [ref=e2090]
+            - cell [ref=e2091]:
+              - generic [ref=e2092]:
+                - button [ref=e2093] [cursor=pointer]:
+                  - img [ref=e2094]
+                - button [ref=e2097] [cursor=pointer]:
+                  - img [ref=e2098]
+          - row "16-17 ani / Mixt / Sincron Mixt" [ref=e2101]:
+            - cell "16-17 ani / Mixt / Sincron" [ref=e2102]:
+              - generic [ref=e2103]: 16-17 ani / Mixt / Sincron
+            - cell "Mixt" [ref=e2104]
+            - cell [ref=e2105]:
+              - generic [ref=e2106]:
+                - button [ref=e2107] [cursor=pointer]:
+                  - img [ref=e2108]
+                - button [ref=e2111] [cursor=pointer]:
+                  - img [ref=e2112]
+          - row "11-12 ani / Mixt / Sincron / CV - CV 4 Cap Alb Mixt" [ref=e2115]:
+            - cell "11-12 ani / Mixt / Sincron / CV - CV 4 Cap Alb" [ref=e2116]:
+              - generic [ref=e2117]: 11-12 ani / Mixt / Sincron / CV - CV 4 Cap Alb
+            - cell "Mixt" [ref=e2118]
+            - cell [ref=e2119]:
+              - generic [ref=e2120]:
+                - button [ref=e2121] [cursor=pointer]:
+                  - img [ref=e2122]
+                - button [ref=e2125] [cursor=pointer]:
+                  - img [ref=e2126]
+          - row "18-39 ani / Feminin / Sincron Feminin" [ref=e2129]:
+            - cell "18-39 ani / Feminin / Sincron" [ref=e2130]:
+              - generic [ref=e2131]: 18-39 ani / Feminin / Sincron
+            - cell "Feminin" [ref=e2132]
+            - cell [ref=e2133]:
+              - generic [ref=e2134]:
+                - button [ref=e2135] [cursor=pointer]:
+                  - img [ref=e2136]
+                - button [ref=e2139] [cursor=pointer]:
+                  - img [ref=e2140]
+          - row "18-39 ani / Masculin / Sincron Masculin" [ref=e2143]:
+            - cell "18-39 ani / Masculin / Sincron" [ref=e2144]:
+              - generic [ref=e2145]: 18-39 ani / Masculin / Sincron
+            - cell "Masculin" [ref=e2146]
+            - cell [ref=e2147]:
+              - generic [ref=e2148]:
+                - button [ref=e2149] [cursor=pointer]:
+                  - img [ref=e2150]
+                - button [ref=e2153] [cursor=pointer]:
+                  - img [ref=e2154]
+          - row "18-39 ani / Mixt / Sincron Mixt" [ref=e2157]:
+            - cell "18-39 ani / Mixt / Sincron" [ref=e2158]:
+              - generic [ref=e2159]: 18-39 ani / Mixt / Sincron
+            - cell "Mixt" [ref=e2160]
+            - cell [ref=e2161]:
+              - generic [ref=e2162]:
+                - button [ref=e2163] [cursor=pointer]:
+                  - img [ref=e2164]
+                - button [ref=e2167] [cursor=pointer]:
+                  - img [ref=e2168]
+          - row "Peste 40 ani / Feminin / Sincron Feminin" [ref=e2171]:
+            - cell "Peste 40 ani / Feminin / Sincron" [ref=e2172]:
+              - generic [ref=e2173]: Peste 40 ani / Feminin / Sincron
+            - cell "Feminin" [ref=e2174]
+            - cell [ref=e2175]:
+              - generic [ref=e2176]:
+                - button [ref=e2177] [cursor=pointer]:
+                  - img [ref=e2178]
+                - button [ref=e2181] [cursor=pointer]:
+                  - img [ref=e2182]
+          - row "Peste 40 ani / Masculin / Sincron Masculin" [ref=e2185]:
+            - cell "Peste 40 ani / Masculin / Sincron" [ref=e2186]:
+              - generic [ref=e2187]: Peste 40 ani / Masculin / Sincron
+            - cell "Masculin" [ref=e2188]
+            - cell [ref=e2189]:
+              - generic [ref=e2190]:
+                - button [ref=e2191] [cursor=pointer]:
+                  - img [ref=e2192]
+                - button [ref=e2195] [cursor=pointer]:
+                  - img [ref=e2196]
+          - row "Peste 40 ani / Mixt / Sincron Mixt" [ref=e2199]:
+            - cell "Peste 40 ani / Mixt / Sincron" [ref=e2200]:
+              - generic [ref=e2201]: Peste 40 ani / Mixt / Sincron
+            - cell "Mixt" [ref=e2202]
+            - cell [ref=e2203]:
+              - generic [ref=e2204]:
+                - button [ref=e2205] [cursor=pointer]:
+                  - img [ref=e2206]
+                - button [ref=e2209] [cursor=pointer]:
+                  - img [ref=e2210]
+          - row "7-8 ani / Feminin / Song Luyen / 1-2 Cap Rosu Feminin" [ref=e2213]:
+            - cell "7-8 ani / Feminin / Song Luyen / 1-2 Cap Rosu" [ref=e2214]:
+              - generic [ref=e2215]: 7-8 ani / Feminin / Song Luyen / 1-2 Cap Rosu
+            - cell "Feminin" [ref=e2216]
+            - cell [ref=e2217]:
+              - generic [ref=e2218]:
+                - button [ref=e2219] [cursor=pointer]:
+                  - img [ref=e2220]
+                - button [ref=e2223] [cursor=pointer]:
+                  - img [ref=e2224]
+          - row "7-8 ani / Masculin / Song Luyen / 1-2 Cap Rosu Masculin" [ref=e2227]:
+            - cell "7-8 ani / Masculin / Song Luyen / 1-2 Cap Rosu" [ref=e2228]:
+              - generic [ref=e2229]: 7-8 ani / Masculin / Song Luyen / 1-2 Cap Rosu
+            - cell "Masculin" [ref=e2230]
+            - cell [ref=e2231]:
+              - generic [ref=e2232]:
+                - button [ref=e2233] [cursor=pointer]:
+                  - img [ref=e2234]
+                - button [ref=e2237] [cursor=pointer]:
+                  - img [ref=e2238]
+          - row "7-8 ani / Mixt / Song Luyen / 1-2 Cap Rosu Mixt" [ref=e2241]:
+            - cell "7-8 ani / Mixt / Song Luyen / 1-2 Cap Rosu" [ref=e2242]:
+              - generic [ref=e2243]: 7-8 ani / Mixt / Song Luyen / 1-2 Cap Rosu
+            - cell "Mixt" [ref=e2244]
+            - cell [ref=e2245]:
+              - generic [ref=e2246]:
+                - button [ref=e2247] [cursor=pointer]:
+                  - img [ref=e2248]
+                - button [ref=e2251] [cursor=pointer]:
+                  - img [ref=e2252]
+          - row "7-8 ani / Feminin / Song Luyen / 3-4 Cap Rosu Feminin" [ref=e2255]:
+            - cell "7-8 ani / Feminin / Song Luyen / 3-4 Cap Rosu" [ref=e2256]:
+              - generic [ref=e2257]: 7-8 ani / Feminin / Song Luyen / 3-4 Cap Rosu
+            - cell "Feminin" [ref=e2258]
+            - cell [ref=e2259]:
+              - generic [ref=e2260]:
+                - button [ref=e2261] [cursor=pointer]:
+                  - img [ref=e2262]
+                - button [ref=e2265] [cursor=pointer]:
+                  - img [ref=e2266]
+          - row "7-8 ani / Masculin / Song Luyen / 3-4 Cap Rosu Masculin" [ref=e2269]:
+            - cell "7-8 ani / Masculin / Song Luyen / 3-4 Cap Rosu" [ref=e2270]:
+              - generic [ref=e2271]: 7-8 ani / Masculin / Song Luyen / 3-4 Cap Rosu
+            - cell "Masculin" [ref=e2272]
+            - cell [ref=e2273]:
+              - generic [ref=e2274]:
+                - button [ref=e2275] [cursor=pointer]:
+                  - img [ref=e2276]
+                - button [ref=e2279] [cursor=pointer]:
+                  - img [ref=e2280]
+          - row "7-8 ani / Mixt / Song Luyen / 3-4 Cap Rosu Mixt" [ref=e2283]:
+            - cell "7-8 ani / Mixt / Song Luyen / 3-4 Cap Rosu" [ref=e2284]:
+              - generic [ref=e2285]: 7-8 ani / Mixt / Song Luyen / 3-4 Cap Rosu
+            - cell "Mixt" [ref=e2286]
+            - cell [ref=e2287]:
+              - generic [ref=e2288]:
+                - button [ref=e2289] [cursor=pointer]:
+                  - img [ref=e2290]
+                - button [ref=e2293] [cursor=pointer]:
+                  - img [ref=e2294]
+          - row "9-10 ani / Feminin / Song Luyen / 1-2 Cap Rosu Feminin" [ref=e2297]:
+            - cell "9-10 ani / Feminin / Song Luyen / 1-2 Cap Rosu" [ref=e2298]:
+              - generic [ref=e2299]: 9-10 ani / Feminin / Song Luyen / 1-2 Cap Rosu
+            - cell "Feminin" [ref=e2300]
+            - cell [ref=e2301]:
+              - generic [ref=e2302]:
+                - button [ref=e2303] [cursor=pointer]:
+                  - img [ref=e2304]
+                - button [ref=e2307] [cursor=pointer]:
+                  - img [ref=e2308]
+          - row "9-10 ani / Masculin / Song Luyen / 1-2 Cap Rosu Masculin" [ref=e2311]:
+            - cell "9-10 ani / Masculin / Song Luyen / 1-2 Cap Rosu" [ref=e2312]:
+              - generic [ref=e2313]: 9-10 ani / Masculin / Song Luyen / 1-2 Cap Rosu
+            - cell "Masculin" [ref=e2314]
+            - cell [ref=e2315]:
+              - generic [ref=e2316]:
+                - button [ref=e2317] [cursor=pointer]:
+                  - img [ref=e2318]
+                - button [ref=e2321] [cursor=pointer]:
+                  - img [ref=e2322]
+          - row "9-10 ani / Mixt / Song Luyen / 1-2 Cap Rosu Mixt" [ref=e2325]:
+            - cell "9-10 ani / Mixt / Song Luyen / 1-2 Cap Rosu" [ref=e2326]:
+              - generic [ref=e2327]: 9-10 ani / Mixt / Song Luyen / 1-2 Cap Rosu
+            - cell "Mixt" [ref=e2328]
+            - cell [ref=e2329]:
+              - generic [ref=e2330]:
+                - button [ref=e2331] [cursor=pointer]:
+                  - img [ref=e2332]
+                - button [ref=e2335] [cursor=pointer]:
+                  - img [ref=e2336]
+          - row "16-17 ani / Feminin / Song Luyen Feminin" [ref=e2339]:
+            - cell "16-17 ani / Feminin / Song Luyen" [ref=e2340]:
+              - generic [ref=e2341]: 16-17 ani / Feminin / Song Luyen
+            - cell "Feminin" [ref=e2342]
+            - cell [ref=e2343]:
+              - generic [ref=e2344]:
+                - button [ref=e2345] [cursor=pointer]:
+                  - img [ref=e2346]
+                - button [ref=e2349] [cursor=pointer]:
+                  - img [ref=e2350]
+          - row "9-10 ani / Feminin / Song Luyen / 3-4 Cap Rosu Feminin" [ref=e2353]:
+            - cell "9-10 ani / Feminin / Song Luyen / 3-4 Cap Rosu" [ref=e2354]:
+              - generic [ref=e2355]: 9-10 ani / Feminin / Song Luyen / 3-4 Cap Rosu
+            - cell "Feminin" [ref=e2356]
+            - cell [ref=e2357]:
+              - generic [ref=e2358]:
+                - button [ref=e2359] [cursor=pointer]:
+                  - img [ref=e2360]
+                - button [ref=e2363] [cursor=pointer]:
+                  - img [ref=e2364]
+          - row "16-17 ani / Masculin / Song Luyen Masculin" [ref=e2367]:
+            - cell "16-17 ani / Masculin / Song Luyen" [ref=e2368]:
+              - generic [ref=e2369]: 16-17 ani / Masculin / Song Luyen
+            - cell "Masculin" [ref=e2370]
+            - cell [ref=e2371]:
+              - generic [ref=e2372]:
+                - button [ref=e2373] [cursor=pointer]:
+                  - img [ref=e2374]
+                - button [ref=e2377] [cursor=pointer]:
+                  - img [ref=e2378]
+          - row "9-10 ani / Masculin / Song Luyen / 3-4 Cap Rosu Masculin" [ref=e2381]:
+            - cell "9-10 ani / Masculin / Song Luyen / 3-4 Cap Rosu" [ref=e2382]:
+              - generic [ref=e2383]: 9-10 ani / Masculin / Song Luyen / 3-4 Cap Rosu
+            - cell "Masculin" [ref=e2384]
+            - cell [ref=e2385]:
+              - generic [ref=e2386]:
+                - button [ref=e2387] [cursor=pointer]:
+                  - img [ref=e2388]
+                - button [ref=e2391] [cursor=pointer]:
+                  - img [ref=e2392]
+          - row "16-17 ani / Mixt / Song Luyen Mixt" [ref=e2395]:
+            - cell "16-17 ani / Mixt / Song Luyen" [ref=e2396]:
+              - generic [ref=e2397]: 16-17 ani / Mixt / Song Luyen
+            - cell "Mixt" [ref=e2398]
+            - cell [ref=e2399]:
+              - generic [ref=e2400]:
+                - button [ref=e2401] [cursor=pointer]:
+                  - img [ref=e2402]
+                - button [ref=e2405] [cursor=pointer]:
+                  - img [ref=e2406]
+          - row "9-10 ani / Mixt / Song Luyen / 3-4 Cap Rosu Mixt" [ref=e2409]:
+            - cell "9-10 ani / Mixt / Song Luyen / 3-4 Cap Rosu" [ref=e2410]:
+              - generic [ref=e2411]: 9-10 ani / Mixt / Song Luyen / 3-4 Cap Rosu
+            - cell "Mixt" [ref=e2412]
+            - cell [ref=e2413]:
+              - generic [ref=e2414]:
+                - button [ref=e2415] [cursor=pointer]:
+                  - img [ref=e2416]
+                - button [ref=e2419] [cursor=pointer]:
+                  - img [ref=e2420]
+          - row "18-39 ani / Feminin / Song Luyen Feminin" [ref=e2423]:
+            - cell "18-39 ani / Feminin / Song Luyen" [ref=e2424]:
+              - generic [ref=e2425]: 18-39 ani / Feminin / Song Luyen
+            - cell "Feminin" [ref=e2426]
+            - cell [ref=e2427]:
+              - generic [ref=e2428]:
+                - button [ref=e2429] [cursor=pointer]:
+                  - img [ref=e2430]
+                - button [ref=e2433] [cursor=pointer]:
+                  - img [ref=e2434]
+          - row "9-10 ani / Feminin / Song Luyen / CV - CV 2 Cap Alb Feminin" [ref=e2437]:
+            - cell "9-10 ani / Feminin / Song Luyen / CV - CV 2 Cap Alb" [ref=e2438]:
+              - generic [ref=e2439]: 9-10 ani / Feminin / Song Luyen / CV - CV 2 Cap Alb
+            - cell "Feminin" [ref=e2440]
+            - cell [ref=e2441]:
+              - generic [ref=e2442]:
+                - button [ref=e2443] [cursor=pointer]:
+                  - img [ref=e2444]
+                - button [ref=e2447] [cursor=pointer]:
+                  - img [ref=e2448]
+          - row "18-39 ani / Masculin / Song Luyen Masculin" [ref=e2451]:
+            - cell "18-39 ani / Masculin / Song Luyen" [ref=e2452]:
+              - generic [ref=e2453]: 18-39 ani / Masculin / Song Luyen
+            - cell "Masculin" [ref=e2454]
+            - cell [ref=e2455]:
+              - generic [ref=e2456]:
+                - button [ref=e2457] [cursor=pointer]:
+                  - img [ref=e2458]
+                - button [ref=e2461] [cursor=pointer]:
+                  - img [ref=e2462]
+          - row "9-10 ani / Masculin / Song Luyen / CV - CV 2 Cap Alb Masculin" [ref=e2465]:
+            - cell "9-10 ani / Masculin / Song Luyen / CV - CV 2 Cap Alb" [ref=e2466]:
+              - generic [ref=e2467]: 9-10 ani / Masculin / Song Luyen / CV - CV 2 Cap Alb
+            - cell "Masculin" [ref=e2468]
+            - cell [ref=e2469]:
+              - generic [ref=e2470]:
+                - button [ref=e2471] [cursor=pointer]:
+                  - img [ref=e2472]
+                - button [ref=e2475] [cursor=pointer]:
+                  - img [ref=e2476]
+          - row "18-39 ani / Mixt / Song Luyen Mixt" [ref=e2479]:
+            - cell "18-39 ani / Mixt / Song Luyen" [ref=e2480]:
+              - generic [ref=e2481]: 18-39 ani / Mixt / Song Luyen
+            - cell "Mixt" [ref=e2482]
+            - cell [ref=e2483]:
+              - generic [ref=e2484]:
+                - button [ref=e2485] [cursor=pointer]:
+                  - img [ref=e2486]
+                - button [ref=e2489] [cursor=pointer]:
+                  - img [ref=e2490]
+          - row "9-10 ani / Mixt / Song Luyen / CV - CV 2 Cap Alb Mixt" [ref=e2493]:
+            - cell "9-10 ani / Mixt / Song Luyen / CV - CV 2 Cap Alb" [ref=e2494]:
+              - generic [ref=e2495]: 9-10 ani / Mixt / Song Luyen / CV - CV 2 Cap Alb
+            - cell "Mixt" [ref=e2496]
+            - cell [ref=e2497]:
+              - generic [ref=e2498]:
+                - button [ref=e2499] [cursor=pointer]:
+                  - img [ref=e2500]
+                - button [ref=e2503] [cursor=pointer]:
+                  - img [ref=e2504]
+          - row "Peste 40 ani / Feminin / Song Luyen Feminin" [ref=e2507]:
+            - cell "Peste 40 ani / Feminin / Song Luyen" [ref=e2508]:
+              - generic [ref=e2509]: Peste 40 ani / Feminin / Song Luyen
+            - cell "Feminin" [ref=e2510]
+            - cell [ref=e2511]:
+              - generic [ref=e2512]:
+                - button [ref=e2513] [cursor=pointer]:
+                  - img [ref=e2514]
+                - button [ref=e2517] [cursor=pointer]:
+                  - img [ref=e2518]
+          - row "11-12 ani / Feminin / Song Luyen / 1-2 Cap Rosu Feminin" [ref=e2521]:
+            - cell "11-12 ani / Feminin / Song Luyen / 1-2 Cap Rosu" [ref=e2522]:
+              - generic [ref=e2523]: 11-12 ani / Feminin / Song Luyen / 1-2 Cap Rosu
+            - cell "Feminin" [ref=e2524]
+            - cell [ref=e2525]:
+              - generic [ref=e2526]:
+                - button [ref=e2527] [cursor=pointer]:
+                  - img [ref=e2528]
+                - button [ref=e2531] [cursor=pointer]:
+                  - img [ref=e2532]
+          - row "Peste 40 ani / Masculin / Song Luyen Masculin" [ref=e2535]:
+            - cell "Peste 40 ani / Masculin / Song Luyen" [ref=e2536]:
+              - generic [ref=e2537]: Peste 40 ani / Masculin / Song Luyen
+            - cell "Masculin" [ref=e2538]
+            - cell [ref=e2539]:
+              - generic [ref=e2540]:
+                - button [ref=e2541] [cursor=pointer]:
+                  - img [ref=e2542]
+                - button [ref=e2545] [cursor=pointer]:
+                  - img [ref=e2546]
+          - row "11-12 ani / Masculin / Song Luyen / 1-2 Cap Rosu Masculin" [ref=e2549]:
+            - cell "11-12 ani / Masculin / Song Luyen / 1-2 Cap Rosu" [ref=e2550]:
+              - generic [ref=e2551]: 11-12 ani / Masculin / Song Luyen / 1-2 Cap Rosu
+            - cell "Masculin" [ref=e2552]
+            - cell [ref=e2553]:
+              - generic [ref=e2554]:
+                - button [ref=e2555] [cursor=pointer]:
+                  - img [ref=e2556]
+                - button [ref=e2559] [cursor=pointer]:
+                  - img [ref=e2560]
+          - row "Peste 40 ani / Mixt / Song Luyen Mixt" [ref=e2563]:
+            - cell "Peste 40 ani / Mixt / Song Luyen" [ref=e2564]:
+              - generic [ref=e2565]: Peste 40 ani / Mixt / Song Luyen
+            - cell "Mixt" [ref=e2566]
+            - cell [ref=e2567]:
+              - generic [ref=e2568]:
+                - button [ref=e2569] [cursor=pointer]:
+                  - img [ref=e2570]
+                - button [ref=e2573] [cursor=pointer]:
+                  - img [ref=e2574]
+          - row "11-12 ani / Mixt / Song Luyen / 1-2 Cap Rosu Mixt" [ref=e2577]:
+            - cell "11-12 ani / Mixt / Song Luyen / 1-2 Cap Rosu" [ref=e2578]:
+              - generic [ref=e2579]: 11-12 ani / Mixt / Song Luyen / 1-2 Cap Rosu
+            - cell "Mixt" [ref=e2580]
+            - cell [ref=e2581]:
+              - generic [ref=e2582]:
+                - button [ref=e2583] [cursor=pointer]:
+                  - img [ref=e2584]
+                - button [ref=e2587] [cursor=pointer]:
+                  - img [ref=e2588]
+          - row "11-12 ani / Feminin / Song Luyen / 3-4 Cap Rosu Feminin" [ref=e2591]:
+            - cell "11-12 ani / Feminin / Song Luyen / 3-4 Cap Rosu" [ref=e2592]:
+              - generic [ref=e2593]: 11-12 ani / Feminin / Song Luyen / 3-4 Cap Rosu
+            - cell "Feminin" [ref=e2594]
+            - cell [ref=e2595]:
+              - generic [ref=e2596]:
+                - button [ref=e2597] [cursor=pointer]:
+                  - img [ref=e2598]
+                - button [ref=e2601] [cursor=pointer]:
+                  - img [ref=e2602]
+          - row "11-12 ani / Masculin / Song Luyen / 3-4 Cap Rosu Masculin" [ref=e2605]:
+            - cell "11-12 ani / Masculin / Song Luyen / 3-4 Cap Rosu" [ref=e2606]:
+              - generic [ref=e2607]: 11-12 ani / Masculin / Song Luyen / 3-4 Cap Rosu
+            - cell "Masculin" [ref=e2608]
+            - cell [ref=e2609]:
+              - generic [ref=e2610]:
+                - button [ref=e2611] [cursor=pointer]:
+                  - img [ref=e2612]
+                - button [ref=e2615] [cursor=pointer]:
+                  - img [ref=e2616]
+          - row "11-12 ani / Mixt / Song Luyen / 3-4 Cap Rosu Mixt" [ref=e2619]:
+            - cell "11-12 ani / Mixt / Song Luyen / 3-4 Cap Rosu" [ref=e2620]:
+              - generic [ref=e2621]: 11-12 ani / Mixt / Song Luyen / 3-4 Cap Rosu
+            - cell "Mixt" [ref=e2622]
+            - cell [ref=e2623]:
+              - generic [ref=e2624]:
+                - button [ref=e2625] [cursor=pointer]:
+                  - img [ref=e2626]
+                - button [ref=e2629] [cursor=pointer]:
+                  - img [ref=e2630]
+          - row "11-12 ani / Feminin / Song Luyen / CV - CV 4 Cap Alb Feminin" [ref=e2633]:
+            - cell "11-12 ani / Feminin / Song Luyen / CV - CV 4 Cap Alb" [ref=e2634]:
+              - generic [ref=e2635]: 11-12 ani / Feminin / Song Luyen / CV - CV 4 Cap Alb
+            - cell "Feminin" [ref=e2636]
+            - cell [ref=e2637]:
+              - generic [ref=e2638]:
+                - button [ref=e2639] [cursor=pointer]:
+                  - img [ref=e2640]
+                - button [ref=e2643] [cursor=pointer]:
+                  - img [ref=e2644]
+          - row "11-12 ani / Masculin / Song Luyen / CV - CV 4 Cap Alb Masculin" [ref=e2647]:
+            - cell "11-12 ani / Masculin / Song Luyen / CV - CV 4 Cap Alb" [ref=e2648]:
+              - generic [ref=e2649]: 11-12 ani / Masculin / Song Luyen / CV - CV 4 Cap Alb
+            - cell "Masculin" [ref=e2650]
+            - cell [ref=e2651]:
+              - generic [ref=e2652]:
+                - button [ref=e2653] [cursor=pointer]:
+                  - img [ref=e2654]
+                - button [ref=e2657] [cursor=pointer]:
+                  - img [ref=e2658]
+          - row "11-12 ani / Mixt / Song Luyen / CV - CV 4 Cap Alb Mixt" [ref=e2661]:
+            - cell "11-12 ani / Mixt / Song Luyen / CV - CV 4 Cap Alb" [ref=e2662]:
+              - generic [ref=e2663]: 11-12 ani / Mixt / Song Luyen / CV - CV 4 Cap Alb
+            - cell "Mixt" [ref=e2664]
+            - cell [ref=e2665]:
+              - generic [ref=e2666]:
+                - button [ref=e2667] [cursor=pointer]:
+                  - img [ref=e2668]
+                - button [ref=e2671] [cursor=pointer]:
+                  - img [ref=e2672]
+          - row "13-15 ani / Feminin / Song Luyen / 1 Cap Albastru Feminin" [ref=e2675]:
+            - cell "13-15 ani / Feminin / Song Luyen / 1 Cap Albastru" [ref=e2676]:
+              - generic [ref=e2677]: 13-15 ani / Feminin / Song Luyen / 1 Cap Albastru
+            - cell "Feminin" [ref=e2678]
+            - cell [ref=e2679]:
+              - generic [ref=e2680]:
+                - button [ref=e2681] [cursor=pointer]:
+                  - img [ref=e2682]
+                - button [ref=e2685] [cursor=pointer]:
+                  - img [ref=e2686]
+          - row "13-15 ani / Masculin / Song Luyen / 1 Cap Albastru Masculin" [ref=e2689]:
+            - cell "13-15 ani / Masculin / Song Luyen / 1 Cap Albastru" [ref=e2690]:
+              - generic [ref=e2691]: 13-15 ani / Masculin / Song Luyen / 1 Cap Albastru
+            - cell "Masculin" [ref=e2692]
+            - cell [ref=e2693]:
+              - generic [ref=e2694]:
+                - button [ref=e2695] [cursor=pointer]:
+                  - img [ref=e2696]
+                - button [ref=e2699] [cursor=pointer]:
+                  - img [ref=e2700]
+          - row "13-15 ani / Mixt / Song Luyen / 1 Cap Albastru Mixt" [ref=e2703]:
+            - cell "13-15 ani / Mixt / Song Luyen / 1 Cap Albastru" [ref=e2704]:
+              - generic [ref=e2705]: 13-15 ani / Mixt / Song Luyen / 1 Cap Albastru
+            - cell "Mixt" [ref=e2706]
+            - cell [ref=e2707]:
+              - generic [ref=e2708]:
+                - button [ref=e2709] [cursor=pointer]:
+                  - img [ref=e2710]
+                - button [ref=e2713] [cursor=pointer]:
+                  - img [ref=e2714]
+          - row "13-15 ani / Feminin / Song Luyen / 2-4 Cap Albastru Feminin" [ref=e2717]:
+            - cell "13-15 ani / Feminin / Song Luyen / 2-4 Cap Albastru" [ref=e2718]:
+              - generic [ref=e2719]: 13-15 ani / Feminin / Song Luyen / 2-4 Cap Albastru
+            - cell "Feminin" [ref=e2720]
+            - cell [ref=e2721]:
+              - generic [ref=e2722]:
+                - button [ref=e2723] [cursor=pointer]:
+                  - img [ref=e2724]
+                - button [ref=e2727] [cursor=pointer]:
+                  - img [ref=e2728]
+          - row "13-15 ani / Masculin / Song Luyen / 2-4 Cap Albastru Masculin" [ref=e2731]:
+            - cell "13-15 ani / Masculin / Song Luyen / 2-4 Cap Albastru" [ref=e2732]:
+              - generic [ref=e2733]: 13-15 ani / Masculin / Song Luyen / 2-4 Cap Albastru
+            - cell "Masculin" [ref=e2734]
+            - cell [ref=e2735]:
+              - generic [ref=e2736]:
+                - button [ref=e2737] [cursor=pointer]:
+                  - img [ref=e2738]
+                - button [ref=e2741] [cursor=pointer]:
+                  - img [ref=e2742]
+          - row "13-15 ani / Mixt / Song Luyen / 2-4 Cap Albastru Mixt" [ref=e2745]:
+            - cell "13-15 ani / Mixt / Song Luyen / 2-4 Cap Albastru" [ref=e2746]:
+              - generic [ref=e2747]: 13-15 ani / Mixt / Song Luyen / 2-4 Cap Albastru
+            - cell "Mixt" [ref=e2748]
+            - cell [ref=e2749]:
+              - generic [ref=e2750]:
+                - button [ref=e2751] [cursor=pointer]:
+                  - img [ref=e2752]
+                - button [ref=e2755] [cursor=pointer]:
+                  - img [ref=e2756]
+          - row "7-8 ani / Feminin / grad 1-2 / Giao Dau Feminin" [ref=e2759]:
+            - cell "7-8 ani / Feminin / grad 1-2 / Giao Dau" [ref=e2760]:
+              - generic [ref=e2761]: 7-8 ani / Feminin / grad 1-2 / Giao Dau
+            - cell "Feminin" [ref=e2762]
+            - cell [ref=e2763]:
+              - generic [ref=e2764]:
+                - button [ref=e2765] [cursor=pointer]:
+                  - img [ref=e2766]
+                - button [ref=e2769] [cursor=pointer]:
+                  - img [ref=e2770]
+          - row "7-8 ani / Masculin / grad 1-2 / Giao Dau Masculin" [ref=e2773]:
+            - cell "7-8 ani / Masculin / grad 1-2 / Giao Dau" [ref=e2774]:
+              - generic [ref=e2775]: 7-8 ani / Masculin / grad 1-2 / Giao Dau
+            - cell "Masculin" [ref=e2776]
+            - cell [ref=e2777]:
+              - generic [ref=e2778]:
+                - button [ref=e2779] [cursor=pointer]:
+                  - img [ref=e2780]
+                - button [ref=e2783] [cursor=pointer]:
+                  - img [ref=e2784]
+          - row "7-8 ani / Feminin / grad 3-4 / Giao Dau Feminin" [ref=e2787]:
+            - cell "7-8 ani / Feminin / grad 3-4 / Giao Dau" [ref=e2788]:
+              - generic [ref=e2789]: 7-8 ani / Feminin / grad 3-4 / Giao Dau
+            - cell "Feminin" [ref=e2790]
+            - cell [ref=e2791]:
+              - generic [ref=e2792]:
+                - button [ref=e2793] [cursor=pointer]:
+                  - img [ref=e2794]
+                - button [ref=e2797] [cursor=pointer]:
+                  - img [ref=e2798]
+          - row "7-8 ani / Masculin / grad 3-4 / Giao Dau Masculin" [ref=e2801]:
+            - cell "7-8 ani / Masculin / grad 3-4 / Giao Dau" [ref=e2802]:
+              - generic [ref=e2803]: 7-8 ani / Masculin / grad 3-4 / Giao Dau
+            - cell "Masculin" [ref=e2804]
+            - cell [ref=e2805]:
+              - generic [ref=e2806]:
+                - button [ref=e2807] [cursor=pointer]:
+                  - img [ref=e2808]
+                - button [ref=e2811] [cursor=pointer]:
+                  - img [ref=e2812]
+          - row "9-10 ani / Feminin / grad 1-2 / Giao Dau Feminin" [ref=e2815]:
+            - cell "9-10 ani / Feminin / grad 1-2 / Giao Dau" [ref=e2816]:
+              - generic [ref=e2817]: 9-10 ani / Feminin / grad 1-2 / Giao Dau
+            - cell "Feminin" [ref=e2818]
+            - cell [ref=e2819]:
+              - generic [ref=e2820]:
+                - button [ref=e2821] [cursor=pointer]:
+                  - img [ref=e2822]
+                - button [ref=e2825] [cursor=pointer]:
+                  - img [ref=e2826]
+          - row "9-10 ani / Masculin / grad 1-2 / Giao Dau Masculin" [ref=e2829]:
+            - cell "9-10 ani / Masculin / grad 1-2 / Giao Dau" [ref=e2830]:
+              - generic [ref=e2831]: 9-10 ani / Masculin / grad 1-2 / Giao Dau
+            - cell "Masculin" [ref=e2832]
+            - cell [ref=e2833]:
+              - generic [ref=e2834]:
+                - button [ref=e2835] [cursor=pointer]:
+                  - img [ref=e2836]
+                - button [ref=e2839] [cursor=pointer]:
+                  - img [ref=e2840]
+          - row "9-10 ani / Feminin / grad 3-4 / Giao Dau Feminin" [ref=e2843]:
+            - cell "9-10 ani / Feminin / grad 3-4 / Giao Dau" [ref=e2844]:
+              - generic [ref=e2845]: 9-10 ani / Feminin / grad 3-4 / Giao Dau
+            - cell "Feminin" [ref=e2846]
+            - cell [ref=e2847]:
+              - generic [ref=e2848]:
+                - button [ref=e2849] [cursor=pointer]:
+                  - img [ref=e2850]
+                - button [ref=e2853] [cursor=pointer]:
+                  - img [ref=e2854]
+          - row "9-10 ani / Masculin / grad 3-4 / Giao Dau Masculin" [ref=e2857]:
+            - cell "9-10 ani / Masculin / grad 3-4 / Giao Dau" [ref=e2858]:
+              - generic [ref=e2859]: 9-10 ani / Masculin / grad 3-4 / Giao Dau
+            - cell "Masculin" [ref=e2860]
+            - cell [ref=e2861]:
+              - generic [ref=e2862]:
+                - button [ref=e2863] [cursor=pointer]:
+                  - img [ref=e2864]
+                - button [ref=e2867] [cursor=pointer]:
+                  - img [ref=e2868]
+          - row "9-10 ani / Feminin / min grad 5 / Giao Dau Feminin" [ref=e2871]:
+            - cell "9-10 ani / Feminin / min grad 5 / Giao Dau" [ref=e2872]:
+              - generic [ref=e2873]: 9-10 ani / Feminin / min grad 5 / Giao Dau
+            - cell "Feminin" [ref=e2874]
+            - cell [ref=e2875]:
+              - generic [ref=e2876]:
+                - button [ref=e2877] [cursor=pointer]:
+                  - img [ref=e2878]
+                - button [ref=e2881] [cursor=pointer]:
+                  - img [ref=e2882]
+          - row "9-10 ani / Masculin / min grad 5 / Giao Dau Masculin" [ref=e2885]:
+            - cell "9-10 ani / Masculin / min grad 5 / Giao Dau" [ref=e2886]:
+              - generic [ref=e2887]: 9-10 ani / Masculin / min grad 5 / Giao Dau
+            - cell "Masculin" [ref=e2888]
+            - cell [ref=e2889]:
+              - generic [ref=e2890]:
+                - button [ref=e2891] [cursor=pointer]:
+                  - img [ref=e2892]
+                - button [ref=e2895] [cursor=pointer]:
+                  - img [ref=e2896]
+          - row "11-12 ani / Feminin / grad 1-2 / Giao Dau Feminin" [ref=e2899]:
+            - cell "11-12 ani / Feminin / grad 1-2 / Giao Dau" [ref=e2900]:
+              - generic [ref=e2901]: 11-12 ani / Feminin / grad 1-2 / Giao Dau
+            - cell "Feminin" [ref=e2902]
+            - cell [ref=e2903]:
+              - generic [ref=e2904]:
+                - button [ref=e2905] [cursor=pointer]:
+                  - img [ref=e2906]
+                - button [ref=e2909] [cursor=pointer]:
+                  - img [ref=e2910]
+          - row "11-12 ani / Masculin / grad 1-2 / Giao Dau Masculin" [ref=e2913]:
+            - cell "11-12 ani / Masculin / grad 1-2 / Giao Dau" [ref=e2914]:
+              - generic [ref=e2915]: 11-12 ani / Masculin / grad 1-2 / Giao Dau
+            - cell "Masculin" [ref=e2916]
+            - cell [ref=e2917]:
+              - generic [ref=e2918]:
+                - button [ref=e2919] [cursor=pointer]:
+                  - img [ref=e2920]
+                - button [ref=e2923] [cursor=pointer]:
+                  - img [ref=e2924]
+          - row "11-12 ani / Feminin / grad 3-4 / Giao Dau Feminin" [ref=e2927]:
+            - cell "11-12 ani / Feminin / grad 3-4 / Giao Dau" [ref=e2928]:
+              - generic [ref=e2929]: 11-12 ani / Feminin / grad 3-4 / Giao Dau
+            - cell "Feminin" [ref=e2930]
+            - cell [ref=e2931]:
+              - generic [ref=e2932]:
+                - button [ref=e2933] [cursor=pointer]:
+                  - img [ref=e2934]
+                - button [ref=e2937] [cursor=pointer]:
+                  - img [ref=e2938]
+          - row "11-12 ani / Masculin / grad 3-4 / Giao Dau Masculin" [ref=e2941]:
+            - cell "11-12 ani / Masculin / grad 3-4 / Giao Dau" [ref=e2942]:
+              - generic [ref=e2943]: 11-12 ani / Masculin / grad 3-4 / Giao Dau
+            - cell "Masculin" [ref=e2944]
+            - cell [ref=e2945]:
+              - generic [ref=e2946]:
+                - button [ref=e2947] [cursor=pointer]:
+                  - img [ref=e2948]
+                - button [ref=e2951] [cursor=pointer]:
+                  - img [ref=e2952]
+          - row "11-12 ani / Feminin / min grad 5 / Giao Dau Feminin" [ref=e2955]:
+            - cell "11-12 ani / Feminin / min grad 5 / Giao Dau" [ref=e2956]:
+              - generic [ref=e2957]: 11-12 ani / Feminin / min grad 5 / Giao Dau
+            - cell "Feminin" [ref=e2958]
+            - cell [ref=e2959]:
+              - generic [ref=e2960]:
+                - button [ref=e2961] [cursor=pointer]:
+                  - img [ref=e2962]
+                - button [ref=e2965] [cursor=pointer]:
+                  - img [ref=e2966]
+          - row "11-12 ani / Masculin / min grad 5 / Giao Dau Masculin" [ref=e2969]:
+            - cell "11-12 ani / Masculin / min grad 5 / Giao Dau" [ref=e2970]:
+              - generic [ref=e2971]: 11-12 ani / Masculin / min grad 5 / Giao Dau
+            - cell "Masculin" [ref=e2972]
+            - cell [ref=e2973]:
+              - generic [ref=e2974]:
+                - button [ref=e2975] [cursor=pointer]:
+                  - img [ref=e2976]
+                - button [ref=e2979] [cursor=pointer]:
+                  - img [ref=e2980]
+          - row "13-15 ani / Feminin / grad 1 / Giao Dau Feminin" [ref=e2983]:
+            - cell "13-15 ani / Feminin / grad 1 / Giao Dau" [ref=e2984]:
+              - generic [ref=e2985]: 13-15 ani / Feminin / grad 1 / Giao Dau
+            - cell "Feminin" [ref=e2986]
+            - cell [ref=e2987]:
+              - generic [ref=e2988]:
+                - button [ref=e2989] [cursor=pointer]:
+                  - img [ref=e2990]
+                - button [ref=e2993] [cursor=pointer]:
+                  - img [ref=e2994]
+          - row "13-15 ani / Masculin / grad 1 / Giao Dau Masculin" [ref=e2997]:
+            - cell "13-15 ani / Masculin / grad 1 / Giao Dau" [ref=e2998]:
+              - generic [ref=e2999]: 13-15 ani / Masculin / grad 1 / Giao Dau
+            - cell "Masculin" [ref=e3000]
+            - cell [ref=e3001]:
+              - generic [ref=e3002]:
+                - button [ref=e3003] [cursor=pointer]:
+                  - img [ref=e3004]
+                - button [ref=e3007] [cursor=pointer]:
+                  - img [ref=e3008]
+          - row "13-15 ani / Feminin / grad 2-4 / Giao Dau Feminin" [ref=e3011]:
+            - cell "13-15 ani / Feminin / grad 2-4 / Giao Dau" [ref=e3012]:
+              - generic [ref=e3013]: 13-15 ani / Feminin / grad 2-4 / Giao Dau
+            - cell "Feminin" [ref=e3014]
+            - cell [ref=e3015]:
+              - generic [ref=e3016]:
+                - button [ref=e3017] [cursor=pointer]:
+                  - img [ref=e3018]
+                - button [ref=e3021] [cursor=pointer]:
+                  - img [ref=e3022]
+          - row "13-15 ani / Masculin / grad 2-4 / Giao Dau Masculin" [ref=e3025]:
+            - cell "13-15 ani / Masculin / grad 2-4 / Giao Dau" [ref=e3026]:
+              - generic [ref=e3027]: 13-15 ani / Masculin / grad 2-4 / Giao Dau
+            - cell "Masculin" [ref=e3028]
+            - cell [ref=e3029]:
+              - generic [ref=e3030]:
+                - button [ref=e3031] [cursor=pointer]:
+                  - img [ref=e3032]
+                - button [ref=e3035] [cursor=pointer]:
+                  - img [ref=e3036]
+          - row "13-15 ani / Feminin / grad 1 / Bong Bong Feminin" [ref=e3039]:
+            - cell "13-15 ani / Feminin / grad 1 / Bong Bong" [ref=e3040]:
+              - generic [ref=e3041]: 13-15 ani / Feminin / grad 1 / Bong
+              - generic [ref=e3042]: Bong
+            - cell "Feminin" [ref=e3043]
+            - cell [ref=e3044]:
+              - generic [ref=e3045]:
+                - button [ref=e3046] [cursor=pointer]:
+                  - img [ref=e3047]
+                - button [ref=e3050] [cursor=pointer]:
+                  - img [ref=e3051]
+          - row "13-15 ani / Masculin / grad 1 / Bong Bong Masculin" [ref=e3054]:
+            - cell "13-15 ani / Masculin / grad 1 / Bong Bong" [ref=e3055]:
+              - generic [ref=e3056]: 13-15 ani / Masculin / grad 1 / Bong
+              - generic [ref=e3057]: Bong
+            - cell "Masculin" [ref=e3058]
+            - cell [ref=e3059]:
+              - generic [ref=e3060]:
+                - button [ref=e3061] [cursor=pointer]:
+                  - img [ref=e3062]
+                - button [ref=e3065] [cursor=pointer]:
+                  - img [ref=e3066]
+          - row "13-15 ani / Feminin / grad 2-4 / Bong Bong Feminin" [ref=e3069]:
+            - cell "13-15 ani / Feminin / grad 2-4 / Bong Bong" [ref=e3070]:
+              - generic [ref=e3071]: 13-15 ani / Feminin / grad 2-4 / Bong
+              - generic [ref=e3072]: Bong
+            - cell "Feminin" [ref=e3073]
+            - cell [ref=e3074]:
+              - generic [ref=e3075]:
+                - button [ref=e3076] [cursor=pointer]:
+                  - img [ref=e3077]
+                - button [ref=e3080] [cursor=pointer]:
+                  - img [ref=e3081]
+          - row "13-15 ani / Masculin / grad 2-4 / Bong Masculin" [ref=e3084]:
+            - cell "13-15 ani / Masculin / grad 2-4 / Bong" [ref=e3085]:
+              - generic [ref=e3086]: 13-15 ani / Masculin / grad 2-4 / Bong
+            - cell "Masculin" [ref=e3087]
+            - cell [ref=e3088]:
+              - generic [ref=e3089]:
+                - button [ref=e3090] [cursor=pointer]:
+                  - img [ref=e3091]
+                - button [ref=e3094] [cursor=pointer]:
+                  - img [ref=e3095]
+          - row "13-15 ani / Feminin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can Feminin" [ref=e3098]:
+            - cell "13-15 ani / Feminin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can" [ref=e3099]:
+              - generic [ref=e3100]: 13-15 ani / Feminin / grad 1-4 / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3101]: Long Gian / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3102]
+            - cell [ref=e3103]:
+              - generic [ref=e3104]:
+                - button [ref=e3105] [cursor=pointer]:
+                  - img [ref=e3106]
+                - button [ref=e3109] [cursor=pointer]:
+                  - img [ref=e3110]
+          - row "13-15 ani / Masculin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can Masculin" [ref=e3113]:
+            - cell "13-15 ani / Masculin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can" [ref=e3114]:
+              - generic [ref=e3115]: 13-15 ani / Masculin / grad 1-4 / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3116]: Long Gian / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3117]
+            - cell [ref=e3118]:
+              - generic [ref=e3119]:
+                - button [ref=e3120] [cursor=pointer]:
+                  - img [ref=e3121]
+                - button [ref=e3124] [cursor=pointer]:
+                  - img [ref=e3125]
+          - row "16-17 ani / Feminin / grad 1-2 / Bong Bong Feminin" [ref=e3128]:
+            - cell "16-17 ani / Feminin / grad 1-2 / Bong Bong" [ref=e3129]:
+              - generic [ref=e3130]: 16-17 ani / Feminin / grad 1-2 / Bong
+              - generic [ref=e3131]: Bong
+            - cell "Feminin" [ref=e3132]
+            - cell [ref=e3133]:
+              - generic [ref=e3134]:
+                - button [ref=e3135] [cursor=pointer]:
+                  - img [ref=e3136]
+                - button [ref=e3139] [cursor=pointer]:
+                  - img [ref=e3140]
+          - row "16-17 ani / Masculin / grad 1-2 / Bong Bong Masculin" [ref=e3143]:
+            - cell "16-17 ani / Masculin / grad 1-2 / Bong Bong" [ref=e3144]:
+              - generic [ref=e3145]: 16-17 ani / Masculin / grad 1-2 / Bong
+              - generic [ref=e3146]: Bong
+            - cell "Masculin" [ref=e3147]
+            - cell [ref=e3148]:
+              - generic [ref=e3149]:
+                - button [ref=e3150] [cursor=pointer]:
+                  - img [ref=e3151]
+                - button [ref=e3154] [cursor=pointer]:
+                  - img [ref=e3155]
+          - row "16-17 ani / Feminin / grad 3-4 / Bong Bong Feminin" [ref=e3158]:
+            - cell "16-17 ani / Feminin / grad 3-4 / Bong Bong" [ref=e3159]:
+              - generic [ref=e3160]: 16-17 ani / Feminin / grad 3-4 / Bong
+              - generic [ref=e3161]: Bong
+            - cell "Feminin" [ref=e3162]
+            - cell [ref=e3163]:
+              - generic [ref=e3164]:
+                - button [ref=e3165] [cursor=pointer]:
+                  - img [ref=e3166]
+                - button [ref=e3169] [cursor=pointer]:
+                  - img [ref=e3170]
+          - row "16-17 ani / Masculin / grad 3-4 / Bong Bong Masculin" [ref=e3173]:
+            - cell "16-17 ani / Masculin / grad 3-4 / Bong Bong" [ref=e3174]:
+              - generic [ref=e3175]: 16-17 ani / Masculin / grad 3-4 / Bong
+              - generic [ref=e3176]: Bong
+            - cell "Masculin" [ref=e3177]
+            - cell [ref=e3178]:
+              - generic [ref=e3179]:
+                - button [ref=e3180] [cursor=pointer]:
+                  - img [ref=e3181]
+                - button [ref=e3184] [cursor=pointer]:
+                  - img [ref=e3185]
+          - row "16-17 ani / Feminin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can Feminin" [ref=e3188]:
+            - cell "16-17 ani / Feminin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can" [ref=e3189]:
+              - generic [ref=e3190]: 16-17 ani / Feminin / grad 1-4 / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3191]: Long Gian / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3192]
+            - cell [ref=e3193]:
+              - generic [ref=e3194]:
+                - button [ref=e3195] [cursor=pointer]:
+                  - img [ref=e3196]
+                - button [ref=e3199] [cursor=pointer]:
+                  - img [ref=e3200]
+          - row "16-17 ani / Masculin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can Masculin" [ref=e3203]:
+            - cell "16-17 ani / Masculin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can" [ref=e3204]:
+              - generic [ref=e3205]: 16-17 ani / Masculin / grad 1-4 / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3206]: Long Gian / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3207]
+            - cell [ref=e3208]:
+              - generic [ref=e3209]:
+                - button [ref=e3210] [cursor=pointer]:
+                  - img [ref=e3211]
+                - button [ref=e3214] [cursor=pointer]:
+                  - img [ref=e3215]
+          - row "18-39 ani / Feminin / grad 1-4 / Bong Bong Feminin" [ref=e3218]:
+            - cell "18-39 ani / Feminin / grad 1-4 / Bong Bong" [ref=e3219]:
+              - generic [ref=e3220]: 18-39 ani / Feminin / grad 1-4 / Bong
+              - generic [ref=e3221]: Bong
+            - cell "Feminin" [ref=e3222]
+            - cell [ref=e3223]:
+              - generic [ref=e3224]:
+                - button [ref=e3225] [cursor=pointer]:
+                  - img [ref=e3226]
+                - button [ref=e3229] [cursor=pointer]:
+                  - img [ref=e3230]
+          - row "18-39 ani / Masculin / grad 1-4 / Bong Bong Masculin" [ref=e3233]:
+            - cell "18-39 ani / Masculin / grad 1-4 / Bong Bong" [ref=e3234]:
+              - generic [ref=e3235]: 18-39 ani / Masculin / grad 1-4 / Bong
+              - generic [ref=e3236]: Bong
+            - cell "Masculin" [ref=e3237]
+            - cell [ref=e3238]:
+              - generic [ref=e3239]:
+                - button [ref=e3240] [cursor=pointer]:
+                  - img [ref=e3241]
+                - button [ref=e3244] [cursor=pointer]:
+                  - img [ref=e3245]
+          - row "18-39 ani / Feminin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can Feminin" [ref=e3248]:
+            - cell "18-39 ani / Feminin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can" [ref=e3249]:
+              - generic [ref=e3250]: 18-39 ani / Feminin / grad 1-4 / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3251]: Long Gian / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3252]
+            - cell [ref=e3253]:
+              - generic [ref=e3254]:
+                - button [ref=e3255] [cursor=pointer]:
+                  - img [ref=e3256]
+                - button [ref=e3259] [cursor=pointer]:
+                  - img [ref=e3260]
+          - row "18-39 ani / Masculin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can Masculin" [ref=e3263]:
+            - cell "18-39 ani / Masculin / grad 1-4 / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can" [ref=e3264]:
+              - generic [ref=e3265]: 18-39 ani / Masculin / grad 1-4 / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3266]: Long Gian / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3267]
+            - cell [ref=e3268]:
+              - generic [ref=e3269]:
+                - button [ref=e3270] [cursor=pointer]:
+                  - img [ref=e3271]
+                - button [ref=e3274] [cursor=pointer]:
+                  - img [ref=e3275]
+          - row "Peste 40 ani / Feminin / grad 1-4 / Bong / Long Gian / Song Cot / Moc Can Bong / Long Gian / Song Cot / Moc Can Feminin" [ref=e3278]:
+            - cell "Peste 40 ani / Feminin / grad 1-4 / Bong / Long Gian / Song Cot / Moc Can Bong / Long Gian / Song Cot / Moc Can" [ref=e3279]:
+              - generic [ref=e3280]: Peste 40 ani / Feminin / grad 1-4 / Bong / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3281]: Bong / Long Gian / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3282]
+            - cell [ref=e3283]:
+              - generic [ref=e3284]:
+                - button [ref=e3285] [cursor=pointer]:
+                  - img [ref=e3286]
+                - button [ref=e3289] [cursor=pointer]:
+                  - img [ref=e3290]
+          - row "Peste 40 ani / Masculin / grad 1-4 / Bong / Long Gian / Song Cot / Moc Can Bong / Long Gian / Song Cot / Moc Can Masculin" [ref=e3293]:
+            - cell "Peste 40 ani / Masculin / grad 1-4 / Bong / Long Gian / Song Cot / Moc Can Bong / Long Gian / Song Cot / Moc Can" [ref=e3294]:
+              - generic [ref=e3295]: Peste 40 ani / Masculin / grad 1-4 / Bong / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3296]: Bong / Long Gian / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3297]
+            - cell [ref=e3298]:
+              - generic [ref=e3299]:
+                - button [ref=e3300] [cursor=pointer]:
+                  - img [ref=e3301]
+                - button [ref=e3304] [cursor=pointer]:
+                  - img [ref=e3305]
+          - row "13-15 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Feminin" [ref=e3308]:
+            - cell "13-15 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3309]:
+              - generic [ref=e3310]: 13-15 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3311]: Bong / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3312]
+            - cell [ref=e3313]:
+              - generic [ref=e3314]:
+                - button [ref=e3315] [cursor=pointer]:
+                  - img [ref=e3316]
+                - button [ref=e3319] [cursor=pointer]:
+                  - img [ref=e3320]
+          - row "13-15 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Masculin" [ref=e3323]:
+            - cell "13-15 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3324]:
+              - generic [ref=e3325]: 13-15 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3326]: Bong / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3327]
+            - cell [ref=e3328]:
+              - generic [ref=e3329]:
+                - button [ref=e3330] [cursor=pointer]:
+                  - img [ref=e3331]
+                - button [ref=e3334] [cursor=pointer]:
+                  - img [ref=e3335]
+          - row "13-15 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Mixt" [ref=e3338]:
+            - cell "13-15 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3339]:
+              - generic [ref=e3340]: 13-15 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3341]: Bong / Song Cot / Moc Can
+            - cell "Mixt" [ref=e3342]
+            - cell [ref=e3343]:
+              - generic [ref=e3344]:
+                - button [ref=e3345] [cursor=pointer]:
+                  - img [ref=e3346]
+                - button [ref=e3349] [cursor=pointer]:
+                  - img [ref=e3350]
+          - row "16-17 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Feminin" [ref=e3353]:
+            - cell "16-17 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3354]:
+              - generic [ref=e3355]: 16-17 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3356]: Bong / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3357]
+            - cell [ref=e3358]:
+              - generic [ref=e3359]:
+                - button [ref=e3360] [cursor=pointer]:
+                  - img [ref=e3361]
+                - button [ref=e3364] [cursor=pointer]:
+                  - img [ref=e3365]
+          - row "16-17 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Masculin" [ref=e3368]:
+            - cell "16-17 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3369]:
+              - generic [ref=e3370]: 16-17 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3371]: Bong / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3372]
+            - cell [ref=e3373]:
+              - generic [ref=e3374]:
+                - button [ref=e3375] [cursor=pointer]:
+                  - img [ref=e3376]
+                - button [ref=e3379] [cursor=pointer]:
+                  - img [ref=e3380]
+          - row "16-17 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Mixt" [ref=e3383]:
+            - cell "16-17 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3384]:
+              - generic [ref=e3385]: 16-17 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3386]: Bong / Song Cot / Moc Can
+            - cell "Mixt" [ref=e3387]
+            - cell [ref=e3388]:
+              - generic [ref=e3389]:
+                - button [ref=e3390] [cursor=pointer]:
+                  - img [ref=e3391]
+                - button [ref=e3394] [cursor=pointer]:
+                  - img [ref=e3395]
+          - row "18-39 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Feminin" [ref=e3398]:
+            - cell "18-39 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3399]:
+              - generic [ref=e3400]: 18-39 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3401]: Bong / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3402]
+            - cell [ref=e3403]:
+              - generic [ref=e3404]:
+                - button [ref=e3405] [cursor=pointer]:
+                  - img [ref=e3406]
+                - button [ref=e3409] [cursor=pointer]:
+                  - img [ref=e3410]
+          - row "18-39 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Masculin" [ref=e3413]:
+            - cell "18-39 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3414]:
+              - generic [ref=e3415]: 18-39 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3416]: Bong / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3417]
+            - cell [ref=e3418]:
+              - generic [ref=e3419]:
+                - button [ref=e3420] [cursor=pointer]:
+                  - img [ref=e3421]
+                - button [ref=e3424] [cursor=pointer]:
+                  - img [ref=e3425]
+          - row "18-39 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Mixt" [ref=e3428]:
+            - cell "18-39 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3429]:
+              - generic [ref=e3430]: 18-39 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3431]: Bong / Song Cot / Moc Can
+            - cell "Mixt" [ref=e3432]
+            - cell [ref=e3433]:
+              - generic [ref=e3434]:
+                - button [ref=e3435] [cursor=pointer]:
+                  - img [ref=e3436]
+                - button [ref=e3439] [cursor=pointer]:
+                  - img [ref=e3440]
+          - row "Peste 40 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Feminin" [ref=e3443]:
+            - cell "Peste 40 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3444]:
+              - generic [ref=e3445]: Peste 40 ani / Feminin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3446]: Bong / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3447]
+            - cell [ref=e3448]:
+              - generic [ref=e3449]:
+                - button [ref=e3450] [cursor=pointer]:
+                  - img [ref=e3451]
+                - button [ref=e3454] [cursor=pointer]:
+                  - img [ref=e3455]
+          - row "Peste 40 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Masculin" [ref=e3458]:
+            - cell "Peste 40 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3459]:
+              - generic [ref=e3460]: Peste 40 ani / Masculin / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3461]: Bong / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3462]
+            - cell [ref=e3463]:
+              - generic [ref=e3464]:
+                - button [ref=e3465] [cursor=pointer]:
+                  - img [ref=e3466]
+                - button [ref=e3469] [cursor=pointer]:
+                  - img [ref=e3470]
+          - row "Peste 40 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Mixt" [ref=e3473]:
+            - cell "Peste 40 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3474]:
+              - generic [ref=e3475]: Peste 40 ani / Mixt / grad 1-4 / Bong-Song Cot-Moc Can / Song Luyen CVD
+              - generic [ref=e3476]: Bong / Song Cot / Moc Can
+            - cell "Mixt" [ref=e3477]
+            - cell [ref=e3478]:
+              - generic [ref=e3479]:
+                - button [ref=e3480] [cursor=pointer]:
+                  - img [ref=e3481]
+                - button [ref=e3484] [cursor=pointer]:
+                  - img [ref=e3485]
+          - row "18-39 ani / Feminin / CN 5 Dang / Bong Bong Feminin" [ref=e3488]:
+            - cell "18-39 ani / Feminin / CN 5 Dang / Bong Bong" [ref=e3489]:
+              - generic [ref=e3490]: 18-39 ani / Feminin / CN 5 Dang / Bong
+              - generic [ref=e3491]: Bong
+            - cell "Feminin" [ref=e3492]
+            - cell [ref=e3493]:
+              - generic [ref=e3494]:
+                - button [ref=e3495] [cursor=pointer]:
+                  - img [ref=e3496]
+                - button [ref=e3499] [cursor=pointer]:
+                  - img [ref=e3500]
+          - row "18-39 ani / Masculin / CN 5 Dang / Bong Bong Masculin" [ref=e3503]:
+            - cell "18-39 ani / Masculin / CN 5 Dang / Bong Bong" [ref=e3504]:
+              - generic [ref=e3505]: 18-39 ani / Masculin / CN 5 Dang / Bong
+              - generic [ref=e3506]: Bong
+            - cell "Masculin" [ref=e3507]
+            - cell [ref=e3508]:
+              - generic [ref=e3509]:
+                - button [ref=e3510] [cursor=pointer]:
+                  - img [ref=e3511]
+                - button [ref=e3514] [cursor=pointer]:
+                  - img [ref=e3515]
+          - row "18-39 ani / Feminin / CN 6-9 Dang / Bong Bong Feminin" [ref=e3518]:
+            - cell "18-39 ani / Feminin / CN 6-9 Dang / Bong Bong" [ref=e3519]:
+              - generic [ref=e3520]: 18-39 ani / Feminin / CN 6-9 Dang / Bong
+              - generic [ref=e3521]: Bong
+            - cell "Feminin" [ref=e3522]
+            - cell [ref=e3523]:
+              - generic [ref=e3524]:
+                - button [ref=e3525] [cursor=pointer]:
+                  - img [ref=e3526]
+                - button [ref=e3529] [cursor=pointer]:
+                  - img [ref=e3530]
+          - row "18-39 ani / Masculin / CN 6-9 Dang / Bong Bong Masculin" [ref=e3533]:
+            - cell "18-39 ani / Masculin / CN 6-9 Dang / Bong Bong" [ref=e3534]:
+              - generic [ref=e3535]: 18-39 ani / Masculin / CN 6-9 Dang / Bong
+              - generic [ref=e3536]: Bong
+            - cell "Masculin" [ref=e3537]
+            - cell [ref=e3538]:
+              - generic [ref=e3539]:
+                - button [ref=e3540] [cursor=pointer]:
+                  - img [ref=e3541]
+                - button [ref=e3544] [cursor=pointer]:
+                  - img [ref=e3545]
+          - row "18-39 ani / Feminin / CN 5-9 Dang / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can Feminin" [ref=e3548]:
+            - cell "18-39 ani / Feminin / CN 5-9 Dang / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can" [ref=e3549]:
+              - generic [ref=e3550]: 18-39 ani / Feminin / CN 5-9 Dang / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3551]: Long Gian / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3552]
+            - cell [ref=e3553]:
+              - generic [ref=e3554]:
+                - button [ref=e3555] [cursor=pointer]:
+                  - img [ref=e3556]
+                - button [ref=e3559] [cursor=pointer]:
+                  - img [ref=e3560]
+          - row "18-39 ani / Masculin / CN 5-9 Dang / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can Masculin" [ref=e3563]:
+            - cell "18-39 ani / Masculin / CN 5-9 Dang / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can" [ref=e3564]:
+              - generic [ref=e3565]: 18-39 ani / Masculin / CN 5-9 Dang / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3566]: Long Gian / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3567]
+            - cell [ref=e3568]:
+              - generic [ref=e3569]:
+                - button [ref=e3570] [cursor=pointer]:
+                  - img [ref=e3571]
+                - button [ref=e3574] [cursor=pointer]:
+                  - img [ref=e3575]
+          - row "18-39 ani / Feminin / CN 5-9 Dang / Moc Guom Moc Guom Feminin" [ref=e3578]:
+            - cell "18-39 ani / Feminin / CN 5-9 Dang / Moc Guom Moc Guom" [ref=e3579]:
+              - generic [ref=e3580]: 18-39 ani / Feminin / CN 5-9 Dang / Moc Guom
+              - generic [ref=e3581]: Moc Guom
+            - cell "Feminin" [ref=e3582]
+            - cell [ref=e3583]:
+              - generic [ref=e3584]:
+                - button [ref=e3585] [cursor=pointer]:
+                  - img [ref=e3586]
+                - button [ref=e3589] [cursor=pointer]:
+                  - img [ref=e3590]
+          - row "18-39 ani / Masculin / CN 5-9 Dang / Moc Guom Moc Guom Masculin" [ref=e3593]:
+            - cell "18-39 ani / Masculin / CN 5-9 Dang / Moc Guom Moc Guom" [ref=e3594]:
+              - generic [ref=e3595]: 18-39 ani / Masculin / CN 5-9 Dang / Moc Guom
+              - generic [ref=e3596]: Moc Guom
+            - cell "Masculin" [ref=e3597]
+            - cell [ref=e3598]:
+              - generic [ref=e3599]:
+                - button [ref=e3600] [cursor=pointer]:
+                  - img [ref=e3601]
+                - button [ref=e3604] [cursor=pointer]:
+                  - img [ref=e3605]
+          - row "18-39 ani / Feminin / CN 5-9 Dang / Song Diep Dao / Yen Dao / Ma Dao / Dai Dao Song Diep Dao / Yen Dao / Ma Dao / Dai Dao Feminin" [ref=e3608]:
+            - cell "18-39 ani / Feminin / CN 5-9 Dang / Song Diep Dao / Yen Dao / Ma Dao / Dai Dao Song Diep Dao / Yen Dao / Ma Dao / Dai Dao" [ref=e3609]:
+              - generic [ref=e3610]: 18-39 ani / Feminin / CN 5-9 Dang / Song Diep Dao / Yen Dao / Ma Dao / Dai Dao
+              - generic [ref=e3611]: Song Diep Dao / Yen Dao / Ma Dao / Dai Dao
+            - cell "Feminin" [ref=e3612]
+            - cell [ref=e3613]:
+              - generic [ref=e3614]:
+                - button [ref=e3615] [cursor=pointer]:
+                  - img [ref=e3616]
+                - button [ref=e3619] [cursor=pointer]:
+                  - img [ref=e3620]
+          - row "18-39 ani / Masculin / CN 5-9 Dang / Song Diep Dao / Yen Dao / Ma Dao / Dai Dao Song Diep Dao / Yen Dao / Ma Dao / Dai Dao Masculin" [ref=e3623]:
+            - cell "18-39 ani / Masculin / CN 5-9 Dang / Song Diep Dao / Yen Dao / Ma Dao / Dai Dao Song Diep Dao / Yen Dao / Ma Dao / Dai Dao" [ref=e3624]:
+              - generic [ref=e3625]: 18-39 ani / Masculin / CN 5-9 Dang / Song Diep Dao / Yen Dao / Ma Dao / Dai Dao
+              - generic [ref=e3626]: Song Diep Dao / Yen Dao / Ma Dao / Dai Dao
+            - cell "Masculin" [ref=e3627]
+            - cell [ref=e3628]:
+              - generic [ref=e3629]:
+                - button [ref=e3630] [cursor=pointer]:
+                  - img [ref=e3631]
+                - button [ref=e3634] [cursor=pointer]:
+                  - img [ref=e3635]
+          - row "18-39 ani / Feminin / CN 5-9 Dang / 2 Long Gian / Tam Thiet Gian / Nhuyen Tien 2 Long Gian / Tam Thiet Gian / Nhuyen Tien Feminin" [ref=e3638]:
+            - cell "18-39 ani / Feminin / CN 5-9 Dang / 2 Long Gian / Tam Thiet Gian / Nhuyen Tien 2 Long Gian / Tam Thiet Gian / Nhuyen Tien" [ref=e3639]:
+              - generic [ref=e3640]: 18-39 ani / Feminin / CN 5-9 Dang / 2 Long Gian / Tam Thiet Gian / Nhuyen Tien
+              - generic [ref=e3641]: 2 Long Gian / Tam Thiet Gian / Nhuyen Tien
+            - cell "Feminin" [ref=e3642]
+            - cell [ref=e3643]:
+              - generic [ref=e3644]:
+                - button [ref=e3645] [cursor=pointer]:
+                  - img [ref=e3646]
+                - button [ref=e3649] [cursor=pointer]:
+                  - img [ref=e3650]
+          - row "18-39 ani / Masculin / CN 5-9 Dang / 2 Long Gian / Tam Thiet Gian / Nhuyen Tien 2 Long Gian / Tam Thiet Gian / Nhuyen Tien Masculin" [ref=e3653]:
+            - cell "18-39 ani / Masculin / CN 5-9 Dang / 2 Long Gian / Tam Thiet Gian / Nhuyen Tien 2 Long Gian / Tam Thiet Gian / Nhuyen Tien" [ref=e3654]:
+              - generic [ref=e3655]: 18-39 ani / Masculin / CN 5-9 Dang / 2 Long Gian / Tam Thiet Gian / Nhuyen Tien
+              - generic [ref=e3656]: 2 Long Gian / Tam Thiet Gian / Nhuyen Tien
+            - cell "Masculin" [ref=e3657]
+            - cell [ref=e3658]:
+              - generic [ref=e3659]:
+                - button [ref=e3660] [cursor=pointer]:
+                  - img [ref=e3661]
+                - button [ref=e3664] [cursor=pointer]:
+                  - img [ref=e3665]
+          - row "40-49 ani / Feminin / CN 5 Dang / Bong Bong Feminin" [ref=e3668]:
+            - cell "40-49 ani / Feminin / CN 5 Dang / Bong Bong" [ref=e3669]:
+              - generic [ref=e3670]: 40-49 ani / Feminin / CN 5 Dang / Bong
+              - generic [ref=e3671]: Bong
+            - cell "Feminin" [ref=e3672]
+            - cell [ref=e3673]:
+              - generic [ref=e3674]:
+                - button [ref=e3675] [cursor=pointer]:
+                  - img [ref=e3676]
+                - button [ref=e3679] [cursor=pointer]:
+                  - img [ref=e3680]
+          - row "40-49 ani / Masculin / CN 5-6 Dang / Bong Bong Masculin" [ref=e3683]:
+            - cell "40-49 ani / Masculin / CN 5-6 Dang / Bong Bong" [ref=e3684]:
+              - generic [ref=e3685]: 40-49 ani / Masculin / CN 5-6 Dang / Bong
+              - generic [ref=e3686]: Bong
+            - cell "Masculin" [ref=e3687]
+            - cell [ref=e3688]:
+              - generic [ref=e3689]:
+                - button [ref=e3690] [cursor=pointer]:
+                  - img [ref=e3691]
+                - button [ref=e3694] [cursor=pointer]:
+                  - img [ref=e3695]
+          - row "40-49 ani / Feminin / CN 6-10 Dang / Bong Bong Feminin" [ref=e3698]:
+            - cell "40-49 ani / Feminin / CN 6-10 Dang / Bong Bong" [ref=e3699]:
+              - generic [ref=e3700]: 40-49 ani / Feminin / CN 6-10 Dang / Bong
+              - generic [ref=e3701]: Bong
+            - cell "Feminin" [ref=e3702]
+            - cell [ref=e3703]:
+              - generic [ref=e3704]:
+                - button [ref=e3705] [cursor=pointer]:
+                  - img [ref=e3706]
+                - button [ref=e3709] [cursor=pointer]:
+                  - img [ref=e3710]
+          - row "40-49 ani / Masculin / CN 7-10 Dang / Bong Bong Masculin" [ref=e3713]:
+            - cell "40-49 ani / Masculin / CN 7-10 Dang / Bong Bong" [ref=e3714]:
+              - generic [ref=e3715]: 40-49 ani / Masculin / CN 7-10 Dang / Bong
+              - generic [ref=e3716]: Bong
+            - cell "Masculin" [ref=e3717]
+            - cell [ref=e3718]:
+              - generic [ref=e3719]:
+                - button [ref=e3720] [cursor=pointer]:
+                  - img [ref=e3721]
+                - button [ref=e3724] [cursor=pointer]:
+                  - img [ref=e3725]
+          - row "40-49 ani / Feminin / CN 5-10 Dang / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can Feminin" [ref=e3728]:
+            - cell "40-49 ani / Feminin / CN 5-10 Dang / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can" [ref=e3729]:
+              - generic [ref=e3730]: 40-49 ani / Feminin / CN 5-10 Dang / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3731]: Long Gian / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3732]
+            - cell [ref=e3733]:
+              - generic [ref=e3734]:
+                - button [ref=e3735] [cursor=pointer]:
+                  - img [ref=e3736]
+                - button [ref=e3739] [cursor=pointer]:
+                  - img [ref=e3740]
+          - row "40-49 ani / Masculin / CN 5-10 Dang / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can Masculin" [ref=e3743]:
+            - cell "40-49 ani / Masculin / CN 5-10 Dang / Long Gian / Song Cot / Moc Can Long Gian / Song Cot / Moc Can" [ref=e3744]:
+              - generic [ref=e3745]: 40-49 ani / Masculin / CN 5-10 Dang / Long Gian / Song Cot / Moc Can
+              - generic [ref=e3746]: Long Gian / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3747]
+            - cell [ref=e3748]:
+              - generic [ref=e3749]:
+                - button [ref=e3750] [cursor=pointer]:
+                  - img [ref=e3751]
+                - button [ref=e3754] [cursor=pointer]:
+                  - img [ref=e3755]
+          - row "40-49 ani / Feminin / CN 5-10 Dang / Moc Guom Moc Guom Feminin" [ref=e3758]:
+            - cell "40-49 ani / Feminin / CN 5-10 Dang / Moc Guom Moc Guom" [ref=e3759]:
+              - generic [ref=e3760]: 40-49 ani / Feminin / CN 5-10 Dang / Moc Guom
+              - generic [ref=e3761]: Moc Guom
+            - cell "Feminin" [ref=e3762]
+            - cell [ref=e3763]:
+              - generic [ref=e3764]:
+                - button [ref=e3765] [cursor=pointer]:
+                  - img [ref=e3766]
+                - button [ref=e3769] [cursor=pointer]:
+                  - img [ref=e3770]
+          - row "40-49 ani / Masculin / CN 5-10 Dang / Moc Guom Moc Guom Masculin" [ref=e3773]:
+            - cell "40-49 ani / Masculin / CN 5-10 Dang / Moc Guom Moc Guom" [ref=e3774]:
+              - generic [ref=e3775]: 40-49 ani / Masculin / CN 5-10 Dang / Moc Guom
+              - generic [ref=e3776]: Moc Guom
+            - cell "Masculin" [ref=e3777]
+            - cell [ref=e3778]:
+              - generic [ref=e3779]:
+                - button [ref=e3780] [cursor=pointer]:
+                  - img [ref=e3781]
+                - button [ref=e3784] [cursor=pointer]:
+                  - img [ref=e3785]
+          - row "40-49 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate Arme cu lama si articulate Feminin" [ref=e3788]:
+            - cell "40-49 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate Arme cu lama si articulate" [ref=e3789]:
+              - generic [ref=e3790]: 40-49 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate
+              - generic [ref=e3791]: Arme cu lama si articulate
+            - cell "Feminin" [ref=e3792]
+            - cell [ref=e3793]:
+              - generic [ref=e3794]:
+                - button [ref=e3795] [cursor=pointer]:
+                  - img [ref=e3796]
+                - button [ref=e3799] [cursor=pointer]:
+                  - img [ref=e3800]
+          - row "40-49 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate Arme cu lama si articulate Masculin" [ref=e3803]:
+            - cell "40-49 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate Arme cu lama si articulate" [ref=e3804]:
+              - generic [ref=e3805]: 40-49 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate
+              - generic [ref=e3806]: Arme cu lama si articulate
+            - cell "Masculin" [ref=e3807]
+            - cell [ref=e3808]:
+              - generic [ref=e3809]:
+                - button [ref=e3810] [cursor=pointer]:
+                  - img [ref=e3811]
+                - button [ref=e3814] [cursor=pointer]:
+                  - img [ref=e3815]
+          - row "Peste 50 ani / Feminin / CN 5-10 Dang / Bong / Long Gian / Song Cot / Moc Guom Bong / Long Gian / Song Cot / Moc Guom Feminin" [ref=e3818]:
+            - cell "Peste 50 ani / Feminin / CN 5-10 Dang / Bong / Long Gian / Song Cot / Moc Guom Bong / Long Gian / Song Cot / Moc Guom" [ref=e3819]:
+              - generic [ref=e3820]: Peste 50 ani / Feminin / CN 5-10 Dang / Bong / Long Gian / Song Cot / Moc Guom
+              - generic [ref=e3821]: Bong / Long Gian / Song Cot / Moc Guom
+            - cell "Feminin" [ref=e3822]
+            - cell [ref=e3823]:
+              - generic [ref=e3824]:
+                - button [ref=e3825] [cursor=pointer]:
+                  - img [ref=e3826]
+                - button [ref=e3829] [cursor=pointer]:
+                  - img [ref=e3830]
+          - row "Peste 50 ani / Masculin / CN 5-10 Dang / Bong / Long Gian / Song Cot / Moc Guom Bong / Long Gian / Song Cot / Moc Guom Masculin" [ref=e3833]:
+            - cell "Peste 50 ani / Masculin / CN 5-10 Dang / Bong / Long Gian / Song Cot / Moc Guom Bong / Long Gian / Song Cot / Moc Guom" [ref=e3834]:
+              - generic [ref=e3835]: Peste 50 ani / Masculin / CN 5-10 Dang / Bong / Long Gian / Song Cot / Moc Guom
+              - generic [ref=e3836]: Bong / Long Gian / Song Cot / Moc Guom
+            - cell "Masculin" [ref=e3837]
+            - cell [ref=e3838]:
+              - generic [ref=e3839]:
+                - button [ref=e3840] [cursor=pointer]:
+                  - img [ref=e3841]
+                - button [ref=e3844] [cursor=pointer]:
+                  - img [ref=e3845]
+          - row "Peste 50 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate Arme cu lama si articulate Feminin" [ref=e3848]:
+            - cell "Peste 50 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate Arme cu lama si articulate" [ref=e3849]:
+              - generic [ref=e3850]: Peste 50 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate
+              - generic [ref=e3851]: Arme cu lama si articulate
+            - cell "Feminin" [ref=e3852]
+            - cell [ref=e3853]:
+              - generic [ref=e3854]:
+                - button [ref=e3855] [cursor=pointer]:
+                  - img [ref=e3856]
+                - button [ref=e3859] [cursor=pointer]:
+                  - img [ref=e3860]
+          - row "Peste 50 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate Arme cu lama si articulate Masculin" [ref=e3863]:
+            - cell "Peste 50 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate Arme cu lama si articulate" [ref=e3864]:
+              - generic [ref=e3865]: Peste 50 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate
+              - generic [ref=e3866]: Arme cu lama si articulate
+            - cell "Masculin" [ref=e3867]
+            - cell [ref=e3868]:
+              - generic [ref=e3869]:
+                - button [ref=e3870] [cursor=pointer]:
+                  - img [ref=e3871]
+                - button [ref=e3874] [cursor=pointer]:
+                  - img [ref=e3875]
+          - row "18-39 ani / Feminin / CN 5-9 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Feminin" [ref=e3878]:
+            - cell "18-39 ani / Feminin / CN 5-9 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3879]:
+              - generic [ref=e3880]: 18-39 ani / Feminin / CN 5-9 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD
+              - generic [ref=e3881]: Bong / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3882]
+            - cell [ref=e3883]:
+              - generic [ref=e3884]:
+                - button [ref=e3885] [cursor=pointer]:
+                  - img [ref=e3886]
+                - button [ref=e3889] [cursor=pointer]:
+                  - img [ref=e3890]
+          - row "18-39 ani / Masculin / CN 5-9 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Masculin" [ref=e3893]:
+            - cell "18-39 ani / Masculin / CN 5-9 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3894]:
+              - generic [ref=e3895]: 18-39 ani / Masculin / CN 5-9 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD
+              - generic [ref=e3896]: Bong / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3897]
+            - cell [ref=e3898]:
+              - generic [ref=e3899]:
+                - button [ref=e3900] [cursor=pointer]:
+                  - img [ref=e3901]
+                - button [ref=e3904] [cursor=pointer]:
+                  - img [ref=e3905]
+          - row "18-39 ani / Mixt / CN 5-9 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Mixt" [ref=e3908]:
+            - cell "18-39 ani / Mixt / CN 5-9 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3909]:
+              - generic [ref=e3910]: 18-39 ani / Mixt / CN 5-9 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD
+              - generic [ref=e3911]: Bong / Song Cot / Moc Can
+            - cell "Mixt" [ref=e3912]
+            - cell [ref=e3913]:
+              - generic [ref=e3914]:
+                - button [ref=e3915] [cursor=pointer]:
+                  - img [ref=e3916]
+                - button [ref=e3919] [cursor=pointer]:
+                  - img [ref=e3920]
+          - row "18-39 ani / Feminin / CN 5-9 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate Feminin" [ref=e3923]:
+            - cell "18-39 ani / Feminin / CN 5-9 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate" [ref=e3924]:
+              - generic [ref=e3925]: 18-39 ani / Feminin / CN 5-9 Dang / Arme cu lama si articulate / Song Luyen CVD
+              - generic [ref=e3926]: Arme cu lama si articulate
+            - cell "Feminin" [ref=e3927]
+            - cell [ref=e3928]:
+              - generic [ref=e3929]:
+                - button [ref=e3930] [cursor=pointer]:
+                  - img [ref=e3931]
+                - button [ref=e3934] [cursor=pointer]:
+                  - img [ref=e3935]
+          - row "18-39 ani / Masculin / CN 5-9 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate Masculin" [ref=e3938]:
+            - cell "18-39 ani / Masculin / CN 5-9 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate" [ref=e3939]:
+              - generic [ref=e3940]: 18-39 ani / Masculin / CN 5-9 Dang / Arme cu lama si articulate / Song Luyen CVD
+              - generic [ref=e3941]: Arme cu lama si articulate
+            - cell "Masculin" [ref=e3942]
+            - cell [ref=e3943]:
+              - generic [ref=e3944]:
+                - button [ref=e3945] [cursor=pointer]:
+                  - img [ref=e3946]
+                - button [ref=e3949] [cursor=pointer]:
+                  - img [ref=e3950]
+          - row "18-39 ani / Mixt / CN 5-9 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate Mixt" [ref=e3953]:
+            - cell "18-39 ani / Mixt / CN 5-9 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate" [ref=e3954]:
+              - generic [ref=e3955]: 18-39 ani / Mixt / CN 5-9 Dang / Arme cu lama si articulate / Song Luyen CVD
+              - generic [ref=e3956]: Arme cu lama si articulate
+            - cell "Mixt" [ref=e3957]
+            - cell [ref=e3958]:
+              - generic [ref=e3959]:
+                - button [ref=e3960] [cursor=pointer]:
+                  - img [ref=e3961]
+                - button [ref=e3964] [cursor=pointer]:
+                  - img [ref=e3965]
+          - row "Peste 40 ani / Feminin / CN 5-10 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Feminin" [ref=e3968]:
+            - cell "Peste 40 ani / Feminin / CN 5-10 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3969]:
+              - generic [ref=e3970]: Peste 40 ani / Feminin / CN 5-10 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD
+              - generic [ref=e3971]: Bong / Song Cot / Moc Can
+            - cell "Feminin" [ref=e3972]
+            - cell [ref=e3973]:
+              - generic [ref=e3974]:
+                - button [ref=e3975] [cursor=pointer]:
+                  - img [ref=e3976]
+                - button [ref=e3979] [cursor=pointer]:
+                  - img [ref=e3980]
+          - row "Peste 40 ani / Masculin / CN 5-10 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Masculin" [ref=e3983]:
+            - cell "Peste 40 ani / Masculin / CN 5-10 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3984]:
+              - generic [ref=e3985]: Peste 40 ani / Masculin / CN 5-10 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD
+              - generic [ref=e3986]: Bong / Song Cot / Moc Can
+            - cell "Masculin" [ref=e3987]
+            - cell [ref=e3988]:
+              - generic [ref=e3989]:
+                - button [ref=e3990] [cursor=pointer]:
+                  - img [ref=e3991]
+                - button [ref=e3994] [cursor=pointer]:
+                  - img [ref=e3995]
+          - row "Peste 40 ani / Mixt / CN 5-10 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can Mixt" [ref=e3998]:
+            - cell "Peste 40 ani / Mixt / CN 5-10 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD Bong / Song Cot / Moc Can" [ref=e3999]:
+              - generic [ref=e4000]: Peste 40 ani / Mixt / CN 5-10 Dang / Bong / Song Cot / Moc Can / Song Luyen CVD
+              - generic [ref=e4001]: Bong / Song Cot / Moc Can
+            - cell "Mixt" [ref=e4002]
+            - cell [ref=e4003]:
+              - generic [ref=e4004]:
+                - button [ref=e4005] [cursor=pointer]:
+                  - img [ref=e4006]
+                - button [ref=e4009] [cursor=pointer]:
+                  - img [ref=e4010]
+          - row "Peste 40 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate Feminin" [ref=e4013]:
+            - cell "Peste 40 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate" [ref=e4014]:
+              - generic [ref=e4015]: Peste 40 ani / Feminin / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD
+              - generic [ref=e4016]: Arme cu lama si articulate
+            - cell "Feminin" [ref=e4017]
+            - cell [ref=e4018]:
+              - generic [ref=e4019]:
+                - button [ref=e4020] [cursor=pointer]:
+                  - img [ref=e4021]
+                - button [ref=e4024] [cursor=pointer]:
+                  - img [ref=e4025]
+          - row "Peste 40 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate Masculin" [ref=e4028]:
+            - cell "Peste 40 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate" [ref=e4029]:
+              - generic [ref=e4030]: Peste 40 ani / Masculin / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD
+              - generic [ref=e4031]: Arme cu lama si articulate
+            - cell "Masculin" [ref=e4032]
+            - cell [ref=e4033]:
+              - generic [ref=e4034]:
+                - button [ref=e4035] [cursor=pointer]:
+                  - img [ref=e4036]
+                - button [ref=e4039] [cursor=pointer]:
+                  - img [ref=e4040]
+          - row "Peste 40 ani / Mixt / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate Mixt" [ref=e4043]:
+            - cell "Peste 40 ani / Mixt / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD Arme cu lama si articulate" [ref=e4044]:
+              - generic [ref=e4045]: Peste 40 ani / Mixt / CN 5-10 Dang / Arme cu lama si articulate / Song Luyen CVD
+              - generic [ref=e4046]: Arme cu lama si articulate
+            - cell "Mixt" [ref=e4047]
+            - cell [ref=e4048]:
+              - generic [ref=e4049]:
+                - button [ref=e4050] [cursor=pointer]:
+                  - img [ref=e4051]
+                - button [ref=e4054] [cursor=pointer]:
+                  - img [ref=e4055]
+          - row "13-14 ani / Feminin / grad 2-4 / Giao Dau CVD Feminin" [ref=e4058]:
+            - cell "13-14 ani / Feminin / grad 2-4 / Giao Dau CVD" [ref=e4059]:
+              - generic [ref=e4060]: 13-14 ani / Feminin / grad 2-4 / Giao Dau CVD
+            - cell "Feminin" [ref=e4061]
+            - cell [ref=e4062]:
+              - generic [ref=e4063]:
+                - button [ref=e4064] [cursor=pointer]:
+                  - img [ref=e4065]
+                - button [ref=e4068] [cursor=pointer]:
+                  - img [ref=e4069]
+          - row "13-14 ani / Masculin / grad 2-4 / Giao Dau CVD Masculin" [ref=e4072]:
+            - cell "13-14 ani / Masculin / grad 2-4 / Giao Dau CVD" [ref=e4073]:
+              - generic [ref=e4074]: 13-14 ani / Masculin / grad 2-4 / Giao Dau CVD
+            - cell "Masculin" [ref=e4075]
+            - cell [ref=e4076]:
+              - generic [ref=e4077]:
+                - button [ref=e4078] [cursor=pointer]:
+                  - img [ref=e4079]
+                - button [ref=e4082] [cursor=pointer]:
+                  - img [ref=e4083]
+          - row "15 ani / Feminin / grad 2-4 / Giao Dau CVD Feminin" [ref=e4086]:
+            - cell "15 ani / Feminin / grad 2-4 / Giao Dau CVD" [ref=e4087]:
+              - generic [ref=e4088]: 15 ani / Feminin / grad 2-4 / Giao Dau CVD
+            - cell "Feminin" [ref=e4089]
+            - cell [ref=e4090]:
+              - generic [ref=e4091]:
+                - button [ref=e4092] [cursor=pointer]:
+                  - img [ref=e4093]
+                - button [ref=e4096] [cursor=pointer]:
+                  - img [ref=e4097]
+          - row "15 ani / Masculin / grad 2-4 / Giao Dau CVD Masculin" [ref=e4100]:
+            - cell "15 ani / Masculin / grad 2-4 / Giao Dau CVD" [ref=e4101]:
+              - generic [ref=e4102]: 15 ani / Masculin / grad 2-4 / Giao Dau CVD
+            - cell "Masculin" [ref=e4103]
+            - cell [ref=e4104]:
+              - generic [ref=e4105]:
+                - button [ref=e4106] [cursor=pointer]:
+                  - img [ref=e4107]
+                - button [ref=e4110] [cursor=pointer]:
+                  - img [ref=e4111]
+          - row "16 ani / Feminin / grad 2-4 / Giao Dau CVD Feminin" [ref=e4114]:
+            - cell "16 ani / Feminin / grad 2-4 / Giao Dau CVD" [ref=e4115]:
+              - generic [ref=e4116]: 16 ani / Feminin / grad 2-4 / Giao Dau CVD
+            - cell "Feminin" [ref=e4117]
+            - cell [ref=e4118]:
+              - generic [ref=e4119]:
+                - button [ref=e4120] [cursor=pointer]:
+                  - img [ref=e4121]
+                - button [ref=e4124] [cursor=pointer]:
+                  - img [ref=e4125]
+          - row "16 ani / Masculin / grad 2-4 / Giao Dau CVD Masculin" [ref=e4128]:
+            - cell "16 ani / Masculin / grad 2-4 / Giao Dau CVD" [ref=e4129]:
+              - generic [ref=e4130]: 16 ani / Masculin / grad 2-4 / Giao Dau CVD
+            - cell "Masculin" [ref=e4131]
+            - cell [ref=e4132]:
+              - generic [ref=e4133]:
+                - button [ref=e4134] [cursor=pointer]:
+                  - img [ref=e4135]
+                - button [ref=e4138] [cursor=pointer]:
+                  - img [ref=e4139]
+          - row "17 ani / Feminin / grad 2-4 / Giao Dau CVD Feminin" [ref=e4142]:
+            - cell "17 ani / Feminin / grad 2-4 / Giao Dau CVD" [ref=e4143]:
+              - generic [ref=e4144]: 17 ani / Feminin / grad 2-4 / Giao Dau CVD
+            - cell "Feminin" [ref=e4145]
+            - cell [ref=e4146]:
+              - generic [ref=e4147]:
+                - button [ref=e4148] [cursor=pointer]:
+                  - img [ref=e4149]
+                - button [ref=e4152] [cursor=pointer]:
+                  - img [ref=e4153]
+          - row "17 ani / Masculin / grad 2-4 / Giao Dau CVD Masculin" [ref=e4156]:
+            - cell "17 ani / Masculin / grad 2-4 / Giao Dau CVD" [ref=e4157]:
+              - generic [ref=e4158]: 17 ani / Masculin / grad 2-4 / Giao Dau CVD
+            - cell "Masculin" [ref=e4159]
+            - cell [ref=e4160]:
+              - generic [ref=e4161]:
+                - button [ref=e4162] [cursor=pointer]:
+                  - img [ref=e4163]
+                - button [ref=e4166] [cursor=pointer]:
+                  - img [ref=e4167]
+          - row "18-39 ani / Feminin / grad 2-4 / Giao Dau CVD Feminin" [ref=e4170]:
+            - cell "18-39 ani / Feminin / grad 2-4 / Giao Dau CVD" [ref=e4171]:
+              - generic [ref=e4172]: 18-39 ani / Feminin / grad 2-4 / Giao Dau CVD
+            - cell "Feminin" [ref=e4173]
+            - cell [ref=e4174]:
+              - generic [ref=e4175]:
+                - button [ref=e4176] [cursor=pointer]:
+                  - img [ref=e4177]
+                - button [ref=e4180] [cursor=pointer]:
+                  - img [ref=e4181]
+          - row "18-39 ani / Masculin / grad 2-4 / Giao Dau CVD Masculin" [ref=e4184]:
+            - cell "18-39 ani / Masculin / grad 2-4 / Giao Dau CVD" [ref=e4185]:
+              - generic [ref=e4186]: 18-39 ani / Masculin / grad 2-4 / Giao Dau CVD
+            - cell "Masculin" [ref=e4187]
+            - cell [ref=e4188]:
+              - generic [ref=e4189]:
+                - button [ref=e4190] [cursor=pointer]:
+                  - img [ref=e4191]
+                - button [ref=e4194] [cursor=pointer]:
+                  - img [ref=e4195]
+          - row "40-49 ani / Feminin / grad 2-4 / Giao Dau CVD Feminin" [ref=e4198]:
+            - cell "40-49 ani / Feminin / grad 2-4 / Giao Dau CVD" [ref=e4199]:
+              - generic [ref=e4200]: 40-49 ani / Feminin / grad 2-4 / Giao Dau CVD
+            - cell "Feminin" [ref=e4201]
+            - cell [ref=e4202]:
+              - generic [ref=e4203]:
+                - button [ref=e4204] [cursor=pointer]:
+                  - img [ref=e4205]
+                - button [ref=e4208] [cursor=pointer]:
+                  - img [ref=e4209]
+          - row "40-49 ani / Masculin / grad 2-4 / Giao Dau CVD Masculin" [ref=e4212]:
+            - cell "40-49 ani / Masculin / grad 2-4 / Giao Dau CVD" [ref=e4213]:
+              - generic [ref=e4214]: 40-49 ani / Masculin / grad 2-4 / Giao Dau CVD
+            - cell "Masculin" [ref=e4215]
+            - cell [ref=e4216]:
+              - generic [ref=e4217]:
+                - button [ref=e4218] [cursor=pointer]:
+                  - img [ref=e4219]
+                - button [ref=e4222] [cursor=pointer]:
+                  - img [ref=e4223]
+          - row "18-24 ani / Feminin / CN 5-7 Dang / Giao Dau CVD Feminin" [ref=e4226]:
+            - cell "18-24 ani / Feminin / CN 5-7 Dang / Giao Dau CVD" [ref=e4227]:
+              - generic [ref=e4228]: 18-24 ani / Feminin / CN 5-7 Dang / Giao Dau CVD
+            - cell "Feminin" [ref=e4229]
+            - cell [ref=e4230]:
+              - generic [ref=e4231]:
+                - button [ref=e4232] [cursor=pointer]:
+                  - img [ref=e4233]
+                - button [ref=e4236] [cursor=pointer]:
+                  - img [ref=e4237]
+          - row "18-24 ani / Masculin / CN 5-7 Dang / Giao Dau CVD Masculin" [ref=e4240]:
+            - cell "18-24 ani / Masculin / CN 5-7 Dang / Giao Dau CVD" [ref=e4241]:
+              - generic [ref=e4242]: 18-24 ani / Masculin / CN 5-7 Dang / Giao Dau CVD
+            - cell "Masculin" [ref=e4243]
+            - cell [ref=e4244]:
+              - generic [ref=e4245]:
+                - button [ref=e4246] [cursor=pointer]:
+                  - img [ref=e4247]
+                - button [ref=e4250] [cursor=pointer]:
+                  - img [ref=e4251]
+          - row "25-39 ani / Feminin / CN 5-9 Dang / Giao Dau CVD Feminin" [ref=e4254]:
+            - cell "25-39 ani / Feminin / CN 5-9 Dang / Giao Dau CVD" [ref=e4255]:
+              - generic [ref=e4256]: 25-39 ani / Feminin / CN 5-9 Dang / Giao Dau CVD
+            - cell "Feminin" [ref=e4257]
+            - cell [ref=e4258]:
+              - generic [ref=e4259]:
+                - button [ref=e4260] [cursor=pointer]:
+                  - img [ref=e4261]
+                - button [ref=e4264] [cursor=pointer]:
+                  - img [ref=e4265]
+          - row "25-39 ani / Masculin / CN 5-9 Dang / Giao Dau CVD Masculin" [ref=e4268]:
+            - cell "25-39 ani / Masculin / CN 5-9 Dang / Giao Dau CVD" [ref=e4269]:
+              - generic [ref=e4270]: 25-39 ani / Masculin / CN 5-9 Dang / Giao Dau CVD
+            - cell "Masculin" [ref=e4271]
+            - cell [ref=e4272]:
+              - generic [ref=e4273]:
+                - button [ref=e4274] [cursor=pointer]:
+                  - img [ref=e4275]
+                - button [ref=e4278] [cursor=pointer]:
+                  - img [ref=e4279]
+          - row "40-49 ani / Feminin / CN 5-10 Dang / Giao Dau CVD Feminin" [ref=e4282]:
+            - cell "40-49 ani / Feminin / CN 5-10 Dang / Giao Dau CVD" [ref=e4283]:
+              - generic [ref=e4284]: 40-49 ani / Feminin / CN 5-10 Dang / Giao Dau CVD
+            - cell "Feminin" [ref=e4285]
+            - cell [ref=e4286]:
+              - generic [ref=e4287]:
+                - button [ref=e4288] [cursor=pointer]:
+                  - img [ref=e4289]
+                - button [ref=e4292] [cursor=pointer]:
+                  - img [ref=e4293]
+          - row "40-49 ani / Masculin / CN 5-10 Dang / Giao Dau CVD Masculin" [ref=e4296]:
+            - cell "40-49 ani / Masculin / CN 5-10 Dang / Giao Dau CVD" [ref=e4297]:
+              - generic [ref=e4298]: 40-49 ani / Masculin / CN 5-10 Dang / Giao Dau CVD
+            - cell "Masculin" [ref=e4299]
+            - cell [ref=e4300]:
+              - generic [ref=e4301]:
+                - button [ref=e4302] [cursor=pointer]:
+                  - img [ref=e4303]
+                - button [ref=e4306] [cursor=pointer]:
+                  - img [ref=e4307]
+          - row "50-59 ani / Feminin / CN 5-10 Dang / Giao Dau CVD Feminin" [ref=e4310]:
+            - cell "50-59 ani / Feminin / CN 5-10 Dang / Giao Dau CVD" [ref=e4311]:
+              - generic [ref=e4312]: 50-59 ani / Feminin / CN 5-10 Dang / Giao Dau CVD
+            - cell "Feminin" [ref=e4313]
+            - cell [ref=e4314]:
+              - generic [ref=e4315]:
+                - button [ref=e4316] [cursor=pointer]:
+                  - img [ref=e4317]
+                - button [ref=e4320] [cursor=pointer]:
+                  - img [ref=e4321]
+          - row "50-59 ani / Masculin / CN 5-10 Dang / Giao Dau CVD Masculin" [ref=e4324]:
+            - cell "50-59 ani / Masculin / CN 5-10 Dang / Giao Dau CVD" [ref=e4325]:
+              - generic [ref=e4326]: 50-59 ani / Masculin / CN 5-10 Dang / Giao Dau CVD
+            - cell "Masculin" [ref=e4327]
+            - cell [ref=e4328]:
+              - generic [ref=e4329]:
+                - button [ref=e4330] [cursor=pointer]:
+                  - img [ref=e4331]
+                - button [ref=e4334] [cursor=pointer]:
+                  - img [ref=e4335]
+  - button "Asistent AI" [ref=e258] [cursor=pointer]:
+    - img [ref=e259]

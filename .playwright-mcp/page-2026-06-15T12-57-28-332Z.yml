@@ -1,0 +1,380 @@
+- generic [ref=e1]:
+  - generic [ref=e19]:
+    - complementary [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22] [cursor=pointer]:
+          - img "Qwan Ki Do Romania" [ref=e25]
+          - generic [ref=e27]:
+            - generic [ref=e28]: Qwan Ki Do
+            - generic [ref=e29]: Management
+        - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+          - img [ref=e35]
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: Context Activ
+            - paragraph [ref=e40]: Club
+          - img [ref=e41]
+        - generic [ref=e43]:
+          - button "Scroll sus" [ref=e21097] [cursor=pointer]:
+            - img [ref=e21098]
+          - navigation [ref=e44]:
+            - generic [ref=e45] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e52]: Dashboard
+            - generic [ref=e54] [cursor=pointer]:
+              - img [ref=e55]
+              - generic [ref=e60]: Gestiune Membri
+              - img [ref=e61]
+            - generic [ref=e64] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e67]: Activitate Sală
+              - img [ref=e68]
+            - generic [ref=e71] [cursor=pointer]:
+              - img [ref=e72]
+              - generic [ref=e78]: Examene
+              - img [ref=e79]
+            - generic [ref=e87] [cursor=pointer]:
+              - img [ref=e88]
+              - generic [ref=e94]: Activități Naționale
+              - img [ref=e95]
+            - generic [ref=e97]:
+              - generic [ref=e98] [cursor=pointer]:
+                - img [ref=e99]
+                - generic [ref=e101]: Financiar & Plăți
+                - img [ref=e102]
+              - generic [ref=e1153]:
+                - generic [ref=e1154] [cursor=pointer]: Facturi & Plăți
+                - generic [ref=e1156] [cursor=pointer]: Jurnal Încasări
+                - generic [ref=e1158] [cursor=pointer]: Raport Financiar
+                - generic [ref=e1160] [cursor=pointer]: Taxe Anuale
+                - generic [ref=e1162] [cursor=pointer]: Config. Abonamente
+                - generic [ref=e1164] [cursor=pointer]: Configurare Prețuri
+            - generic [ref=e105] [cursor=pointer]:
+              - img [ref=e106]
+              - generic [ref=e109]: Setări & Admin
+              - img [ref=e110]
+            - generic [ref=e112] [cursor=pointer]:
+              - img [ref=e114]
+              - generic [ref=e118]: Notificări
+            - generic [ref=e119] [cursor=pointer]:
+              - img [ref=e121]
+              - generic [ref=e123]: SMS
+            - generic [ref=e124] [cursor=pointer]:
+              - img [ref=e126]
+              - generic [ref=e129]: Cereri Înscriere
+            - generic [ref=e130] [cursor=pointer]:
+              - img [ref=e132]
+              - generic [ref=e135]: Istoric Activitate
+          - button "Scroll jos" [ref=e136] [cursor=pointer]:
+            - img [ref=e137]
+        - generic [ref=e139]:
+          - button "Tema" [ref=e141] [cursor=pointer]:
+            - img [ref=e142]
+            - generic [ref=e148]: Tema
+          - generic [ref=e150]:
+            - generic [ref=e151]: AL
+            - generic [ref=e152]:
+              - paragraph [ref=e153]: ALIN MIHAI LUNGU
+              - text: Admin Club
+            - button "Deconectare" [ref=e154] [cursor=pointer]:
+              - img [ref=e155]
+    - button "Restrânge meniul" [ref=e158] [cursor=pointer]:
+      - img [ref=e159]
+    - banner [ref=e161]:
+      - navigation "Navigare" [ref=e163]:
+        - heading "raport-financiar" [level=1] [ref=e21100]
+      - generic [ref=e165]:
+        - button "Temă" [ref=e167] [cursor=pointer]:
+          - img [ref=e168]
+          - generic [ref=e174]: Temă
+        - button [ref=e176] [cursor=pointer]:
+          - img [ref=e177]
+        - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e182] [cursor=pointer]:
+          - generic [ref=e183]: AL
+          - paragraph [ref=e185]:
+            - text: ALIN MIHAI
+            - generic [ref=e186]: "[ADMIN CLUB]"
+          - img [ref=e187]
+    - main [ref=e189]:
+      - generic [ref=e21102]:
+        - generic [ref=e21103]:
+          - button "Încasări" [ref=e21104] [cursor=pointer]:
+            - img [ref=e21105]
+            - generic [ref=e21108]: Încasări
+          - button "Abonamente" [ref=e21109] [cursor=pointer]:
+            - img [ref=e21110]
+            - generic [ref=e21113]: Abonamente
+          - button "Lunar" [ref=e21114] [cursor=pointer]:
+            - img [ref=e21115]
+            - generic [ref=e21117]: Lunar
+          - button "Taxe Anuale" [ref=e21118] [cursor=pointer]:
+            - img [ref=e21119]
+            - generic [ref=e21121]: Taxe Anuale
+          - button "Grafice" [active] [ref=e21122] [cursor=pointer]:
+            - img [ref=e21123]
+            - generic [ref=e21126]: Grafice
+          - button "Familii" [ref=e21127] [cursor=pointer]:
+            - img [ref=e21128]
+            - generic [ref=e21133]: Familii
+        - generic [ref=e23359]:
+          - generic [ref=e23360]:
+            - paragraph [ref=e23361]: Încasări Lunare
+            - paragraph [ref=e23362]: Ultimele 12 luni · luna curentă = indigo
+            - img [ref=e23365]:
+              - generic [ref=e23369]:
+                - generic [ref=e23371]: Iun '25
+                - generic [ref=e23373]: Iul '25
+                - generic [ref=e23375]: Aug '25
+                - generic [ref=e23377]: Sep '25
+                - generic [ref=e23379]: Oct '25
+                - generic [ref=e23381]: Nov '25
+                - generic [ref=e23383]: Dec '25
+                - generic [ref=e23385]: Ian '26
+                - generic [ref=e23387]: Feb '26
+                - generic [ref=e23389]: Mar '26
+                - generic [ref=e23391]: Apr '26
+                - generic [ref=e23393]: Mai '26
+              - generic [ref=e23395]:
+                - generic [ref=e23397]: "0"
+                - generic [ref=e23399]: 4k
+                - generic [ref=e23401]: 8k
+                - generic [ref=e23403]: 12k
+                - generic [ref=e23405]: 16k
+          - generic [ref=e23423]:
+            - generic [ref=e23424]:
+              - paragraph [ref=e23425]: Metodă de Plată
+              - paragraph [ref=e23426]: "Total: 44.260 RON"
+              - generic [ref=e23428]:
+                - img [ref=e23429]:
+                  - generic [ref=e23431]:
+                    - img [ref=e23433]
+                    - img [ref=e23435]
+                - generic [ref=e23437]:
+                  - generic [ref=e23438]:
+                    - generic [ref=e23440]: Cash
+                    - generic [ref=e23441]: 60%
+                  - generic [ref=e23442]:
+                    - generic [ref=e23444]: Transfer Bancar
+                    - generic [ref=e23445]: 40%
+            - generic [ref=e23447]:
+              - paragraph [ref=e23448]: Sumar financiar curent
+              - generic [ref=e23449]:
+                - generic [ref=e23450]:
+                  - generic [ref=e23451]: Încasat luna curentă
+                  - generic [ref=e23452]: 3.160 RON
+                - generic [ref=e23454]:
+                  - generic [ref=e23455]: Total restanțe
+                  - generic [ref=e23456]: 37.430 RON
+                - generic [ref=e23458]:
+                  - generic [ref=e23459]: Facturi scadente
+                  - generic [ref=e23460]: 255 facturi
+                - generic [ref=e23463]:
+                  - generic [ref=e23464]: Rată colectare
+                  - generic [ref=e23465]: 26%
+          - generic [ref=e23468]:
+            - generic [ref=e23469]:
+              - generic [ref=e23470]:
+                - generic [ref=e23471]:
+                  - paragraph [ref=e23472]: Raport Aging Restanțe
+                  - paragraph [ref=e23473]: Distribuție creanțe neîncasate pe intervale
+                - generic [ref=e23474]:
+                  - paragraph [ref=e23475]: Total restant
+                  - paragraph [ref=e23476]: 37.530 RON
+              - generic [ref=e23477]:
+                - generic [ref=e23478]:
+                  - generic [ref=e23481]: Curent
+                  - paragraph [ref=e23482]: "0"
+                  - paragraph [ref=e23483]: facturi
+                - generic [ref=e23484]:
+                  - generic [ref=e23487]: 1–30 zile
+                  - paragraph [ref=e23488]: "72"
+                  - paragraph [ref=e23489]: facturi
+                  - paragraph [ref=e23490]: 9.090 RON
+                - generic [ref=e23491]:
+                  - generic [ref=e23494]: 31–60 zile
+                  - paragraph [ref=e23495]: "14"
+                  - paragraph [ref=e23496]: facturi
+                  - paragraph [ref=e23497]: 3.190 RON
+                - generic [ref=e23498]:
+                  - generic [ref=e23501]: 61–90 zile
+                  - paragraph [ref=e23502]: "16"
+                  - paragraph [ref=e23503]: facturi
+                  - paragraph [ref=e23504]: 4.010 RON
+                - generic [ref=e23505]:
+                  - generic [ref=e23508]: 90+ zile
+                  - paragraph [ref=e23509]: "153"
+                  - paragraph [ref=e23510]: facturi
+                  - paragraph [ref=e23511]: 21.240 RON
+            - generic [ref=e23513]:
+              - generic [ref=e23514]:
+                - text: "Concentrare risc:"
+                - generic [ref=e23515]: 57% restant critic (>90 zile)
+              - generic [ref=e23516]: 21.240 RON / 37.530 RON
+            - generic [ref=e23519]:
+              - generic [ref=e23520]:
+                - paragraph [ref=e23521]: Top restanțe (cele mai vechi)
+                - generic [ref=e23522]: 255 total · afișate 25
+              - table [ref=e23524]:
+                - rowgroup [ref=e23525]:
+                  - row "Plătitor Descriere Scadență Vechime Sumă" [ref=e23526]:
+                    - columnheader "Plătitor" [ref=e23527]
+                    - columnheader "Descriere" [ref=e23528]
+                    - columnheader "Scadență" [ref=e23529]
+                    - columnheader "Vechime" [ref=e23530]
+                    - columnheader "Sumă" [ref=e23531]
+                - rowgroup [ref=e23532]:
+                  - row "— Taxa examen 1 Câp Galben 12.06.2008 +6577z 100,00 RON" [ref=e23533]:
+                    - cell "—" [ref=e23534]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23535]
+                    - cell "12.06.2008" [ref=e23536]
+                    - cell "+6577z" [ref=e23537]
+                    - cell "100,00 RON" [ref=e23538]
+                  - row "TOPORAŞ TUDOR ANDREI Taxa examen 1 Câp Galben 12.06.2008 +6577z 100,00 RON" [ref=e23539]:
+                    - cell "TOPORAŞ TUDOR ANDREI" [ref=e23540]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23541]
+                    - cell "12.06.2008" [ref=e23542]
+                    - cell "+6577z" [ref=e23543]
+                    - cell "100,00 RON" [ref=e23544]
+                  - row "— Taxa examen 2 Câp Roșu 12.02.2009 +6331z 100,00 RON" [ref=e23545]:
+                    - cell "—" [ref=e23546]
+                    - cell "Taxa examen 2 Câp Roșu" [ref=e23547]
+                    - cell "12.02.2009" [ref=e23548]
+                    - cell "+6331z" [ref=e23549]
+                    - cell "100,00 RON" [ref=e23550]
+                  - row "ZAHARIA EMANOIL VASILICA Taxa examen 1 Câp Galben 12.02.2009 +6331z 100,00 RON" [ref=e23551]:
+                    - cell "ZAHARIA EMANOIL VASILICA" [ref=e23552]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23553]
+                    - cell "12.02.2009" [ref=e23554]
+                    - cell "+6331z" [ref=e23555]
+                    - cell "100,00 RON" [ref=e23556]
+                  - row "MITITELU RAREȘ GHEORGHIȚĂ Taxa examen 1 Câp Galben 12.02.2009 +6331z 100,00 RON" [ref=e23557]:
+                    - cell "MITITELU RAREȘ GHEORGHIȚĂ" [ref=e23558]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23559]
+                    - cell "12.02.2009" [ref=e23560]
+                    - cell "+6331z" [ref=e23561]
+                    - cell "100,00 RON" [ref=e23562]
+                  - row "BURTEA ANDREI RARES Taxa examen 1 Câp Galben 21.12.2021 +1636z 100,00 RON" [ref=e23563]:
+                    - cell "BURTEA ANDREI RARES" [ref=e23564]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23565]
+                    - cell "21.12.2021" [ref=e23566]
+                    - cell "+1636z" [ref=e23567]
+                    - cell "100,00 RON" [ref=e23568]
+                  - row "SCHIOPU TUDOR GABRIEL Taxa examen 1 Câp Galben 21.12.2021 +1636z 100,00 RON" [ref=e23569]:
+                    - cell "SCHIOPU TUDOR GABRIEL" [ref=e23570]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23571]
+                    - cell "21.12.2021" [ref=e23572]
+                    - cell "+1636z" [ref=e23573]
+                    - cell "100,00 RON" [ref=e23574]
+                  - row "IONITA DIANA ELENA Taxa examen 1 Câp Galben 21.12.2021 +1636z 100,00 RON" [ref=e23575]:
+                    - cell "IONITA DIANA ELENA" [ref=e23576]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23577]
+                    - cell "21.12.2021" [ref=e23578]
+                    - cell "+1636z" [ref=e23579]
+                    - cell "100,00 RON" [ref=e23580]
+                  - row "BARBIERU ALEXIE Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23581]:
+                    - cell "BARBIERU ALEXIE" [ref=e23582]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23583]
+                    - cell "12.02.2022" [ref=e23584]
+                    - cell "+1583z" [ref=e23585]
+                    - cell "100,00 RON" [ref=e23586]
+                  - row "BARBIERU NICHITA Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23587]:
+                    - cell "BARBIERU NICHITA" [ref=e23588]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23589]
+                    - cell "12.02.2022" [ref=e23590]
+                    - cell "+1583z" [ref=e23591]
+                    - cell "100,00 RON" [ref=e23592]
+                  - row "BULIGA DAVID ANDREI Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23593]:
+                    - cell "BULIGA DAVID ANDREI" [ref=e23594]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23595]
+                    - cell "12.02.2022" [ref=e23596]
+                    - cell "+1583z" [ref=e23597]
+                    - cell "100,00 RON" [ref=e23598]
+                  - row "COZONAC RARES ANDREI Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23599]:
+                    - cell "COZONAC RARES ANDREI" [ref=e23600]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23601]
+                    - cell "12.02.2022" [ref=e23602]
+                    - cell "+1583z" [ref=e23603]
+                    - cell "100,00 RON" [ref=e23604]
+                  - row "FOTACHE ALEXANDRU GEORGE Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23605]:
+                    - cell "FOTACHE ALEXANDRU GEORGE" [ref=e23606]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23607]
+                    - cell "12.02.2022" [ref=e23608]
+                    - cell "+1583z" [ref=e23609]
+                    - cell "100,00 RON" [ref=e23610]
+                  - row "KANIA ADELA Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23611]:
+                    - cell "KANIA ADELA" [ref=e23612]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23613]
+                    - cell "12.02.2022" [ref=e23614]
+                    - cell "+1583z" [ref=e23615]
+                    - cell "100,00 RON" [ref=e23616]
+                  - row "AȘTEFANEI ALEXANDRA Taxa examen 3 Câp Albastru 12.02.2022 +1583z 100,00 RON" [ref=e23617]:
+                    - cell "AȘTEFANEI ALEXANDRA" [ref=e23618]
+                    - cell "Taxa examen 3 Câp Albastru" [ref=e23619]
+                    - cell "12.02.2022" [ref=e23620]
+                    - cell "+1583z" [ref=e23621]
+                    - cell "100,00 RON" [ref=e23622]
+                  - row "DUMITRIU EDUARD STELIAN Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23623]:
+                    - cell "DUMITRIU EDUARD STELIAN" [ref=e23624]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23625]
+                    - cell "12.02.2022" [ref=e23626]
+                    - cell "+1583z" [ref=e23627]
+                    - cell "100,00 RON" [ref=e23628]
+                  - row "BARBIERU EVA CRISTINA Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23629]:
+                    - cell "BARBIERU EVA CRISTINA" [ref=e23630]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23631]
+                    - cell "12.02.2022" [ref=e23632]
+                    - cell "+1583z" [ref=e23633]
+                    - cell "100,00 RON" [ref=e23634]
+                  - row "PAVEL YVONNA MARIA Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23635]:
+                    - cell "PAVEL YVONNA MARIA" [ref=e23636]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23637]
+                    - cell "12.02.2022" [ref=e23638]
+                    - cell "+1583z" [ref=e23639]
+                    - cell "100,00 RON" [ref=e23640]
+                  - row "CUCIUREANU MARIA Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23641]:
+                    - cell "CUCIUREANU MARIA" [ref=e23642]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23643]
+                    - cell "12.02.2022" [ref=e23644]
+                    - cell "+1583z" [ref=e23645]
+                    - cell "100,00 RON" [ref=e23646]
+                  - row "LUCHIAN RUXANDRA Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23647]:
+                    - cell "LUCHIAN RUXANDRA" [ref=e23648]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23649]
+                    - cell "12.02.2022" [ref=e23650]
+                    - cell "+1583z" [ref=e23651]
+                    - cell "100,00 RON" [ref=e23652]
+                  - row "TULBURE DAVID ALEXANDRU Taxa examen C.V. 3 Câp Alb 12.02.2022 +1583z 100,00 RON" [ref=e23653]:
+                    - cell "TULBURE DAVID ALEXANDRU" [ref=e23654]
+                    - cell "Taxa examen C.V. 3 Câp Alb" [ref=e23655]
+                    - cell "12.02.2022" [ref=e23656]
+                    - cell "+1583z" [ref=e23657]
+                    - cell "100,00 RON" [ref=e23658]
+                  - row "MESTERU SARA Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23659]:
+                    - cell "MESTERU SARA" [ref=e23660]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23661]
+                    - cell "12.02.2022" [ref=e23662]
+                    - cell "+1583z" [ref=e23663]
+                    - cell "100,00 RON" [ref=e23664]
+                  - row "TUGULIA VLAD DIMITRIE Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23665]:
+                    - cell "TUGULIA VLAD DIMITRIE" [ref=e23666]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23667]
+                    - cell "12.02.2022" [ref=e23668]
+                    - cell "+1583z" [ref=e23669]
+                    - cell "100,00 RON" [ref=e23670]
+                  - row "MOLDOVANU IOANA REBECA Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23671]:
+                    - cell "MOLDOVANU IOANA REBECA" [ref=e23672]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23673]
+                    - cell "12.02.2022" [ref=e23674]
+                    - cell "+1583z" [ref=e23675]
+                    - cell "100,00 RON" [ref=e23676]
+                  - row "MURARIU IOANA Taxa examen 1 Câp Galben 12.02.2022 +1583z 100,00 RON" [ref=e23677]:
+                    - cell "MURARIU IOANA" [ref=e23678]
+                    - cell "Taxa examen 1 Câp Galben" [ref=e23679]
+                    - cell "12.02.2022" [ref=e23680]
+                    - cell "+1583z" [ref=e23681]
+                    - cell "100,00 RON" [ref=e23682]
+    - contentinfo [ref=e1143]:
+      - paragraph [ref=e1144]: Realizat cu AI de Alin Lungu
+      - button "Asistent AI" [ref=e1145] [cursor=pointer]:
+        - img [ref=e1146]
+        - generic [ref=e1149]: Asistent AI
+  - generic [ref=e23683]: "0"

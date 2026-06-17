@@ -1,0 +1,258 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus" [ref=e6311] [cursor=pointer]:
+          - img [ref=e6312]
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+            - generic [ref=e89]: Activități Naționale
+            - img [ref=e90]
+          - generic [ref=e92]:
+            - generic [ref=e93] [cursor=pointer]:
+              - img [ref=e94]
+              - generic [ref=e96]: Financiar & Plăți
+              - img [ref=e97]
+            - generic [ref=e99]:
+              - generic [ref=e100] [cursor=pointer]: Facturi & Plăți
+              - generic [ref=e102] [cursor=pointer]: Jurnal Încasări
+              - generic [ref=e104] [cursor=pointer]: Raport Financiar
+              - generic [ref=e106] [cursor=pointer]: Taxe Anuale
+              - generic [ref=e108] [cursor=pointer]: Config. Abonamente
+              - generic [ref=e110] [cursor=pointer]: Configurare Prețuri
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e117]: Setări & Admin
+            - img [ref=e118]
+          - generic [ref=e120] [cursor=pointer]:
+            - img [ref=e122]
+            - generic [ref=e126]: Notificări
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e131]: SMS
+          - generic [ref=e132] [cursor=pointer]:
+            - img [ref=e134]
+            - generic [ref=e137]: Cereri Înscriere
+          - generic [ref=e138] [cursor=pointer]:
+            - img [ref=e140]
+            - generic [ref=e143]: Istoric Activitate
+        - button "Scroll jos" [ref=e144] [cursor=pointer]:
+          - img [ref=e145]
+      - generic [ref=e147]:
+        - button "Tema" [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+          - generic [ref=e156]: Tema
+        - generic [ref=e158]:
+          - generic [ref=e159]: AL
+          - generic [ref=e160]:
+            - paragraph [ref=e161]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+  - button "Restrânge meniul" [ref=e166] [cursor=pointer]:
+    - img [ref=e167]
+  - banner [ref=e169]:
+    - navigation "Navigare" [ref=e171]:
+      - heading "configurare-preturi" [level=1] [ref=e6314]
+    - generic [ref=e173]:
+      - button "Temă" [ref=e175] [cursor=pointer]:
+        - img [ref=e176]
+        - generic [ref=e182]: Temă
+      - button [ref=e184] [cursor=pointer]:
+        - img [ref=e185]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e190] [cursor=pointer]:
+        - generic [ref=e191]: AL
+        - paragraph [ref=e193]:
+          - text: ALIN MIHAI
+          - generic [ref=e194]: "[ADMIN CLUB]"
+        - img [ref=e195]
+  - main [ref=e197]:
+    - generic [ref=e6316]:
+      - button "Înapoi la Meniu" [ref=e6317] [cursor=pointer]:
+        - img [ref=e6318]
+        - text: Înapoi la Meniu
+      - heading "Configurare Prețuri Grade" [level=1] [ref=e6320]
+      - table [ref=e6323]:
+        - rowgroup [ref=e6324]:
+          - row "Grad Preț Activ (RON) Data Activării Acțiuni" [ref=e6325]:
+            - columnheader "Grad" [ref=e6326]
+            - columnheader "Preț Activ (RON)" [ref=e6327]
+            - columnheader "Data Activării" [ref=e6328]
+            - columnheader "Acțiuni" [ref=e6329]
+        - rowgroup [ref=e6330]:
+          - row "Debutant 0.00 01.09.2025 Editare" [ref=e6331]:
+            - cell "Debutant" [ref=e6332]
+            - cell "0.00" [ref=e6333]
+            - cell "01.09.2025" [ref=e6334]
+            - cell "Editare" [ref=e6335]:
+              - button "Editare" [ref=e6336] [cursor=pointer]:
+                - img [ref=e6337]
+                - text: Editare
+          - row "1 Câp Galben 100.00 01.09.2025 Editare" [ref=e6340]:
+            - cell "1 Câp Galben" [ref=e6341]
+            - cell "100.00" [ref=e6342]
+            - cell "01.09.2025" [ref=e6343]
+            - cell "Editare" [ref=e6344]:
+              - button "Editare" [ref=e6345] [cursor=pointer]:
+                - img [ref=e6346]
+                - text: Editare
+          - row "2 Câp Galben 100.00 01.09.2025 Editare" [ref=e6349]:
+            - cell "2 Câp Galben" [ref=e6350]
+            - cell "100.00" [ref=e6351]
+            - cell "01.09.2025" [ref=e6352]
+            - cell "Editare" [ref=e6353]:
+              - button "Editare" [ref=e6354] [cursor=pointer]:
+                - img [ref=e6355]
+                - text: Editare
+          - row "3 Câp Galben 100.00 01.09.2025 Editare" [ref=e6358]:
+            - cell "3 Câp Galben" [ref=e6359]
+            - cell "100.00" [ref=e6360]
+            - cell "01.09.2025" [ref=e6361]
+            - cell "Editare" [ref=e6362]:
+              - button "Editare" [ref=e6363] [cursor=pointer]:
+                - img [ref=e6364]
+                - text: Editare
+          - row "4 Câp Galben 100.00 01.09.2025 Editare" [ref=e6367]:
+            - cell "4 Câp Galben" [ref=e6368]
+            - cell "100.00" [ref=e6369]
+            - cell "01.09.2025" [ref=e6370]
+            - cell "Editare" [ref=e6371]:
+              - button "Editare" [ref=e6372] [cursor=pointer]:
+                - img [ref=e6373]
+                - text: Editare
+          - row "1 Câp Roșu 100.00 01.09.2025 Editare" [ref=e6376]:
+            - cell "1 Câp Roșu" [ref=e6377]
+            - cell "100.00" [ref=e6378]
+            - cell "01.09.2025" [ref=e6379]
+            - cell "Editare" [ref=e6380]:
+              - button "Editare" [ref=e6381] [cursor=pointer]:
+                - img [ref=e6382]
+                - text: Editare
+          - row "2 Câp Roșu 100.00 01.09.2025 Editare" [ref=e6385]:
+            - cell "2 Câp Roșu" [ref=e6386]
+            - cell "100.00" [ref=e6387]
+            - cell "01.09.2025" [ref=e6388]
+            - cell "Editare" [ref=e6389]:
+              - button "Editare" [ref=e6390] [cursor=pointer]:
+                - img [ref=e6391]
+                - text: Editare
+          - row "3 Câp Roșu 100.00 01.09.2025 Editare" [ref=e6394]:
+            - cell "3 Câp Roșu" [ref=e6395]
+            - cell "100.00" [ref=e6396]
+            - cell "01.09.2025" [ref=e6397]
+            - cell "Editare" [ref=e6398]:
+              - button "Editare" [ref=e6399] [cursor=pointer]:
+                - img [ref=e6400]
+                - text: Editare
+          - row "4 Câp Roșu 100.00 01.09.2025 Editare" [ref=e6403]:
+            - cell "4 Câp Roșu" [ref=e6404]
+            - cell "100.00" [ref=e6405]
+            - cell "01.09.2025" [ref=e6406]
+            - cell "Editare" [ref=e6407]:
+              - button "Editare" [ref=e6408] [cursor=pointer]:
+                - img [ref=e6409]
+                - text: Editare
+          - row "Centura Violet 100.00 01.09.2025 Editare" [ref=e6412]:
+            - cell "Centura Violet" [ref=e6413]
+            - cell "100.00" [ref=e6414]
+            - cell "01.09.2025" [ref=e6415]
+            - cell "Editare" [ref=e6416]:
+              - button "Editare" [ref=e6417] [cursor=pointer]:
+                - img [ref=e6418]
+                - text: Editare
+          - row "C.V. 1 Câp Alb 100.00 01.09.2025 Editare" [ref=e6421]:
+            - cell "C.V. 1 Câp Alb" [ref=e6422]
+            - cell "100.00" [ref=e6423]
+            - cell "01.09.2025" [ref=e6424]
+            - cell "Editare" [ref=e6425]:
+              - button "Editare" [ref=e6426] [cursor=pointer]:
+                - img [ref=e6427]
+                - text: Editare
+          - row "C.V. 2 Câp Alb 100.00 01.09.2025 Editare" [ref=e6430]:
+            - cell "C.V. 2 Câp Alb" [ref=e6431]
+            - cell "100.00" [ref=e6432]
+            - cell "01.09.2025" [ref=e6433]
+            - cell "Editare" [ref=e6434]:
+              - button "Editare" [ref=e6435] [cursor=pointer]:
+                - img [ref=e6436]
+                - text: Editare
+          - row "C.V. 3 Câp Alb 100.00 01.09.2025 Editare" [ref=e6439]:
+            - cell "C.V. 3 Câp Alb" [ref=e6440]
+            - cell "100.00" [ref=e6441]
+            - cell "01.09.2025" [ref=e6442]
+            - cell "Editare" [ref=e6443]:
+              - button "Editare" [ref=e6444] [cursor=pointer]:
+                - img [ref=e6445]
+                - text: Editare
+          - row "C.V. 4 Câp Alb 100.00 01.09.2025 Editare" [ref=e6448]:
+            - cell "C.V. 4 Câp Alb" [ref=e6449]
+            - cell "100.00" [ref=e6450]
+            - cell "01.09.2025" [ref=e6451]
+            - cell "Editare" [ref=e6452]:
+              - button "Editare" [ref=e6453] [cursor=pointer]:
+                - img [ref=e6454]
+                - text: Editare
+          - row "1 Câp Albastru 100.00 01.09.2025 Editare" [ref=e6457]:
+            - cell "1 Câp Albastru" [ref=e6458]
+            - cell "100.00" [ref=e6459]
+            - cell "01.09.2025" [ref=e6460]
+            - cell "Editare" [ref=e6461]:
+              - button "Editare" [ref=e6462] [cursor=pointer]:
+                - img [ref=e6463]
+                - text: Editare
+          - row "2 Câp Albastru 100.00 01.09.2025 Editare" [ref=e6466]:
+            - cell "2 Câp Albastru" [ref=e6467]
+            - cell "100.00" [ref=e6468]
+            - cell "01.09.2025" [ref=e6469]
+            - cell "Editare" [ref=e6470]:
+              - button "Editare" [ref=e6471] [cursor=pointer]:
+                - img [ref=e6472]
+                - text: Editare
+          - row "3 Câp Albastru 100.00 01.09.2025 Editare" [ref=e6475]:
+            - cell "3 Câp Albastru" [ref=e6476]
+            - cell "100.00" [ref=e6477]
+            - cell "01.09.2025" [ref=e6478]
+            - cell "Editare" [ref=e6479]:
+              - button "Editare" [ref=e6480] [cursor=pointer]:
+                - img [ref=e6481]
+                - text: Editare
+          - row "4 Câp Albastru 100.00 01.09.2025 Editare" [ref=e6484]:
+            - cell "4 Câp Albastru" [ref=e6485]
+            - cell "100.00" [ref=e6486]
+            - cell "01.09.2025" [ref=e6487]
+            - cell "Editare" [ref=e6488]:
+              - button "Editare" [ref=e6489] [cursor=pointer]:
+                - img [ref=e6490]
+                - text: Editare
+  - contentinfo [ref=e6301]:
+    - paragraph [ref=e6302]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e6303] [cursor=pointer]:
+      - img [ref=e6304]
+      - generic [ref=e6307]: Asistent AI

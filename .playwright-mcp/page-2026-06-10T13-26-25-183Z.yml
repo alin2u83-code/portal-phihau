@@ -1,0 +1,418 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Federație
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e53]:
+            - generic [ref=e54] [cursor=pointer]:
+              - img [ref=e55]
+              - generic [ref=e60]: Gestiune Membri
+              - img [ref=e61]
+            - generic [ref=e511]:
+              - generic [ref=e512] [cursor=pointer]: Sportivi
+              - generic [ref=e514] [cursor=pointer]: Import Sportivi
+              - generic [ref=e516] [cursor=pointer]: Deduplicare Sportivi
+              - generic [ref=e518] [cursor=pointer]: Familii
+              - generic [ref=e520] [cursor=pointer]: Legitimații
+              - generic [ref=e522] [cursor=pointer]: Nomenclator Grade
+              - generic [ref=e524] [cursor=pointer]: Administrare Staff
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e71]: Examene
+            - img [ref=e72]
+          - generic [ref=e80] [cursor=pointer]:
+            - img [ref=e81]
+            - generic [ref=e87]: Activități Naționale
+            - img [ref=e88]
+          - generic [ref=e91] [cursor=pointer]:
+            - img [ref=e92]
+            - generic [ref=e95]: Setări & Admin
+            - img [ref=e96]
+          - generic [ref=e98] [cursor=pointer]:
+            - img [ref=e100]
+            - generic [ref=e102]: Rapoarte
+          - generic [ref=e103] [cursor=pointer]:
+            - img [ref=e105]
+            - generic [ref=e109]: Notificări
+          - generic [ref=e110] [cursor=pointer]:
+            - img [ref=e112]
+            - generic [ref=e114]: SMS
+          - generic [ref=e115] [cursor=pointer]:
+            - img [ref=e117]
+            - generic [ref=e120]: Cereri Înscriere
+          - generic [ref=e121] [cursor=pointer]:
+            - img [ref=e123]
+            - generic [ref=e126]: Istoric Activitate
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e132]: Admin Dashboard
+          - generic [ref=e133] [cursor=pointer]:
+            - img [ref=e135]
+            - generic [ref=e141]: Button Catalog
+        - button "Scroll jos" [ref=e142] [cursor=pointer]:
+          - img [ref=e143]
+      - generic [ref=e145]:
+        - button "Tema" [ref=e147] [cursor=pointer]:
+          - img [ref=e148]
+          - generic [ref=e154]: Tema
+        - generic [ref=e156]:
+          - generic [ref=e157]: AL
+          - generic [ref=e158]:
+            - paragraph [ref=e159]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e160] [cursor=pointer]:
+            - img [ref=e161]
+  - banner [ref=e164]:
+    - generic [ref=e165]:
+      - button "Deschide meniu" [ref=e166] [cursor=pointer]:
+        - img [ref=e167]
+      - navigation "Navigare" [ref=e168]:
+        - heading "Examene" [level=1] [ref=e169]
+    - generic [ref=e170]:
+      - button "Personalizare temă" [ref=e172] [cursor=pointer]:
+        - img [ref=e173]
+      - button [ref=e180] [cursor=pointer]:
+        - img [ref=e181]
+      - button "AL" [ref=e185] [cursor=pointer]:
+        - generic [ref=e186]: AL
+  - main [ref=e187]:
+    - generic [ref=e190]:
+      - button "Înapoi la listă" [ref=e191] [cursor=pointer]:
+        - img [ref=e192]
+        - text: Înapoi la listă
+      - generic [ref=e194]:
+        - generic [ref=e195]:
+          - generic [ref=e196]:
+            - heading "Iasi - 10.06.2026" [level=3] [ref=e197]
+            - paragraph [ref=e198]: "Comisia: Lungu Alin, Mardare Alexandra"
+            - text: Programat
+          - generic [ref=e199]:
+            - button "Ghid import XLS" [ref=e200] [cursor=pointer]:
+              - img [ref=e201]
+            - button "Import Sportivi" [ref=e204] [cursor=pointer]:
+              - img [ref=e205]
+              - text: Import Sportivi
+            - button "Import XLS" [ref=e208] [cursor=pointer]:
+              - img [ref=e209]
+              - text: Import XLS
+            - button "Export Fișe" [ref=e212] [cursor=pointer]:
+              - img [ref=e213]
+              - text: Export Fișe
+            - button "Editează" [ref=e215] [cursor=pointer]:
+              - img [ref=e216]
+              - text: Editează
+            - button "Finalizează Examen" [ref=e219] [cursor=pointer]
+        - generic [ref=e220]:
+          - generic [ref=e221]:
+            - generic [ref=e223]:
+              - heading "Înscriere Participanți" [level=3] [ref=e224]
+              - paragraph [ref=e225]: Adaugă sportivi individual sau selectează mai mulți odată
+            - generic [ref=e226]:
+              - button "Adaugă Individual" [ref=e227] [cursor=pointer]:
+                - img [ref=e228]
+                - text: Adaugă Individual
+              - button "Adaugă Multipli" [ref=e229] [cursor=pointer]:
+                - img [ref=e230]
+                - text: Adaugă Multipli
+          - generic [ref=e231]:
+            - generic [ref=e232]:
+              - paragraph [ref=e233]: "0"
+              - paragraph [ref=e234]: Admiși
+            - generic [ref=e235]:
+              - paragraph [ref=e236]: "0"
+              - paragraph [ref=e237]: În așteptare
+            - generic [ref=e238]:
+              - paragraph [ref=e239]: "0"
+              - paragraph [ref=e240]: Respinși
+          - generic [ref=e241]:
+            - generic [ref=e242]:
+              - heading "Participanți Înscriși12" [level=3] [ref=e243]
+              - generic [ref=e244]:
+                - button "Export Fișe" [ref=e245] [cursor=pointer]:
+                  - img [ref=e246]
+                  - text: Export Fișe
+                - button "Admite Toți" [ref=e248] [cursor=pointer]
+            - generic [ref=e249]:
+              - generic [ref=e250]:
+                - generic [ref=e252]:
+                  - generic [ref=e253]:
+                    - generic [ref=e254]:
+                      - paragraph [ref=e255] [cursor=pointer]: BALMUS IUSTINA
+                      - generic [ref=e256]:
+                        - generic [ref=e257]: C.V. 1 Câp Alb
+                        - generic [ref=e258]: â†’
+                        - generic [ref=e259]: C.V. 2 Câp Alb
+                    - generic [ref=e260]: Achitat
+                  - generic [ref=e261]:
+                    - generic [ref=e262]:
+                      - generic [ref=e263]: Rezultat
+                      - generic [ref=e265]:
+                        - combobox [ref=e266]:
+                          - option "In așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - generic [ref=e267]:
+                      - button "Editează" [ref=e268] [cursor=pointer]:
+                        - img [ref=e269]
+                        - text: Editează
+                      - button "Retrage" [ref=e272] [cursor=pointer]:
+                        - img [ref=e273]
+                        - text: Retrage
+                - generic [ref=e277]:
+                  - generic [ref=e278]:
+                    - generic [ref=e279]:
+                      - paragraph [ref=e280] [cursor=pointer]: POPOVICI DIANA ANASTASIA
+                      - generic [ref=e281]:
+                        - generic [ref=e282]: C.V. 1 Câp Alb
+                        - generic [ref=e283]: â†’
+                        - generic [ref=e284]: C.V. 2 Câp Alb
+                    - generic [ref=e285]: Achitat
+                  - generic [ref=e286]:
+                    - generic [ref=e287]:
+                      - generic [ref=e288]: Rezultat
+                      - generic [ref=e290]:
+                        - combobox [ref=e291]:
+                          - option "In așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - generic [ref=e292]:
+                      - button "Editează" [ref=e293] [cursor=pointer]:
+                        - img [ref=e294]
+                        - text: Editează
+                      - button "Retrage" [ref=e297] [cursor=pointer]:
+                        - img [ref=e298]
+                        - text: Retrage
+                - generic [ref=e302]:
+                  - generic [ref=e303]:
+                    - generic [ref=e304]:
+                      - paragraph [ref=e305] [cursor=pointer]: SFICA DIANA ANDREEA
+                      - generic [ref=e306]:
+                        - generic [ref=e307]: C.V. 1 Câp Alb
+                        - generic [ref=e308]: â†’
+                        - generic [ref=e309]: C.V. 2 Câp Alb
+                    - generic [ref=e310]: Neachitat
+                  - generic [ref=e311]:
+                    - generic [ref=e312]:
+                      - generic [ref=e313]: Rezultat
+                      - generic [ref=e315]:
+                        - combobox [ref=e316]:
+                          - option "In așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - generic [ref=e317]:
+                      - button "Editează" [ref=e318] [cursor=pointer]:
+                        - img [ref=e319]
+                        - text: Editează
+                      - button "Retrage" [ref=e322] [cursor=pointer]:
+                        - img [ref=e323]
+                        - text: Retrage
+                - generic [ref=e327]:
+                  - generic [ref=e328]:
+                    - generic [ref=e329]:
+                      - paragraph [ref=e330] [cursor=pointer]: AMORARITI ALEXANDRU
+                      - generic [ref=e331]:
+                        - generic [ref=e332]: Centura Violet
+                        - generic [ref=e333]: â†’
+                        - generic [ref=e334]: C.V. 1 Câp Alb
+                    - generic [ref=e335]: Neachitat
+                  - generic [ref=e336]:
+                    - generic [ref=e337]:
+                      - generic [ref=e338]: Rezultat
+                      - generic [ref=e340]:
+                        - combobox [ref=e341]:
+                          - option "In așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - generic [ref=e342]:
+                      - button "Editează" [ref=e343] [cursor=pointer]:
+                        - img [ref=e344]
+                        - text: Editează
+                      - button "Retrage" [ref=e347] [cursor=pointer]:
+                        - img [ref=e348]
+                        - text: Retrage
+                - generic [ref=e352]:
+                  - generic [ref=e353]:
+                    - generic [ref=e354]:
+                      - paragraph [ref=e355] [cursor=pointer]: ȘTEFĂNESCU EMANUEL
+                      - generic [ref=e356]:
+                        - generic [ref=e357]: 4 Câp Roșu
+                        - generic [ref=e358]: â†’
+                        - generic [ref=e359]: Centura Violet
+                    - generic [ref=e360]: Neachitat
+                  - generic [ref=e361]:
+                    - generic [ref=e362]:
+                      - generic [ref=e363]: Rezultat
+                      - generic [ref=e365]:
+                        - combobox [ref=e366]:
+                          - option "In așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - generic [ref=e367]:
+                      - button "Editează" [ref=e368] [cursor=pointer]:
+                        - img [ref=e369]
+                        - text: Editează
+                      - button "Retrage" [ref=e372] [cursor=pointer]:
+                        - img [ref=e373]
+                        - text: Retrage
+                - generic [ref=e377]:
+                  - generic [ref=e378]:
+                    - generic [ref=e379]:
+                      - paragraph [ref=e380] [cursor=pointer]: BALMUS VERONICA
+                      - generic [ref=e381]:
+                        - generic [ref=e382]: 3 Câp Roșu
+                        - generic [ref=e383]: â†’
+                        - generic [ref=e384]: 4 Câp Roșu
+                    - generic [ref=e385]: Achitat
+                  - generic [ref=e386]:
+                    - generic [ref=e387]:
+                      - generic [ref=e388]: Rezultat
+                      - generic [ref=e390]:
+                        - combobox [ref=e391]:
+                          - option "In așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - generic [ref=e392]:
+                      - button "Editează" [ref=e393] [cursor=pointer]:
+                        - img [ref=e394]
+                        - text: Editează
+                      - button "Retrage" [ref=e397] [cursor=pointer]:
+                        - img [ref=e398]
+                        - text: Retrage
+                - generic [ref=e402]:
+                  - generic [ref=e403]:
+                    - generic [ref=e404]:
+                      - paragraph [ref=e405] [cursor=pointer]: MANDIA MARIA
+                      - generic [ref=e406]:
+                        - generic [ref=e407]: 3 Câp Roșu
+                        - generic [ref=e408]: â†’
+                        - generic [ref=e409]: 4 Câp Roșu
+                    - generic [ref=e410]: Achitat
+                  - generic [ref=e411]:
+                    - generic [ref=e412]:
+                      - generic [ref=e413]: Rezultat
+                      - generic [ref=e415]:
+                        - combobox [ref=e416]:
+                          - option "In așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - generic [ref=e417]:
+                      - button "Editează" [ref=e418] [cursor=pointer]:
+                        - img [ref=e419]
+                        - text: Editează
+                      - button "Retrage" [ref=e422] [cursor=pointer]:
+                        - img [ref=e423]
+                        - text: Retrage
+                - generic [ref=e427]:
+                  - generic [ref=e428]:
+                    - generic [ref=e429]:
+                      - paragraph [ref=e430] [cursor=pointer]: SUMĂNARIU DRAGOȘ ȘTEFAN
+                      - generic [ref=e431]:
+                        - generic [ref=e432]: 2 Câp Roșu
+                        - generic [ref=e433]: â†’
+                        - generic [ref=e434]: 3 Câp Roșu
+                    - generic [ref=e435]: Neachitat
+                  - generic [ref=e436]:
+                    - generic [ref=e437]:
+                      - generic [ref=e438]: Rezultat
+                      - generic [ref=e440]:
+                        - combobox [ref=e441]:
+                          - option "In așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - generic [ref=e442]:
+                      - button "Editează" [ref=e443] [cursor=pointer]:
+                        - img [ref=e444]
+                        - text: Editează
+                      - button "Retrage" [ref=e447] [cursor=pointer]:
+                        - img [ref=e448]
+                        - text: Retrage
+                - generic [ref=e452]:
+                  - generic [ref=e453]:
+                    - generic [ref=e454]:
+                      - paragraph [ref=e455] [cursor=pointer]: ȘTEICĂ VICTOR GABRIEL
+                      - generic [ref=e456]:
+                        - generic [ref=e457]: 2 Câp Roșu
+                        - generic [ref=e458]: â†’
+                        - generic [ref=e459]: 3 Câp Roșu
+                    - generic [ref=e460]: Achitat
+                  - generic [ref=e461]:
+                    - generic [ref=e462]:
+                      - generic [ref=e463]: Rezultat
+                      - generic [ref=e465]:
+                        - combobox [ref=e466]:
+                          - option "In așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - generic [ref=e467]:
+                      - button "Editează" [ref=e468] [cursor=pointer]:
+                        - img [ref=e469]
+                        - text: Editează
+                      - button "Retrage" [ref=e472] [cursor=pointer]:
+                        - img [ref=e473]
+                        - text: Retrage
+                - generic [ref=e477]:
+                  - generic [ref=e478]:
+                    - generic [ref=e479]:
+                      - paragraph [ref=e480] [cursor=pointer]: LUNGU CILIAC HORAȚIU CASIAN
+                      - generic [ref=e481]:
+                        - generic [ref=e482]: 1 Câp Roșu
+                        - generic [ref=e483]: â†’
+                        - generic [ref=e484]: 2 Câp Roșu
+                    - generic [ref=e485]: Neachitat
+                  - generic [ref=e486]:
+                    - generic [ref=e487]:
+                      - generic [ref=e488]: Rezultat
+                      - generic [ref=e490]:
+                        - combobox [ref=e491]:
+                          - option "In așteptare" [selected]
+                          - option "Admis"
+                          - option "Respins"
+                        - generic:
+                          - img
+                    - generic [ref=e492]:
+                      - button "Editează" [ref=e493] [cursor=pointer]:
+                        - img [ref=e494]
+                        - text: Editează
+                      - button "Retrage" [ref=e497] [cursor=pointer]:
+                        - img [ref=e498]
+                        - text: Retrage
+              - generic [ref=e501]:
+                - button "Anterior" [disabled] [ref=e502]
+                - generic [ref=e503]: Pagina 1 din 2
+                - button "Următor" [ref=e504] [cursor=pointer]
+  - button "Asistent AI" [ref=e506] [cursor=pointer]:
+    - img [ref=e507]

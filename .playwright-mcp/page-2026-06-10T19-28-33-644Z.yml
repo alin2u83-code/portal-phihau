@@ -1,0 +1,98 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e9]
+        - generic [ref=e11]:
+          - generic [ref=e12]: Qwan Ki Do
+          - generic [ref=e13]: Management
+      - button "Context Activ Federație" [ref=e17] [cursor=pointer]:
+        - img [ref=e19]
+        - generic [ref=e22]:
+          - paragraph [ref=e23]: Context Activ
+          - paragraph [ref=e24]: Federație
+        - img [ref=e25]
+      - generic [ref=e27]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e28]:
+          - generic [ref=e29] [cursor=pointer]:
+            - img [ref=e31]
+            - generic [ref=e36]: Dashboard
+          - generic [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+            - generic [ref=e44]: Gestiune Membri
+            - img [ref=e45]
+          - generic [ref=e47]:
+            - generic [ref=e48] [cursor=pointer]:
+              - img [ref=e49]
+              - generic [ref=e55]: Examene
+              - img [ref=e56]
+            - generic [ref=e305]:
+              - generic [ref=e306] [cursor=pointer]: Sesiuni Examene
+              - generic [ref=e308] [cursor=pointer]: Rapoarte Examen
+          - generic [ref=e59] [cursor=pointer]:
+            - img [ref=e60]
+            - generic [ref=e66]: Activități Naționale
+            - img [ref=e67]
+          - generic [ref=e70] [cursor=pointer]:
+            - img [ref=e71]
+            - generic [ref=e74]: Setări & Admin
+            - img [ref=e75]
+          - generic [ref=e77] [cursor=pointer]:
+            - img [ref=e79]
+            - generic [ref=e81]: Rapoarte
+          - generic [ref=e82] [cursor=pointer]:
+            - img [ref=e84]
+            - generic [ref=e88]: Notificări
+          - generic [ref=e89] [cursor=pointer]:
+            - img [ref=e91]
+            - generic [ref=e93]: SMS
+          - generic [ref=e94] [cursor=pointer]:
+            - img [ref=e96]
+            - generic [ref=e99]: Cereri Înscriere
+          - generic [ref=e100] [cursor=pointer]:
+            - img [ref=e102]
+            - generic [ref=e105]: Istoric Activitate
+          - generic [ref=e106] [cursor=pointer]:
+            - img [ref=e108]
+            - generic [ref=e111]: Admin Dashboard
+          - generic [ref=e112] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e120]: Button Catalog
+        - button "Scroll jos" [ref=e121] [cursor=pointer]:
+          - img [ref=e122]
+      - generic [ref=e124]:
+        - button "Tema" [ref=e126] [cursor=pointer]:
+          - img [ref=e127]
+          - generic [ref=e133]: Tema
+        - generic [ref=e135]:
+          - generic [ref=e136]: AL
+          - generic [ref=e137]:
+            - paragraph [ref=e138]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e139] [cursor=pointer]:
+            - img [ref=e140]
+  - button "Restrânge meniul" [ref=e143] [cursor=pointer]:
+    - img [ref=e144]
+  - banner [ref=e146]:
+    - navigation "Navigare" [ref=e148]:
+      - heading "Examene" [level=1] [ref=e310]
+    - generic [ref=e152]:
+      - button "Temă" [ref=e154] [cursor=pointer]:
+        - img [ref=e155]
+        - generic [ref=e161]: Temă
+      - button [ref=e163] [cursor=pointer]:
+        - img [ref=e164]
+      - button "AL ALIN MIHAI [SUPER ADMIN]" [ref=e169] [cursor=pointer]:
+        - generic [ref=e170]: AL
+        - paragraph [ref=e172]:
+          - text: ALIN MIHAI
+          - generic [ref=e173]: "[SUPER ADMIN]"
+        - img [ref=e174]
+  - main [ref=e176]
+  - contentinfo [ref=e261]:
+    - paragraph [ref=e262]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e263] [cursor=pointer]:
+      - img [ref=e264]
+      - generic [ref=e267]: Asistent AI

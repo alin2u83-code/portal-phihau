@@ -1,0 +1,17 @@
+[     353ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  226129ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  245704ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  734730ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:5173/@vite/client:559
+[ 1604797ms] [ERROR] WebSocket connection to 'wss://wuhidifzsutwgdfkwhmd.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGlkaWZ6c3V0d2dkZmt3aG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NzY3NDgsImV4cCI6MjA4MzQ1Mjc0OH0.Dfq-DBnYlP5-Qo9bKF_FlS8Boc27pSsKCfqYpWV1fnI&vsn=2.0.0' failed: Error in connection establishment: net::ERR_NAME_NOT_RESOLVED @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:7089
+[ 1605133ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:32
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12564:7
+    at new Promise (<anonymous>)
+    at retryable (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12547:19)
+    at SupabaseAuthClient._refreshAccessToken (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18365:20) @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 1605472ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550

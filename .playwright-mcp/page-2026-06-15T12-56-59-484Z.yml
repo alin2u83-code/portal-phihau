@@ -1,0 +1,281 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus" [ref=e21097] [cursor=pointer]:
+          - img [ref=e21098]
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e87] [cursor=pointer]:
+            - img [ref=e88]
+            - generic [ref=e94]: Activități Naționale
+            - img [ref=e95]
+          - generic [ref=e97]:
+            - generic [ref=e98] [cursor=pointer]:
+              - img [ref=e99]
+              - generic [ref=e101]: Financiar & Plăți
+              - img [ref=e102]
+            - generic [ref=e1153]:
+              - generic [ref=e1154] [cursor=pointer]: Facturi & Plăți
+              - generic [ref=e1156] [cursor=pointer]: Jurnal Încasări
+              - generic [ref=e1158] [cursor=pointer]: Raport Financiar
+              - generic [ref=e1160] [cursor=pointer]: Taxe Anuale
+              - generic [ref=e1162] [cursor=pointer]: Config. Abonamente
+              - generic [ref=e1164] [cursor=pointer]: Configurare Prețuri
+          - generic [ref=e105] [cursor=pointer]:
+            - img [ref=e106]
+            - generic [ref=e109]: Setări & Admin
+            - img [ref=e110]
+          - generic [ref=e112] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e118]: Notificări
+          - generic [ref=e119] [cursor=pointer]:
+            - img [ref=e121]
+            - generic [ref=e123]: SMS
+          - generic [ref=e124] [cursor=pointer]:
+            - img [ref=e126]
+            - generic [ref=e129]: Cereri Înscriere
+          - generic [ref=e130] [cursor=pointer]:
+            - img [ref=e132]
+            - generic [ref=e135]: Istoric Activitate
+        - button "Scroll jos" [ref=e136] [cursor=pointer]:
+          - img [ref=e137]
+      - generic [ref=e139]:
+        - button "Tema" [ref=e141] [cursor=pointer]:
+          - img [ref=e142]
+          - generic [ref=e148]: Tema
+        - generic [ref=e150]:
+          - generic [ref=e151]: AL
+          - generic [ref=e152]:
+            - paragraph [ref=e153]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e154] [cursor=pointer]:
+            - img [ref=e155]
+  - button "Restrânge meniul" [ref=e158] [cursor=pointer]:
+    - img [ref=e159]
+  - banner [ref=e161]:
+    - navigation "Navigare" [ref=e163]:
+      - heading "raport-financiar" [level=1] [ref=e21100]
+    - generic [ref=e165]:
+      - button "Temă" [ref=e167] [cursor=pointer]:
+        - img [ref=e168]
+        - generic [ref=e174]: Temă
+      - button [ref=e176] [cursor=pointer]:
+        - img [ref=e177]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e182] [cursor=pointer]:
+        - generic [ref=e183]: AL
+        - paragraph [ref=e185]:
+          - text: ALIN MIHAI
+          - generic [ref=e186]: "[ADMIN CLUB]"
+        - img [ref=e187]
+  - main [ref=e189]:
+    - generic [ref=e21102]:
+      - generic [ref=e21103]:
+        - button "Încasări" [ref=e21104] [cursor=pointer]:
+          - img [ref=e21105]
+          - generic [ref=e21108]: Încasări
+        - button "Abonamente" [active] [ref=e21109] [cursor=pointer]:
+          - img [ref=e21110]
+          - generic [ref=e21113]: Abonamente
+        - button "Lunar" [ref=e21114] [cursor=pointer]:
+          - img [ref=e21115]
+          - generic [ref=e21117]: Lunar
+        - button "Taxe Anuale" [ref=e21118] [cursor=pointer]:
+          - img [ref=e21119]
+          - generic [ref=e21121]: Taxe Anuale
+        - button "Grafice" [ref=e21122] [cursor=pointer]:
+          - img [ref=e21123]
+          - generic [ref=e21126]: Grafice
+        - button "Familii" [ref=e21127] [cursor=pointer]:
+          - img [ref=e21128]
+          - generic [ref=e21133]: Familii
+      - generic [ref=e21134]:
+        - generic [ref=e21135]:
+          - paragraph [ref=e21136]:
+            - img [ref=e21137]
+            - text: Încasat iun.
+          - paragraph [ref=e21140]: 3.160 RON
+        - generic [ref=e21141]:
+          - paragraph [ref=e21142]:
+            - img [ref=e21143]
+            - text: Total Restanțe
+          - paragraph [ref=e21145]: 37.430 RON
+        - generic [ref=e21146]:
+          - paragraph [ref=e21147]:
+            - img [ref=e21148]
+            - text: Plăți Scadente
+          - paragraph [ref=e21150]: 255 facturi
+        - generic [ref=e21151]:
+          - paragraph [ref=e21152]:
+            - img [ref=e21153]
+            - text: Rată Colectare
+          - paragraph [ref=e21156]: 26%
+      - generic [ref=e23208]:
+        - generic [ref=e23210]:
+          - generic [ref=e23211]: Luna
+          - generic [ref=e23212]:
+            - combobox [ref=e23213]:
+              - option "2026-06" [selected]
+              - option "2026-05"
+              - option "2026-04"
+              - option "2026-03"
+              - option "2026-02"
+              - option "2026-01"
+            - generic:
+              - img
+        - generic [ref=e23214]:
+          - generic [ref=e23215]:
+            - paragraph [ref=e23216]: Total sportivi
+            - paragraph [ref=e23217]: "24"
+          - generic [ref=e23218]:
+            - paragraph [ref=e23219]: Achitat
+            - paragraph [ref=e23220]: "9"
+            - paragraph [ref=e23221]: 38%
+          - generic [ref=e23222]:
+            - paragraph [ref=e23223]: Neachitat
+            - paragraph [ref=e23224]: "15"
+          - generic [ref=e23225]:
+            - paragraph [ref=e23226]: Rest Colectat
+            - paragraph [ref=e23227]: 3.390,00 RON
+        - generic [ref=e23229]:
+          - generic [ref=e23230]: Progres colectare
+          - generic [ref=e23231]: 2.140,00 RON / 5.530,00 RON
+        - heading "Abonamente neachitate (15)" [level=3] [ref=e23234]:
+          - img [ref=e23235]
+          - text: Abonamente neachitate (15)
+        - generic [ref=e23238]:
+          - generic [ref=e23239]:
+            - generic [ref=e23240]:
+              - paragraph [ref=e23241]: AMORARITI ALEXANDRU
+              - paragraph [ref=e23242]: Abonament iunie 2026
+            - generic [ref=e23243]:
+              - generic [ref=e23244]: Scadent
+              - generic [ref=e23245]: 220,00 RON
+          - generic [ref=e23246]:
+            - generic [ref=e23247]:
+              - paragraph [ref=e23248]: DANAILA HORATIU
+              - paragraph [ref=e23249]: Abonament iunie 2026
+            - generic [ref=e23250]:
+              - generic [ref=e23251]: Scadent
+              - generic [ref=e23252]: 220,00 RON
+          - generic [ref=e23253]:
+            - generic [ref=e23254]:
+              - paragraph [ref=e23255]: LUNGU ALIN MIHAI
+              - paragraph [ref=e23256]: Abonament iunie 2026
+            - generic [ref=e23257]:
+              - generic [ref=e23258]: Scadent
+              - generic [ref=e23259]: 220,00 RON
+          - generic [ref=e23260]:
+            - generic [ref=e23261]:
+              - paragraph [ref=e23262]: STRATON ALESSIA TEODORA
+              - paragraph [ref=e23263]: Abonament iunie 2026
+            - generic [ref=e23264]:
+              - generic [ref=e23265]: Scadent
+              - generic [ref=e23266]: 220,00 RON
+          - generic [ref=e23267]:
+            - generic [ref=e23268]:
+              - paragraph [ref=e23269]: CONDURACHE ANDRADA
+              - paragraph [ref=e23270]: Abonament iunie 2026
+            - generic [ref=e23271]:
+              - generic [ref=e23272]: Scadent
+              - generic [ref=e23273]: 220,00 RON
+          - generic [ref=e23274]:
+            - generic [ref=e23275]:
+              - paragraph [ref=e23276]: LEOHCHI RAZVAN
+              - paragraph [ref=e23277]: Abonament iunie 2026
+            - generic [ref=e23278]:
+              - generic [ref=e23279]: Scadent
+              - generic [ref=e23280]: 220,00 RON
+          - generic [ref=e23281]:
+            - generic [ref=e23282]:
+              - paragraph [ref=e23283]: POPA ANDREI
+              - paragraph [ref=e23284]: Abonament iunie 2026
+            - generic [ref=e23285]:
+              - generic [ref=e23286]: Scadent
+              - generic [ref=e23287]: 220,00 RON
+          - generic [ref=e23288]:
+            - generic [ref=e23289]:
+              - paragraph [ref=e23290]: BORS EMILIA
+              - paragraph [ref=e23291]: Abonament iunie 2026
+            - generic [ref=e23292]:
+              - generic [ref=e23293]: Scadent
+              - generic [ref=e23294]: 220,00 RON
+          - generic [ref=e23295]:
+            - generic [ref=e23296]:
+              - paragraph [ref=e23297]: LUNGU CILIAC HORAȚIU CASIAN
+              - paragraph [ref=e23298]: Abonament iunie 2026
+            - generic [ref=e23299]:
+              - generic [ref=e23300]: Scadent
+              - generic [ref=e23301]: 200,00 RON
+          - generic [ref=e23302]:
+            - generic [ref=e23303]:
+              - paragraph [ref=e23304]: ȘTEICĂ VICTOR GABRIEL
+              - paragraph [ref=e23305]: Abonament iunie 2026
+            - generic [ref=e23306]:
+              - generic [ref=e23307]: Scadent
+              - generic [ref=e23308]: 220,00 RON
+          - generic [ref=e23309]:
+            - generic [ref=e23310]:
+              - paragraph [ref=e23311]: POPOVICI DIANA ANASTASIA
+              - paragraph [ref=e23312]: Abonament iunie 2026
+            - generic [ref=e23313]:
+              - generic [ref=e23314]: Scadent
+              - generic [ref=e23315]: 220,00 RON
+          - generic [ref=e23316]:
+            - generic [ref=e23317]:
+              - paragraph [ref=e23318]: ANDRONACHE DARIA MARIA
+              - paragraph [ref=e23319]: Abonament iunie 2026
+            - generic [ref=e23320]:
+              - generic [ref=e23321]: Scadent
+              - generic [ref=e23322]: 220,00 RON
+          - generic [ref=e23323]:
+            - generic [ref=e23324]:
+              - paragraph [ref=e23325]: ȘTEFĂNESCU EMANUEL
+              - paragraph [ref=e23326]: Abonament iunie 2026
+            - generic [ref=e23327]:
+              - generic [ref=e23328]: Scadent
+              - generic [ref=e23329]: 220,00 RON
+          - generic [ref=e23330]:
+            - generic [ref=e23331]:
+              - paragraph [ref=e23332]: ANECULAESI MATHIAS
+              - paragraph [ref=e23333]: Abonament iunie 2026
+            - generic [ref=e23334]:
+              - generic [ref=e23335]: Scadent
+              - generic [ref=e23336]: 220,00 RON
+          - generic [ref=e23337]:
+            - generic [ref=e23338]:
+              - paragraph [ref=e23339]: Gomei
+              - paragraph [ref=e23340]: Abonament Familie iunie 2026
+            - generic [ref=e23341]:
+              - generic [ref=e23342]: Scadent
+              - generic [ref=e23343]: 330,00 RON
+  - contentinfo [ref=e1143]:
+    - paragraph [ref=e1144]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e1145] [cursor=pointer]:
+      - img [ref=e1146]
+      - generic [ref=e1149]: Asistent AI

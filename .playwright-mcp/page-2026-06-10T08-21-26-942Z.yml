@@ -1,0 +1,149 @@
+- generic [ref=e19]:
+  - complementary [ref=e277]:
+    - generic [ref=e278]:
+      - generic [ref=e279] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e282]
+        - generic [ref=e284]:
+          - generic [ref=e285]: Qwan Ki Do
+          - generic [ref=e286]: Management
+      - button "Context Activ Federație" [ref=e290] [cursor=pointer]:
+        - img [ref=e292]
+        - generic [ref=e295]:
+          - paragraph [ref=e296]: Context Activ
+          - paragraph [ref=e297]: Federație
+        - img [ref=e298]
+      - generic [ref=e300]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e301]:
+          - generic [ref=e302] [cursor=pointer]:
+            - img [ref=e304]
+            - generic [ref=e309]: Dashboard
+          - generic [ref=e311] [cursor=pointer]:
+            - img [ref=e312]
+            - generic [ref=e317]: Gestiune Membri
+            - img [ref=e318]
+          - generic [ref=e321] [cursor=pointer]:
+            - img [ref=e322]
+            - generic [ref=e328]: Examene
+            - img [ref=e329]
+          - generic [ref=e331]:
+            - generic [ref=e332] [cursor=pointer]:
+              - img [ref=e333]
+              - generic [ref=e339]: Activități Naționale
+              - img [ref=e340]
+            - generic [ref=e440]:
+              - generic [ref=e441] [cursor=pointer]: Competiții
+              - generic [ref=e443] [cursor=pointer]: Stagii
+              - generic [ref=e445] [cursor=pointer]: Template Probe
+          - generic [ref=e343] [cursor=pointer]:
+            - img [ref=e344]
+            - generic [ref=e347]: Setări & Admin
+            - img [ref=e348]
+          - generic [ref=e350] [cursor=pointer]:
+            - img [ref=e352]
+            - generic [ref=e354]: Rapoarte
+          - generic [ref=e355] [cursor=pointer]:
+            - img [ref=e357]
+            - generic [ref=e361]: Notificări
+          - generic [ref=e362] [cursor=pointer]:
+            - img [ref=e364]
+            - generic [ref=e366]: SMS
+          - generic [ref=e367] [cursor=pointer]:
+            - img [ref=e369]
+            - generic [ref=e372]: Cereri Înscriere
+          - generic [ref=e373] [cursor=pointer]:
+            - img [ref=e375]
+            - generic [ref=e378]: Istoric Activitate
+          - generic [ref=e379] [cursor=pointer]:
+            - img [ref=e381]
+            - generic [ref=e384]: Admin Dashboard
+          - generic [ref=e385] [cursor=pointer]:
+            - img [ref=e387]
+            - generic [ref=e393]: Button Catalog
+        - button "Scroll jos" [ref=e437] [cursor=pointer]:
+          - img [ref=e438]
+      - generic [ref=e394]:
+        - button "Tema" [ref=e396] [cursor=pointer]:
+          - img [ref=e397]
+          - generic [ref=e403]: Tema
+        - generic [ref=e405]:
+          - generic [ref=e406]: AL
+          - generic [ref=e407]:
+            - paragraph [ref=e408]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e409] [cursor=pointer]:
+            - img [ref=e410]
+  - button "Restrânge meniul" [ref=e413] [cursor=pointer]:
+    - img [ref=e414]
+  - banner [ref=e159]:
+    - navigation "Navigare" [ref=e163]:
+      - heading "Dashboard" [level=1] [ref=e164]
+      - generic [ref=e416]: Online
+    - generic [ref=e165]:
+      - button "Temă" [ref=e418] [cursor=pointer]:
+        - img [ref=e168]
+        - generic [ref=e419]: Temă
+      - button [ref=e175] [cursor=pointer]:
+        - img [ref=e176]
+      - button "AL ALIN MIHAI [SUPER ADMIN]" [ref=e421] [cursor=pointer]:
+        - generic [ref=e181]: AL
+        - paragraph [ref=e423]:
+          - text: ALIN MIHAI
+          - generic [ref=e424]: "[SUPER ADMIN]"
+        - img [ref=e425]
+  - main [ref=e182]:
+    - generic [ref=e185]:
+      - generic [ref=e186]:
+        - heading "Bună ziua, LUNGU!" [level=1] [ref=e187]
+        - paragraph [ref=e188]: Ce facem azi?
+      - generic [ref=e189]:
+        - generic [ref=e190] [cursor=pointer]:
+          - generic [ref=e191]:
+            - generic [ref=e192]:
+              - img [ref=e194]
+              - generic [ref=e196]:
+                - paragraph [ref=e197]: Prezență Rapidă
+                - paragraph [ref=e198]: 1 antrenament programat azi
+            - img [ref=e199]
+          - img [ref=e273]
+        - generic [ref=e201]:
+          - generic [ref=e202]:
+            - button "Membri" [ref=e203] [cursor=pointer]:
+              - generic [ref=e204]:
+                - img [ref=e205]
+                - generic [ref=e210]: Membri
+              - img [ref=e211]
+            - generic [ref=e214]:
+              - generic [ref=e215] [cursor=pointer]:
+                - img [ref=e216]
+                - generic [ref=e221]: Sportivi
+              - generic [ref=e222] [cursor=pointer]:
+                - img [ref=e223]
+                - generic [ref=e226]: Familii
+              - generic [ref=e227] [cursor=pointer]:
+                - img [ref=e228]
+                - generic [ref=e231]: Nomenclator Grade
+              - generic [ref=e232] [cursor=pointer]:
+                - img [ref=e233]
+                - generic [ref=e236]: Administrare Staff
+          - button "Activitate Sală" [ref=e238] [cursor=pointer]:
+            - generic [ref=e239]:
+              - img [ref=e240]
+              - generic [ref=e243]: Activitate Sală
+            - img [ref=e244]
+          - button "Examene & Competiții" [ref=e247] [cursor=pointer]:
+            - generic [ref=e248]:
+              - img [ref=e249]
+              - generic [ref=e255]: Examene & Competiții
+            - img [ref=e256]
+          - button "Administrativ & Plăți" [ref=e259] [cursor=pointer]:
+            - generic [ref=e260]:
+              - img [ref=e261]
+              - generic [ref=e264]: Administrativ & Plăți
+            - img [ref=e265]
+  - contentinfo [ref=e427]:
+    - paragraph [ref=e428]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e429] [cursor=pointer]:
+      - img [ref=e430]
+      - generic [ref=e433]: Asistent AI

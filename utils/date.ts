@@ -25,6 +25,17 @@ export function normalizeDate(dateStr: string | undefined | null): string | null
                 return isoDate;
             }
         }
+        // Fallback: try MM/DD/YYYY (when month part > 12, unambiguous swap)
+        if (+m > 12 && +d <= 12) {
+            const swapped = `${y}-${day}-${month}`;
+            const swappedDate = new Date(swapped);
+            if (!isNaN(swappedDate.getTime()) &&
+                swappedDate.getFullYear() === +y &&
+                swappedDate.getMonth() + 1 === +d &&
+                swappedDate.getDate() === +m) {
+                return swapped;
+            }
+        }
     }
     return null;
 }

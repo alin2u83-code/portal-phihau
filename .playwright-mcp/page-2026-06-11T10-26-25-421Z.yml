@@ -1,0 +1,1014 @@
+- generic [ref=e1]:
+  - generic [ref=e19]:
+    - complementary [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22] [cursor=pointer]:
+          - img "Qwan Ki Do Romania" [ref=e25]
+          - generic [ref=e27]:
+            - generic [ref=e28]: Qwan Ki Do
+            - generic [ref=e29]: Management
+        - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+          - img [ref=e35]
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: Context Activ
+            - paragraph [ref=e40]: Federație
+          - img [ref=e41]
+        - generic [ref=e43]:
+          - button "Scroll sus":
+            - img
+          - navigation [ref=e44]:
+            - generic [ref=e45] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e52]: Dashboard
+            - generic [ref=e54] [cursor=pointer]:
+              - img [ref=e55]
+              - generic [ref=e60]: Gestiune Membri
+              - img [ref=e61]
+            - generic [ref=e63]:
+              - generic [ref=e64] [cursor=pointer]:
+                - img [ref=e65]
+                - generic [ref=e71]: Examene
+                - img [ref=e72]
+              - generic [ref=e74]:
+                - generic [ref=e75] [cursor=pointer]: Sesiuni Examene
+                - generic [ref=e77] [cursor=pointer]: Rapoarte Examen
+            - generic [ref=e80] [cursor=pointer]:
+              - img [ref=e81]
+              - generic [ref=e87]: Activități Naționale
+              - img [ref=e88]
+            - generic [ref=e91] [cursor=pointer]:
+              - img [ref=e92]
+              - generic [ref=e95]: Setări & Admin
+              - img [ref=e96]
+            - generic [ref=e98] [cursor=pointer]:
+              - img [ref=e100]
+              - generic [ref=e102]: Rapoarte
+            - generic [ref=e103] [cursor=pointer]:
+              - img [ref=e105]
+              - generic [ref=e109]: Notificări
+            - generic [ref=e110] [cursor=pointer]:
+              - img [ref=e112]
+              - generic [ref=e114]: SMS
+            - generic [ref=e115] [cursor=pointer]:
+              - img [ref=e117]
+              - generic [ref=e120]: Cereri Înscriere
+            - generic [ref=e121] [cursor=pointer]:
+              - img [ref=e123]
+              - generic [ref=e126]: Istoric Activitate
+            - generic [ref=e127] [cursor=pointer]:
+              - img [ref=e129]
+              - generic [ref=e132]: Admin Dashboard
+            - generic [ref=e133] [cursor=pointer]:
+              - img [ref=e135]
+              - generic [ref=e141]: Button Catalog
+          - button "Scroll jos" [ref=e142] [cursor=pointer]:
+            - img [ref=e143]
+        - generic [ref=e145]:
+          - button "Tema" [ref=e147] [cursor=pointer]:
+            - img [ref=e148]
+            - generic [ref=e154]: Tema
+          - generic [ref=e156]:
+            - generic [ref=e157]: AL
+            - generic [ref=e158]:
+              - paragraph [ref=e159]: ALIN MIHAI LUNGU
+              - text: Super Admin
+            - button "Deconectare" [ref=e160] [cursor=pointer]:
+              - img [ref=e161]
+    - button "Restrânge meniul" [ref=e164] [cursor=pointer]:
+      - img [ref=e165]
+    - banner [ref=e167]:
+      - navigation "Navigare" [ref=e169]:
+        - heading "Examene" [level=1] [ref=e170]
+      - generic [ref=e171]:
+        - button "Temă" [ref=e173] [cursor=pointer]:
+          - img [ref=e174]
+          - generic [ref=e180]: Temă
+        - button [ref=e182] [cursor=pointer]:
+          - img [ref=e183]
+        - button "AL ALIN MIHAI [SUPER ADMIN]" [ref=e188] [cursor=pointer]:
+          - generic [ref=e189]: AL
+          - paragraph [ref=e191]:
+            - text: ALIN MIHAI
+            - generic [ref=e192]: "[SUPER ADMIN]"
+          - img [ref=e193]
+    - main [ref=e195]:
+      - generic [ref=e224]:
+        - button "Meniu" [ref=e522] [cursor=pointer]:
+          - img [ref=e226]
+          - text: Meniu
+        - generic [ref=e523]:
+          - heading "Gestiune Sesiuni Examen" [level=1] [ref=e524]
+          - generic [ref=e525]:
+            - button "Generează Factură Examen" [ref=e526] [cursor=pointer]:
+              - img [ref=e527]
+              - text: Generează Factură Examen
+            - button "Ghid Import" [ref=e530] [cursor=pointer]:
+              - img [ref=e531]
+              - text: Ghid Import
+            - button "Import Bulk Examen" [active] [ref=e534] [cursor=pointer]:
+              - img [ref=e535]
+              - text: Import Bulk Examen
+            - button "Adaugă Sesiune" [ref=e538] [cursor=pointer]:
+              - img [ref=e539]
+              - text: Adaugă Sesiune
+        - generic [ref=e540]:
+          - generic [ref=e541]:
+            - generic [ref=e542]:
+              - generic [ref=e543]:
+                - generic [ref=e544]: De la — Lună
+                - combobox [ref=e545]:
+                  - option "Orice lună" [selected]
+                  - option "Ianuarie"
+                  - option "Februarie"
+                  - option "Martie"
+                  - option "Aprilie"
+                  - option "Mai"
+                  - option "Iunie"
+                  - option "Iulie"
+                  - option "August"
+                  - option "Septembrie"
+                  - option "Octombrie"
+                  - option "Noiembrie"
+                  - option "Decembrie"
+              - generic [ref=e546]:
+                - generic [ref=e547]: De la — An
+                - combobox [ref=e548]:
+                  - option "Orice an" [selected]
+                  - option "2021"
+                  - option "2022"
+                  - option "2023"
+                  - option "2024"
+                  - option "2025"
+                  - option "2026"
+                  - option "2027"
+                  - option "2028"
+            - generic [ref=e550]: —
+            - generic [ref=e551]:
+              - generic [ref=e552]:
+                - generic [ref=e553]: Până la — Lună
+                - combobox [ref=e554]:
+                  - option "Orice lună" [selected]
+                  - option "Ianuarie"
+                  - option "Februarie"
+                  - option "Martie"
+                  - option "Aprilie"
+                  - option "Mai"
+                  - option "Iunie"
+                  - option "Iulie"
+                  - option "August"
+                  - option "Septembrie"
+                  - option "Octombrie"
+                  - option "Noiembrie"
+                  - option "Decembrie"
+              - generic [ref=e555]:
+                - generic [ref=e556]: Până la — An
+                - combobox [ref=e557]:
+                  - option "Orice an" [selected]
+                  - option "2021"
+                  - option "2022"
+                  - option "2023"
+                  - option "2024"
+                  - option "2025"
+                  - option "2026"
+                  - option "2027"
+                  - option "2028"
+          - generic [ref=e558]:
+            - generic [ref=e559]: "Rapid:"
+            - button "Ultimele 6 luni" [ref=e560] [cursor=pointer]
+            - button "Anul acesta" [ref=e561] [cursor=pointer]
+            - button "Anul trecut" [ref=e562] [cursor=pointer]
+        - generic [ref=e563]:
+          - generic [ref=e564]:
+            - generic [ref=e565]: Filtrează după locație
+            - generic [ref=e566]:
+              - combobox [ref=e567]:
+                - option "Toate locațiile" [selected]
+                - option "Iasi"
+                - option "Bacau"
+                - option "Falticeni"
+              - generic:
+                - img
+          - generic [ref=e568]:
+            - generic [ref=e569]: Filtrează după club
+            - generic [ref=e570]:
+              - combobox [ref=e571]:
+                - option "Toate cluburile" [selected]
+                - option "Club Bogdan"
+                - option "Federația Română de Qwan Ki Do"
+                - option "Thoi Son Brasov"
+                - option "Am Duong"
+                - option "Long Ho Cluj"
+                - option "C.S. Phi Hau"
+                - option "Kim Long Dao Falticeni"
+                - option "Hong Ha"
+                - option "Hâc Long Dao Brașov"
+                - option "ACS Phuong Bao"
+                - option "Long Dao"
+              - generic:
+                - img
+          - generic [ref=e572]:
+            - generic [ref=e573]: Filtrează după status
+            - generic [ref=e574]:
+              - combobox [ref=e575]:
+                - option "Toate statusurile" [selected]
+                - option "Programat"
+                - option "Finalizat"
+              - generic:
+                - img
+        - generic [ref=e576]:
+          - generic [ref=e577]:
+            - generic [ref=e578]:
+              - generic [ref=e579]:
+                - generic [ref=e580]: Finalizat
+                - generic [ref=e581]: 11.06.2026
+              - heading "Falticeni" [level=3] [ref=e582]
+              - paragraph [ref=e583]: Kim Long Dao Falticeni
+            - generic [ref=e584]:
+              - generic [ref=e585]: 61 participanți
+              - generic [ref=e586]:
+                - button "Vezi Detalii" [ref=e587] [cursor=pointer]
+                - button [ref=e588] [cursor=pointer]:
+                  - img [ref=e589]
+                - button [ref=e592] [cursor=pointer]:
+                  - img [ref=e593]
+          - generic [ref=e596]:
+            - generic [ref=e597]:
+              - generic [ref=e598]:
+                - generic [ref=e599]: Finalizat
+                - generic [ref=e600]: 10.06.2026
+              - heading "Iasi" [level=3] [ref=e601]
+              - paragraph [ref=e602]: C.S. Phi Hau
+            - generic [ref=e603]:
+              - generic [ref=e604]: 11 participanți
+              - generic [ref=e605]:
+                - button "Vezi Detalii" [ref=e606] [cursor=pointer]
+                - button [ref=e607] [cursor=pointer]:
+                  - img [ref=e608]
+                - button [ref=e611] [cursor=pointer]:
+                  - img [ref=e612]
+          - generic [ref=e615]:
+            - generic [ref=e616]:
+              - generic [ref=e617]:
+                - generic [ref=e618]: Finalizat
+                - generic [ref=e619]: 14.01.2026
+              - heading "Falticeni" [level=3] [ref=e620]
+              - paragraph [ref=e621]: Kim Long Dao Falticeni
+            - generic [ref=e622]:
+              - generic [ref=e623]: 0 participanți
+              - generic [ref=e624]:
+                - button "Vezi Detalii" [ref=e625] [cursor=pointer]
+                - button [ref=e626] [cursor=pointer]:
+                  - img [ref=e627]
+                - button [ref=e630] [cursor=pointer]:
+                  - img [ref=e631]
+          - generic [ref=e634]:
+            - generic [ref=e635]:
+              - generic [ref=e636]:
+                - generic [ref=e637]: Finalizat
+                - generic [ref=e638]: 18.12.2025
+              - heading "Iasi" [level=3] [ref=e639]
+              - paragraph [ref=e640]: C.S. Phi Hau
+            - generic [ref=e641]:
+              - generic [ref=e642]: 17 participanți
+              - generic [ref=e643]:
+                - button "Vezi Detalii" [ref=e644] [cursor=pointer]
+                - button [ref=e645] [cursor=pointer]:
+                  - img [ref=e646]
+                - button [ref=e649] [cursor=pointer]:
+                  - img [ref=e650]
+          - generic [ref=e653]:
+            - generic [ref=e654]:
+              - generic [ref=e655]:
+                - generic [ref=e656]: Finalizat
+                - generic [ref=e657]: 08.07.2025
+              - heading "Iasi" [level=3] [ref=e658]
+              - paragraph [ref=e659]: C.S. Phi Hau
+            - generic [ref=e660]:
+              - generic [ref=e661]: 3 participanți
+              - generic [ref=e662]:
+                - button "Vezi Detalii" [ref=e663] [cursor=pointer]
+                - button [ref=e664] [cursor=pointer]:
+                  - img [ref=e665]
+                - button [ref=e668] [cursor=pointer]:
+                  - img [ref=e669]
+          - generic [ref=e672]:
+            - generic [ref=e673]:
+              - generic [ref=e674]:
+                - generic [ref=e675]: Programat
+                - generic [ref=e676]: 17.06.2025
+              - heading "Iasi" [level=3] [ref=e677]
+              - paragraph [ref=e678]: C.S. Phi Hau
+            - generic [ref=e679]:
+              - generic [ref=e680]: 25 participanți
+              - generic [ref=e681]:
+                - button "Vezi Detalii" [ref=e682] [cursor=pointer]
+                - button [ref=e683] [cursor=pointer]:
+                  - img [ref=e684]
+                - button [ref=e687] [cursor=pointer]:
+                  - img [ref=e688]
+          - generic [ref=e691]:
+            - generic [ref=e692]:
+              - generic [ref=e693]:
+                - generic [ref=e694]: Programat
+                - generic [ref=e695]: 11.06.2025
+              - heading "Falticeni" [level=3] [ref=e696]
+              - paragraph [ref=e697]: Kim Long Dao Falticeni
+            - generic [ref=e698]:
+              - generic [ref=e699]: 0 participanți
+              - generic [ref=e700]:
+                - button "Vezi Detalii" [ref=e701] [cursor=pointer]
+                - button [ref=e702] [cursor=pointer]:
+                  - img [ref=e703]
+                - button [ref=e706] [cursor=pointer]:
+                  - img [ref=e707]
+          - generic [ref=e710]:
+            - generic [ref=e711]:
+              - generic [ref=e712]:
+                - generic [ref=e713]: Programat
+                - generic [ref=e714]: 17.12.2024
+              - heading "Iasi" [level=3] [ref=e715]
+              - paragraph [ref=e716]: C.S. Phi Hau
+            - generic [ref=e717]:
+              - generic [ref=e718]: 23 participanți
+              - generic [ref=e719]:
+                - button "Vezi Detalii" [ref=e720] [cursor=pointer]
+                - button [ref=e721] [cursor=pointer]:
+                  - img [ref=e722]
+                - button [ref=e725] [cursor=pointer]:
+                  - img [ref=e726]
+          - generic [ref=e729]:
+            - generic [ref=e730]:
+              - generic [ref=e731]:
+                - generic [ref=e732]: Programat
+                - generic [ref=e733]: 18.06.2024
+              - heading "Iasi" [level=3] [ref=e734]
+              - paragraph [ref=e735]: C.S. Phi Hau
+            - generic [ref=e736]:
+              - generic [ref=e737]: 32 participanți
+              - generic [ref=e738]:
+                - button "Vezi Detalii" [ref=e739] [cursor=pointer]
+                - button [ref=e740] [cursor=pointer]:
+                  - img [ref=e741]
+                - button [ref=e744] [cursor=pointer]:
+                  - img [ref=e745]
+          - generic [ref=e748]:
+            - generic [ref=e749]:
+              - generic [ref=e750]:
+                - generic [ref=e751]: Programat
+                - generic [ref=e752]: 19.12.2023
+              - heading "Iasi" [level=3] [ref=e753]
+              - paragraph [ref=e754]: C.S. Phi Hau
+            - generic [ref=e755]:
+              - generic [ref=e756]: 63 participanți
+              - generic [ref=e757]:
+                - button "Vezi Detalii" [ref=e758] [cursor=pointer]
+                - button [ref=e759] [cursor=pointer]:
+                  - img [ref=e760]
+                - button [ref=e763] [cursor=pointer]:
+                  - img [ref=e764]
+          - generic [ref=e767]:
+            - generic [ref=e768]:
+              - generic [ref=e769]:
+                - generic [ref=e770]: Programat
+                - generic [ref=e771]: 15.06.2023
+              - heading "Iasi" [level=3] [ref=e772]
+              - paragraph [ref=e773]: C.S. Phi Hau
+            - generic [ref=e774]:
+              - generic [ref=e775]: 46 participanți
+              - generic [ref=e776]:
+                - button "Vezi Detalii" [ref=e777] [cursor=pointer]
+                - button [ref=e778] [cursor=pointer]:
+                  - img [ref=e779]
+                - button [ref=e782] [cursor=pointer]:
+                  - img [ref=e783]
+          - generic [ref=e786]:
+            - generic [ref=e787]:
+              - generic [ref=e788]:
+                - generic [ref=e789]: Finalizat
+                - generic [ref=e790]: 22.12.2022
+              - heading "Iasi" [level=3] [ref=e791]
+              - paragraph [ref=e792]: C.S. Phi Hau
+            - generic [ref=e793]:
+              - generic [ref=e794]: 21 participanți
+              - generic [ref=e795]:
+                - button "Vezi Detalii" [ref=e796] [cursor=pointer]
+                - button [ref=e797] [cursor=pointer]:
+                  - img [ref=e798]
+                - button [ref=e801] [cursor=pointer]:
+                  - img [ref=e802]
+          - generic [ref=e805]:
+            - generic [ref=e806]:
+              - generic [ref=e807]:
+                - generic [ref=e808]: Programat
+                - generic [ref=e809]: 21.12.2022
+              - heading "Iasi" [level=3] [ref=e810]
+              - paragraph [ref=e811]: C.S. Phi Hau
+            - generic [ref=e812]:
+              - generic [ref=e813]: 0 participanți
+              - generic [ref=e814]:
+                - button "Vezi Detalii" [ref=e815] [cursor=pointer]
+                - button [ref=e816] [cursor=pointer]:
+                  - img [ref=e817]
+                - button [ref=e820] [cursor=pointer]:
+                  - img [ref=e821]
+          - generic [ref=e824]:
+            - generic [ref=e825]:
+              - generic [ref=e826]:
+                - generic [ref=e827]: Programat
+                - generic [ref=e828]: 09.06.2022
+              - heading "Iasi" [level=3] [ref=e829]
+              - paragraph [ref=e830]: C.S. Phi Hau
+            - generic [ref=e831]:
+              - generic [ref=e832]: 31 participanți
+              - generic [ref=e833]:
+                - button "Vezi Detalii" [ref=e834] [cursor=pointer]
+                - button [ref=e835] [cursor=pointer]:
+                  - img [ref=e836]
+                - button [ref=e839] [cursor=pointer]:
+                  - img [ref=e840]
+          - generic [ref=e843]:
+            - generic [ref=e844]:
+              - generic [ref=e845]:
+                - generic [ref=e846]: Programat
+                - generic [ref=e847]: 09.06.2022
+              - heading "Iasi" [level=3] [ref=e848]
+              - paragraph [ref=e849]: C.S. Phi Hau
+            - generic [ref=e850]:
+              - generic [ref=e851]: 0 participanți
+              - generic [ref=e852]:
+                - button "Vezi Detalii" [ref=e853] [cursor=pointer]
+                - button [ref=e854] [cursor=pointer]:
+                  - img [ref=e855]
+                - button [ref=e858] [cursor=pointer]:
+                  - img [ref=e859]
+          - generic [ref=e862]:
+            - generic [ref=e863]:
+              - generic [ref=e864]:
+                - generic [ref=e865]: Programat
+                - generic [ref=e866]: 09.06.2022
+              - heading "Iasi" [level=3] [ref=e867]
+              - paragraph [ref=e868]: C.S. Phi Hau
+            - generic [ref=e869]:
+              - generic [ref=e870]: 0 participanți
+              - generic [ref=e871]:
+                - button "Vezi Detalii" [ref=e872] [cursor=pointer]
+                - button [ref=e873] [cursor=pointer]:
+                  - img [ref=e874]
+                - button [ref=e877] [cursor=pointer]:
+                  - img [ref=e878]
+          - generic [ref=e881]:
+            - generic [ref=e882]:
+              - generic [ref=e883]:
+                - generic [ref=e884]: Programat
+                - generic [ref=e885]: 09.06.2022
+              - heading "Iasi" [level=3] [ref=e886]
+              - paragraph [ref=e887]: C.S. Phi Hau
+            - generic [ref=e888]:
+              - generic [ref=e889]: 0 participanți
+              - generic [ref=e890]:
+                - button "Vezi Detalii" [ref=e891] [cursor=pointer]
+                - button [ref=e892] [cursor=pointer]:
+                  - img [ref=e893]
+                - button [ref=e896] [cursor=pointer]:
+                  - img [ref=e897]
+          - generic [ref=e900]:
+            - generic [ref=e901]:
+              - generic [ref=e902]:
+                - generic [ref=e903]: Finalizat
+                - generic [ref=e904]: 12.02.2022
+              - heading "Iasi" [level=3] [ref=e905]
+              - paragraph [ref=e906]: C.S. Phi Hau
+            - generic [ref=e907]:
+              - generic [ref=e908]: 19 participanți
+              - generic [ref=e909]:
+                - button "Vezi Detalii" [ref=e910] [cursor=pointer]
+                - button [ref=e911] [cursor=pointer]:
+                  - img [ref=e912]
+                - button [ref=e915] [cursor=pointer]:
+                  - img [ref=e916]
+          - generic [ref=e919]:
+            - generic [ref=e920]:
+              - generic [ref=e921]:
+                - generic [ref=e922]: Finalizat
+                - generic [ref=e923]: 21.12.2021
+              - heading "Iasi" [level=3] [ref=e924]
+              - paragraph [ref=e925]: C.S. Phi Hau
+            - generic [ref=e926]:
+              - generic [ref=e927]: 11 participanți
+              - generic [ref=e928]:
+                - button "Vezi Detalii" [ref=e929] [cursor=pointer]
+                - button [ref=e930] [cursor=pointer]:
+                  - img [ref=e931]
+                - button [ref=e934] [cursor=pointer]:
+                  - img [ref=e935]
+          - generic [ref=e938]:
+            - generic [ref=e939]:
+              - generic [ref=e940]:
+                - generic [ref=e941]: Programat
+                - generic [ref=e942]: 19.02.2017
+              - heading "Bacau" [level=3] [ref=e943]
+              - paragraph [ref=e944]: C.S. Phi Hau
+            - generic [ref=e945]:
+              - generic [ref=e946]: 1 participanți
+              - generic [ref=e947]:
+                - button "Vezi Detalii" [ref=e948] [cursor=pointer]
+                - button [ref=e949] [cursor=pointer]:
+                  - img [ref=e950]
+                - button [ref=e953] [cursor=pointer]:
+                  - img [ref=e954]
+          - generic [ref=e957]:
+            - generic [ref=e958]:
+              - generic [ref=e959]:
+                - generic [ref=e960]: Programat
+                - generic [ref=e961]: 01.01.2017
+              - heading "Bacau" [level=3] [ref=e962]
+              - paragraph [ref=e963]: C.S. Phi Hau
+            - generic [ref=e964]:
+              - generic [ref=e965]: 0 participanți
+              - generic [ref=e966]:
+                - button "Vezi Detalii" [ref=e967] [cursor=pointer]
+                - button [ref=e968] [cursor=pointer]:
+                  - img [ref=e969]
+                - button [ref=e972] [cursor=pointer]:
+                  - img [ref=e973]
+          - generic [ref=e976]:
+            - generic [ref=e977]:
+              - generic [ref=e978]:
+                - generic [ref=e979]: Programat
+                - generic [ref=e980]: 01.03.2016
+              - heading "Bacau" [level=3] [ref=e981]
+              - paragraph [ref=e982]: C.S. Phi Hau
+            - generic [ref=e983]:
+              - generic [ref=e984]: 0 participanți
+              - generic [ref=e985]:
+                - button "Vezi Detalii" [ref=e986] [cursor=pointer]
+                - button [ref=e987] [cursor=pointer]:
+                  - img [ref=e988]
+                - button [ref=e991] [cursor=pointer]:
+                  - img [ref=e992]
+          - generic [ref=e995]:
+            - generic [ref=e996]:
+              - generic [ref=e997]:
+                - generic [ref=e998]: Programat
+                - generic [ref=e999]: 01.02.2016
+              - heading "Bacau" [level=3] [ref=e1000]
+              - paragraph [ref=e1001]: C.S. Phi Hau
+            - generic [ref=e1002]:
+              - generic [ref=e1003]: 0 participanți
+              - generic [ref=e1004]:
+                - button "Vezi Detalii" [ref=e1005] [cursor=pointer]
+                - button [ref=e1006] [cursor=pointer]:
+                  - img [ref=e1007]
+                - button [ref=e1010] [cursor=pointer]:
+                  - img [ref=e1011]
+          - generic [ref=e1014]:
+            - generic [ref=e1015]:
+              - generic [ref=e1016]:
+                - generic [ref=e1017]: Programat
+                - generic [ref=e1018]: 01.02.2015
+              - heading "Bacau" [level=3] [ref=e1019]
+              - paragraph [ref=e1020]: C.S. Phi Hau
+            - generic [ref=e1021]:
+              - generic [ref=e1022]: 0 participanți
+              - generic [ref=e1023]:
+                - button "Vezi Detalii" [ref=e1024] [cursor=pointer]
+                - button [ref=e1025] [cursor=pointer]:
+                  - img [ref=e1026]
+                - button [ref=e1029] [cursor=pointer]:
+                  - img [ref=e1030]
+          - generic [ref=e1033]:
+            - generic [ref=e1034]:
+              - generic [ref=e1035]:
+                - generic [ref=e1036]: Programat
+                - generic [ref=e1037]: 01.01.2014
+              - heading "Bacau" [level=3] [ref=e1038]
+              - paragraph [ref=e1039]: C.S. Phi Hau
+            - generic [ref=e1040]:
+              - generic [ref=e1041]: 0 participanți
+              - generic [ref=e1042]:
+                - button "Vezi Detalii" [ref=e1043] [cursor=pointer]
+                - button [ref=e1044] [cursor=pointer]:
+                  - img [ref=e1045]
+                - button [ref=e1048] [cursor=pointer]:
+                  - img [ref=e1049]
+          - generic [ref=e1052]:
+            - generic [ref=e1053]:
+              - generic [ref=e1054]:
+                - generic [ref=e1055]: Programat
+                - generic [ref=e1056]: 01.12.2013
+              - heading "Bacau" [level=3] [ref=e1057]
+              - paragraph [ref=e1058]: C.S. Phi Hau
+            - generic [ref=e1059]:
+              - generic [ref=e1060]: 0 participanți
+              - generic [ref=e1061]:
+                - button "Vezi Detalii" [ref=e1062] [cursor=pointer]
+                - button [ref=e1063] [cursor=pointer]:
+                  - img [ref=e1064]
+                - button [ref=e1067] [cursor=pointer]:
+                  - img [ref=e1068]
+          - generic [ref=e1071]:
+            - generic [ref=e1072]:
+              - generic [ref=e1073]:
+                - generic [ref=e1074]: Programat
+                - generic [ref=e1075]: 10.02.2013
+              - heading "Bacau" [level=3] [ref=e1076]
+              - paragraph [ref=e1077]: C.S. Phi Hau
+            - generic [ref=e1078]:
+              - generic [ref=e1079]: 1 participanți
+              - generic [ref=e1080]:
+                - button "Vezi Detalii" [ref=e1081] [cursor=pointer]
+                - button [ref=e1082] [cursor=pointer]:
+                  - img [ref=e1083]
+                - button [ref=e1086] [cursor=pointer]:
+                  - img [ref=e1087]
+          - generic [ref=e1090]:
+            - generic [ref=e1091]:
+              - generic [ref=e1092]:
+                - generic [ref=e1093]: Programat
+                - generic [ref=e1094]: 01.01.2013
+              - heading "Bacau" [level=3] [ref=e1095]
+              - paragraph [ref=e1096]: C.S. Phi Hau
+            - generic [ref=e1097]:
+              - generic [ref=e1098]: 0 participanți
+              - generic [ref=e1099]:
+                - button "Vezi Detalii" [ref=e1100] [cursor=pointer]
+                - button [ref=e1101] [cursor=pointer]:
+                  - img [ref=e1102]
+                - button [ref=e1105] [cursor=pointer]:
+                  - img [ref=e1106]
+          - generic [ref=e1109]:
+            - generic [ref=e1110]:
+              - generic [ref=e1111]:
+                - generic [ref=e1112]: Finalizat
+                - generic [ref=e1113]: 20.12.2012
+              - heading "Bacau" [level=3] [ref=e1114]
+              - paragraph [ref=e1115]: C.S. Phi Hau
+            - generic [ref=e1116]:
+              - generic [ref=e1117]: 59 participanți
+              - generic [ref=e1118]:
+                - button "Vezi Detalii" [ref=e1119] [cursor=pointer]
+                - button [ref=e1120] [cursor=pointer]:
+                  - img [ref=e1121]
+                - button [ref=e1124] [cursor=pointer]:
+                  - img [ref=e1125]
+          - generic [ref=e1128]:
+            - generic [ref=e1129]:
+              - generic [ref=e1130]:
+                - generic [ref=e1131]: Programat
+                - generic [ref=e1132]: 01.12.2012
+              - heading "Bacau" [level=3] [ref=e1133]
+              - paragraph [ref=e1134]: C.S. Phi Hau
+            - generic [ref=e1135]:
+              - generic [ref=e1136]: 0 participanți
+              - generic [ref=e1137]:
+                - button "Vezi Detalii" [ref=e1138] [cursor=pointer]
+                - button [ref=e1139] [cursor=pointer]:
+                  - img [ref=e1140]
+                - button [ref=e1143] [cursor=pointer]:
+                  - img [ref=e1144]
+          - generic [ref=e1147]:
+            - generic [ref=e1148]:
+              - generic [ref=e1149]:
+                - generic [ref=e1150]: Finalizat
+                - generic [ref=e1151]: 23.06.2012
+              - heading "Bacau" [level=3] [ref=e1152]
+              - paragraph [ref=e1153]: C.S. Phi Hau
+            - generic [ref=e1154]:
+              - generic [ref=e1155]: 52 participanți
+              - generic [ref=e1156]:
+                - button "Vezi Detalii" [ref=e1157] [cursor=pointer]
+                - button [ref=e1158] [cursor=pointer]:
+                  - img [ref=e1159]
+                - button [ref=e1162] [cursor=pointer]:
+                  - img [ref=e1163]
+          - generic [ref=e1166]:
+            - generic [ref=e1167]:
+              - generic [ref=e1168]:
+                - generic [ref=e1169]: Programat
+                - generic [ref=e1170]: 16.02.2012
+              - heading "Bacau" [level=3] [ref=e1171]
+              - paragraph [ref=e1172]: C.S. Phi Hau
+            - generic [ref=e1173]:
+              - generic [ref=e1174]: 53 participanți
+              - generic [ref=e1175]:
+                - button "Vezi Detalii" [ref=e1176] [cursor=pointer]
+                - button [ref=e1177] [cursor=pointer]:
+                  - img [ref=e1178]
+                - button [ref=e1181] [cursor=pointer]:
+                  - img [ref=e1182]
+          - generic [ref=e1185]:
+            - generic [ref=e1186]:
+              - generic [ref=e1187]:
+                - generic [ref=e1188]: Programat
+                - generic [ref=e1189]: 01.02.2012
+              - heading "Bacau" [level=3] [ref=e1190]
+              - paragraph [ref=e1191]: C.S. Phi Hau
+            - generic [ref=e1192]:
+              - generic [ref=e1193]: 0 participanți
+              - generic [ref=e1194]:
+                - button "Vezi Detalii" [ref=e1195] [cursor=pointer]
+                - button [ref=e1196] [cursor=pointer]:
+                  - img [ref=e1197]
+                - button [ref=e1200] [cursor=pointer]:
+                  - img [ref=e1201]
+          - generic [ref=e1204]:
+            - generic [ref=e1205]:
+              - generic [ref=e1206]:
+                - generic [ref=e1207]: Programat
+                - generic [ref=e1208]: 22.06.2011
+              - heading "Bacau" [level=3] [ref=e1209]
+              - paragraph [ref=e1210]: C.S. Phi Hau
+            - generic [ref=e1211]:
+              - generic [ref=e1212]: 40 participanți
+              - generic [ref=e1213]:
+                - button "Vezi Detalii" [ref=e1214] [cursor=pointer]
+                - button [ref=e1215] [cursor=pointer]:
+                  - img [ref=e1216]
+                - button [ref=e1219] [cursor=pointer]:
+                  - img [ref=e1220]
+          - generic [ref=e1223]:
+            - generic [ref=e1224]:
+              - generic [ref=e1225]:
+                - generic [ref=e1226]: Programat
+                - generic [ref=e1227]: 25.01.2011
+              - heading "Bacau" [level=3] [ref=e1228]
+              - paragraph [ref=e1229]: C.S. Phi Hau
+            - generic [ref=e1230]:
+              - generic [ref=e1231]: 32 participanți
+              - generic [ref=e1232]:
+                - button "Vezi Detalii" [ref=e1233] [cursor=pointer]
+                - button [ref=e1234] [cursor=pointer]:
+                  - img [ref=e1235]
+                - button [ref=e1238] [cursor=pointer]:
+                  - img [ref=e1239]
+          - generic [ref=e1242]:
+            - generic [ref=e1243]:
+              - generic [ref=e1244]:
+                - generic [ref=e1245]: Programat
+                - generic [ref=e1246]: 16.06.2010
+              - heading "Bacau" [level=3] [ref=e1247]
+              - paragraph [ref=e1248]: C.S. Phi Hau
+            - generic [ref=e1249]:
+              - generic [ref=e1250]: 23 participanți
+              - generic [ref=e1251]:
+                - button "Vezi Detalii" [ref=e1252] [cursor=pointer]
+                - button [ref=e1253] [cursor=pointer]:
+                  - img [ref=e1254]
+                - button [ref=e1257] [cursor=pointer]:
+                  - img [ref=e1258]
+          - generic [ref=e1261]:
+            - generic [ref=e1262]:
+              - generic [ref=e1263]:
+                - generic [ref=e1264]: Programat
+                - generic [ref=e1265]: 20.02.2010
+              - heading "Bacau" [level=3] [ref=e1266]
+              - paragraph [ref=e1267]: C.S. Phi Hau
+            - generic [ref=e1268]:
+              - generic [ref=e1269]: 1 participanți
+              - generic [ref=e1270]:
+                - button "Vezi Detalii" [ref=e1271] [cursor=pointer]
+                - button [ref=e1272] [cursor=pointer]:
+                  - img [ref=e1273]
+                - button [ref=e1276] [cursor=pointer]:
+                  - img [ref=e1277]
+          - generic [ref=e1280]:
+            - generic [ref=e1281]:
+              - generic [ref=e1282]:
+                - generic [ref=e1283]: Programat
+                - generic [ref=e1284]: 26.01.2010
+              - heading "Bacau" [level=3] [ref=e1285]
+              - paragraph [ref=e1286]: C.S. Phi Hau
+            - generic [ref=e1287]:
+              - generic [ref=e1288]: 24 participanți
+              - generic [ref=e1289]:
+                - button "Vezi Detalii" [ref=e1290] [cursor=pointer]
+                - button [ref=e1291] [cursor=pointer]:
+                  - img [ref=e1292]
+                - button [ref=e1295] [cursor=pointer]:
+                  - img [ref=e1296]
+          - generic [ref=e1299]:
+            - generic [ref=e1300]:
+              - generic [ref=e1301]:
+                - generic [ref=e1302]: Finalizat
+                - generic [ref=e1303]: 12.06.2009
+              - heading "Bacau" [level=3] [ref=e1304]
+              - paragraph [ref=e1305]: C.S. Phi Hau
+            - generic [ref=e1306]:
+              - generic [ref=e1307]: 12 participanți
+              - generic [ref=e1308]:
+                - button "Vezi Detalii" [ref=e1309] [cursor=pointer]
+                - button [ref=e1310] [cursor=pointer]:
+                  - img [ref=e1311]
+                - button [ref=e1314] [cursor=pointer]:
+                  - img [ref=e1315]
+          - generic [ref=e1318]:
+            - generic [ref=e1319]:
+              - generic [ref=e1320]:
+                - generic [ref=e1321]: Finalizat
+                - generic [ref=e1322]: 12.02.2009
+              - heading "Bacau" [level=3] [ref=e1323]
+              - paragraph [ref=e1324]: C.S. Phi Hau
+            - generic [ref=e1325]:
+              - generic [ref=e1326]: 24 participanți
+              - generic [ref=e1327]:
+                - button "Vezi Detalii" [ref=e1328] [cursor=pointer]
+                - button [ref=e1329] [cursor=pointer]:
+                  - img [ref=e1330]
+                - button [ref=e1333] [cursor=pointer]:
+                  - img [ref=e1334]
+          - generic [ref=e1337]:
+            - generic [ref=e1338]:
+              - generic [ref=e1339]:
+                - generic [ref=e1340]: Programat
+                - generic [ref=e1341]: 11.07.2008
+              - heading "Bacau" [level=3] [ref=e1342]
+              - paragraph [ref=e1343]: C.S. Phi Hau
+            - generic [ref=e1344]:
+              - generic [ref=e1345]: 1 participanți
+              - generic [ref=e1346]:
+                - button "Vezi Detalii" [ref=e1347] [cursor=pointer]
+                - button [ref=e1348] [cursor=pointer]:
+                  - img [ref=e1349]
+                - button [ref=e1352] [cursor=pointer]:
+                  - img [ref=e1353]
+          - generic [ref=e1356]:
+            - generic [ref=e1357]:
+              - generic [ref=e1358]:
+                - generic [ref=e1359]: Finalizat
+                - generic [ref=e1360]: 12.06.2008
+              - heading "Bacau" [level=3] [ref=e1361]
+              - paragraph [ref=e1362]: C.S. Phi Hau
+            - generic [ref=e1363]:
+              - generic [ref=e1364]: 7 participanți
+              - generic [ref=e1365]:
+                - button "Vezi Detalii" [ref=e1366] [cursor=pointer]
+                - button [ref=e1367] [cursor=pointer]:
+                  - img [ref=e1368]
+                - button [ref=e1371] [cursor=pointer]:
+                  - img [ref=e1372]
+          - generic [ref=e1375]:
+            - generic [ref=e1376]:
+              - generic [ref=e1377]:
+                - generic [ref=e1378]: Programat
+                - generic [ref=e1379]: 17.12.2005
+              - heading "Bacau" [level=3] [ref=e1380]
+              - paragraph [ref=e1381]: C.S. Phi Hau
+            - generic [ref=e1382]:
+              - generic [ref=e1383]: 1 participanți
+              - generic [ref=e1384]:
+                - button "Vezi Detalii" [ref=e1385] [cursor=pointer]
+                - button [ref=e1386] [cursor=pointer]:
+                  - img [ref=e1387]
+                - button [ref=e1390] [cursor=pointer]:
+                  - img [ref=e1391]
+          - generic [ref=e1394]:
+            - generic [ref=e1395]:
+              - generic [ref=e1396]:
+                - generic [ref=e1397]: Programat
+                - generic [ref=e1398]: 18.12.2002
+              - heading "Bacau" [level=3] [ref=e1399]
+              - paragraph [ref=e1400]: C.S. Phi Hau
+            - generic [ref=e1401]:
+              - generic [ref=e1402]: 1 participanți
+              - generic [ref=e1403]:
+                - button "Vezi Detalii" [ref=e1404] [cursor=pointer]
+                - button [ref=e1405] [cursor=pointer]:
+                  - img [ref=e1406]
+                - button [ref=e1409] [cursor=pointer]:
+                  - img [ref=e1410]
+          - generic [ref=e1413]:
+            - generic [ref=e1414]:
+              - generic [ref=e1415]:
+                - generic [ref=e1416]: Programat
+                - generic [ref=e1417]: 15.11.2002
+              - heading "Bacau" [level=3] [ref=e1418]
+              - paragraph [ref=e1419]: C.S. Phi Hau
+            - generic [ref=e1420]:
+              - generic [ref=e1421]: 1 participanți
+              - generic [ref=e1422]:
+                - button "Vezi Detalii" [ref=e1423] [cursor=pointer]
+                - button [ref=e1424] [cursor=pointer]:
+                  - img [ref=e1425]
+                - button [ref=e1428] [cursor=pointer]:
+                  - img [ref=e1429]
+          - generic [ref=e1432]:
+            - generic [ref=e1433]:
+              - generic [ref=e1434]:
+                - generic [ref=e1435]: Programat
+                - generic [ref=e1436]: 16.12.1994
+              - heading "Bacau" [level=3] [ref=e1437]
+              - paragraph [ref=e1438]: C.S. Phi Hau
+            - generic [ref=e1439]:
+              - generic [ref=e1440]: 1 participanți
+              - generic [ref=e1441]:
+                - button "Vezi Detalii" [ref=e1442] [cursor=pointer]
+                - button [ref=e1443] [cursor=pointer]:
+                  - img [ref=e1444]
+                - button [ref=e1447] [cursor=pointer]:
+                  - img [ref=e1448]
+          - generic [ref=e1451]:
+            - generic [ref=e1452]:
+              - generic [ref=e1453]:
+                - generic [ref=e1454]: Programat
+                - generic [ref=e1455]: 22.04.1994
+              - heading "Bacau" [level=3] [ref=e1456]
+              - paragraph [ref=e1457]: C.S. Phi Hau
+            - generic [ref=e1458]:
+              - generic [ref=e1459]: 1 participanți
+              - generic [ref=e1460]:
+                - button "Vezi Detalii" [ref=e1461] [cursor=pointer]
+                - button [ref=e1462] [cursor=pointer]:
+                  - img [ref=e1463]
+                - button [ref=e1466] [cursor=pointer]:
+                  - img [ref=e1467]
+          - generic [ref=e1470]:
+            - generic [ref=e1471]:
+              - generic [ref=e1472]:
+                - generic [ref=e1473]: Programat
+                - generic [ref=e1474]: 03.04.1993
+              - heading "Bacau" [level=3] [ref=e1475]
+              - paragraph [ref=e1476]: C.S. Phi Hau
+            - generic [ref=e1477]:
+              - generic [ref=e1478]: 1 participanți
+              - generic [ref=e1479]:
+                - button "Vezi Detalii" [ref=e1480] [cursor=pointer]
+                - button [ref=e1481] [cursor=pointer]:
+                  - img [ref=e1482]
+                - button [ref=e1485] [cursor=pointer]:
+                  - img [ref=e1486]
+          - generic [ref=e1489]:
+            - generic [ref=e1490]:
+              - generic [ref=e1491]:
+                - generic [ref=e1492]: Programat
+                - generic [ref=e1493]: 17.04.1992
+              - heading "Bacau" [level=3] [ref=e1494]
+              - paragraph [ref=e1495]: C.S. Phi Hau
+            - generic [ref=e1496]:
+              - generic [ref=e1497]: 1 participanți
+              - generic [ref=e1498]:
+                - button "Vezi Detalii" [ref=e1499] [cursor=pointer]
+                - button [ref=e1500] [cursor=pointer]:
+                  - img [ref=e1501]
+                - button [ref=e1504] [cursor=pointer]:
+                  - img [ref=e1505]
+          - generic [ref=e1508]:
+            - generic [ref=e1509]:
+              - generic [ref=e1510]:
+                - generic [ref=e1511]: Programat
+                - generic [ref=e1512]: 29.11.1991
+              - heading "Bacau" [level=3] [ref=e1513]
+              - paragraph [ref=e1514]: C.S. Phi Hau
+            - generic [ref=e1515]:
+              - generic [ref=e1516]: 1 participanți
+              - generic [ref=e1517]:
+                - button "Vezi Detalii" [ref=e1518] [cursor=pointer]
+                - button [ref=e1519] [cursor=pointer]:
+                  - img [ref=e1520]
+                - button [ref=e1523] [cursor=pointer]:
+                  - img [ref=e1524]
+    - contentinfo [ref=e214]:
+      - paragraph [ref=e215]: Realizat cu AI de Alin Lungu
+      - button "Asistent AI" [ref=e216] [cursor=pointer]:
+        - img [ref=e217]
+        - generic [ref=e220]: Asistent AI
+  - dialog "Import Bulk Rezultate Examen" [ref=e1527]:
+    - generic [ref=e1528]:
+      - generic [ref=e1529]:
+        - heading "Import Bulk Rezultate Examen" [level=2] [ref=e1530]
+        - button [ref=e1531] [cursor=pointer]:
+          - img [ref=e1532]
+      - generic [ref=e1536]:
+        - button "Ghid de pregătire import" [ref=e1538] [cursor=pointer]:
+          - generic [ref=e1539]:
+            - img [ref=e1540]
+            - text: Ghid de pregătire import
+          - img [ref=e1543]
+        - generic [ref=e1545]:
+          - generic [ref=e1546]:
+            - generic [ref=e1547]: Format fișier CSV
+            - generic [ref=e1548]:
+              - combobox [ref=e1549]:
+                - option "Format Propriu" [selected]
+                - option "Format Grilă Examen"
+                - option "Format Tabel Federație"
+              - generic:
+                - img
+          - generic [ref=e1550]:
+            - paragraph [ref=e1551]: "Valori implicite pentru câmpuri goale din CSV (opțional):"
+            - generic [ref=e1552]:
+              - generic [ref=e1553]: Data Examenului (fallback)
+              - textbox [ref=e1554]
+            - generic [ref=e1555]:
+              - generic [ref=e1556]: Denumire Sesiune (fallback)
+              - 'textbox "ex: Examen Iarnă 2026" [ref=e1557]'
+            - generic [ref=e1558]:
+              - generic [ref=e1559]: Localitate (fallback)
+              - 'textbox "ex: Iași" [ref=e1560]'
+          - generic [ref=e1561]:
+            - generic [ref=e1562]:
+              - generic [ref=e1563]: Fișier Examen (Obligatoriu)
+              - button "Choose File" [ref=e1564]
+            - generic [ref=e1565]:
+              - generic [ref=e1566]: Fișier Date Naștere (Opțional)
+              - button "Choose File" [ref=e1567]
+        - button "Procesează Fișierele" [disabled] [ref=e1569]

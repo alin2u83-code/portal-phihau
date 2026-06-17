@@ -1,0 +1,222 @@
+- generic [ref=e1]:
+  - generic [ref=e19]:
+    - complementary [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22] [cursor=pointer]:
+          - img "Qwan Ki Do Romania" [ref=e25]
+          - generic [ref=e27]:
+            - generic [ref=e28]: Qwan Ki Do
+            - generic [ref=e29]: Management
+        - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+          - img [ref=e35]
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: Context Activ
+            - paragraph [ref=e40]: Club
+          - img [ref=e41]
+        - generic [ref=e43]:
+          - button "Scroll sus" [ref=e21097] [cursor=pointer]:
+            - img [ref=e21098]
+          - navigation [ref=e44]:
+            - generic [ref=e45] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e52]: Dashboard
+            - generic [ref=e54] [cursor=pointer]:
+              - img [ref=e55]
+              - generic [ref=e60]: Gestiune Membri
+              - img [ref=e61]
+            - generic [ref=e64] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e67]: Activitate Sală
+              - img [ref=e68]
+            - generic [ref=e71] [cursor=pointer]:
+              - img [ref=e72]
+              - generic [ref=e78]: Examene
+              - img [ref=e79]
+            - generic [ref=e87] [cursor=pointer]:
+              - img [ref=e88]
+              - generic [ref=e94]: Activități Naționale
+              - img [ref=e95]
+            - generic [ref=e97]:
+              - generic [ref=e98] [cursor=pointer]:
+                - img [ref=e99]
+                - generic [ref=e101]: Financiar & Plăți
+                - img [ref=e102]
+              - generic [ref=e1153]:
+                - generic [ref=e1154] [cursor=pointer]: Facturi & Plăți
+                - generic [ref=e1156] [cursor=pointer]: Jurnal Încasări
+                - generic [ref=e1158] [cursor=pointer]: Raport Financiar
+                - generic [ref=e1160] [cursor=pointer]: Taxe Anuale
+                - generic [ref=e1162] [cursor=pointer]: Config. Abonamente
+                - generic [ref=e1164] [cursor=pointer]: Configurare Prețuri
+            - generic [ref=e105] [cursor=pointer]:
+              - img [ref=e106]
+              - generic [ref=e109]: Setări & Admin
+              - img [ref=e110]
+            - generic [ref=e112] [cursor=pointer]:
+              - img [ref=e114]
+              - generic [ref=e118]: Notificări
+            - generic [ref=e119] [cursor=pointer]:
+              - img [ref=e121]
+              - generic [ref=e123]: SMS
+            - generic [ref=e124] [cursor=pointer]:
+              - img [ref=e126]
+              - generic [ref=e129]: Cereri Înscriere
+            - generic [ref=e130] [cursor=pointer]:
+              - img [ref=e132]
+              - generic [ref=e135]: Istoric Activitate
+          - button "Scroll jos" [ref=e136] [cursor=pointer]:
+            - img [ref=e137]
+        - generic [ref=e139]:
+          - button "Tema" [ref=e141] [cursor=pointer]:
+            - img [ref=e142]
+            - generic [ref=e148]: Tema
+          - generic [ref=e150]:
+            - generic [ref=e151]: AL
+            - generic [ref=e152]:
+              - paragraph [ref=e153]: ALIN MIHAI LUNGU
+              - text: Admin Club
+            - button "Deconectare" [ref=e154] [cursor=pointer]:
+              - img [ref=e155]
+    - button "Restrânge meniul" [ref=e158] [cursor=pointer]:
+      - img [ref=e159]
+    - banner [ref=e161]:
+      - navigation "Navigare" [ref=e163]:
+        - heading "tipuri-abonament" [level=1] [ref=e24219]
+      - generic [ref=e165]:
+        - button "Temă" [ref=e167] [cursor=pointer]:
+          - img [ref=e168]
+          - generic [ref=e174]: Temă
+        - button [ref=e176] [cursor=pointer]:
+          - img [ref=e177]
+        - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e182] [cursor=pointer]:
+          - generic [ref=e183]: AL
+          - paragraph [ref=e185]:
+            - text: ALIN MIHAI
+            - generic [ref=e186]: "[ADMIN CLUB]"
+          - img [ref=e187]
+    - main [ref=e189]:
+      - generic [ref=e24221]:
+        - button "Înapoi la Meniu" [ref=e24222] [cursor=pointer]:
+          - img [ref=e24223]
+          - text: Înapoi la Meniu
+        - heading "Management Tipuri Abonament" [level=1] [ref=e24225]
+        - generic [ref=e24226]:
+          - heading "Definește Abonament Nou" [level=3] [ref=e24227]:
+            - img [ref=e24228]
+            - text: Definește Abonament Nou
+          - generic [ref=e24229]:
+            - generic [ref=e24231]:
+              - generic [ref=e24232]: "Denumire (ex: Individual, Familie 2)"
+              - textbox "Introduceți numele..." [ref=e24233]
+            - generic [ref=e24234]:
+              - generic [ref=e24235]: Preț (RON)
+              - spinbutton [ref=e24236]
+            - generic [ref=e24237]:
+              - generic [ref=e24238]: Nr. Membri
+              - spinbutton [ref=e24239]: "1"
+          - button "Adaugă în Listă" [ref=e24241] [cursor=pointer]:
+            - img [ref=e24242]
+            - text: Adaugă în Listă
+        - generic [ref=e24243]:
+          - heading "Nomenclator Abonamente Active" [level=3] [ref=e24245]
+          - table [ref=e24247]:
+            - rowgroup [ref=e24248]:
+              - row "Denumire Membri Alocați Tarif Lunar Acțiuni" [ref=e24249]:
+                - columnheader "Denumire" [ref=e24250]
+                - columnheader "Membri Alocați" [ref=e24251]
+                - columnheader "Tarif Lunar" [ref=e24252]
+                - columnheader "Acțiuni" [ref=e24253]
+            - rowgroup [ref=e24254]:
+              - row "Individual 1 220 RON" [ref=e24255]:
+                - cell "Individual" [ref=e24256]:
+                  - textbox [ref=e24258]: Individual
+                - cell "1" [ref=e24259]:
+                  - spinbutton [ref=e24261]: "1"
+                - cell "220 RON" [ref=e24262]:
+                  - generic [ref=e24263]:
+                    - spinbutton [ref=e24265]: "220"
+                    - generic [ref=e24266]: RON
+                - cell [ref=e24267]:
+                  - button "Șterge acest tip" [ref=e24268] [cursor=pointer]:
+                    - img [ref=e24269]
+              - row "Familie 2 2 330 RON" [ref=e24272]:
+                - cell "Familie 2" [ref=e24273]:
+                  - textbox [ref=e24275]: Familie 2
+                - cell "2" [ref=e24276]:
+                  - spinbutton [ref=e24278]: "2"
+                - cell "330 RON" [ref=e24279]:
+                  - generic [ref=e24280]:
+                    - spinbutton [ref=e24282]: "330"
+                    - generic [ref=e24283]: RON
+                - cell [ref=e24284]:
+                  - button "Șterge acest tip" [ref=e24285] [cursor=pointer]:
+                    - img [ref=e24286]
+              - row "Familie 3 3 380 RON" [ref=e24289]:
+                - cell "Familie 3" [ref=e24290]:
+                  - textbox [ref=e24292]: Familie 3
+                - cell "3" [ref=e24293]:
+                  - spinbutton [ref=e24295]: "3"
+                - cell "380 RON" [ref=e24296]:
+                  - generic [ref=e24297]:
+                    - spinbutton [ref=e24299]: "380"
+                    - generic [ref=e24300]: RON
+                - cell [ref=e24301]:
+                  - button "Șterge acest tip" [ref=e24302] [cursor=pointer]:
+                    - img [ref=e24303]
+              - row "Familie 4 4 440 RON" [ref=e24306]:
+                - cell "Familie 4" [ref=e24307]:
+                  - textbox [ref=e24309]: Familie 4
+                - cell "4" [ref=e24310]:
+                  - spinbutton [ref=e24312]: "4"
+                - cell "440 RON" [ref=e24313]:
+                  - generic [ref=e24314]:
+                    - spinbutton [ref=e24316]: "440"
+                    - generic [ref=e24317]: RON
+                - cell [ref=e24318]:
+                  - button "Șterge acest tip" [ref=e24319] [cursor=pointer]:
+                    - img [ref=e24320]
+              - row "Familie 5 5 500 RON" [ref=e24323]:
+                - cell "Familie 5" [ref=e24324]:
+                  - textbox [ref=e24326]: Familie 5
+                - cell "5" [ref=e24327]:
+                  - spinbutton [ref=e24329]: "5"
+                - cell "500 RON" [ref=e24330]:
+                  - generic [ref=e24331]:
+                    - spinbutton [ref=e24333]: "500"
+                    - generic [ref=e24334]: RON
+                - cell [ref=e24335]:
+                  - button "Șterge acest tip" [ref=e24336] [cursor=pointer]:
+                    - img [ref=e24337]
+        - generic [ref=e24340]:
+          - heading "Ghid de utilizare" [level=4] [ref=e24341]
+          - list [ref=e24342]:
+            - listitem [ref=e24343]:
+              - text: Abonamentele
+              - strong [ref=e24344]: Individuale
+              - text: trebuie să aibă Nr. Membri setat la
+              - strong [ref=e24345]: "1"
+              - text: .
+            - listitem [ref=e24346]:
+              - text: Abonamentele de
+              - strong [ref=e24347]: Familie
+              - text: trebuie să aibă Nr. Membri setat la
+              - strong [ref=e24348]: 2 sau mai mult
+              - text: .
+            - listitem [ref=e24349]: Sistemul de generare automată a plăților folosește aceste configurații pentru a calcula restanțele lunare.
+    - contentinfo [ref=e1143]:
+      - paragraph [ref=e1144]: Realizat cu AI de Alin Lungu
+      - button "Asistent AI" [ref=e1145] [cursor=pointer]:
+        - img [ref=e1146]
+        - generic [ref=e1149]: Asistent AI
+  - generic [ref=e23683]: "0"
+  - dialog [ref=e24350]:
+    - generic [ref=e24352]:
+      - generic [ref=e24353]:
+        - img [ref=e24355]
+        - generic [ref=e24357]: Validare Eșuată
+      - generic [ref=e24358]:
+        - paragraph [ref=e24359]: Denumirea abonamentului este obligatorie.
+        - button "Copiază Eroarea" [ref=e24360] [cursor=pointer]:
+          - img [ref=e24361]
+          - text: Copiază Eroarea
+      - button "OK" [active] [ref=e24364] [cursor=pointer]

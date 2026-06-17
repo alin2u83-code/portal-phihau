@@ -1,0 +1,349 @@
+- generic [ref=e1]:
+  - generic [ref=e19]:
+    - complementary [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22] [cursor=pointer]:
+          - img "Qwan Ki Do Romania" [ref=e25]
+          - generic [ref=e27]:
+            - generic [ref=e28]: Qwan Ki Do
+            - generic [ref=e29]: Management
+        - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+          - img [ref=e35]
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: Context Activ
+            - paragraph [ref=e40]: Federație
+          - img [ref=e41]
+        - generic [ref=e43]:
+          - button "Scroll sus":
+            - img
+          - navigation [ref=e44]:
+            - generic [ref=e45] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e52]: Dashboard
+            - generic [ref=e53]:
+              - generic [ref=e54] [cursor=pointer]:
+                - img [ref=e55]
+                - generic [ref=e60]: Gestiune Membri
+                - img [ref=e61]
+              - generic [ref=e511]:
+                - generic [ref=e512] [cursor=pointer]: Sportivi
+                - generic [ref=e514] [cursor=pointer]: Import Sportivi
+                - generic [ref=e516] [cursor=pointer]: Deduplicare Sportivi
+                - generic [ref=e518] [cursor=pointer]: Familii
+                - generic [ref=e520] [cursor=pointer]: Legitimații
+                - generic [ref=e522] [cursor=pointer]: Nomenclator Grade
+                - generic [ref=e524] [cursor=pointer]: Administrare Staff
+            - generic [ref=e64] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e71]: Examene
+              - img [ref=e72]
+            - generic [ref=e80] [cursor=pointer]:
+              - img [ref=e81]
+              - generic [ref=e87]: Activități Naționale
+              - img [ref=e88]
+            - generic [ref=e91] [cursor=pointer]:
+              - img [ref=e92]
+              - generic [ref=e95]: Setări & Admin
+              - img [ref=e96]
+            - generic [ref=e98] [cursor=pointer]:
+              - img [ref=e100]
+              - generic [ref=e102]: Rapoarte
+            - generic [ref=e103] [cursor=pointer]:
+              - img [ref=e105]
+              - generic [ref=e109]: Notificări
+            - generic [ref=e110] [cursor=pointer]:
+              - img [ref=e112]
+              - generic [ref=e114]: SMS
+            - generic [ref=e115] [cursor=pointer]:
+              - img [ref=e117]
+              - generic [ref=e120]: Cereri Înscriere
+            - generic [ref=e121] [cursor=pointer]:
+              - img [ref=e123]
+              - generic [ref=e126]: Istoric Activitate
+            - generic [ref=e127] [cursor=pointer]:
+              - img [ref=e129]
+              - generic [ref=e132]: Admin Dashboard
+            - generic [ref=e133] [cursor=pointer]:
+              - img [ref=e135]
+              - generic [ref=e141]: Button Catalog
+          - button "Scroll jos" [ref=e142] [cursor=pointer]:
+            - img [ref=e143]
+        - generic [ref=e145]:
+          - button "Tema" [ref=e147] [cursor=pointer]:
+            - img [ref=e148]
+            - generic [ref=e154]: Tema
+          - generic [ref=e156]:
+            - generic [ref=e157]: AL
+            - generic [ref=e158]:
+              - paragraph [ref=e159]: ALIN MIHAI LUNGU
+              - text: Super Admin
+            - button "Deconectare" [ref=e160] [cursor=pointer]:
+              - img [ref=e161]
+    - banner [ref=e164]:
+      - generic [ref=e165]:
+        - button "Deschide meniu" [ref=e166] [cursor=pointer]:
+          - img [ref=e167]
+        - button "Înapoi" [ref=e2841] [cursor=pointer]:
+          - img [ref=e2842]
+        - navigation "Navigare" [ref=e168]:
+          - heading "Profil Sportiv" [level=1] [ref=e2844]
+      - generic [ref=e170]:
+        - button "Personalizare temă" [ref=e172] [cursor=pointer]:
+          - img [ref=e173]
+        - button [ref=e180] [cursor=pointer]:
+          - img [ref=e181]
+        - button "AL" [ref=e185] [cursor=pointer]:
+          - generic [ref=e186]: AL
+    - main [ref=e187]:
+      - generic [ref=e2862]:
+        - button "Management Sportivi" [ref=e2863] [cursor=pointer]:
+          - img [ref=e2864]
+          - generic [ref=e2866]: Management Sportivi
+        - generic [ref=e2867]:
+          - generic [ref=e2868]:
+            - generic [ref=e2869]:
+              - generic [ref=e2871]:
+                - generic [ref=e2872]: AA
+                - img [ref=e2874] [cursor=pointer]
+              - generic [ref=e2878]: 2 Câp Roșu
+            - generic [ref=e2879]:
+              - heading "AGAFIȚEI ALEXANDRA MIHAELA" [level=1] [ref=e2880]
+              - paragraph [ref=e2881]: Retrasi
+              - generic [ref=e2883]: Activ
+          - generic [ref=e2884]:
+            - button "Editare" [ref=e2885] [cursor=pointer]:
+              - img [ref=e2886]
+              - text: Editare
+            - button "Portofel" [ref=e2889] [cursor=pointer]:
+              - img [ref=e2890]
+              - text: Portofel
+            - button "Plăți" [ref=e2893] [cursor=pointer]:
+              - img [ref=e2894]
+              - text: Plăți
+            - button "Examene" [ref=e2896] [cursor=pointer]:
+              - img [ref=e2897]
+              - text: Examene
+            - button "Șterge" [ref=e2903] [cursor=pointer]:
+              - img [ref=e2904]
+              - text: Șterge
+        - generic [ref=e2907]:
+          - button "Profil & Activitate" [ref=e2908] [cursor=pointer]:
+            - img [ref=e2909]
+            - text: Profil & Activitate
+          - button "Contact & Info" [ref=e2913] [cursor=pointer]:
+            - img [ref=e2914]
+            - text: Contact & Info
+          - button "Evoluție & Grade" [ref=e2917] [cursor=pointer]:
+            - img [ref=e2918]
+            - text: Evoluție & Grade
+          - button "Istoric Financiar" [ref=e2924] [cursor=pointer]:
+            - img [ref=e2925]
+            - text: Istoric Financiar
+        - generic [ref=e3108]:
+          - generic [ref=e3109]:
+            - generic [ref=e3110]:
+              - heading "Evoluție în Timp" [level=3] [ref=e3111]
+              - img [ref=e3115]:
+                - generic [ref=e3120]:
+                  - generic [ref=e3243]: 16.02.2012
+                  - generic [ref=e3245]: 23.06.2012
+            - generic [ref=e3127]:
+              - generic [ref=e3128]:
+                - heading "Istoric Examene" [level=3] [ref=e3129]:
+                  - img [ref=e3130]
+                  - text: Istoric Examene
+                - generic [ref=e3136]:
+                  - generic [ref=e3137]:
+                    - paragraph [ref=e3138]: Total
+                    - paragraph [ref=e3139]: "2"
+                  - generic [ref=e3140]:
+                    - paragraph [ref=e3141]: Admis
+                    - paragraph [ref=e3142]: "2"
+              - generic [ref=e3143]:
+                - generic [ref=e3144]:
+                  - img [ref=e3146]
+                  - generic [ref=e3149]:
+                    - generic [ref=e3150]:
+                      - generic [ref=e3151]:
+                        - heading "2 Câp Roșu" [level=4] [ref=e3152]
+                        - paragraph [ref=e3153]: Bacau
+                      - generic [ref=e3154]:
+                        - paragraph [ref=e3155]: 23.06.2012
+                        - text: Admis
+                    - button "Deschide Examenul" [ref=e3157] [cursor=pointer]:
+                      - text: Deschide Examenul
+                      - img [ref=e3158]
+                - generic [ref=e3160]:
+                  - img [ref=e3162]
+                  - generic [ref=e3165]:
+                    - generic [ref=e3166]:
+                      - generic [ref=e3167]:
+                        - heading "1 Câp Roșu" [level=4] [ref=e3168]
+                        - paragraph [ref=e3169]: Bacau
+                      - generic [ref=e3170]:
+                        - paragraph [ref=e3171]: 16.02.2012
+                        - text: Admis
+                    - button "Deschide Examenul" [ref=e3173] [cursor=pointer]:
+                      - text: Deschide Examenul
+                      - img [ref=e3174]
+          - generic [ref=e3176]:
+            - generic [ref=e3177]:
+              - heading "Istoric Examinări & Grade" [level=3] [ref=e3178]
+              - button "Adaugă Manual" [ref=e3179] [cursor=pointer]:
+                - img [ref=e3180]
+                - text: Adaugă Manual
+            - table [ref=e3182]:
+              - rowgroup [ref=e3183]:
+                - row "Data Grad Sursă Observații" [ref=e3184]:
+                  - columnheader "Data" [ref=e3185]
+                  - columnheader "Grad" [ref=e3186]
+                  - columnheader "Sursă" [ref=e3187]
+                  - columnheader "Observații" [ref=e3188]
+                  - columnheader [ref=e3189]
+              - rowgroup [ref=e3190]:
+                - row "16.08.2011 Debutant Acordat Manual Inițializare automată istoric (Migrare) Editează intrarea de grad Șterge intrarea de grad" [ref=e3191]:
+                  - cell "16.08.2011" [ref=e3192]
+                  - cell "Debutant" [ref=e3193]
+                  - cell "Acordat Manual" [ref=e3194]
+                  - cell "Inițializare automată istoric (Migrare)" [ref=e3195]
+                  - cell "Editează intrarea de grad Șterge intrarea de grad" [ref=e3196]:
+                    - generic [ref=e3197]:
+                      - button "Editează intrarea de grad" [ref=e3198] [cursor=pointer]:
+                        - img [ref=e3199]
+                      - button "Șterge intrarea de grad" [ref=e3202] [cursor=pointer]:
+                        - img [ref=e3203]
+                - row "16.02.2012 1 Câp Roșu Examen Oficial Import din XLS Editează intrarea de grad Șterge intrarea de grad" [ref=e3206]:
+                  - cell "16.02.2012" [ref=e3207]
+                  - cell "1 Câp Roșu" [ref=e3208]
+                  - cell "Examen Oficial" [ref=e3209]
+                  - cell "Import din XLS" [ref=e3210]
+                  - cell "Editează intrarea de grad Șterge intrarea de grad" [ref=e3211]:
+                    - generic [ref=e3212]:
+                      - button "Editează intrarea de grad" [ref=e3213] [cursor=pointer]:
+                        - img [ref=e3214]
+                      - button "Șterge intrarea de grad" [ref=e3217] [cursor=pointer]:
+                        - img [ref=e3218]
+                - row "23.06.2012 2 Câp Roșu Examen Oficial Import din XLS Editează intrarea de grad Șterge intrarea de grad" [ref=e3221]:
+                  - cell "23.06.2012" [ref=e3222]
+                  - cell "2 Câp Roșu" [ref=e3223]
+                  - cell "Examen Oficial" [ref=e3224]
+                  - cell "Import din XLS" [ref=e3225]
+                  - cell "Editează intrarea de grad Șterge intrarea de grad" [ref=e3226]:
+                    - generic [ref=e3227]:
+                      - button "Editează intrarea de grad" [ref=e3228] [cursor=pointer]:
+                        - img [ref=e3229]
+                      - button "Șterge intrarea de grad" [ref=e3232] [cursor=pointer]:
+                        - img [ref=e3233]
+    - button "Asistent AI" [ref=e506] [cursor=pointer]:
+      - img [ref=e507]
+  - generic [ref=e3236]: 16.02.2012
+  - dialog "Editează Sportiv" [ref=e3247]:
+    - generic [ref=e3248]:
+      - generic [ref=e3249]:
+        - heading "Editează Sportiv" [level=2] [ref=e3250]
+        - button [ref=e3251] [cursor=pointer]:
+          - img [ref=e3252]
+      - generic [ref=e3256]:
+        - generic [ref=e3257]:
+          - generic [ref=e3258]:
+            - button "Date Personale" [ref=e3259] [cursor=pointer]
+            - button "Contact & Acces" [ref=e3260] [cursor=pointer]
+            - button "Club & Status" [active] [ref=e3261] [cursor=pointer]
+          - generic [ref=e3347]:
+            - heading "Club & Antrenament" [level=3] [ref=e3348]
+            - generic [ref=e3349]:
+              - generic [ref=e3350]:
+                - generic [ref=e3351]: Data Înscrierii
+                - textbox [ref=e3352]: 2026-03-04
+              - generic [ref=e3353]:
+                - generic [ref=e3354]: Club *
+                - combobox [ref=e3355]:
+                  - option "— Selectează club —"
+                  - option "Club Bogdan"
+                  - option "Thoi Son Brasov"
+                  - option "Am Duong"
+                  - option "Long Ho Cluj"
+                  - option "C.S. Phi Hau" [selected]
+                  - option "Kim Long Dao Falticeni"
+                  - option "Hong Ha"
+                  - option "Hâc Long Dao Brașov"
+                  - option "ACS Phuong Bao"
+                  - option "Long Dao"
+              - generic [ref=e3356]:
+                - generic [ref=e3357]: Grad Inițial / Actual
+                - generic [ref=e3358]:
+                  - combobox [ref=e3359]:
+                    - option "Începător (fără grad)"
+                    - option "Debutant"
+                    - option "1 Câp Galben"
+                    - option "2 Câp Galben"
+                    - option "3 Câp Galben"
+                    - option "4 Câp Galben"
+                    - option "1 Câp Roșu"
+                    - option "2 Câp Roșu" [selected]
+                    - option "3 Câp Roșu"
+                    - option "4 Câp Roșu"
+                    - option "Centura Violet"
+                    - option "C.V. 1 Câp Alb"
+                    - option "C.V. 2 Câp Alb"
+                    - option "C.V. 3 Câp Alb"
+                    - option "C.V. 4 Câp Alb"
+                    - option "1 Câp Albastru"
+                    - option "2 Câp Albastru"
+                    - option "3 Câp Albastru"
+                    - option "4 Câp Albastru"
+                    - option "Centura Neagră"
+                    - option "C.N. 1 Dang"
+                    - option "C.N. 2 Dang"
+                    - option "C.N. 3 Dang"
+                    - option "C.N. 4 Dang"
+                    - option "C.N. 5 Dang"
+                    - option "C.N. 6 Dang"
+                    - option "C.N. 7 Dang"
+                  - generic:
+                    - img
+              - generic [ref=e3360]:
+                - generic [ref=e3361]:
+                  - generic [ref=e3362]: Grupă
+                  - generic [ref=e3363]:
+                    - combobox [ref=e3364]:
+                      - option "Fără grupă"
+                      - option "Copii Incepatori"
+                      - option "Retrasi" [selected]
+                      - option "Juniori si Adulti"
+                      - option "Copii Avansati"
+                    - generic:
+                      - img
+                - button "Adaugă grupă nouă" [ref=e3365] [cursor=pointer]:
+                  - img [ref=e3366]
+              - generic [ref=e3367]:
+                - generic [ref=e3368]:
+                  - generic [ref=e3369]: Familie
+                  - generic [ref=e3370]:
+                    - combobox [ref=e3371]:
+                      - option "Individual" [selected]
+                      - option "Balmus"
+                      - option "Andriciuc"
+                      - option "Aștefanei"
+                      - option "Gomei"
+                      - option "Pricop"
+                      - option "Anistoroaei"
+                      - option "URECHE"
+                    - generic:
+                      - img
+                - button "Adaugă familie nouă" [ref=e3372] [cursor=pointer]:
+                  - img [ref=e3373]
+              - generic [ref=e3374]:
+                - generic [ref=e3375]: Status
+                - generic [ref=e3376]:
+                  - combobox [ref=e3377]:
+                    - option "Activ" [selected]
+                    - option "Inactiv"
+                  - generic:
+                    - img
+              - generic [ref=e3379] [cursor=pointer]:
+                - checkbox "Participă la antrenamentele din vacanță" [ref=e3381]
+                - generic [ref=e3384]: Participă la antrenamentele din vacanță
+        - generic [ref=e3297]:
+          - button "Închide" [ref=e3298] [cursor=pointer]
+          - button "Salvează Modificările" [ref=e3299] [cursor=pointer]

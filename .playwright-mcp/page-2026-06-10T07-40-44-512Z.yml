@@ -1,0 +1,120 @@
+- generic [ref=e3]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e10]
+        - generic [ref=e12]:
+          - generic [ref=e13]: Qwan Ki Do
+          - generic [ref=e14]: Management
+      - button "Context Activ Federație" [ref=e18] [cursor=pointer]:
+        - img [ref=e20]
+        - generic [ref=e23]:
+          - paragraph [ref=e24]: Context Activ
+          - paragraph [ref=e25]: Federație
+        - img [ref=e26]
+      - generic [ref=e28]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e29]:
+          - generic [ref=e30] [cursor=pointer]:
+            - img [ref=e32]
+            - generic [ref=e37]: Dashboard
+          - generic [ref=e39] [cursor=pointer]:
+            - img [ref=e40]
+            - generic [ref=e45]: Gestiune Membri
+            - img [ref=e46]
+          - generic [ref=e49] [cursor=pointer]:
+            - img [ref=e50]
+            - generic [ref=e56]: Examene
+            - img [ref=e57]
+          - generic [ref=e59]:
+            - generic [ref=e60] [cursor=pointer]:
+              - img [ref=e61]
+              - generic [ref=e67]: Activități Naționale
+              - img [ref=e68]
+            - generic [ref=e262]:
+              - generic [ref=e263] [cursor=pointer]: Competiții
+              - generic [ref=e265] [cursor=pointer]: Stagii
+              - generic [ref=e267] [cursor=pointer]: Template Probe
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e75]: Setări & Admin
+            - img [ref=e76]
+          - generic [ref=e78] [cursor=pointer]:
+            - img [ref=e80]
+            - generic [ref=e82]: Rapoarte
+          - generic [ref=e83] [cursor=pointer]:
+            - img [ref=e85]
+            - generic [ref=e89]: Notificări
+          - generic [ref=e90] [cursor=pointer]:
+            - img [ref=e92]
+            - generic [ref=e94]: SMS
+          - generic [ref=e95] [cursor=pointer]:
+            - img [ref=e97]
+            - generic [ref=e100]: Cereri Înscriere
+          - generic [ref=e101] [cursor=pointer]:
+            - img [ref=e103]
+            - generic [ref=e106]: Istoric Activitate
+          - generic [ref=e107] [cursor=pointer]:
+            - img [ref=e109]
+            - generic [ref=e112]: Admin Dashboard
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e115]
+            - generic [ref=e121]: Button Catalog
+        - button "Scroll jos" [ref=e122] [cursor=pointer]:
+          - img [ref=e123]
+      - generic [ref=e125]:
+        - button "Tema" [ref=e127] [cursor=pointer]:
+          - img [ref=e128]
+          - generic [ref=e134]: Tema
+        - generic [ref=e136]:
+          - generic [ref=e137]: AL
+          - generic [ref=e138]:
+            - paragraph [ref=e139]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e140] [cursor=pointer]:
+            - img [ref=e141]
+  - banner [ref=e144]:
+    - generic [ref=e145]:
+      - button "Deschide meniu" [ref=e146] [cursor=pointer]:
+        - img [ref=e147]
+      - navigation "Navigare" [ref=e148]:
+        - heading "template-probe" [level=1] [ref=e269]
+    - generic [ref=e150]:
+      - button "Personalizare temă" [ref=e152] [cursor=pointer]:
+        - img [ref=e153]
+      - button [ref=e160] [cursor=pointer]:
+        - img [ref=e161]
+      - button "AL" [ref=e165] [cursor=pointer]:
+        - generic [ref=e166]: AL
+  - main [ref=e167]:
+    - generic [ref=e271]:
+      - generic [ref=e272]:
+        - generic [ref=e273]:
+          - heading "Bibliotecă Categorii (Federație)" [level=3] [ref=e274]
+          - paragraph [ref=e275]: 0 din 0 template-uri
+        - generic [ref=e276]:
+          - button "Generator Bulk" [ref=e277] [cursor=pointer]:
+            - img [ref=e278]
+            - text: Generator Bulk
+          - button "Wizard Adăugare" [ref=e279] [cursor=pointer]:
+            - img [ref=e280]
+            - text: Wizard Adăugare
+          - button "Adaugă Template" [ref=e281] [cursor=pointer]:
+            - img [ref=e282]
+            - text: Adaugă Template
+      - generic [ref=e283]:
+        - button "Toate (0)" [ref=e284] [cursor=pointer]
+        - button "Thao Quyen (0)" [ref=e285] [cursor=pointer]
+        - button "Song Luyen (0)" [ref=e286] [cursor=pointer]
+        - button "Sincron (0)" [ref=e287] [cursor=pointer]
+        - button "CVD / Arme (0)" [ref=e288] [cursor=pointer]
+        - button "Giao Dau (0)" [ref=e289] [cursor=pointer]
+      - generic [ref=e290]:
+        - button "Filtre" [ref=e291] [cursor=pointer]:
+          - img [ref=e292]
+          - text: Filtre
+        - textbox "Caută denumire..." [ref=e294]
+      - generic [ref=e295]: Se încarcă...
+  - button "Asistent AI" [ref=e258] [cursor=pointer]:
+    - img [ref=e259]

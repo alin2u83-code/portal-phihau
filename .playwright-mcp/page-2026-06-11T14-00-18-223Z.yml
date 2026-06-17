@@ -1,0 +1,991 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e19]:
+    - complementary [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22] [cursor=pointer]:
+          - img "Qwan Ki Do Romania" [ref=e25]
+          - generic [ref=e27]:
+            - generic [ref=e28]: Qwan Ki Do
+            - generic [ref=e29]: Management
+        - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+          - img [ref=e35]
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: Context Activ
+            - paragraph [ref=e40]: Federație
+          - img [ref=e41]
+        - generic [ref=e43]:
+          - button "Scroll sus":
+            - img
+          - navigation [ref=e44]:
+            - generic [ref=e45] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e52]: Dashboard
+            - generic [ref=e54] [cursor=pointer]:
+              - img [ref=e55]
+              - generic [ref=e60]: Gestiune Membri
+              - img [ref=e61]
+            - generic [ref=e63]:
+              - generic [ref=e64] [cursor=pointer]:
+                - img [ref=e65]
+                - generic [ref=e71]: Examene
+                - img [ref=e72]
+              - generic [ref=e74]:
+                - generic [ref=e75] [cursor=pointer]: Sesiuni Examene
+                - generic [ref=e77] [cursor=pointer]: Rapoarte Examen
+            - generic [ref=e80] [cursor=pointer]:
+              - img [ref=e81]
+              - generic [ref=e87]: Activități Naționale
+              - img [ref=e88]
+            - generic [ref=e91] [cursor=pointer]:
+              - img [ref=e92]
+              - generic [ref=e95]: Setări & Admin
+              - img [ref=e96]
+            - generic [ref=e98] [cursor=pointer]:
+              - img [ref=e100]
+              - generic [ref=e102]: Rapoarte
+            - generic [ref=e103] [cursor=pointer]:
+              - img [ref=e105]
+              - generic [ref=e109]: Notificări
+            - generic [ref=e110] [cursor=pointer]:
+              - img [ref=e112]
+              - generic [ref=e114]: SMS
+            - generic [ref=e115] [cursor=pointer]:
+              - img [ref=e117]
+              - generic [ref=e120]: Cereri Înscriere
+            - generic [ref=e121] [cursor=pointer]:
+              - img [ref=e123]
+              - generic [ref=e126]: Istoric Activitate
+            - generic [ref=e127] [cursor=pointer]:
+              - img [ref=e129]
+              - generic [ref=e132]: Admin Dashboard
+            - generic [ref=e133] [cursor=pointer]:
+              - img [ref=e135]
+              - generic [ref=e141]: Button Catalog
+          - button "Scroll jos" [ref=e142] [cursor=pointer]:
+            - img [ref=e143]
+        - generic [ref=e145]:
+          - button "Tema" [ref=e147] [cursor=pointer]:
+            - img [ref=e148]
+            - generic [ref=e154]: Tema
+          - generic [ref=e156]:
+            - generic [ref=e157]: AL
+            - generic [ref=e158]:
+              - paragraph [ref=e159]: ALIN MIHAI LUNGU
+              - text: Super Admin
+            - button "Deconectare" [ref=e160] [cursor=pointer]:
+              - img [ref=e161]
+    - button "Restrânge meniul" [ref=e164] [cursor=pointer]:
+      - img [ref=e165]
+    - banner [ref=e167]:
+      - navigation "Navigare" [ref=e169]:
+        - heading "Examene" [level=1] [ref=e170]
+      - generic [ref=e171]:
+        - button "Temă" [ref=e173] [cursor=pointer]:
+          - img [ref=e174]
+          - generic [ref=e180]: Temă
+        - button [ref=e182] [cursor=pointer]:
+          - img [ref=e183]
+        - button "AL ALIN MIHAI [SUPER ADMIN]" [ref=e188] [cursor=pointer]:
+          - generic [ref=e189]: AL
+          - paragraph [ref=e191]:
+            - text: ALIN MIHAI
+            - generic [ref=e192]: "[SUPER ADMIN]"
+          - img [ref=e193]
+    - main [ref=e195]:
+      - generic [ref=e198]:
+        - button "Înapoi la listă" [ref=e199] [cursor=pointer]:
+          - img [ref=e200]
+          - text: Înapoi la listă
+        - generic [ref=e202]:
+          - generic [ref=e203]:
+            - generic [ref=e204]:
+              - heading "Falticeni - 11.06.2026" [level=3] [ref=e205]
+              - paragraph [ref=e206]: "Comisia:"
+              - text: Finalizat
+            - generic [ref=e207]:
+              - button "Ghid import XLS" [ref=e208] [cursor=pointer]:
+                - img [ref=e209]
+              - button "Import Sportivi" [ref=e212] [cursor=pointer]:
+                - img [ref=e213]
+                - text: Import Sportivi
+              - button "Import XLS" [ref=e216] [cursor=pointer]:
+                - img [ref=e217]
+                - text: Import XLS
+              - button "Export Fișe" [ref=e220] [cursor=pointer]:
+                - img [ref=e221]
+                - text: Export Fișe
+              - button "Editează" [ref=e223] [cursor=pointer]:
+                - img [ref=e224]
+                - text: Editează
+          - generic [ref=e227]:
+            - generic [ref=e228]:
+              - generic [ref=e230]:
+                - heading "Înscriere Participanți" [level=3] [ref=e231]
+                - paragraph [ref=e232]: Adaugă sportivi individual sau selectează mai mulți odată
+              - generic [ref=e233]:
+                - button "Adaugă Individual" [ref=e234] [cursor=pointer]:
+                  - img [ref=e235]
+                  - text: Adaugă Individual
+                - button "Adaugă Multipli" [ref=e236] [cursor=pointer]:
+                  - img [ref=e237]
+                  - text: Adaugă Multipli
+            - generic [ref=e238]:
+              - generic [ref=e239]:
+                - paragraph [ref=e240]: "0"
+                - paragraph [ref=e241]: Admiși
+              - generic [ref=e242]:
+                - paragraph [ref=e243]: "61"
+                - paragraph [ref=e244]: În așteptare
+              - generic [ref=e245]:
+                - paragraph [ref=e246]: "0"
+                - paragraph [ref=e247]: Respinși
+            - generic [ref=e248]:
+              - generic [ref=e249]:
+                - heading "Participanți Înscriși61" [level=3] [ref=e250]
+                - generic [ref=e251]:
+                  - button "Export Fișe" [ref=e252] [cursor=pointer]:
+                    - img [ref=e253]
+                    - text: Export Fișe
+                  - button "Admite Toți" [ref=e255] [cursor=pointer]
+              - generic [ref=e256]:
+                - table [ref=e258]:
+                  - rowgroup [ref=e259]:
+                    - row "Nume Sportiv Grad Actual Grad Vizat Status Plată Rezultat Acțiuni" [ref=e260]:
+                      - columnheader "Nume Sportiv" [ref=e261] [cursor=pointer]
+                      - columnheader "Grad Actual" [ref=e262] [cursor=pointer]
+                      - columnheader "Grad Vizat" [ref=e263] [cursor=pointer]
+                      - columnheader "Status Plată" [ref=e264] [cursor=pointer]
+                      - columnheader "Rezultat" [ref=e265] [cursor=pointer]
+                      - columnheader "Acțiuni" [ref=e266] [cursor=pointer]
+                  - rowgroup [ref=e267]:
+                    - row "CERVINSKI ANA 3 Câp Albastru 4 Câp Albastru Neachitat În așteptare" [ref=e268]:
+                      - cell "CERVINSKI ANA" [ref=e269]:
+                        - paragraph [ref=e270] [cursor=pointer]: CERVINSKI ANA
+                      - cell "3 Câp Albastru" [ref=e271]
+                      - cell "4 Câp Albastru" [ref=e272]
+                      - cell "Neachitat" [ref=e273]:
+                        - generic [ref=e275]: Neachitat
+                      - cell "În așteptare" [ref=e276]:
+                        - generic [ref=e278]:
+                          - combobox [ref=e279]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e280]:
+                        - generic [ref=e281]:
+                          - button "Modifică gradul vizat" [ref=e282] [cursor=pointer]:
+                            - img [ref=e283]
+                          - button "Retrage înscriere" [ref=e286] [cursor=pointer]:
+                            - img [ref=e287]
+                    - row "HLIHOR IOAN 3 Câp Albastru 4 Câp Albastru Neachitat În așteptare" [ref=e290]:
+                      - cell "HLIHOR IOAN" [ref=e291]:
+                        - paragraph [ref=e292] [cursor=pointer]: HLIHOR IOAN
+                      - cell "3 Câp Albastru" [ref=e293]
+                      - cell "4 Câp Albastru" [ref=e294]
+                      - cell "Neachitat" [ref=e295]:
+                        - generic [ref=e297]: Neachitat
+                      - cell "În așteptare" [ref=e298]:
+                        - generic [ref=e300]:
+                          - combobox [ref=e301]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e302]:
+                        - generic [ref=e303]:
+                          - button "Modifică gradul vizat" [ref=e304] [cursor=pointer]:
+                            - img [ref=e305]
+                          - button "Retrage înscriere" [ref=e308] [cursor=pointer]:
+                            - img [ref=e309]
+                    - row "CĂLUȘERIU CARMEN IONELA 2 Câp Albastru 3 Câp Albastru Neachitat În așteptare" [ref=e312]:
+                      - cell "CĂLUȘERIU CARMEN IONELA" [ref=e313]:
+                        - paragraph [ref=e314] [cursor=pointer]: CĂLUȘERIU CARMEN IONELA
+                      - cell "2 Câp Albastru" [ref=e315]
+                      - cell "3 Câp Albastru" [ref=e316]
+                      - cell "Neachitat" [ref=e317]:
+                        - generic [ref=e319]: Neachitat
+                      - cell "În așteptare" [ref=e320]:
+                        - generic [ref=e322]:
+                          - combobox [ref=e323]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e324]:
+                        - generic [ref=e325]:
+                          - button "Modifică gradul vizat" [ref=e326] [cursor=pointer]:
+                            - img [ref=e327]
+                          - button "Retrage înscriere" [ref=e330] [cursor=pointer]:
+                            - img [ref=e331]
+                    - row "AIOANEI TUDOR FLORIN 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e334]:
+                      - cell "AIOANEI TUDOR FLORIN" [ref=e335]:
+                        - paragraph [ref=e336] [cursor=pointer]: AIOANEI TUDOR FLORIN
+                      - cell "1 Câp Albastru" [ref=e337]
+                      - cell "2 Câp Albastru" [ref=e338]
+                      - cell "Neachitat" [ref=e339]:
+                        - generic [ref=e341]: Neachitat
+                      - cell "În așteptare" [ref=e342]:
+                        - generic [ref=e344]:
+                          - combobox [ref=e345]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e346]:
+                        - generic [ref=e347]:
+                          - button "Modifică gradul vizat" [ref=e348] [cursor=pointer]:
+                            - img [ref=e349]
+                          - button "Retrage înscriere" [ref=e352] [cursor=pointer]:
+                            - img [ref=e353]
+                    - row "APOSTOL ANDREEA 2 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e356]:
+                      - cell "APOSTOL ANDREEA" [ref=e357]:
+                        - paragraph [ref=e358] [cursor=pointer]: APOSTOL ANDREEA
+                      - cell "2 Câp Albastru" [ref=e359]
+                      - cell "2 Câp Albastru" [ref=e360]
+                      - cell "Neachitat" [ref=e361]:
+                        - generic [ref=e363]: Neachitat
+                      - cell "În așteptare" [ref=e364]:
+                        - generic [ref=e366]:
+                          - combobox [ref=e367]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e368]:
+                        - generic [ref=e369]:
+                          - button "Modifică gradul vizat" [ref=e370] [cursor=pointer]:
+                            - img [ref=e371]
+                          - button "Retrage înscriere" [ref=e374] [cursor=pointer]:
+                            - img [ref=e375]
+                    - row "AVĂDANEI ROBERT ANDREI 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e378]:
+                      - cell "AVĂDANEI ROBERT ANDREI" [ref=e379]:
+                        - paragraph [ref=e380] [cursor=pointer]: AVĂDANEI ROBERT ANDREI
+                      - cell "1 Câp Albastru" [ref=e381]
+                      - cell "2 Câp Albastru" [ref=e382]
+                      - cell "Neachitat" [ref=e383]:
+                        - generic [ref=e385]: Neachitat
+                      - cell "În așteptare" [ref=e386]:
+                        - generic [ref=e388]:
+                          - combobox [ref=e389]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e390]:
+                        - generic [ref=e391]:
+                          - button "Modifică gradul vizat" [ref=e392] [cursor=pointer]:
+                            - img [ref=e393]
+                          - button "Retrage înscriere" [ref=e396] [cursor=pointer]:
+                            - img [ref=e397]
+                    - row "CĂLUȘERIU SEBASTIAN 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e400]:
+                      - cell "CĂLUȘERIU SEBASTIAN" [ref=e401]:
+                        - paragraph [ref=e402] [cursor=pointer]: CĂLUȘERIU SEBASTIAN
+                      - cell "1 Câp Albastru" [ref=e403]
+                      - cell "2 Câp Albastru" [ref=e404]
+                      - cell "Neachitat" [ref=e405]:
+                        - generic [ref=e407]: Neachitat
+                      - cell "În așteptare" [ref=e408]:
+                        - generic [ref=e410]:
+                          - combobox [ref=e411]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e412]:
+                        - generic [ref=e413]:
+                          - button "Modifică gradul vizat" [ref=e414] [cursor=pointer]:
+                            - img [ref=e415]
+                          - button "Retrage înscriere" [ref=e418] [cursor=pointer]:
+                            - img [ref=e419]
+                    - row "DOCHIA ȘTEFAN 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e422]:
+                      - cell "DOCHIA ȘTEFAN" [ref=e423]:
+                        - paragraph [ref=e424] [cursor=pointer]: DOCHIA ȘTEFAN
+                      - cell "1 Câp Albastru" [ref=e425]
+                      - cell "2 Câp Albastru" [ref=e426]
+                      - cell "Neachitat" [ref=e427]:
+                        - generic [ref=e429]: Neachitat
+                      - cell "În așteptare" [ref=e430]:
+                        - generic [ref=e432]:
+                          - combobox [ref=e433]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e434]:
+                        - generic [ref=e435]:
+                          - button "Modifică gradul vizat" [ref=e436] [cursor=pointer]:
+                            - img [ref=e437]
+                          - button "Retrage înscriere" [ref=e440] [cursor=pointer]:
+                            - img [ref=e441]
+                    - row "GRAUR CLAUDIA GEORGIANA 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e444]:
+                      - cell "GRAUR CLAUDIA GEORGIANA" [ref=e445]:
+                        - paragraph [ref=e446] [cursor=pointer]: GRAUR CLAUDIA GEORGIANA
+                      - cell "1 Câp Albastru" [ref=e447]
+                      - cell "2 Câp Albastru" [ref=e448]
+                      - cell "Neachitat" [ref=e449]:
+                        - generic [ref=e451]: Neachitat
+                      - cell "În așteptare" [ref=e452]:
+                        - generic [ref=e454]:
+                          - combobox [ref=e455]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e456]:
+                        - generic [ref=e457]:
+                          - button "Modifică gradul vizat" [ref=e458] [cursor=pointer]:
+                            - img [ref=e459]
+                          - button "Retrage înscriere" [ref=e462] [cursor=pointer]:
+                            - img [ref=e463]
+                    - row "VICTORIA ANA ELISABETA 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e466]:
+                      - cell "VICTORIA ANA ELISABETA" [ref=e467]:
+                        - paragraph [ref=e468] [cursor=pointer]: VICTORIA ANA ELISABETA
+                      - cell "1 Câp Albastru" [ref=e469]
+                      - cell "2 Câp Albastru" [ref=e470]
+                      - cell "Neachitat" [ref=e471]:
+                        - generic [ref=e473]: Neachitat
+                      - cell "În așteptare" [ref=e474]:
+                        - generic [ref=e476]:
+                          - combobox [ref=e477]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e478]:
+                        - generic [ref=e479]:
+                          - button "Modifică gradul vizat" [ref=e480] [cursor=pointer]:
+                            - img [ref=e481]
+                          - button "Retrage înscriere" [ref=e484] [cursor=pointer]:
+                            - img [ref=e485]
+                - generic [ref=e488]:
+                  - button "Anterior" [disabled] [ref=e489]
+                  - generic [ref=e490]: Pagina 1 din 7
+                  - button "Următor" [ref=e491] [cursor=pointer]
+    - contentinfo [ref=e492]:
+      - paragraph [ref=e493]: Realizat cu AI de Alin Lungu
+      - button "Asistent AI" [ref=e494] [cursor=pointer]:
+        - img [ref=e495]
+        - generic [ref=e498]: Asistent AI
+  - dialog "Import XLS — Sesiune Examen" [ref=e502]:
+    - generic [ref=e503]:
+      - generic [ref=e504]:
+        - heading "Import XLS — Sesiune Examen" [level=2] [ref=e505]
+        - button [ref=e506] [cursor=pointer]:
+          - img [ref=e507]
+      - generic [ref=e510]:
+        - generic [ref=e511]:
+          - generic [ref=e512]:
+            - generic [ref=e513]: âœ"
+            - generic [ref=e514]: Upload
+          - generic [ref=e516]:
+            - generic [ref=e517]: "2"
+            - generic [ref=e518]: Verificare
+          - generic [ref=e520]:
+            - generic [ref=e521]: "3"
+            - generic [ref=e522]: Confirmare
+          - generic [ref=e524]:
+            - generic [ref=e525]: "4"
+            - generic [ref=e526]: Raport
+        - generic [ref=e572]:
+          - generic [ref=e573]:
+            - generic [ref=e574]:
+              - paragraph [ref=e575]: Data
+              - paragraph [ref=e576]: 14.01.2026
+            - generic [ref=e577]:
+              - paragraph [ref=e578]: Localitate
+              - paragraph [ref=e579]: FĂLTICENI
+            - generic [ref=e580]:
+              - paragraph [ref=e581]: Club
+              - paragraph [ref=e582]: â€"
+            - generic [ref=e583]:
+              - paragraph [ref=e584]: Format
+              - paragraph [ref=e585]: Ex. Local
+          - generic [ref=e586]:
+            - generic [ref=e587]:
+              - img [ref=e588]
+              - text: 39 găsiți exact
+            - button "6 nesiguri" [ref=e591] [cursor=pointer]:
+              - img [ref=e592]
+              - text: 6 nesiguri
+            - button "3 inexistenți" [ref=e594] [cursor=pointer]:
+              - img [ref=e595]
+              - text: 3 inexistenți
+          - generic [ref=e599]: âš 6 sportivi nesiguri necesită confirmare manuală mai jos.
+          - generic [ref=e600]:
+            - generic [ref=e602]:
+              - generic [ref=e603]:
+                - img [ref=e604]
+                - generic [ref=e607]:
+                  - paragraph [ref=e608]: CERCEL IOANA-MELISA
+                  - paragraph [ref=e609]: 1 CAP GALBENAdmis
+              - generic [ref=e610]:
+                - generic [ref=e611]: CERCEL IOANA-MELISA
+                - button "Exclude" [ref=e612] [cursor=pointer]
+            - generic [ref=e613]:
+              - generic [ref=e614]:
+                - generic [ref=e615]:
+                  - img [ref=e616]
+                  - generic [ref=e620]:
+                    - paragraph [ref=e621]: BADIU ANDREI-COSMIN
+                    - paragraph [ref=e622]: 1 CAP RAdmis
+                - button "Exclude" [ref=e624] [cursor=pointer]
+              - generic [ref=e625]:
+                - paragraph [ref=e626]: "Sportiv inexistent. Completează pentru creare:"
+                - generic [ref=e627]:
+                  - generic [ref=e628]:
+                    - generic [ref=e629]: Nume
+                    - textbox [ref=e630]: BADIU
+                  - generic [ref=e631]:
+                    - generic [ref=e632]: Prenume
+                    - textbox [ref=e633]: ANDREI-COSMIN
+                  - generic [ref=e634]:
+                    - generic [ref=e635]: Data nașterii
+                    - textbox [ref=e636]
+            - generic [ref=e638]:
+              - generic [ref=e639]:
+                - img [ref=e640]
+                - generic [ref=e643]:
+                  - paragraph [ref=e644]: BĂEȘU TEODOR
+                  - paragraph [ref=e645]: 1 CAP RAdmis
+              - generic [ref=e646]:
+                - generic [ref=e647]: BĂEȘU TEODOR
+                - button "Exclude" [ref=e648] [cursor=pointer]
+            - generic [ref=e650]:
+              - generic [ref=e651]:
+                - img [ref=e652]
+                - generic [ref=e655]:
+                  - paragraph [ref=e656]: CURCĂ ANASTASIA IONELA
+                  - paragraph [ref=e657]: 1 CAP RAdmis
+              - generic [ref=e658]:
+                - generic [ref=e659]: CURCĂ ANASTASIA IONELA
+                - button "Exclude" [ref=e660] [cursor=pointer]
+            - generic [ref=e662]:
+              - generic [ref=e663]:
+                - img [ref=e664]
+                - generic [ref=e667]:
+                  - paragraph [ref=e668]: DELEANU GUȘĂ EDEN MARIA
+                  - paragraph [ref=e669]: 1 CAP RAdmis
+              - generic [ref=e670]:
+                - generic [ref=e671]: DELEANU GUȘĂ EDEN MARIA
+                - button "Exclude" [ref=e672] [cursor=pointer]
+            - generic [ref=e674]:
+              - generic [ref=e675]:
+                - img [ref=e676]
+                - generic [ref=e679]:
+                  - paragraph [ref=e680]: GRIGORAȘ ECATERINA
+                  - paragraph [ref=e681]: 1 CAP RAdmis
+              - generic [ref=e682]:
+                - generic [ref=e683]: GRIGORAȘ ECATERINA
+                - button "Exclude" [ref=e684] [cursor=pointer]
+            - generic [ref=e686]:
+              - generic [ref=e687]:
+                - img [ref=e688]
+                - generic [ref=e691]:
+                  - paragraph [ref=e692]: ONOFREI LUCA
+                  - paragraph [ref=e693]: 1 CAP RAdmis
+              - generic [ref=e694]:
+                - generic [ref=e695]: ONOFREI LUCA
+                - button "Exclude" [ref=e696] [cursor=pointer]
+            - generic [ref=e698]:
+              - generic [ref=e699]:
+                - img [ref=e700]
+                - generic [ref=e703]:
+                  - paragraph [ref=e704]: PASINCIUC FILIP
+                  - paragraph [ref=e705]: 1 CAP RAdmis
+              - generic [ref=e706]:
+                - generic [ref=e707]: PASINCIUC FILIP
+                - button "Exclude" [ref=e708] [cursor=pointer]
+            - generic [ref=e710]:
+              - generic [ref=e711]:
+                - img [ref=e712]
+                - generic [ref=e715]:
+                  - paragraph [ref=e716]: PINTILEI DARIUS ANDREI
+                  - paragraph [ref=e717]: 1 CAP RAdmis
+              - generic [ref=e718]:
+                - generic [ref=e719]: PINTILEI DARIUS ANDREI
+                - button "Exclude" [ref=e720] [cursor=pointer]
+            - generic [ref=e722]:
+              - generic [ref=e723]:
+                - img [ref=e724]
+                - generic [ref=e727]:
+                  - paragraph [ref=e728]: SANDU FABIAN-IOAN
+                  - paragraph [ref=e729]: 1 CAP RAdmis
+              - generic [ref=e730]:
+                - generic [ref=e731]: SANDU FABIAN-IOAN
+                - button "Exclude" [ref=e732] [cursor=pointer]
+            - generic [ref=e734]:
+              - generic [ref=e735]:
+                - img [ref=e736]
+                - generic [ref=e739]:
+                  - paragraph [ref=e740]: ȘOLDĂNESCU MATEI
+                  - paragraph [ref=e741]: 1 CAP RAdmis
+              - generic [ref=e742]:
+                - generic [ref=e743]: ȘOLDĂNESCU MATEI
+                - button "Exclude" [ref=e744] [cursor=pointer]
+            - generic [ref=e746]:
+              - generic [ref=e747]:
+                - img [ref=e748]
+                - generic [ref=e751]:
+                  - paragraph [ref=e752]: ȘOLDĂNESCU MINA
+                  - paragraph [ref=e753]: 1 CAP RAdmis
+              - generic [ref=e754]:
+                - generic [ref=e755]: ȘOLDĂNESCU MINA
+                - button "Exclude" [ref=e756] [cursor=pointer]
+            - generic [ref=e758]:
+              - generic [ref=e759]:
+                - img [ref=e760]
+                - generic [ref=e763]:
+                  - paragraph [ref=e764]: VAMEȘU DARIA-PARASCHIVA
+                  - paragraph [ref=e765]: 1 CAP RAdmis
+              - generic [ref=e766]:
+                - generic [ref=e767]: VAMESU DARIA-PARASCHIVA
+                - button "Exclude" [ref=e768] [cursor=pointer]
+            - generic [ref=e769]:
+              - generic [ref=e770]:
+                - generic [ref=e771]:
+                  - img [ref=e772]
+                  - generic [ref=e774]:
+                    - paragraph [ref=e775]: VICTORIA DARIA MARIA
+                    - paragraph [ref=e776]: 1 CAP RAdmis
+                - button "Exclude" [ref=e778] [cursor=pointer]
+              - generic [ref=e779]:
+                - paragraph [ref=e780]: "Potrivire nesigură (70%). Alege sportivul corect:"
+                - generic [ref=e781]:
+                  - button "DIACONU DARIA MARIA" [ref=e782] [cursor=pointer]
+                  - button "â†’ Creează ca nou" [ref=e783] [cursor=pointer]
+              - generic [ref=e784]:
+                - paragraph [ref=e785]: "Sportiv inexistent. Completează pentru creare:"
+                - generic [ref=e786]:
+                  - generic [ref=e787]:
+                    - generic [ref=e788]: Nume
+                    - textbox [ref=e789]: VICTORIA
+                  - generic [ref=e790]:
+                    - generic [ref=e791]: Prenume
+                    - textbox [ref=e792]: DARIA MARIA
+                  - generic [ref=e793]:
+                    - generic [ref=e794]: Data nașterii
+                    - textbox [ref=e795]
+            - generic [ref=e797]:
+              - generic [ref=e798]:
+                - img [ref=e799]
+                - generic [ref=e802]:
+                  - paragraph [ref=e803]: ANDREI ALEXANDRU-DANIEL
+                  - paragraph [ref=e804]: 2 CAP RAdmis
+              - generic [ref=e805]:
+                - generic [ref=e806]: ANDREI ALEXANDRU-DANIEL
+                - button "Exclude" [ref=e807] [cursor=pointer]
+            - generic [ref=e809]:
+              - generic [ref=e810]:
+                - img [ref=e811]
+                - generic [ref=e814]:
+                  - paragraph [ref=e815]: ANDREI PAUL-CRISTIAN
+                  - paragraph [ref=e816]: 2 CAP RAdmis
+              - generic [ref=e817]:
+                - generic [ref=e818]: ANDREI PAUL-CRISTIAN
+                - button "Exclude" [ref=e819] [cursor=pointer]
+            - generic [ref=e821]:
+              - generic [ref=e822]:
+                - img [ref=e823]
+                - generic [ref=e826]:
+                  - paragraph [ref=e827]: ANECHIFORESEI GABRIELA
+                  - paragraph [ref=e828]: 2 CAP RAdmis
+              - generic [ref=e829]:
+                - generic [ref=e830]: ANECHIFORESEI GABRIELA
+                - button "Exclude" [ref=e831] [cursor=pointer]
+            - generic [ref=e833]:
+              - generic [ref=e834]:
+                - img [ref=e835]
+                - generic [ref=e838]:
+                  - paragraph [ref=e839]: BRĂNEANU PETRU SEBASTIAN
+                  - paragraph [ref=e840]: 2 CAP RAdmis
+              - generic [ref=e841]:
+                - generic [ref=e842]: BRĂNEANU PETRU SEBASTIAN
+                - button "Exclude" [ref=e843] [cursor=pointer]
+            - generic [ref=e845]:
+              - generic [ref=e846]:
+                - img [ref=e847]
+                - generic [ref=e850]:
+                  - paragraph [ref=e851]: CIOCÂRLAN ARSENIE
+                  - paragraph [ref=e852]: 2 CAP RAdmis
+              - generic [ref=e853]:
+                - generic [ref=e854]: CIOCÂRLAN ARSENIE
+                - button "Exclude" [ref=e855] [cursor=pointer]
+            - generic [ref=e857]:
+              - generic [ref=e858]:
+                - img [ref=e859]
+                - generic [ref=e862]:
+                  - paragraph [ref=e863]: CIOCÂRLAN RAMIN-DIMITRIE
+                  - paragraph [ref=e864]: 2 CAP RAdmis
+              - generic [ref=e865]:
+                - generic [ref=e866]: CIOCÂRLAN RAMIN-DIMITRIE
+                - button "Exclude" [ref=e867] [cursor=pointer]
+            - generic [ref=e869]:
+              - generic [ref=e870]:
+                - img [ref=e871]
+                - generic [ref=e874]:
+                  - paragraph [ref=e875]: COJOCARU DARIUS MATEI
+                  - paragraph [ref=e876]: 2 CAP RAdmis
+              - generic [ref=e877]:
+                - generic [ref=e878]: COJOCARU DARIUS MATEI
+                - button "Exclude" [ref=e879] [cursor=pointer]
+            - generic [ref=e881]:
+              - generic [ref=e882]:
+                - img [ref=e883]
+                - generic [ref=e886]:
+                  - paragraph [ref=e887]: COSTAN DARIUS GEORGIAN
+                  - paragraph [ref=e888]: 2 CAP RAdmis
+              - generic [ref=e889]:
+                - generic [ref=e890]: COSTAN DARIUS GEORGIAN
+                - button "Exclude" [ref=e891] [cursor=pointer]
+            - generic [ref=e893]:
+              - generic [ref=e894]:
+                - img [ref=e895]
+                - generic [ref=e898]:
+                  - paragraph [ref=e899]: GREȘANU MARIA
+                  - paragraph [ref=e900]: 2 CAP RAdmis
+              - generic [ref=e901]:
+                - generic [ref=e902]: GREȘANU MARIA
+                - button "Exclude" [ref=e903] [cursor=pointer]
+            - generic [ref=e904]:
+              - generic [ref=e905]:
+                - generic [ref=e906]:
+                  - img [ref=e907]
+                  - generic [ref=e911]:
+                    - paragraph [ref=e912]: MAXIM TEODOR CONSTANTIN
+                    - paragraph [ref=e913]: 2 CAP RAdmis
+                - button "Exclude" [ref=e915] [cursor=pointer]
+              - generic [ref=e916]:
+                - paragraph [ref=e917]: "Sportiv inexistent. Completează pentru creare:"
+                - generic [ref=e918]:
+                  - generic [ref=e919]:
+                    - generic [ref=e920]: Nume
+                    - textbox [ref=e921]: MAXIM
+                  - generic [ref=e922]:
+                    - generic [ref=e923]: Prenume
+                    - textbox [ref=e924]: TEODOR CONSTANTIN
+                  - generic [ref=e925]:
+                    - generic [ref=e926]: Data nașterii
+                    - textbox [ref=e927]
+            - generic [ref=e929]:
+              - generic [ref=e930]:
+                - img [ref=e931]
+                - generic [ref=e934]:
+                  - paragraph [ref=e935]: MIHAI IOANA
+                  - paragraph [ref=e936]: 2 CAP RAdmis
+              - generic [ref=e937]:
+                - generic [ref=e938]: MIHAI IOANA
+                - button "Exclude" [ref=e939] [cursor=pointer]
+            - generic [ref=e941]:
+              - generic [ref=e942]:
+                - img [ref=e943]
+                - generic [ref=e946]:
+                  - paragraph [ref=e947]: PÎRVU RICARDO-IOAN
+                  - paragraph [ref=e948]: 2 CAP RAdmis
+              - generic [ref=e949]:
+                - generic [ref=e950]: PÎRVU RICARDO-IOAN
+                - button "Exclude" [ref=e951] [cursor=pointer]
+            - generic [ref=e952]:
+              - generic [ref=e953]:
+                - generic [ref=e954]:
+                  - img [ref=e955]
+                  - generic [ref=e957]:
+                    - paragraph [ref=e958]: PANDELEA FLAVIUS
+                    - paragraph [ref=e959]: 2 CAP RAdmis
+                - button "Exclude" [ref=e961] [cursor=pointer]
+              - generic [ref=e962]:
+                - paragraph [ref=e963]: "Potrivire nesigură (93%). Alege sportivul corect:"
+                - generic [ref=e964]:
+                  - button "PANDELEA FLAVIUS-NICOLAS-IOAN" [ref=e965] [cursor=pointer]
+                  - button "â†’ Creează ca nou" [ref=e966] [cursor=pointer]
+              - generic [ref=e967]:
+                - paragraph [ref=e968]: "Sportiv inexistent. Completează pentru creare:"
+                - generic [ref=e969]:
+                  - generic [ref=e970]:
+                    - generic [ref=e971]: Nume
+                    - textbox [ref=e972]: PANDELEA
+                  - generic [ref=e973]:
+                    - generic [ref=e974]: Prenume
+                    - textbox [ref=e975]: FLAVIUS
+                  - generic [ref=e976]:
+                    - generic [ref=e977]: Data nașterii
+                    - textbox [ref=e978]
+            - generic [ref=e980]:
+              - generic [ref=e981]:
+                - img [ref=e982]
+                - generic [ref=e985]:
+                  - paragraph [ref=e986]: SOLCANU IOANA ELIZA
+                  - paragraph [ref=e987]: 2 CAP RAdmis
+              - generic [ref=e988]:
+                - generic [ref=e989]: SOLCANU IOANA ELIZA
+                - button "Exclude" [ref=e990] [cursor=pointer]
+            - generic [ref=e991]:
+              - generic [ref=e992]:
+                - generic [ref=e993]:
+                  - img [ref=e994]
+                  - generic [ref=e996]:
+                    - paragraph [ref=e997]: SPINARE ALEXANRU
+                    - paragraph [ref=e998]: 2 CAP RAdmis
+                - button "Exclude" [ref=e1000] [cursor=pointer]
+              - generic [ref=e1001]:
+                - paragraph [ref=e1002]: "Potrivire nesigură (94%). Alege sportivul corect:"
+                - generic [ref=e1003]:
+                  - button "SPINARE ALEXANDRU" [ref=e1004] [cursor=pointer]
+                  - button "â†’ Creează ca nou" [ref=e1005] [cursor=pointer]
+              - generic [ref=e1006]:
+                - paragraph [ref=e1007]: "Sportiv inexistent. Completează pentru creare:"
+                - generic [ref=e1008]:
+                  - generic [ref=e1009]:
+                    - generic [ref=e1010]: Nume
+                    - textbox [ref=e1011]: SPINARE
+                  - generic [ref=e1012]:
+                    - generic [ref=e1013]: Prenume
+                    - textbox [ref=e1014]: ALEXANRU
+                  - generic [ref=e1015]:
+                    - generic [ref=e1016]: Data nașterii
+                    - textbox [ref=e1017]
+            - generic [ref=e1019]:
+              - generic [ref=e1020]:
+                - img [ref=e1021]
+                - generic [ref=e1024]:
+                  - paragraph [ref=e1025]: IANCU REBECA ELENA
+                  - paragraph [ref=e1026]: 3 CAP RAdmis
+              - generic [ref=e1027]:
+                - generic [ref=e1028]: IANCU REBECA ELENA
+                - button "Exclude" [ref=e1029] [cursor=pointer]
+            - generic [ref=e1031]:
+              - generic [ref=e1032]:
+                - img [ref=e1033]
+                - generic [ref=e1036]:
+                  - paragraph [ref=e1037]: VASILIU SABIN ANDREI
+                  - paragraph [ref=e1038]: 3 CAP RAdmis
+              - generic [ref=e1039]:
+                - generic [ref=e1040]: VASILIU SABIN ANDREI
+                - button "Exclude" [ref=e1041] [cursor=pointer]
+            - generic [ref=e1043]:
+              - generic [ref=e1044]:
+                - img [ref=e1045]
+                - generic [ref=e1048]:
+                  - paragraph [ref=e1049]: APOSTOL ANASTASIA
+                  - paragraph [ref=e1050]: 4 CAP RAdmis
+              - generic [ref=e1051]:
+                - generic [ref=e1052]: APOSTOL ANASTASIA
+                - button "Exclude" [ref=e1053] [cursor=pointer]
+            - generic [ref=e1055]:
+              - generic [ref=e1056]:
+                - img [ref=e1057]
+                - generic [ref=e1060]:
+                  - paragraph [ref=e1061]: BOLOHAN VLAD
+                  - paragraph [ref=e1062]: 4 CAP RAdmis
+              - generic [ref=e1063]:
+                - generic [ref=e1064]: BOLOHAN VLAD
+                - button "Exclude" [ref=e1065] [cursor=pointer]
+            - generic [ref=e1067]:
+              - generic [ref=e1068]:
+                - img [ref=e1069]
+                - generic [ref=e1072]:
+                  - paragraph [ref=e1073]: CERCEL CRISTIAN GABRIEL
+                  - paragraph [ref=e1074]: 4 CAP RAdmis
+              - generic [ref=e1075]:
+                - generic [ref=e1076]: CERCEL CRISTIAN GABRIEL
+                - button "Exclude" [ref=e1077] [cursor=pointer]
+            - generic [ref=e1079]:
+              - generic [ref=e1080]:
+                - img [ref=e1081]
+                - generic [ref=e1084]:
+                  - paragraph [ref=e1085]: CHITICARIU ERICA ELENA
+                  - paragraph [ref=e1086]: 4 CAP RAdmis
+              - generic [ref=e1087]:
+                - generic [ref=e1088]: CHITICARU ERICA ELENA
+                - button "Exclude" [ref=e1089] [cursor=pointer]
+            - generic [ref=e1091]:
+              - generic [ref=e1092]:
+                - img [ref=e1093]
+                - generic [ref=e1096]:
+                  - paragraph [ref=e1097]: CIOCÂRLAN ADA ECATERINA
+                  - paragraph [ref=e1098]: 4 CAP RAdmis
+              - generic [ref=e1099]:
+                - generic [ref=e1100]: CIOCÂRLAN ADA ECATERINA
+                - button "Exclude" [ref=e1101] [cursor=pointer]
+            - generic [ref=e1102]:
+              - generic [ref=e1103]:
+                - generic [ref=e1104]:
+                  - img [ref=e1105]
+                  - generic [ref=e1107]:
+                    - paragraph [ref=e1108]: HRISTEA RAREȘ IOAN
+                    - paragraph [ref=e1109]: 4 CAP RAdmis
+                - button "Exclude" [ref=e1111] [cursor=pointer]
+              - generic [ref=e1112]:
+                - paragraph [ref=e1113]: "Potrivire nesigură (94%). Alege sportivul corect:"
+                - generic [ref=e1114]:
+                  - button "HRISTEA RAREȘ-IOAN" [ref=e1115] [cursor=pointer]
+                  - button "â†’ Creează ca nou" [ref=e1116] [cursor=pointer]
+              - generic [ref=e1117]:
+                - paragraph [ref=e1118]: "Sportiv inexistent. Completează pentru creare:"
+                - generic [ref=e1119]:
+                  - generic [ref=e1120]:
+                    - generic [ref=e1121]: Nume
+                    - textbox [ref=e1122]: HRISTEA
+                  - generic [ref=e1123]:
+                    - generic [ref=e1124]: Prenume
+                    - textbox [ref=e1125]: RAREȘ IOAN
+                  - generic [ref=e1126]:
+                    - generic [ref=e1127]: Data nașterii
+                    - textbox [ref=e1128]
+            - generic [ref=e1130]:
+              - generic [ref=e1131]:
+                - img [ref=e1132]
+                - generic [ref=e1135]:
+                  - paragraph [ref=e1136]: MAYER CARL OCTAV
+                  - paragraph [ref=e1137]: 4 CAP RAdmis
+              - generic [ref=e1138]:
+                - generic [ref=e1139]: MAYER CARL OCTAV
+                - button "Exclude" [ref=e1140] [cursor=pointer]
+            - generic [ref=e1142]:
+              - generic [ref=e1143]:
+                - img [ref=e1144]
+                - generic [ref=e1147]:
+                  - paragraph [ref=e1148]: AMARIEI ALBERT MATEI
+                  - paragraph [ref=e1149]: CVAdmis
+              - generic [ref=e1150]:
+                - generic [ref=e1151]: AMARIEI ALBERT-MATEI
+                - button "Exclude" [ref=e1152] [cursor=pointer]
+            - generic [ref=e1154]:
+              - generic [ref=e1155]:
+                - img [ref=e1156]
+                - generic [ref=e1159]:
+                  - paragraph [ref=e1160]: FODOR IUSTINA MARIA
+                  - paragraph [ref=e1161]: CVAdmis
+              - generic [ref=e1162]:
+                - generic [ref=e1163]: FODOR IUSTINA MARIA
+                - button "Exclude" [ref=e1164] [cursor=pointer]
+            - generic [ref=e1165]:
+              - generic [ref=e1166]:
+                - generic [ref=e1167]:
+                  - img [ref=e1168]
+                  - generic [ref=e1170]:
+                    - paragraph [ref=e1171]: GRIGORAȘ ROBERT ALEX.
+                    - paragraph [ref=e1172]: CVAdmis
+                - button "Exclude" [ref=e1174] [cursor=pointer]
+              - generic [ref=e1175]:
+                - paragraph [ref=e1176]: "Potrivire nesigură (93%). Alege sportivul corect:"
+                - generic [ref=e1177]:
+                  - button "GRIGORAȘ ROBERT ALEXANDRU" [ref=e1178] [cursor=pointer]
+                  - button "â†’ Creează ca nou" [ref=e1179] [cursor=pointer]
+              - generic [ref=e1180]:
+                - paragraph [ref=e1181]: "Sportiv inexistent. Completează pentru creare:"
+                - generic [ref=e1182]:
+                  - generic [ref=e1183]:
+                    - generic [ref=e1184]: Nume
+                    - textbox [ref=e1185]: GRIGORAȘ
+                  - generic [ref=e1186]:
+                    - generic [ref=e1187]: Prenume
+                    - textbox [ref=e1188]: ROBERT ALEX.
+                  - generic [ref=e1189]:
+                    - generic [ref=e1190]: Data nașterii
+                    - textbox [ref=e1191]
+            - generic [ref=e1193]:
+              - generic [ref=e1194]:
+                - img [ref=e1195]
+                - generic [ref=e1198]:
+                  - paragraph [ref=e1199]: PÎNZARU DANIEL
+                  - paragraph [ref=e1200]: CVAdmis
+              - generic [ref=e1201]:
+                - generic [ref=e1202]: PÎNZARU DANIEL
+                - button "Exclude" [ref=e1203] [cursor=pointer]
+            - generic [ref=e1204]:
+              - generic [ref=e1205]:
+                - generic [ref=e1206]:
+                  - img [ref=e1207]
+                  - generic [ref=e1211]:
+                    - paragraph [ref=e1212]: PÎNZARU MIHAI
+                    - paragraph [ref=e1213]: CVAdmis
+                - button "Exclude" [ref=e1215] [cursor=pointer]
+              - generic [ref=e1216]:
+                - paragraph [ref=e1217]: "Sportiv inexistent. Completează pentru creare:"
+                - generic [ref=e1218]:
+                  - generic [ref=e1219]:
+                    - generic [ref=e1220]: Nume
+                    - textbox [ref=e1221]: PÎNZARU
+                  - generic [ref=e1222]:
+                    - generic [ref=e1223]: Prenume
+                    - textbox [ref=e1224]: MIHAI
+                  - generic [ref=e1225]:
+                    - generic [ref=e1226]: Data nașterii
+                    - textbox [ref=e1227]
+            - generic [ref=e1228]:
+              - generic [ref=e1229]:
+                - generic [ref=e1230]:
+                  - img [ref=e1231]
+                  - generic [ref=e1233]:
+                    - paragraph [ref=e1234]: SANDU MARCO
+                    - paragraph [ref=e1235]: CVAdmis
+                - button "Exclude" [ref=e1237] [cursor=pointer]
+              - generic [ref=e1238]:
+                - paragraph [ref=e1239]: "Potrivire nesigură (91%). Alege sportivul corect:"
+                - generic [ref=e1240]:
+                  - button "SANDU MARCU" [ref=e1241] [cursor=pointer]
+                  - button "â†’ Creează ca nou" [ref=e1242] [cursor=pointer]
+              - generic [ref=e1243]:
+                - paragraph [ref=e1244]: "Sportiv inexistent. Completează pentru creare:"
+                - generic [ref=e1245]:
+                  - generic [ref=e1246]:
+                    - generic [ref=e1247]: Nume
+                    - textbox [ref=e1248]: SANDU
+                  - generic [ref=e1249]:
+                    - generic [ref=e1250]: Prenume
+                    - textbox [ref=e1251]: MARCO
+                  - generic [ref=e1252]:
+                    - generic [ref=e1253]: Data nașterii
+                    - textbox [ref=e1254]
+            - generic [ref=e1256]:
+              - generic [ref=e1257]:
+                - img [ref=e1258]
+                - generic [ref=e1261]:
+                  - paragraph [ref=e1262]: TODICĂ ANDREI
+                  - paragraph [ref=e1263]: CVAdmis
+              - generic [ref=e1264]:
+                - generic [ref=e1265]: TODICĂ ANDREI
+                - button "Exclude" [ref=e1266] [cursor=pointer]
+            - generic [ref=e1268]:
+              - generic [ref=e1269]:
+                - img [ref=e1270]
+                - generic [ref=e1273]:
+                  - paragraph [ref=e1274]: VLASOV ANDREI
+                  - paragraph [ref=e1275]: CV 1 CAPAdmis
+              - generic [ref=e1276]:
+                - generic [ref=e1277]: VLASOV ANDREI
+                - button "Exclude" [ref=e1278] [cursor=pointer]
+            - generic [ref=e1280]:
+              - generic [ref=e1281]:
+                - img [ref=e1282]
+                - generic [ref=e1285]:
+                  - paragraph [ref=e1286]: RADU RĂZVAN
+                  - paragraph [ref=e1287]: CV 1 CAPAdmis
+              - generic [ref=e1288]:
+                - generic [ref=e1289]: RADU RAZVAN
+                - button "Exclude" [ref=e1290] [cursor=pointer]
+            - generic [ref=e1292]:
+              - generic [ref=e1293]:
+                - img [ref=e1294]
+                - generic [ref=e1297]:
+                  - paragraph [ref=e1298]: MOROȘANU DAMIAN ȘTEFAN
+                  - paragraph [ref=e1299]: CV 2 CAPAdmis
+              - generic [ref=e1300]:
+                - generic [ref=e1301]: MOROȘANU DAMIAN ȘTEFAN
+                - button "Exclude" [ref=e1302] [cursor=pointer]
+          - generic [ref=e1303]:
+            - 'button "â† Înapoi" [ref=e1304] [cursor=pointer]'
+            - button "Continuă" [disabled] [ref=e1305]:
+              - text: Continuă
+              - img [ref=e1306]

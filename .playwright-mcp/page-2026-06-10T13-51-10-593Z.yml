@@ -1,0 +1,232 @@
+- generic [ref=e1]:
+  - generic [ref=e19]:
+    - complementary [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22] [cursor=pointer]:
+          - img "Qwan Ki Do Romania" [ref=e25]
+          - generic [ref=e27]:
+            - generic [ref=e28]: Qwan Ki Do
+            - generic [ref=e29]: Management
+        - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+          - img [ref=e35]
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: Context Activ
+            - paragraph [ref=e40]: Federație
+          - img [ref=e41]
+        - generic [ref=e43]:
+          - button "Scroll sus":
+            - img
+          - navigation [ref=e44]:
+            - generic [ref=e45] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e52]: Dashboard
+            - generic [ref=e53]:
+              - generic [ref=e54] [cursor=pointer]:
+                - img [ref=e55]
+                - generic [ref=e60]: Gestiune Membri
+                - img [ref=e61]
+              - generic [ref=e511]:
+                - generic [ref=e512] [cursor=pointer]: Sportivi
+                - generic [ref=e514] [cursor=pointer]: Import Sportivi
+                - generic [ref=e516] [cursor=pointer]: Deduplicare Sportivi
+                - generic [ref=e518] [cursor=pointer]: Familii
+                - generic [ref=e520] [cursor=pointer]: Legitimații
+                - generic [ref=e522] [cursor=pointer]: Nomenclator Grade
+                - generic [ref=e524] [cursor=pointer]: Administrare Staff
+            - generic [ref=e64] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e71]: Examene
+              - img [ref=e72]
+            - generic [ref=e80] [cursor=pointer]:
+              - img [ref=e81]
+              - generic [ref=e87]: Activități Naționale
+              - img [ref=e88]
+            - generic [ref=e91] [cursor=pointer]:
+              - img [ref=e92]
+              - generic [ref=e95]: Setări & Admin
+              - img [ref=e96]
+            - generic [ref=e98] [cursor=pointer]:
+              - img [ref=e100]
+              - generic [ref=e102]: Rapoarte
+            - generic [ref=e103] [cursor=pointer]:
+              - img [ref=e105]
+              - generic [ref=e109]: Notificări
+            - generic [ref=e110] [cursor=pointer]:
+              - img [ref=e112]
+              - generic [ref=e114]: SMS
+            - generic [ref=e115] [cursor=pointer]:
+              - img [ref=e117]
+              - generic [ref=e120]: Cereri Înscriere
+            - generic [ref=e121] [cursor=pointer]:
+              - img [ref=e123]
+              - generic [ref=e126]: Istoric Activitate
+            - generic [ref=e127] [cursor=pointer]:
+              - img [ref=e129]
+              - generic [ref=e132]: Admin Dashboard
+            - generic [ref=e133] [cursor=pointer]:
+              - img [ref=e135]
+              - generic [ref=e141]: Button Catalog
+          - button "Scroll jos" [ref=e142] [cursor=pointer]:
+            - img [ref=e143]
+        - generic [ref=e145]:
+          - button "Tema" [ref=e147] [cursor=pointer]:
+            - img [ref=e148]
+            - generic [ref=e154]: Tema
+          - generic [ref=e156]:
+            - generic [ref=e157]: AL
+            - generic [ref=e158]:
+              - paragraph [ref=e159]: ALIN MIHAI LUNGU
+              - text: Super Admin
+            - button "Deconectare" [ref=e160] [cursor=pointer]:
+              - img [ref=e161]
+    - banner [ref=e164]:
+      - generic [ref=e165]:
+        - button "Deschide meniu" [ref=e166] [cursor=pointer]:
+          - img [ref=e167]
+        - button "Înapoi" [ref=e2841] [cursor=pointer]:
+          - img [ref=e2842]
+        - navigation "Navigare" [ref=e168]:
+          - heading "Import Sportivi" [level=1] [ref=e17218]
+      - generic [ref=e170]:
+        - button "Personalizare temă" [ref=e172] [cursor=pointer]:
+          - img [ref=e173]
+        - button [ref=e180] [cursor=pointer]:
+          - img [ref=e181]
+        - button "AL" [ref=e185] [cursor=pointer]:
+          - generic [ref=e186]: AL
+    - main [ref=e187]:
+      - generic [ref=e17220]:
+        - heading "Import Sportivi" [level=2] [ref=e17221]
+        - paragraph [ref=e17222]: Adaugă mai mulți sportivi simultan dintr-un fișier Excel sau CSV.
+        - generic [ref=e17223]:
+          - generic [ref=e17224]:
+            - generic [ref=e17225]: "1"
+            - paragraph [ref=e17226]: Descarcă template-ul de mai jos
+          - generic [ref=e17227]:
+            - generic [ref=e17228]: "2"
+            - paragraph [ref=e17229]: Completează datele sportivilor în fișier
+          - generic [ref=e17230]:
+            - generic [ref=e17231]: "3"
+            - paragraph [ref=e17232]: Încarcă fișierul și verifică înainte de import
+        - generic [ref=e17233]:
+          - button "Ce coloane acceptă fișierul?" [ref=e17234] [cursor=pointer]:
+            - generic [ref=e17235]:
+              - img [ref=e17236]
+              - text: Ce coloane acceptă fișierul?
+            - img [ref=e17238]
+          - generic [ref=e17259]:
+            - table [ref=e17261]:
+              - rowgroup [ref=e17262]:
+                - row "Coloana (exact) Obligatorie Exemplu" [ref=e17263]:
+                  - columnheader "Coloana (exact)" [ref=e17264]
+                  - columnheader "Obligatorie" [ref=e17265]
+                  - columnheader "Exemplu" [ref=e17266]
+              - rowgroup [ref=e17267]:
+                - row "NUME SPORTIV DA Popescu" [ref=e17268]:
+                  - cell "NUME SPORTIV" [ref=e17269]:
+                    - code [ref=e17270]: NUME SPORTIV
+                  - cell "DA" [ref=e17271]
+                  - cell "Popescu" [ref=e17272]
+                - row "PRENUME SPORTIV DA Horatiu Casian" [ref=e17273]:
+                  - cell "PRENUME SPORTIV" [ref=e17274]:
+                    - code [ref=e17275]: PRENUME SPORTIV
+                  - cell "DA" [ref=e17276]
+                  - cell "Horatiu Casian" [ref=e17277]
+                - row "DATA NASTERII DA 15/03/2005" [ref=e17278]:
+                  - cell "DATA NASTERII" [ref=e17279]:
+                    - code [ref=e17280]: DATA NASTERII
+                  - cell "DA" [ref=e17281]
+                  - cell "15/03/2005" [ref=e17282]
+                - row "CNP opțional 5050315..." [ref=e17283]:
+                  - cell "CNP" [ref=e17284]:
+                    - code [ref=e17285]: CNP
+                  - cell "opțional" [ref=e17286]
+                  - cell "5050315..." [ref=e17287]
+                - row "EMAIL opțional horatiu@email.com" [ref=e17288]:
+                  - cell "EMAIL" [ref=e17289]:
+                    - code [ref=e17290]: EMAIL
+                  - cell "opțional" [ref=e17291]
+                  - cell "horatiu@email.com" [ref=e17292]
+                - row "TELEFON opțional 0722123456" [ref=e17293]:
+                  - cell "TELEFON" [ref=e17294]:
+                    - code [ref=e17295]: TELEFON
+                  - cell "opțional" [ref=e17296]
+                  - cell "0722123456" [ref=e17297]
+                - row "GEN opțional Masculin" [ref=e17298]:
+                  - cell "GEN" [ref=e17299]:
+                    - code [ref=e17300]: GEN
+                  - cell "opțional" [ref=e17301]
+                  - cell "Masculin" [ref=e17302]
+                - row "ADRESA opțional Str. Exemplu 1" [ref=e17303]:
+                  - cell "ADRESA" [ref=e17304]:
+                    - code [ref=e17305]: ADRESA
+                  - cell "opțional" [ref=e17306]
+                  - cell "Str. Exemplu 1" [ref=e17307]
+                - row "LOCUL NASTERII opțional Cluj-Napoca" [ref=e17308]:
+                  - cell "LOCUL NASTERII" [ref=e17309]:
+                    - code [ref=e17310]: LOCUL NASTERII
+                  - cell "opțional" [ref=e17311]
+                  - cell "Cluj-Napoca" [ref=e17312]
+            - paragraph [ref=e17313]: Numele coloanelor trebuie să fie exact ca mai sus (majuscule). Descarcă template-ul — nu trebuie să scrii coloanele manual.
+        - generic [ref=e17240]:
+          - button "Greșeli frecvente de evitat" [active] [ref=e17241] [cursor=pointer]:
+            - generic [ref=e17242]:
+              - img [ref=e17243]
+              - text: Greșeli frecvente de evitat
+            - img [ref=e17245]
+          - generic [ref=e17314]:
+            - generic [ref=e17315]:
+              - paragraph [ref=e17316]: Prenume cu mai multe cuvinte — cel mai frecvent
+              - generic [ref=e17317]:
+                - generic [ref=e17318]:
+                  - paragraph [ref=e17319]: Greșit
+                  - paragraph [ref=e17320]: "PRENUME: \"Casian\" (lipsește \"Horatiu\")"
+                - generic [ref=e17321]:
+                  - paragraph [ref=e17322]: Corect
+                  - paragraph [ref=e17323]: "PRENUME: \"Horatiu Casian\" — ambele prenume, spațiu între ele"
+              - paragraph [ref=e17324]: "Dacă sportivul are două sau mai multe prenume (ex: Horatiu Casian, Maria Elena), scrie-le pe TOATE în aceeași celulă, separate prin spațiu. Dacă scrii doar unul, sistemul poate să nu recunoască sportivul și să îl importe ca persoană nouă, creând un duplicat."
+            - generic [ref=e17325]:
+              - paragraph [ref=e17326]: Prenumele și numele inversate
+              - generic [ref=e17327]:
+                - generic [ref=e17328]:
+                  - paragraph [ref=e17329]: Greșit
+                  - paragraph [ref=e17330]: "NUME: \"Casian\", PRENUME: \"Horatiu\" — invers"
+                - generic [ref=e17331]:
+                  - paragraph [ref=e17332]: Corect
+                  - paragraph [ref=e17333]: "NUME: \"Popescu\" (familia), PRENUME: \"Horatiu Casian\" (prenumele)"
+              - paragraph [ref=e17334]: NUME = numele de familie (Popescu, Ionescu, Casian). PRENUME = prenumele propriu (Horatiu, Maria Elena). Dacă le inversezi, sportivul poate apărea duplicat în sistem.
+            - generic [ref=e17335]:
+              - paragraph [ref=e17336]: Data nașterii în format greșit
+              - generic [ref=e17337]:
+                - generic [ref=e17338]:
+                  - paragraph [ref=e17339]: Greșit
+                  - paragraph [ref=e17340]: "\"5 Martie 2005\" sau \"05-03-2005\""
+                - generic [ref=e17341]:
+                  - paragraph [ref=e17342]: Corect
+                  - paragraph [ref=e17343]: "\"05/03/2005\" sau \"05.03.2005\" sau \"2005-03-05\""
+              - paragraph [ref=e17344]: Sistemul acceptă doar formatele de mai sus. Nu scrie luna cu litere și nu folosi cratime.
+            - generic [ref=e17345]:
+              - paragraph [ref=e17346]: Diacritice lipsă
+              - generic [ref=e17347]:
+                - generic [ref=e17348]:
+                  - paragraph [ref=e17349]: Greșit
+                  - paragraph [ref=e17350]: "\"Stefan Ionescu\" fără ș, ț, ă"
+                - generic [ref=e17351]:
+                  - paragraph [ref=e17352]: Corect
+                  - paragraph [ref=e17353]: "\"Ștefan Ionescu\" cu diacritice corecte"
+              - paragraph [ref=e17354]: Sistemul recunoaște variante cu și fără diacritice, dar pentru o bază de date curată folosește diacriticele corecte (ș, ț, ă, â, î).
+        - generic [ref=e17247]:
+          - button "Descarcă Template CSV" [ref=e17248] [cursor=pointer]:
+            - img [ref=e17249]
+            - text: Descarcă Template CSV
+          - generic [ref=e17251]:
+            - button "Choose File" [ref=e17252] [cursor=pointer]
+            - generic [ref=e17253]:
+              - generic [ref=e17254]: Selectează fișier CSV sau Excel...
+              - button "Caută" [ref=e17255] [cursor=pointer]
+        - generic [ref=e17256]:
+          - button "Analizează Fișier" [disabled] [ref=e17257]
+          - button "Înapoi" [ref=e17258] [cursor=pointer]
+    - button "Asistent AI" [ref=e506] [cursor=pointer]:
+      - img [ref=e507]
+  - generic [ref=e3236]: 16.02.2012

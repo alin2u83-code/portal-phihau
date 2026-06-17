@@ -1,0 +1,527 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Federație
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e78]:
+            - generic [ref=e79] [cursor=pointer]:
+              - img [ref=e80]
+              - generic [ref=e86]: Examene
+              - img [ref=e87]
+            - generic [ref=e987]:
+              - generic [ref=e988] [cursor=pointer]: Sesiuni Examene
+              - generic [ref=e990] [cursor=pointer]: Rapoarte Examen
+          - generic [ref=e90] [cursor=pointer]:
+            - img [ref=e91]
+            - generic [ref=e97]: Activități Naționale
+            - img [ref=e98]
+          - generic [ref=e101] [cursor=pointer]:
+            - img [ref=e102]
+            - generic [ref=e105]: Setări & Admin
+            - img [ref=e106]
+          - generic [ref=e108] [cursor=pointer]:
+            - img [ref=e110]
+            - generic [ref=e112]: Rapoarte
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e115]
+            - generic [ref=e119]: Notificări
+          - generic [ref=e120] [cursor=pointer]:
+            - img [ref=e122]
+            - generic [ref=e124]: SMS
+          - generic [ref=e125] [cursor=pointer]:
+            - img [ref=e127]
+            - generic [ref=e130]: Cereri Înscriere
+          - generic [ref=e131] [cursor=pointer]:
+            - img [ref=e133]
+            - generic [ref=e136]: Istoric Activitate
+          - generic [ref=e137] [cursor=pointer]:
+            - img [ref=e139]
+            - generic [ref=e142]: Admin Dashboard
+          - generic [ref=e143] [cursor=pointer]:
+            - img [ref=e145]
+            - generic [ref=e151]: Button Catalog
+        - button "Scroll jos" [ref=e152] [cursor=pointer]:
+          - img [ref=e153]
+      - generic [ref=e155]:
+        - button "Tema" [ref=e157] [cursor=pointer]:
+          - img [ref=e158]
+          - generic [ref=e164]: Tema
+        - generic [ref=e166]:
+          - generic [ref=e167]: AL
+          - generic [ref=e168]:
+            - paragraph [ref=e169]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e170] [cursor=pointer]:
+            - img [ref=e171]
+  - button "Restrânge meniul" [ref=e174] [cursor=pointer]:
+    - img [ref=e175]
+  - banner [ref=e177]:
+    - generic [ref=e178]:
+      - button "Înapoi" [ref=e9824] [cursor=pointer]:
+        - img [ref=e9825]
+      - navigation "Navigare" [ref=e179]:
+        - button "Examene" [ref=e9827] [cursor=pointer]
+        - generic [ref=e9828]: ›
+        - heading "Profil Sportiv" [level=1] [ref=e9829]
+    - generic [ref=e181]:
+      - button "Temă" [ref=e183] [cursor=pointer]:
+        - img [ref=e184]
+        - generic [ref=e190]: Temă
+      - button [ref=e192] [cursor=pointer]:
+        - img [ref=e193]
+      - button "AL ALIN MIHAI [SUPER ADMIN]" [ref=e198] [cursor=pointer]:
+        - generic [ref=e199]: AL
+        - paragraph [ref=e201]:
+          - text: ALIN MIHAI
+          - generic [ref=e202]: "[SUPER ADMIN]"
+        - img [ref=e203]
+  - main [ref=e205]:
+    - generic [ref=e9831]:
+      - button "Management Sportivi" [ref=e9832] [cursor=pointer]:
+        - img [ref=e9833]
+        - generic [ref=e9835]: Management Sportivi
+      - generic [ref=e9836]:
+        - generic [ref=e9837]:
+          - generic [ref=e9838]:
+            - generic [ref=e9840]:
+              - generic [ref=e9841]: BI
+              - img [ref=e9843] [cursor=pointer]
+            - generic [ref=e9847]: C.V. 1 Câp Alb
+          - generic [ref=e9848]:
+            - heading "BALMUS IUSTINA" [level=1] [ref=e9849]
+            - paragraph [ref=e9850]: Copii Avansati
+            - generic [ref=e9852]: Activ
+        - generic [ref=e9853]:
+          - button "Editare" [ref=e9854] [cursor=pointer]:
+            - img [ref=e9855]
+            - text: Editare
+          - button "Portofel" [ref=e9858] [cursor=pointer]:
+            - img [ref=e9859]
+            - text: Portofel
+          - button "Plăți" [ref=e9862] [cursor=pointer]:
+            - img [ref=e9863]
+            - text: Plăți
+          - button "Examene" [ref=e9865] [cursor=pointer]:
+            - img [ref=e9866]
+            - text: Examene
+          - button "Șterge" [ref=e9872] [cursor=pointer]:
+            - img [ref=e9873]
+            - text: Șterge
+      - generic [ref=e9876]:
+        - button "Profil & Activitate" [ref=e9877] [cursor=pointer]:
+          - img [ref=e9878]
+          - text: Profil & Activitate
+        - button "Contact & Info" [ref=e9882] [cursor=pointer]:
+          - img [ref=e9883]
+          - text: Contact & Info
+        - button "Evoluție & Grade" [ref=e9886] [cursor=pointer]:
+          - img [ref=e9887]
+          - text: Evoluție & Grade
+        - button "Istoric Financiar" [ref=e9893] [cursor=pointer]:
+          - img [ref=e9894]
+          - text: Istoric Financiar
+        - button "Familie" [ref=e9896] [cursor=pointer]:
+          - img [ref=e9897]
+          - text: Familie
+      - generic [ref=e9903]:
+        - generic [ref=e9904]:
+          - generic [ref=e9905]:
+            - heading "Statistici" [level=3] [ref=e9906]:
+              - img [ref=e9907]
+              - text: Statistici
+            - generic [ref=e9909]:
+              - generic [ref=e9910]:
+                - paragraph [ref=e9911]: Vârstă
+                - paragraph [ref=e9912]: 12 ani
+              - generic [ref=e9913]:
+                - paragraph [ref=e9914]: Vechime
+                - paragraph [ref=e9915]: 4 ani
+          - generic [ref=e9916]:
+            - heading "Statistici Prezență" [level=3] [ref=e9918]:
+              - img [ref=e9919]
+              - text: Statistici Prezență
+            - generic [ref=e9922]:
+              - img [ref=e9923]
+              - generic [ref=e9926]:
+                - generic [ref=e9927]: 41%
+                - generic [ref=e9928]: Prezență
+            - generic [ref=e9929]:
+              - generic [ref=e9930]:
+                - img [ref=e9932]
+                - paragraph [ref=e9935]: Total
+                - paragraph [ref=e9936]: "71"
+              - generic [ref=e9937]:
+                - img [ref=e9939]
+                - paragraph [ref=e9942]: Prezent
+                - paragraph [ref=e9943]: "29"
+              - generic [ref=e9944]:
+                - img [ref=e9946]
+                - paragraph [ref=e9950]: Absent
+                - paragraph [ref=e9951]: "8"
+            - generic [ref=e9952]:
+              - paragraph [ref=e9953]: Evoluție lunară (%)
+              - generic [ref=e9954]:
+                - generic [ref=e9955]:
+                  - generic [ref=e9958]: Ian
+                  - generic: 4/9 prezențe (44%)
+                - generic [ref=e9959]:
+                  - generic [ref=e9962]: Feb
+                  - generic: 4/12 prezențe (33%)
+                - generic [ref=e9963]:
+                  - generic [ref=e9966]: Mar
+                  - generic: 4/16 prezențe (25%)
+                - generic [ref=e9967]:
+                  - generic [ref=e9970]: Apr
+                  - generic: 7/13 prezențe (54%)
+                - generic [ref=e9971]:
+                  - generic [ref=e9974]: Mai
+                  - generic: 8/12 prezențe (67%)
+                - generic [ref=e9975]:
+                  - generic [ref=e9978]: Iun
+                  - generic: 2/7 prezențe (29%)
+          - generic [ref=e9980]:
+            - heading "Prezență Recente" [level=3] [ref=e9981]
+            - generic [ref=e9982]:
+              - generic "Absent" [ref=e9983]
+              - generic "Absent" [ref=e9984]
+              - generic "Absent" [ref=e9985]
+        - generic [ref=e9986]:
+          - generic [ref=e9987]:
+            - heading "Istoric Antrenamente" [level=3] [ref=e9988]
+            - table [ref=e9990]:
+              - rowgroup [ref=e9991]:
+                - row "Data Grupă Status" [ref=e9992]:
+                  - columnheader "Data" [ref=e9993]
+                  - columnheader "Grupă" [ref=e9994]
+                  - columnheader "Status" [ref=e9995]
+              - rowgroup [ref=e9996]:
+                - row "09.06.2026 Copii Avansati N/A" [ref=e9997]:
+                  - cell "09.06.2026" [ref=e9998]
+                  - cell "Copii Avansati" [ref=e9999]
+                  - cell "N/A" [ref=e10000]
+                - row "08.06.2026 Copii Avansati N/A" [ref=e10001]:
+                  - cell "08.06.2026" [ref=e10002]
+                  - cell "Copii Avansati" [ref=e10003]
+                  - cell "N/A" [ref=e10004]
+                - row "04.06.2026 Copii Avansati Prezent" [ref=e10005]:
+                  - cell "04.06.2026" [ref=e10006]
+                  - cell "Copii Avansati" [ref=e10007]
+                  - cell "Prezent" [ref=e10008]
+                - row "03.06.2026 Copii Avansati N/A" [ref=e10009]:
+                  - cell "03.06.2026" [ref=e10010]
+                  - cell "Copii Avansati" [ref=e10011]
+                  - cell "N/A" [ref=e10012]
+                - row "03.06.2026 Copii Avansati N/A" [ref=e10013]:
+                  - cell "03.06.2026" [ref=e10014]
+                  - cell "Copii Avansati" [ref=e10015]
+                  - cell "N/A" [ref=e10016]
+                - row "02.06.2026 Copii Avansati Prezent" [ref=e10017]:
+                  - cell "02.06.2026" [ref=e10018]
+                  - cell "Copii Avansati" [ref=e10019]
+                  - cell "Prezent" [ref=e10020]
+                - row "01.06.2026 Copii Avansati N/A" [ref=e10021]:
+                  - cell "01.06.2026" [ref=e10022]
+                  - cell "Copii Avansati" [ref=e10023]
+                  - cell "N/A" [ref=e10024]
+                - row "28.05.2026 Copii Avansati Prezent" [ref=e10025]:
+                  - cell "28.05.2026" [ref=e10026]
+                  - cell "Copii Avansati" [ref=e10027]
+                  - cell "Prezent" [ref=e10028]
+                - row "26.05.2026 Copii Avansati Prezent" [ref=e10029]:
+                  - cell "26.05.2026" [ref=e10030]
+                  - cell "Copii Avansati" [ref=e10031]
+                  - cell "Prezent" [ref=e10032]
+                - row "25.05.2026 Copii Avansati Absent" [ref=e10033]:
+                  - cell "25.05.2026" [ref=e10034]
+                  - cell "Copii Avansati" [ref=e10035]
+                  - cell "Absent" [ref=e10036]
+                - row "21.05.2026 Copii Avansati Prezent" [ref=e10037]:
+                  - cell "21.05.2026" [ref=e10038]
+                  - cell "Copii Avansati" [ref=e10039]
+                  - cell "Prezent" [ref=e10040]
+                - row "19.05.2026 Copii Avansati Prezent" [ref=e10041]:
+                  - cell "19.05.2026" [ref=e10042]
+                  - cell "Copii Avansati" [ref=e10043]
+                  - cell "Prezent" [ref=e10044]
+                - row "18.05.2026 Copii Avansati Prezent" [ref=e10045]:
+                  - cell "18.05.2026" [ref=e10046]
+                  - cell "Copii Avansati" [ref=e10047]
+                  - cell "Prezent" [ref=e10048]
+                - row "14.05.2026 Copii Avansati Prezent" [ref=e10049]:
+                  - cell "14.05.2026" [ref=e10050]
+                  - cell "Copii Avansati" [ref=e10051]
+                  - cell "Prezent" [ref=e10052]
+                - row "12.05.2026 Copii Avansati N/A" [ref=e10053]:
+                  - cell "12.05.2026" [ref=e10054]
+                  - cell "Copii Avansati" [ref=e10055]
+                  - cell "N/A" [ref=e10056]
+                - row "11.05.2026 Copii Avansati N/A" [ref=e10057]:
+                  - cell "11.05.2026" [ref=e10058]
+                  - cell "Copii Avansati" [ref=e10059]
+                  - cell "N/A" [ref=e10060]
+                - row "07.05.2026 Copii Avansati Prezent" [ref=e10061]:
+                  - cell "07.05.2026" [ref=e10062]
+                  - cell "Copii Avansati" [ref=e10063]
+                  - cell "Prezent" [ref=e10064]
+                - row "05.05.2026 Copii Avansati Prezent" [ref=e10065]:
+                  - cell "05.05.2026" [ref=e10066]
+                  - cell "Copii Avansati" [ref=e10067]
+                  - cell "Prezent" [ref=e10068]
+                - row "04.05.2026 Copii Avansati Absent" [ref=e10069]:
+                  - cell "04.05.2026" [ref=e10070]
+                  - cell "Copii Avansati" [ref=e10071]
+                  - cell "Absent" [ref=e10072]
+                - row "30.04.2026 Copii Avansati Prezent" [ref=e10073]:
+                  - cell "30.04.2026" [ref=e10074]
+                  - cell "Copii Avansati" [ref=e10075]
+                  - cell "Prezent" [ref=e10076]
+                - row "28.04.2026 Copii Avansati Prezent" [ref=e10077]:
+                  - cell "28.04.2026" [ref=e10078]
+                  - cell "Copii Avansati" [ref=e10079]
+                  - cell "Prezent" [ref=e10080]
+                - row "27.04.2026 Copii Avansati Absent" [ref=e10081]:
+                  - cell "27.04.2026" [ref=e10082]
+                  - cell "Copii Avansati" [ref=e10083]
+                  - cell "Absent" [ref=e10084]
+                - row "23.04.2026 Copii Avansati Prezent" [ref=e10085]:
+                  - cell "23.04.2026" [ref=e10086]
+                  - cell "Copii Avansati" [ref=e10087]
+                  - cell "Prezent" [ref=e10088]
+                - row "21.04.2026 Copii Avansati Prezent" [ref=e10089]:
+                  - cell "21.04.2026" [ref=e10090]
+                  - cell "Copii Avansati" [ref=e10091]
+                  - cell "Prezent" [ref=e10092]
+                - row "20.04.2026 Copii Avansati Prezent" [ref=e10093]:
+                  - cell "20.04.2026" [ref=e10094]
+                  - cell "Copii Avansati" [ref=e10095]
+                  - cell "Prezent" [ref=e10096]
+                - row "16.04.2026 Copii Avansati Prezent" [ref=e10097]:
+                  - cell "16.04.2026" [ref=e10098]
+                  - cell "Copii Avansati" [ref=e10099]
+                  - cell "Prezent" [ref=e10100]
+                - row "14.04.2026 Copii Avansati N/A" [ref=e10101]:
+                  - cell "14.04.2026" [ref=e10102]
+                  - cell "Copii Avansati" [ref=e10103]
+                  - cell "N/A" [ref=e10104]
+                - row "13.04.2026 Copii Avansati N/A" [ref=e10105]:
+                  - cell "13.04.2026" [ref=e10106]
+                  - cell "Copii Avansati" [ref=e10107]
+                  - cell "N/A" [ref=e10108]
+                - row "09.04.2026 Copii Avansati N/A" [ref=e10109]:
+                  - cell "09.04.2026" [ref=e10110]
+                  - cell "Copii Avansati" [ref=e10111]
+                  - cell "N/A" [ref=e10112]
+                - row "07.04.2026 Copii Avansati N/A" [ref=e10113]:
+                  - cell "07.04.2026" [ref=e10114]
+                  - cell "Copii Avansati" [ref=e10115]
+                  - cell "N/A" [ref=e10116]
+                - row "06.04.2026 Copii Avansati Absent" [ref=e10117]:
+                  - cell "06.04.2026" [ref=e10118]
+                  - cell "Copii Avansati" [ref=e10119]
+                  - cell "Absent" [ref=e10120]
+                - row "02.04.2026 Copii Avansati Prezent" [ref=e10121]:
+                  - cell "02.04.2026" [ref=e10122]
+                  - cell "Copii Avansati" [ref=e10123]
+                  - cell "Prezent" [ref=e10124]
+                - row "31.03.2026 Copii Avansati N/A" [ref=e10125]:
+                  - cell "31.03.2026" [ref=e10126]
+                  - cell "Copii Avansati" [ref=e10127]
+                  - cell "N/A" [ref=e10128]
+                - row "30.03.2026 Copii Avansati N/A" [ref=e10129]:
+                  - cell "30.03.2026" [ref=e10130]
+                  - cell "Copii Avansati" [ref=e10131]
+                  - cell "N/A" [ref=e10132]
+                - row "30.03.2026 Copii Avansati N/A" [ref=e10133]:
+                  - cell "30.03.2026" [ref=e10134]
+                  - cell "Copii Avansati" [ref=e10135]
+                  - cell "N/A" [ref=e10136]
+                - row "30.03.2026 Copii Avansati N/A" [ref=e10137]:
+                  - cell "30.03.2026" [ref=e10138]
+                  - cell "Copii Avansati" [ref=e10139]
+                  - cell "N/A" [ref=e10140]
+                - row "26.03.2026 Copii Avansati Absent" [ref=e10141]:
+                  - cell "26.03.2026" [ref=e10142]
+                  - cell "Copii Avansati" [ref=e10143]
+                  - cell "Absent" [ref=e10144]
+                - row "24.03.2026 Copii Avansati N/A" [ref=e10145]:
+                  - cell "24.03.2026" [ref=e10146]
+                  - cell "Copii Avansati" [ref=e10147]
+                  - cell "N/A" [ref=e10148]
+                - row "23.03.2026 Copii Avansati N/A" [ref=e10149]:
+                  - cell "23.03.2026" [ref=e10150]
+                  - cell "Copii Avansati" [ref=e10151]
+                  - cell "N/A" [ref=e10152]
+                - row "19.03.2026 Copii Avansati Prezent" [ref=e10153]:
+                  - cell "19.03.2026" [ref=e10154]
+                  - cell "Copii Avansati" [ref=e10155]
+                  - cell "Prezent" [ref=e10156]
+                - row "17.03.2026 Copii Avansati Absent" [ref=e10157]:
+                  - cell "17.03.2026" [ref=e10158]
+                  - cell "Copii Avansati" [ref=e10159]
+                  - cell "Absent" [ref=e10160]
+                - row "16.03.2026 Copii Avansati Absent" [ref=e10161]:
+                  - cell "16.03.2026" [ref=e10162]
+                  - cell "Copii Avansati" [ref=e10163]
+                  - cell "Absent" [ref=e10164]
+                - row "12.03.2026 Copii Avansati Prezent" [ref=e10165]:
+                  - cell "12.03.2026" [ref=e10166]
+                  - cell "Copii Avansati" [ref=e10167]
+                  - cell "Prezent" [ref=e10168]
+                - row "10.03.2026 Copii Avansati N/A" [ref=e10169]:
+                  - cell "10.03.2026" [ref=e10170]
+                  - cell "Copii Avansati" [ref=e10171]
+                  - cell "N/A" [ref=e10172]
+                - row "09.03.2026 Copii Avansati N/A" [ref=e10173]:
+                  - cell "09.03.2026" [ref=e10174]
+                  - cell "Copii Avansati" [ref=e10175]
+                  - cell "N/A" [ref=e10176]
+                - row "05.03.2026 Copii Avansati Prezent" [ref=e10177]:
+                  - cell "05.03.2026" [ref=e10178]
+                  - cell "Copii Avansati" [ref=e10179]
+                  - cell "Prezent" [ref=e10180]
+                - row "03.03.2026 Copii Avansati Prezent" [ref=e10181]:
+                  - cell "03.03.2026" [ref=e10182]
+                  - cell "Copii Avansati" [ref=e10183]
+                  - cell "Prezent" [ref=e10184]
+                - row "02.03.2026 Copii Avansati Absent" [ref=e10185]:
+                  - cell "02.03.2026" [ref=e10186]
+                  - cell "Copii Avansati" [ref=e10187]
+                  - cell "Absent" [ref=e10188]
+                - row "26.02.2026 Copii Avansati Absent" [ref=e10189]:
+                  - cell "26.02.2026" [ref=e10190]
+                  - cell "Copii Avansati" [ref=e10191]
+                  - cell "Absent" [ref=e10192]
+                - row "24.02.2026 Copii Avansati Prezent" [ref=e10193]:
+                  - cell "24.02.2026" [ref=e10194]
+                  - cell "Copii Avansati" [ref=e10195]
+                  - cell "Prezent" [ref=e10196]
+                - row "23.02.2026 Copii Avansati N/A" [ref=e10197]:
+                  - cell "23.02.2026" [ref=e10198]
+                  - cell "Copii Avansati" [ref=e10199]
+                  - cell "N/A" [ref=e10200]
+                - row "19.02.2026 Copii Avansati Absent" [ref=e10201]:
+                  - cell "19.02.2026" [ref=e10202]
+                  - cell "Copii Avansati" [ref=e10203]
+                  - cell "Absent" [ref=e10204]
+                - row "17.02.2026 Copii Avansati Absent" [ref=e10205]:
+                  - cell "17.02.2026" [ref=e10206]
+                  - cell "Copii Avansati" [ref=e10207]
+                  - cell "Absent" [ref=e10208]
+                - row "16.02.2026 Copii Avansati Absent" [ref=e10209]:
+                  - cell "16.02.2026" [ref=e10210]
+                  - cell "Copii Avansati" [ref=e10211]
+                  - cell "Absent" [ref=e10212]
+                - row "12.02.2026 Copii Avansati Absent" [ref=e10213]:
+                  - cell "12.02.2026" [ref=e10214]
+                  - cell "Copii Avansati" [ref=e10215]
+                  - cell "Absent" [ref=e10216]
+                - row "10.02.2026 Copii Avansati N/A" [ref=e10217]:
+                  - cell "10.02.2026" [ref=e10218]
+                  - cell "Copii Avansati" [ref=e10219]
+                  - cell "N/A" [ref=e10220]
+                - row "09.02.2026 Copii Avansati Prezent" [ref=e10221]:
+                  - cell "09.02.2026" [ref=e10222]
+                  - cell "Copii Avansati" [ref=e10223]
+                  - cell "Prezent" [ref=e10224]
+                - row "05.02.2026 Copii Avansati Prezent" [ref=e10225]:
+                  - cell "05.02.2026" [ref=e10226]
+                  - cell "Copii Avansati" [ref=e10227]
+                  - cell "Prezent" [ref=e10228]
+                - row "03.02.2026 Copii Avansati Absent" [ref=e10229]:
+                  - cell "03.02.2026" [ref=e10230]
+                  - cell "Copii Avansati" [ref=e10231]
+                  - cell "Absent" [ref=e10232]
+                - row "02.02.2026 Copii Avansati Prezent" [ref=e10233]:
+                  - cell "02.02.2026" [ref=e10234]
+                  - cell "Copii Avansati" [ref=e10235]
+                  - cell "Prezent" [ref=e10236]
+                - row "29.01.2026 Copii Avansati Prezent" [ref=e10237]:
+                  - cell "29.01.2026" [ref=e10238]
+                  - cell "Copii Avansati" [ref=e10239]
+                  - cell "Prezent" [ref=e10240]
+                - row "27.01.2026 Copii Avansati Absent" [ref=e10241]:
+                  - cell "27.01.2026" [ref=e10242]
+                  - cell "Copii Avansati" [ref=e10243]
+                  - cell "Absent" [ref=e10244]
+                - row "22.01.2026 Copii Avansati Prezent" [ref=e10245]:
+                  - cell "22.01.2026" [ref=e10246]
+                  - cell "Copii Avansati" [ref=e10247]
+                  - cell "Prezent" [ref=e10248]
+                - row "20.01.2026 Copii Avansati Absent" [ref=e10249]:
+                  - cell "20.01.2026" [ref=e10250]
+                  - cell "Copii Avansati" [ref=e10251]
+                  - cell "Absent" [ref=e10252]
+                - row "19.01.2026 Copii Avansati Absent" [ref=e10253]:
+                  - cell "19.01.2026" [ref=e10254]
+                  - cell "Copii Avansati" [ref=e10255]
+                  - cell "Absent" [ref=e10256]
+                - row "15.01.2026 Copii Avansati N/A" [ref=e10257]:
+                  - cell "15.01.2026" [ref=e10258]
+                  - cell "Copii Avansati" [ref=e10259]
+                  - cell "N/A" [ref=e10260]
+                - row "13.01.2026 Copii Avansati N/A" [ref=e10261]:
+                  - cell "13.01.2026" [ref=e10262]
+                  - cell "Copii Avansati" [ref=e10263]
+                  - cell "N/A" [ref=e10264]
+                - row "12.01.2026 Copii Avansati Prezent" [ref=e10265]:
+                  - cell "12.01.2026" [ref=e10266]
+                  - cell "Copii Avansati" [ref=e10267]
+                  - cell "Prezent" [ref=e10268]
+                - row "08.01.2026 Copii Avansati Prezent" [ref=e10269]:
+                  - cell "08.01.2026" [ref=e10270]
+                  - cell "Copii Avansati" [ref=e10271]
+                  - cell "Prezent" [ref=e10272]
+                - row "01.01.1970 Copii Avansati N/A" [ref=e10273]:
+                  - cell "01.01.1970" [ref=e10274]
+                  - cell "Copii Avansati" [ref=e10275]
+                  - cell "N/A" [ref=e10276]
+                - row "01.01.1970 Copii Avansati N/A" [ref=e10277]:
+                  - cell "01.01.1970" [ref=e10278]
+                  - cell "Copii Avansati" [ref=e10279]
+                  - cell "N/A" [ref=e10280]
+          - generic [ref=e10281]:
+            - generic [ref=e10282]:
+              - heading "Feedback & Obiective" [level=3] [ref=e10283]:
+                - img [ref=e10284]
+                - text: Feedback & Obiective
+              - button "Editează" [ref=e10287] [cursor=pointer]:
+                - img [ref=e10288]
+                - text: Editează
+            - generic [ref=e10291]:
+              - generic [ref=e10292]:
+                - heading "Puncte Forte" [level=4] [ref=e10293]
+                - paragraph [ref=e10294]: Nespecificat
+              - generic [ref=e10295]:
+                - heading "Puncte Slabe" [level=4] [ref=e10296]
+                - paragraph [ref=e10297]: Nespecificat
+              - generic [ref=e10298]:
+                - heading "Obiective" [level=4] [ref=e10299]
+                - paragraph [ref=e10300]: Nespecificat
+            - button "Generează Raport Detaliat" [ref=e10302] [cursor=pointer]:
+              - img [ref=e10303]
+              - text: Generează Raport Detaliat
+  - contentinfo [ref=e975]:
+    - paragraph [ref=e976]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e977] [cursor=pointer]:
+      - img [ref=e978]
+      - generic [ref=e1305]: Asistent AI

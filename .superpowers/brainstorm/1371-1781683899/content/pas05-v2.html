@@ -1,0 +1,246 @@
+<style>
+  body { background: #0f172a; color: #e2e8f0; font-family: system-ui, sans-serif; }
+  h2 { color: #f1f5f9; font-size: 1.75rem; font-weight: 800; margin-bottom: 0.2rem; }
+  .subtitle { color: #94a3b8; font-size: 1rem; margin-bottom: 1.25rem; }
+
+  .wizard-steps {
+    display: flex; gap: 0; margin-bottom: 1.5rem;
+    border-radius: 0.75rem; overflow: hidden; border: 1px solid #334155;
+  }
+  .step {
+    flex: 1; padding: 0.6rem 0.5rem; text-align: center;
+    font-size: 0.85rem; font-weight: 600; background: #1e293b; color: #64748b;
+    border-right: 1px solid #334155;
+  }
+  .step:last-child { border-right: none; }
+  .step.done { color: #22c55e; }
+  .step.active { background: #1d4ed8; color: #fff; }
+
+  .section-card {
+    background: #1e293b; border: 1px solid #334155;
+    border-radius: 0.75rem; padding: 1rem 1.25rem; margin-bottom: 0.875rem;
+  }
+  .section-title {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #64748b; margin-bottom: 0.75rem;
+  }
+
+  .mode-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem;
+  }
+  .mode-option {
+    display: flex; align-items: center; gap: 0.875rem;
+    padding: 1rem 1.125rem; border-radius: 0.625rem;
+    border: 2px solid #334155; background: #0f172a;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .mode-option.selected { border-color: #3b82f6; background: #1e3a5f; }
+  .mode-option:hover:not(.selected) { border-color: #475569; }
+  .mode-checkbox {
+    width: 1.35rem; height: 1.35rem; border-radius: 0.3rem;
+    border: 2px solid #475569; background: #0f172a;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 0.85rem; color: white;
+  }
+  .mode-option.selected .mode-checkbox { background: #3b82f6; border-color: #3b82f6; }
+  .mode-label { font-size: 1rem; font-weight: 700; color: #f1f5f9; }
+  .mode-desc { font-size: 0.8rem; color: #64748b; margin-top: 0.15rem; }
+
+  .fields-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;
+  }
+  .field-toggle {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.75rem 0.875rem; border-radius: 0.5rem;
+    border: 2px solid #334155; background: #0f172a;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .field-toggle.active { border-color: #3b82f6; background: #1e3a5f; }
+  .field-toggle.locked { cursor: default; border-color: #1e40af; background: #172554; }
+  .field-toggle:hover:not(.locked):not(.active) { border-color: #475569; }
+  .field-toggle.ignored { opacity: 0.45; cursor: default; border-style: dashed; }
+
+  .toggle-box {
+    width: 1.2rem; height: 1.2rem; border-radius: 0.25rem;
+    border: 2px solid #475569; background: #0f172a;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 0.75rem; color: white;
+  }
+  .field-toggle.active .toggle-box { background: #3b82f6; border-color: #3b82f6; }
+  .field-toggle.locked .toggle-box { background: #1d4ed8; border-color: #1d4ed8; }
+  .field-toggle.ignored .toggle-box { background: transparent; border-color: #44403c; }
+
+  .field-name { font-size: 0.9rem; color: #cbd5e1; font-weight: 600; }
+  .field-name.dim { color: #64748b; font-style: italic; font-weight: 400; }
+
+  .badge {
+    font-size: 0.6rem; padding: 0.1rem 0.35rem; border-radius: 9999px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    margin-left: auto; flex-shrink: 0;
+  }
+  .badge-locked { background: #1e3a8a; color: #93c5fd; }
+  .badge-ignored { background: #292524; color: #78716c; }
+
+  .select-all-row {
+    display: flex; gap: 0.75rem; margin-bottom: 0.625rem; align-items: center;
+  }
+  .link-btn {
+    font-size: 0.8rem; color: #60a5fa; cursor: pointer;
+    background: none; border: none; padding: 0; font-weight: 600;
+    text-decoration: underline;
+  }
+  .select-label { font-size: 0.8rem; color: #64748b; margin-right: auto; }
+
+  .actions {
+    display: flex; gap: 0.75rem; margin-top: 1.25rem; align-items: center;
+  }
+  .btn-back {
+    padding: 0.8rem 1.5rem; border-radius: 0.625rem;
+    background: transparent; border: 2px solid #475569;
+    color: #94a3b8; font-size: 1rem; font-weight: 600; cursor: pointer;
+  }
+  .btn-primary {
+    padding: 0.8rem 2rem; border-radius: 0.625rem;
+    background: #2563eb; border: 2px solid #2563eb;
+    color: white; font-size: 1rem; font-weight: 700; cursor: pointer;
+    margin-left: auto;
+  }
+  .btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+
+  .warning-box {
+    background: #451a03; border: 1px solid #92400e;
+    border-radius: 0.5rem; padding: 0.6rem 0.875rem;
+    font-size: 0.825rem; color: #fcd34d; margin-top: 0.625rem; display: none;
+  }
+</style>
+
+<h2>Configurează importul</h2>
+<p class="subtitle">Alege ce vrei să faci cu datele din fișier</p>
+
+<div class="wizard-steps">
+  <div class="step done">✓ 1. Fișier</div>
+  <div class="step active">2. Configurare</div>
+  <div class="step">3. Revizuire</div>
+  <div class="step">4. Raport</div>
+</div>
+
+<!-- MOD IMPORT -->
+<div class="section-card">
+  <div class="section-title">Ce vrei să faci?</div>
+  <div class="mode-row">
+    <div class="mode-option selected" id="mode-add" onclick="toggleMode('add')">
+      <div class="mode-checkbox" id="cb-add">✓</div>
+      <div>
+        <div class="mode-label">Adaugă sportivi noi</div>
+        <div class="mode-desc">Creează sportivii care nu există încă</div>
+      </div>
+    </div>
+    <div class="mode-option" id="mode-update" onclick="toggleMode('update')">
+      <div class="mode-checkbox" id="cb-update"></div>
+      <div>
+        <div class="mode-label">Actualizează existenți</div>
+        <div class="mode-desc">Completează / modifică date deja salvate</div>
+      </div>
+    </div>
+  </div>
+  <div class="warning-box" id="warn">
+    ⚠ Ai ales "Actualizează existenți" dar nu ai selectat niciun câmp de actualizat.
+  </div>
+</div>
+
+<!-- CÂMPURI -->
+<div class="section-card">
+  <div class="section-title">Ce informații să fie importate?</div>
+  <div class="select-all-row">
+    <span class="select-label">Coloane găsite în fișier — bifează ce vrei să imporți</span>
+    <button class="link-btn" onclick="selectAll()">Toate</button>
+    <button class="link-btn" onclick="deselectAll()">Niciunul</button>
+  </div>
+  <div class="fields-grid">
+    <div class="field-toggle locked">
+      <div class="toggle-box">✓</div>
+      <div class="field-name">Nume</div>
+      <span class="badge badge-locked">mereu</span>
+    </div>
+    <div class="field-toggle locked">
+      <div class="toggle-box">✓</div>
+      <div class="field-name">Prenume</div>
+      <span class="badge badge-locked">mereu</span>
+    </div>
+    <div class="field-toggle active" onclick="toggle(this)">
+      <div class="toggle-box">✓</div>
+      <div class="field-name">CNP</div>
+    </div>
+    <div class="field-toggle active" onclick="toggle(this)">
+      <div class="toggle-box">✓</div>
+      <div class="field-name">Data nașterii</div>
+    </div>
+    <div class="field-toggle active" onclick="toggle(this)">
+      <div class="toggle-box">✓</div>
+      <div class="field-name">Gen</div>
+    </div>
+    <div class="field-toggle" onclick="toggle(this)">
+      <div class="toggle-box"></div>
+      <div class="field-name">Adresă</div>
+    </div>
+    <div class="field-toggle" onclick="toggle(this)">
+      <div class="toggle-box"></div>
+      <div class="field-name">Localitate</div>
+    </div>
+    <div class="field-toggle" onclick="toggle(this)">
+      <div class="toggle-box"></div>
+      <div class="field-name">Nr. legitimație</div>
+    </div>
+    <div class="field-toggle ignored locked">
+      <div class="toggle-box"></div>
+      <div class="field-name dim">Denumire club</div>
+      <span class="badge badge-ignored">ignorată</span>
+    </div>
+    <div class="field-toggle ignored locked">
+      <div class="toggle-box"></div>
+      <div class="field-name dim">Categorie sportiv</div>
+      <span class="badge badge-ignored">ignorată</span>
+    </div>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn-back">← Înapoi</button>
+  <button class="btn-primary">Continuă analiza →</button>
+</div>
+
+<script>
+  let addOn = true, updateOn = false;
+
+  function toggleMode(m) {
+    if (m === 'add') {
+      addOn = !addOn;
+      document.getElementById('mode-add').classList.toggle('selected', addOn);
+      document.getElementById('cb-add').textContent = addOn ? '✓' : '';
+    } else {
+      updateOn = !updateOn;
+      document.getElementById('mode-update').classList.toggle('selected', updateOn);
+      document.getElementById('cb-update').textContent = updateOn ? '✓' : '';
+    }
+    document.getElementById('warn').style.display = updateOn ? 'block' : 'none';
+  }
+
+  function toggle(el) {
+    el.classList.toggle('active');
+    el.querySelector('.toggle-box').textContent = el.classList.contains('active') ? '✓' : '';
+  }
+
+  function selectAll() {
+    document.querySelectorAll('.field-toggle:not(.locked)').forEach(el => {
+      el.classList.add('active');
+      el.querySelector('.toggle-box').textContent = '✓';
+    });
+  }
+
+  function deselectAll() {
+    document.querySelectorAll('.field-toggle:not(.locked)').forEach(el => {
+      el.classList.remove('active');
+      el.querySelector('.toggle-box').textContent = '';
+    });
+  }
+</script>

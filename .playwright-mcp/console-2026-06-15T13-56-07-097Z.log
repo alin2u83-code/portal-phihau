@@ -1,0 +1,95 @@
+[     336ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  986455ms] Error: useData must be used within a DataProvider
+    at useData (http://localhost:5173/contexts/DataContext.tsx?t=1781530138741:38:11)
+    at useAppLogic (http://localhost:5173/hooks/useAppLogic.ts?t=1781530138741:9:24)
+    at App (http://localhost:5173/App.tsx?t=1781531764129:56:7)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:11548:26)
+    at mountIndeterminateComponent (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14926:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:15914:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3699:24)
+    at invokeGuardedCallback (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3733:39)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19765:15)
+[  986457ms] Error: useData must be used within a DataProvider
+    at useData (http://localhost:5173/contexts/DataContext.tsx?t=1781530138741:38:11)
+    at useAppLogic (http://localhost:5173/hooks/useAppLogic.ts?t=1781530138741:9:24)
+    at App (http://localhost:5173/App.tsx?t=1781531764129:56:7)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:11548:26)
+    at mountIndeterminateComponent (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14926:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:15914:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3699:24)
+    at invokeGuardedCallback (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3733:39)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19765:15)
+[  986487ms] [ERROR] The above error occurred in the <App> component:
+
+    at App (http://localhost:5173/App.tsx?t=1781531764129:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx?t=1781532752992:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx?t=1781532752992:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14031
+[  986512ms] Error: useData must be used within a DataProvider
+    at useData (http://localhost:5173/contexts/DataContext.tsx?t=1781530138741:38:11)
+    at useAppLogic (http://localhost:5173/hooks/useAppLogic.ts?t=1781530138741:9:24)
+    at App (http://localhost:5173/App.tsx?t=1781531764129:56:7)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:11548:26)
+    at mountIndeterminateComponent (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14926:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:15914:22)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19753:22)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19198:20)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19137:13)
+    at renderRootSync (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19116:15)
+[  987542ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  990012ms] Error: useData must be used within a DataProvider
+    at useData (http://localhost:5173/contexts/DataContext.tsx?t=1781532752992:38:11)
+    at useAppLogic (http://localhost:5173/hooks/useAppLogic.ts?t=1781532752992:9:24)
+    at App (http://localhost:5173/App.tsx?t=1781532752992:56:7)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:11548:26)
+    at mountIndeterminateComponent (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14926:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:15914:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3699:24)
+    at invokeGuardedCallback (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3733:39)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19765:15)
+[  990014ms] Error: useData must be used within a DataProvider
+    at useData (http://localhost:5173/contexts/DataContext.tsx?t=1781532752992:38:11)
+    at useAppLogic (http://localhost:5173/hooks/useAppLogic.ts?t=1781532752992:9:24)
+    at App (http://localhost:5173/App.tsx?t=1781532752992:56:7)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:11548:26)
+    at mountIndeterminateComponent (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14926:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:15914:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3699:24)
+    at invokeGuardedCallback (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:3733:39)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19765:15)
+[  990014ms] [ERROR] The above error occurred in the <App> component:
+
+    at App (http://localhost:5173/App.tsx?t=1781532752992:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx?t=1781532756658:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx?t=1781532756658:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14031
+[  990015ms] Error: useData must be used within a DataProvider
+    at useData (http://localhost:5173/contexts/DataContext.tsx?t=1781532752992:38:11)
+    at useAppLogic (http://localhost:5173/hooks/useAppLogic.ts?t=1781532752992:9:24)
+    at App (http://localhost:5173/App.tsx?t=1781532752992:56:7)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:11548:26)
+    at mountIndeterminateComponent (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14926:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:15914:22)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19753:22)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19198:20)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19137:13)
+    at renderRootSync (http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:19116:15)
+[  990708ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550

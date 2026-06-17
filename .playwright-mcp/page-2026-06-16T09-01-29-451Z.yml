@@ -1,0 +1,171 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e63]:
+            - generic [ref=e64] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e67]: Activitate Sală
+              - img [ref=e68]
+            - generic [ref=e6507]:
+              - generic [ref=e6508] [cursor=pointer]: Grupe & Orar
+              - generic [ref=e6510] [cursor=pointer]: Program Antrenamente
+              - generic [ref=e6512] [cursor=pointer]: Înregistrare Prezențe
+              - generic [ref=e6514] [cursor=pointer]: Raport Prezențe
+              - generic [ref=e6516] [cursor=pointer]: Raport Lunar Prezențe
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+            - generic [ref=e89]: Activități Naționale
+            - img [ref=e90]
+          - generic [ref=e93] [cursor=pointer]:
+            - img [ref=e94]
+            - generic [ref=e96]: Financiar & Plăți
+            - img [ref=e97]
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e117]: Setări & Admin
+            - img [ref=e118]
+          - generic [ref=e120] [cursor=pointer]:
+            - img [ref=e122]
+            - generic [ref=e126]: Notificări
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e131]: SMS
+          - generic [ref=e132] [cursor=pointer]:
+            - img [ref=e134]
+            - generic [ref=e137]: Cereri Înscriere
+          - generic [ref=e138] [cursor=pointer]:
+            - img [ref=e140]
+            - generic [ref=e143]: Istoric Activitate
+        - button "Scroll jos" [ref=e144] [cursor=pointer]:
+          - img [ref=e145]
+      - generic [ref=e147]:
+        - button "Tema" [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+          - generic [ref=e156]: Tema
+        - generic [ref=e158]:
+          - generic [ref=e159]: AL
+          - generic [ref=e160]:
+            - paragraph [ref=e161]: LUNGU ALIN MIHAI
+            - text: Admin Club
+          - button "Deconectare" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+  - button "Restrânge meniul" [ref=e166] [cursor=pointer]:
+    - img [ref=e167]
+  - banner [ref=e169]:
+    - navigation "Navigare" [ref=e171]:
+      - heading "Grupe" [level=1] [ref=e11822]
+    - generic [ref=e173]:
+      - button "Temă" [ref=e175] [cursor=pointer]:
+        - img [ref=e176]
+        - generic [ref=e182]: Temă
+      - button [ref=e184] [cursor=pointer]:
+        - img [ref=e185]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e190] [cursor=pointer]:
+        - generic [ref=e191]: AL
+        - paragraph [ref=e193]:
+          - text: ALIN MIHAI
+          - generic [ref=e194]: "[ADMIN CLUB]"
+        - img [ref=e195]
+  - main [ref=e197]:
+    - generic [ref=e11824]:
+      - generic [ref=e11946]:
+        - generic [ref=e11947]:
+          - button "Înapoi la Grupe" [ref=e11948] [cursor=pointer]:
+            - img [ref=e11949]
+            - text: Înapoi la Grupe
+          - generic [ref=e11951]:
+            - button "Adaugă Antrenament" [ref=e11952] [cursor=pointer]:
+              - img [ref=e11953]
+              - text: Adaugă Antrenament
+            - generic [ref=e11954]:
+              - heading "Copii Incepatori" [level=1] [ref=e11955]
+              - paragraph [ref=e11956]: "Sala: Sala cu saltele · 6 sportivi activi"
+        - generic [ref=e11957]:
+          - button "Antrenamente" [ref=e11958] [cursor=pointer]
+          - button "Orar" [ref=e11959] [cursor=pointer]
+          - button "Sportivi" [ref=e11960] [cursor=pointer]
+        - generic [ref=e11962]:
+          - generic [ref=e11963]:
+            - button "Luna anterioară" [ref=e11964] [cursor=pointer]:
+              - img [ref=e11965]
+            - generic [ref=e11967]: Iunie 2026
+            - button "Luna următoare" [ref=e11968] [cursor=pointer]:
+              - img [ref=e11969]
+          - generic [ref=e11971]:
+            - generic [ref=e11972]: L
+            - generic [ref=e11973]: M
+            - generic [ref=e11974]: M
+            - generic [ref=e11975]: J
+            - generic [ref=e11976]: V
+            - generic [ref=e11977]: S
+            - generic [ref=e11978]: D
+          - generic [ref=e11979]:
+            - generic [ref=e11981] [cursor=pointer]: "1"
+            - generic [ref=e11983] [cursor=pointer]: "2"
+            - generic [ref=e11985] [cursor=pointer]: "3"
+            - generic [ref=e11987] [cursor=pointer]: "4"
+            - generic [ref=e11989] [cursor=pointer]: "5"
+            - generic [ref=e11991] [cursor=pointer]: "6"
+            - generic [ref=e11993] [cursor=pointer]: "7"
+            - generic [ref=e11995] [cursor=pointer]: "8"
+            - generic [ref=e11997] [cursor=pointer]: "9"
+            - generic [ref=e11999] [cursor=pointer]: "10"
+            - generic [ref=e12001] [cursor=pointer]: "11"
+            - generic [ref=e12003] [cursor=pointer]: "12"
+            - generic [ref=e12005] [cursor=pointer]: "13"
+            - generic [ref=e12007] [cursor=pointer]: "14"
+            - generic [ref=e12009] [cursor=pointer]: "15"
+            - generic [ref=e12011] [cursor=pointer]: "16"
+            - generic [ref=e12013] [cursor=pointer]: "17"
+            - generic [ref=e12015] [cursor=pointer]: "18"
+            - generic [ref=e12017] [cursor=pointer]: "19"
+            - generic [ref=e12019] [cursor=pointer]: "20"
+            - generic [ref=e12021] [cursor=pointer]: "21"
+            - generic [ref=e12023] [cursor=pointer]: "22"
+            - generic [ref=e12025] [cursor=pointer]: "23"
+            - generic [ref=e12027] [cursor=pointer]: "24"
+            - generic [ref=e12029] [cursor=pointer]: "25"
+            - generic [ref=e12031] [cursor=pointer]: "26"
+            - generic [ref=e12033] [cursor=pointer]: "27"
+            - generic [ref=e12035] [cursor=pointer]: "28"
+            - generic [ref=e12037] [cursor=pointer]: "29"
+            - generic [ref=e12039] [cursor=pointer]: "30"
+          - generic [ref=e12041]:
+            - paragraph [ref=e12042]: Niciun antrenament pe 2026-06-16
+            - paragraph [ref=e12043]: Apasă butonul pentru a adăuga un antrenament one-off în această zi.
+            - button "Adaugă Antrenament" [ref=e12044] [cursor=pointer]:
+              - img [ref=e12045]
+              - text: Adaugă Antrenament
+      - button "Deschide ghidul interactiv" [ref=e11944] [cursor=pointer]:
+        - generic [ref=e11945]: "?"
+  - contentinfo [ref=e6153]:
+    - paragraph [ref=e6154]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e6155] [cursor=pointer]:
+      - img [ref=e6156]
+      - generic [ref=e6159]: Asistent AI

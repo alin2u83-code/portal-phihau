@@ -1,0 +1,430 @@
+[     324ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[   81368ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:5173/@vite/client:559
+[   81384ms] [ERROR] Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED @ http://localhost:5173/:0
+[  583083ms] [ERROR] WebSocket connection to 'wss://wuhidifzsutwgdfkwhmd.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGlkaWZ6c3V0d2dkZmt3aG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NzY3NDgsImV4cCI6MjA4MzQ1Mjc0OH0.Dfq-DBnYlP5-Qo9bKF_FlS8Boc27pSsKCfqYpWV1fnI&vsn=2.0.0' failed: Error in connection establishment: net::ERR_NAME_NOT_RESOLVED @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:7089
+[  583416ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  737075ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/components/GestiuneExamene/ImportExcelExamen.tsx?t=1781175264865:0
+[  737076ms] [ERROR] [hmr] Failed to reload /components/GestiuneExamene/ImportExcelExamen.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:175
+[  742350ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/components/GestiuneExamene/ImportExcelExamen.tsx?t=1781175270176:0
+[  742351ms] [ERROR] [hmr] Failed to reload /components/GestiuneExamene/ImportExcelExamen.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:175
+[  805349ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/components/GestiuneExamene/ImportExcelExamen.tsx?t=1781175333189:0
+[  805349ms] [ERROR] [hmr] Failed to reload /components/GestiuneExamene/ImportExcelExamen.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:175
+[  840709ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:5173/@vite/client:559
+[  856732ms] [ERROR] WebSocket connection to 'wss://wuhidifzsutwgdfkwhmd.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGlkaWZ6c3V0d2dkZmt3aG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NzY3NDgsImV4cCI6MjA4MzQ1Mjc0OH0.Dfq-DBnYlP5-Qo9bKF_FlS8Boc27pSsKCfqYpWV1fnI&vsn=2.0.0' failed: Error in connection establishment: net::ERR_NETWORK_IO_SUSPENDED @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:7089
+[  857213ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  859650ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/components/GestiuneExamene/ImportExcelExamen.tsx?t=1781175333189:0
+[  859778ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175333189
+[  859778ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175333189
+[  859665ms] [ERROR] The above error occurred in one of your React components:
+
+    at Lazy
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx?t=1781175333189:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx?t=1781174081339:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx?t=1781175333189:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx?t=1781174081339:137:34)
+    at App (http://localhost:5173/App.tsx?t=1781175333189:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx?t=1781174081339:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx?t=1781174081339:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14031
+[  859666ms] [ERROR] Uncaught error: TypeError: Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175333189 {componentStack: 
+    at Lazy
+    at Suspense
+    at div
+    at Mot…ocalhost:5173/components/ErrorProvider.tsx:31:33)} @ http://localhost:5173/components/ErrorBoundary.tsx:12
+[  860118ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  867492ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/components/GestiuneExamene/ImportExcelExamen.tsx?t=1781175333189:0
+[  867614ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175333189
+[  867614ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175333189
+[  867601ms] [ERROR] The above error occurred in one of your React components:
+
+    at Lazy
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx?t=1781175333189:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx?t=1781174081339:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx?t=1781175333189:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx?t=1781174081339:137:34)
+    at App (http://localhost:5173/App.tsx?t=1781175333189:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx?t=1781174081339:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx?t=1781174081339:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14031
+[  867601ms] [ERROR] Uncaught error: TypeError: Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175333189 {componentStack: 
+    at Lazy
+    at Suspense
+    at div
+    at Mot…ocalhost:5173/components/ErrorProvider.tsx:31:33)} @ http://localhost:5173/components/ErrorBoundary.tsx:12
+[  917305ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  919718ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/components/GestiuneExamene/ImportExcelExamen.tsx?t=1781175444850:0
+[  919773ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175444850
+[  919850ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175444850
+[  919894ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175444850
+[  919893ms] [ERROR] The above error occurred in one of your React components:
+
+    at Lazy
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx?t=1781175444850:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx?t=1781174081339:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx?t=1781175444850:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx?t=1781174081339:137:34)
+    at App (http://localhost:5173/App.tsx?t=1781175444850:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx?t=1781174081339:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx?t=1781174081339:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14031
+[  919894ms] [ERROR] Uncaught error: TypeError: Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175444850 {componentStack: 
+    at Lazy
+    at Suspense
+    at div
+    at Mot…ocalhost:5173/components/ErrorProvider.tsx:31:33)} @ http://localhost:5173/components/ErrorBoundary.tsx:12
+[  920360ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  921844ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/components/GestiuneExamene/ImportExcelExamen.tsx?t=1781175444850:0
+[  921851ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175444850
+[  921860ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175444850
+[  921862ms] [ERROR] The above error occurred in one of your React components:
+
+    at Lazy
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx?t=1781175444850:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx?t=1781174081339:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx?t=1781175444850:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx?t=1781174081339:137:34)
+    at App (http://localhost:5173/App.tsx?t=1781175444850:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx?t=1781174081339:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx?t=1781174081339:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14031
+[  921862ms] [ERROR] Uncaught error: TypeError: Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175444850 {componentStack: 
+    at Lazy
+    at Suspense
+    at div
+    at Mot…ocalhost:5173/components/ErrorProvider.tsx:31:33)} @ http://localhost:5173/components/ErrorBoundary.tsx:12
+[  967584ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  969726ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/components/GestiuneExamene/ImportExcelExamen.tsx?t=1781175495174:0
+[  969738ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175495174
+[  969744ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175495174
+[  969745ms] [ERROR] The above error occurred in one of your React components:
+
+    at Lazy
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx?t=1781175495174:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx?t=1781174081339:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx?t=1781175495174:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx?t=1781174081339:137:34)
+    at App (http://localhost:5173/App.tsx?t=1781175495174:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx?t=1781174081339:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx?t=1781174081339:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14031
+[  969746ms] [ERROR] Uncaught error: TypeError: Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175495174 {componentStack: 
+    at Lazy
+    at Suspense
+    at div
+    at Mot…ocalhost:5173/components/ErrorProvider.tsx:31:33)} @ http://localhost:5173/components/ErrorBoundary.tsx:12
+[  969942ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  972214ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/components/GestiuneExamene/ImportExcelExamen.tsx?t=1781175495174:0
+[  972229ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175495174
+[  972237ms] Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175495174
+[  972239ms] [ERROR] The above error occurred in one of your React components:
+
+    at Lazy
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx?t=1781175495174:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx?t=1781174081339:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx?t=1781175495174:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx?t=1781174081339:137:34)
+    at App (http://localhost:5173/App.tsx?t=1781175495174:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx?t=1781174081339:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx?t=1781174081339:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:14031
+[  972239ms] [ERROR] Uncaught error: TypeError: Failed to fetch dynamically imported module: http://localhost:5173/components/GestiuneExamene/index.tsx?t=1781175495174 {componentStack: 
+    at Lazy
+    at Suspense
+    at div
+    at Mot…ocalhost:5173/components/ErrorProvider.tsx:31:33)} @ http://localhost:5173/components/ErrorBoundary.tsx:12
+[  974127ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[ 1410957ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:5173/@vite/client:559
+[ 1410987ms] [ERROR] Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED @ http://localhost:5173/:0
+[ 3486408ms] [ERROR] WebSocket connection to 'wss://wuhidifzsutwgdfkwhmd.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGlkaWZ6c3V0d2dkZmt3aG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NzY3NDgsImV4cCI6MjA4MzQ1Mjc0OH0.Dfq-DBnYlP5-Qo9bKF_FlS8Boc27pSsKCfqYpWV1fnI&vsn=2.0.0' failed: Error in connection establishment: net::ERR_NAME_NOT_RESOLVED @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:7089
+[ 3486441ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3486441ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:32
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12564:7
+    at new Promise (<anonymous>)
+    at retryable (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12547:19)
+    at SupabaseAuthClient._refreshAccessToken (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18365:20) @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3488637ms] [ERROR] WebSocket connection to 'wss://wuhidifzsutwgdfkwhmd.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGlkaWZ6c3V0d2dkZmt3aG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NzY3NDgsImV4cCI6MjA4MzQ1Mjc0OH0.Dfq-DBnYlP5-Qo9bKF_FlS8Boc27pSsKCfqYpWV1fnI&vsn=2.0.0' failed: Error in connection establishment: net::ERR_INTERNET_DISCONNECTED @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:7089
+[ 3488637ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3488637ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3490300ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[ 3490410ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3490410ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:32
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12564:7
+    at new Promise (<anonymous>)
+    at retryable (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12547:19)
+    at SupabaseAuthClient._refreshAccessToken (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18365:20) @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3490699ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3490699ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3491074ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:5173/@vite/client:559
+[ 3933135ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3933135ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3933136ms] [ERROR] AuthRetryableFetchError: Failed to fetch
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12779:11)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:16)
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:16
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18448
+[ 3933149ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3933149ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:32
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12564:7
+    at new Promise (<anonymous>)
+    at retryable (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12547:19)
+    at SupabaseAuthClient._refreshAccessToken (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18365:20) @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3933418ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3933600ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[ 3939481ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3939481ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:32
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12564:7
+    at new Promise (<anonymous>)
+    at retryable (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12547:19)
+    at SupabaseAuthClient._refreshAccessToken (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18365:20) @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3945774ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3945774ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3952283ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3952283ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3959181ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3959181ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3966889ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3966889ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3966890ms] [ERROR] AuthRetryableFetchError: Failed to fetch
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12779:11)
+    at async _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:16)
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:16
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18448
+[ 3971892ms] [WARNING] @supabase/gotrue-js: Lock "lock:sb-wuhidifzsutwgdfkwhmd-auth-token" was not released within 5000ms. This may indicate an orphaned lock from a component unmount (e.g., React Strict Mode). Forcefully acquiring the lock to recover. @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:13960
+[ 3971893ms] [WARNING] @supabase/gotrue-js: Lock "lock:sb-wuhidifzsutwgdfkwhmd-auth-token" was not released within 5000ms. This may indicate an orphaned lock from a component unmount (e.g., React Strict Mode). Forcefully acquiring the lock to recover. @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:13960
+[ 3971893ms] [WARNING] @supabase/gotrue-js: Lock "lock:sb-wuhidifzsutwgdfkwhmd-auth-token" was not released within 5000ms. This may indicate an orphaned lock from a component unmount (e.g., React Strict Mode). Forcefully acquiring the lock to recover. @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:13960
+[ 3971893ms] [WARNING] @supabase/gotrue-js: Lock "lock:sb-wuhidifzsutwgdfkwhmd-auth-token" was not released within 5000ms. This may indicate an orphaned lock from a component unmount (e.g., React Strict Mode). Forcefully acquiring the lock to recover. @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:13960
+[ 3971893ms] [WARNING] @supabase/gotrue-js: Lock "lock:sb-wuhidifzsutwgdfkwhmd-auth-token" was not released within 5000ms. This may indicate an orphaned lock from a component unmount (e.g., React Strict Mode). Forcefully acquiring the lock to recover. @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:13960
+[ 3971894ms] [WARNING] @supabase/gotrue-js: Lock "lock:sb-wuhidifzsutwgdfkwhmd-auth-token" was not released within 5000ms. This may indicate an orphaned lock from a component unmount (e.g., React Strict Mode). Forcefully acquiring the lock to recover. @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:13960
+[ 3971894ms] [WARNING] @supabase/gotrue-js: Lock "lock:sb-wuhidifzsutwgdfkwhmd-auth-token" was not released within 5000ms. This may indicate an orphaned lock from a component unmount (e.g., React Strict Mode). Forcefully acquiring the lock to recover. @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:13960
+[ 3971894ms] [WARNING] @supabase/gotrue-js: Lock "lock:sb-wuhidifzsutwgdfkwhmd-auth-token" was not released within 5000ms. This may indicate an orphaned lock from a component unmount (e.g., React Strict Mode). Forcefully acquiring the lock to recover. @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:13960
+[ 3971894ms] [WARNING] @supabase/gotrue-js: Lock "lock:sb-wuhidifzsutwgdfkwhmd-auth-token" was not released within 5000ms. This may indicate an orphaned lock from a component unmount (e.g., React Strict Mode). Forcefully acquiring the lock to recover. @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:13960
+[ 3971906ms] NavigatorLockAcquireTimeoutError: Lock "lock:sb-wuhidifzsutwgdfkwhmd-auth-token" was released because another request stole it
+    at SupabaseAuthClient.navigatorLock [as lock] (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:13986:15)
+    at async SupabaseAuthClient._acquireLock (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:16942:14)
+    at async SupabaseAuthClient.getSession (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:16915:20)
+    at async http://localhost:5173/hooks/useAttendanceData.ts:22:35
+[ 3971906ms] Lock broken by another request with the 'steal' option.
+[ 3971906ms] Lock broken by another request with the 'steal' option.
+[ 3971906ms] Lock broken by another request with the 'steal' option.
+[ 3972983ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3972983ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:32
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12564:7
+    at new Promise (<anonymous>)
+    at retryable (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12547:19)
+    at SupabaseAuthClient._refreshAccessToken (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18365:20) @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3979276ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3979277ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3985787ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3985787ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777
+[ 3992708ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ https://wuhidifzsutwgdfkwhmd.supabase.co/auth/v1/token?grant_type=refresh_token:0
+[ 3992708ms] [ERROR] TypeError: Failed to fetch
+    at customFetch (http://localhost:5173/supabaseClient.ts:13:12)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12484:25
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12776:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12766:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:18370:22
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12552:26 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=f6edd57b:12777

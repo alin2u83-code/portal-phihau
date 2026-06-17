@@ -1,0 +1,1664 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus" [ref=e6311] [cursor=pointer]:
+          - img [ref=e6312]
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+            - generic [ref=e89]: Activități Naționale
+            - img [ref=e90]
+          - generic [ref=e92]:
+            - generic [ref=e93] [cursor=pointer]:
+              - img [ref=e94]
+              - generic [ref=e96]: Financiar & Plăți
+              - img [ref=e97]
+            - generic [ref=e99]:
+              - generic [ref=e100] [cursor=pointer]: Facturi & Plăți
+              - generic [ref=e102] [cursor=pointer]: Jurnal Încasări
+              - generic [ref=e104] [cursor=pointer]: Raport Financiar
+              - generic [ref=e106] [cursor=pointer]: Taxe Anuale
+              - generic [ref=e108] [cursor=pointer]: Config. Abonamente
+              - generic [ref=e110] [cursor=pointer]: Configurare Prețuri
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e117]: Setări & Admin
+            - img [ref=e118]
+          - generic [ref=e120] [cursor=pointer]:
+            - img [ref=e122]
+            - generic [ref=e126]: Notificări
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e131]: SMS
+          - generic [ref=e132] [cursor=pointer]:
+            - img [ref=e134]
+            - generic [ref=e137]: Cereri Înscriere
+          - generic [ref=e138] [cursor=pointer]:
+            - img [ref=e140]
+            - generic [ref=e143]: Istoric Activitate
+        - button "Scroll jos" [ref=e144] [cursor=pointer]:
+          - img [ref=e145]
+      - generic [ref=e147]:
+        - button "Tema" [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+          - generic [ref=e156]: Tema
+        - generic [ref=e158]:
+          - generic [ref=e159]: AL
+          - generic [ref=e160]:
+            - paragraph [ref=e161]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+  - button "Restrânge meniul" [ref=e166] [cursor=pointer]:
+    - img [ref=e167]
+  - banner [ref=e169]:
+    - navigation "Navigare" [ref=e171]:
+      - heading "raport-financiar" [level=1] [ref=e6493]
+    - generic [ref=e173]:
+      - button "Temă" [ref=e175] [cursor=pointer]:
+        - img [ref=e176]
+        - generic [ref=e182]: Temă
+      - button [ref=e184] [cursor=pointer]:
+        - img [ref=e185]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e190] [cursor=pointer]:
+        - generic [ref=e191]: AL
+        - paragraph [ref=e193]:
+          - text: ALIN MIHAI
+          - generic [ref=e194]: "[ADMIN CLUB]"
+        - img [ref=e195]
+  - main [ref=e197]:
+    - generic [ref=e6495]:
+      - generic [ref=e6496]:
+        - button "Încasări" [ref=e6497] [cursor=pointer]:
+          - img [ref=e6498]
+          - generic [ref=e6501]: Încasări
+        - button "Abonamente" [ref=e6502] [cursor=pointer]:
+          - img [ref=e6503]
+          - generic [ref=e6506]: Abonamente
+        - button "Lunar" [ref=e6507] [cursor=pointer]:
+          - img [ref=e6508]
+          - generic [ref=e6510]: Lunar
+        - button "Taxe Anuale" [ref=e6511] [cursor=pointer]:
+          - img [ref=e6512]
+          - generic [ref=e6514]: Taxe Anuale
+        - button "Grafice" [ref=e6515] [cursor=pointer]:
+          - img [ref=e6516]
+          - generic [ref=e6519]: Grafice
+        - button "Familii" [ref=e6520] [cursor=pointer]:
+          - img [ref=e6521]
+          - generic [ref=e6526]: Familii
+      - generic [ref=e6527]:
+        - generic [ref=e6528]:
+          - paragraph [ref=e6529]:
+            - img [ref=e6530]
+            - text: Încasat iun.
+          - paragraph [ref=e6533]: 3.160 RON
+        - generic [ref=e6534]:
+          - paragraph [ref=e6535]:
+            - img [ref=e6536]
+            - text: Total Restanțe
+          - paragraph [ref=e6538]: 37.430 RON
+        - generic [ref=e6539]:
+          - paragraph [ref=e6540]:
+            - img [ref=e6541]
+            - text: Plăți Scadente
+          - paragraph [ref=e6543]: 106 facturi
+        - generic [ref=e6544]:
+          - paragraph [ref=e6545]:
+            - img [ref=e6546]
+            - text: Rată Colectare
+          - paragraph [ref=e6549]: 26%
+      - generic [ref=e6552]:
+        - button "Filtre" [ref=e6554] [cursor=pointer]:
+          - generic [ref=e6556]: Filtre
+          - img [ref=e6557]
+        - generic [ref=e6559]:
+          - generic [ref=e6561]:
+            - paragraph [ref=e6562]: Total Încasări
+            - paragraph [ref=e6563]: 151 înregistrări
+          - generic [ref=e6564]:
+            - button "CSV" [ref=e6565] [cursor=pointer]:
+              - img [ref=e6566]
+              - text: CSV
+            - button "PDF" [ref=e6570] [cursor=pointer]:
+              - img [ref=e6571]
+              - text: PDF
+          - paragraph [ref=e6575]: 33.520,00 RON
+        - table [ref=e6577]:
+          - rowgroup [ref=e6578]:
+            - row "Data Plătit de Descriere Metodă Sumă" [ref=e6579]:
+              - columnheader "Data" [ref=e6580]
+              - columnheader "Plătit de" [ref=e6581]
+              - columnheader "Descriere" [ref=e6582]
+              - columnheader "Metodă" [ref=e6583]
+              - columnheader "Sumă" [ref=e6584]
+              - columnheader [ref=e6585]
+          - rowgroup [ref=e6586]:
+            - row "14.07.2026 RUSU CELIA Abonament mai 2026 Cash 220,00 RON" [ref=e6587]:
+              - cell "14.07.2026" [ref=e6588]
+              - cell "RUSU CELIA" [ref=e6589]:
+                - button "RUSU CELIA" [ref=e6590] [cursor=pointer]
+              - cell "Abonament mai 2026" [ref=e6591]
+              - cell "Cash" [ref=e6592]
+              - cell "220,00 RON" [ref=e6593]
+              - cell [ref=e6594]:
+                - button "Chitanță" [ref=e6595] [cursor=pointer]:
+                  - img [ref=e6596]
+            - row "14.07.2026 RUSU CELIA Abonament iunie 2026 Cash 220,00 RON" [ref=e6599]:
+              - cell "14.07.2026" [ref=e6600]
+              - cell "RUSU CELIA" [ref=e6601]:
+                - button "RUSU CELIA" [ref=e6602] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e6603]
+              - cell "Cash" [ref=e6604]
+              - cell "220,00 RON" [ref=e6605]
+              - cell [ref=e6606]:
+                - button "Chitanță" [ref=e6607] [cursor=pointer]:
+                  - img [ref=e6608]
+            - row "11.06.2026 SFICA DIANA ANDREEA Abonament iunie 2026 Cash 220,00 RON" [ref=e6611]:
+              - cell "11.06.2026" [ref=e6612]
+              - cell "SFICA DIANA ANDREEA" [ref=e6613]:
+                - button "SFICA DIANA ANDREEA" [ref=e6614] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e6615]
+              - cell "Cash" [ref=e6616]
+              - cell "220,00 RON" [ref=e6617]
+              - cell [ref=e6618]:
+                - button "Chitanță" [ref=e6619] [cursor=pointer]:
+                  - img [ref=e6620]
+            - row "10.06.2026 SUMĂNARIU DRAGOȘ ȘTEFAN Abonament iunie 2026 Cash 220,00 RON" [ref=e6623]:
+              - cell "10.06.2026" [ref=e6624]
+              - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e6625]:
+                - button "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e6626] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e6627]
+              - cell "Cash" [ref=e6628]
+              - cell "220,00 RON" [ref=e6629]
+              - cell [ref=e6630]:
+                - button "Chitanță" [ref=e6631] [cursor=pointer]:
+                  - img [ref=e6632]
+            - row "10.06.2026 CAREJA ANTONIA ELENA Abonament iunie 2026 Transfer Bancar 220,00 RON" [ref=e6635]:
+              - cell "10.06.2026" [ref=e6636]
+              - cell "CAREJA ANTONIA ELENA" [ref=e6637]:
+                - button "CAREJA ANTONIA ELENA" [ref=e6638] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e6639]
+              - cell "Transfer Bancar" [ref=e6640]
+              - cell "220,00 RON" [ref=e6641]
+              - cell [ref=e6642]:
+                - button "Chitanță" [ref=e6643] [cursor=pointer]:
+                  - img [ref=e6644]
+            - row "10.06.2026 CAREJA ANTONIA ELENA Abonament februarie 2026 Transfer Bancar 220,00 RON" [ref=e6647]:
+              - cell "10.06.2026" [ref=e6648]
+              - cell "CAREJA ANTONIA ELENA" [ref=e6649]:
+                - button "CAREJA ANTONIA ELENA" [ref=e6650] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e6651]
+              - cell "Transfer Bancar" [ref=e6652]
+              - cell "220,00 RON" [ref=e6653]
+              - cell [ref=e6654]:
+                - button "Chitanță" [ref=e6655] [cursor=pointer]:
+                  - img [ref=e6656]
+            - row "10.06.2026 ȘTEFĂNESCU EMANUEL Taxa examen Centura Violet Cash 100,00 RON" [ref=e6659]:
+              - cell "10.06.2026" [ref=e6660]
+              - cell "ȘTEFĂNESCU EMANUEL" [ref=e6661]:
+                - button "ȘTEFĂNESCU EMANUEL" [ref=e6662] [cursor=pointer]
+              - cell "Taxa examen Centura Violet" [ref=e6663]
+              - cell "Cash" [ref=e6664]
+              - cell "100,00 RON" [ref=e6665]
+              - cell [ref=e6666]:
+                - button "Chitanță" [ref=e6667] [cursor=pointer]:
+                  - img [ref=e6668]
+            - row "10.06.2026 SUMĂNARIU DRAGOȘ ȘTEFAN Taxa examen 3 Câp Roșu Cash 100,00 RON" [ref=e6671]:
+              - cell "10.06.2026" [ref=e6672]
+              - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e6673]:
+                - button "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e6674] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e6675]
+              - cell "Cash" [ref=e6676]
+              - cell "100,00 RON" [ref=e6677]
+              - cell [ref=e6678]:
+                - button "Chitanță" [ref=e6679] [cursor=pointer]:
+                  - img [ref=e6680]
+            - row "09.06.2026 BALMUS VERONICA Taxa examen 4 Câp Roșu Transfer Bancar 100,00 RON" [ref=e6683]:
+              - cell "09.06.2026" [ref=e6684]
+              - cell "BALMUS VERONICA" [ref=e6685]:
+                - button "BALMUS VERONICA" [ref=e6686] [cursor=pointer]
+              - cell "Taxa examen 4 Câp Roșu" [ref=e6687]
+              - cell "Transfer Bancar" [ref=e6688]
+              - cell "100,00 RON" [ref=e6689]
+              - cell [ref=e6690]:
+                - button "Chitanță" [ref=e6691] [cursor=pointer]:
+                  - img [ref=e6692]
+            - row "09.06.2026 POPOVICI DIANA ANASTASIA Taxa examen C.V. 2 Câp Alb Cash 100,00 RON" [ref=e6695]:
+              - cell "09.06.2026" [ref=e6696]
+              - cell "POPOVICI DIANA ANASTASIA" [ref=e6697]:
+                - button "POPOVICI DIANA ANASTASIA" [ref=e6698] [cursor=pointer]
+              - cell "Taxa examen C.V. 2 Câp Alb" [ref=e6699]
+              - cell "Cash" [ref=e6700]
+              - cell "100,00 RON" [ref=e6701]
+              - cell [ref=e6702]:
+                - button "Chitanță" [ref=e6703] [cursor=pointer]:
+                  - img [ref=e6704]
+            - row "09.06.2026 BALMUS IUSTINA Taxa examen C.V. 2 Câp Alb Transfer Bancar 100,00 RON" [ref=e6707]:
+              - cell "09.06.2026" [ref=e6708]
+              - cell "BALMUS IUSTINA" [ref=e6709]:
+                - button "BALMUS IUSTINA" [ref=e6710] [cursor=pointer]
+              - cell "Taxa examen C.V. 2 Câp Alb" [ref=e6711]
+              - cell "Transfer Bancar" [ref=e6712]
+              - cell "100,00 RON" [ref=e6713]
+              - cell [ref=e6714]:
+                - button "Chitanță" [ref=e6715] [cursor=pointer]:
+                  - img [ref=e6716]
+            - row "08.06.2026 MANDIA MARIA Taxa examen 4 Câp Roșu Cash 100,00 RON" [ref=e6719]:
+              - cell "08.06.2026" [ref=e6720]
+              - cell "MANDIA MARIA" [ref=e6721]:
+                - button "MANDIA MARIA" [ref=e6722] [cursor=pointer]
+              - cell "Taxa examen 4 Câp Roșu" [ref=e6723]
+              - cell "Cash" [ref=e6724]
+              - cell "100,00 RON" [ref=e6725]
+              - cell [ref=e6726]:
+                - button "Chitanță" [ref=e6727] [cursor=pointer]:
+                  - img [ref=e6728]
+            - row "08.06.2026 MANDIA MARIA Abonament iunie 2026 Cash 220,00 RON" [ref=e6731]:
+              - cell "08.06.2026" [ref=e6732]
+              - cell "MANDIA MARIA" [ref=e6733]:
+                - button "MANDIA MARIA" [ref=e6734] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e6735]
+              - cell "Cash" [ref=e6736]
+              - cell "220,00 RON" [ref=e6737]
+              - cell [ref=e6738]:
+                - button "Chitanță" [ref=e6739] [cursor=pointer]:
+                  - img [ref=e6740]
+            - row "08.06.2026 SFICA DIANA ANDREEA Taxa examen C.V. 2 Câp Alb Cash 100,00 RON" [ref=e6743]:
+              - cell "08.06.2026" [ref=e6744]
+              - cell "SFICA DIANA ANDREEA" [ref=e6745]:
+                - button "SFICA DIANA ANDREEA" [ref=e6746] [cursor=pointer]
+              - cell "Taxa examen C.V. 2 Câp Alb" [ref=e6747]
+              - cell "Cash" [ref=e6748]
+              - cell "100,00 RON" [ref=e6749]
+              - cell [ref=e6750]:
+                - button "Chitanță" [ref=e6751] [cursor=pointer]:
+                  - img [ref=e6752]
+            - row "06.06.2026 MARDARE ALEXANDRA NICOLETA Abonament mai 2026 Cash 220,00 RON" [ref=e6755]:
+              - cell "06.06.2026" [ref=e6756]
+              - cell "MARDARE ALEXANDRA NICOLETA" [ref=e6757]:
+                - button "MARDARE ALEXANDRA NICOLETA" [ref=e6758] [cursor=pointer]
+              - cell "Abonament mai 2026" [ref=e6759]
+              - cell "Cash" [ref=e6760]
+              - cell "220,00 RON" [ref=e6761]
+              - cell [ref=e6762]:
+                - button "Chitanță" [ref=e6763] [cursor=pointer]:
+                  - img [ref=e6764]
+            - row "06.06.2026 MARDARE ALEXANDRA NICOLETA Abonament iunie 2026 Cash 220,00 RON" [ref=e6767]:
+              - cell "06.06.2026" [ref=e6768]
+              - cell "MARDARE ALEXANDRA NICOLETA" [ref=e6769]:
+                - button "MARDARE ALEXANDRA NICOLETA" [ref=e6770] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e6771]
+              - cell "Cash" [ref=e6772]
+              - cell "220,00 RON" [ref=e6773]
+              - cell [ref=e6774]:
+                - button "Chitanță" [ref=e6775] [cursor=pointer]:
+                  - img [ref=e6776]
+            - row "04.06.2026 SANDU ANA ADRIANA Abonament iunie 2026 Cash 220,00 RON" [ref=e6779]:
+              - cell "04.06.2026" [ref=e6780]
+              - cell "SANDU ANA ADRIANA" [ref=e6781]:
+                - button "SANDU ANA ADRIANA" [ref=e6782] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e6783]
+              - cell "Cash" [ref=e6784]
+              - cell "220,00 RON" [ref=e6785]
+              - cell [ref=e6786]:
+                - button "Chitanță" [ref=e6787] [cursor=pointer]:
+                  - img [ref=e6788]
+            - row "03.06.2026 ȘTEICĂ VICTOR GABRIEL Taxa examen 3 Câp Roșu Transfer Bancar 100,00 RON" [ref=e6791]:
+              - cell "03.06.2026" [ref=e6792]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e6793]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e6794] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e6795]
+              - cell "Transfer Bancar" [ref=e6796]
+              - cell "100,00 RON" [ref=e6797]
+              - cell [ref=e6798]:
+                - button "Chitanță" [ref=e6799] [cursor=pointer]:
+                  - img [ref=e6800]
+            - row "02.06.2026 TULBURE DAVID ALEXANDRU Abonament iunie 2026 Cash 220,00 RON" [ref=e6803]:
+              - cell "02.06.2026" [ref=e6804]
+              - cell "TULBURE DAVID ALEXANDRU" [ref=e6805]:
+                - button "TULBURE DAVID ALEXANDRU" [ref=e6806] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e6807]
+              - cell "Cash" [ref=e6808]
+              - cell "220,00 RON" [ref=e6809]
+              - cell [ref=e6810]:
+                - button "Chitanță" [ref=e6811] [cursor=pointer]:
+                  - img [ref=e6812]
+            - row "02.06.2026 Balmus Abonament Familie iunie 2026 Transfer Bancar 380,00 RON" [ref=e6815]:
+              - cell "02.06.2026" [ref=e6816]
+              - cell "Balmus" [ref=e6817]
+              - cell "Abonament Familie iunie 2026" [ref=e6818]
+              - cell "Transfer Bancar" [ref=e6819]
+              - cell "380,00 RON" [ref=e6820]
+              - cell [ref=e6821]:
+                - button "Chitanță" [ref=e6822] [cursor=pointer]:
+                  - img [ref=e6823]
+            - row "28.05.2026 SFICA DIANA ANDREEA Abonament mai 2026 Cash 220,00 RON" [ref=e6826]:
+              - cell "28.05.2026" [ref=e6827]
+              - cell "SFICA DIANA ANDREEA" [ref=e6828]:
+                - button "SFICA DIANA ANDREEA" [ref=e6829] [cursor=pointer]
+              - cell "Abonament mai 2026" [ref=e6830]
+              - cell "Cash" [ref=e6831]
+              - cell "220,00 RON" [ref=e6832]
+              - cell [ref=e6833]:
+                - button "Chitanță" [ref=e6834] [cursor=pointer]:
+                  - img [ref=e6835]
+            - row "20.05.2026 ANDRONACHE DARIA MARIA Abonament mai 2026 Transfer Bancar 220,00 RON" [ref=e6838]:
+              - cell "20.05.2026" [ref=e6839]
+              - cell "ANDRONACHE DARIA MARIA" [ref=e6840]:
+                - button "ANDRONACHE DARIA MARIA" [ref=e6841] [cursor=pointer]
+              - cell "Abonament mai 2026" [ref=e6842]
+              - cell "Transfer Bancar" [ref=e6843]
+              - cell "220,00 RON" [ref=e6844]
+              - cell [ref=e6845]:
+                - button "Chitanță" [ref=e6846] [cursor=pointer]:
+                  - img [ref=e6847]
+            - row "20.05.2026 ANDRONACHE DARIA MARIA Abonament aprilie 2026 Transfer Bancar 220,00 RON" [ref=e6850]:
+              - cell "20.05.2026" [ref=e6851]
+              - cell "ANDRONACHE DARIA MARIA" [ref=e6852]:
+                - button "ANDRONACHE DARIA MARIA" [ref=e6853] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e6854]
+              - cell "Transfer Bancar" [ref=e6855]
+              - cell "220,00 RON" [ref=e6856]
+              - cell [ref=e6857]:
+                - button "Chitanță" [ref=e6858] [cursor=pointer]:
+                  - img [ref=e6859]
+            - row "15.05.2026 POPOVICI DIANA ANASTASIA Abonament martie 2026 Transfer Bancar 220,00 RON" [ref=e6862]:
+              - cell "15.05.2026" [ref=e6863]
+              - cell "POPOVICI DIANA ANASTASIA" [ref=e6864]:
+                - button "POPOVICI DIANA ANASTASIA" [ref=e6865] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e6866]
+              - cell "Transfer Bancar" [ref=e6867]
+              - cell "220,00 RON" [ref=e6868]
+              - cell [ref=e6869]:
+                - button "Chitanță" [ref=e6870] [cursor=pointer]:
+                  - img [ref=e6871]
+            - row "15.05.2026 ȘTEICĂ VICTOR GABRIEL Abonament mai 2026 Transfer Bancar 220,00 RON" [ref=e6874]:
+              - cell "15.05.2026" [ref=e6875]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e6876]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e6877] [cursor=pointer]
+              - cell "Abonament mai 2026" [ref=e6878]
+              - cell "Transfer Bancar" [ref=e6879]
+              - cell "220,00 RON" [ref=e6880]
+              - cell [ref=e6881]:
+                - button "Chitanță" [ref=e6882] [cursor=pointer]:
+                  - img [ref=e6883]
+            - row "15.05.2026 DANAILA HORATIU Abonament mai 2026 Transfer Bancar 220,00 RON" [ref=e6886]:
+              - cell "15.05.2026" [ref=e6887]
+              - cell "DANAILA HORATIU" [ref=e6888]:
+                - button "DANAILA HORATIU" [ref=e6889] [cursor=pointer]
+              - cell "Abonament mai 2026" [ref=e6890]
+              - cell "Transfer Bancar" [ref=e6891]
+              - cell "220,00 RON" [ref=e6892]
+              - cell [ref=e6893]:
+                - button "Chitanță" [ref=e6894] [cursor=pointer]:
+                  - img [ref=e6895]
+            - row "15.05.2026 POPOVICI DIANA ANASTASIA Abonament aprilie 2026 Transfer Bancar 220,00 RON" [ref=e6898]:
+              - cell "15.05.2026" [ref=e6899]
+              - cell "POPOVICI DIANA ANASTASIA" [ref=e6900]:
+                - button "POPOVICI DIANA ANASTASIA" [ref=e6901] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e6902]
+              - cell "Transfer Bancar" [ref=e6903]
+              - cell "220,00 RON" [ref=e6904]
+              - cell [ref=e6905]:
+                - button "Chitanță" [ref=e6906] [cursor=pointer]:
+                  - img [ref=e6907]
+            - row "14.05.2026 BORS EMILIA Abonament mai 2026 Transfer Bancar 220,00 RON" [ref=e6910]:
+              - cell "14.05.2026" [ref=e6911]
+              - cell "BORS EMILIA" [ref=e6912]:
+                - button "BORS EMILIA" [ref=e6913] [cursor=pointer]
+              - cell "Abonament mai 2026" [ref=e6914]
+              - cell "Transfer Bancar" [ref=e6915]
+              - cell "220,00 RON" [ref=e6916]
+              - cell [ref=e6917]:
+                - button "Chitanță" [ref=e6918] [cursor=pointer]:
+                  - img [ref=e6919]
+            - row "14.05.2026 BORS EMILIA FRAM Anul 2026 Transfer Bancar 200,00 RON" [ref=e6922]:
+              - cell "14.05.2026" [ref=e6923]
+              - cell "BORS EMILIA" [ref=e6924]:
+                - button "BORS EMILIA" [ref=e6925] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e6926]
+              - cell "Transfer Bancar" [ref=e6927]
+              - cell "200,00 RON" [ref=e6928]
+              - cell [ref=e6929]:
+                - button "Chitanță" [ref=e6930] [cursor=pointer]:
+                  - img [ref=e6931]
+            - row "14.05.2026 BORS EMILIA FRQKD Sezonul 2025-2026 Transfer Bancar 170,00 RON" [ref=e6934]:
+              - cell "14.05.2026" [ref=e6935]
+              - cell "BORS EMILIA" [ref=e6936]:
+                - button "BORS EMILIA" [ref=e6937] [cursor=pointer]
+              - cell "FRQKD Sezonul 2025-2026" [ref=e6938]
+              - cell "Transfer Bancar" [ref=e6939]
+              - cell "170,00 RON" [ref=e6940]
+              - cell [ref=e6941]:
+                - button "Chitanță" [ref=e6942] [cursor=pointer]:
+                  - img [ref=e6943]
+            - row "12.05.2026 Balmus Abonament Familie mai 2026 Transfer Bancar 380,00 RON" [ref=e6946]:
+              - cell "12.05.2026" [ref=e6947]
+              - cell "Balmus" [ref=e6948]
+              - cell "Abonament Familie mai 2026" [ref=e6949]
+              - cell "Transfer Bancar" [ref=e6950]
+              - cell "380,00 RON" [ref=e6951]
+              - cell [ref=e6952]:
+                - button "Chitanță" [ref=e6953] [cursor=pointer]:
+                  - img [ref=e6954]
+            - row "07.05.2026 SANDU ANA ADRIANA Abonament mai 2026 Cash 220,00 RON" [ref=e6957]:
+              - cell "07.05.2026" [ref=e6958]
+              - cell "SANDU ANA ADRIANA" [ref=e6959]:
+                - button "SANDU ANA ADRIANA" [ref=e6960] [cursor=pointer]
+              - cell "Abonament mai 2026" [ref=e6961]
+              - cell "Cash" [ref=e6962]
+              - cell "220,00 RON" [ref=e6963]
+              - cell [ref=e6964]:
+                - button "Chitanță" [ref=e6965] [cursor=pointer]:
+                  - img [ref=e6966]
+            - row "07.05.2026 ȘTEFĂNESCU EMANUEL Abonament mai 2026 Cash 220,00 RON" [ref=e6969]:
+              - cell "07.05.2026" [ref=e6970]
+              - cell "ȘTEFĂNESCU EMANUEL" [ref=e6971]:
+                - button "ȘTEFĂNESCU EMANUEL" [ref=e6972] [cursor=pointer]
+              - cell "Abonament mai 2026" [ref=e6973]
+              - cell "Cash" [ref=e6974]
+              - cell "220,00 RON" [ref=e6975]
+              - cell [ref=e6976]:
+                - button "Chitanță" [ref=e6977] [cursor=pointer]:
+                  - img [ref=e6978]
+            - row "04.05.2026 TULBURE DAVID ALEXANDRU Abonament mai 2026 Cash 220,00 RON" [ref=e6981]:
+              - cell "04.05.2026" [ref=e6982]
+              - cell "TULBURE DAVID ALEXANDRU" [ref=e6983]:
+                - button "TULBURE DAVID ALEXANDRU" [ref=e6984] [cursor=pointer]
+              - cell "Abonament mai 2026" [ref=e6985]
+              - cell "Cash" [ref=e6986]
+              - cell "220,00 RON" [ref=e6987]
+              - cell [ref=e6988]:
+                - button "Chitanță" [ref=e6989] [cursor=pointer]:
+                  - img [ref=e6990]
+            - row "04.05.2026 TULBURE DAVID ALEXANDRU Abonament aprilie 2026 Cash 220,00 RON" [ref=e6993]:
+              - cell "04.05.2026" [ref=e6994]
+              - cell "TULBURE DAVID ALEXANDRU" [ref=e6995]:
+                - button "TULBURE DAVID ALEXANDRU" [ref=e6996] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e6997]
+              - cell "Cash" [ref=e6998]
+              - cell "220,00 RON" [ref=e6999]
+              - cell [ref=e7000]:
+                - button "Chitanță" [ref=e7001] [cursor=pointer]:
+                  - img [ref=e7002]
+            - row "30.04.2026 SFICA DIANA ANDREEA Abonament aprilie 2026 Cash 220,00 RON" [ref=e7005]:
+              - cell "30.04.2026" [ref=e7006]
+              - cell "SFICA DIANA ANDREEA" [ref=e7007]:
+                - button "SFICA DIANA ANDREEA" [ref=e7008] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e7009]
+              - cell "Cash" [ref=e7010]
+              - cell "220,00 RON" [ref=e7011]
+              - cell [ref=e7012]:
+                - button "Chitanță" [ref=e7013] [cursor=pointer]:
+                  - img [ref=e7014]
+            - row "27.04.2026 ȘTEICĂ VICTOR GABRIEL Abonament aprilie 2026 Transfer Bancar 220,00 RON" [ref=e7017]:
+              - cell "27.04.2026" [ref=e7018]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e7019]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e7020] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e7021]
+              - cell "Transfer Bancar" [ref=e7022]
+              - cell "220,00 RON" [ref=e7023]
+              - cell [ref=e7024]:
+                - button "Chitanță" [ref=e7025] [cursor=pointer]:
+                  - img [ref=e7026]
+            - row "20.04.2026 CRACANA ERIKA IONELA Abonament aprilie 2026 Transfer Bancar 220,00 RON" [ref=e7029]:
+              - cell "20.04.2026" [ref=e7030]
+              - cell "CRACANA ERIKA IONELA" [ref=e7031]:
+                - button "CRACANA ERIKA IONELA" [ref=e7032] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e7033]
+              - cell "Transfer Bancar" [ref=e7034]
+              - cell "220,00 RON" [ref=e7035]
+              - cell [ref=e7036]:
+                - button "Chitanță" [ref=e7037] [cursor=pointer]:
+                  - img [ref=e7038]
+            - row "20.04.2026 MANDIA MARIA Abonament aprilie 2026 Transfer Bancar 220,00 RON" [ref=e7041]:
+              - cell "20.04.2026" [ref=e7042]
+              - cell "MANDIA MARIA" [ref=e7043]:
+                - button "MANDIA MARIA" [ref=e7044] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e7045]
+              - cell "Transfer Bancar" [ref=e7046]
+              - cell "220,00 RON" [ref=e7047]
+              - cell [ref=e7048]:
+                - button "Chitanță" [ref=e7049] [cursor=pointer]:
+                  - img [ref=e7050]
+            - row "20.04.2026 SUMĂNARIU DRAGOȘ ȘTEFAN Abonament aprilie 2026 Cash 220,00 RON" [ref=e7053]:
+              - cell "20.04.2026" [ref=e7054]
+              - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e7055]:
+                - button "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e7056] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e7057]
+              - cell "Cash" [ref=e7058]
+              - cell "220,00 RON" [ref=e7059]
+              - cell [ref=e7060]:
+                - button "Chitanță" [ref=e7061] [cursor=pointer]:
+                  - img [ref=e7062]
+            - row "16.04.2026 ȘTEFĂNESCU EMANUEL Abonament aprilie 2026 Cash 220,00 RON" [ref=e7065]:
+              - cell "16.04.2026" [ref=e7066]
+              - cell "ȘTEFĂNESCU EMANUEL" [ref=e7067]:
+                - button "ȘTEFĂNESCU EMANUEL" [ref=e7068] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e7069]
+              - cell "Cash" [ref=e7070]
+              - cell "220,00 RON" [ref=e7071]
+              - cell [ref=e7072]:
+                - button "Chitanță" [ref=e7073] [cursor=pointer]:
+                  - img [ref=e7074]
+            - row "16.04.2026 CAREJA ANTONIA ELENA Abonament aprilie 2026 Transfer Bancar 220,00 RON" [ref=e7077]:
+              - cell "16.04.2026" [ref=e7078]
+              - cell "CAREJA ANTONIA ELENA" [ref=e7079]:
+                - button "CAREJA ANTONIA ELENA" [ref=e7080] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e7081]
+              - cell "Transfer Bancar" [ref=e7082]
+              - cell "220,00 RON" [ref=e7083]
+              - cell [ref=e7084]:
+                - button "Chitanță" [ref=e7085] [cursor=pointer]:
+                  - img [ref=e7086]
+            - row "16.04.2026 RUSU CELIA Abonament aprilie 2026 Cash 220,00 RON" [ref=e7089]:
+              - cell "16.04.2026" [ref=e7090]
+              - cell "RUSU CELIA" [ref=e7091]:
+                - button "RUSU CELIA" [ref=e7092] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e7093]
+              - cell "Cash" [ref=e7094]
+              - cell "220,00 RON" [ref=e7095]
+              - cell [ref=e7096]:
+                - button "Chitanță" [ref=e7097] [cursor=pointer]:
+                  - img [ref=e7098]
+            - row "09.04.2026 BORS EMILIA Abonament aprilie 2026 Transfer Bancar 220,00 RON" [ref=e7101]:
+              - cell "09.04.2026" [ref=e7102]
+              - cell "BORS EMILIA" [ref=e7103]:
+                - button "BORS EMILIA" [ref=e7104] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e7105]
+              - cell "Transfer Bancar" [ref=e7106]
+              - cell "220,00 RON" [ref=e7107]
+              - cell [ref=e7108]:
+                - button "Chitanță" [ref=e7109] [cursor=pointer]:
+                  - img [ref=e7110]
+            - row "09.04.2026 DANAILA HORATIU Abonament aprilie 2026 Transfer Bancar 220,00 RON" [ref=e7113]:
+              - cell "09.04.2026" [ref=e7114]
+              - cell "DANAILA HORATIU" [ref=e7115]:
+                - button "DANAILA HORATIU" [ref=e7116] [cursor=pointer]
+              - cell "Abonament aprilie 2026" [ref=e7117]
+              - cell "Transfer Bancar" [ref=e7118]
+              - cell "220,00 RON" [ref=e7119]
+              - cell [ref=e7120]:
+                - button "Chitanță" [ref=e7121] [cursor=pointer]:
+                  - img [ref=e7122]
+            - row "09.04.2026 Gomei Abonament Familie aprilie 2026 Transfer Bancar 330,00 RON" [ref=e7125]:
+              - cell "09.04.2026" [ref=e7126]
+              - cell "Gomei" [ref=e7127]
+              - cell "Abonament Familie aprilie 2026" [ref=e7128]
+              - cell "Transfer Bancar" [ref=e7129]
+              - cell "330,00 RON" [ref=e7130]
+              - cell [ref=e7131]:
+                - button "Chitanță" [ref=e7132] [cursor=pointer]:
+                  - img [ref=e7133]
+            - row "09.04.2026 GOMEI LUISA GABRIELA FRAM Anul 2026 Transfer Bancar 200,00 RON" [ref=e7136]:
+              - cell "09.04.2026" [ref=e7137]
+              - cell "GOMEI LUISA GABRIELA" [ref=e7138]:
+                - button "GOMEI LUISA GABRIELA" [ref=e7139] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7140]
+              - cell "Transfer Bancar" [ref=e7141]
+              - cell "200,00 RON" [ref=e7142]
+              - cell [ref=e7143]:
+                - button "Chitanță" [ref=e7144] [cursor=pointer]:
+                  - img [ref=e7145]
+            - row "09.04.2026 GOMEI MARIAN CRISTIAN FRAM Anul 2026 Transfer Bancar 200,00 RON" [ref=e7148]:
+              - cell "09.04.2026" [ref=e7149]
+              - cell "GOMEI MARIAN CRISTIAN" [ref=e7150]:
+                - button "GOMEI MARIAN CRISTIAN" [ref=e7151] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7152]
+              - cell "Transfer Bancar" [ref=e7153]
+              - cell "200,00 RON" [ref=e7154]
+              - cell [ref=e7155]:
+                - button "Chitanță" [ref=e7156] [cursor=pointer]:
+                  - img [ref=e7157]
+            - row "09.04.2026 GOMEI LUISA GABRIELA FRQKD Sezonul 2025-2026 Transfer Bancar 170,00 RON" [ref=e7160]:
+              - cell "09.04.2026" [ref=e7161]
+              - cell "GOMEI LUISA GABRIELA" [ref=e7162]:
+                - button "GOMEI LUISA GABRIELA" [ref=e7163] [cursor=pointer]
+              - cell "FRQKD Sezonul 2025-2026" [ref=e7164]
+              - cell "Transfer Bancar" [ref=e7165]
+              - cell "170,00 RON" [ref=e7166]
+              - cell [ref=e7167]:
+                - button "Chitanță" [ref=e7168] [cursor=pointer]:
+                  - img [ref=e7169]
+            - row "09.04.2026 GOMEI MARIAN CRISTIAN FRQKD Sezonul 2025-2026 Transfer Bancar 170,00 RON" [ref=e7172]:
+              - cell "09.04.2026" [ref=e7173]
+              - cell "GOMEI MARIAN CRISTIAN" [ref=e7174]:
+                - button "GOMEI MARIAN CRISTIAN" [ref=e7175] [cursor=pointer]
+              - cell "FRQKD Sezonul 2025-2026" [ref=e7176]
+              - cell "Transfer Bancar" [ref=e7177]
+              - cell "170,00 RON" [ref=e7178]
+              - cell [ref=e7179]:
+                - button "Chitanță" [ref=e7180] [cursor=pointer]:
+                  - img [ref=e7181]
+            - row "04.04.2026 MARDARE ALEXANDRA NICOLETA Abonament martie 2026 Cash 100,00 RON" [ref=e7184]:
+              - cell "04.04.2026" [ref=e7185]
+              - cell "MARDARE ALEXANDRA NICOLETA" [ref=e7186]:
+                - button "MARDARE ALEXANDRA NICOLETA" [ref=e7187] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7188]
+              - cell "Cash" [ref=e7189]
+              - cell "100,00 RON" [ref=e7190]
+              - cell [ref=e7191]:
+                - button "Factură" [ref=e7192] [cursor=pointer]:
+                  - img [ref=e7193]
+            - row "02.04.2026 Balmus Abonament Familie aprilie 2026 Transfer Bancar 380,00 RON" [ref=e7196]:
+              - cell "02.04.2026" [ref=e7197]
+              - cell "Balmus" [ref=e7198]
+              - cell "Abonament Familie aprilie 2026" [ref=e7199]
+              - cell "Transfer Bancar" [ref=e7200]
+              - cell "380,00 RON" [ref=e7201]
+              - cell [ref=e7202]:
+                - button "Chitanță" [ref=e7203] [cursor=pointer]:
+                  - img [ref=e7204]
+            - row "31.03.2026 ȘTEICĂ VICTOR GABRIEL Abonament martie 2026 Transfer Bancar 220,00 RON" [ref=e7207]:
+              - cell "31.03.2026" [ref=e7208]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e7209]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e7210] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7211]
+              - cell "Transfer Bancar" [ref=e7212]
+              - cell "220,00 RON" [ref=e7213]
+              - cell [ref=e7214]:
+                - button "Chitanță" [ref=e7215] [cursor=pointer]:
+                  - img [ref=e7216]
+            - row "19.03.2026 ȘTEFĂNESCU EMANUEL Abonament martie 2026 Cash 220,00 RON" [ref=e7219]:
+              - cell "19.03.2026" [ref=e7220]
+              - cell "ȘTEFĂNESCU EMANUEL" [ref=e7221]:
+                - button "ȘTEFĂNESCU EMANUEL" [ref=e7222] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7223]
+              - cell "Cash" [ref=e7224]
+              - cell "220,00 RON" [ref=e7225]
+              - cell [ref=e7226]:
+                - button "Chitanță" [ref=e7227] [cursor=pointer]:
+                  - img [ref=e7228]
+            - row "17.03.2026 CRACANA ERIKA IONELA Abonament martie 2026 Transfer Bancar 220,00 RON" [ref=e7231]:
+              - cell "17.03.2026" [ref=e7232]
+              - cell "CRACANA ERIKA IONELA" [ref=e7233]:
+                - button "CRACANA ERIKA IONELA" [ref=e7234] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7235]
+              - cell "Transfer Bancar" [ref=e7236]
+              - cell "220,00 RON" [ref=e7237]
+              - cell [ref=e7238]:
+                - button "Chitanță" [ref=e7239] [cursor=pointer]:
+                  - img [ref=e7240]
+            - row "17.03.2026 AMORARITI ALEXANDRU Abonament martie 2026 Transfer Bancar 220,00 RON" [ref=e7243]:
+              - cell "17.03.2026" [ref=e7244]
+              - cell "AMORARITI ALEXANDRU" [ref=e7245]:
+                - button "AMORARITI ALEXANDRU" [ref=e7246] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7247]
+              - cell "Transfer Bancar" [ref=e7248]
+              - cell "220,00 RON" [ref=e7249]
+              - cell [ref=e7250]:
+                - button "Chitanță" [ref=e7251] [cursor=pointer]:
+                  - img [ref=e7252]
+            - row "17.03.2026 CAREJA ANTONIA ELENA Abonament martie 2026 Transfer Bancar 220,00 RON" [ref=e7255]:
+              - cell "17.03.2026" [ref=e7256]
+              - cell "CAREJA ANTONIA ELENA" [ref=e7257]:
+                - button "CAREJA ANTONIA ELENA" [ref=e7258] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7259]
+              - cell "Transfer Bancar" [ref=e7260]
+              - cell "220,00 RON" [ref=e7261]
+              - cell [ref=e7262]:
+                - button "Chitanță" [ref=e7263] [cursor=pointer]:
+                  - img [ref=e7264]
+            - row "15.03.2026 MANDIA MARIA Abonament martie 2026 Transfer Bancar 220,00 RON" [ref=e7267]:
+              - cell "15.03.2026" [ref=e7268]
+              - cell "MANDIA MARIA" [ref=e7269]:
+                - button "MANDIA MARIA" [ref=e7270] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7271]
+              - cell "Transfer Bancar" [ref=e7272]
+              - cell "220,00 RON" [ref=e7273]
+              - cell [ref=e7274]:
+                - button "Chitanță" [ref=e7275] [cursor=pointer]:
+                  - img [ref=e7276]
+            - row "14.03.2026 Gomei Abonament Familie martie 2026 Transfer Bancar 330,00 RON" [ref=e7279]:
+              - cell "14.03.2026" [ref=e7280]
+              - cell "Gomei" [ref=e7281]
+              - cell "Abonament Familie martie 2026" [ref=e7282]
+              - cell "Transfer Bancar" [ref=e7283]
+              - cell "330,00 RON" [ref=e7284]
+              - cell [ref=e7285]:
+                - button "Chitanță" [ref=e7286] [cursor=pointer]:
+                  - img [ref=e7287]
+            - row "13.03.2026 BORS EMILIA Abonament martie 2026 Transfer Bancar 220,00 RON" [ref=e7290]:
+              - cell "13.03.2026" [ref=e7291]
+              - cell "BORS EMILIA" [ref=e7292]:
+                - button "BORS EMILIA" [ref=e7293] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7294]
+              - cell "Transfer Bancar" [ref=e7295]
+              - cell "220,00 RON" [ref=e7296]
+              - cell [ref=e7297]:
+                - button "Chitanță" [ref=e7298] [cursor=pointer]:
+                  - img [ref=e7299]
+            - row "13.03.2026 DANAILA HORATIU FRQKD Sezonul 2025-2026 Transfer Bancar 170,00 RON" [ref=e7302]:
+              - cell "13.03.2026" [ref=e7303]
+              - cell "DANAILA HORATIU" [ref=e7304]:
+                - button "DANAILA HORATIU" [ref=e7305] [cursor=pointer]
+              - cell "FRQKD Sezonul 2025-2026" [ref=e7306]
+              - cell "Transfer Bancar" [ref=e7307]
+              - cell "170,00 RON" [ref=e7308]
+              - cell [ref=e7309]:
+                - button "Chitanță" [ref=e7310] [cursor=pointer]:
+                  - img [ref=e7311]
+            - row "12.03.2026 POPOVICI DIANA ANASTASIA Abonament Individual - ianuarie 2026 Transfer Bancar 220,00 RON" [ref=e7314]:
+              - cell "12.03.2026" [ref=e7315]
+              - cell "POPOVICI DIANA ANASTASIA" [ref=e7316]:
+                - button "POPOVICI DIANA ANASTASIA" [ref=e7317] [cursor=pointer]
+              - cell "Abonament Individual - ianuarie 2026" [ref=e7318]
+              - cell "Transfer Bancar" [ref=e7319]
+              - cell "220,00 RON" [ref=e7320]
+              - cell [ref=e7321]:
+                - button "Chitanță" [ref=e7322] [cursor=pointer]:
+                  - img [ref=e7323]
+            - row "12.03.2026 POPOVICI DIANA ANASTASIA Abonament februarie 2026 Transfer Bancar 220,00 RON" [ref=e7326]:
+              - cell "12.03.2026" [ref=e7327]
+              - cell "POPOVICI DIANA ANASTASIA" [ref=e7328]:
+                - button "POPOVICI DIANA ANASTASIA" [ref=e7329] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7330]
+              - cell "Transfer Bancar" [ref=e7331]
+              - cell "220,00 RON" [ref=e7332]
+              - cell [ref=e7333]:
+                - button "Chitanță" [ref=e7334] [cursor=pointer]:
+                  - img [ref=e7335]
+            - row "12.03.2026 POPOVICI DIANA ANASTASIA FRAM Anul 2026 Transfer Bancar 200,00 RON" [ref=e7338]:
+              - cell "12.03.2026" [ref=e7339]
+              - cell "POPOVICI DIANA ANASTASIA" [ref=e7340]:
+                - button "POPOVICI DIANA ANASTASIA" [ref=e7341] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7342]
+              - cell "Transfer Bancar" [ref=e7343]
+              - cell "200,00 RON" [ref=e7344]
+              - cell [ref=e7345]:
+                - button "Chitanță" [ref=e7346] [cursor=pointer]:
+                  - img [ref=e7347]
+            - row "12.03.2026 POPOVICI DIANA ANASTASIA FRQKD Sezonul 2025-2026 Transfer Bancar 170,00 RON" [ref=e7350]:
+              - cell "12.03.2026" [ref=e7351]
+              - cell "POPOVICI DIANA ANASTASIA" [ref=e7352]:
+                - button "POPOVICI DIANA ANASTASIA" [ref=e7353] [cursor=pointer]
+              - cell "FRQKD Sezonul 2025-2026" [ref=e7354]
+              - cell "Transfer Bancar" [ref=e7355]
+              - cell "170,00 RON" [ref=e7356]
+              - cell [ref=e7357]:
+                - button "Chitanță" [ref=e7358] [cursor=pointer]:
+                  - img [ref=e7359]
+            - row "10.03.2026 POPA ANDREI Abonament martie 2026 Transfer Bancar 220,00 RON" [ref=e7362]:
+              - cell "10.03.2026" [ref=e7363]
+              - cell "POPA ANDREI" [ref=e7364]:
+                - button "POPA ANDREI" [ref=e7365] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7366]
+              - cell "Transfer Bancar" [ref=e7367]
+              - cell "220,00 RON" [ref=e7368]
+              - cell [ref=e7369]:
+                - button "Chitanță" [ref=e7370] [cursor=pointer]:
+                  - img [ref=e7371]
+            - row "10.03.2026 POPA ANDREI Abonament februarie 2026 Transfer Bancar 220,00 RON" [ref=e7374]:
+              - cell "10.03.2026" [ref=e7375]
+              - cell "POPA ANDREI" [ref=e7376]:
+                - button "POPA ANDREI" [ref=e7377] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7378]
+              - cell "Transfer Bancar" [ref=e7379]
+              - cell "220,00 RON" [ref=e7380]
+              - cell [ref=e7381]:
+                - button "Chitanță" [ref=e7382] [cursor=pointer]:
+                  - img [ref=e7383]
+            - row "10.03.2026 ȘTEICĂ VICTOR GABRIEL FRQKD Sezonul 2025-2026 Transfer Bancar 170,00 RON" [ref=e7386]:
+              - cell "10.03.2026" [ref=e7387]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e7388]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e7389] [cursor=pointer]
+              - cell "FRQKD Sezonul 2025-2026" [ref=e7390]
+              - cell "Transfer Bancar" [ref=e7391]
+              - cell "170,00 RON" [ref=e7392]
+              - cell [ref=e7393]:
+                - button "Chitanță" [ref=e7394] [cursor=pointer]:
+                  - img [ref=e7395]
+            - row "09.03.2026 CAREJA ANTONIA ELENA FRAM Anul 2026 Transfer Bancar 200,00 RON" [ref=e7398]:
+              - cell "09.03.2026" [ref=e7399]
+              - cell "CAREJA ANTONIA ELENA" [ref=e7400]:
+                - button "CAREJA ANTONIA ELENA" [ref=e7401] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7402]
+              - cell "Transfer Bancar" [ref=e7403]
+              - cell "200,00 RON" [ref=e7404]
+              - cell [ref=e7405]:
+                - button "Chitanță" [ref=e7406] [cursor=pointer]:
+                  - img [ref=e7407]
+            - row "09.03.2026 CAREJA ANTONIA ELENA FRQKD Sezonul 2025-2026 Transfer Bancar 170,00 RON" [ref=e7410]:
+              - cell "09.03.2026" [ref=e7411]
+              - cell "CAREJA ANTONIA ELENA" [ref=e7412]:
+                - button "CAREJA ANTONIA ELENA" [ref=e7413] [cursor=pointer]
+              - cell "FRQKD Sezonul 2025-2026" [ref=e7414]
+              - cell "Transfer Bancar" [ref=e7415]
+              - cell "170,00 RON" [ref=e7416]
+              - cell [ref=e7417]:
+                - button "Chitanță" [ref=e7418] [cursor=pointer]:
+                  - img [ref=e7419]
+            - row "09.03.2026 ȘTEICĂ VICTOR GABRIEL Abonament februarie 2026 Transfer Bancar 220,00 RON" [ref=e7422]:
+              - cell "09.03.2026" [ref=e7423]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e7424]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e7425] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7426]
+              - cell "Transfer Bancar" [ref=e7427]
+              - cell "220,00 RON" [ref=e7428]
+              - cell [ref=e7429]:
+                - button "Chitanță" [ref=e7430] [cursor=pointer]:
+                  - img [ref=e7431]
+            - row "09.03.2026 Andriciuc Abonament Familie martie 2026 Cash 330,00 RON" [ref=e7434]:
+              - cell "09.03.2026" [ref=e7435]
+              - cell "Andriciuc" [ref=e7436]
+              - cell "Abonament Familie martie 2026" [ref=e7437]
+              - cell "Cash" [ref=e7438]
+              - cell "330,00 RON" [ref=e7439]
+              - cell [ref=e7440]:
+                - button "Chitanță" [ref=e7441] [cursor=pointer]:
+                  - img [ref=e7442]
+            - row "08.03.2026 LUNGU CILIAC HORAȚIU CASIAN Abonament februarie 2026 Cash 100,00 RON" [ref=e7445]:
+              - cell "08.03.2026" [ref=e7446]
+              - cell "LUNGU CILIAC HORAȚIU CASIAN" [ref=e7447]:
+                - button "LUNGU CILIAC HORAȚIU CASIAN" [ref=e7448] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7449]
+              - cell "Cash" [ref=e7450]
+              - cell "100,00 RON" [ref=e7451]
+              - cell [ref=e7452]:
+                - button "Chitanță" [ref=e7453] [cursor=pointer]:
+                  - img [ref=e7454]
+            - row "08.03.2026 LUNGU CILIAC HORAȚIU CASIAN Abonament martie 2026 Cash 360,00 RON" [ref=e7457]:
+              - cell "08.03.2026" [ref=e7458]
+              - cell "LUNGU CILIAC HORAȚIU CASIAN" [ref=e7459]:
+                - button "LUNGU CILIAC HORAȚIU CASIAN" [ref=e7460] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7461]
+              - cell "Cash" [ref=e7462]
+              - cell "360,00 RON" [ref=e7463]
+              - cell [ref=e7464]:
+                - button "Chitanță" [ref=e7465] [cursor=pointer]:
+                  - img [ref=e7466]
+            - row "06.03.2026 RUSU CELIA Abonament martie 2026 Cash 220,00 RON" [ref=e7469]:
+              - cell "06.03.2026" [ref=e7470]
+              - cell "RUSU CELIA" [ref=e7471]:
+                - button "RUSU CELIA" [ref=e7472] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7473]
+              - cell "Cash" [ref=e7474]
+              - cell "220,00 RON" [ref=e7475]
+              - cell [ref=e7476]:
+                - button "Chitanță" [ref=e7477] [cursor=pointer]:
+                  - img [ref=e7478]
+            - row "05.03.2026 Aștefanei Abonament Familie martie 2026 Transfer Bancar 330,00 RON" [ref=e7481]:
+              - cell "05.03.2026" [ref=e7482]
+              - cell "Aștefanei" [ref=e7483]
+              - cell "Abonament Familie martie 2026" [ref=e7484]
+              - cell "Transfer Bancar" [ref=e7485]
+              - cell "330,00 RON" [ref=e7486]
+              - cell [ref=e7487]:
+                - button "Chitanță" [ref=e7488] [cursor=pointer]:
+                  - img [ref=e7489]
+            - row "04.03.2026 DANAILA HORATIU Abonament martie 2026 Transfer Bancar 220,00 RON" [ref=e7492]:
+              - cell "04.03.2026" [ref=e7493]
+              - cell "DANAILA HORATIU" [ref=e7494]:
+                - button "DANAILA HORATIU" [ref=e7495] [cursor=pointer]
+              - cell "Abonament martie 2026" [ref=e7496]
+              - cell "Transfer Bancar" [ref=e7497]
+              - cell "220,00 RON" [ref=e7498]
+              - cell [ref=e7499]:
+                - button "Chitanță" [ref=e7500] [cursor=pointer]:
+                  - img [ref=e7501]
+            - row "03.03.2026 Balmus Abonament Familie martie 2026 Transfer Bancar 380,00 RON" [ref=e7504]:
+              - cell "03.03.2026" [ref=e7505]
+              - cell "Balmus" [ref=e7506]
+              - cell "Abonament Familie martie 2026" [ref=e7507]
+              - cell "Transfer Bancar" [ref=e7508]
+              - cell "380,00 RON" [ref=e7509]
+              - cell [ref=e7510]:
+                - button "Chitanță" [ref=e7511] [cursor=pointer]:
+                  - img [ref=e7512]
+            - row "28.02.2026 LUNGU ALIN MIHAI FRAM Anul 2026 Cash 200,00 RON" [ref=e7515]:
+              - cell "28.02.2026" [ref=e7516]
+              - cell "LUNGU ALIN MIHAI" [ref=e7517]:
+                - button "LUNGU ALIN MIHAI" [ref=e7518] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7519]
+              - cell "Cash" [ref=e7520]
+              - cell "200,00 RON" [ref=e7521]
+              - cell [ref=e7522]:
+                - button "Chitanță" [ref=e7523] [cursor=pointer]:
+                  - img [ref=e7524]
+            - row "26.02.2026 AMORARITI ALEXANDRU FRAM Anul 2026 Cash 200,00 RON" [ref=e7527]:
+              - cell "26.02.2026" [ref=e7528]
+              - cell "AMORARITI ALEXANDRU" [ref=e7529]:
+                - button "AMORARITI ALEXANDRU" [ref=e7530] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7531]
+              - cell "Cash" [ref=e7532]
+              - cell "200,00 RON" [ref=e7533]
+              - cell [ref=e7534]:
+                - button "Chitanță" [ref=e7535] [cursor=pointer]:
+                  - img [ref=e7536]
+            - row "26.02.2026 LEOHCHI RAZVAN Abonament februarie 2026 Cash 200,00 RON" [ref=e7539]:
+              - cell "26.02.2026" [ref=e7540]
+              - cell "LEOHCHI RAZVAN" [ref=e7541]:
+                - button "LEOHCHI RAZVAN" [ref=e7542] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7543]
+              - cell "Cash" [ref=e7544]
+              - cell "200,00 RON" [ref=e7545]
+              - cell [ref=e7546]:
+                - button "Chitanță" [ref=e7547] [cursor=pointer]:
+                  - img [ref=e7548]
+            - row "23.02.2026 SFICA DIANA ANDREEA Abonament februarie 2026 Transfer Bancar 590,00 RON" [ref=e7551]:
+              - cell "23.02.2026" [ref=e7552]
+              - cell "SFICA DIANA ANDREEA" [ref=e7553]:
+                - button "SFICA DIANA ANDREEA" [ref=e7554] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7555]
+              - cell "Transfer Bancar" [ref=e7556]
+              - cell "590,00 RON" [ref=e7557]
+              - cell [ref=e7558]:
+                - button "Chitanță" [ref=e7559] [cursor=pointer]:
+                  - img [ref=e7560]
+            - row "20.02.2026 — Abonament februarie 2026 Cash 220,00 RON" [ref=e7563]:
+              - cell "20.02.2026" [ref=e7564]
+              - cell "—" [ref=e7565]
+              - cell "Abonament februarie 2026" [ref=e7566]
+              - cell "Cash" [ref=e7567]
+              - cell "220,00 RON" [ref=e7568]
+              - cell [ref=e7569]:
+                - button "Chitanță" [ref=e7570] [cursor=pointer]:
+                  - img [ref=e7571]
+            - row "16.02.2026 DANAILA HORATIU FRAM Anul 2026 Cash 200,00 RON" [ref=e7574]:
+              - cell "16.02.2026" [ref=e7575]
+              - cell "DANAILA HORATIU" [ref=e7576]:
+                - button "DANAILA HORATIU" [ref=e7577] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7578]
+              - cell "Cash" [ref=e7579]
+              - cell "200,00 RON" [ref=e7580]
+              - cell [ref=e7581]:
+                - button "Chitanță" [ref=e7582] [cursor=pointer]:
+                  - img [ref=e7583]
+            - row "15.02.2026 CRACANA ERIKA IONELA Abonament februarie 2026 Transfer Bancar 390,00 RON" [ref=e7586]:
+              - cell "15.02.2026" [ref=e7587]
+              - cell "CRACANA ERIKA IONELA" [ref=e7588]:
+                - button "CRACANA ERIKA IONELA" [ref=e7589] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7590]
+              - cell "Transfer Bancar" [ref=e7591]
+              - cell "390,00 RON" [ref=e7592]
+              - cell [ref=e7593]:
+                - button "Chitanță" [ref=e7594] [cursor=pointer]:
+                  - img [ref=e7595]
+            - row "13.02.2026 Gomei Abonament Familie februarie 2026 Transfer Bancar 330,00 RON" [ref=e7598]:
+              - cell "13.02.2026" [ref=e7599]
+              - cell "Gomei" [ref=e7600]
+              - cell "Abonament Familie februarie 2026" [ref=e7601]
+              - cell "Transfer Bancar" [ref=e7602]
+              - cell "330,00 RON" [ref=e7603]
+              - cell [ref=e7604]:
+                - button "Chitanță" [ref=e7605] [cursor=pointer]:
+                  - img [ref=e7606]
+            - row "13.02.2026 BORS EMILIA Abonament februarie 2026 Cash 220,00 RON" [ref=e7609]:
+              - cell "13.02.2026" [ref=e7610]
+              - cell "BORS EMILIA" [ref=e7611]:
+                - button "BORS EMILIA" [ref=e7612] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7613]
+              - cell "Cash" [ref=e7614]
+              - cell "220,00 RON" [ref=e7615]
+              - cell [ref=e7616]:
+                - button "Chitanță" [ref=e7617] [cursor=pointer]:
+                  - img [ref=e7618]
+            - row "12.02.2026 BALMUS IUSTINA FRAM Anul 2026 Cash 1.110,00 RON" [ref=e7621]:
+              - cell "12.02.2026" [ref=e7622]
+              - cell "BALMUS IUSTINA" [ref=e7623]:
+                - button "BALMUS IUSTINA" [ref=e7624] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7625]
+              - cell "Cash" [ref=e7626]
+              - cell "1.110,00 RON" [ref=e7627]
+              - cell [ref=e7628]:
+                - button "Chitanță" [ref=e7629] [cursor=pointer]:
+                  - img [ref=e7630]
+            - row "12.02.2026 MANDIA MARIA Abonament februarie 2026 Cash 420,00 RON" [ref=e7633]:
+              - cell "12.02.2026" [ref=e7634]
+              - cell "MANDIA MARIA" [ref=e7635]:
+                - button "MANDIA MARIA" [ref=e7636] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7637]
+              - cell "Cash" [ref=e7638]
+              - cell "420,00 RON" [ref=e7639]
+              - cell [ref=e7640]:
+                - button "Chitanță" [ref=e7641] [cursor=pointer]:
+                  - img [ref=e7642]
+            - row "11.02.2026 AMORARITI ALEXANDRU Abonament februarie 2026 Transfer Bancar 220,00 RON" [ref=e7645]:
+              - cell "11.02.2026" [ref=e7646]
+              - cell "AMORARITI ALEXANDRU" [ref=e7647]:
+                - button "AMORARITI ALEXANDRU" [ref=e7648] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7649]
+              - cell "Transfer Bancar" [ref=e7650]
+              - cell "220,00 RON" [ref=e7651]
+              - cell [ref=e7652]:
+                - button "Chitanță" [ref=e7653] [cursor=pointer]:
+                  - img [ref=e7654]
+            - row "10.02.2026 SANDU ANA ADRIANA Abonament februarie 2026 Cash 220,00 RON" [ref=e7657]:
+              - cell "10.02.2026" [ref=e7658]
+              - cell "SANDU ANA ADRIANA" [ref=e7659]:
+                - button "SANDU ANA ADRIANA" [ref=e7660] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7661]
+              - cell "Cash" [ref=e7662]
+              - cell "220,00 RON" [ref=e7663]
+              - cell [ref=e7664]:
+                - button "Chitanță" [ref=e7665] [cursor=pointer]:
+                  - img [ref=e7666]
+            - row "09.02.2026 Andriciuc Abonament Familie februarie 2026 Transfer Bancar 300,00 RON" [ref=e7669]:
+              - cell "09.02.2026" [ref=e7670]
+              - cell "Andriciuc" [ref=e7671]
+              - cell "Abonament Familie februarie 2026" [ref=e7672]
+              - cell "Transfer Bancar" [ref=e7673]
+              - cell "300,00 RON" [ref=e7674]
+              - cell [ref=e7675]:
+                - button "Chitanță" [ref=e7676] [cursor=pointer]:
+                  - img [ref=e7677]
+            - row "08.02.2026 LUNGU CILIAC HORAȚIU CASIAN FRAM Anul 2026 Cash 200,00 RON" [ref=e7680]:
+              - cell "08.02.2026" [ref=e7681]
+              - cell "LUNGU CILIAC HORAȚIU CASIAN" [ref=e7682]:
+                - button "LUNGU CILIAC HORAȚIU CASIAN" [ref=e7683] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7684]
+              - cell "Cash" [ref=e7685]
+              - cell "200,00 RON" [ref=e7686]
+              - cell [ref=e7687]:
+                - button "Chitanță" [ref=e7688] [cursor=pointer]:
+                  - img [ref=e7689]
+            - row "05.02.2026 RUSU CELIA FRAM Anul 2026 Cash 590,00 RON" [ref=e7692]:
+              - cell "05.02.2026" [ref=e7693]
+              - cell "RUSU CELIA" [ref=e7694]:
+                - button "RUSU CELIA" [ref=e7695] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7696]
+              - cell "Cash" [ref=e7697]
+              - cell "590,00 RON" [ref=e7698]
+              - cell [ref=e7699]:
+                - button "Chitanță" [ref=e7700] [cursor=pointer]:
+                  - img [ref=e7701]
+            - row "05.02.2026 ȘTEFĂNESCU EMANUEL Abonament februarie 2026 Cash 220,00 RON" [ref=e7704]:
+              - cell "05.02.2026" [ref=e7705]
+              - cell "ȘTEFĂNESCU EMANUEL" [ref=e7706]:
+                - button "ȘTEFĂNESCU EMANUEL" [ref=e7707] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7708]
+              - cell "Cash" [ref=e7709]
+              - cell "220,00 RON" [ref=e7710]
+              - cell [ref=e7711]:
+                - button "Chitanță" [ref=e7712] [cursor=pointer]:
+                  - img [ref=e7713]
+            - row "03.02.2026 TULBURE DAVID ALEXANDRU Abonament februarie 2026 Cash 220,00 RON" [ref=e7716]:
+              - cell "03.02.2026" [ref=e7717]
+              - cell "TULBURE DAVID ALEXANDRU" [ref=e7718]:
+                - button "TULBURE DAVID ALEXANDRU" [ref=e7719] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7720]
+              - cell "Cash" [ref=e7721]
+              - cell "220,00 RON" [ref=e7722]
+              - cell [ref=e7723]:
+                - button "Chitanță" [ref=e7724] [cursor=pointer]:
+                  - img [ref=e7725]
+            - row "02.02.2026 Balmus Abonament Familie februarie 2026 Cash 380,00 RON" [ref=e7728]:
+              - cell "02.02.2026" [ref=e7729]
+              - cell "Balmus" [ref=e7730]
+              - cell "Abonament Familie februarie 2026" [ref=e7731]
+              - cell "Cash" [ref=e7732]
+              - cell "380,00 RON" [ref=e7733]
+              - cell [ref=e7734]:
+                - button "Chitanță" [ref=e7735] [cursor=pointer]:
+                  - img [ref=e7736]
+            - row "02.02.2026 DANAILA HORATIU Abonament februarie 2026 Cash 220,00 RON" [ref=e7739]:
+              - cell "02.02.2026" [ref=e7740]
+              - cell "DANAILA HORATIU" [ref=e7741]:
+                - button "DANAILA HORATIU" [ref=e7742] [cursor=pointer]
+              - cell "Abonament februarie 2026" [ref=e7743]
+              - cell "Cash" [ref=e7744]
+              - cell "220,00 RON" [ref=e7745]
+              - cell [ref=e7746]:
+                - button "Chitanță" [ref=e7747] [cursor=pointer]:
+                  - img [ref=e7748]
+            - row "02.02.2026 POPA ANDREI Abonament Individual ianuarie 2026 Transfer Bancar 220,00 RON" [ref=e7751]:
+              - cell "02.02.2026" [ref=e7752]
+              - cell "POPA ANDREI" [ref=e7753]:
+                - button "POPA ANDREI" [ref=e7754] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e7755]
+              - cell "Transfer Bancar" [ref=e7756]
+              - cell "220,00 RON" [ref=e7757]
+              - cell [ref=e7758]:
+                - button "Chitanță" [ref=e7759] [cursor=pointer]:
+                  - img [ref=e7760]
+            - row "29.01.2026 ȘTEICĂ VICTOR GABRIEL Abonament Individual ianuarie 2026 Cash 220,00 RON" [ref=e7763]:
+              - cell "29.01.2026" [ref=e7764]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e7765]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e7766] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e7767]
+              - cell "Cash" [ref=e7768]
+              - cell "220,00 RON" [ref=e7769]
+              - cell [ref=e7770]:
+                - button "Chitanță" [ref=e7771] [cursor=pointer]:
+                  - img [ref=e7772]
+            - row "28.01.2026 STRATON ALESSIA TEODORA Abonament Individual ianuarie 2026 Cash 220,00 RON" [ref=e7775]:
+              - cell "28.01.2026" [ref=e7776]
+              - cell "STRATON ALESSIA TEODORA" [ref=e7777]:
+                - button "STRATON ALESSIA TEODORA" [ref=e7778] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e7779]
+              - cell "Cash" [ref=e7780]
+              - cell "220,00 RON" [ref=e7781]
+              - cell [ref=e7782]:
+                - button "Chitanță" [ref=e7783] [cursor=pointer]:
+                  - img [ref=e7784]
+            - row "27.01.2026 MARDARE ALEXANDRA NICOLETA FRAM Anul 2026 Cash 200,00 RON" [ref=e7787]:
+              - cell "27.01.2026" [ref=e7788]
+              - cell "MARDARE ALEXANDRA NICOLETA" [ref=e7789]:
+                - button "MARDARE ALEXANDRA NICOLETA" [ref=e7790] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7791]
+              - cell "Cash" [ref=e7792]
+              - cell "200,00 RON" [ref=e7793]
+              - cell [ref=e7794]:
+                - button "Chitanță" [ref=e7795] [cursor=pointer]:
+                  - img [ref=e7796]
+            - row "23.01.2026 AMORARITI ALEXANDRU Abonament Individual - ianuarie 2026 Transfer Bancar 220,00 RON" [ref=e7799]:
+              - cell "23.01.2026" [ref=e7800]
+              - cell "AMORARITI ALEXANDRU" [ref=e7801]:
+                - button "AMORARITI ALEXANDRU" [ref=e7802] [cursor=pointer]
+              - cell "Abonament Individual - ianuarie 2026" [ref=e7803]
+              - cell "Transfer Bancar" [ref=e7804]
+              - cell "220,00 RON" [ref=e7805]
+              - cell [ref=e7806]:
+                - button "Chitanță" [ref=e7807] [cursor=pointer]:
+                  - img [ref=e7808]
+            - row "22.01.2026 TULBURE DAVID ALEXANDRU FRAM Anul 2026 Cash 370,00 RON" [ref=e7811]:
+              - cell "22.01.2026" [ref=e7812]
+              - cell "TULBURE DAVID ALEXANDRU" [ref=e7813]:
+                - button "TULBURE DAVID ALEXANDRU" [ref=e7814] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7815]
+              - cell "Cash" [ref=e7816]
+              - cell "370,00 RON" [ref=e7817]
+              - cell [ref=e7818]:
+                - button "Chitanță" [ref=e7819] [cursor=pointer]:
+                  - img [ref=e7820]
+            - row "22.01.2026 CRACANA ERIKA IONELA FRAM Anul 2026 Cash 200,00 RON" [ref=e7823]:
+              - cell "22.01.2026" [ref=e7824]
+              - cell "CRACANA ERIKA IONELA" [ref=e7825]:
+                - button "CRACANA ERIKA IONELA" [ref=e7826] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7827]
+              - cell "Cash" [ref=e7828]
+              - cell "200,00 RON" [ref=e7829]
+              - cell [ref=e7830]:
+                - button "Chitanță" [ref=e7831] [cursor=pointer]:
+                  - img [ref=e7832]
+            - row "22.01.2026 AȘTEFANEI ALEXANDRA FRAM Anul 2026 Cash 370,00 RON" [ref=e7835]:
+              - cell "22.01.2026" [ref=e7836]
+              - cell "AȘTEFANEI ALEXANDRA" [ref=e7837]:
+                - button "AȘTEFANEI ALEXANDRA" [ref=e7838] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e7839]
+              - cell "Cash" [ref=e7840]
+              - cell "370,00 RON" [ref=e7841]
+              - cell [ref=e7842]:
+                - button "Chitanță" [ref=e7843] [cursor=pointer]:
+                  - img [ref=e7844]
+            - row "21.01.2026 BEREZENCO CEZAR ANTONIO Abonament Individual - ianuarie 2026 Transfer Bancar 220,00 RON" [ref=e7847]:
+              - cell "21.01.2026" [ref=e7848]
+              - cell "BEREZENCO CEZAR ANTONIO" [ref=e7849]:
+                - button "BEREZENCO CEZAR ANTONIO" [ref=e7850] [cursor=pointer]
+              - cell "Abonament Individual - ianuarie 2026" [ref=e7851]
+              - cell "Transfer Bancar" [ref=e7852]
+              - cell "220,00 RON" [ref=e7853]
+              - cell [ref=e7854]:
+                - button "Chitanță" [ref=e7855] [cursor=pointer]:
+                  - img [ref=e7856]
+            - row "21.01.2026 CAREJA ANTONIA ELENA Abonament Individual ianuarie 2026 Transfer Bancar 320,00 RON" [ref=e7859]:
+              - cell "21.01.2026" [ref=e7860]
+              - cell "CAREJA ANTONIA ELENA" [ref=e7861]:
+                - button "CAREJA ANTONIA ELENA" [ref=e7862] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e7863]
+              - cell "Transfer Bancar" [ref=e7864]
+              - cell "320,00 RON" [ref=e7865]
+              - cell [ref=e7866]:
+                - button "Chitanță" [ref=e7867] [cursor=pointer]:
+                  - img [ref=e7868]
+            - row "20.01.2026 LUNGU CILIAC HORAȚIU CASIAN Abonament Individual ianuarie 2026 Cash 0,00 RON" [ref=e7871]:
+              - cell "20.01.2026" [ref=e7872]
+              - cell "LUNGU CILIAC HORAȚIU CASIAN" [ref=e7873]:
+                - button "LUNGU CILIAC HORAȚIU CASIAN" [ref=e7874] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e7875]
+              - cell "Cash" [ref=e7876]
+              - cell "0,00 RON" [ref=e7877]
+              - cell [ref=e7878]:
+                - button "Chitanță" [ref=e7879] [cursor=pointer]:
+                  - img [ref=e7880]
+            - row "19.01.2026 SABIN SABIN Abonament Individual - ianuarie 2026 Cash 220,00 RON" [ref=e7883]:
+              - cell "19.01.2026" [ref=e7884]
+              - cell "SABIN SABIN" [ref=e7885]:
+                - button "SABIN SABIN" [ref=e7886] [cursor=pointer]
+              - cell "Abonament Individual - ianuarie 2026" [ref=e7887]
+              - cell "Cash" [ref=e7888]
+              - cell "220,00 RON" [ref=e7889]
+              - cell [ref=e7890]:
+                - button "Chitanță" [ref=e7891] [cursor=pointer]:
+                  - img [ref=e7892]
+            - row "16.01.2026 SFICA DIANA ANDREEA Abonament Individual - ianuarie 2026 Transfer Bancar 220,00 RON" [ref=e7895]:
+              - cell "16.01.2026" [ref=e7896]
+              - cell "SFICA DIANA ANDREEA" [ref=e7897]:
+                - button "SFICA DIANA ANDREEA" [ref=e7898] [cursor=pointer]
+              - cell "Abonament Individual - ianuarie 2026" [ref=e7899]
+              - cell "Transfer Bancar" [ref=e7900]
+              - cell "220,00 RON" [ref=e7901]
+              - cell [ref=e7902]:
+                - button "Chitanță" [ref=e7903] [cursor=pointer]:
+                  - img [ref=e7904]
+            - row "15.01.2026 Pricop Abonament Familie 2 - ianuarie 2026 Cash 250,00 RON" [ref=e7907]:
+              - cell "15.01.2026" [ref=e7908]
+              - cell "Pricop" [ref=e7909]
+              - cell "Abonament Familie 2 - ianuarie 2026" [ref=e7910]
+              - cell "Cash" [ref=e7911]
+              - cell "250,00 RON" [ref=e7912]
+              - cell [ref=e7913]:
+                - button "Chitanță" [ref=e7914] [cursor=pointer]:
+                  - img [ref=e7915]
+            - row "15.01.2026 Anistoroaei Abonament Familie 4 - ianuarie 2026 Cash 440,00 RON" [ref=e7918]:
+              - cell "15.01.2026" [ref=e7919]
+              - cell "Anistoroaei" [ref=e7920]
+              - cell "Abonament Familie 4 - ianuarie 2026" [ref=e7921]
+              - cell "Cash" [ref=e7922]
+              - cell "440,00 RON" [ref=e7923]
+              - cell [ref=e7924]:
+                - button "Chitanță" [ref=e7925] [cursor=pointer]:
+                  - img [ref=e7926]
+            - row "15.01.2026 BORS EMILIA Abonament Individual - ianuarie 2026 Transfer Bancar 220,00 RON" [ref=e7929]:
+              - cell "15.01.2026" [ref=e7930]
+              - cell "BORS EMILIA" [ref=e7931]:
+                - button "BORS EMILIA" [ref=e7932] [cursor=pointer]
+              - cell "Abonament Individual - ianuarie 2026" [ref=e7933]
+              - cell "Transfer Bancar" [ref=e7934]
+              - cell "220,00 RON" [ref=e7935]
+              - cell [ref=e7936]:
+                - button "Chitanță" [ref=e7937] [cursor=pointer]:
+                  - img [ref=e7938]
+            - row "15.01.2026 CRACANA ERIKA IONELA Abonament Individual - ianuarie 2026 Transfer Bancar 220,00 RON" [ref=e7941]:
+              - cell "15.01.2026" [ref=e7942]
+              - cell "CRACANA ERIKA IONELA" [ref=e7943]:
+                - button "CRACANA ERIKA IONELA" [ref=e7944] [cursor=pointer]
+              - cell "Abonament Individual - ianuarie 2026" [ref=e7945]
+              - cell "Transfer Bancar" [ref=e7946]
+              - cell "220,00 RON" [ref=e7947]
+              - cell [ref=e7948]:
+                - button "Chitanță" [ref=e7949] [cursor=pointer]:
+                  - img [ref=e7950]
+            - row "15.01.2026 SANDU ANA ADRIANA Abonament Individual ianuarie 2026 Cash 220,00 RON" [ref=e7953]:
+              - cell "15.01.2026" [ref=e7954]
+              - cell "SANDU ANA ADRIANA" [ref=e7955]:
+                - button "SANDU ANA ADRIANA" [ref=e7956] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e7957]
+              - cell "Cash" [ref=e7958]
+              - cell "220,00 RON" [ref=e7959]
+              - cell [ref=e7960]:
+                - button "Chitanță" [ref=e7961] [cursor=pointer]:
+                  - img [ref=e7962]
+            - row "15.01.2026 ȘTEFĂNESCU EMANUEL Abonament Individual ianuarie 2026 Cash 220,00 RON" [ref=e7965]:
+              - cell "15.01.2026" [ref=e7966]
+              - cell "ȘTEFĂNESCU EMANUEL" [ref=e7967]:
+                - button "ȘTEFĂNESCU EMANUEL" [ref=e7968] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e7969]
+              - cell "Cash" [ref=e7970]
+              - cell "220,00 RON" [ref=e7971]
+              - cell [ref=e7972]:
+                - button "Chitanță" [ref=e7973] [cursor=pointer]:
+                  - img [ref=e7974]
+            - row "15.01.2026 GOMEI MARIAN CRISTIAN Abonament Familie 2 ianuarie 2026 Transfer Bancar 330,00 RON" [ref=e7977]:
+              - cell "15.01.2026" [ref=e7978]
+              - cell "GOMEI MARIAN CRISTIAN" [ref=e7979]:
+                - button "GOMEI MARIAN CRISTIAN" [ref=e7980] [cursor=pointer]
+              - cell "Abonament Familie 2 ianuarie 2026" [ref=e7981]
+              - cell "Transfer Bancar" [ref=e7982]
+              - cell "330,00 RON" [ref=e7983]
+              - cell [ref=e7984]:
+                - button "Chitanță" [ref=e7985] [cursor=pointer]:
+                  - img [ref=e7986]
+            - row "13.01.2026 MARDARE ALEXANDRA NICOLETA Abonament Individual ianuarie 2026 Cash 100,00 RON" [ref=e7989]:
+              - cell "13.01.2026" [ref=e7990]
+              - cell "MARDARE ALEXANDRA NICOLETA" [ref=e7991]:
+                - button "MARDARE ALEXANDRA NICOLETA" [ref=e7992] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e7993]
+              - cell "Cash" [ref=e7994]
+              - cell "100,00 RON" [ref=e7995]
+              - cell [ref=e7996]:
+                - button "Chitanță" [ref=e7997] [cursor=pointer]:
+                  - img [ref=e7998]
+            - row "12.01.2026 DANAILA HORATIU Abonament Individual - ianuarie 2026 Cash 220,00 RON" [ref=e8001]:
+              - cell "12.01.2026" [ref=e8002]
+              - cell "DANAILA HORATIU" [ref=e8003]:
+                - button "DANAILA HORATIU" [ref=e8004] [cursor=pointer]
+              - cell "Abonament Individual - ianuarie 2026" [ref=e8005]
+              - cell "Cash" [ref=e8006]
+              - cell "220,00 RON" [ref=e8007]
+              - cell [ref=e8008]:
+                - button "Chitanță" [ref=e8009] [cursor=pointer]:
+                  - img [ref=e8010]
+            - row "12.01.2026 RUSU CELIA Abonament Individual ianuarie 2026 Cash 220,00 RON" [ref=e8013]:
+              - cell "12.01.2026" [ref=e8014]
+              - cell "RUSU CELIA" [ref=e8015]:
+                - button "RUSU CELIA" [ref=e8016] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e8017]
+              - cell "Cash" [ref=e8018]
+              - cell "220,00 RON" [ref=e8019]
+              - cell [ref=e8020]:
+                - button "Chitanță" [ref=e8021] [cursor=pointer]:
+                  - img [ref=e8022]
+            - row "12.01.2026 MANDIA MARIA Abonament Individual ianuarie 2026 Transfer Bancar 220,00 RON" [ref=e8025]:
+              - cell "12.01.2026" [ref=e8026]
+              - cell "MANDIA MARIA" [ref=e8027]:
+                - button "MANDIA MARIA" [ref=e8028] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e8029]
+              - cell "Transfer Bancar" [ref=e8030]
+              - cell "220,00 RON" [ref=e8031]
+              - cell [ref=e8032]:
+                - button "Chitanță" [ref=e8033] [cursor=pointer]:
+                  - img [ref=e8034]
+            - row "12.01.2026 ȘTEICĂ VICTOR GABRIEL FRAM Anul 2026 Cash 200,00 RON" [ref=e8037]:
+              - cell "12.01.2026" [ref=e8038]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e8039]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e8040] [cursor=pointer]
+              - cell "FRAM Anul 2026" [ref=e8041]
+              - cell "Cash" [ref=e8042]
+              - cell "200,00 RON" [ref=e8043]
+              - cell [ref=e8044]:
+                - button "Chitanță" [ref=e8045] [cursor=pointer]:
+                  - img [ref=e8046]
+            - row "11.01.2026 ANDRICIUC NADIA Abonament Familie 2 ianuarie 2026 Transfer Bancar 330,00 RON" [ref=e8049]:
+              - cell "11.01.2026" [ref=e8050]
+              - cell "ANDRICIUC NADIA" [ref=e8051]:
+                - button "ANDRICIUC NADIA" [ref=e8052] [cursor=pointer]
+              - cell "Abonament Familie 2 ianuarie 2026" [ref=e8053]
+              - cell "Transfer Bancar" [ref=e8054]
+              - cell "330,00 RON" [ref=e8055]
+              - cell [ref=e8056]:
+                - button "Chitanță" [ref=e8057] [cursor=pointer]:
+                  - img [ref=e8058]
+            - row "11.01.2026 LUNGU ALIN MIHAI Taxa Stagiu National de Qwan Ki Do Cash 500,00 RON" [ref=e8061]:
+              - cell "11.01.2026" [ref=e8062]
+              - cell "LUNGU ALIN MIHAI" [ref=e8063]:
+                - button "LUNGU ALIN MIHAI" [ref=e8064] [cursor=pointer]
+              - cell "Taxa Stagiu National de Qwan Ki Do" [ref=e8065]
+              - cell "Cash" [ref=e8066]
+              - cell "500,00 RON" [ref=e8067]
+              - cell [ref=e8068]:
+                - button "Chitanță" [ref=e8069] [cursor=pointer]:
+                  - img [ref=e8070]
+            - row "10.01.2026 SANDU ANA ADRIANA Taxa Stagiu National de Qwan Ki Do Cash 100,00 RON" [ref=e8073]:
+              - cell "10.01.2026" [ref=e8074]
+              - cell "SANDU ANA ADRIANA" [ref=e8075]:
+                - button "SANDU ANA ADRIANA" [ref=e8076] [cursor=pointer]
+              - cell "Taxa Stagiu National de Qwan Ki Do" [ref=e8077]
+              - cell "Cash" [ref=e8078]
+              - cell "100,00 RON" [ref=e8079]
+              - cell [ref=e8080]:
+                - button "Chitanță" [ref=e8081] [cursor=pointer]:
+                  - img [ref=e8082]
+            - row "10.01.2026 ȘTEICĂ VICTOR GABRIEL Taxa Stagiu National de Qwan Ki Do Cash 100,00 RON" [ref=e8085]:
+              - cell "10.01.2026" [ref=e8086]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e8087]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e8088] [cursor=pointer]
+              - cell "Taxa Stagiu National de Qwan Ki Do" [ref=e8089]
+              - cell "Cash" [ref=e8090]
+              - cell "100,00 RON" [ref=e8091]
+              - cell [ref=e8092]:
+                - button "Chitanță" [ref=e8093] [cursor=pointer]:
+                  - img [ref=e8094]
+            - row "08.01.2026 BALMUS VERONICA Abonament Familie 3 ianuarie 2026 Cash 380,00 RON" [ref=e8097]:
+              - cell "08.01.2026" [ref=e8098]
+              - cell "BALMUS VERONICA" [ref=e8099]:
+                - button "BALMUS VERONICA" [ref=e8100] [cursor=pointer]
+              - cell "Abonament Familie 3 ianuarie 2026" [ref=e8101]
+              - cell "Cash" [ref=e8102]
+              - cell "380,00 RON" [ref=e8103]
+              - cell [ref=e8104]:
+                - button "Chitanță" [ref=e8105] [cursor=pointer]:
+                  - img [ref=e8106]
+            - row "08.01.2026 TULBURE DAVID ALEXANDRU Abonament Individual ianuarie 2026 Cash 220,00 RON" [ref=e8109]:
+              - cell "08.01.2026" [ref=e8110]
+              - cell "TULBURE DAVID ALEXANDRU" [ref=e8111]:
+                - button "TULBURE DAVID ALEXANDRU" [ref=e8112] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e8113]
+              - cell "Cash" [ref=e8114]
+              - cell "220,00 RON" [ref=e8115]
+              - cell [ref=e8116]:
+                - button "Chitanță" [ref=e8117] [cursor=pointer]:
+                  - img [ref=e8118]
+            - row "08.01.2026 AȘTEFANEI ALEXANDRA Abonament Individual ianuarie 2026 Cash 220,00 RON" [ref=e8121]:
+              - cell "08.01.2026" [ref=e8122]
+              - cell "AȘTEFANEI ALEXANDRA" [ref=e8123]:
+                - button "AȘTEFANEI ALEXANDRA" [ref=e8124] [cursor=pointer]
+              - cell "Abonament Individual ianuarie 2026" [ref=e8125]
+              - cell "Cash" [ref=e8126]
+              - cell "220,00 RON" [ref=e8127]
+              - cell [ref=e8128]:
+                - button "Chitanță" [ref=e8129] [cursor=pointer]:
+                  - img [ref=e8130]
+            - row "08.01.2026 AȘTEFANEI ALEXANDRA Taxa Stagiu National de Qwan Ki Do Cash 100,00 RON" [ref=e8133]:
+              - cell "08.01.2026" [ref=e8134]
+              - cell "AȘTEFANEI ALEXANDRA" [ref=e8135]:
+                - button "AȘTEFANEI ALEXANDRA" [ref=e8136] [cursor=pointer]
+              - cell "Taxa Stagiu National de Qwan Ki Do" [ref=e8137]
+              - cell "Cash" [ref=e8138]
+              - cell "100,00 RON" [ref=e8139]
+              - cell [ref=e8140]:
+                - button "Chitanță" [ref=e8141] [cursor=pointer]:
+                  - img [ref=e8142]
+            - row "08.01.2026 SFICA DIANA ANDREEA Taxa Stagiu National de Qwan Ki Do Cash 100,00 RON" [ref=e8145]:
+              - cell "08.01.2026" [ref=e8146]
+              - cell "SFICA DIANA ANDREEA" [ref=e8147]:
+                - button "SFICA DIANA ANDREEA" [ref=e8148] [cursor=pointer]
+              - cell "Taxa Stagiu National de Qwan Ki Do" [ref=e8149]
+              - cell "Cash" [ref=e8150]
+              - cell "100,00 RON" [ref=e8151]
+              - cell [ref=e8152]:
+                - button "Chitanță" [ref=e8153] [cursor=pointer]:
+                  - img [ref=e8154]
+            - row "08.01.2026 TULBURE DAVID ALEXANDRU Taxa Stagiu National de Qwan Ki Do Cash 100,00 RON" [ref=e8157]:
+              - cell "08.01.2026" [ref=e8158]
+              - cell "TULBURE DAVID ALEXANDRU" [ref=e8159]:
+                - button "TULBURE DAVID ALEXANDRU" [ref=e8160] [cursor=pointer]
+              - cell "Taxa Stagiu National de Qwan Ki Do" [ref=e8161]
+              - cell "Cash" [ref=e8162]
+              - cell "100,00 RON" [ref=e8163]
+              - cell [ref=e8164]:
+                - button "Chitanță" [ref=e8165] [cursor=pointer]:
+                  - img [ref=e8166]
+            - row "18.12.2025 LUNGU CILIAC HORAȚIU CASIAN Taxa examen grad 1 Câp Roșu Cash 100,00 RON" [ref=e8169]:
+              - cell "18.12.2025" [ref=e8170]
+              - cell "LUNGU CILIAC HORAȚIU CASIAN" [ref=e8171]:
+                - button "LUNGU CILIAC HORAȚIU CASIAN" [ref=e8172] [cursor=pointer]
+              - cell "Taxa examen grad 1 Câp Roșu" [ref=e8173]
+              - cell "Cash" [ref=e8174]
+              - cell "100,00 RON" [ref=e8175]
+              - cell [ref=e8176]:
+                - button "Chitanță" [ref=e8177] [cursor=pointer]:
+                  - img [ref=e8178]
+            - row "18.12.2025 SANDU ANA ADRIANA Taxa examen grad 2 Câp Roșu Cash 100,00 RON" [ref=e8181]:
+              - cell "18.12.2025" [ref=e8182]
+              - cell "SANDU ANA ADRIANA" [ref=e8183]:
+                - button "SANDU ANA ADRIANA" [ref=e8184] [cursor=pointer]
+              - cell "Taxa examen grad 2 Câp Roșu" [ref=e8185]
+              - cell "Cash" [ref=e8186]
+              - cell "100,00 RON" [ref=e8187]
+              - cell [ref=e8188]:
+                - button "Chitanță" [ref=e8189] [cursor=pointer]:
+                  - img [ref=e8190]
+            - row "18.12.2025 LEOHCHI RAZVAN Taxa examen grad C.V. 1 Câp Alb Cash 100,00 RON" [ref=e8193]:
+              - cell "18.12.2025" [ref=e8194]
+              - cell "LEOHCHI RAZVAN" [ref=e8195]:
+                - button "LEOHCHI RAZVAN" [ref=e8196] [cursor=pointer]
+              - cell "Taxa examen grad C.V. 1 Câp Alb" [ref=e8197]
+              - cell "Cash" [ref=e8198]
+              - cell "100,00 RON" [ref=e8199]
+              - cell [ref=e8200]:
+                - button "Chitanță" [ref=e8201] [cursor=pointer]:
+                  - img [ref=e8202]
+            - row "16.12.2025 CRACANA ERIKA IONELA Taxa examen 4 Cap roșu Cash 60,00 RON" [ref=e8205]:
+              - cell "16.12.2025" [ref=e8206]
+              - cell "CRACANA ERIKA IONELA" [ref=e8207]:
+                - button "CRACANA ERIKA IONELA" [ref=e8208] [cursor=pointer]
+              - cell "Taxa examen 4 Cap roșu" [ref=e8209]
+              - cell "Cash" [ref=e8210]
+              - cell "60,00 RON" [ref=e8211]
+              - cell [ref=e8212]:
+                - button "Chitanță" [ref=e8213] [cursor=pointer]:
+                  - img [ref=e8214]
+            - row "15.12.2025 GOMEI MARIAN CRISTIAN Taxa examen grad C.V. 1 Câp Alb Cash 200,00 RON" [ref=e8217]:
+              - cell "15.12.2025" [ref=e8218]
+              - cell "GOMEI MARIAN CRISTIAN" [ref=e8219]:
+                - button "GOMEI MARIAN CRISTIAN" [ref=e8220] [cursor=pointer]
+              - cell "Taxa examen grad C.V. 1 Câp Alb" [ref=e8221]
+              - cell "Cash" [ref=e8222]
+              - cell "200,00 RON" [ref=e8223]
+              - cell [ref=e8224]:
+                - button "Chitanță" [ref=e8225] [cursor=pointer]:
+                  - img [ref=e8226]
+            - row "15.12.2025 BALMUS FILIP Taxa examen grad C.V. 1 Câp Alb Cash 200,00 RON" [ref=e8229]:
+              - cell "15.12.2025" [ref=e8230]
+              - cell "BALMUS FILIP" [ref=e8231]:
+                - button "BALMUS FILIP" [ref=e8232] [cursor=pointer]
+              - cell "Taxa examen grad C.V. 1 Câp Alb" [ref=e8233]
+              - cell "Cash" [ref=e8234]
+              - cell "200,00 RON" [ref=e8235]
+              - cell [ref=e8236]:
+                - button "Chitanță" [ref=e8237] [cursor=pointer]:
+                  - img [ref=e8238]
+            - row "15.12.2025 ȘTEICĂ VICTOR GABRIEL Taxa examen grad 2 Câp Roșu Cash 100,00 RON" [ref=e8241]:
+              - cell "15.12.2025" [ref=e8242]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e8243]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e8244] [cursor=pointer]
+              - cell "Taxa examen grad 2 Câp Roșu" [ref=e8245]
+              - cell "Cash" [ref=e8246]
+              - cell "100,00 RON" [ref=e8247]
+              - cell [ref=e8248]:
+                - button "Chitanță" [ref=e8249] [cursor=pointer]:
+                  - img [ref=e8250]
+            - row "15.12.2025 SUMĂNARIU DRAGOȘ ȘTEFAN Taxa examen grad 2 Câp Roșu Cash 100,00 RON" [ref=e8253]:
+              - cell "15.12.2025" [ref=e8254]
+              - cell "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e8255]:
+                - button "SUMĂNARIU DRAGOȘ ȘTEFAN" [ref=e8256] [cursor=pointer]
+              - cell "Taxa examen grad 2 Câp Roșu" [ref=e8257]
+              - cell "Cash" [ref=e8258]
+              - cell "100,00 RON" [ref=e8259]
+              - cell [ref=e8260]:
+                - button "Chitanță" [ref=e8261] [cursor=pointer]:
+                  - img [ref=e8262]
+            - row "15.12.2025 RUSU CELIA Taxa examen grad C.V. 1 Câp Alb Cash 100,00 RON" [ref=e8265]:
+              - cell "15.12.2025" [ref=e8266]
+              - cell "RUSU CELIA" [ref=e8267]:
+                - button "RUSU CELIA" [ref=e8268] [cursor=pointer]
+              - cell "Taxa examen grad C.V. 1 Câp Alb" [ref=e8269]
+              - cell "Cash" [ref=e8270]
+              - cell "100,00 RON" [ref=e8271]
+              - cell [ref=e8272]:
+                - button "Chitanță" [ref=e8273] [cursor=pointer]:
+                  - img [ref=e8274]
+            - row "11.12.2025 ANDRICIUC NADIA Taxa examen grad C.V. 1 Câp Alb Transfer Bancar 200,00 RON" [ref=e8277]:
+              - cell "11.12.2025" [ref=e8278]
+              - cell "ANDRICIUC NADIA" [ref=e8279]:
+                - button "ANDRICIUC NADIA" [ref=e8280] [cursor=pointer]
+              - cell "Taxa examen grad C.V. 1 Câp Alb" [ref=e8281]
+              - cell "Transfer Bancar" [ref=e8282]
+              - cell "200,00 RON" [ref=e8283]
+              - cell [ref=e8284]:
+                - button "Chitanță" [ref=e8285] [cursor=pointer]:
+                  - img [ref=e8286]
+            - row "08.12.2025 DANAILA HORATIU Taxa examen grad 1 Câp Galben Cash 100,00 RON" [ref=e8289]:
+              - cell "08.12.2025" [ref=e8290]
+              - cell "DANAILA HORATIU" [ref=e8291]:
+                - button "DANAILA HORATIU" [ref=e8292] [cursor=pointer]
+              - cell "Taxa examen grad 1 Câp Galben" [ref=e8293]
+              - cell "Cash" [ref=e8294]
+              - cell "100,00 RON" [ref=e8295]
+              - cell [ref=e8296]:
+                - button "Chitanță" [ref=e8297] [cursor=pointer]:
+                  - img [ref=e8298]
+            - row "08.12.2025 TULBURE DAVID ALEXANDRU Taxa examen grad C.V. 2 Câp Alb Cash 100,00 RON" [ref=e8301]:
+              - cell "08.12.2025" [ref=e8302]
+              - cell "TULBURE DAVID ALEXANDRU" [ref=e8303]:
+                - button "TULBURE DAVID ALEXANDRU" [ref=e8304] [cursor=pointer]
+              - cell "Taxa examen grad C.V. 2 Câp Alb" [ref=e8305]
+              - cell "Cash" [ref=e8306]
+              - cell "100,00 RON" [ref=e8307]
+              - cell [ref=e8308]:
+                - button "Chitanță" [ref=e8309] [cursor=pointer]:
+                  - img [ref=e8310]
+            - row "08.12.2025 MANDIA MARIA Taxa examen grad 3 Câp Roșu Transfer Bancar 100,00 RON" [ref=e8313]:
+              - cell "08.12.2025" [ref=e8314]
+              - cell "MANDIA MARIA" [ref=e8315]:
+                - button "MANDIA MARIA" [ref=e8316] [cursor=pointer]
+              - cell "Taxa examen grad 3 Câp Roșu" [ref=e8317]
+              - cell "Transfer Bancar" [ref=e8318]
+              - cell "100,00 RON" [ref=e8319]
+              - cell [ref=e8320]:
+                - button "Chitanță" [ref=e8321] [cursor=pointer]:
+                  - img [ref=e8322]
+            - row "04.12.2025 AMORARITI ALEXANDRU FRQKD Sezonul 2025-2026 Cash 170,00 RON" [ref=e8325]:
+              - cell "04.12.2025" [ref=e8326]
+              - cell "AMORARITI ALEXANDRU" [ref=e8327]:
+                - button "AMORARITI ALEXANDRU" [ref=e8328] [cursor=pointer]
+              - cell "FRQKD Sezonul 2025-2026" [ref=e8329]
+              - cell "Cash" [ref=e8330]
+              - cell "170,00 RON" [ref=e8331]
+              - cell [ref=e8332]:
+                - button "Chitanță" [ref=e8333] [cursor=pointer]:
+                  - img [ref=e8334]
+            - row "09.06.2025 CAREJA ANTONIA ELENA Taxa examen C.V. 3 Câp Alb Cash 100,00 RON" [ref=e8337]:
+              - cell "09.06.2025" [ref=e8338]
+              - cell "CAREJA ANTONIA ELENA" [ref=e8339]:
+                - button "CAREJA ANTONIA ELENA" [ref=e8340] [cursor=pointer]
+              - cell "Taxa examen C.V. 3 Câp Alb" [ref=e8341]
+              - cell "Cash" [ref=e8342]
+              - cell "100,00 RON" [ref=e8343]
+              - cell [ref=e8344]:
+                - button "Chitanță" [ref=e8345] [cursor=pointer]:
+                  - img [ref=e8346]
+            - row "17.12.2024 CAREJA ANTONIA ELENA Taxa examen C.V. 3 Câp Alb Cash 100,00 RON" [ref=e8349]:
+              - cell "17.12.2024" [ref=e8350]
+              - cell "CAREJA ANTONIA ELENA" [ref=e8351]:
+                - button "CAREJA ANTONIA ELENA" [ref=e8352] [cursor=pointer]
+              - cell "Taxa examen C.V. 3 Câp Alb" [ref=e8353]
+              - cell "Cash" [ref=e8354]
+              - cell "100,00 RON" [ref=e8355]
+              - cell [ref=e8356]:
+                - button "Chitanță" [ref=e8357] [cursor=pointer]:
+                  - img [ref=e8358]
+            - row "09.06.2022 BEREZENCO CEZAR ANTONIO Taxă Examen 2 Câp Roșu - BEREZENCO CEZAR ANTONIO Cash 100,00 RON" [ref=e8361]:
+              - cell "09.06.2022" [ref=e8362]
+              - cell "BEREZENCO CEZAR ANTONIO" [ref=e8363]:
+                - button "BEREZENCO CEZAR ANTONIO" [ref=e8364] [cursor=pointer]
+              - cell "Taxă Examen 2 Câp Roșu - BEREZENCO CEZAR ANTONIO" [ref=e8365]
+              - cell "Cash" [ref=e8366]
+              - cell "100,00 RON" [ref=e8367]
+              - cell [ref=e8368]:
+                - button "Chitanță" [ref=e8369] [cursor=pointer]:
+                  - img [ref=e8370]
+            - row "12.02.2022 CAREJA ANTONIA ELENA Taxa examen C.V. 3 Câp Alb Cash 100,00 RON" [ref=e8373]:
+              - cell "12.02.2022" [ref=e8374]
+              - cell "CAREJA ANTONIA ELENA" [ref=e8375]:
+                - button "CAREJA ANTONIA ELENA" [ref=e8376] [cursor=pointer]
+              - cell "Taxa examen C.V. 3 Câp Alb" [ref=e8377]
+              - cell "Cash" [ref=e8378]
+              - cell "100,00 RON" [ref=e8379]
+              - cell [ref=e8380]:
+                - button "Chitanță" [ref=e8381] [cursor=pointer]:
+                  - img [ref=e8382]
+  - contentinfo [ref=e6301]:
+    - paragraph [ref=e6302]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e6303] [cursor=pointer]:
+      - img [ref=e6304]
+      - generic [ref=e6307]: Asistent AI

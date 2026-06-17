@@ -1,0 +1,271 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f172a; color: #e2e8f0; font-family: system-ui, sans-serif; padding: 1rem; max-width: 640px; margin: 0 auto; }
+  h2 { color: #f1f5f9; font-size: 1.25rem; font-weight: 700; }
+  .subtitle { color: #94a3b8; font-size: 0.8rem; margin-top: 0.2rem; margin-bottom: 1rem; }
+
+  .steps { display: flex; border-radius: 0.5rem; overflow: hidden; border: 1px solid #334155; margin-bottom: 1rem; }
+  .step { flex: 1; padding: 0.45rem 0.25rem; text-align: center; font-size: 0.7rem; font-weight: 600; background: #1e293b; color: #64748b; border-right: 1px solid #334155; }
+  .step:last-child { border-right: none; }
+  .step.done { color: #22c55e; }
+  .step.active { background: #1e40af; color: #fff; }
+
+  /* Summary bar */
+  .summary { display: flex; gap: 0.5rem; margin-bottom: 0.875rem; flex-wrap: wrap; }
+  .sum-chip { display: flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.625rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; }
+  .chip-new { background: #052e16; border: 1px solid #166534; color: #4ade80; }
+  .chip-exist { background: #1c1917; border: 1px solid #78350f; color: #fbbf24; }
+  .chip-skip { background: #1e293b; border: 1px solid #334155; color: #64748b; }
+  .chip-err { background: #1c0a0a; border: 1px solid #7f1d1d; color: #f87171; }
+
+  /* Row */
+  .row {
+    background: #1e293b; border: 1px solid #2d3f55;
+    border-radius: 0.625rem; margin-bottom: 0.5rem; overflow: hidden;
+  }
+  .row-header {
+    display: flex; align-items: center; gap: 0.625rem;
+    padding: 0.625rem 0.75rem; cursor: pointer; user-select: none;
+  }
+  .row-header:hover { background: #243447; }
+
+  .badge { font-size: 0.6rem; font-weight: 800; padding: 0.15rem 0.45rem; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
+  .b-new { background: #052e16; color: #4ade80; border: 1px solid #166534; }
+  .b-exist { background: #1c1917; color: #fbbf24; border: 1px solid #78350f; }
+  .b-skip { background: #1e293b; color: #64748b; border: 1px solid #334155; }
+  .b-err { background: #1c0a0a; color: #f87171; border: 1px solid #7f1d1d; }
+
+  .row-name { font-size: 0.875rem; font-weight: 600; color: #e2e8f0; flex: 1; min-width: 0; }
+  .row-sub { font-size: 0.7rem; color: #64748b; white-space: nowrap; }
+  .chevron { font-size: 0.75rem; color: #475569; transition: transform 0.2s; flex-shrink: 0; }
+  .chevron.open { transform: rotate(180deg); }
+
+  /* Comparison table */
+  .compare-body { border-top: 1px solid #334155; display: none; }
+  .compare-body.open { display: block; }
+
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+  .compare-table th {
+    padding: 0.4rem 0.625rem; text-align: left; font-size: 0.65rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: #475569; background: #162032; border-bottom: 1px solid #334155;
+  }
+  .compare-table td { padding: 0.45rem 0.625rem; border-bottom: 1px solid #1e293b; vertical-align: middle; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: #1a2a3a; }
+
+  .col-field { color: #94a3b8; font-weight: 600; white-space: nowrap; }
+  .col-db { color: #64748b; }
+  .col-db.empty { color: #334155; font-style: italic; }
+  .col-file { color: #e2e8f0; }
+  .col-file.same { color: #64748b; }
+
+  .col-action { text-align: center; width: 2rem; }
+  .chk-cell {
+    width: 1rem; height: 1rem; border-radius: 0.2rem;
+    border: 1.5px solid #475569; background: #0f172a;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; color: white; cursor: pointer;
+  }
+  .chk-cell.on { background: #3b82f6; border-color: #3b82f6; }
+  .chk-cell.disabled { background: transparent; border-color: #1e293b; cursor: default; color: #334155; }
+
+  .status-dot { display: inline-block; width: 0.4rem; height: 0.4rem; border-radius: 9999px; margin-right: 0.3rem; }
+  .dot-same { background: #334155; }
+  .dot-fill { background: #22c55e; }
+  .dot-conflict { background: #f59e0b; }
+
+  .row-actions { display: flex; gap: 0.5rem; padding: 0.5rem 0.75rem; background: #162032; border-top: 1px solid #334155; justify-content: flex-end; }
+  .mini-btn { font-size: 0.68rem; color: #60a5fa; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; }
+
+  /* Actions */
+  .actions { display: flex; gap: 0.625rem; margin-top: 1rem; }
+  .btn-back { padding: 0.625rem 1.125rem; border-radius: 0.5rem; background: transparent; border: 1.5px solid #475569; color: #94a3b8; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+  .btn-go { padding: 0.625rem 1.375rem; border-radius: 0.5rem; background: #2563eb; border: none; color: white; font-size: 0.875rem; font-weight: 700; cursor: pointer; margin-left: auto; }
+
+  @media (max-width: 480px) {
+    body { padding: 0.75rem; }
+    .compare-table th:nth-child(2), .compare-table td:nth-child(2) { display: none; }
+    .row-name { font-size: 0.8rem; }
+  }
+</style>
+
+<h2>Revizuire import</h2>
+<p class="subtitle">Verifică ce se va importa și ajustează dacă e nevoie</p>
+
+<div class="steps">
+  <div class="step done">✓ Fișier</div>
+  <div class="step done">✓ Configurare</div>
+  <div class="step active">Revizuire</div>
+  <div class="step">Raport</div>
+</div>
+
+<div class="summary">
+  <div class="sum-chip chip-new">● 2 sportivi noi</div>
+  <div class="sum-chip chip-exist">● 2 sportivi existenți</div>
+  <div class="sum-chip chip-skip">● 1 omis</div>
+  <div class="sum-chip chip-err">● 1 eroare</div>
+</div>
+
+<!-- NOU 1 -->
+<div class="row">
+  <div class="row-header">
+    <span class="badge b-new">NOU</span>
+    <span class="row-name">Popescu Maria</span>
+    <span class="row-sub">n. 15/03/2005</span>
+  </div>
+</div>
+
+<!-- NOU 2 -->
+<div class="row">
+  <div class="row-header">
+    <span class="badge b-new">NOU</span>
+    <span class="row-name">Dumitru Alexandru</span>
+    <span class="row-sub">n. 22/07/2008</span>
+  </div>
+</div>
+
+<!-- EXISTĂ 1 — extins -->
+<div class="row" id="row-exist1">
+  <div class="row-header" onclick="toggleRow('exist1')">
+    <span class="badge b-exist">EXISTĂ</span>
+    <span class="row-name">Ionțu Victor Gabriel</span>
+    <span class="row-sub">n. 31/08/2014</span>
+    <span class="chevron open" id="ch-exist1">▼</span>
+  </div>
+  <div class="compare-body open" id="body-exist1">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Câmp</th>
+          <th>În baza de date</th>
+          <th>În fișier</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-field">Data nașterii</td>
+          <td class="col-db">31/08/2014</td>
+          <td class="col-file same">31/08/2014</td>
+          <td class="col-action"><span class="chk-cell disabled" title="Identic">—</span></td>
+        </tr>
+        <tr>
+          <td class="col-field">CNP</td>
+          <td class="col-db empty">— gol</td>
+          <td class="col-file">5140831226714</td>
+          <td class="col-action"><span class="chk-cell on" onclick="togChk(this)">✓</span></td>
+        </tr>
+        <tr>
+          <td class="col-field">Gen</td>
+          <td class="col-db">Masculin</td>
+          <td class="col-file same">M → Masculin</td>
+          <td class="col-action"><span class="chk-cell disabled" title="Identic">—</span></td>
+        </tr>
+        <tr>
+          <td class="col-field">Adresă</td>
+          <td class="col-db empty">— gol</td>
+          <td class="col-file">Stradela Canta 5, Iași</td>
+          <td class="col-action"><span class="chk-cell on" onclick="togChk(this)">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="row-actions">
+      <button class="mini-btn" onclick="selAll(this)">Selectează tot</button>
+      <button class="mini-btn" onclick="deselAll(this)">Deselectează tot</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXISTĂ 2 — cu conflict -->
+<div class="row" id="row-exist2">
+  <div class="row-header" onclick="toggleRow('exist2')">
+    <span class="badge b-exist">EXISTĂ</span>
+    <span class="row-name">Sfîcă Diana Andreea</span>
+    <span class="row-sub">n. 26/11/2013</span>
+    <span class="chevron" id="ch-exist2">▼</span>
+  </div>
+  <div class="compare-body" id="body-exist2">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Câmp</th>
+          <th>În baza de date</th>
+          <th>În fișier</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-field">CNP</td>
+          <td class="col-db">6131126226842</td>
+          <td class="col-file same">6131126226842</td>
+          <td class="col-action"><span class="chk-cell disabled">—</span></td>
+        </tr>
+        <tr>
+          <td class="col-field">Adresă</td>
+          <td class="col-db">Str. Neculau nr. 1, Iași</td>
+          <td class="col-file" style="color:#fbbf24">Str. Independenței nr. 5</td>
+          <td class="col-action"><span class="chk-cell" onclick="togChk(this)"></span></td>
+        </tr>
+        <tr>
+          <td class="col-field">Gen</td>
+          <td class="col-db empty">— gol</td>
+          <td class="col-file">Feminin</td>
+          <td class="col-action"><span class="chk-cell on" onclick="togChk(this)">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="padding:0.4rem 0.75rem;background:#1c1206;border-top:1px solid #78350f;">
+      <span style="font-size:0.68rem;color:#fbbf24;">⚠ 1 câmp cu valori diferite — debifat implicit. Bifează dacă vrei să suprascrii.</span>
+    </div>
+    <div class="row-actions">
+      <button class="mini-btn" onclick="selAll(this)">Selectează tot</button>
+      <button class="mini-btn" onclick="deselAll(this)">Deselectează tot</button>
+    </div>
+  </div>
+</div>
+
+<!-- OMIS -->
+<div class="row">
+  <div class="row-header" style="cursor:default">
+    <span class="badge b-skip">OMIS</span>
+    <span class="row-name">Popovici Diana Anastasia</span>
+    <span class="row-sub" style="color:#475569">există deja · mod: doar noi</span>
+  </div>
+</div>
+
+<!-- EROARE -->
+<div class="row">
+  <div class="row-header" style="cursor:default">
+    <span class="badge b-err">EROARE</span>
+    <span class="row-name">Vasile Ion</span>
+    <span class="row-sub" style="color:#f87171">data nașterii lipsă</span>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn-back">← Înapoi</button>
+  <button class="btn-go">Importă (4) →</button>
+</div>
+
+<script>
+  function toggleRow(id) {
+    const body = document.getElementById('body-' + id);
+    const ch = document.getElementById('ch-' + id);
+    body.classList.toggle('open');
+    ch.classList.toggle('open');
+  }
+  function togChk(el) {
+    el.classList.toggle('on');
+    el.textContent = el.classList.contains('on') ? '✓' : '';
+  }
+  function selAll(btn) {
+    const table = btn.closest('.compare-body').querySelector('tbody');
+    table.querySelectorAll('.chk-cell:not(.disabled)').forEach(c => { c.classList.add('on'); c.textContent = '✓'; });
+  }
+  function deselAll(btn) {
+    const table = btn.closest('.compare-body').querySelector('tbody');
+    table.querySelectorAll('.chk-cell:not(.disabled)').forEach(c => { c.classList.remove('on'); c.textContent = ''; });
+  }
+</script>

@@ -1,0 +1,1119 @@
+[    3542ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  106274ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:21550
+[  351074ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 303a725e-f4eb-4aa9-ab0d-2ba4f335afcd 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351075ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 44a844e3-06ac-48f1-bb51-4761f16bc2de 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351075ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 44a844e3-06ac-48f1-bb51-4761f16bc2de 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351076ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 321c0689-f91e-4843-90e3-251ed9c68070 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351076ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s d0954e05-2c36-4eae-908e-cc8d545a901d 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351076ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s d0954e05-2c36-4eae-908e-cc8d545a901d 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351076ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s d0954e05-2c36-4eae-908e-cc8d545a901d 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351076ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s d0954e05-2c36-4eae-908e-cc8d545a901d 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351076ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s c4677842-dead-4045-8383-67d5478248aa 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351077ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s d0954e05-2c36-4eae-908e-cc8d545a901d 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351077ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 9bbf331f-27a0-47cf-9364-523d91c72874 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351077ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 9bbf331f-27a0-47cf-9364-523d91c72874 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351077ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 840a2fab-b35d-4340-9568-22167477b79f 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351077ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 0cd8c6f0-d11b-47dd-995d-e1dc7f13effc 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351077ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s f2003a61-51b2-47cc-8b9d-55a07260267f 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351078ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 98028f71-bd28-4cec-81ea-f5ee10af38ea 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351078ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 4c429049-e72c-45dc-93b2-d61e3f49c285 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351078ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s c1a8e810-8558-4f26-bba7-68dd17b0325f 
+    at tbody
+    at table
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351211ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 303a725e-f4eb-4aa9-ab0d-2ba4f335afcd 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351211ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 44a844e3-06ac-48f1-bb51-4761f16bc2de 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351212ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 44a844e3-06ac-48f1-bb51-4761f16bc2de 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351212ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 321c0689-f91e-4843-90e3-251ed9c68070 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351212ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s d0954e05-2c36-4eae-908e-cc8d545a901d 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351212ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s d0954e05-2c36-4eae-908e-cc8d545a901d 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351212ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s d0954e05-2c36-4eae-908e-cc8d545a901d 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351212ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s d0954e05-2c36-4eae-908e-cc8d545a901d 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351212ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s c4677842-dead-4045-8383-67d5478248aa 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351213ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s d0954e05-2c36-4eae-908e-cc8d545a901d 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351213ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 9bbf331f-27a0-47cf-9364-523d91c72874 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351213ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 9bbf331f-27a0-47cf-9364-523d91c72874 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351213ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 840a2fab-b35d-4340-9568-22167477b79f 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351213ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 0cd8c6f0-d11b-47dd-995d-e1dc7f13effc 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351213ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s f2003a61-51b2-47cc-8b9d-55a07260267f 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351213ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 98028f71-bd28-4cec-81ea-f5ee10af38ea 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351214ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 4c429049-e72c-45dc-93b2-d61e3f49c285 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  351214ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s c1a8e810-8558-4f26-bba7-68dd17b0325f 
+    at div
+    at div
+    at div
+    at RaportFinanciar (http://localhost:5173/components/Plati/RaportFinanciar.tsx:48:3)
+    at Suspense
+    at div
+    at MotionDOMComponent (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8882:40)
+    at PopChildMeasure (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8021:23)
+    at PopChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8048:21)
+    at PresenceChild (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8098:24)
+    at AnimatePresence (http://localhost:5173/node_modules/.vite/deps/motion_react.js?v=f6edd57b:8175:26)
+    at AppRouter (http://localhost:5173/components/AppRouter.tsx:30:3)
+    at ClubGuard (http://localhost:5173/components/ClubGuard.tsx:20:29)
+    at ErrorBoundary (http://localhost:5173/components/ErrorBoundary.tsx:5:1)
+    at div
+    at main
+    at div
+    at AppLayout (http://localhost:5173/components/AppLayout.tsx:30:3)
+    at AIAssistantProvider (http://localhost:5173/contexts/AIAssistantContext.tsx:26:3)
+    at NotificationProvider (http://localhost:5173/contexts/NotificationContext.tsx:21:40)
+    at SystemGuardian (http://localhost:5173/components/SystemGuardian.tsx:137:34)
+    at App (http://localhost:5173/App.tsx:56:7)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=f6edd57b:5290:5)
+    at ThemeProvider (http://localhost:5173/contexts/ThemeContext.tsx:23:33)
+    at NavigationProvider (http://localhost:5173/contexts/NavigationContext.tsx:22:38)
+    at DataProvider (http://localhost:5173/contexts/DataContext.tsx:21:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f6edd57b:3194:3)
+    at ErrorProvider (http://localhost:5173/components/ErrorProvider.tsx:31:33) @ http://localhost:5173/node_modules/.vite/deps/chunk-XQLYTHWV.js?v=f6edd57b:520
+[  491308ms] [ERROR] DETALII EROARE: "Denumirea abonamentului este obligatorie." @ http://localhost:5173/components/ErrorProvider.tsx:35

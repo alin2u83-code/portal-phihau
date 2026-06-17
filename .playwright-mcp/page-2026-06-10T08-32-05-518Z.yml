@@ -1,0 +1,170 @@
+- generic [ref=e19]:
+  - complementary [ref=e482]:
+    - generic [ref=e483]:
+      - generic [ref=e484] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e487]
+        - generic [ref=e489]:
+          - generic [ref=e490]: Qwan Ki Do
+          - generic [ref=e491]: Management
+      - button "Context Activ Club" [ref=e495] [cursor=pointer]:
+        - img [ref=e497]
+        - generic [ref=e500]:
+          - paragraph [ref=e501]: Context Activ
+          - paragraph [ref=e502]: Club
+        - img [ref=e503]
+      - generic [ref=e505]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e506]:
+          - generic [ref=e507] [cursor=pointer]:
+            - img [ref=e509]
+            - generic [ref=e514]: Dashboard
+          - generic [ref=e516] [cursor=pointer]:
+            - img [ref=e517]
+            - generic [ref=e522]: Gestiune Membri
+            - img [ref=e523]
+          - generic [ref=e526] [cursor=pointer]:
+            - img [ref=e527]
+            - generic [ref=e529]: Activitate Sală
+            - img [ref=e530]
+          - generic [ref=e533] [cursor=pointer]:
+            - img [ref=e534]
+            - generic [ref=e540]: Examene
+            - img [ref=e541]
+          - generic [ref=e543]:
+            - generic [ref=e544] [cursor=pointer]:
+              - img [ref=e545]
+              - generic [ref=e551]: Activități Naționale
+              - img [ref=e552]
+            - generic [ref=e554]:
+              - generic [ref=e555] [cursor=pointer]: Competiții
+              - generic [ref=e557] [cursor=pointer]: Stagii
+          - generic [ref=e560] [cursor=pointer]:
+            - img [ref=e561]
+            - generic [ref=e563]: Financiar & Plăți
+            - img [ref=e564]
+          - generic [ref=e567] [cursor=pointer]:
+            - img [ref=e568]
+            - generic [ref=e571]: Setări & Admin
+            - img [ref=e572]
+          - generic [ref=e574] [cursor=pointer]:
+            - img [ref=e576]
+            - generic [ref=e580]: Notificări
+          - generic [ref=e581] [cursor=pointer]:
+            - img [ref=e583]
+            - generic [ref=e585]: SMS
+          - generic [ref=e586] [cursor=pointer]:
+            - img [ref=e588]
+            - generic [ref=e591]: Cereri Înscriere
+          - generic [ref=e592] [cursor=pointer]:
+            - img [ref=e594]
+            - generic [ref=e597]: Istoric Activitate
+        - button "Scroll jos" [ref=e598] [cursor=pointer]:
+          - img [ref=e599]
+      - generic [ref=e601]:
+        - button "Tema" [ref=e603] [cursor=pointer]:
+          - img [ref=e604]
+          - generic [ref=e610]: Tema
+        - generic [ref=e612]:
+          - generic [ref=e613]: AL
+          - generic [ref=e614]:
+            - paragraph [ref=e615]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e616] [cursor=pointer]:
+            - img [ref=e617]
+  - banner [ref=e161]:
+    - generic [ref=e162]:
+      - button "Deschide meniu" [ref=e620] [cursor=pointer]:
+        - img [ref=e621]
+      - navigation "Navigare" [ref=e163]:
+        - heading "Competiții" [level=1] [ref=e164]
+    - generic [ref=e165]:
+      - button "Personalizare temă" [ref=e622] [cursor=pointer]:
+        - img [ref=e168]
+      - button [ref=e176] [cursor=pointer]:
+        - img [ref=e177]
+      - button "AL" [ref=e623] [cursor=pointer]:
+        - generic [ref=e183]: AL
+  - main [ref=e189]:
+    - generic [ref=e750]:
+      - generic [ref=e751]:
+        - button [ref=e752] [cursor=pointer]:
+          - img [ref=e753]
+        - generic [ref=e755]:
+          - heading "cupa iunie" [level=2] [ref=e756]
+          - generic [ref=e757]:
+            - generic [ref=e758]: CN Tehnica (Quyen / Kata)
+            - generic [ref=e759]: Înscrieri deschise
+            - generic [ref=e760]: 10.06.2026 – 10.06.2026
+        - button "Refresh" [ref=e761] [cursor=pointer]:
+          - img [ref=e762]
+      - generic [ref=e764]:
+        - button "Înscrieri (9)" [active] [ref=e765] [cursor=pointer]:
+          - img [ref=e766]
+          - generic [ref=e768]:
+            - text: Înscrieri
+            - generic [ref=e769]: (9)
+        - button "Raport" [ref=e770] [cursor=pointer]
+        - button "Categorii (67)" [ref=e771] [cursor=pointer]:
+          - img [ref=e772]
+          - generic [ref=e774]:
+            - text: Categorii
+            - generic [ref=e775]: (67)
+        - button "Refresh" [ref=e776] [cursor=pointer]:
+          - img [ref=e777]
+      - generic [ref=e779]:
+        - generic [ref=e780]:
+          - button [ref=e781] [cursor=pointer]:
+            - img [ref=e782]
+          - generic [ref=e784]:
+            - heading "Înscriere club" [level=2] [ref=e785]
+            - paragraph [ref=e786]: cupa iunie · 3 sportivi selectati
+          - generic [ref=e787]:
+            - generic [ref=e788]: 1 completate
+            - generic [ref=e789]: 2 necesita atentie
+        - generic [ref=e790]:
+          - button "Toate" [ref=e791] [cursor=pointer]
+          - button "Nefinalizate" [ref=e792] [cursor=pointer]
+        - generic [ref=e793]:
+          - button "Thao Quyen Individual Thao Quyen Individual Completat 3 categorii Modifică → Opțiuni probă" [ref=e794] [cursor=pointer]:
+            - generic [ref=e796]:
+              - generic [ref=e797]:
+                - paragraph [ref=e798]: Thao Quyen Individual
+                - paragraph [ref=e799]: Thao Quyen Individual
+              - img [ref=e801]
+            - generic [ref=e803]:
+              - generic [ref=e804]: Completat
+              - generic [ref=e806]: 3 categorii
+              - generic [ref=e809]:
+                - generic [ref=e810]: Modifică →
+                - button "Opțiuni probă" [ref=e812]: ⋮
+          - button "Sincron (perechi) Sincron (perechi) 3/6 completate 6 categorii Configurează → Opțiuni probă" [ref=e813] [cursor=pointer]:
+            - generic [ref=e815]:
+              - generic [ref=e816]:
+                - paragraph [ref=e817]: Sincron (perechi)
+                - paragraph [ref=e818]: Sincron (perechi)
+              - img [ref=e820]
+            - generic [ref=e823]:
+              - generic [ref=e824]: 3/6 completate
+              - generic [ref=e826]: 6 categorii
+              - generic [ref=e829]:
+                - generic [ref=e830]: Configurează →
+                - button "Opțiuni probă" [ref=e832]: ⋮
+          - button "Song Luyen (perechi) Song Luyen (perechi) 3/9 completate 9 categorii Configurează → Opțiuni probă" [ref=e833] [cursor=pointer]:
+            - generic [ref=e835]:
+              - generic [ref=e836]:
+                - paragraph [ref=e837]: Song Luyen (perechi)
+                - paragraph [ref=e838]: Song Luyen (perechi)
+              - img [ref=e840]
+            - generic [ref=e843]:
+              - generic [ref=e844]: 3/9 completate
+              - generic [ref=e846]: 9 categorii
+              - generic [ref=e849]:
+                - generic [ref=e850]: Configurează →
+                - button "Opțiuni probă" [ref=e852]: ⋮
+        - generic [ref=e853]:
+          - paragraph [ref=e854]: "Atenție — probe incomplete:"
+          - paragraph [ref=e855]: 2 probe incomplete. Poți finaliza cu categorii parțiale — sportivii neconfigurati nu vor fi înscriși.
+        - button "Finalizează parțial" [ref=e860] [cursor=pointer]
+  - button "Asistent AI" [ref=e625] [cursor=pointer]:
+    - img [ref=e626]

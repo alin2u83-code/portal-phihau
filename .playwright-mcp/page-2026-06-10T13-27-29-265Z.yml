@@ -1,0 +1,442 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Federație
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e53]:
+            - generic [ref=e54] [cursor=pointer]:
+              - img [ref=e55]
+              - generic [ref=e60]: Gestiune Membri
+              - img [ref=e61]
+            - generic [ref=e511]:
+              - generic [ref=e512] [cursor=pointer]: Sportivi
+              - generic [ref=e514] [cursor=pointer]: Import Sportivi
+              - generic [ref=e516] [cursor=pointer]: Deduplicare Sportivi
+              - generic [ref=e518] [cursor=pointer]: Familii
+              - generic [ref=e520] [cursor=pointer]: Legitimații
+              - generic [ref=e522] [cursor=pointer]: Nomenclator Grade
+              - generic [ref=e524] [cursor=pointer]: Administrare Staff
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e71]: Examene
+            - img [ref=e72]
+          - generic [ref=e80] [cursor=pointer]:
+            - img [ref=e81]
+            - generic [ref=e87]: Activități Naționale
+            - img [ref=e88]
+          - generic [ref=e91] [cursor=pointer]:
+            - img [ref=e92]
+            - generic [ref=e95]: Setări & Admin
+            - img [ref=e96]
+          - generic [ref=e98] [cursor=pointer]:
+            - img [ref=e100]
+            - generic [ref=e102]: Rapoarte
+          - generic [ref=e103] [cursor=pointer]:
+            - img [ref=e105]
+            - generic [ref=e109]: Notificări
+          - generic [ref=e110] [cursor=pointer]:
+            - img [ref=e112]
+            - generic [ref=e114]: SMS
+          - generic [ref=e115] [cursor=pointer]:
+            - img [ref=e117]
+            - generic [ref=e120]: Cereri Înscriere
+          - generic [ref=e121] [cursor=pointer]:
+            - img [ref=e123]
+            - generic [ref=e126]: Istoric Activitate
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e132]: Admin Dashboard
+          - generic [ref=e133] [cursor=pointer]:
+            - img [ref=e135]
+            - generic [ref=e141]: Button Catalog
+        - button "Scroll jos" [ref=e142] [cursor=pointer]:
+          - img [ref=e143]
+      - generic [ref=e145]:
+        - button "Tema" [ref=e147] [cursor=pointer]:
+          - img [ref=e148]
+          - generic [ref=e154]: Tema
+        - generic [ref=e156]:
+          - generic [ref=e157]: AL
+          - generic [ref=e158]:
+            - paragraph [ref=e159]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e160] [cursor=pointer]:
+            - img [ref=e161]
+  - banner [ref=e164]:
+    - generic [ref=e165]:
+      - button "Deschide meniu" [ref=e166] [cursor=pointer]:
+        - img [ref=e167]
+      - navigation "Navigare" [ref=e168]:
+        - heading "Sportivi" [level=1] [ref=e526]
+    - generic [ref=e170]:
+      - button "Personalizare temă" [ref=e172] [cursor=pointer]:
+        - img [ref=e173]
+      - button [ref=e180] [cursor=pointer]:
+        - img [ref=e181]
+      - button "AL" [ref=e185] [cursor=pointer]:
+        - generic [ref=e186]: AL
+  - main [ref=e187]:
+    - generic [ref=e528]:
+      - generic [ref=e529]:
+        - generic [ref=e530]:
+          - button "Înapoi" [ref=e531] [cursor=pointer]:
+            - img [ref=e532]
+            - text: Înapoi
+          - heading "Management Sportivi" [level=1] [ref=e534]
+        - generic [ref=e535]:
+          - button "Export / Editare" [ref=e536] [cursor=pointer]
+          - button "Import" [ref=e537] [cursor=pointer]:
+            - img [ref=e538]
+            - text: Import
+          - button "Link-uri Magic" [ref=e541] [cursor=pointer]:
+            - img [ref=e542]
+            - text: Link-uri Magic
+          - button "Adaugă Sportiv" [ref=e545] [cursor=pointer]:
+            - img [ref=e546]
+            - text: Adaugă Sportiv
+      - button "Filtre 2" [ref=e1013] [cursor=pointer]:
+        - generic [ref=e549]:
+          - img [ref=e550]
+          - text: Filtre
+          - generic [ref=e552]: "2"
+        - img [ref=e553]
+      - generic [ref=e1039]:
+        - generic [ref=e1040]:
+          - button "Nume" [ref=e1041] [cursor=pointer]
+          - button "Grad" [ref=e1042] [cursor=pointer]
+          - button "Status" [ref=e1043] [cursor=pointer]
+        - generic [ref=e1044]:
+          - generic [ref=e1045]:
+            - generic [ref=e1046]:
+              - generic [ref=e1047]:
+                - paragraph [ref=e1048]: ȘTEFAN-ANDREI AMARIEI
+                - generic [ref=e1049]: Debutant
+                - paragraph [ref=e1050]: 13 ani - Grupa Mare
+              - generic [ref=e1052]: Sportiv
+            - generic [ref=e1054]:
+              - paragraph [ref=e1055]: Sold Individual
+              - paragraph [ref=e1056]: 0.00 lei
+            - button "Portofel" [ref=e1058] [cursor=pointer]:
+              - img [ref=e1059]
+              - text: Portofel
+          - generic [ref=e1062]:
+            - generic [ref=e1063]:
+              - generic [ref=e1064]:
+                - paragraph [ref=e1065]: ALEXANDRU-DANIEL ANDREI
+                - generic [ref=e1066]: 2 Câp Roșu
+                - paragraph [ref=e1067]: 10 ani - 1-2 cap rosu
+              - generic [ref=e1069]: Sportiv
+            - generic [ref=e1071]:
+              - paragraph [ref=e1072]: Sold Individual
+              - paragraph [ref=e1073]: "-200.00 lei"
+            - button "Portofel" [ref=e1075] [cursor=pointer]:
+              - img [ref=e1076]
+              - text: Portofel
+          - generic [ref=e1079]:
+            - generic [ref=e1080]:
+              - generic [ref=e1081]:
+                - paragraph [ref=e1082]: DENIS ANDREI ANDREI
+                - generic [ref=e1083]: Debutant
+                - paragraph [ref=e1084]: 14 ani - Retrasi
+              - generic [ref=e1086]: Sportiv
+            - generic [ref=e1088]:
+              - paragraph [ref=e1089]: Sold Individual
+              - paragraph [ref=e1090]: 0.00 lei
+            - button "Portofel" [ref=e1092] [cursor=pointer]:
+              - img [ref=e1093]
+              - text: Portofel
+          - generic [ref=e1096]:
+            - generic [ref=e1098]:
+              - paragraph [ref=e1099]: MATEI STEFAN ANDREI
+              - generic [ref=e1100]: Debutant
+              - paragraph [ref=e1101]: 8 ani - Retrasi
+            - generic [ref=e1103]:
+              - paragraph [ref=e1104]: Sold Individual
+              - paragraph [ref=e1105]: 0.00 lei
+            - button "Portofel" [ref=e1107] [cursor=pointer]:
+              - img [ref=e1108]
+              - text: Portofel
+          - generic [ref=e1111]:
+            - generic [ref=e1112]:
+              - generic [ref=e1113]:
+                - paragraph [ref=e1114]: PAUL-CRISTIAN ANDREI
+                - generic [ref=e1115]: 2 Câp Roșu
+                - paragraph [ref=e1116]: 13 ani - Grupa Mare
+              - generic [ref=e1118]: Sportiv
+            - generic [ref=e1120]:
+              - paragraph [ref=e1121]: Sold Individual
+              - paragraph [ref=e1122]: "-100.00 lei"
+            - button "Portofel" [ref=e1124] [cursor=pointer]:
+              - img [ref=e1125]
+              - text: Portofel
+          - generic [ref=e1128]:
+            - generic [ref=e1129]:
+              - generic [ref=e1130]:
+                - paragraph [ref=e1131]: ROBERT ANDREI AVĂDANEI
+                - generic [ref=e1132]: 1 Câp Albastru
+                - paragraph [ref=e1133]: 16 ani - Grupa Mare
+              - generic [ref=e1135]: Sportiv
+            - generic [ref=e1137]:
+              - paragraph [ref=e1138]: Sold Individual
+              - paragraph [ref=e1139]: "-100.00 lei"
+            - button "Portofel" [ref=e1141] [cursor=pointer]:
+              - img [ref=e1142]
+              - text: Portofel
+          - generic [ref=e1145]:
+            - generic [ref=e1147]:
+              - paragraph [ref=e1148]: VLAD ANDREI BALINT
+              - generic [ref=e1149]: 1 Câp Roșu
+              - paragraph [ref=e1150]: 27 ani - Retrasi
+            - generic [ref=e1152]:
+              - paragraph [ref=e1153]: Sold Individual
+              - paragraph [ref=e1154]: 0.00 lei
+            - button "Portofel" [ref=e1156] [cursor=pointer]:
+              - img [ref=e1157]
+              - text: Portofel
+          - generic [ref=e1160]:
+            - generic [ref=e1162]:
+              - paragraph [ref=e1163]: ANDREI BEJAN
+              - generic [ref=e1164]: Debutant
+              - paragraph [ref=e1165]: 9 ani - Retrasi
+            - generic [ref=e1167]:
+              - paragraph [ref=e1168]: Sold Individual
+              - paragraph [ref=e1169]: 0.00 lei
+            - button "Portofel" [ref=e1171] [cursor=pointer]:
+              - img [ref=e1172]
+              - text: Portofel
+          - generic [ref=e1175]:
+            - generic [ref=e1176]:
+              - generic [ref=e1177]:
+                - paragraph [ref=e1178]: ANDREI MARIO BENIA
+                - generic [ref=e1179]: Debutant
+                - paragraph [ref=e1180]: 20 ani - Retrasi
+              - generic [ref=e1182]: Sportiv
+            - generic [ref=e1184]:
+              - paragraph [ref=e1185]: Sold Individual
+              - paragraph [ref=e1186]: 0.00 lei
+            - button "Portofel" [ref=e1188] [cursor=pointer]:
+              - img [ref=e1189]
+              - text: Portofel
+          - generic [ref=e1192]:
+            - generic [ref=e1193]:
+              - generic [ref=e1194]:
+                - paragraph [ref=e1195]: ROBERT ANDREI BOLEA
+                - generic [ref=e1196]: Debutant
+                - paragraph [ref=e1197]: 15 ani - Retrasi
+              - generic [ref=e1199]: Sportiv
+            - generic [ref=e1201]:
+              - paragraph [ref=e1202]: Sold Individual
+              - paragraph [ref=e1203]: 0.00 lei
+            - button "Portofel" [ref=e1205] [cursor=pointer]:
+              - img [ref=e1206]
+              - text: Portofel
+          - generic [ref=e1209]:
+            - generic [ref=e1210]:
+              - generic [ref=e1211]:
+                - paragraph [ref=e1212]: ALEX ANDREI BOTEZ
+                - generic [ref=e1213]: Debutant
+                - paragraph [ref=e1214]: 19 ani - Retrasi
+              - generic [ref=e1216]: Sportiv
+            - generic [ref=e1218]:
+              - paragraph [ref=e1219]: Sold Individual
+              - paragraph [ref=e1220]: 0.00 lei
+            - button "Portofel" [ref=e1222] [cursor=pointer]:
+              - img [ref=e1223]
+              - text: Portofel
+          - generic [ref=e1226]:
+            - generic [ref=e1228]:
+              - paragraph [ref=e1229]: DENIS ANDREI BRASOVEANU
+              - generic [ref=e1230]: Debutant
+              - paragraph [ref=e1231]: 19 ani - Retrasi
+            - generic [ref=e1233]:
+              - paragraph [ref=e1234]: Sold Individual
+              - paragraph [ref=e1235]: 0.00 lei
+            - button "Portofel" [ref=e1237] [cursor=pointer]:
+              - img [ref=e1238]
+              - text: Portofel
+          - generic [ref=e1241]:
+            - generic [ref=e1243]:
+              - paragraph [ref=e1244]: DAVID ANDREI BULIGA
+              - generic [ref=e1245]: 1 Câp Roșu
+              - paragraph [ref=e1246]: 15 ani - Retrasi
+            - generic [ref=e1248]:
+              - paragraph [ref=e1249]: Sold Individual
+              - paragraph [ref=e1250]: "-200.00 lei"
+            - button "Portofel" [ref=e1252] [cursor=pointer]:
+              - img [ref=e1253]
+              - text: Portofel
+          - generic [ref=e1256]:
+            - generic [ref=e1257]:
+              - generic [ref=e1258]:
+                - paragraph [ref=e1259]: ANDREI RARES BURTEA
+                - generic [ref=e1260]: C.V. 1 Câp Alb
+                - paragraph [ref=e1261]: 16 ani - Retrasi
+              - generic [ref=e1263]: Sportiv
+            - generic [ref=e1265]:
+              - paragraph [ref=e1266]: Sold Individual
+              - paragraph [ref=e1267]: "-200.00 lei"
+            - button "Portofel" [ref=e1269] [cursor=pointer]:
+              - img [ref=e1270]
+              - text: Portofel
+          - generic [ref=e1273]:
+            - generic [ref=e1274]:
+              - generic [ref=e1275]:
+                - paragraph [ref=e1276]: ANDREI NICOLAE CHIHAIA
+                - generic [ref=e1277]: Debutant
+                - paragraph [ref=e1278]: 5 ani - Copii 6-8 ani
+              - generic [ref=e1280]: Sportiv
+            - generic [ref=e1282]:
+              - paragraph [ref=e1283]: Sold Individual
+              - paragraph [ref=e1284]: 0.00 lei
+            - button "Portofel" [ref=e1286] [cursor=pointer]:
+              - img [ref=e1287]
+              - text: Portofel
+          - generic [ref=e1290]:
+            - generic [ref=e1292]:
+              - paragraph [ref=e1293]: ANDREI CHIRICHES-GABOR
+              - generic [ref=e1294]: Debutant
+              - paragraph [ref=e1295]: 13 ani - Retrasi
+            - generic [ref=e1297]:
+              - paragraph [ref=e1298]: Sold Individual
+              - paragraph [ref=e1299]: 0.00 lei
+            - button "Portofel" [ref=e1301] [cursor=pointer]:
+              - img [ref=e1302]
+              - text: Portofel
+          - generic [ref=e1305]:
+            - generic [ref=e1307]:
+              - paragraph [ref=e1308]: ANDREI CONSTANTIN CHISCARU
+              - generic [ref=e1309]: Debutant
+              - paragraph [ref=e1310]: 19 ani - Retrasi
+            - generic [ref=e1312]:
+              - paragraph [ref=e1313]: Sold Individual
+              - paragraph [ref=e1314]: 0.00 lei
+            - button "Portofel" [ref=e1316] [cursor=pointer]:
+              - img [ref=e1317]
+              - text: Portofel
+          - generic [ref=e1320]:
+            - generic [ref=e1322]:
+              - paragraph [ref=e1323]: RARES ANDREI CHITIMUS
+              - generic [ref=e1324]: 4 Câp Roșu
+              - paragraph [ref=e1325]: 23 ani - Retrasi
+            - generic [ref=e1327]:
+              - paragraph [ref=e1328]: Sold Individual
+              - paragraph [ref=e1329]: 0.00 lei
+            - button "Portofel" [ref=e1331] [cursor=pointer]:
+              - img [ref=e1332]
+              - text: Portofel
+          - generic [ref=e1335]:
+            - generic [ref=e1337]:
+              - paragraph [ref=e1338]: PAUL ANDREI CIOBANITA
+              - generic [ref=e1339]: Debutant
+              - paragraph [ref=e1340]: 40 ani - Retrasi
+            - generic [ref=e1342]:
+              - paragraph [ref=e1343]: Sold Individual
+              - paragraph [ref=e1344]: 0.00 lei
+            - button "Portofel" [ref=e1346] [cursor=pointer]:
+              - img [ref=e1347]
+              - text: Portofel
+          - generic [ref=e1350]:
+            - generic [ref=e1352]:
+              - paragraph [ref=e1353]: ANDREI COSMIN CIOLAC
+              - generic [ref=e1354]: Debutant
+              - paragraph [ref=e1355]: 24 ani - Retrasi
+            - generic [ref=e1357]:
+              - paragraph [ref=e1358]: Sold Individual
+              - paragraph [ref=e1359]: 0.00 lei
+            - button "Portofel" [ref=e1361] [cursor=pointer]:
+              - img [ref=e1362]
+              - text: Portofel
+          - generic [ref=e1365]:
+            - generic [ref=e1367]:
+              - paragraph [ref=e1368]: RARES ANDREI COZONAC
+              - generic [ref=e1369]: 4 Câp Roșu
+              - paragraph [ref=e1370]: 13 ani - Retrasi
+            - generic [ref=e1372]:
+              - paragraph [ref=e1373]: Sold Individual
+              - paragraph [ref=e1374]: "-200.00 lei"
+            - button "Portofel" [ref=e1376] [cursor=pointer]:
+              - img [ref=e1377]
+              - text: Portofel
+          - generic [ref=e1380]:
+            - generic [ref=e1381]:
+              - generic [ref=e1382]:
+                - paragraph [ref=e1383]: DARIUS ANDREI CRISTINA
+                - generic [ref=e1384]: Debutant
+                - paragraph [ref=e1385]: 9 ani - Copii 8-12 ani începători
+              - generic [ref=e1387]: Sportiv
+            - generic [ref=e1389]:
+              - paragraph [ref=e1390]: Sold Individual
+              - paragraph [ref=e1391]: 0.00 lei
+            - button "Portofel" [ref=e1393] [cursor=pointer]:
+              - img [ref=e1394]
+              - text: Portofel
+          - generic [ref=e1397]:
+            - generic [ref=e1399]:
+              - paragraph [ref=e1400]: ROBERT ANDREI CUCIUREANU
+              - generic [ref=e1401]: 3 Câp Roșu
+              - paragraph [ref=e1402]: 9 ani - Retrasi
+            - generic [ref=e1404]:
+              - paragraph [ref=e1405]: Sold Individual
+              - paragraph [ref=e1406]: "-200.00 lei"
+            - button "Portofel" [ref=e1408] [cursor=pointer]:
+              - img [ref=e1409]
+              - text: Portofel
+          - generic [ref=e1412]:
+            - generic [ref=e1414]:
+              - paragraph [ref=e1415]: VLAD ANDREI DIACONU
+              - generic [ref=e1416]: 2 Câp Roșu
+              - paragraph [ref=e1417]: 22 ani - Retrasi
+            - generic [ref=e1419]:
+              - paragraph [ref=e1420]: Sold Individual
+              - paragraph [ref=e1421]: 0.00 lei
+            - button "Portofel" [ref=e1423] [cursor=pointer]:
+              - img [ref=e1424]
+              - text: Portofel
+          - generic [ref=e1427]:
+            - generic [ref=e1429]:
+              - paragraph [ref=e1430]: ANDREI DOBRANIS
+              - generic [ref=e1431]: 3 Câp Roșu
+              - paragraph [ref=e1432]: 23 ani - Retrasi
+            - generic [ref=e1434]:
+              - paragraph [ref=e1435]: Sold Individual
+              - paragraph [ref=e1436]: 0.00 lei
+            - button "Portofel" [ref=e1438] [cursor=pointer]:
+              - img [ref=e1439]
+              - text: Portofel
+      - generic [ref=e972]:
+        - generic [ref=e973]:
+          - generic [ref=e974]: 1–25 din 62
+          - generic [ref=e975]: "|"
+          - generic [ref=e976]:
+            - text: Afișează
+            - combobox "Afișează / pagină" [ref=e977] [cursor=pointer]:
+              - option "10"
+              - option "25" [selected]
+              - option "50"
+              - option "100"
+              - option "Toți (62)"
+            - text: / pagină
+        - generic [ref=e1442]:
+          - button "Anterior" [disabled] [ref=e1443]
+          - generic [ref=e1444]: Pagina 1 din 3
+          - button "Următor" [ref=e1445] [cursor=pointer]
+      - button "Deschide ghidul interactiv" [ref=e982] [cursor=pointer]:
+        - generic [ref=e983]: "?"
+  - button "Asistent AI" [ref=e506] [cursor=pointer]:
+    - img [ref=e507]

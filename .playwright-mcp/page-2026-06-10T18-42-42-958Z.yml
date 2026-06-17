@@ -1,0 +1,712 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Federație
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus" [ref=e984] [cursor=pointer]:
+          - img [ref=e985]
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e78]:
+            - generic [ref=e79] [cursor=pointer]:
+              - img [ref=e80]
+              - generic [ref=e86]: Examene
+              - img [ref=e87]
+            - generic [ref=e987]:
+              - generic [ref=e988] [cursor=pointer]: Sesiuni Examene
+              - generic [ref=e990] [cursor=pointer]: Rapoarte Examen
+          - generic [ref=e90] [cursor=pointer]:
+            - img [ref=e91]
+            - generic [ref=e97]: Activități Naționale
+            - img [ref=e98]
+          - generic [ref=e101] [cursor=pointer]:
+            - img [ref=e102]
+            - generic [ref=e105]: Setări & Admin
+            - img [ref=e106]
+          - generic [ref=e108] [cursor=pointer]:
+            - img [ref=e110]
+            - generic [ref=e112]: Rapoarte
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e115]
+            - generic [ref=e119]: Notificări
+          - generic [ref=e120] [cursor=pointer]:
+            - img [ref=e122]
+            - generic [ref=e124]: SMS
+          - generic [ref=e125] [cursor=pointer]:
+            - img [ref=e127]
+            - generic [ref=e130]: Cereri Înscriere
+          - generic [ref=e131] [cursor=pointer]:
+            - img [ref=e133]
+            - generic [ref=e136]: Istoric Activitate
+          - generic [ref=e137] [cursor=pointer]:
+            - img [ref=e139]
+            - generic [ref=e142]: Admin Dashboard
+          - generic [ref=e143] [cursor=pointer]:
+            - img [ref=e145]
+            - generic [ref=e151]: Button Catalog
+        - button "Scroll jos" [ref=e152] [cursor=pointer]:
+          - img [ref=e153]
+      - generic [ref=e155]:
+        - button "Tema" [ref=e157] [cursor=pointer]:
+          - img [ref=e158]
+          - generic [ref=e164]: Tema
+        - generic [ref=e166]:
+          - generic [ref=e167]: AL
+          - generic [ref=e168]:
+            - paragraph [ref=e169]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e170] [cursor=pointer]:
+            - img [ref=e171]
+  - button "Restrânge meniul" [ref=e174] [cursor=pointer]:
+    - img [ref=e175]
+  - banner [ref=e177]:
+    - navigation "Navigare" [ref=e179]:
+      - heading "Sportivi" [level=1] [ref=e180]
+    - generic [ref=e181]:
+      - button "Temă" [ref=e183] [cursor=pointer]:
+        - img [ref=e184]
+        - generic [ref=e190]: Temă
+      - button [ref=e192] [cursor=pointer]:
+        - img [ref=e193]
+      - button "AL ALIN MIHAI [SUPER ADMIN]" [ref=e198] [cursor=pointer]:
+        - generic [ref=e199]: AL
+        - paragraph [ref=e201]:
+          - text: ALIN MIHAI
+          - generic [ref=e202]: "[SUPER ADMIN]"
+        - img [ref=e203]
+  - main [ref=e205]:
+    - generic [ref=e208]:
+      - generic [ref=e209]:
+        - generic [ref=e210]:
+          - button "Înapoi" [ref=e211] [cursor=pointer]:
+            - img [ref=e212]
+            - text: Înapoi
+          - heading "Management Sportivi" [level=1] [ref=e214]
+        - generic [ref=e215]:
+          - button "Export / Editare" [ref=e216] [cursor=pointer]
+          - button "Import" [ref=e217] [cursor=pointer]:
+            - img [ref=e218]
+            - text: Import
+          - button "Link-uri Magic" [ref=e221] [cursor=pointer]:
+            - img [ref=e222]
+            - text: Link-uri Magic
+          - button "Adaugă Sportiv" [ref=e225] [cursor=pointer]:
+            - img [ref=e226]
+            - text: Adaugă Sportiv
+      - generic [ref=e228]:
+        - generic [ref=e230]:
+          - generic [ref=e231]: Caută sportiv
+          - textbox "Nume, prenume..." [ref=e232]
+        - generic [ref=e234]:
+          - generic [ref=e235]: Status
+          - generic [ref=e236]:
+            - combobox [ref=e237]:
+              - option "Toate Statusurile" [selected]
+              - option "Activ"
+              - option "Inactiv"
+            - generic:
+              - img
+        - generic [ref=e238]:
+          - generic [ref=e239]: Grupă
+          - generic [ref=e240]:
+            - combobox [ref=e241]:
+              - option "Toate Grupele" [selected]
+              - option "Fără Grupă"
+              - option "Copii Incepatori"
+              - option "Retrasi"
+              - option "Juniori si Adulti"
+              - option "Harman"
+              - option "Copii 6-8 ani"
+              - option "Copii 8-12 ani începători"
+              - option "1-2 cap rosu"
+              - option "3 - 4 - CV"
+              - option "Grupa Mare"
+              - option "Grupa TOP"
+              - option "Copii Avansati"
+              - option "Copii, adulti si juniori"
+              - option "Copii, adulti si juniori"
+            - generic:
+              - img
+        - generic [ref=e242]:
+          - generic [ref=e243]: Rol
+          - generic [ref=e244]:
+            - combobox [ref=e245]:
+              - option "Toate Rolurile" [selected]
+              - option "Admin"
+              - option "SUPER_ADMIN_FEDERATIE"
+              - option "ADMIN_CLUB"
+              - option "INSTRUCTOR"
+              - option "SPORTIV"
+            - generic:
+              - img
+        - generic [ref=e246]:
+          - generic [ref=e247]: Grad
+          - generic [ref=e248]:
+            - combobox [ref=e249]:
+              - option "Toate Gradele" [selected]
+              - option "Debutant"
+              - option "1 Câp Galben"
+              - option "2 Câp Galben"
+              - option "3 Câp Galben"
+              - option "4 Câp Galben"
+              - option "1 Câp Roșu"
+              - option "2 Câp Roșu"
+              - option "3 Câp Roșu"
+              - option "4 Câp Roșu"
+              - option "Centura Violet"
+              - option "C.V. 1 Câp Alb"
+              - option "C.V. 2 Câp Alb"
+              - option "C.V. 3 Câp Alb"
+              - option "C.V. 4 Câp Alb"
+              - option "1 Câp Albastru"
+              - option "2 Câp Albastru"
+              - option "3 Câp Albastru"
+              - option "4 Câp Albastru"
+              - option "Centura Neagră"
+              - option "C.N. 1 Dang"
+              - option "C.N. 2 Dang"
+              - option "C.N. 3 Dang"
+              - option "C.N. 4 Dang"
+              - option "C.N. 5 Dang"
+              - option "C.N. 6 Dang"
+              - option "C.N. 7 Dang"
+            - generic:
+              - img
+        - generic [ref=e250]:
+          - generic [ref=e251]: Club
+          - generic [ref=e252]:
+            - combobox [ref=e253]:
+              - option "Toate cluburile" [selected]
+              - option "Club Bogdan"
+              - option "Federația Română de Qwan Ki Do"
+              - option "Thoi Son Brasov"
+              - option "Am Duong"
+              - option "Long Ho Cluj"
+              - option "C.S. Phi Hau"
+              - option "Kim Long Dao Falticeni"
+              - option "Hong Ha"
+              - option "Hâc Long Dao Brașov"
+              - option "ACS Phuong Bao"
+              - option "Long Dao"
+            - generic:
+              - img
+      - generic [ref=e257]:
+        - generic [ref=e259]:
+          - generic [ref=e260]:
+            - generic [ref=e261]:
+              - paragraph [ref=e262]: AGAFIȚEI ALEXANDRA MIHAELA
+              - generic [ref=e263]:
+                - generic [ref=e264]: 2 Câp Roșu
+                - generic [ref=e265]: Activ
+              - paragraph [ref=e266]: 26 ani - Retrasi
+            - generic [ref=e268]: Sportiv
+          - generic [ref=e269]:
+            - generic [ref=e270]:
+              - button [ref=e271] [cursor=pointer]:
+                - img [ref=e272]
+              - button [ref=e275] [cursor=pointer]:
+                - img [ref=e276]
+              - button [ref=e279] [cursor=pointer]:
+                - img [ref=e280]
+            - button "Portofel" [ref=e283] [cursor=pointer]:
+              - img [ref=e284]
+              - text: Portofel
+        - generic [ref=e288]:
+          - generic [ref=e290]:
+            - paragraph [ref=e291]: AGRIGOROAE LAVINIA IOANA
+            - generic [ref=e292]:
+              - generic [ref=e293]: 1 Câp Albastru
+              - generic [ref=e294]: Activ
+            - paragraph [ref=e295]: 30 ani - Retrasi
+          - generic [ref=e296]:
+            - generic [ref=e297]:
+              - button [ref=e298] [cursor=pointer]:
+                - img [ref=e299]
+              - button [ref=e302] [cursor=pointer]:
+                - img [ref=e303]
+              - button [ref=e306] [cursor=pointer]:
+                - img [ref=e307]
+            - button "Portofel" [ref=e310] [cursor=pointer]:
+              - img [ref=e311]
+              - text: Portofel
+        - generic [ref=e315]:
+          - generic [ref=e317]:
+            - paragraph [ref=e318]: AILINCĂI DENISA
+            - generic [ref=e319]:
+              - generic [ref=e320]: Debutant
+              - generic [ref=e321]: Activ
+            - paragraph [ref=e322]: 22 ani - Retrasi
+          - generic [ref=e323]:
+            - generic [ref=e324]:
+              - button [ref=e325] [cursor=pointer]:
+                - img [ref=e326]
+              - button [ref=e329] [cursor=pointer]:
+                - img [ref=e330]
+              - button [ref=e333] [cursor=pointer]:
+                - img [ref=e334]
+            - button "Portofel" [ref=e337] [cursor=pointer]:
+              - img [ref=e338]
+              - text: Portofel
+        - generic [ref=e342]:
+          - generic [ref=e344]:
+            - paragraph [ref=e345]: AILINCĂI RAREȘ MIHAI
+            - generic [ref=e346]:
+              - generic [ref=e347]: Debutant
+              - generic [ref=e348]: Activ
+            - paragraph [ref=e349]: 12 ani - Retrasi
+          - generic [ref=e350]:
+            - generic [ref=e351]:
+              - button [ref=e352] [cursor=pointer]:
+                - img [ref=e353]
+              - button [ref=e356] [cursor=pointer]:
+                - img [ref=e357]
+              - button [ref=e360] [cursor=pointer]:
+                - img [ref=e361]
+            - button "Portofel" [ref=e364] [cursor=pointer]:
+              - img [ref=e365]
+              - text: Portofel
+        - generic [ref=e369]:
+          - generic [ref=e370]:
+            - generic [ref=e371]:
+              - paragraph [ref=e372]: AIOANEI TUDOR FLORIN
+              - generic [ref=e373]:
+                - generic [ref=e374]: 1 Câp Albastru
+                - generic [ref=e375]: Activ
+              - paragraph [ref=e376]: 15 ani - Grupa Mare
+            - generic [ref=e378]: Sportiv
+          - generic [ref=e379]:
+            - generic [ref=e380]:
+              - button [ref=e381] [cursor=pointer]:
+                - img [ref=e382]
+              - button [ref=e385] [cursor=pointer]:
+                - img [ref=e386]
+              - button [ref=e389] [cursor=pointer]:
+                - img [ref=e390]
+            - button "Portofel" [ref=e393] [cursor=pointer]:
+              - img [ref=e394]
+              - text: Portofel
+        - generic [ref=e398]:
+          - generic [ref=e400]:
+            - paragraph [ref=e401]: ALBU THEODOR
+            - generic [ref=e402]:
+              - generic [ref=e403]: 3 Câp Roșu
+              - generic [ref=e404]: Activ
+            - paragraph [ref=e405]: 9 ani - Retrasi
+          - generic [ref=e406]:
+            - generic [ref=e407]:
+              - button [ref=e408] [cursor=pointer]:
+                - img [ref=e409]
+              - button [ref=e412] [cursor=pointer]:
+                - img [ref=e413]
+              - button [ref=e416] [cursor=pointer]:
+                - img [ref=e417]
+            - button "Portofel" [ref=e420] [cursor=pointer]:
+              - img [ref=e421]
+              - text: Portofel
+        - generic [ref=e425]:
+          - generic [ref=e426]:
+            - generic [ref=e427]:
+              - paragraph [ref=e428]: ALEXANDRU MARIA RENATA
+              - generic [ref=e429]:
+                - generic [ref=e430]: Debutant
+                - generic [ref=e431]: Activ
+              - paragraph [ref=e432]: 13 ani - Copii 8-12 ani începători
+            - generic [ref=e434]: Sportiv
+          - generic [ref=e435]:
+            - generic [ref=e436]:
+              - button [ref=e437] [cursor=pointer]:
+                - img [ref=e438]
+              - button [ref=e441] [cursor=pointer]:
+                - img [ref=e442]
+              - button [ref=e445] [cursor=pointer]:
+                - img [ref=e446]
+            - button "Portofel" [ref=e449] [cursor=pointer]:
+              - img [ref=e450]
+              - text: Portofel
+        - generic [ref=e454]:
+          - generic [ref=e456]:
+            - paragraph [ref=e457]: ALISTAR ELENA NICOLETA
+            - generic [ref=e458]:
+              - generic [ref=e459]: Debutant
+              - generic [ref=e460]: Activ
+            - paragraph [ref=e461]: 17 ani - Retrasi
+          - generic [ref=e462]:
+            - generic [ref=e463]:
+              - button [ref=e464] [cursor=pointer]:
+                - img [ref=e465]
+              - button [ref=e468] [cursor=pointer]:
+                - img [ref=e469]
+              - button [ref=e472] [cursor=pointer]:
+                - img [ref=e473]
+            - button "Portofel" [ref=e476] [cursor=pointer]:
+              - img [ref=e477]
+              - text: Portofel
+        - generic [ref=e481]:
+          - generic [ref=e483]:
+            - paragraph [ref=e484]: AMARGHILOAEI DRAGOS STEFAN
+            - generic [ref=e485]:
+              - generic [ref=e486]: 2 Câp Roșu
+              - generic [ref=e487]: Activ
+            - paragraph [ref=e488]: 24 ani - Retrasi
+          - generic [ref=e489]:
+            - generic [ref=e490]:
+              - button [ref=e491] [cursor=pointer]:
+                - img [ref=e492]
+              - button [ref=e495] [cursor=pointer]:
+                - img [ref=e496]
+              - button [ref=e499] [cursor=pointer]:
+                - img [ref=e500]
+            - button "Portofel" [ref=e503] [cursor=pointer]:
+              - img [ref=e504]
+              - text: Portofel
+        - generic [ref=e508]:
+          - generic [ref=e510]:
+            - paragraph [ref=e511]: AMARGHIOALEI DRAGOS STEFAN
+            - generic [ref=e512]:
+              - generic [ref=e513]: Debutant
+              - generic [ref=e514]: Inactiv
+            - paragraph [ref=e515]: 24 ani - Retrasi
+          - generic [ref=e516]:
+            - generic [ref=e517]:
+              - button [ref=e518] [cursor=pointer]:
+                - img [ref=e519]
+              - button [ref=e522] [cursor=pointer]:
+                - img [ref=e523]
+              - button [ref=e526] [cursor=pointer]:
+                - img [ref=e527]
+            - button "Portofel" [ref=e530] [cursor=pointer]:
+              - img [ref=e531]
+              - text: Portofel
+        - generic [ref=e535]:
+          - generic [ref=e536]:
+            - generic [ref=e537]:
+              - paragraph [ref=e538]: AMARIEI ALBERT-MATEI
+              - generic [ref=e539]:
+                - generic [ref=e540]: Centura Violet
+                - generic [ref=e541]: Activ
+              - paragraph [ref=e542]: 12 ani - 3 - 4 - CV
+            - generic [ref=e544]: Sportiv
+          - generic [ref=e545]:
+            - generic [ref=e546]:
+              - button [ref=e547] [cursor=pointer]:
+                - img [ref=e548]
+              - button [ref=e551] [cursor=pointer]:
+                - img [ref=e552]
+              - button [ref=e555] [cursor=pointer]:
+                - img [ref=e556]
+            - button "Portofel" [ref=e559] [cursor=pointer]:
+              - img [ref=e560]
+              - text: Portofel
+        - generic [ref=e564]:
+          - generic [ref=e565]:
+            - generic [ref=e566]:
+              - paragraph [ref=e567]: AMARIEI ALEXANDRU LUCIAN
+              - generic [ref=e568]:
+                - generic [ref=e569]: Centura Violet
+                - generic [ref=e570]: Activ
+              - paragraph [ref=e571]: 11 ani - 3 - 4 - CV
+            - generic [ref=e573]: Sportiv
+          - generic [ref=e574]:
+            - generic [ref=e575]:
+              - button [ref=e576] [cursor=pointer]:
+                - img [ref=e577]
+              - button [ref=e580] [cursor=pointer]:
+                - img [ref=e581]
+              - button [ref=e584] [cursor=pointer]:
+                - img [ref=e585]
+            - button "Portofel" [ref=e588] [cursor=pointer]:
+              - img [ref=e589]
+              - text: Portofel
+        - generic [ref=e593]:
+          - generic [ref=e594]:
+            - generic [ref=e595]:
+              - paragraph [ref=e596]: AMARIEI ȘTEFAN-ANDREI
+              - generic [ref=e597]:
+                - generic [ref=e598]: Debutant
+                - generic [ref=e599]: Activ
+              - paragraph [ref=e600]: 13 ani - Grupa Mare
+            - generic [ref=e602]: Sportiv
+          - generic [ref=e603]:
+            - generic [ref=e604]:
+              - button [ref=e605] [cursor=pointer]:
+                - img [ref=e606]
+              - button [ref=e609] [cursor=pointer]:
+                - img [ref=e610]
+              - button [ref=e613] [cursor=pointer]:
+                - img [ref=e614]
+            - button "Portofel" [ref=e617] [cursor=pointer]:
+              - img [ref=e618]
+              - text: Portofel
+        - generic [ref=e622]:
+          - generic [ref=e624]:
+            - paragraph [ref=e625]: AMARIUTEI ELENA
+            - generic [ref=e626]:
+              - generic [ref=e627]: Debutant
+              - generic [ref=e628]: Activ
+            - paragraph [ref=e629]: 25 ani - Retrasi
+          - generic [ref=e630]:
+            - generic [ref=e631]:
+              - button [ref=e632] [cursor=pointer]:
+                - img [ref=e633]
+              - button [ref=e636] [cursor=pointer]:
+                - img [ref=e637]
+              - button [ref=e640] [cursor=pointer]:
+                - img [ref=e641]
+            - button "Portofel" [ref=e644] [cursor=pointer]:
+              - img [ref=e645]
+              - text: Portofel
+        - generic [ref=e649]:
+          - generic [ref=e650]:
+            - generic [ref=e651]:
+              - paragraph [ref=e652]: AMARIUTEI MARIA
+              - generic [ref=e653]:
+                - generic [ref=e654]: Debutant
+                - generic [ref=e655]: Activ
+              - paragraph [ref=e656]: 19 ani - Retrasi
+            - generic [ref=e658]: Sportiv
+          - generic [ref=e659]:
+            - generic [ref=e660]:
+              - button [ref=e661] [cursor=pointer]:
+                - img [ref=e662]
+              - button [ref=e665] [cursor=pointer]:
+                - img [ref=e666]
+              - button [ref=e669] [cursor=pointer]:
+                - img [ref=e670]
+            - button "Portofel" [ref=e673] [cursor=pointer]:
+              - img [ref=e674]
+              - text: Portofel
+        - generic [ref=e678]:
+          - generic [ref=e679]:
+            - generic [ref=e680]:
+              - paragraph [ref=e681]: AMORARITI ALEXANDRU
+              - generic [ref=e682]:
+                - generic [ref=e683]: Centura Violet
+                - generic [ref=e684]: Activ
+              - paragraph [ref=e685]: 10 ani - Copii Avansati
+            - generic [ref=e687]: Sportiv
+          - generic [ref=e688]:
+            - generic [ref=e689]:
+              - button [ref=e690] [cursor=pointer]:
+                - img [ref=e691]
+              - button [ref=e694] [cursor=pointer]:
+                - img [ref=e695]
+              - button [ref=e698] [cursor=pointer]:
+                - img [ref=e699]
+            - button "Portofel" [ref=e702] [cursor=pointer]:
+              - img [ref=e703]
+              - text: Portofel
+        - generic [ref=e707]:
+          - generic [ref=e709]:
+            - paragraph [ref=e710]: ANCHIDIM VLAD GAVRIL
+            - generic [ref=e711]:
+              - generic "Gradul actual nu este setat" [ref=e712]: ⚠ Fără grad
+              - generic [ref=e713]: Inactiv
+            - paragraph [ref=e714]: 23 ani - Retrasi
+          - generic [ref=e715]:
+            - generic [ref=e716]:
+              - button [ref=e717] [cursor=pointer]:
+                - img [ref=e718]
+              - button [ref=e721] [cursor=pointer]:
+                - img [ref=e722]
+              - button [ref=e725] [cursor=pointer]:
+                - img [ref=e726]
+            - button "Portofel" [ref=e729] [cursor=pointer]:
+              - img [ref=e730]
+              - text: Portofel
+        - generic [ref=e734]:
+          - generic [ref=e735]:
+            - generic [ref=e736]:
+              - paragraph [ref=e737]: ANCHIDIN RARES
+              - generic [ref=e738]:
+                - generic [ref=e739]: 1 Câp Galben
+                - generic [ref=e740]: Activ
+              - paragraph [ref=e741]: 20 ani - Retrasi
+            - generic [ref=e743]: Sportiv
+          - generic [ref=e744]:
+            - generic [ref=e745]:
+              - button [ref=e746] [cursor=pointer]:
+                - img [ref=e747]
+              - button [ref=e750] [cursor=pointer]:
+                - img [ref=e751]
+              - button [ref=e754] [cursor=pointer]:
+                - img [ref=e755]
+            - button "Portofel" [ref=e758] [cursor=pointer]:
+              - img [ref=e759]
+              - text: Portofel
+        - generic [ref=e763]:
+          - generic [ref=e764]:
+            - generic [ref=e765]:
+              - paragraph [ref=e766]: ANCHIDIN VLAD GAVRIL
+              - generic [ref=e767]:
+                - generic [ref=e768]: 2 Câp Roșu
+                - generic [ref=e769]: Activ
+              - paragraph [ref=e770]: 23 ani - Retrasi
+            - generic [ref=e772]: Sportiv
+          - generic [ref=e773]:
+            - generic [ref=e774]:
+              - button [ref=e775] [cursor=pointer]:
+                - img [ref=e776]
+              - button [ref=e779] [cursor=pointer]:
+                - img [ref=e780]
+              - button [ref=e783] [cursor=pointer]:
+                - img [ref=e784]
+            - button "Portofel" [ref=e787] [cursor=pointer]:
+              - img [ref=e788]
+              - text: Portofel
+        - generic [ref=e792]:
+          - generic [ref=e793]:
+            - generic [ref=e794]:
+              - paragraph [ref=e795]: ANDREI ALEXANDRU-DANIEL
+              - generic [ref=e796]:
+                - generic [ref=e797]: 2 Câp Roșu
+                - generic [ref=e798]: Activ
+              - paragraph [ref=e799]: 10 ani - 1-2 cap rosu
+            - generic [ref=e801]: Sportiv
+          - generic [ref=e802]:
+            - generic [ref=e803]:
+              - button [ref=e804] [cursor=pointer]:
+                - img [ref=e805]
+              - button [ref=e808] [cursor=pointer]:
+                - img [ref=e809]
+              - button [ref=e812] [cursor=pointer]:
+                - img [ref=e813]
+            - button "Portofel" [ref=e816] [cursor=pointer]:
+              - img [ref=e817]
+              - text: Portofel
+        - generic [ref=e821]:
+          - generic [ref=e822]:
+            - generic [ref=e823]:
+              - paragraph [ref=e824]: ANDREI DENIS ANDREI
+              - generic [ref=e825]:
+                - generic [ref=e826]: Debutant
+                - generic [ref=e827]: Activ
+              - paragraph [ref=e828]: 14 ani - Retrasi
+            - generic [ref=e830]: Sportiv
+          - generic [ref=e831]:
+            - generic [ref=e832]:
+              - button [ref=e833] [cursor=pointer]:
+                - img [ref=e834]
+              - button [ref=e837] [cursor=pointer]:
+                - img [ref=e838]
+              - button [ref=e841] [cursor=pointer]:
+                - img [ref=e842]
+            - button "Portofel" [ref=e845] [cursor=pointer]:
+              - img [ref=e846]
+              - text: Portofel
+        - generic [ref=e850]:
+          - generic [ref=e852]:
+            - paragraph [ref=e853]: ANDREI MATEI STEFAN
+            - generic [ref=e854]:
+              - generic [ref=e855]: Debutant
+              - generic [ref=e856]: Activ
+            - paragraph [ref=e857]: 8 ani - Retrasi
+          - generic [ref=e858]:
+            - generic [ref=e859]:
+              - button [ref=e860] [cursor=pointer]:
+                - img [ref=e861]
+              - button [ref=e864] [cursor=pointer]:
+                - img [ref=e865]
+              - button [ref=e868] [cursor=pointer]:
+                - img [ref=e869]
+            - button "Portofel" [ref=e872] [cursor=pointer]:
+              - img [ref=e873]
+              - text: Portofel
+        - generic [ref=e877]:
+          - generic [ref=e878]:
+            - generic [ref=e879]:
+              - paragraph [ref=e880]: ANDREI PAUL-CRISTIAN
+              - generic [ref=e881]:
+                - generic [ref=e882]: 2 Câp Roșu
+                - generic [ref=e883]: Activ
+              - paragraph [ref=e884]: 13 ani - Grupa Mare
+            - generic [ref=e886]: Sportiv
+          - generic [ref=e887]:
+            - generic [ref=e888]:
+              - button [ref=e889] [cursor=pointer]:
+                - img [ref=e890]
+              - button [ref=e893] [cursor=pointer]:
+                - img [ref=e894]
+              - button [ref=e897] [cursor=pointer]:
+                - img [ref=e898]
+            - button "Portofel" [ref=e901] [cursor=pointer]:
+              - img [ref=e902]
+              - text: Portofel
+        - generic [ref=e906]:
+          - generic [ref=e907]:
+            - generic [ref=e908]:
+              - paragraph [ref=e909]: ANDRICIUC NADIA
+              - generic [ref=e910]:
+                - generic [ref=e911]: C.V. 1 Câp Alb
+                - generic [ref=e912]: Inactiv
+              - paragraph [ref=e913]: 10 ani - Juniori si Adulti
+            - generic [ref=e915]: Sportiv
+          - generic [ref=e916]:
+            - generic [ref=e917]:
+              - button [ref=e918] [cursor=pointer]:
+                - img [ref=e919]
+              - button [ref=e922] [cursor=pointer]:
+                - img [ref=e923]
+              - button [ref=e926] [cursor=pointer]:
+                - img [ref=e927]
+            - button "Portofel" [ref=e930] [cursor=pointer]:
+              - img [ref=e931]
+              - text: Portofel
+        - generic [ref=e935]:
+          - generic [ref=e936]:
+            - generic [ref=e937]:
+              - paragraph [ref=e938]: ANDRICIUC SONIA
+              - generic [ref=e939]:
+                - generic [ref=e940]: C.V. 1 Câp Alb
+                - generic [ref=e941]: Inactiv
+              - paragraph [ref=e942]: 12 ani - Juniori si Adulti
+            - generic [ref=e944]: Sportiv
+          - generic [ref=e945]:
+            - generic [ref=e946]:
+              - button [ref=e947] [cursor=pointer]:
+                - img [ref=e948]
+              - button [ref=e951] [cursor=pointer]:
+                - img [ref=e952]
+              - button [ref=e955] [cursor=pointer]:
+                - img [ref=e956]
+            - button "Portofel" [ref=e959] [cursor=pointer]:
+              - img [ref=e960]
+              - text: Portofel
+      - generic [ref=e963]:
+        - generic [ref=e964]:
+          - generic [ref=e965]: 1–25 din 614
+          - generic [ref=e966]: "|"
+          - generic [ref=e967]:
+            - text: Afișează
+            - combobox "Afișează / pagină" [ref=e968] [cursor=pointer]:
+              - option "10"
+              - option "25" [selected]
+              - option "50"
+              - option "100"
+              - option "Toți (614)"
+            - text: / pagină
+        - generic [ref=e969]:
+          - button "Anterior" [disabled] [ref=e970]
+          - generic [ref=e971]: Pagina 1 din 25
+          - button "Următor" [ref=e972] [cursor=pointer]
+      - button "Deschide ghidul interactiv" [ref=e973] [cursor=pointer]:
+        - generic [ref=e974]: "?"
+  - contentinfo [ref=e975]:
+    - paragraph [ref=e976]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e977] [cursor=pointer]:
+      - img [ref=e978]

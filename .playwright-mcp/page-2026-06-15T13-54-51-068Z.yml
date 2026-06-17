@@ -1,0 +1,805 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus" [ref=e6311] [cursor=pointer]:
+          - img [ref=e6312]
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]: Activitate Sală
+            - img [ref=e68]
+          - generic [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e78]: Examene
+            - img [ref=e79]
+          - generic [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+            - generic [ref=e89]: Activități Naționale
+            - img [ref=e90]
+          - generic [ref=e92]:
+            - generic [ref=e93] [cursor=pointer]:
+              - img [ref=e94]
+              - generic [ref=e96]: Financiar & Plăți
+              - img [ref=e97]
+            - generic [ref=e99]:
+              - generic [ref=e100] [cursor=pointer]: Facturi & Plăți
+              - generic [ref=e102] [cursor=pointer]: Jurnal Încasări
+              - generic [ref=e104] [cursor=pointer]: Raport Financiar
+              - generic [ref=e106] [cursor=pointer]: Taxe Anuale
+              - generic [ref=e108] [cursor=pointer]: Config. Abonamente
+              - generic [ref=e110] [cursor=pointer]: Configurare Prețuri
+          - generic [ref=e113] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e117]: Setări & Admin
+            - img [ref=e118]
+          - generic [ref=e120] [cursor=pointer]:
+            - img [ref=e122]
+            - generic [ref=e126]: Notificări
+          - generic [ref=e127] [cursor=pointer]:
+            - img [ref=e129]
+            - generic [ref=e131]: SMS
+          - generic [ref=e132] [cursor=pointer]:
+            - img [ref=e134]
+            - generic [ref=e137]: Cereri Înscriere
+          - generic [ref=e138] [cursor=pointer]:
+            - img [ref=e140]
+            - generic [ref=e143]: Istoric Activitate
+        - button "Scroll jos" [ref=e144] [cursor=pointer]:
+          - img [ref=e145]
+      - generic [ref=e147]:
+        - button "Tema" [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+          - generic [ref=e156]: Tema
+        - generic [ref=e158]:
+          - generic [ref=e159]: AL
+          - generic [ref=e160]:
+            - paragraph [ref=e161]: ALIN MIHAI LUNGU
+            - text: Admin Club
+          - button "Deconectare" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+  - button "Restrânge meniul" [ref=e166] [cursor=pointer]:
+    - img [ref=e167]
+  - banner [ref=e169]:
+    - navigation "Navigare" [ref=e171]:
+      - heading "raport-financiar" [level=1] [ref=e6493]
+    - generic [ref=e173]:
+      - button "Temă" [ref=e175] [cursor=pointer]:
+        - img [ref=e176]
+        - generic [ref=e182]: Temă
+      - button [ref=e184] [cursor=pointer]:
+        - img [ref=e185]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e190] [cursor=pointer]:
+        - generic [ref=e191]: AL
+        - paragraph [ref=e193]:
+          - text: ALIN MIHAI
+          - generic [ref=e194]: "[ADMIN CLUB]"
+        - img [ref=e195]
+  - main [ref=e197]:
+    - generic [ref=e6495]:
+      - generic [ref=e6496]:
+        - button "Încasări" [ref=e6497] [cursor=pointer]:
+          - img [ref=e6498]
+          - generic [ref=e6501]: Încasări
+        - button "Abonamente" [ref=e6502] [cursor=pointer]:
+          - img [ref=e6503]
+          - generic [ref=e6506]: Abonamente
+        - button "Lunar" [active] [ref=e6507] [cursor=pointer]:
+          - img [ref=e6508]
+          - generic [ref=e6510]: Lunar
+        - button "Taxe Anuale" [ref=e6511] [cursor=pointer]:
+          - img [ref=e6512]
+          - generic [ref=e6514]: Taxe Anuale
+        - button "Grafice" [ref=e6515] [cursor=pointer]:
+          - img [ref=e6516]
+          - generic [ref=e6519]: Grafice
+        - button "Familii" [ref=e6520] [cursor=pointer]:
+          - img [ref=e6521]
+          - generic [ref=e6526]: Familii
+      - generic [ref=e8385]:
+        - generic [ref=e8387]:
+          - generic [ref=e8388]: Luna
+          - generic [ref=e8389]:
+            - combobox [ref=e8390]:
+              - option "2026-07" [selected]
+              - option "2026-06"
+              - option "2026-05"
+              - option "2026-04"
+              - option "2026-03"
+              - option "2026-02"
+              - option "2026-01"
+              - option "2025-12"
+              - option "2025-06"
+              - option "2024-12"
+              - option "2022-06"
+              - option "2022-02"
+            - generic:
+              - img
+        - generic [ref=e8391]:
+          - generic [ref=e8392]:
+            - paragraph [ref=e8393]: Încasări
+            - paragraph [ref=e8394]: 3.160,00 RON
+          - generic [ref=e8395]:
+            - paragraph [ref=e8396]: Restanțe
+            - paragraph [ref=e8397]: 9.090,00 RON
+        - heading "De achitat în 2026-06" [level=3] [ref=e8398]
+        - table [ref=e8400]:
+          - rowgroup [ref=e8401]:
+            - row "Scadență Sportiv Descriere Status Restant" [ref=e8402]:
+              - columnheader "Scadență" [ref=e8403]
+              - columnheader "Sportiv" [ref=e8404]
+              - columnheader "Descriere" [ref=e8405]
+              - columnheader "Status" [ref=e8406]
+              - columnheader "Restant" [ref=e8407]
+              - columnheader [ref=e8408]
+          - rowgroup [ref=e8409]:
+            - row "02.06.2026 AMORARITI ALEXANDRU Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8410]:
+              - cell "02.06.2026" [ref=e8411]
+              - cell "AMORARITI ALEXANDRU" [ref=e8412]:
+                - button "AMORARITI ALEXANDRU" [ref=e8413] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8414]
+              - cell "Neachitat" [ref=e8415]
+              - cell "220,00 RON" [ref=e8416]
+              - cell "Încasează" [ref=e8417]:
+                - button "Încasează" [ref=e8418] [cursor=pointer]
+            - row "02.06.2026 DANAILA HORATIU Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8419]:
+              - cell "02.06.2026" [ref=e8420]
+              - cell "DANAILA HORATIU" [ref=e8421]:
+                - button "DANAILA HORATIU" [ref=e8422] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8423]
+              - cell "Neachitat" [ref=e8424]
+              - cell "220,00 RON" [ref=e8425]
+              - cell "Încasează" [ref=e8426]:
+                - button "Încasează" [ref=e8427] [cursor=pointer]
+            - row "02.06.2026 LUNGU ALIN MIHAI Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8428]:
+              - cell "02.06.2026" [ref=e8429]
+              - cell "LUNGU ALIN MIHAI" [ref=e8430]:
+                - button "LUNGU ALIN MIHAI" [ref=e8431] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8432]
+              - cell "Neachitat" [ref=e8433]
+              - cell "220,00 RON" [ref=e8434]
+              - cell "Încasează" [ref=e8435]:
+                - button "Încasează" [ref=e8436] [cursor=pointer]
+            - row "02.06.2026 STRATON ALESSIA TEODORA Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8437]:
+              - cell "02.06.2026" [ref=e8438]
+              - cell "STRATON ALESSIA TEODORA" [ref=e8439]:
+                - button "STRATON ALESSIA TEODORA" [ref=e8440] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8441]
+              - cell "Neachitat" [ref=e8442]
+              - cell "220,00 RON" [ref=e8443]
+              - cell "Încasează" [ref=e8444]:
+                - button "Încasează" [ref=e8445] [cursor=pointer]
+            - row "02.06.2026 CONDURACHE ANDRADA Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8446]:
+              - cell "02.06.2026" [ref=e8447]
+              - cell "CONDURACHE ANDRADA" [ref=e8448]:
+                - button "CONDURACHE ANDRADA" [ref=e8449] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8450]
+              - cell "Neachitat" [ref=e8451]
+              - cell "220,00 RON" [ref=e8452]
+              - cell "Încasează" [ref=e8453]:
+                - button "Încasează" [ref=e8454] [cursor=pointer]
+            - row "02.06.2026 LEOHCHI RAZVAN Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8455]:
+              - cell "02.06.2026" [ref=e8456]
+              - cell "LEOHCHI RAZVAN" [ref=e8457]:
+                - button "LEOHCHI RAZVAN" [ref=e8458] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8459]
+              - cell "Neachitat" [ref=e8460]
+              - cell "220,00 RON" [ref=e8461]
+              - cell "Încasează" [ref=e8462]:
+                - button "Încasează" [ref=e8463] [cursor=pointer]
+            - row "02.06.2026 POPA ANDREI Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8464]:
+              - cell "02.06.2026" [ref=e8465]
+              - cell "POPA ANDREI" [ref=e8466]:
+                - button "POPA ANDREI" [ref=e8467] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8468]
+              - cell "Neachitat" [ref=e8469]
+              - cell "220,00 RON" [ref=e8470]
+              - cell "Încasează" [ref=e8471]:
+                - button "Încasează" [ref=e8472] [cursor=pointer]
+            - row "02.06.2026 BORS EMILIA Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8473]:
+              - cell "02.06.2026" [ref=e8474]
+              - cell "BORS EMILIA" [ref=e8475]:
+                - button "BORS EMILIA" [ref=e8476] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8477]
+              - cell "Neachitat" [ref=e8478]
+              - cell "220,00 RON" [ref=e8479]
+              - cell "Încasează" [ref=e8480]:
+                - button "Încasează" [ref=e8481] [cursor=pointer]
+            - row "02.06.2026 LUNGU CILIAC HORAȚIU CASIAN Abonament iunie 2026 Neachitat 200,00 RON Încasează" [ref=e8482]:
+              - cell "02.06.2026" [ref=e8483]
+              - cell "LUNGU CILIAC HORAȚIU CASIAN" [ref=e8484]:
+                - button "LUNGU CILIAC HORAȚIU CASIAN" [ref=e8485] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8486]
+              - cell "Neachitat" [ref=e8487]
+              - cell "200,00 RON" [ref=e8488]
+              - cell "Încasează" [ref=e8489]:
+                - button "Încasează" [ref=e8490] [cursor=pointer]
+            - row "02.06.2026 ȘTEICĂ VICTOR GABRIEL Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8491]:
+              - cell "02.06.2026" [ref=e8492]
+              - cell "ȘTEICĂ VICTOR GABRIEL" [ref=e8493]:
+                - button "ȘTEICĂ VICTOR GABRIEL" [ref=e8494] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8495]
+              - cell "Neachitat" [ref=e8496]
+              - cell "220,00 RON" [ref=e8497]
+              - cell "Încasează" [ref=e8498]:
+                - button "Încasează" [ref=e8499] [cursor=pointer]
+            - row "02.06.2026 POPOVICI DIANA ANASTASIA Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8500]:
+              - cell "02.06.2026" [ref=e8501]
+              - cell "POPOVICI DIANA ANASTASIA" [ref=e8502]:
+                - button "POPOVICI DIANA ANASTASIA" [ref=e8503] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8504]
+              - cell "Neachitat" [ref=e8505]
+              - cell "220,00 RON" [ref=e8506]
+              - cell "Încasează" [ref=e8507]:
+                - button "Încasează" [ref=e8508] [cursor=pointer]
+            - row "02.06.2026 ANDRONACHE DARIA MARIA Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8509]:
+              - cell "02.06.2026" [ref=e8510]
+              - cell "ANDRONACHE DARIA MARIA" [ref=e8511]:
+                - button "ANDRONACHE DARIA MARIA" [ref=e8512] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8513]
+              - cell "Neachitat" [ref=e8514]
+              - cell "220,00 RON" [ref=e8515]
+              - cell "Încasează" [ref=e8516]:
+                - button "Încasează" [ref=e8517] [cursor=pointer]
+            - row "02.06.2026 ȘTEFĂNESCU EMANUEL Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8518]:
+              - cell "02.06.2026" [ref=e8519]
+              - cell "ȘTEFĂNESCU EMANUEL" [ref=e8520]:
+                - button "ȘTEFĂNESCU EMANUEL" [ref=e8521] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8522]
+              - cell "Neachitat" [ref=e8523]
+              - cell "220,00 RON" [ref=e8524]
+              - cell "Încasează" [ref=e8525]:
+                - button "Încasează" [ref=e8526] [cursor=pointer]
+            - row "02.06.2026 ANECULAESI MATHIAS Abonament iunie 2026 Neachitat 220,00 RON Încasează" [ref=e8527]:
+              - cell "02.06.2026" [ref=e8528]
+              - cell "ANECULAESI MATHIAS" [ref=e8529]:
+                - button "ANECULAESI MATHIAS" [ref=e8530] [cursor=pointer]
+              - cell "Abonament iunie 2026" [ref=e8531]
+              - cell "Neachitat" [ref=e8532]
+              - cell "220,00 RON" [ref=e8533]
+              - cell "Încasează" [ref=e8534]:
+                - button "Încasează" [ref=e8535] [cursor=pointer]
+            - row "02.06.2026 Gomei Abonament Familie iunie 2026 Neachitat 330,00 RON Încasează" [ref=e8536]:
+              - cell "02.06.2026" [ref=e8537]
+              - cell "Gomei" [ref=e8538]
+              - cell "Abonament Familie iunie 2026" [ref=e8539]
+              - cell "Neachitat" [ref=e8540]
+              - cell "330,00 RON" [ref=e8541]
+              - cell "Încasează" [ref=e8542]:
+                - button "Încasează" [ref=e8543] [cursor=pointer]
+            - row "10.06.2026 DANAILA HORATIU Taxa examen 2 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8544]:
+              - cell "10.06.2026" [ref=e8545]
+              - cell "DANAILA HORATIU" [ref=e8546]:
+                - button "DANAILA HORATIU" [ref=e8547] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Galben" [ref=e8548]
+              - cell "Neachitat" [ref=e8549]
+              - cell "100,00 RON" [ref=e8550]
+              - cell "Încasează" [ref=e8551]:
+                - button "Încasează" [ref=e8552] [cursor=pointer]
+            - row "10.06.2026 RĂILEANU ADINA CASANA Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8553]:
+              - cell "10.06.2026" [ref=e8554]
+              - cell "RĂILEANU ADINA CASANA" [ref=e8555]:
+                - button "RĂILEANU ADINA CASANA" [ref=e8556] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8557]
+              - cell "Neachitat" [ref=e8558]
+              - cell "100,00 RON" [ref=e8559]
+              - cell "Încasează" [ref=e8560]:
+                - button "Încasează" [ref=e8561] [cursor=pointer]
+            - row "10.06.2026 AMORARITI ALEXANDRU Taxa examen C.V. 1 Câp Alb Neachitat 100,00 RON Încasează" [ref=e8562]:
+              - cell "10.06.2026" [ref=e8563]
+              - cell "AMORARITI ALEXANDRU" [ref=e8564]:
+                - button "AMORARITI ALEXANDRU" [ref=e8565] [cursor=pointer]
+              - cell "Taxa examen C.V. 1 Câp Alb" [ref=e8566]
+              - cell "Neachitat" [ref=e8567]
+              - cell "100,00 RON" [ref=e8568]
+              - cell "Încasează" [ref=e8569]:
+                - button "Încasează" [ref=e8570] [cursor=pointer]
+            - row "10.06.2026 STRATON ALESSIA TEODORA Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8571]:
+              - cell "10.06.2026" [ref=e8572]
+              - cell "STRATON ALESSIA TEODORA" [ref=e8573]:
+                - button "STRATON ALESSIA TEODORA" [ref=e8574] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8575]
+              - cell "Neachitat" [ref=e8576]
+              - cell "100,00 RON" [ref=e8577]
+              - cell "Încasează" [ref=e8578]:
+                - button "Încasează" [ref=e8579] [cursor=pointer]
+            - row "11.06.2026 BABICI MARIA EFREMIA Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8580]:
+              - cell "11.06.2026" [ref=e8581]
+              - cell "BABICI MARIA EFREMIA" [ref=e8582]:
+                - button "BABICI MARIA EFREMIA" [ref=e8583] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8584]
+              - cell "Neachitat" [ref=e8585]
+              - cell "100,00 RON" [ref=e8586]
+              - cell "Încasează" [ref=e8587]:
+                - button "Încasează" [ref=e8588] [cursor=pointer]
+            - row "11.06.2026 BABICI MIHAI GABRIEL Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8589]:
+              - cell "11.06.2026" [ref=e8590]
+              - cell "BABICI MIHAI GABRIEL" [ref=e8591]:
+                - button "BABICI MIHAI GABRIEL" [ref=e8592] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8593]
+              - cell "Neachitat" [ref=e8594]
+              - cell "100,00 RON" [ref=e8595]
+              - cell "Încasează" [ref=e8596]:
+                - button "Încasează" [ref=e8597] [cursor=pointer]
+            - row "11.06.2026 LĂMĂȘANU ANASTASIA Taxa examen C.V. 1 Câp Alb Neachitat 100,00 RON Încasează" [ref=e8598]:
+              - cell "11.06.2026" [ref=e8599]
+              - cell "LĂMĂȘANU ANASTASIA" [ref=e8600]:
+                - button "LĂMĂȘANU ANASTASIA" [ref=e8601] [cursor=pointer]
+              - cell "Taxa examen C.V. 1 Câp Alb" [ref=e8602]
+              - cell "Neachitat" [ref=e8603]
+              - cell "100,00 RON" [ref=e8604]
+              - cell "Încasează" [ref=e8605]:
+                - button "Încasează" [ref=e8606] [cursor=pointer]
+            - row "11.06.2026 ANDREI PAUL-CRISTIAN Taxa examen 3 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8607]:
+              - cell "11.06.2026" [ref=e8608]
+              - cell "ANDREI PAUL-CRISTIAN" [ref=e8609]:
+                - button "ANDREI PAUL-CRISTIAN" [ref=e8610] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e8611]
+              - cell "Neachitat" [ref=e8612]
+              - cell "100,00 RON" [ref=e8613]
+              - cell "Încasează" [ref=e8614]:
+                - button "Încasează" [ref=e8615] [cursor=pointer]
+            - row "11.06.2026 AIOANEI TUDOR FLORIN Taxa examen 2 Câp Albastru Neachitat 100,00 RON Încasează" [ref=e8616]:
+              - cell "11.06.2026" [ref=e8617]
+              - cell "AIOANEI TUDOR FLORIN" [ref=e8618]:
+                - button "AIOANEI TUDOR FLORIN" [ref=e8619] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Albastru" [ref=e8620]
+              - cell "Neachitat" [ref=e8621]
+              - cell "100,00 RON" [ref=e8622]
+              - cell "Încasează" [ref=e8623]:
+                - button "Încasează" [ref=e8624] [cursor=pointer]
+            - row "11.06.2026 ANECHIFORESEI GABRIELA Taxa examen 3 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8625]:
+              - cell "11.06.2026" [ref=e8626]
+              - cell "ANECHIFORESEI GABRIELA" [ref=e8627]:
+                - button "ANECHIFORESEI GABRIELA" [ref=e8628] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e8629]
+              - cell "Neachitat" [ref=e8630]
+              - cell "100,00 RON" [ref=e8631]
+              - cell "Încasează" [ref=e8632]:
+                - button "Încasează" [ref=e8633] [cursor=pointer]
+            - row "11.06.2026 AVĂDANEI ROBERT ANDREI Taxa examen 2 Câp Albastru Neachitat 100,00 RON Încasează" [ref=e8634]:
+              - cell "11.06.2026" [ref=e8635]
+              - cell "AVĂDANEI ROBERT ANDREI" [ref=e8636]:
+                - button "AVĂDANEI ROBERT ANDREI" [ref=e8637] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Albastru" [ref=e8638]
+              - cell "Neachitat" [ref=e8639]
+              - cell "100,00 RON" [ref=e8640]
+              - cell "Încasează" [ref=e8641]:
+                - button "Încasează" [ref=e8642] [cursor=pointer]
+            - row "11.06.2026 BĂEȘU TEODOR Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8643]:
+              - cell "11.06.2026" [ref=e8644]
+              - cell "BĂEȘU TEODOR" [ref=e8645]:
+                - button "BĂEȘU TEODOR" [ref=e8646] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8647]
+              - cell "Neachitat" [ref=e8648]
+              - cell "100,00 RON" [ref=e8649]
+              - cell "Încasează" [ref=e8650]:
+                - button "Încasează" [ref=e8651] [cursor=pointer]
+            - row "11.06.2026 CĂLUȘERIU CARMEN IONELA Taxa examen 3 Câp Albastru Neachitat 100,00 RON Încasează" [ref=e8652]:
+              - cell "11.06.2026" [ref=e8653]
+              - cell "CĂLUȘERIU CARMEN IONELA" [ref=e8654]:
+                - button "CĂLUȘERIU CARMEN IONELA" [ref=e8655] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Albastru" [ref=e8656]
+              - cell "Neachitat" [ref=e8657]
+              - cell "100,00 RON" [ref=e8658]
+              - cell "Încasează" [ref=e8659]:
+                - button "Încasează" [ref=e8660] [cursor=pointer]
+            - row "11.06.2026 CERCEL CRISTIAN GABRIEL Taxa examen Centura Violet Neachitat 100,00 RON Încasează" [ref=e8661]:
+              - cell "11.06.2026" [ref=e8662]
+              - cell "CERCEL CRISTIAN GABRIEL" [ref=e8663]:
+                - button "CERCEL CRISTIAN GABRIEL" [ref=e8664] [cursor=pointer]
+              - cell "Taxa examen Centura Violet" [ref=e8665]
+              - cell "Neachitat" [ref=e8666]
+              - cell "100,00 RON" [ref=e8667]
+              - cell "Încasează" [ref=e8668]:
+                - button "Încasează" [ref=e8669] [cursor=pointer]
+            - row "11.06.2026 CHITICARU ERICA ELENA Taxa examen Centura Violet Neachitat 100,00 RON Încasează" [ref=e8670]:
+              - cell "11.06.2026" [ref=e8671]
+              - cell "CHITICARU ERICA ELENA" [ref=e8672]:
+                - button "CHITICARU ERICA ELENA" [ref=e8673] [cursor=pointer]
+              - cell "Taxa examen Centura Violet" [ref=e8674]
+              - cell "Neachitat" [ref=e8675]
+              - cell "100,00 RON" [ref=e8676]
+              - cell "Încasează" [ref=e8677]:
+                - button "Încasează" [ref=e8678] [cursor=pointer]
+            - row "11.06.2026 CIOCÂRLAN RAMIN-DIMITRIE Taxa examen 3 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8679]:
+              - cell "11.06.2026" [ref=e8680]
+              - cell "CIOCÂRLAN RAMIN-DIMITRIE" [ref=e8681]:
+                - button "CIOCÂRLAN RAMIN-DIMITRIE" [ref=e8682] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e8683]
+              - cell "Neachitat" [ref=e8684]
+              - cell "100,00 RON" [ref=e8685]
+              - cell "Încasează" [ref=e8686]:
+                - button "Încasează" [ref=e8687] [cursor=pointer]
+            - row "11.06.2026 COSTAN DARIUS GEORGIAN Taxa examen 3 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8688]:
+              - cell "11.06.2026" [ref=e8689]
+              - cell "COSTAN DARIUS GEORGIAN" [ref=e8690]:
+                - button "COSTAN DARIUS GEORGIAN" [ref=e8691] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e8692]
+              - cell "Neachitat" [ref=e8693]
+              - cell "100,00 RON" [ref=e8694]
+              - cell "Încasează" [ref=e8695]:
+                - button "Încasează" [ref=e8696] [cursor=pointer]
+            - row "11.06.2026 CURCĂ ANASTASIA IONELA Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8697]:
+              - cell "11.06.2026" [ref=e8698]
+              - cell "CURCĂ ANASTASIA IONELA" [ref=e8699]:
+                - button "CURCĂ ANASTASIA IONELA" [ref=e8700] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8701]
+              - cell "Neachitat" [ref=e8702]
+              - cell "100,00 RON" [ref=e8703]
+              - cell "Încasează" [ref=e8704]:
+                - button "Încasează" [ref=e8705] [cursor=pointer]
+            - row "11.06.2026 DOCHIA ȘTEFAN Taxa examen 2 Câp Albastru Neachitat 100,00 RON Încasează" [ref=e8706]:
+              - cell "11.06.2026" [ref=e8707]
+              - cell "DOCHIA ȘTEFAN" [ref=e8708]:
+                - button "DOCHIA ȘTEFAN" [ref=e8709] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Albastru" [ref=e8710]
+              - cell "Neachitat" [ref=e8711]
+              - cell "100,00 RON" [ref=e8712]
+              - cell "Încasează" [ref=e8713]:
+                - button "Încasează" [ref=e8714] [cursor=pointer]
+            - row "11.06.2026 GRAUR CLAUDIA GEORGIANA Taxa examen 2 Câp Albastru Neachitat 100,00 RON Încasează" [ref=e8715]:
+              - cell "11.06.2026" [ref=e8716]
+              - cell "GRAUR CLAUDIA GEORGIANA" [ref=e8717]:
+                - button "GRAUR CLAUDIA GEORGIANA" [ref=e8718] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Albastru" [ref=e8719]
+              - cell "Neachitat" [ref=e8720]
+              - cell "100,00 RON" [ref=e8721]
+              - cell "Încasează" [ref=e8722]:
+                - button "Încasează" [ref=e8723] [cursor=pointer]
+            - row "11.06.2026 GREȘANU MARIA Taxa examen 3 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8724]:
+              - cell "11.06.2026" [ref=e8725]
+              - cell "GREȘANU MARIA" [ref=e8726]:
+                - button "GREȘANU MARIA" [ref=e8727] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e8728]
+              - cell "Neachitat" [ref=e8729]
+              - cell "100,00 RON" [ref=e8730]
+              - cell "Încasează" [ref=e8731]:
+                - button "Încasează" [ref=e8732] [cursor=pointer]
+            - row "11.06.2026 PÎRVU RICARDO-IOAN Taxa examen 3 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8733]:
+              - cell "11.06.2026" [ref=e8734]
+              - cell "PÎRVU RICARDO-IOAN" [ref=e8735]:
+                - button "PÎRVU RICARDO-IOAN" [ref=e8736] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e8737]
+              - cell "Neachitat" [ref=e8738]
+              - cell "100,00 RON" [ref=e8739]
+              - cell "Încasează" [ref=e8740]:
+                - button "Încasează" [ref=e8741] [cursor=pointer]
+            - row "11.06.2026 GRIGORAȘ ECATERINA Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8742]:
+              - cell "11.06.2026" [ref=e8743]
+              - cell "GRIGORAȘ ECATERINA" [ref=e8744]:
+                - button "GRIGORAȘ ECATERINA" [ref=e8745] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8746]
+              - cell "Neachitat" [ref=e8747]
+              - cell "100,00 RON" [ref=e8748]
+              - cell "Încasează" [ref=e8749]:
+                - button "Încasează" [ref=e8750] [cursor=pointer]
+            - row "11.06.2026 HLIHOR IOAN Taxa examen 4 Câp Albastru Neachitat 100,00 RON Încasează" [ref=e8751]:
+              - cell "11.06.2026" [ref=e8752]
+              - cell "HLIHOR IOAN" [ref=e8753]:
+                - button "HLIHOR IOAN" [ref=e8754] [cursor=pointer]
+              - cell "Taxa examen 4 Câp Albastru" [ref=e8755]
+              - cell "Neachitat" [ref=e8756]
+              - cell "100,00 RON" [ref=e8757]
+              - cell "Încasează" [ref=e8758]:
+                - button "Încasează" [ref=e8759] [cursor=pointer]
+            - row "11.06.2026 HRISTEA RAREȘ-IOAN Taxa examen Centura Violet Neachitat 100,00 RON Încasează" [ref=e8760]:
+              - cell "11.06.2026" [ref=e8761]
+              - cell "HRISTEA RAREȘ-IOAN" [ref=e8762]:
+                - button "HRISTEA RAREȘ-IOAN" [ref=e8763] [cursor=pointer]
+              - cell "Taxa examen Centura Violet" [ref=e8764]
+              - cell "Neachitat" [ref=e8765]
+              - cell "100,00 RON" [ref=e8766]
+              - cell "Încasează" [ref=e8767]:
+                - button "Încasează" [ref=e8768] [cursor=pointer]
+            - row "11.06.2026 IANCU REBECA ELENA Taxa examen 4 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8769]:
+              - cell "11.06.2026" [ref=e8770]
+              - cell "IANCU REBECA ELENA" [ref=e8771]:
+                - button "IANCU REBECA ELENA" [ref=e8772] [cursor=pointer]
+              - cell "Taxa examen 4 Câp Roșu" [ref=e8773]
+              - cell "Neachitat" [ref=e8774]
+              - cell "100,00 RON" [ref=e8775]
+              - cell "Încasează" [ref=e8776]:
+                - button "Încasează" [ref=e8777] [cursor=pointer]
+            - row "11.06.2026 LĂMĂȘANU MIRUNA-MARIA Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8778]:
+              - cell "11.06.2026" [ref=e8779]
+              - cell "LĂMĂȘANU MIRUNA-MARIA" [ref=e8780]:
+                - button "LĂMĂȘANU MIRUNA-MARIA" [ref=e8781] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8782]
+              - cell "Neachitat" [ref=e8783]
+              - cell "100,00 RON" [ref=e8784]
+              - cell "Încasează" [ref=e8785]:
+                - button "Încasează" [ref=e8786] [cursor=pointer]
+            - row "11.06.2026 MAYER CARL OCTAV Taxa examen Centura Violet Neachitat 100,00 RON Încasează" [ref=e8787]:
+              - cell "11.06.2026" [ref=e8788]
+              - cell "MAYER CARL OCTAV" [ref=e8789]:
+                - button "MAYER CARL OCTAV" [ref=e8790] [cursor=pointer]
+              - cell "Taxa examen Centura Violet" [ref=e8791]
+              - cell "Neachitat" [ref=e8792]
+              - cell "100,00 RON" [ref=e8793]
+              - cell "Încasează" [ref=e8794]:
+                - button "Încasează" [ref=e8795] [cursor=pointer]
+            - row "11.06.2026 MIHAI IOANA Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8796]:
+              - cell "11.06.2026" [ref=e8797]
+              - cell "MIHAI IOANA" [ref=e8798]:
+                - button "MIHAI IOANA" [ref=e8799] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8800]
+              - cell "Neachitat" [ref=e8801]
+              - cell "100,00 RON" [ref=e8802]
+              - cell "Încasează" [ref=e8803]:
+                - button "Încasează" [ref=e8804] [cursor=pointer]
+            - row "11.06.2026 MIRON REBECA Taxa examen C.V. 2 Câp Alb Neachitat 100,00 RON Încasează" [ref=e8805]:
+              - cell "11.06.2026" [ref=e8806]
+              - cell "MIRON REBECA" [ref=e8807]:
+                - button "MIRON REBECA" [ref=e8808] [cursor=pointer]
+              - cell "Taxa examen C.V. 2 Câp Alb" [ref=e8809]
+              - cell "Neachitat" [ref=e8810]
+              - cell "100,00 RON" [ref=e8811]
+              - cell "Încasează" [ref=e8812]:
+                - button "Încasează" [ref=e8813] [cursor=pointer]
+            - row "11.06.2026 NECHITA RAYSA THEODORA Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8814]:
+              - cell "11.06.2026" [ref=e8815]
+              - cell "NECHITA RAYSA THEODORA" [ref=e8816]:
+                - button "NECHITA RAYSA THEODORA" [ref=e8817] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8818]
+              - cell "Neachitat" [ref=e8819]
+              - cell "100,00 RON" [ref=e8820]
+              - cell "Încasează" [ref=e8821]:
+                - button "Încasează" [ref=e8822] [cursor=pointer]
+            - row "11.06.2026 NISTOR ANA Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8823]:
+              - cell "11.06.2026" [ref=e8824]
+              - cell "NISTOR ANA" [ref=e8825]:
+                - button "NISTOR ANA" [ref=e8826] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8827]
+              - cell "Neachitat" [ref=e8828]
+              - cell "100,00 RON" [ref=e8829]
+              - cell "Încasează" [ref=e8830]:
+                - button "Încasează" [ref=e8831] [cursor=pointer]
+            - row "11.06.2026 NIȚĂ ALEXANDRU Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8832]:
+              - cell "11.06.2026" [ref=e8833]
+              - cell "NIȚĂ ALEXANDRU" [ref=e8834]:
+                - button "NIȚĂ ALEXANDRU" [ref=e8835] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8836]
+              - cell "Neachitat" [ref=e8837]
+              - cell "100,00 RON" [ref=e8838]
+              - cell "Încasează" [ref=e8839]:
+                - button "Încasează" [ref=e8840] [cursor=pointer]
+            - row "11.06.2026 ONOFREI LUCA Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8841]:
+              - cell "11.06.2026" [ref=e8842]
+              - cell "ONOFREI LUCA" [ref=e8843]:
+                - button "ONOFREI LUCA" [ref=e8844] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8845]
+              - cell "Neachitat" [ref=e8846]
+              - cell "100,00 RON" [ref=e8847]
+              - cell "Încasează" [ref=e8848]:
+                - button "Încasează" [ref=e8849] [cursor=pointer]
+            - row "11.06.2026 PANDELEA FLAVIUS-NICOLAS-IOAN Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8850]:
+              - cell "11.06.2026" [ref=e8851]
+              - cell "PANDELEA FLAVIUS-NICOLAS-IOAN" [ref=e8852]:
+                - button "PANDELEA FLAVIUS-NICOLAS-IOAN" [ref=e8853] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8854]
+              - cell "Neachitat" [ref=e8855]
+              - cell "100,00 RON" [ref=e8856]
+              - cell "Încasează" [ref=e8857]:
+                - button "Încasează" [ref=e8858] [cursor=pointer]
+            - row "11.06.2026 PASINCIUC FILIP Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8859]:
+              - cell "11.06.2026" [ref=e8860]
+              - cell "PASINCIUC FILIP" [ref=e8861]:
+                - button "PASINCIUC FILIP" [ref=e8862] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8863]
+              - cell "Neachitat" [ref=e8864]
+              - cell "100,00 RON" [ref=e8865]
+              - cell "Încasează" [ref=e8866]:
+                - button "Încasează" [ref=e8867] [cursor=pointer]
+            - row "11.06.2026 PINTILEI DARIUS ANDREI Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8868]:
+              - cell "11.06.2026" [ref=e8869]
+              - cell "PINTILEI DARIUS ANDREI" [ref=e8870]:
+                - button "PINTILEI DARIUS ANDREI" [ref=e8871] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8872]
+              - cell "Neachitat" [ref=e8873]
+              - cell "100,00 RON" [ref=e8874]
+              - cell "Încasează" [ref=e8875]:
+                - button "Încasează" [ref=e8876] [cursor=pointer]
+            - row "11.06.2026 POPOVICI ANDREI-COSMIN Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8877]:
+              - cell "11.06.2026" [ref=e8878]
+              - cell "POPOVICI ANDREI-COSMIN" [ref=e8879]:
+                - button "POPOVICI ANDREI-COSMIN" [ref=e8880] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8881]
+              - cell "Neachitat" [ref=e8882]
+              - cell "100,00 RON" [ref=e8883]
+              - cell "Încasează" [ref=e8884]:
+                - button "Încasează" [ref=e8885] [cursor=pointer]
+            - row "11.06.2026 ROMAN PETRU Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8886]:
+              - cell "11.06.2026" [ref=e8887]
+              - cell "ROMAN PETRU" [ref=e8888]:
+                - button "ROMAN PETRU" [ref=e8889] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8890]
+              - cell "Neachitat" [ref=e8891]
+              - cell "100,00 RON" [ref=e8892]
+              - cell "Încasează" [ref=e8893]:
+                - button "Încasează" [ref=e8894] [cursor=pointer]
+            - row "11.06.2026 RUSU ANDREEA ARIANA Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8895]:
+              - cell "11.06.2026" [ref=e8896]
+              - cell "RUSU ANDREEA ARIANA" [ref=e8897]:
+                - button "RUSU ANDREEA ARIANA" [ref=e8898] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8899]
+              - cell "Neachitat" [ref=e8900]
+              - cell "100,00 RON" [ref=e8901]
+              - cell "Încasează" [ref=e8902]:
+                - button "Încasează" [ref=e8903] [cursor=pointer]
+            - row "11.06.2026 SANDU FABIAN-IOAN Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8904]:
+              - cell "11.06.2026" [ref=e8905]
+              - cell "SANDU FABIAN-IOAN" [ref=e8906]:
+                - button "SANDU FABIAN-IOAN" [ref=e8907] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8908]
+              - cell "Neachitat" [ref=e8909]
+              - cell "100,00 RON" [ref=e8910]
+              - cell "Încasează" [ref=e8911]:
+                - button "Încasează" [ref=e8912] [cursor=pointer]
+            - row "11.06.2026 SOLCANU IOANA ELIZA Taxa examen 3 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8913]:
+              - cell "11.06.2026" [ref=e8914]
+              - cell "SOLCANU IOANA ELIZA" [ref=e8915]:
+                - button "SOLCANU IOANA ELIZA" [ref=e8916] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e8917]
+              - cell "Neachitat" [ref=e8918]
+              - cell "100,00 RON" [ref=e8919]
+              - cell "Încasează" [ref=e8920]:
+                - button "Încasează" [ref=e8921] [cursor=pointer]
+            - row "11.06.2026 ȘOLDĂNESCU ANISIA Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8922]:
+              - cell "11.06.2026" [ref=e8923]
+              - cell "ȘOLDĂNESCU ANISIA" [ref=e8924]:
+                - button "ȘOLDĂNESCU ANISIA" [ref=e8925] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8926]
+              - cell "Neachitat" [ref=e8927]
+              - cell "100,00 RON" [ref=e8928]
+              - cell "Încasează" [ref=e8929]:
+                - button "Încasează" [ref=e8930] [cursor=pointer]
+            - row "11.06.2026 ȘOLDĂNESCU MATEI Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8931]:
+              - cell "11.06.2026" [ref=e8932]
+              - cell "ȘOLDĂNESCU MATEI" [ref=e8933]:
+                - button "ȘOLDĂNESCU MATEI" [ref=e8934] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8935]
+              - cell "Neachitat" [ref=e8936]
+              - cell "100,00 RON" [ref=e8937]
+              - cell "Încasează" [ref=e8938]:
+                - button "Încasează" [ref=e8939] [cursor=pointer]
+            - row "11.06.2026 ȘOLDĂNESCU MINA Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8940]:
+              - cell "11.06.2026" [ref=e8941]
+              - cell "ȘOLDĂNESCU MINA" [ref=e8942]:
+                - button "ȘOLDĂNESCU MINA" [ref=e8943] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8944]
+              - cell "Neachitat" [ref=e8945]
+              - cell "100,00 RON" [ref=e8946]
+              - cell "Încasează" [ref=e8947]:
+                - button "Încasează" [ref=e8948] [cursor=pointer]
+            - row "11.06.2026 SPINARE ALEXANDRU Taxa examen 3 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8949]:
+              - cell "11.06.2026" [ref=e8950]
+              - cell "SPINARE ALEXANDRU" [ref=e8951]:
+                - button "SPINARE ALEXANDRU" [ref=e8952] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e8953]
+              - cell "Neachitat" [ref=e8954]
+              - cell "100,00 RON" [ref=e8955]
+              - cell "Încasează" [ref=e8956]:
+                - button "Încasează" [ref=e8957] [cursor=pointer]
+            - row "11.06.2026 TODICĂ ANDREI Taxa examen C.V. 1 Câp Alb Neachitat 100,00 RON Încasează" [ref=e8958]:
+              - cell "11.06.2026" [ref=e8959]
+              - cell "TODICĂ ANDREI" [ref=e8960]:
+                - button "TODICĂ ANDREI" [ref=e8961] [cursor=pointer]
+              - cell "Taxa examen C.V. 1 Câp Alb" [ref=e8962]
+              - cell "Neachitat" [ref=e8963]
+              - cell "100,00 RON" [ref=e8964]
+              - cell "Încasează" [ref=e8965]:
+                - button "Încasează" [ref=e8966] [cursor=pointer]
+            - row "11.06.2026 TODICĂ ELISA-MARIA Taxa examen 1 Câp Galben Neachitat 100,00 RON Încasează" [ref=e8967]:
+              - cell "11.06.2026" [ref=e8968]
+              - cell "TODICĂ ELISA-MARIA" [ref=e8969]:
+                - button "TODICĂ ELISA-MARIA" [ref=e8970] [cursor=pointer]
+              - cell "Taxa examen 1 Câp Galben" [ref=e8971]
+              - cell "Neachitat" [ref=e8972]
+              - cell "100,00 RON" [ref=e8973]
+              - cell "Încasează" [ref=e8974]:
+                - button "Încasează" [ref=e8975] [cursor=pointer]
+            - row "11.06.2026 TOMA SOFIA MARIA Taxa examen C.V. 1 Câp Alb Neachitat 100,00 RON Încasează" [ref=e8976]:
+              - cell "11.06.2026" [ref=e8977]
+              - cell "TOMA SOFIA MARIA" [ref=e8978]:
+                - button "TOMA SOFIA MARIA" [ref=e8979] [cursor=pointer]
+              - cell "Taxa examen C.V. 1 Câp Alb" [ref=e8980]
+              - cell "Neachitat" [ref=e8981]
+              - cell "100,00 RON" [ref=e8982]
+              - cell "Încasează" [ref=e8983]:
+                - button "Încasează" [ref=e8984] [cursor=pointer]
+            - row "11.06.2026 TRIFAN ANDREI STELIAN Taxa examen C.V. 1 Câp Alb Neachitat 100,00 RON Încasează" [ref=e8985]:
+              - cell "11.06.2026" [ref=e8986]
+              - cell "TRIFAN ANDREI STELIAN" [ref=e8987]:
+                - button "TRIFAN ANDREI STELIAN" [ref=e8988] [cursor=pointer]
+              - cell "Taxa examen C.V. 1 Câp Alb" [ref=e8989]
+              - cell "Neachitat" [ref=e8990]
+              - cell "100,00 RON" [ref=e8991]
+              - cell "Încasează" [ref=e8992]:
+                - button "Încasează" [ref=e8993] [cursor=pointer]
+            - row "11.06.2026 VAMESU DARIA-PARASCHIVA Taxa examen 2 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e8994]:
+              - cell "11.06.2026" [ref=e8995]
+              - cell "VAMESU DARIA-PARASCHIVA" [ref=e8996]:
+                - button "VAMESU DARIA-PARASCHIVA" [ref=e8997] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Roșu" [ref=e8998]
+              - cell "Neachitat" [ref=e8999]
+              - cell "100,00 RON" [ref=e9000]
+              - cell "Încasează" [ref=e9001]:
+                - button "Încasează" [ref=e9002] [cursor=pointer]
+            - row "11.06.2026 VASILIU SABIN ANDREI Taxa examen 4 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e9003]:
+              - cell "11.06.2026" [ref=e9004]
+              - cell "VASILIU SABIN ANDREI" [ref=e9005]:
+                - button "VASILIU SABIN ANDREI" [ref=e9006] [cursor=pointer]
+              - cell "Taxa examen 4 Câp Roșu" [ref=e9007]
+              - cell "Neachitat" [ref=e9008]
+              - cell "100,00 RON" [ref=e9009]
+              - cell "Încasează" [ref=e9010]:
+                - button "Încasează" [ref=e9011] [cursor=pointer]
+            - row "11.06.2026 VICTORIA ANA ELISABETA Taxa examen 2 Câp Albastru Neachitat 100,00 RON Încasează" [ref=e9012]:
+              - cell "11.06.2026" [ref=e9013]
+              - cell "VICTORIA ANA ELISABETA" [ref=e9014]:
+                - button "VICTORIA ANA ELISABETA" [ref=e9015] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Albastru" [ref=e9016]
+              - cell "Neachitat" [ref=e9017]
+              - cell "100,00 RON" [ref=e9018]
+              - cell "Încasează" [ref=e9019]:
+                - button "Încasează" [ref=e9020] [cursor=pointer]
+            - row "11.06.2026 CĂLUȘERIU SEBASTIAN Taxa examen 2 Câp Albastru Neachitat 100,00 RON Încasează" [ref=e9021]:
+              - cell "11.06.2026" [ref=e9022]
+              - cell "CĂLUȘERIU SEBASTIAN" [ref=e9023]:
+                - button "CĂLUȘERIU SEBASTIAN" [ref=e9024] [cursor=pointer]
+              - cell "Taxa examen 2 Câp Albastru" [ref=e9025]
+              - cell "Neachitat" [ref=e9026]
+              - cell "100,00 RON" [ref=e9027]
+              - cell "Încasează" [ref=e9028]:
+                - button "Încasează" [ref=e9029] [cursor=pointer]
+            - row "11.06.2026 CERVINSKI ANA Taxa examen 4 Câp Albastru Neachitat 100,00 RON Încasează" [ref=e9030]:
+              - cell "11.06.2026" [ref=e9031]
+              - cell "CERVINSKI ANA" [ref=e9032]:
+                - button "CERVINSKI ANA" [ref=e9033] [cursor=pointer]
+              - cell "Taxa examen 4 Câp Albastru" [ref=e9034]
+              - cell "Neachitat" [ref=e9035]
+              - cell "100,00 RON" [ref=e9036]
+              - cell "Încasează" [ref=e9037]:
+                - button "Încasează" [ref=e9038] [cursor=pointer]
+            - row "11.06.2026 COJOCARU DARIUS MATEI Taxa examen 3 Câp Roșu Neachitat 100,00 RON Încasează" [ref=e9039]:
+              - cell "11.06.2026" [ref=e9040]
+              - cell "COJOCARU DARIUS MATEI" [ref=e9041]:
+                - button "COJOCARU DARIUS MATEI" [ref=e9042] [cursor=pointer]
+              - cell "Taxa examen 3 Câp Roșu" [ref=e9043]
+              - cell "Neachitat" [ref=e9044]
+              - cell "100,00 RON" [ref=e9045]
+              - cell "Încasează" [ref=e9046]:
+                - button "Încasează" [ref=e9047] [cursor=pointer]
+            - row "11.06.2026 MIRON ANDREI NECTARIE Taxa examen C.V. 1 Câp Alb Neachitat 100,00 RON Încasează" [ref=e9048]:
+              - cell "11.06.2026" [ref=e9049]
+              - cell "MIRON ANDREI NECTARIE" [ref=e9050]:
+                - button "MIRON ANDREI NECTARIE" [ref=e9051] [cursor=pointer]
+              - cell "Taxa examen C.V. 1 Câp Alb" [ref=e9052]
+              - cell "Neachitat" [ref=e9053]
+              - cell "100,00 RON" [ref=e9054]
+              - cell "Încasează" [ref=e9055]:
+                - button "Încasează" [ref=e9056] [cursor=pointer]
+  - contentinfo [ref=e6301]:
+    - paragraph [ref=e6302]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e6303] [cursor=pointer]:
+      - img [ref=e6304]
+      - generic [ref=e6307]: Asistent AI

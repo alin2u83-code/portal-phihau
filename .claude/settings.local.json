@@ -319,7 +319,21 @@
       "mcp__playwright__browser_file_upload",
       "Skill(gsd-resume-work)",
       "Bash(findstr /i \"falticeni\\\\|fălticeni\\\\|falti\")",
-      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\lungu\\\\Downloads\" | Where-Object { $_.Name -match \"falticeni|fălticeni|falti|Falt\" } | Select-Object Name, Length, LastWriteTime)"
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\lungu\\\\Downloads\" | Where-Object { $_.Name -match \"falticeni|fălticeni|falti|Falt\" } | Select-Object Name, Length, LastWriteTime)",
+      "PowerShell(node \"C:\\\\Users\\\\lungu\\\\portal-phihau\\\\__read_excel.cjs\" 2>&1)",
+      "PowerShell(node \"C:\\\\Users\\\\lungu\\\\portal-phihau\\\\__prepare_csv.cjs\" 2>&1)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:5173\" -TimeoutSec 3 -UseBasicParsing; \"OK: $\\($r.StatusCode\\)\" } catch { \"DOWN: $_\" })",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:5173\" -TimeoutSec 5 -UseBasicParsing; \"OK: $\\($r.StatusCode\\)\" } catch { try { $r2 = Invoke-WebRequest -Uri \"http://localhost:4173\" -TimeoutSec 3 -UseBasicParsing; \"OK 4173: $\\($r2.StatusCode\\)\" } catch { \"DOWN pe ambele porturi\" } })",
+      "PowerShell(npx playwright --version 2>&1; if \\($LASTEXITCODE -ne 0\\) { \"Playwright not installed\" })",
+      "PowerShell(Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd 'C:\\\\Users\\\\lungu\\\\portal-phihau'; npm run dev\" -WindowStyle Minimized)",
+      "PowerShell(Start-Sleep -Seconds 5; try { $r = Invoke-WebRequest -Uri \"http://localhost:5173\" -TimeoutSec 5 -UseBasicParsing; \"OK: $\\($r.StatusCode\\)\" } catch { \"ERR: $_\" })",
+      "PowerShell(if \\(-not \\(Test-Path \"C:\\\\Users\\\\lungu\\\\portal-phihau\\\\.playwright-mcp\\\\reports\"\\)\\) { New-Item -ItemType Directory -Path \"C:\\\\Users\\\\lungu\\\\portal-phihau\\\\.playwright-mcp\\\\reports\" -Force })",
+      "Skill(gsd-discuss-phase)",
+      "Skill(gsd-ui-phase)",
+      "PowerShell(Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd 'C:\\\\Users\\\\lungu\\\\portal-phihau'; npm run dev\" -WindowStyle Normal)",
+      "Skill(gsd-new-milestone)",
+      "Skill(gsd-health)",
+      "Bash(npm update *)"
     ],
     "additionalDirectories": [
       "C:\\nvm4w\\nodejs"

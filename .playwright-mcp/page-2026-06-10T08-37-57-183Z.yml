@@ -1,0 +1,344 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Federație
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e71]: Examene
+            - img [ref=e72]
+          - generic [ref=e74]:
+            - generic [ref=e75] [cursor=pointer]:
+              - img [ref=e76]
+              - generic [ref=e82]: Activități Naționale
+              - img [ref=e83]
+            - generic [ref=e85]:
+              - generic [ref=e86] [cursor=pointer]: Competiții
+              - generic [ref=e88] [cursor=pointer]: Stagii
+              - generic [ref=e90] [cursor=pointer]: Template Probe
+          - generic [ref=e93] [cursor=pointer]:
+            - img [ref=e94]
+            - generic [ref=e97]: Setări & Admin
+            - img [ref=e98]
+          - generic [ref=e100] [cursor=pointer]:
+            - img [ref=e102]
+            - generic [ref=e104]: Rapoarte
+          - generic [ref=e105] [cursor=pointer]:
+            - img [ref=e107]
+            - generic [ref=e111]: Notificări
+          - generic [ref=e112] [cursor=pointer]:
+            - img [ref=e114]
+            - generic [ref=e116]: SMS
+          - generic [ref=e117] [cursor=pointer]:
+            - img [ref=e119]
+            - generic [ref=e122]: Cereri Înscriere
+          - generic [ref=e123] [cursor=pointer]:
+            - img [ref=e125]
+            - generic [ref=e128]: Istoric Activitate
+          - generic [ref=e129] [cursor=pointer]:
+            - img [ref=e131]
+            - generic [ref=e134]: Admin Dashboard
+          - generic [ref=e135] [cursor=pointer]:
+            - img [ref=e137]
+            - generic [ref=e143]: Button Catalog
+        - button "Scroll jos" [ref=e144] [cursor=pointer]:
+          - img [ref=e145]
+      - generic [ref=e147]:
+        - button "Tema" [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+          - generic [ref=e156]: Tema
+        - generic [ref=e158]:
+          - generic [ref=e159]: AL
+          - generic [ref=e160]:
+            - paragraph [ref=e161]: ALIN MIHAI LUNGU
+            - text: Super Admin
+          - button "Deconectare" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+  - banner [ref=e166]:
+    - generic [ref=e167]:
+      - button "Deschide meniu" [ref=e168] [cursor=pointer]:
+        - img [ref=e169]
+      - navigation "Navigare" [ref=e170]:
+        - heading "Competiții" [level=1] [ref=e171]
+    - generic [ref=e172]:
+      - button "Personalizare temă" [ref=e174] [cursor=pointer]:
+        - img [ref=e175]
+      - button [ref=e182] [cursor=pointer]:
+        - img [ref=e183]
+      - button "AL" [ref=e187] [cursor=pointer]:
+        - generic [ref=e188]: AL
+  - main [ref=e189]:
+    - generic [ref=e192]:
+      - generic [ref=e193]:
+        - button [ref=e194] [cursor=pointer]:
+          - img [ref=e195]
+        - generic [ref=e197]:
+          - heading "cupa iunie" [level=2] [ref=e198]
+          - generic [ref=e199]:
+            - generic [ref=e200]: CN Tehnica (Quyen / Kata)
+            - generic [ref=e201]: Înscrieri deschise
+            - generic [ref=e202]: 10.06.2026 – 10.06.2026
+        - button "Refresh" [ref=e203] [cursor=pointer]:
+          - img [ref=e204]
+        - button "Închide Înscrierile" [ref=e206] [cursor=pointer]
+      - generic [ref=e208]:
+        - button "Înscrieri (18)" [ref=e209] [cursor=pointer]:
+          - img [ref=e210]
+          - text: Înscrieri
+          - generic [ref=e212]: (18)
+        - button "Raport" [ref=e213] [cursor=pointer]
+        - button "Categorii (67)" [ref=e214] [cursor=pointer]:
+          - img [ref=e215]
+          - text: Categorii
+          - generic [ref=e217]: (67)
+        - button "Admin" [ref=e218] [cursor=pointer]:
+          - img [ref=e219]
+          - text: Admin
+        - button "Financiar" [ref=e222] [cursor=pointer]
+        - button "Template-uri" [ref=e223] [cursor=pointer]
+        - button "Cereri inter-club" [ref=e224] [cursor=pointer]
+        - button "Refresh" [ref=e225] [cursor=pointer]:
+          - img [ref=e226]
+      - generic [ref=e229]:
+        - button "Filtrează" [ref=e232] [cursor=pointer]:
+          - img [ref=e233]
+          - text: Filtrează
+          - img [ref=e235]
+        - generic [ref=e237]:
+          - button "Înregistrări Individuale (6)" [ref=e238] [cursor=pointer]:
+            - heading "Înregistrări Individuale (6)" [level=3] [ref=e239]
+            - img [ref=e240]
+          - table [ref=e243]:
+            - rowgroup [ref=e244]:
+              - row "Sportiv Status" [ref=e245]:
+                - columnheader "Sportiv" [ref=e246]
+                - columnheader "Status" [ref=e247]
+                - columnheader [ref=e248]
+            - rowgroup [ref=e249]:
+              - row "BALMUS IUSTINA C.S. Phi Hau ⚠ FRAM inscris" [ref=e250]:
+                - cell "BALMUS IUSTINA C.S. Phi Hau ⚠ FRAM" [ref=e251]:
+                  - generic [ref=e252]:
+                    - generic [ref=e253]: BALMUS IUSTINA
+                    - generic [ref=e254]: C.S. Phi Hau
+                    - generic "Viza FRAM neachitată pentru anul curent" [ref=e255]: ⚠ FRAM
+                - cell "inscris" [ref=e256]
+                - cell [ref=e257]
+              - row "BALTARIU RARES DIMITRIE C.S. Phi Hau ⚠ FRAM inscris" [ref=e258]:
+                - cell "BALTARIU RARES DIMITRIE C.S. Phi Hau ⚠ FRAM" [ref=e259]:
+                  - generic [ref=e260]:
+                    - generic [ref=e261]: BALTARIU RARES DIMITRIE
+                    - generic [ref=e262]: C.S. Phi Hau
+                    - generic "Viza FRAM neachitată pentru anul curent" [ref=e263]: ⚠ FRAM
+                - cell "inscris" [ref=e264]
+                - cell [ref=e265]
+              - row "BARBIERU EVA CRISTINA C.S. Phi Hau ⚠ FRAM inscris" [ref=e266]:
+                - cell "BARBIERU EVA CRISTINA C.S. Phi Hau ⚠ FRAM" [ref=e267]:
+                  - generic [ref=e268]:
+                    - generic [ref=e269]: BARBIERU EVA CRISTINA
+                    - generic [ref=e270]: C.S. Phi Hau
+                    - generic "Viza FRAM neachitată pentru anul curent" [ref=e271]: ⚠ FRAM
+                - cell "inscris" [ref=e272]
+                - cell [ref=e273]
+              - row "COJOCARU DARIUS MATEI Kim Long Dao Falticeni ⚠ FRAM inscris" [ref=e274]:
+                - cell "COJOCARU DARIUS MATEI Kim Long Dao Falticeni ⚠ FRAM" [ref=e275]:
+                  - generic [ref=e276]:
+                    - generic [ref=e277]: COJOCARU DARIUS MATEI
+                    - generic [ref=e278]: Kim Long Dao Falticeni
+                    - generic "Viza FRAM neachitată pentru anul curent" [ref=e279]: ⚠ FRAM
+                - cell "inscris" [ref=e280]
+                - cell [ref=e281]
+              - row "CURCĂ ANASTASIA IONELA Kim Long Dao Falticeni ⚠ FRAM inscris" [ref=e282]:
+                - cell "CURCĂ ANASTASIA IONELA Kim Long Dao Falticeni ⚠ FRAM" [ref=e283]:
+                  - generic [ref=e284]:
+                    - generic [ref=e285]: CURCĂ ANASTASIA IONELA
+                    - generic [ref=e286]: Kim Long Dao Falticeni
+                    - generic "Viza FRAM neachitată pentru anul curent" [ref=e287]: ⚠ FRAM
+                - cell "inscris" [ref=e288]
+                - cell [ref=e289]
+              - row "CIOCÂRLAN RAMIN-DIMITRIE Kim Long Dao Falticeni ⚠ FRAM inscris" [ref=e290]:
+                - cell "CIOCÂRLAN RAMIN-DIMITRIE Kim Long Dao Falticeni ⚠ FRAM" [ref=e291]:
+                  - generic [ref=e292]:
+                    - generic [ref=e293]: CIOCÂRLAN RAMIN-DIMITRIE
+                    - generic [ref=e294]: Kim Long Dao Falticeni
+                    - generic "Viza FRAM neachitată pentru anul curent" [ref=e295]: ⚠ FRAM
+                - cell "inscris" [ref=e296]
+                - cell [ref=e297]
+        - generic [ref=e298]:
+          - button "Echipe (10)" [active] [ref=e299] [cursor=pointer]:
+            - heading "Echipe (10)" [level=3] [ref=e300]
+            - img [ref=e301]
+          - generic [ref=e303]:
+            - generic [ref=e305]:
+              - generic [ref=e306]:
+                - generic [ref=e307]: Echipă fără denumire
+                - generic [ref=e308]: 11-12 ani / Feminin / Song Luyen / 1-2 Cap Rosu
+                - generic [ref=e309]:
+                  - generic [ref=e310]:
+                    - generic [ref=e311]: DELEANU GUȘĂ EDEN MARIA
+                    - generic "Fără viză FRAM" [ref=e312]: ⚠
+                  - generic [ref=e313]:
+                    - generic [ref=e314]: ANECHIFORESEI GABRIELA
+                    - generic "Fără viză FRAM" [ref=e315]: ⚠
+              - generic [ref=e316]:
+                - generic [ref=e317]: inscrisa
+                - button "Editează componența" [ref=e318] [cursor=pointer]
+            - generic [ref=e320]:
+              - generic [ref=e321]:
+                - generic [ref=e322]: Echipă fără denumire
+                - generic [ref=e323]: 11-12 ani / Feminin / Sincron / CV - CV 4 Cap Alb
+                - generic [ref=e324]:
+                  - generic [ref=e325]:
+                    - generic [ref=e326]: MIRON REBECA
+                    - generic "Fără viză FRAM" [ref=e327]: ⚠
+                  - generic [ref=e328]:
+                    - generic [ref=e329]: ONOFREI MIRIAM
+                    - generic "Fără viză FRAM" [ref=e330]: ⚠
+              - generic [ref=e331]:
+                - generic [ref=e332]: inscrisa
+                - button "Editează componența" [ref=e333] [cursor=pointer]
+            - generic [ref=e335]:
+              - generic [ref=e336]:
+                - generic [ref=e337]: Echipă fără denumire
+                - generic [ref=e338]: 11-12 ani / Masculin / Sincron / 3-4 Cap Rosu
+                - generic [ref=e339]:
+                  - generic [ref=e340]:
+                    - generic [ref=e341]: CABALAU BOGDAN PAUL ROALD
+                    - generic "Fără viză FRAM" [ref=e342]: ⚠
+                  - generic [ref=e343]:
+                    - generic [ref=e344]: FOTACHE ALEXANDRU GEORGE
+                    - generic "Fără viză FRAM" [ref=e345]: ⚠
+              - generic [ref=e346]:
+                - generic [ref=e347]: inscrisa
+                - button "Editează componența" [ref=e348] [cursor=pointer]
+            - generic [ref=e350]:
+              - generic [ref=e351]:
+                - generic [ref=e352]: Echipă fără denumire
+                - generic [ref=e353]: 11-12 ani / Mixt / Sincron / 3-4 Cap Rosu
+                - generic [ref=e354]:
+                  - generic [ref=e355]:
+                    - generic [ref=e356]: CABALAU BOGDAN PAUL ROALD
+                    - generic "Fără viză FRAM" [ref=e357]: ⚠
+                  - generic [ref=e358]:
+                    - generic [ref=e359]: FOTACHE ALEXANDRU GEORGE
+                    - generic "Fără viză FRAM" [ref=e360]: ⚠
+                  - generic [ref=e361]:
+                    - generic [ref=e362]: CALISKAN ESRA
+                    - generic "Fără viză FRAM" [ref=e363]: ⚠
+              - generic [ref=e364]:
+                - generic [ref=e365]: inscrisa
+                - button "Editează componența" [ref=e366] [cursor=pointer]
+            - generic [ref=e368]:
+              - generic [ref=e369]:
+                - generic [ref=e370]: Echipă fără denumire
+                - generic [ref=e371]: 11-12 ani / Feminin / Song Luyen / 1-2 Cap Rosu
+                - generic [ref=e372]:
+                  - generic [ref=e373]:
+                    - generic [ref=e374]: DOBOS ANA MARIA
+                    - generic "Fără viză FRAM" [ref=e375]: ⚠
+                  - generic [ref=e376]:
+                    - generic [ref=e377]: FILIP IUSTINA
+                    - generic "Fără viză FRAM" [ref=e378]: ⚠
+              - generic [ref=e379]:
+                - generic [ref=e380]: inscrisa
+                - button "Editează componența" [ref=e381] [cursor=pointer]
+            - generic [ref=e383]:
+              - generic [ref=e384]:
+                - generic [ref=e385]: Echipă fără denumire
+                - generic [ref=e386]: 11-12 ani / Masculin / Song Luyen / 1-2 Cap Rosu
+                - generic [ref=e387]:
+                  - generic [ref=e388]:
+                    - generic [ref=e389]: BALTARIU RARES DIMITRIE
+                    - generic "Fără viză FRAM" [ref=e390]: ⚠
+                  - generic [ref=e391]:
+                    - generic [ref=e392]: DORNEAN MIHAI ADRIAN
+                    - generic "Fără viză FRAM" [ref=e393]: ⚠
+              - generic [ref=e394]:
+                - generic [ref=e395]: inscrisa
+                - button "Editează componența" [ref=e396] [cursor=pointer]
+            - generic [ref=e398]:
+              - generic [ref=e399]:
+                - generic [ref=e400]: Echipă fără denumire
+                - generic [ref=e401]: 11-12 ani / Mixt / Song Luyen / 1-2 Cap Rosu
+                - generic [ref=e402]:
+                  - generic [ref=e403]:
+                    - generic [ref=e404]: BARBIERU EVA CRISTINA
+                    - generic "Fără viză FRAM" [ref=e405]: ⚠
+                  - generic [ref=e406]:
+                    - generic [ref=e407]: DORNEAN MIHAI ADRIAN
+                    - generic "Fără viză FRAM" [ref=e408]: ⚠
+              - generic [ref=e409]:
+                - generic [ref=e410]: inscrisa
+                - button "Editează componența" [ref=e411] [cursor=pointer]
+            - generic [ref=e413]:
+              - generic [ref=e414]:
+                - generic [ref=e415]: Echipă fără denumire
+                - generic [ref=e416]: 11-12 ani / Feminin / Sincron / CV - CV 4 Cap Alb
+                - generic [ref=e417]:
+                  - generic [ref=e418]:
+                    - generic [ref=e419]: BALMUS IUSTINA
+                    - generic "Fără viză FRAM" [ref=e420]: ⚠
+                  - generic [ref=e421]:
+                    - generic [ref=e422]: CAREJA ANTONIA ELENA
+                    - generic "Fără viză FRAM" [ref=e423]: ⚠
+                  - generic [ref=e424]:
+                    - generic [ref=e425]: ANDRICIUC SONIA
+                    - generic "Fără viză FRAM" [ref=e426]: ⚠
+              - generic [ref=e427]:
+                - generic [ref=e428]: inscrisa
+                - button "Editează componența" [ref=e429] [cursor=pointer]
+            - generic [ref=e431]:
+              - generic [ref=e432]:
+                - generic [ref=e433]: Echipă fără denumire
+                - generic [ref=e434]: 11-12 ani / Masculin / Sincron / CV - CV 4 Cap Alb
+                - generic [ref=e435]:
+                  - generic [ref=e436]:
+                    - generic [ref=e437]: AMARIEI ALEXANDRU LUCIAN
+                    - generic "Fără viză FRAM" [ref=e438]: ⚠
+                  - generic [ref=e439]:
+                    - generic [ref=e440]: RADU RAZVAN
+                    - generic "Fără viză FRAM" [ref=e441]: ⚠
+                  - generic [ref=e442]:
+                    - generic [ref=e443]: MOROȘANU DAMIAN ȘTEFAN
+                    - generic "Fără viză FRAM" [ref=e444]: ⚠
+              - generic [ref=e445]:
+                - generic [ref=e446]: inscrisa
+                - button "Editează componența" [ref=e447] [cursor=pointer]
+            - generic [ref=e449]:
+              - generic [ref=e450]:
+                - generic [ref=e451]: Echipă fără denumire
+                - generic [ref=e452]: 11-12 ani / Mixt / Sincron / CV - CV 4 Cap Alb
+                - generic [ref=e453]:
+                  - generic [ref=e454]:
+                    - generic [ref=e455]: AMARIEI ALBERT-MATEI
+                    - generic "Fără viză FRAM" [ref=e456]: ⚠
+                  - generic [ref=e457]:
+                    - generic [ref=e458]: AMARIEI ALEXANDRU LUCIAN
+                    - generic "Fără viză FRAM" [ref=e459]: ⚠
+                  - generic [ref=e460]:
+                    - generic [ref=e461]: ONOFREI MIRIAM
+                    - generic "Fără viză FRAM" [ref=e462]: ⚠
+              - generic [ref=e463]:
+                - generic [ref=e464]: inscrisa
+                - button "Editează componența" [ref=e465] [cursor=pointer]
+  - button "Asistent AI" [ref=e467] [cursor=pointer]:
+    - img [ref=e468]

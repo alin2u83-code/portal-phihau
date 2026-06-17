@@ -1,0 +1,783 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e19]:
+    - complementary [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22] [cursor=pointer]:
+          - img "Qwan Ki Do Romania" [ref=e25]
+          - generic [ref=e27]:
+            - generic [ref=e28]: Qwan Ki Do
+            - generic [ref=e29]: Management
+        - button "Context Activ Federație" [ref=e33] [cursor=pointer]:
+          - img [ref=e35]
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: Context Activ
+            - paragraph [ref=e40]: Federație
+          - img [ref=e41]
+        - generic [ref=e43]:
+          - button "Scroll sus":
+            - img
+          - navigation [ref=e44]:
+            - generic [ref=e45] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e52]: Dashboard
+            - generic [ref=e54] [cursor=pointer]:
+              - img [ref=e55]
+              - generic [ref=e60]: Gestiune Membri
+              - img [ref=e61]
+            - generic [ref=e63]:
+              - generic [ref=e64] [cursor=pointer]:
+                - img [ref=e65]
+                - generic [ref=e71]: Examene
+                - img [ref=e72]
+              - generic [ref=e74]:
+                - generic [ref=e75] [cursor=pointer]: Sesiuni Examene
+                - generic [ref=e77] [cursor=pointer]: Rapoarte Examen
+            - generic [ref=e80] [cursor=pointer]:
+              - img [ref=e81]
+              - generic [ref=e87]: Activități Naționale
+              - img [ref=e88]
+            - generic [ref=e91] [cursor=pointer]:
+              - img [ref=e92]
+              - generic [ref=e95]: Setări & Admin
+              - img [ref=e96]
+            - generic [ref=e98] [cursor=pointer]:
+              - img [ref=e100]
+              - generic [ref=e102]: Rapoarte
+            - generic [ref=e103] [cursor=pointer]:
+              - img [ref=e105]
+              - generic [ref=e109]: Notificări
+            - generic [ref=e110] [cursor=pointer]:
+              - img [ref=e112]
+              - generic [ref=e114]: SMS
+            - generic [ref=e115] [cursor=pointer]:
+              - img [ref=e117]
+              - generic [ref=e120]: Cereri Înscriere
+            - generic [ref=e121] [cursor=pointer]:
+              - img [ref=e123]
+              - generic [ref=e126]: Istoric Activitate
+            - generic [ref=e127] [cursor=pointer]:
+              - img [ref=e129]
+              - generic [ref=e132]: Admin Dashboard
+            - generic [ref=e133] [cursor=pointer]:
+              - img [ref=e135]
+              - generic [ref=e141]: Button Catalog
+          - button "Scroll jos" [ref=e142] [cursor=pointer]:
+            - img [ref=e143]
+        - generic [ref=e145]:
+          - button "Tema" [ref=e147] [cursor=pointer]:
+            - img [ref=e148]
+            - generic [ref=e154]: Tema
+          - generic [ref=e156]:
+            - generic [ref=e157]: AL
+            - generic [ref=e158]:
+              - paragraph [ref=e159]: ALIN MIHAI LUNGU
+              - text: Super Admin
+            - button "Deconectare" [ref=e160] [cursor=pointer]:
+              - img [ref=e161]
+    - button "Restrânge meniul" [ref=e164] [cursor=pointer]:
+      - img [ref=e165]
+    - banner [ref=e167]:
+      - navigation "Navigare" [ref=e169]:
+        - heading "Examene" [level=1] [ref=e170]
+      - generic [ref=e171]:
+        - button "Temă" [ref=e173] [cursor=pointer]:
+          - img [ref=e174]
+          - generic [ref=e180]: Temă
+        - button [ref=e182] [cursor=pointer]:
+          - img [ref=e183]
+        - button "AL ALIN MIHAI [SUPER ADMIN]" [ref=e188] [cursor=pointer]:
+          - generic [ref=e189]: AL
+          - paragraph [ref=e191]:
+            - text: ALIN MIHAI
+            - generic [ref=e192]: "[SUPER ADMIN]"
+          - img [ref=e193]
+    - main [ref=e195]:
+      - generic [ref=e198]:
+        - button "Înapoi la listă" [ref=e199] [cursor=pointer]:
+          - img [ref=e200]
+          - text: Înapoi la listă
+        - generic [ref=e202]:
+          - generic [ref=e203]:
+            - generic [ref=e204]:
+              - heading "Falticeni - 11.06.2026" [level=3] [ref=e205]
+              - paragraph [ref=e206]: "Comisia:"
+              - text: Finalizat
+            - generic [ref=e207]:
+              - button "Ghid import XLS" [ref=e208] [cursor=pointer]:
+                - img [ref=e209]
+              - button "Import Sportivi" [ref=e212] [cursor=pointer]:
+                - img [ref=e213]
+                - text: Import Sportivi
+              - button "Import XLS" [ref=e216] [cursor=pointer]:
+                - img [ref=e217]
+                - text: Import XLS
+              - button "Export Fișe" [ref=e220] [cursor=pointer]:
+                - img [ref=e221]
+                - text: Export Fișe
+              - button "Editează" [ref=e223] [cursor=pointer]:
+                - img [ref=e224]
+                - text: Editează
+          - generic [ref=e227]:
+            - generic [ref=e228]:
+              - generic [ref=e230]:
+                - heading "Înscriere Participanți" [level=3] [ref=e231]
+                - paragraph [ref=e232]: Adaugă sportivi individual sau selectează mai mulți odată
+              - generic [ref=e233]:
+                - button "Adaugă Individual" [ref=e234] [cursor=pointer]:
+                  - img [ref=e235]
+                  - text: Adaugă Individual
+                - button "Adaugă Multipli" [ref=e236] [cursor=pointer]:
+                  - img [ref=e237]
+                  - text: Adaugă Multipli
+            - generic [ref=e238]:
+              - generic [ref=e239]:
+                - paragraph [ref=e240]: "5"
+                - paragraph [ref=e241]: Admiși
+              - generic [ref=e242]:
+                - paragraph [ref=e243]: "60"
+                - paragraph [ref=e244]: În așteptare
+              - generic [ref=e245]:
+                - paragraph [ref=e246]: "0"
+                - paragraph [ref=e247]: Respinși
+            - generic [ref=e248]:
+              - generic [ref=e249]:
+                - heading "Participanți Înscriși65" [level=3] [ref=e1332]
+                - generic [ref=e251]:
+                  - button "Export Fișe" [ref=e252] [cursor=pointer]:
+                    - img [ref=e253]
+                    - text: Export Fișe
+                  - button "Admite Toți" [ref=e255] [cursor=pointer]
+              - generic [ref=e256]:
+                - table [ref=e258]:
+                  - rowgroup [ref=e259]:
+                    - row "Nume Sportiv Grad Actual Grad Vizat Status Plată Rezultat Acțiuni" [ref=e260]:
+                      - columnheader "Nume Sportiv" [ref=e261] [cursor=pointer]
+                      - columnheader "Grad Actual" [ref=e262] [cursor=pointer]
+                      - columnheader "Grad Vizat" [ref=e263] [cursor=pointer]
+                      - columnheader "Status Plată" [ref=e264] [cursor=pointer]
+                      - columnheader "Rezultat" [ref=e265] [cursor=pointer]
+                      - columnheader "Acțiuni" [ref=e266] [cursor=pointer]
+                  - rowgroup [ref=e267]:
+                    - row "CERVINSKI ANA 3 Câp Albastru 4 Câp Albastru Neachitat În așteptare" [ref=e268]:
+                      - cell "CERVINSKI ANA" [ref=e269]:
+                        - paragraph [ref=e270] [cursor=pointer]: CERVINSKI ANA
+                      - cell "3 Câp Albastru" [ref=e271]
+                      - cell "4 Câp Albastru" [ref=e272]
+                      - cell "Neachitat" [ref=e273]:
+                        - generic [ref=e275]: Neachitat
+                      - cell "În așteptare" [ref=e276]:
+                        - generic [ref=e278]:
+                          - combobox [ref=e279]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e280]:
+                        - generic [ref=e281]:
+                          - button "Modifică gradul vizat" [ref=e282] [cursor=pointer]:
+                            - img [ref=e283]
+                          - button "Retrage înscriere" [ref=e286] [cursor=pointer]:
+                            - img [ref=e287]
+                    - row "HLIHOR IOAN 3 Câp Albastru 4 Câp Albastru Neachitat În așteptare" [ref=e290]:
+                      - cell "HLIHOR IOAN" [ref=e291]:
+                        - paragraph [ref=e292] [cursor=pointer]: HLIHOR IOAN
+                      - cell "3 Câp Albastru" [ref=e293]
+                      - cell "4 Câp Albastru" [ref=e294]
+                      - cell "Neachitat" [ref=e295]:
+                        - generic [ref=e297]: Neachitat
+                      - cell "În așteptare" [ref=e298]:
+                        - generic [ref=e300]:
+                          - combobox [ref=e301]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e302]:
+                        - generic [ref=e303]:
+                          - button "Modifică gradul vizat" [ref=e304] [cursor=pointer]:
+                            - img [ref=e305]
+                          - button "Retrage înscriere" [ref=e308] [cursor=pointer]:
+                            - img [ref=e309]
+                    - row "CĂLUȘERIU CARMEN IONELA 2 Câp Albastru 3 Câp Albastru Neachitat În așteptare" [ref=e312]:
+                      - cell "CĂLUȘERIU CARMEN IONELA" [ref=e313]:
+                        - paragraph [ref=e314] [cursor=pointer]: CĂLUȘERIU CARMEN IONELA
+                      - cell "2 Câp Albastru" [ref=e315]
+                      - cell "3 Câp Albastru" [ref=e316]
+                      - cell "Neachitat" [ref=e317]:
+                        - generic [ref=e319]: Neachitat
+                      - cell "În așteptare" [ref=e320]:
+                        - generic [ref=e322]:
+                          - combobox [ref=e323]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e324]:
+                        - generic [ref=e325]:
+                          - button "Modifică gradul vizat" [ref=e326] [cursor=pointer]:
+                            - img [ref=e327]
+                          - button "Retrage înscriere" [ref=e330] [cursor=pointer]:
+                            - img [ref=e331]
+                    - row "AIOANEI TUDOR FLORIN 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e334]:
+                      - cell "AIOANEI TUDOR FLORIN" [ref=e335]:
+                        - paragraph [ref=e336] [cursor=pointer]: AIOANEI TUDOR FLORIN
+                      - cell "1 Câp Albastru" [ref=e337]
+                      - cell "2 Câp Albastru" [ref=e338]
+                      - cell "Neachitat" [ref=e339]:
+                        - generic [ref=e341]: Neachitat
+                      - cell "În așteptare" [ref=e342]:
+                        - generic [ref=e344]:
+                          - combobox [ref=e345]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e346]:
+                        - generic [ref=e347]:
+                          - button "Modifică gradul vizat" [ref=e348] [cursor=pointer]:
+                            - img [ref=e349]
+                          - button "Retrage înscriere" [ref=e352] [cursor=pointer]:
+                            - img [ref=e353]
+                    - row "APOSTOL ANDREEA 2 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e356]:
+                      - cell "APOSTOL ANDREEA" [ref=e357]:
+                        - paragraph [ref=e358] [cursor=pointer]: APOSTOL ANDREEA
+                      - cell "2 Câp Albastru" [ref=e359]
+                      - cell "2 Câp Albastru" [ref=e360]
+                      - cell "Neachitat" [ref=e361]:
+                        - generic [ref=e363]: Neachitat
+                      - cell "În așteptare" [ref=e364]:
+                        - generic [ref=e366]:
+                          - combobox [ref=e367]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e368]:
+                        - generic [ref=e369]:
+                          - button "Modifică gradul vizat" [ref=e370] [cursor=pointer]:
+                            - img [ref=e371]
+                          - button "Retrage înscriere" [ref=e374] [cursor=pointer]:
+                            - img [ref=e375]
+                    - row "AVĂDANEI ROBERT ANDREI 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e378]:
+                      - cell "AVĂDANEI ROBERT ANDREI" [ref=e379]:
+                        - paragraph [ref=e380] [cursor=pointer]: AVĂDANEI ROBERT ANDREI
+                      - cell "1 Câp Albastru" [ref=e381]
+                      - cell "2 Câp Albastru" [ref=e382]
+                      - cell "Neachitat" [ref=e383]:
+                        - generic [ref=e385]: Neachitat
+                      - cell "În așteptare" [ref=e386]:
+                        - generic [ref=e388]:
+                          - combobox [ref=e389]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e390]:
+                        - generic [ref=e391]:
+                          - button "Modifică gradul vizat" [ref=e392] [cursor=pointer]:
+                            - img [ref=e393]
+                          - button "Retrage înscriere" [ref=e396] [cursor=pointer]:
+                            - img [ref=e397]
+                    - row "CĂLUȘERIU SEBASTIAN 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e400]:
+                      - cell "CĂLUȘERIU SEBASTIAN" [ref=e401]:
+                        - paragraph [ref=e402] [cursor=pointer]: CĂLUȘERIU SEBASTIAN
+                      - cell "1 Câp Albastru" [ref=e403]
+                      - cell "2 Câp Albastru" [ref=e404]
+                      - cell "Neachitat" [ref=e405]:
+                        - generic [ref=e407]: Neachitat
+                      - cell "În așteptare" [ref=e408]:
+                        - generic [ref=e410]:
+                          - combobox [ref=e411]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e412]:
+                        - generic [ref=e413]:
+                          - button "Modifică gradul vizat" [ref=e414] [cursor=pointer]:
+                            - img [ref=e415]
+                          - button "Retrage înscriere" [ref=e418] [cursor=pointer]:
+                            - img [ref=e419]
+                    - row "DOCHIA ȘTEFAN 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e422]:
+                      - cell "DOCHIA ȘTEFAN" [ref=e423]:
+                        - paragraph [ref=e424] [cursor=pointer]: DOCHIA ȘTEFAN
+                      - cell "1 Câp Albastru" [ref=e425]
+                      - cell "2 Câp Albastru" [ref=e426]
+                      - cell "Neachitat" [ref=e427]:
+                        - generic [ref=e429]: Neachitat
+                      - cell "În așteptare" [ref=e430]:
+                        - generic [ref=e432]:
+                          - combobox [ref=e433]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e434]:
+                        - generic [ref=e435]:
+                          - button "Modifică gradul vizat" [ref=e436] [cursor=pointer]:
+                            - img [ref=e437]
+                          - button "Retrage înscriere" [ref=e440] [cursor=pointer]:
+                            - img [ref=e441]
+                    - row "GRAUR CLAUDIA GEORGIANA 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e444]:
+                      - cell "GRAUR CLAUDIA GEORGIANA" [ref=e445]:
+                        - paragraph [ref=e446] [cursor=pointer]: GRAUR CLAUDIA GEORGIANA
+                      - cell "1 Câp Albastru" [ref=e447]
+                      - cell "2 Câp Albastru" [ref=e448]
+                      - cell "Neachitat" [ref=e449]:
+                        - generic [ref=e451]: Neachitat
+                      - cell "În așteptare" [ref=e452]:
+                        - generic [ref=e454]:
+                          - combobox [ref=e455]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e456]:
+                        - generic [ref=e457]:
+                          - button "Modifică gradul vizat" [ref=e458] [cursor=pointer]:
+                            - img [ref=e459]
+                          - button "Retrage înscriere" [ref=e462] [cursor=pointer]:
+                            - img [ref=e463]
+                    - row "VICTORIA ANA ELISABETA 1 Câp Albastru 2 Câp Albastru Neachitat În așteptare" [ref=e466]:
+                      - cell "VICTORIA ANA ELISABETA" [ref=e467]:
+                        - paragraph [ref=e468] [cursor=pointer]: VICTORIA ANA ELISABETA
+                      - cell "1 Câp Albastru" [ref=e469]
+                      - cell "2 Câp Albastru" [ref=e470]
+                      - cell "Neachitat" [ref=e471]:
+                        - generic [ref=e473]: Neachitat
+                      - cell "În așteptare" [ref=e474]:
+                        - generic [ref=e476]:
+                          - combobox [ref=e477]:
+                            - option "În așteptare" [selected]
+                            - option "Admis"
+                            - option "Respins"
+                          - generic:
+                            - img
+                      - cell [ref=e478]:
+                        - generic [ref=e479]:
+                          - button "Modifică gradul vizat" [ref=e480] [cursor=pointer]:
+                            - img [ref=e481]
+                          - button "Retrage înscriere" [ref=e484] [cursor=pointer]:
+                            - img [ref=e485]
+                - generic [ref=e488]:
+                  - button "Anterior" [disabled] [ref=e489]
+                  - generic [ref=e490]: Pagina 1 din 7
+                  - button "Următor" [ref=e491] [cursor=pointer]
+    - contentinfo [ref=e492]:
+      - paragraph [ref=e493]: Realizat cu AI de Alin Lungu
+      - button "Asistent AI" [ref=e494] [cursor=pointer]:
+        - img [ref=e495]
+        - generic [ref=e498]: Asistent AI
+  - dialog "Import XLS — Sesiune Examen" [ref=e502]:
+    - generic [ref=e503]:
+      - generic [ref=e504]:
+        - heading "Import XLS — Sesiune Examen" [level=2] [ref=e505]
+        - button [ref=e506] [cursor=pointer]:
+          - img [ref=e507]
+      - generic [ref=e510]:
+        - generic [ref=e511]:
+          - generic [ref=e512]:
+            - generic [ref=e513]: âœ"
+            - generic [ref=e514]: Upload
+          - generic [ref=e516]:
+            - generic [ref=e517]: âœ"
+            - generic [ref=e518]: Verificare
+          - generic [ref=e520]:
+            - generic [ref=e521]: âœ"
+            - generic [ref=e522]: Confirmare
+          - generic [ref=e524]:
+            - generic [ref=e525]: "4"
+            - generic [ref=e526]: Raport
+        - generic [ref=e1333]:
+          - generic [ref=e1334]:
+            - generic [ref=e1335]:
+              - paragraph [ref=e1336]: "5"
+              - paragraph [ref=e1337]: Salvați cu succes
+            - generic [ref=e1338]:
+              - paragraph [ref=e1339]: "0"
+              - paragraph [ref=e1340]: Erori
+            - generic [ref=e1341]:
+              - paragraph [ref=e1342]: "43"
+              - paragraph [ref=e1343]: Ignorate
+            - generic [ref=e1344]:
+              - paragraph [ref=e1345]: "3"
+              - paragraph [ref=e1346]: Sportivi noi creați
+          - generic [ref=e1347]:
+            - img [ref=e1348]
+            - text: Import finalizat fără erori. 5 sportivi înscriși în sesiune.
+          - generic [ref=e1351]:
+            - button "Toți (48)" [ref=e1352] [cursor=pointer]
+            - button "Salvați (5)" [ref=e1353] [cursor=pointer]
+            - button "Erori (0)" [ref=e1354] [cursor=pointer]
+            - button "Ignorate (43)" [ref=e1355] [cursor=pointer]
+          - table [ref=e1357]:
+            - rowgroup [ref=e1358]:
+              - row "Sportiv Grad Rezultat Status Motiv" [ref=e1359]:
+                - columnheader "Sportiv" [ref=e1360]
+                - columnheader "Grad" [ref=e1361]
+                - columnheader "Rezultat" [ref=e1362]
+                - columnheader "Status" [ref=e1363]
+                - columnheader "Motiv" [ref=e1364]
+            - rowgroup [ref=e1365]:
+              - row "CERCEL IOANA-MELISA 1 CAP GALBEN Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1366]:
+                - cell "CERCEL IOANA-MELISA" [ref=e1367]
+                - cell "1 CAP GALBEN" [ref=e1368]
+                - cell "Admis" [ref=e1369]
+                - cell "Ignorat" [ref=e1370]:
+                  - generic [ref=e1371]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1372]
+              - row "BADIU ANDREI-COSMINNOU 1 CAP R Admis Salvat Sportiv creat și înscris" [ref=e1373]:
+                - cell "BADIU ANDREI-COSMINNOU" [ref=e1374]
+                - cell "1 CAP R" [ref=e1375]
+                - cell "Admis" [ref=e1376]
+                - cell "Salvat" [ref=e1377]:
+                  - generic [ref=e1378]:
+                    - img [ref=e1379]
+                    - text: Salvat
+                - cell "Sportiv creat și înscris" [ref=e1382]
+              - row "BĂEȘU TEODOR 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1383]:
+                - cell "BĂEȘU TEODOR" [ref=e1384]
+                - cell "1 CAP R" [ref=e1385]
+                - cell "Admis" [ref=e1386]
+                - cell "Ignorat" [ref=e1387]:
+                  - generic [ref=e1388]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1389]
+              - row "CURCĂ ANASTASIA IONELA 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1390]:
+                - cell "CURCĂ ANASTASIA IONELA" [ref=e1391]
+                - cell "1 CAP R" [ref=e1392]
+                - cell "Admis" [ref=e1393]
+                - cell "Ignorat" [ref=e1394]:
+                  - generic [ref=e1395]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1396]
+              - row "DELEANU GUȘĂ EDEN MARIA 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1397]:
+                - cell "DELEANU GUȘĂ EDEN MARIA" [ref=e1398]
+                - cell "1 CAP R" [ref=e1399]
+                - cell "Admis" [ref=e1400]
+                - cell "Ignorat" [ref=e1401]:
+                  - generic [ref=e1402]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1403]
+              - row "GRIGORAȘ ECATERINA 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1404]:
+                - cell "GRIGORAȘ ECATERINA" [ref=e1405]
+                - cell "1 CAP R" [ref=e1406]
+                - cell "Admis" [ref=e1407]
+                - cell "Ignorat" [ref=e1408]:
+                  - generic [ref=e1409]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1410]
+              - row "ONOFREI LUCA 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1411]:
+                - cell "ONOFREI LUCA" [ref=e1412]
+                - cell "1 CAP R" [ref=e1413]
+                - cell "Admis" [ref=e1414]
+                - cell "Ignorat" [ref=e1415]:
+                  - generic [ref=e1416]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1417]
+              - row "PASINCIUC FILIP 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1418]:
+                - cell "PASINCIUC FILIP" [ref=e1419]
+                - cell "1 CAP R" [ref=e1420]
+                - cell "Admis" [ref=e1421]
+                - cell "Ignorat" [ref=e1422]:
+                  - generic [ref=e1423]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1424]
+              - row "PINTILEI DARIUS ANDREI 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1425]:
+                - cell "PINTILEI DARIUS ANDREI" [ref=e1426]
+                - cell "1 CAP R" [ref=e1427]
+                - cell "Admis" [ref=e1428]
+                - cell "Ignorat" [ref=e1429]:
+                  - generic [ref=e1430]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1431]
+              - row "SANDU FABIAN-IOAN 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1432]:
+                - cell "SANDU FABIAN-IOAN" [ref=e1433]
+                - cell "1 CAP R" [ref=e1434]
+                - cell "Admis" [ref=e1435]
+                - cell "Ignorat" [ref=e1436]:
+                  - generic [ref=e1437]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1438]
+              - row "ȘOLDĂNESCU MATEI 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1439]:
+                - cell "ȘOLDĂNESCU MATEI" [ref=e1440]
+                - cell "1 CAP R" [ref=e1441]
+                - cell "Admis" [ref=e1442]
+                - cell "Ignorat" [ref=e1443]:
+                  - generic [ref=e1444]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1445]
+              - row "ȘOLDĂNESCU MINA 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1446]:
+                - cell "ȘOLDĂNESCU MINA" [ref=e1447]
+                - cell "1 CAP R" [ref=e1448]
+                - cell "Admis" [ref=e1449]
+                - cell "Ignorat" [ref=e1450]:
+                  - generic [ref=e1451]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1452]
+              - row "VAMEȘU DARIA-PARASCHIVA 1 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1453]:
+                - cell "VAMEȘU DARIA-PARASCHIVA" [ref=e1454]
+                - cell "1 CAP R" [ref=e1455]
+                - cell "Admis" [ref=e1456]
+                - cell "Ignorat" [ref=e1457]:
+                  - generic [ref=e1458]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1459]
+              - row "VICTORIA DARIA MARIA 1 CAP R Admis Salvat Înscris cu succes" [ref=e1460]:
+                - cell "VICTORIA DARIA MARIA" [ref=e1461]
+                - cell "1 CAP R" [ref=e1462]
+                - cell "Admis" [ref=e1463]
+                - cell "Salvat" [ref=e1464]:
+                  - generic [ref=e1465]:
+                    - img [ref=e1466]
+                    - text: Salvat
+                - cell "Înscris cu succes" [ref=e1469]
+              - row "ANDREI ALEXANDRU-DANIEL 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1470]:
+                - cell "ANDREI ALEXANDRU-DANIEL" [ref=e1471]
+                - cell "2 CAP R" [ref=e1472]
+                - cell "Admis" [ref=e1473]
+                - cell "Ignorat" [ref=e1474]:
+                  - generic [ref=e1475]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1476]
+              - row "ANDREI PAUL-CRISTIAN 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1477]:
+                - cell "ANDREI PAUL-CRISTIAN" [ref=e1478]
+                - cell "2 CAP R" [ref=e1479]
+                - cell "Admis" [ref=e1480]
+                - cell "Ignorat" [ref=e1481]:
+                  - generic [ref=e1482]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1483]
+              - row "ANECHIFORESEI GABRIELA 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1484]:
+                - cell "ANECHIFORESEI GABRIELA" [ref=e1485]
+                - cell "2 CAP R" [ref=e1486]
+                - cell "Admis" [ref=e1487]
+                - cell "Ignorat" [ref=e1488]:
+                  - generic [ref=e1489]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1490]
+              - row "BRĂNEANU PETRU SEBASTIAN 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1491]:
+                - cell "BRĂNEANU PETRU SEBASTIAN" [ref=e1492]
+                - cell "2 CAP R" [ref=e1493]
+                - cell "Admis" [ref=e1494]
+                - cell "Ignorat" [ref=e1495]:
+                  - generic [ref=e1496]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1497]
+              - row "CIOCÂRLAN ARSENIE 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1498]:
+                - cell "CIOCÂRLAN ARSENIE" [ref=e1499]
+                - cell "2 CAP R" [ref=e1500]
+                - cell "Admis" [ref=e1501]
+                - cell "Ignorat" [ref=e1502]:
+                  - generic [ref=e1503]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1504]
+              - row "CIOCÂRLAN RAMIN-DIMITRIE 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1505]:
+                - cell "CIOCÂRLAN RAMIN-DIMITRIE" [ref=e1506]
+                - cell "2 CAP R" [ref=e1507]
+                - cell "Admis" [ref=e1508]
+                - cell "Ignorat" [ref=e1509]:
+                  - generic [ref=e1510]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1511]
+              - row "COJOCARU DARIUS MATEI 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1512]:
+                - cell "COJOCARU DARIUS MATEI" [ref=e1513]
+                - cell "2 CAP R" [ref=e1514]
+                - cell "Admis" [ref=e1515]
+                - cell "Ignorat" [ref=e1516]:
+                  - generic [ref=e1517]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1518]
+              - row "COSTAN DARIUS GEORGIAN 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1519]:
+                - cell "COSTAN DARIUS GEORGIAN" [ref=e1520]
+                - cell "2 CAP R" [ref=e1521]
+                - cell "Admis" [ref=e1522]
+                - cell "Ignorat" [ref=e1523]:
+                  - generic [ref=e1524]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1525]
+              - row "GREȘANU MARIA 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1526]:
+                - cell "GREȘANU MARIA" [ref=e1527]
+                - cell "2 CAP R" [ref=e1528]
+                - cell "Admis" [ref=e1529]
+                - cell "Ignorat" [ref=e1530]:
+                  - generic [ref=e1531]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1532]
+              - row "MAXIM TEODOR CONSTANTINNOU 2 CAP R Admis Salvat Sportiv creat și înscris" [ref=e1533]:
+                - cell "MAXIM TEODOR CONSTANTINNOU" [ref=e1534]
+                - cell "2 CAP R" [ref=e1535]
+                - cell "Admis" [ref=e1536]
+                - cell "Salvat" [ref=e1537]:
+                  - generic [ref=e1538]:
+                    - img [ref=e1539]
+                    - text: Salvat
+                - cell "Sportiv creat și înscris" [ref=e1542]
+              - row "MIHAI IOANA 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1543]:
+                - cell "MIHAI IOANA" [ref=e1544]
+                - cell "2 CAP R" [ref=e1545]
+                - cell "Admis" [ref=e1546]
+                - cell "Ignorat" [ref=e1547]:
+                  - generic [ref=e1548]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1549]
+              - row "PÎRVU RICARDO-IOAN 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1550]:
+                - cell "PÎRVU RICARDO-IOAN" [ref=e1551]
+                - cell "2 CAP R" [ref=e1552]
+                - cell "Admis" [ref=e1553]
+                - cell "Ignorat" [ref=e1554]:
+                  - generic [ref=e1555]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1556]
+              - row "PANDELEA FLAVIUS 2 CAP R Admis Salvat Înscris cu succes" [ref=e1557]:
+                - cell "PANDELEA FLAVIUS" [ref=e1558]
+                - cell "2 CAP R" [ref=e1559]
+                - cell "Admis" [ref=e1560]
+                - cell "Salvat" [ref=e1561]:
+                  - generic [ref=e1562]:
+                    - img [ref=e1563]
+                    - text: Salvat
+                - cell "Înscris cu succes" [ref=e1566]
+              - row "SOLCANU IOANA ELIZA 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1567]:
+                - cell "SOLCANU IOANA ELIZA" [ref=e1568]
+                - cell "2 CAP R" [ref=e1569]
+                - cell "Admis" [ref=e1570]
+                - cell "Ignorat" [ref=e1571]:
+                  - generic [ref=e1572]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1573]
+              - row "SPINARE ALEXANRU 2 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1574]:
+                - cell "SPINARE ALEXANRU" [ref=e1575]
+                - cell "2 CAP R" [ref=e1576]
+                - cell "Admis" [ref=e1577]
+                - cell "Ignorat" [ref=e1578]:
+                  - generic [ref=e1579]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1580]
+              - row "IANCU REBECA ELENA 3 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1581]:
+                - cell "IANCU REBECA ELENA" [ref=e1582]
+                - cell "3 CAP R" [ref=e1583]
+                - cell "Admis" [ref=e1584]
+                - cell "Ignorat" [ref=e1585]:
+                  - generic [ref=e1586]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1587]
+              - row "VASILIU SABIN ANDREI 3 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1588]:
+                - cell "VASILIU SABIN ANDREI" [ref=e1589]
+                - cell "3 CAP R" [ref=e1590]
+                - cell "Admis" [ref=e1591]
+                - cell "Ignorat" [ref=e1592]:
+                  - generic [ref=e1593]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1594]
+              - row "APOSTOL ANASTASIA 4 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1595]:
+                - cell "APOSTOL ANASTASIA" [ref=e1596]
+                - cell "4 CAP R" [ref=e1597]
+                - cell "Admis" [ref=e1598]
+                - cell "Ignorat" [ref=e1599]:
+                  - generic [ref=e1600]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1601]
+              - row "BOLOHAN VLAD 4 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1602]:
+                - cell "BOLOHAN VLAD" [ref=e1603]
+                - cell "4 CAP R" [ref=e1604]
+                - cell "Admis" [ref=e1605]
+                - cell "Ignorat" [ref=e1606]:
+                  - generic [ref=e1607]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1608]
+              - row "CERCEL CRISTIAN GABRIEL 4 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1609]:
+                - cell "CERCEL CRISTIAN GABRIEL" [ref=e1610]
+                - cell "4 CAP R" [ref=e1611]
+                - cell "Admis" [ref=e1612]
+                - cell "Ignorat" [ref=e1613]:
+                  - generic [ref=e1614]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1615]
+              - row "CHITICARIU ERICA ELENA 4 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1616]:
+                - cell "CHITICARIU ERICA ELENA" [ref=e1617]
+                - cell "4 CAP R" [ref=e1618]
+                - cell "Admis" [ref=e1619]
+                - cell "Ignorat" [ref=e1620]:
+                  - generic [ref=e1621]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1622]
+              - row "CIOCÂRLAN ADA ECATERINA 4 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1623]:
+                - cell "CIOCÂRLAN ADA ECATERINA" [ref=e1624]
+                - cell "4 CAP R" [ref=e1625]
+                - cell "Admis" [ref=e1626]
+                - cell "Ignorat" [ref=e1627]:
+                  - generic [ref=e1628]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1629]
+              - row "HRISTEA RAREȘ IOAN 4 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1630]:
+                - cell "HRISTEA RAREȘ IOAN" [ref=e1631]
+                - cell "4 CAP R" [ref=e1632]
+                - cell "Admis" [ref=e1633]
+                - cell "Ignorat" [ref=e1634]:
+                  - generic [ref=e1635]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1636]
+              - row "MAYER CARL OCTAV 4 CAP R Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1637]:
+                - cell "MAYER CARL OCTAV" [ref=e1638]
+                - cell "4 CAP R" [ref=e1639]
+                - cell "Admis" [ref=e1640]
+                - cell "Ignorat" [ref=e1641]:
+                  - generic [ref=e1642]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1643]
+              - row "AMARIEI ALBERT MATEI CV Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1644]:
+                - cell "AMARIEI ALBERT MATEI" [ref=e1645]
+                - cell "CV" [ref=e1646]
+                - cell "Admis" [ref=e1647]
+                - cell "Ignorat" [ref=e1648]:
+                  - generic [ref=e1649]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1650]
+              - row "FODOR IUSTINA MARIA CV Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1651]:
+                - cell "FODOR IUSTINA MARIA" [ref=e1652]
+                - cell "CV" [ref=e1653]
+                - cell "Admis" [ref=e1654]
+                - cell "Ignorat" [ref=e1655]:
+                  - generic [ref=e1656]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1657]
+              - row "GRIGORAȘ ROBERT ALEX. CV Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1658]:
+                - cell "GRIGORAȘ ROBERT ALEX." [ref=e1659]
+                - cell "CV" [ref=e1660]
+                - cell "Admis" [ref=e1661]
+                - cell "Ignorat" [ref=e1662]:
+                  - generic [ref=e1663]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1664]
+              - row "PÎNZARU DANIEL CV Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1665]:
+                - cell "PÎNZARU DANIEL" [ref=e1666]
+                - cell "CV" [ref=e1667]
+                - cell "Admis" [ref=e1668]
+                - cell "Ignorat" [ref=e1669]:
+                  - generic [ref=e1670]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1671]
+              - row "PÎNZARU MIHAINOU CV Admis Salvat Sportiv creat și înscris" [ref=e1672]:
+                - cell "PÎNZARU MIHAINOU" [ref=e1673]
+                - cell "CV" [ref=e1674]
+                - cell "Admis" [ref=e1675]
+                - cell "Salvat" [ref=e1676]:
+                  - generic [ref=e1677]:
+                    - img [ref=e1678]
+                    - text: Salvat
+                - cell "Sportiv creat și înscris" [ref=e1681]
+              - row "SANDU MARCO CV Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1682]:
+                - cell "SANDU MARCO" [ref=e1683]
+                - cell "CV" [ref=e1684]
+                - cell "Admis" [ref=e1685]
+                - cell "Ignorat" [ref=e1686]:
+                  - generic [ref=e1687]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1688]
+              - row "TODICĂ ANDREI CV Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1689]:
+                - cell "TODICĂ ANDREI" [ref=e1690]
+                - cell "CV" [ref=e1691]
+                - cell "Admis" [ref=e1692]
+                - cell "Ignorat" [ref=e1693]:
+                  - generic [ref=e1694]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1695]
+              - row "VLASOV ANDREI CV 1 CAP Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1696]:
+                - cell "VLASOV ANDREI" [ref=e1697]
+                - cell "CV 1 CAP" [ref=e1698]
+                - cell "Admis" [ref=e1699]
+                - cell "Ignorat" [ref=e1700]:
+                  - generic [ref=e1701]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1702]
+              - row "RADU RĂZVAN CV 1 CAP Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1703]:
+                - cell "RADU RĂZVAN" [ref=e1704]
+                - cell "CV 1 CAP" [ref=e1705]
+                - cell "Admis" [ref=e1706]
+                - cell "Ignorat" [ref=e1707]:
+                  - generic [ref=e1708]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1709]
+              - row "MOROȘANU DAMIAN ȘTEFAN CV 2 CAP Admis Ignorat Deja înscris în această sesiune (re-import)" [ref=e1710]:
+                - cell "MOROȘANU DAMIAN ȘTEFAN" [ref=e1711]
+                - cell "CV 2 CAP" [ref=e1712]
+                - cell "Admis" [ref=e1713]
+                - cell "Ignorat" [ref=e1714]:
+                  - generic [ref=e1715]: Ignorat
+                - cell "Deja înscris în această sesiune (re-import)" [ref=e1716]
+          - generic [ref=e1717]:
+            - button "Descarcă raport CSV" [ref=e1718] [cursor=pointer]:
+              - img [ref=e1719]
+              - text: Descarcă raport CSV
+            - button "Finalizat â€\" Închide" [ref=e1723] [cursor=pointer]:
+              - img [ref=e1724]
+              - text: Finalizat â€" Închide

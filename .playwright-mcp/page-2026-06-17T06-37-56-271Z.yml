@@ -1,0 +1,3035 @@
+- generic [ref=e19]:
+  - complementary [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img "Qwan Ki Do Romania" [ref=e25]
+        - generic [ref=e27]:
+          - generic [ref=e28]: Qwan Ki Do
+          - generic [ref=e29]: Management
+      - button "Context Activ Club" [ref=e33] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Context Activ
+          - paragraph [ref=e40]: Club
+        - img [ref=e41]
+      - generic [ref=e43]:
+        - button "Scroll sus":
+          - img
+        - navigation [ref=e44]:
+          - generic [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: Dashboard
+          - generic [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - generic [ref=e60]: Gestiune Membri
+            - img [ref=e61]
+          - generic [ref=e63]:
+            - generic [ref=e64] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e67]: Activitate Sală
+              - img [ref=e68]
+            - generic [ref=e70]:
+              - generic [ref=e71] [cursor=pointer]: Grupe & Orar
+              - generic [ref=e73] [cursor=pointer]: Program Antrenamente
+              - generic [ref=e75] [cursor=pointer]: Înregistrare Prezențe
+              - generic [ref=e77] [cursor=pointer]: Raport Prezențe
+              - generic [ref=e79] [cursor=pointer]: Raport Lunar Prezențe
+          - generic [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+            - generic [ref=e89]: Examene
+            - img [ref=e90]
+          - generic [ref=e93] [cursor=pointer]:
+            - img [ref=e94]
+            - generic [ref=e100]: Activități Naționale
+            - img [ref=e101]
+          - generic [ref=e104] [cursor=pointer]:
+            - img [ref=e105]
+            - generic [ref=e107]: Financiar & Plăți
+            - img [ref=e108]
+          - generic [ref=e111] [cursor=pointer]:
+            - img [ref=e112]
+            - generic [ref=e115]: Setări & Admin
+            - img [ref=e116]
+          - generic [ref=e118] [cursor=pointer]:
+            - img [ref=e120]
+            - generic [ref=e124]: Notificări
+          - generic [ref=e125] [cursor=pointer]:
+            - img [ref=e127]
+            - generic [ref=e129]: SMS
+          - generic [ref=e130] [cursor=pointer]:
+            - img [ref=e132]
+            - generic [ref=e135]: Cereri Înscriere
+          - generic [ref=e136] [cursor=pointer]:
+            - img [ref=e138]
+            - generic [ref=e141]: Istoric Activitate
+        - button "Scroll jos" [ref=e142] [cursor=pointer]:
+          - img [ref=e143]
+      - generic [ref=e145]:
+        - button "Tema" [ref=e147] [cursor=pointer]:
+          - img [ref=e148]
+          - generic [ref=e154]: Tema
+        - generic [ref=e156]:
+          - generic [ref=e157]: AL
+          - generic [ref=e158]:
+            - paragraph [ref=e159]: LUNGU ALIN MIHAI
+            - text: Admin Club
+          - button "Deconectare" [ref=e160] [cursor=pointer]:
+            - img [ref=e161]
+  - button "Restrânge meniul" [ref=e164] [cursor=pointer]:
+    - img [ref=e165]
+  - banner [ref=e167]:
+    - navigation "Navigare" [ref=e169]:
+      - heading "Program Antrenamente" [level=1] [ref=e170]
+    - generic [ref=e171]:
+      - button "Temă" [ref=e173] [cursor=pointer]:
+        - img [ref=e174]
+        - generic [ref=e180]: Temă
+      - button [ref=e182] [cursor=pointer]:
+        - img [ref=e183]
+      - button "AL ALIN MIHAI [ADMIN CLUB]" [ref=e188] [cursor=pointer]:
+        - generic [ref=e189]: AL
+        - paragraph [ref=e191]:
+          - text: ALIN MIHAI
+          - generic [ref=e192]: "[ADMIN CLUB]"
+        - img [ref=e193]
+  - main [ref=e195]:
+    - generic [ref=e198]:
+      - generic [ref=e199]:
+        - generic [ref=e200]:
+          - heading "Program Antrenamente" [level=1] [ref=e201]
+          - paragraph [ref=e202]: Gestionează instanțele de antrenament din club.
+        - generic [ref=e203]:
+          - button "Actualizează" [ref=e204] [cursor=pointer]:
+            - img [ref=e205]
+            - text: Actualizează
+          - button "Înapoi" [ref=e207] [cursor=pointer]:
+            - img [ref=e208]
+            - text: Înapoi
+      - generic [ref=e211]:
+        - generic [ref=e212]:
+          - generic [ref=e213]: Filtrează după zi
+          - generic [ref=e214]:
+            - combobox [ref=e215]:
+              - option "Toate zilele" [selected]
+              - option "Luni"
+              - option "Marți"
+              - option "Miercuri"
+              - option "Joi"
+              - option "Vineri"
+              - option "Sâmbătă"
+              - option "Duminică"
+            - generic:
+              - img
+        - generic [ref=e216]:
+          - generic [ref=e217]: Filtrează după grupă
+          - generic [ref=e218]:
+            - combobox [ref=e219]:
+              - option "Toate grupele" [selected]
+              - option "Copii Avansati"
+              - option "Copii Incepatori"
+              - option "Juniori si Adulti"
+              - option "Retrasi"
+            - generic:
+              - img
+      - generic [ref=e220]:
+        - generic [ref=e223]:
+          - generic [ref=e224]:
+            - generic [ref=e225]: regular
+            - generic [ref=e226]:
+              - paragraph [ref=e227]: Joi
+              - paragraph [ref=e228]: 16.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e229]
+          - paragraph [ref=e230]: Sala cu saltele
+          - generic [ref=e232]:
+            - generic [ref=e233]:
+              - generic [ref=e234]: Interval Orar
+              - generic [ref=e235]:
+                - text: 19:00 - 20:30
+                - generic [ref=e236]: (90 min)
+            - button [ref=e237] [cursor=pointer]:
+              - img [ref=e238]
+        - generic [ref=e243]:
+          - generic [ref=e244]:
+            - generic [ref=e245]: regular
+            - generic [ref=e246]:
+              - paragraph [ref=e247]: Marți
+              - paragraph [ref=e248]: 14.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e249]
+          - paragraph [ref=e250]: Sala cu saltele
+          - generic [ref=e252]:
+            - generic [ref=e253]:
+              - generic [ref=e254]: Interval Orar
+              - generic [ref=e255]:
+                - text: 19:00 - 20:30
+                - generic [ref=e256]: (90 min)
+            - button [ref=e257] [cursor=pointer]:
+              - img [ref=e258]
+        - generic [ref=e263]:
+          - generic [ref=e264]:
+            - generic [ref=e265]: regular
+            - generic [ref=e266]:
+              - paragraph [ref=e267]: Luni
+              - paragraph [ref=e268]: 13.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e269]
+          - paragraph [ref=e270]: Sala cu saltele
+          - generic [ref=e272]:
+            - generic [ref=e273]:
+              - generic [ref=e274]: Interval Orar
+              - generic [ref=e275]:
+                - text: 19:30 - 20:30
+                - generic [ref=e276]: (60 min)
+            - button [ref=e277] [cursor=pointer]:
+              - img [ref=e278]
+        - generic [ref=e283]:
+          - generic [ref=e284]:
+            - generic [ref=e285]: regular
+            - generic [ref=e286]:
+              - paragraph [ref=e287]: Joi
+              - paragraph [ref=e288]: 09.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e289]
+          - paragraph [ref=e290]: Sala cu saltele
+          - generic [ref=e292]:
+            - generic [ref=e293]:
+              - generic [ref=e294]: Interval Orar
+              - generic [ref=e295]:
+                - text: 19:00 - 20:30
+                - generic [ref=e296]: (90 min)
+            - button [ref=e297] [cursor=pointer]:
+              - img [ref=e298]
+        - generic [ref=e303]:
+          - generic [ref=e304]:
+            - generic [ref=e305]: regular
+            - generic [ref=e306]:
+              - paragraph [ref=e307]: Marți
+              - paragraph [ref=e308]: 07.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e309]
+          - paragraph [ref=e310]: Sala cu saltele
+          - generic [ref=e312]:
+            - generic [ref=e313]:
+              - generic [ref=e314]: Interval Orar
+              - generic [ref=e315]:
+                - text: 19:00 - 20:30
+                - generic [ref=e316]: (90 min)
+            - button [ref=e317] [cursor=pointer]:
+              - img [ref=e318]
+        - generic [ref=e323]:
+          - generic [ref=e324]:
+            - generic [ref=e325]: regular
+            - generic [ref=e326]:
+              - paragraph [ref=e327]: Luni
+              - paragraph [ref=e328]: 06.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e329]
+          - paragraph [ref=e330]: Sala cu saltele
+          - generic [ref=e332]:
+            - generic [ref=e333]:
+              - generic [ref=e334]: Interval Orar
+              - generic [ref=e335]:
+                - text: 19:30 - 20:30
+                - generic [ref=e336]: (60 min)
+            - button [ref=e337] [cursor=pointer]:
+              - img [ref=e338]
+        - generic [ref=e343]:
+          - generic [ref=e344]:
+            - generic [ref=e345]: regular
+            - generic [ref=e346]:
+              - paragraph [ref=e347]: Joi
+              - paragraph [ref=e348]: 02.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e349]
+          - paragraph [ref=e350]: Sala cu saltele
+          - generic [ref=e352]:
+            - generic [ref=e353]:
+              - generic [ref=e354]: Interval Orar
+              - generic [ref=e355]:
+                - text: 19:00 - 20:30
+                - generic [ref=e356]: (90 min)
+            - button [ref=e357] [cursor=pointer]:
+              - img [ref=e358]
+        - generic [ref=e363]:
+          - generic [ref=e364]:
+            - generic [ref=e365]: regular
+            - generic [ref=e366]:
+              - paragraph [ref=e367]: Marți
+              - paragraph [ref=e368]: 31.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e369]
+          - paragraph [ref=e370]: Sala cu saltele
+          - generic [ref=e372]:
+            - generic [ref=e373]:
+              - generic [ref=e374]: Interval Orar
+              - generic [ref=e375]:
+                - text: 19:00 - 20:30
+                - generic [ref=e376]: (90 min)
+            - button [ref=e377] [cursor=pointer]:
+              - img [ref=e378]
+        - generic [ref=e383]:
+          - generic [ref=e384]:
+            - generic [ref=e385]: regular
+            - generic [ref=e386]:
+              - paragraph [ref=e387]: Luni
+              - paragraph [ref=e388]: 30.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e389]
+          - paragraph [ref=e390]: Sala cu saltele
+          - generic [ref=e392]:
+            - generic [ref=e393]:
+              - generic [ref=e394]: Interval Orar
+              - generic [ref=e395]:
+                - text: 19:00 - 20:30
+                - generic [ref=e396]: (90 min)
+            - button [ref=e397] [cursor=pointer]:
+              - img [ref=e398]
+        - generic [ref=e403]:
+          - generic [ref=e404]:
+            - generic [ref=e405]: regular
+            - generic [ref=e406]:
+              - paragraph [ref=e407]: Luni
+              - paragraph [ref=e408]: 30.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e409]
+          - paragraph [ref=e410]: Sala cu saltele
+          - generic [ref=e412]:
+            - generic [ref=e413]:
+              - generic [ref=e414]: Interval Orar
+              - generic [ref=e415]:
+                - text: 19:30 - 20:30
+                - generic [ref=e416]: (60 min)
+            - button [ref=e417] [cursor=pointer]:
+              - img [ref=e418]
+        - generic [ref=e423]:
+          - generic [ref=e424]:
+            - generic [ref=e425]: regular
+            - generic [ref=e426]:
+              - paragraph [ref=e427]: Joi
+              - paragraph [ref=e428]: 26.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e429]
+          - paragraph [ref=e430]: Sala cu saltele
+          - generic [ref=e432]:
+            - generic [ref=e433]:
+              - generic [ref=e434]: Interval Orar
+              - generic [ref=e435]:
+                - text: 19:00 - 20:30
+                - generic [ref=e436]: (90 min)
+            - button [ref=e437] [cursor=pointer]:
+              - img [ref=e438]
+        - generic [ref=e443]:
+          - generic [ref=e444]:
+            - generic [ref=e445]: regular
+            - generic [ref=e446]:
+              - paragraph [ref=e447]: Marți
+              - paragraph [ref=e448]: 24.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e449]
+          - paragraph [ref=e450]: Sala cu saltele
+          - generic [ref=e452]:
+            - generic [ref=e453]:
+              - generic [ref=e454]: Interval Orar
+              - generic [ref=e455]:
+                - text: 19:00 - 20:30
+                - generic [ref=e456]: (90 min)
+            - button [ref=e457] [cursor=pointer]:
+              - img [ref=e458]
+        - generic [ref=e463]:
+          - generic [ref=e464]:
+            - generic [ref=e465]: regular
+            - generic [ref=e466]:
+              - paragraph [ref=e467]: Luni
+              - paragraph [ref=e468]: 23.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e469]
+          - paragraph [ref=e470]: Sala cu saltele
+          - generic [ref=e472]:
+            - generic [ref=e473]:
+              - generic [ref=e474]: Interval Orar
+              - generic [ref=e475]:
+                - text: 19:30 - 20:30
+                - generic [ref=e476]: (60 min)
+            - button [ref=e477] [cursor=pointer]:
+              - img [ref=e478]
+        - generic [ref=e483]:
+          - generic [ref=e484]:
+            - generic [ref=e485]: regular
+            - generic [ref=e486]:
+              - paragraph [ref=e487]: Joi
+              - paragraph [ref=e488]: 19.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e489]
+          - paragraph [ref=e490]: Sala cu saltele
+          - generic [ref=e492]:
+            - generic [ref=e493]:
+              - generic [ref=e494]: Interval Orar
+              - generic [ref=e495]:
+                - text: 19:00 - 20:30
+                - generic [ref=e496]: (90 min)
+            - button [ref=e497] [cursor=pointer]:
+              - img [ref=e498]
+        - generic [ref=e503]:
+          - generic [ref=e504]:
+            - generic [ref=e505]: regular
+            - generic [ref=e506]:
+              - paragraph [ref=e507]: Marți
+              - paragraph [ref=e508]: 17.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e509]
+          - paragraph [ref=e510]: Sala cu saltele
+          - generic [ref=e512]:
+            - generic [ref=e513]:
+              - generic [ref=e514]: Interval Orar
+              - generic [ref=e515]:
+                - text: 19:00 - 20:30
+                - generic [ref=e516]: (90 min)
+            - button [ref=e517] [cursor=pointer]:
+              - img [ref=e518]
+        - generic [ref=e523]:
+          - generic [ref=e524]:
+            - generic [ref=e525]: regular
+            - generic [ref=e526]:
+              - paragraph [ref=e527]: Luni
+              - paragraph [ref=e528]: 16.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e529]
+          - paragraph [ref=e530]: Sala cu saltele
+          - generic [ref=e532]:
+            - generic [ref=e533]:
+              - generic [ref=e534]: Interval Orar
+              - generic [ref=e535]:
+                - text: 19:30 - 20:30
+                - generic [ref=e536]: (60 min)
+            - button [ref=e537] [cursor=pointer]:
+              - img [ref=e538]
+        - generic [ref=e543]:
+          - generic [ref=e544]:
+            - generic [ref=e545]: regular
+            - generic [ref=e546]:
+              - paragraph [ref=e547]: Joi
+              - paragraph [ref=e548]: 12.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e549]
+          - paragraph [ref=e550]: Sala cu saltele
+          - generic [ref=e552]:
+            - generic [ref=e553]:
+              - generic [ref=e554]: Interval Orar
+              - generic [ref=e555]:
+                - text: 19:00 - 20:30
+                - generic [ref=e556]: (90 min)
+            - button [ref=e557] [cursor=pointer]:
+              - img [ref=e558]
+        - generic [ref=e563]:
+          - generic [ref=e564]:
+            - generic [ref=e565]: regular
+            - generic [ref=e566]:
+              - paragraph [ref=e567]: Marți
+              - paragraph [ref=e568]: 10.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e569]
+          - paragraph [ref=e570]: Sala cu saltele
+          - generic [ref=e572]:
+            - generic [ref=e573]:
+              - generic [ref=e574]: Interval Orar
+              - generic [ref=e575]:
+                - text: 19:00 - 20:30
+                - generic [ref=e576]: (90 min)
+            - button [ref=e577] [cursor=pointer]:
+              - img [ref=e578]
+        - generic [ref=e583]:
+          - generic [ref=e584]:
+            - generic [ref=e585]: regular
+            - generic [ref=e586]:
+              - paragraph [ref=e587]: Luni
+              - paragraph [ref=e588]: 09.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e589]
+          - paragraph [ref=e590]: Sala cu saltele
+          - generic [ref=e592]:
+            - generic [ref=e593]:
+              - generic [ref=e594]: Interval Orar
+              - generic [ref=e595]:
+                - text: 19:30 - 20:30
+                - generic [ref=e596]: (60 min)
+            - button [ref=e597] [cursor=pointer]:
+              - img [ref=e598]
+        - generic [ref=e603]:
+          - generic [ref=e604]:
+            - generic [ref=e605]: regular
+            - generic [ref=e606]:
+              - paragraph [ref=e607]: Joi
+              - paragraph [ref=e608]: 05.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e609]
+          - paragraph [ref=e610]: Sala cu saltele
+          - generic [ref=e612]:
+            - generic [ref=e613]:
+              - generic [ref=e614]: Interval Orar
+              - generic [ref=e615]:
+                - text: 19:00 - 20:30
+                - generic [ref=e616]: (90 min)
+            - button [ref=e617] [cursor=pointer]:
+              - img [ref=e618]
+        - generic [ref=e623]:
+          - generic [ref=e624]:
+            - generic [ref=e625]: regular
+            - generic [ref=e626]:
+              - paragraph [ref=e627]: Marți
+              - paragraph [ref=e628]: 03.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e629]
+          - paragraph [ref=e630]: Sala cu saltele
+          - generic [ref=e632]:
+            - generic [ref=e633]:
+              - generic [ref=e634]: Interval Orar
+              - generic [ref=e635]:
+                - text: 19:00 - 20:30
+                - generic [ref=e636]: (90 min)
+            - button [ref=e637] [cursor=pointer]:
+              - img [ref=e638]
+        - generic [ref=e643]:
+          - generic [ref=e644]:
+            - generic [ref=e645]: regular
+            - generic [ref=e646]:
+              - paragraph [ref=e647]: Luni
+              - paragraph [ref=e648]: 02.03.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e649]
+          - paragraph [ref=e650]: Sala cu saltele
+          - generic [ref=e652]:
+            - generic [ref=e653]:
+              - generic [ref=e654]: Interval Orar
+              - generic [ref=e655]:
+                - text: 19:30 - 20:30
+                - generic [ref=e656]: (60 min)
+            - button [ref=e657] [cursor=pointer]:
+              - img [ref=e658]
+        - generic [ref=e663]:
+          - generic [ref=e664]:
+            - generic [ref=e665]: regular
+            - generic [ref=e666]:
+              - paragraph [ref=e667]: Joi
+              - paragraph [ref=e668]: 26.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e669]
+          - paragraph [ref=e670]: Sala cu saltele
+          - generic [ref=e672]:
+            - generic [ref=e673]:
+              - generic [ref=e674]: Interval Orar
+              - generic [ref=e675]:
+                - text: 19:00 - 20:30
+                - generic [ref=e676]: (90 min)
+            - button [ref=e677] [cursor=pointer]:
+              - img [ref=e678]
+        - generic [ref=e683]:
+          - generic [ref=e684]:
+            - generic [ref=e685]: regular
+            - generic [ref=e686]:
+              - paragraph [ref=e687]: Marți
+              - paragraph [ref=e688]: 24.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e689]
+          - paragraph [ref=e690]: Sala cu saltele
+          - generic [ref=e692]:
+            - generic [ref=e693]:
+              - generic [ref=e694]: Interval Orar
+              - generic [ref=e695]:
+                - text: 19:00 - 20:30
+                - generic [ref=e696]: (90 min)
+            - button [ref=e697] [cursor=pointer]:
+              - img [ref=e698]
+        - generic [ref=e703]:
+          - generic [ref=e704]:
+            - generic [ref=e705]: regular
+            - generic [ref=e706]:
+              - paragraph [ref=e707]: Luni
+              - paragraph [ref=e708]: 23.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e709]
+          - paragraph [ref=e710]: Sala cu saltele
+          - generic [ref=e712]:
+            - generic [ref=e713]:
+              - generic [ref=e714]: Interval Orar
+              - generic [ref=e715]:
+                - text: 19:30 - 20:30
+                - generic [ref=e716]: (60 min)
+            - button [ref=e717] [cursor=pointer]:
+              - img [ref=e718]
+        - generic [ref=e723]:
+          - generic [ref=e724]:
+            - generic [ref=e725]: regular
+            - generic [ref=e726]:
+              - paragraph [ref=e727]: Joi
+              - paragraph [ref=e728]: 19.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e729]
+          - paragraph [ref=e730]: Sala cu saltele
+          - generic [ref=e732]:
+            - generic [ref=e733]:
+              - generic [ref=e734]: Interval Orar
+              - generic [ref=e735]:
+                - text: 19:00 - 20:30
+                - generic [ref=e736]: (90 min)
+            - button [ref=e737] [cursor=pointer]:
+              - img [ref=e738]
+        - generic [ref=e743]:
+          - generic [ref=e744]:
+            - generic [ref=e745]: regular
+            - generic [ref=e746]:
+              - paragraph [ref=e747]: Marți
+              - paragraph [ref=e748]: 17.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e749]
+          - paragraph [ref=e750]: Sala cu saltele
+          - generic [ref=e752]:
+            - generic [ref=e753]:
+              - generic [ref=e754]: Interval Orar
+              - generic [ref=e755]:
+                - text: 19:00 - 20:30
+                - generic [ref=e756]: (90 min)
+            - button [ref=e757] [cursor=pointer]:
+              - img [ref=e758]
+        - generic [ref=e763]:
+          - generic [ref=e764]:
+            - generic [ref=e765]: regular
+            - generic [ref=e766]:
+              - paragraph [ref=e767]: Luni
+              - paragraph [ref=e768]: 16.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e769]
+          - paragraph [ref=e770]: Sala cu saltele
+          - generic [ref=e772]:
+            - generic [ref=e773]:
+              - generic [ref=e774]: Interval Orar
+              - generic [ref=e775]:
+                - text: 19:30 - 20:30
+                - generic [ref=e776]: (60 min)
+            - button [ref=e777] [cursor=pointer]:
+              - img [ref=e778]
+        - generic [ref=e783]:
+          - generic [ref=e784]:
+            - generic [ref=e785]: regular
+            - generic [ref=e786]:
+              - paragraph [ref=e787]: Joi
+              - paragraph [ref=e788]: 12.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e789]
+          - paragraph [ref=e790]: Sala cu saltele
+          - generic [ref=e792]:
+            - generic [ref=e793]:
+              - generic [ref=e794]: Interval Orar
+              - generic [ref=e795]:
+                - text: 19:00 - 20:30
+                - generic [ref=e796]: (90 min)
+            - button [ref=e797] [cursor=pointer]:
+              - img [ref=e798]
+        - generic [ref=e803]:
+          - generic [ref=e804]:
+            - generic [ref=e805]: regular
+            - generic [ref=e806]:
+              - paragraph [ref=e807]: Marți
+              - paragraph [ref=e808]: 10.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e809]
+          - paragraph [ref=e810]: Sala cu saltele
+          - generic [ref=e812]:
+            - generic [ref=e813]:
+              - generic [ref=e814]: Interval Orar
+              - generic [ref=e815]:
+                - text: 19:00 - 20:30
+                - generic [ref=e816]: (90 min)
+            - button [ref=e817] [cursor=pointer]:
+              - img [ref=e818]
+        - generic [ref=e823]:
+          - generic [ref=e824]:
+            - generic [ref=e825]: regular
+            - generic [ref=e826]:
+              - paragraph [ref=e827]: Luni
+              - paragraph [ref=e828]: 09.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e829]
+          - paragraph [ref=e830]: Sala cu saltele
+          - generic [ref=e832]:
+            - generic [ref=e833]:
+              - generic [ref=e834]: Interval Orar
+              - generic [ref=e835]:
+                - text: 19:30 - 20:30
+                - generic [ref=e836]: (60 min)
+            - button [ref=e837] [cursor=pointer]:
+              - img [ref=e838]
+        - generic [ref=e843]:
+          - generic [ref=e844]:
+            - generic [ref=e845]: regular
+            - generic [ref=e846]:
+              - paragraph [ref=e847]: Joi
+              - paragraph [ref=e848]: 05.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e849]
+          - paragraph [ref=e850]: Sala cu saltele
+          - generic [ref=e852]:
+            - generic [ref=e853]:
+              - generic [ref=e854]: Interval Orar
+              - generic [ref=e855]:
+                - text: 19:00 - 20:30
+                - generic [ref=e856]: (90 min)
+            - button [ref=e857] [cursor=pointer]:
+              - img [ref=e858]
+        - generic [ref=e863]:
+          - generic [ref=e864]:
+            - generic [ref=e865]: regular
+            - generic [ref=e866]:
+              - paragraph [ref=e867]: Marți
+              - paragraph [ref=e868]: 03.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e869]
+          - paragraph [ref=e870]: Sala cu saltele
+          - generic [ref=e872]:
+            - generic [ref=e873]:
+              - generic [ref=e874]: Interval Orar
+              - generic [ref=e875]:
+                - text: 19:00 - 20:30
+                - generic [ref=e876]: (90 min)
+            - button [ref=e877] [cursor=pointer]:
+              - img [ref=e878]
+        - generic [ref=e883]:
+          - generic [ref=e884]:
+            - generic [ref=e885]: regular
+            - generic [ref=e886]:
+              - paragraph [ref=e887]: Luni
+              - paragraph [ref=e888]: 02.02.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e889]
+          - paragraph [ref=e890]: Sala cu saltele
+          - generic [ref=e892]:
+            - generic [ref=e893]:
+              - generic [ref=e894]: Interval Orar
+              - generic [ref=e895]:
+                - text: 19:30 - 20:30
+                - generic [ref=e896]: (60 min)
+            - button [ref=e897] [cursor=pointer]:
+              - img [ref=e898]
+        - generic [ref=e903]:
+          - generic [ref=e904]:
+            - generic [ref=e905]: regular
+            - generic [ref=e906]:
+              - paragraph [ref=e907]: Joi
+              - paragraph [ref=e908]: 29.01.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e909]
+          - paragraph [ref=e910]: Sala cu saltele
+          - generic [ref=e912]:
+            - generic [ref=e913]:
+              - generic [ref=e914]: Interval Orar
+              - generic [ref=e915]:
+                - text: 19:00 - 20:30
+                - generic [ref=e916]: (90 min)
+            - button [ref=e917] [cursor=pointer]:
+              - img [ref=e918]
+        - generic [ref=e923]:
+          - generic [ref=e924]:
+            - generic [ref=e925]: regular
+            - generic [ref=e926]:
+              - paragraph [ref=e927]: Marți
+              - paragraph [ref=e928]: 27.01.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e929]
+          - paragraph [ref=e930]: Sala cu saltele
+          - generic [ref=e932]:
+            - generic [ref=e933]:
+              - generic [ref=e934]: Interval Orar
+              - generic [ref=e935]:
+                - text: 19:00 - 20:30
+                - generic [ref=e936]: (90 min)
+            - button [ref=e937] [cursor=pointer]:
+              - img [ref=e938]
+        - generic [ref=e943]:
+          - generic [ref=e944]:
+            - generic [ref=e945]: regular
+            - generic [ref=e946]:
+              - paragraph [ref=e947]: Joi
+              - paragraph [ref=e948]: 22.01.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e949]
+          - paragraph [ref=e950]: Sala cu saltele
+          - generic [ref=e952]:
+            - generic [ref=e953]:
+              - generic [ref=e954]: Interval Orar
+              - generic [ref=e955]:
+                - text: 19:00 - 20:30
+                - generic [ref=e956]: (90 min)
+            - button [ref=e957] [cursor=pointer]:
+              - img [ref=e958]
+        - generic [ref=e963]:
+          - generic [ref=e964]:
+            - generic [ref=e965]: regular
+            - generic [ref=e966]:
+              - paragraph [ref=e967]: Marți
+              - paragraph [ref=e968]: 20.01.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e969]
+          - paragraph [ref=e970]: Sala cu saltele
+          - generic [ref=e972]:
+            - generic [ref=e973]:
+              - generic [ref=e974]: Interval Orar
+              - generic [ref=e975]:
+                - text: 19:00 - 20:30
+                - generic [ref=e976]: (90 min)
+            - button [ref=e977] [cursor=pointer]:
+              - img [ref=e978]
+        - generic [ref=e983]:
+          - generic [ref=e984]:
+            - generic [ref=e985]: regular
+            - generic [ref=e986]:
+              - paragraph [ref=e987]: Luni
+              - paragraph [ref=e988]: 19.01.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e989]
+          - paragraph [ref=e990]: Sala cu saltele
+          - generic [ref=e992]:
+            - generic [ref=e993]:
+              - generic [ref=e994]: Interval Orar
+              - generic [ref=e995]:
+                - text: 19:30 - 20:30
+                - generic [ref=e996]: (60 min)
+            - button [ref=e997] [cursor=pointer]:
+              - img [ref=e998]
+        - generic [ref=e1003]:
+          - generic [ref=e1004]:
+            - generic [ref=e1005]: regular
+            - generic [ref=e1006]:
+              - paragraph [ref=e1007]: Joi
+              - paragraph [ref=e1008]: 15.01.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1009]
+          - paragraph [ref=e1010]: Sala cu saltele
+          - generic [ref=e1012]:
+            - generic [ref=e1013]:
+              - generic [ref=e1014]: Interval Orar
+              - generic [ref=e1015]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1016]: (90 min)
+            - button [ref=e1017] [cursor=pointer]:
+              - img [ref=e1018]
+        - generic [ref=e1023]:
+          - generic [ref=e1024]:
+            - generic [ref=e1025]: regular
+            - generic [ref=e1026]:
+              - paragraph [ref=e1027]: Marți
+              - paragraph [ref=e1028]: 13.01.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1029]
+          - paragraph [ref=e1030]: Sala cu saltele
+          - generic [ref=e1032]:
+            - generic [ref=e1033]:
+              - generic [ref=e1034]: Interval Orar
+              - generic [ref=e1035]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1036]: (90 min)
+            - button [ref=e1037] [cursor=pointer]:
+              - img [ref=e1038]
+        - generic [ref=e1043]:
+          - generic [ref=e1044]:
+            - generic [ref=e1045]: regular
+            - generic [ref=e1046]:
+              - paragraph [ref=e1047]: Luni
+              - paragraph [ref=e1048]: 12.01.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1049]
+          - paragraph [ref=e1050]: Sala cu saltele
+          - generic [ref=e1052]:
+            - generic [ref=e1053]:
+              - generic [ref=e1054]: Interval Orar
+              - generic [ref=e1055]:
+                - text: 19:30 - 20:30
+                - generic [ref=e1056]: (60 min)
+            - button [ref=e1057] [cursor=pointer]:
+              - img [ref=e1058]
+        - generic [ref=e1063]:
+          - generic [ref=e1064]:
+            - generic [ref=e1065]: regular
+            - generic [ref=e1066]:
+              - paragraph [ref=e1067]: Joi
+              - paragraph [ref=e1068]: 08.01.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1069]
+          - paragraph [ref=e1070]: Sala cu saltele
+          - generic [ref=e1072]:
+            - generic [ref=e1073]:
+              - generic [ref=e1074]: Interval Orar
+              - generic [ref=e1075]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1076]: (90 min)
+            - button [ref=e1077] [cursor=pointer]:
+              - img [ref=e1078]
+        - generic [ref=e1083]:
+          - generic [ref=e1084]:
+            - generic [ref=e1085]: regular
+            - generic [ref=e1086]:
+              - paragraph
+              - paragraph [ref=e1087]: Invalid Date
+          - heading "Juniori si Adulti" [level=3] [ref=e1088]
+          - paragraph [ref=e1089]: Sala cu saltele
+          - generic [ref=e1091]:
+            - generic [ref=e1092]:
+              - generic [ref=e1093]: Interval Orar
+              - generic [ref=e1094]:
+                - text: 19:30 - 20:30
+                - generic [ref=e1095]: (60 min)
+            - button [ref=e1096] [cursor=pointer]:
+              - img [ref=e1097]
+        - generic [ref=e1102]:
+          - generic [ref=e1103]:
+            - generic [ref=e1104]: regular
+            - generic [ref=e1105]:
+              - paragraph
+              - paragraph [ref=e1106]: Invalid Date
+          - heading "Juniori si Adulti" [level=3] [ref=e1107]
+          - paragraph [ref=e1108]: Sala cu saltele
+          - generic [ref=e1110]:
+            - generic [ref=e1111]:
+              - generic [ref=e1112]: Interval Orar
+              - generic [ref=e1113]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1114]: (90 min)
+            - button [ref=e1115] [cursor=pointer]:
+              - img [ref=e1116]
+        - generic [ref=e1121]:
+          - generic [ref=e1122]:
+            - generic [ref=e1123]: regular
+            - generic [ref=e1124]:
+              - paragraph [ref=e1125]: Joi
+              - paragraph [ref=e1126]: 14.05.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1127]
+          - paragraph [ref=e1128]: Sala cu saltele
+          - generic [ref=e1130]:
+            - generic [ref=e1131]:
+              - generic [ref=e1132]: Interval Orar
+              - generic [ref=e1133]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1134]: (90 min)
+            - button [ref=e1135] [cursor=pointer]:
+              - img [ref=e1136]
+        - generic [ref=e1141]:
+          - generic [ref=e1142]:
+            - generic [ref=e1143]: regular
+            - generic [ref=e1144]:
+              - paragraph [ref=e1145]: Marți
+              - paragraph [ref=e1146]: 12.05.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1147]
+          - paragraph [ref=e1148]: Sala cu saltele
+          - generic [ref=e1150]:
+            - generic [ref=e1151]:
+              - generic [ref=e1152]: Interval Orar
+              - generic [ref=e1153]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1154]: (90 min)
+            - button [ref=e1155] [cursor=pointer]:
+              - img [ref=e1156]
+        - generic [ref=e1161]:
+          - generic [ref=e1162]:
+            - generic [ref=e1163]: regular
+            - generic [ref=e1164]:
+              - paragraph [ref=e1165]: Luni
+              - paragraph [ref=e1166]: 11.05.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1167]
+          - paragraph [ref=e1168]: Iasi
+          - generic [ref=e1170]:
+            - generic [ref=e1171]:
+              - generic [ref=e1172]: Interval Orar
+              - generic [ref=e1173]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1174]: (60 min)
+            - button [ref=e1175] [cursor=pointer]:
+              - img [ref=e1176]
+        - generic [ref=e1181]:
+          - generic [ref=e1182]:
+            - generic [ref=e1183]: regular
+            - generic [ref=e1184]:
+              - paragraph [ref=e1185]: Luni
+              - paragraph [ref=e1186]: 11.05.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1187]
+          - paragraph [ref=e1188]: Sala cu saltele
+          - generic [ref=e1190]:
+            - generic [ref=e1191]:
+              - generic [ref=e1192]: Interval Orar
+              - generic [ref=e1193]:
+                - text: 19:30 - 20:30
+                - generic [ref=e1194]: (60 min)
+            - button [ref=e1195] [cursor=pointer]:
+              - img [ref=e1196]
+        - generic [ref=e1201]:
+          - generic [ref=e1202]:
+            - generic [ref=e1203]: regular
+            - generic [ref=e1204]:
+              - paragraph [ref=e1205]: Joi
+              - paragraph [ref=e1206]: 07.05.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1207]
+          - paragraph [ref=e1208]: Sala cu saltele
+          - generic [ref=e1210]:
+            - generic [ref=e1211]:
+              - generic [ref=e1212]: Interval Orar
+              - generic [ref=e1213]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1214]: (90 min)
+            - button [ref=e1215] [cursor=pointer]:
+              - img [ref=e1216]
+        - generic [ref=e1221]:
+          - generic [ref=e1222]:
+            - generic [ref=e1223]: regular
+            - generic [ref=e1224]:
+              - paragraph [ref=e1225]: Marți
+              - paragraph [ref=e1226]: 05.05.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1227]
+          - paragraph [ref=e1228]: Sala cu saltele
+          - generic [ref=e1230]:
+            - generic [ref=e1231]:
+              - generic [ref=e1232]: Interval Orar
+              - generic [ref=e1233]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1234]: (90 min)
+            - button [ref=e1235] [cursor=pointer]:
+              - img [ref=e1236]
+        - generic [ref=e1241]:
+          - generic [ref=e1242]:
+            - generic [ref=e1243]: regular
+            - generic [ref=e1244]:
+              - paragraph [ref=e1245]: Luni
+              - paragraph [ref=e1246]: 04.05.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1247]
+          - paragraph [ref=e1248]: Iasi
+          - generic [ref=e1250]:
+            - generic [ref=e1251]:
+              - generic [ref=e1252]: Interval Orar
+              - generic [ref=e1253]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1254]: (60 min)
+            - button [ref=e1255] [cursor=pointer]:
+              - img [ref=e1256]
+        - generic [ref=e1261]:
+          - generic [ref=e1262]:
+            - generic [ref=e1263]: regular
+            - generic [ref=e1264]:
+              - paragraph [ref=e1265]: Luni
+              - paragraph [ref=e1266]: 04.05.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1267]
+          - paragraph [ref=e1268]: Sala cu saltele
+          - generic [ref=e1270]:
+            - generic [ref=e1271]:
+              - generic [ref=e1272]: Interval Orar
+              - generic [ref=e1273]:
+                - text: 19:30 - 20:30
+                - generic [ref=e1274]: (60 min)
+            - button [ref=e1275] [cursor=pointer]:
+              - img [ref=e1276]
+        - generic [ref=e1281]:
+          - generic [ref=e1282]:
+            - generic [ref=e1283]: regular
+            - generic [ref=e1284]:
+              - paragraph [ref=e1285]: Joi
+              - paragraph [ref=e1286]: 30.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1287]
+          - paragraph [ref=e1288]: Sala cu saltele
+          - generic [ref=e1290]:
+            - generic [ref=e1291]:
+              - generic [ref=e1292]: Interval Orar
+              - generic [ref=e1293]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1294]: (90 min)
+            - button [ref=e1295] [cursor=pointer]:
+              - img [ref=e1296]
+        - generic [ref=e1301]:
+          - generic [ref=e1302]:
+            - generic [ref=e1303]: regular
+            - generic [ref=e1304]:
+              - paragraph [ref=e1305]: Marți
+              - paragraph [ref=e1306]: 28.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1307]
+          - paragraph [ref=e1308]: Sala cu saltele
+          - generic [ref=e1310]:
+            - generic [ref=e1311]:
+              - generic [ref=e1312]: Interval Orar
+              - generic [ref=e1313]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1314]: (90 min)
+            - button [ref=e1315] [cursor=pointer]:
+              - img [ref=e1316]
+        - generic [ref=e1321]:
+          - generic [ref=e1322]:
+            - generic [ref=e1323]: regular
+            - generic [ref=e1324]:
+              - paragraph [ref=e1325]: Luni
+              - paragraph [ref=e1326]: 27.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1327]
+          - paragraph [ref=e1328]: Iasi
+          - generic [ref=e1330]:
+            - generic [ref=e1331]:
+              - generic [ref=e1332]: Interval Orar
+              - generic [ref=e1333]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1334]: (60 min)
+            - button [ref=e1335] [cursor=pointer]:
+              - img [ref=e1336]
+        - generic [ref=e1341]:
+          - generic [ref=e1342]:
+            - generic [ref=e1343]: regular
+            - generic [ref=e1344]:
+              - paragraph [ref=e1345]: Luni
+              - paragraph [ref=e1346]: 27.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1347]
+          - paragraph [ref=e1348]: Sala cu saltele
+          - generic [ref=e1350]:
+            - generic [ref=e1351]:
+              - generic [ref=e1352]: Interval Orar
+              - generic [ref=e1353]:
+                - text: 19:30 - 20:30
+                - generic [ref=e1354]: (60 min)
+            - button [ref=e1355] [cursor=pointer]:
+              - img [ref=e1356]
+        - generic [ref=e1361]:
+          - generic [ref=e1362]:
+            - generic [ref=e1363]: regular
+            - generic [ref=e1364]:
+              - paragraph [ref=e1365]: Joi
+              - paragraph [ref=e1366]: 23.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1367]
+          - paragraph [ref=e1368]: Sala cu saltele
+          - generic [ref=e1370]:
+            - generic [ref=e1371]:
+              - generic [ref=e1372]: Interval Orar
+              - generic [ref=e1373]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1374]: (90 min)
+            - button [ref=e1375] [cursor=pointer]:
+              - img [ref=e1376]
+        - generic [ref=e1381]:
+          - generic [ref=e1382]:
+            - generic [ref=e1383]: regular
+            - generic [ref=e1384]:
+              - paragraph [ref=e1385]: Miercuri
+              - paragraph [ref=e1386]: 22.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1387]
+          - paragraph [ref=e1388]: Iasi
+          - generic [ref=e1390]:
+            - generic [ref=e1391]:
+              - generic [ref=e1392]: Interval Orar
+              - generic [ref=e1393]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1394]: (60 min)
+            - button [ref=e1395] [cursor=pointer]:
+              - img [ref=e1396]
+        - generic [ref=e1401]:
+          - generic [ref=e1402]:
+            - generic [ref=e1403]: regular
+            - generic [ref=e1404]:
+              - paragraph [ref=e1405]: Marți
+              - paragraph [ref=e1406]: 21.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1407]
+          - paragraph [ref=e1408]: Sala cu saltele
+          - generic [ref=e1410]:
+            - generic [ref=e1411]:
+              - generic [ref=e1412]: Interval Orar
+              - generic [ref=e1413]:
+                - text: 19:00 - 20:30
+                - generic [ref=e1414]: (90 min)
+            - button [ref=e1415] [cursor=pointer]:
+              - img [ref=e1416]
+        - generic [ref=e1421]:
+          - generic [ref=e1422]:
+            - generic [ref=e1423]: regular
+            - generic [ref=e1424]:
+              - paragraph [ref=e1425]: Luni
+              - paragraph [ref=e1426]: 20.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1427]
+          - paragraph [ref=e1428]: Iasi
+          - generic [ref=e1430]:
+            - generic [ref=e1431]:
+              - generic [ref=e1432]: Interval Orar
+              - generic [ref=e1433]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1434]: (60 min)
+            - button [ref=e1435] [cursor=pointer]:
+              - img [ref=e1436]
+        - generic [ref=e1441]:
+          - generic [ref=e1442]:
+            - generic [ref=e1443]: regular
+            - generic [ref=e1444]:
+              - paragraph [ref=e1445]: Luni
+              - paragraph [ref=e1446]: 20.04.2026
+          - heading "Juniori si Adulti" [level=3] [ref=e1447]
+          - paragraph [ref=e1448]: Sala cu saltele
+          - generic [ref=e1450]:
+            - generic [ref=e1451]:
+              - generic [ref=e1452]: Interval Orar
+              - generic [ref=e1453]:
+                - text: 19:30 - 20:30
+                - generic [ref=e1454]: (60 min)
+            - button [ref=e1455] [cursor=pointer]:
+              - img [ref=e1456]
+        - generic [ref=e1461]:
+          - generic [ref=e1462]:
+            - generic [ref=e1463]: regular
+            - generic [ref=e1464]:
+              - paragraph [ref=e1465]: Luni
+              - paragraph [ref=e1466]: 13.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1467]
+          - paragraph [ref=e1468]: Iasi
+          - generic [ref=e1470]:
+            - generic [ref=e1471]:
+              - generic [ref=e1472]: Interval Orar
+              - generic [ref=e1473]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1474]: (60 min)
+            - button [ref=e1475] [cursor=pointer]:
+              - img [ref=e1476]
+        - generic [ref=e1481]:
+          - generic [ref=e1482]:
+            - generic [ref=e1483]: regular
+            - generic [ref=e1484]:
+              - paragraph [ref=e1485]: Miercuri
+              - paragraph [ref=e1486]: 08.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1487]
+          - paragraph [ref=e1488]: Iasi
+          - generic [ref=e1490]:
+            - generic [ref=e1491]:
+              - generic [ref=e1492]: Interval Orar
+              - generic [ref=e1493]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1494]: (60 min)
+            - button [ref=e1495] [cursor=pointer]:
+              - img [ref=e1496]
+        - generic [ref=e1501]:
+          - generic [ref=e1502]:
+            - generic [ref=e1503]: regular
+            - generic [ref=e1504]:
+              - paragraph [ref=e1505]: Luni
+              - paragraph [ref=e1506]: 06.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1507]
+          - paragraph [ref=e1508]: Iasi
+          - generic [ref=e1510]:
+            - generic [ref=e1511]:
+              - generic [ref=e1512]: Interval Orar
+              - generic [ref=e1513]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1514]: (60 min)
+            - button [ref=e1515] [cursor=pointer]:
+              - img [ref=e1516]
+        - generic [ref=e1521]:
+          - generic [ref=e1522]:
+            - generic [ref=e1523]: regular
+            - generic [ref=e1524]:
+              - paragraph [ref=e1525]: Miercuri
+              - paragraph [ref=e1526]: 01.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1527]
+          - paragraph [ref=e1528]: Iasi
+          - generic [ref=e1530]:
+            - generic [ref=e1531]:
+              - generic [ref=e1532]: Interval Orar
+              - generic [ref=e1533]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1534]: (60 min)
+            - button [ref=e1535] [cursor=pointer]:
+              - img [ref=e1536]
+        - generic [ref=e1541]:
+          - generic [ref=e1542]:
+            - generic [ref=e1543]: regular
+            - generic [ref=e1544]:
+              - paragraph [ref=e1545]: Luni
+              - paragraph [ref=e1546]: 30.03.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1547]
+          - paragraph [ref=e1548]: Iasi
+          - generic [ref=e1550]:
+            - generic [ref=e1551]:
+              - generic [ref=e1552]: Interval Orar
+              - generic [ref=e1553]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1554]: (60 min)
+            - button [ref=e1555] [cursor=pointer]:
+              - img [ref=e1556]
+        - generic [ref=e1561]:
+          - generic [ref=e1562]:
+            - generic [ref=e1563]: regular
+            - generic [ref=e1564]:
+              - paragraph [ref=e1565]: Miercuri
+              - paragraph [ref=e1566]: 25.03.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1567]
+          - paragraph [ref=e1568]: Iasi
+          - generic [ref=e1570]:
+            - generic [ref=e1571]:
+              - generic [ref=e1572]: Interval Orar
+              - generic [ref=e1573]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1574]: (60 min)
+            - button [ref=e1575] [cursor=pointer]:
+              - img [ref=e1576]
+        - generic [ref=e1581]:
+          - generic [ref=e1582]:
+            - generic [ref=e1583]: regular
+            - generic [ref=e1584]:
+              - paragraph [ref=e1585]: Luni
+              - paragraph [ref=e1586]: 23.03.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1587]
+          - paragraph [ref=e1588]: Iasi
+          - generic [ref=e1590]:
+            - generic [ref=e1591]:
+              - generic [ref=e1592]: Interval Orar
+              - generic [ref=e1593]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1594]: (60 min)
+            - button [ref=e1595] [cursor=pointer]:
+              - img [ref=e1596]
+        - generic [ref=e1601]:
+          - generic [ref=e1602]:
+            - generic [ref=e1603]: regular
+            - generic [ref=e1604]:
+              - paragraph [ref=e1605]: Miercuri
+              - paragraph [ref=e1606]: 18.03.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1607]
+          - paragraph [ref=e1608]: Iasi
+          - generic [ref=e1610]:
+            - generic [ref=e1611]:
+              - generic [ref=e1612]: Interval Orar
+              - generic [ref=e1613]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1614]: (60 min)
+            - button [ref=e1615] [cursor=pointer]:
+              - img [ref=e1616]
+        - generic [ref=e1621]:
+          - generic [ref=e1622]:
+            - generic [ref=e1623]: regular
+            - generic [ref=e1624]:
+              - paragraph [ref=e1625]: Luni
+              - paragraph [ref=e1626]: 16.03.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1627]
+          - paragraph [ref=e1628]: Iasi
+          - generic [ref=e1630]:
+            - generic [ref=e1631]:
+              - generic [ref=e1632]: Interval Orar
+              - generic [ref=e1633]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1634]: (60 min)
+            - button [ref=e1635] [cursor=pointer]:
+              - img [ref=e1636]
+        - generic [ref=e1641]:
+          - generic [ref=e1642]:
+            - generic [ref=e1643]: regular
+            - generic [ref=e1644]:
+              - paragraph [ref=e1645]: Miercuri
+              - paragraph [ref=e1646]: 11.03.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1647]
+          - paragraph [ref=e1648]: Iasi
+          - generic [ref=e1650]:
+            - generic [ref=e1651]:
+              - generic [ref=e1652]: Interval Orar
+              - generic [ref=e1653]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1654]: (60 min)
+            - button [ref=e1655] [cursor=pointer]:
+              - img [ref=e1656]
+        - generic [ref=e1661]:
+          - generic [ref=e1662]:
+            - generic [ref=e1663]: regular
+            - generic [ref=e1664]:
+              - paragraph [ref=e1665]: Luni
+              - paragraph [ref=e1666]: 09.03.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1667]
+          - paragraph [ref=e1668]: Iasi
+          - generic [ref=e1670]:
+            - generic [ref=e1671]:
+              - generic [ref=e1672]: Interval Orar
+              - generic [ref=e1673]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1674]: (60 min)
+            - button [ref=e1675] [cursor=pointer]:
+              - img [ref=e1676]
+        - generic [ref=e1681]:
+          - generic [ref=e1682]:
+            - generic [ref=e1683]: regular
+            - generic [ref=e1684]:
+              - paragraph [ref=e1685]: Miercuri
+              - paragraph [ref=e1686]: 04.03.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1687]
+          - paragraph [ref=e1688]: Iasi
+          - generic [ref=e1690]:
+            - generic [ref=e1691]:
+              - generic [ref=e1692]: Interval Orar
+              - generic [ref=e1693]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1694]: (60 min)
+            - button [ref=e1695] [cursor=pointer]:
+              - img [ref=e1696]
+        - generic [ref=e1701]:
+          - generic [ref=e1702]:
+            - generic [ref=e1703]: regular
+            - generic [ref=e1704]:
+              - paragraph [ref=e1705]: Luni
+              - paragraph [ref=e1706]: 02.03.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1707]
+          - paragraph [ref=e1708]: Iasi
+          - generic [ref=e1710]:
+            - generic [ref=e1711]:
+              - generic [ref=e1712]: Interval Orar
+              - generic [ref=e1713]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1714]: (60 min)
+            - button [ref=e1715] [cursor=pointer]:
+              - img [ref=e1716]
+        - generic [ref=e1721]:
+          - generic [ref=e1722]:
+            - generic [ref=e1723]: regular
+            - generic [ref=e1724]:
+              - paragraph [ref=e1725]: Miercuri
+              - paragraph [ref=e1726]: 25.02.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1727]
+          - paragraph [ref=e1728]: Iasi
+          - generic [ref=e1730]:
+            - generic [ref=e1731]:
+              - generic [ref=e1732]: Interval Orar
+              - generic [ref=e1733]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1734]: (60 min)
+            - button [ref=e1735] [cursor=pointer]:
+              - img [ref=e1736]
+        - generic [ref=e1741]:
+          - generic [ref=e1742]:
+            - generic [ref=e1743]: regular
+            - generic [ref=e1744]:
+              - paragraph [ref=e1745]: Luni
+              - paragraph [ref=e1746]: 23.02.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1747]
+          - paragraph [ref=e1748]: Iasi
+          - generic [ref=e1750]:
+            - generic [ref=e1751]:
+              - generic [ref=e1752]: Interval Orar
+              - generic [ref=e1753]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1754]: (60 min)
+            - button [ref=e1755] [cursor=pointer]:
+              - img [ref=e1756]
+        - generic [ref=e1761]:
+          - generic [ref=e1762]:
+            - generic [ref=e1763]: regular
+            - generic [ref=e1764]:
+              - paragraph [ref=e1765]: Miercuri
+              - paragraph [ref=e1766]: 18.02.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1767]
+          - paragraph [ref=e1768]: Iasi
+          - generic [ref=e1770]:
+            - generic [ref=e1771]:
+              - generic [ref=e1772]: Interval Orar
+              - generic [ref=e1773]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1774]: (60 min)
+            - button [ref=e1775] [cursor=pointer]:
+              - img [ref=e1776]
+        - generic [ref=e1781]:
+          - generic [ref=e1782]:
+            - generic [ref=e1783]: regular
+            - generic [ref=e1784]:
+              - paragraph [ref=e1785]: Luni
+              - paragraph [ref=e1786]: 16.02.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1787]
+          - paragraph [ref=e1788]: Iasi
+          - generic [ref=e1790]:
+            - generic [ref=e1791]:
+              - generic [ref=e1792]: Interval Orar
+              - generic [ref=e1793]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1794]: (60 min)
+            - button [ref=e1795] [cursor=pointer]:
+              - img [ref=e1796]
+        - generic [ref=e1801]:
+          - generic [ref=e1802]:
+            - generic [ref=e1803]: regular
+            - generic [ref=e1804]:
+              - paragraph [ref=e1805]: Miercuri
+              - paragraph [ref=e1806]: 11.02.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1807]
+          - paragraph [ref=e1808]: Iasi
+          - generic [ref=e1810]:
+            - generic [ref=e1811]:
+              - generic [ref=e1812]: Interval Orar
+              - generic [ref=e1813]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1814]: (60 min)
+            - button [ref=e1815] [cursor=pointer]:
+              - img [ref=e1816]
+        - generic [ref=e1821]:
+          - generic [ref=e1822]:
+            - generic [ref=e1823]: regular
+            - generic [ref=e1824]:
+              - paragraph [ref=e1825]: Luni
+              - paragraph [ref=e1826]: 09.02.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1827]
+          - paragraph [ref=e1828]: Iasi
+          - generic [ref=e1830]:
+            - generic [ref=e1831]:
+              - generic [ref=e1832]: Interval Orar
+              - generic [ref=e1833]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1834]: (60 min)
+            - button [ref=e1835] [cursor=pointer]:
+              - img [ref=e1836]
+        - generic [ref=e1841]:
+          - generic [ref=e1842]:
+            - generic [ref=e1843]: regular
+            - generic [ref=e1844]:
+              - paragraph [ref=e1845]: Miercuri
+              - paragraph [ref=e1846]: 04.02.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1847]
+          - paragraph [ref=e1848]: Iasi
+          - generic [ref=e1850]:
+            - generic [ref=e1851]:
+              - generic [ref=e1852]: Interval Orar
+              - generic [ref=e1853]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1854]: (60 min)
+            - button [ref=e1855] [cursor=pointer]:
+              - img [ref=e1856]
+        - generic [ref=e1861]:
+          - generic [ref=e1862]:
+            - generic [ref=e1863]: regular
+            - generic [ref=e1864]:
+              - paragraph [ref=e1865]: Luni
+              - paragraph [ref=e1866]: 02.02.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1867]
+          - paragraph [ref=e1868]: Iasi
+          - generic [ref=e1870]:
+            - generic [ref=e1871]:
+              - generic [ref=e1872]: Interval Orar
+              - generic [ref=e1873]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1874]: (60 min)
+            - button [ref=e1875] [cursor=pointer]:
+              - img [ref=e1876]
+        - generic [ref=e1881]:
+          - generic [ref=e1882]:
+            - generic [ref=e1883]: regular
+            - generic [ref=e1884]:
+              - paragraph [ref=e1885]: Miercuri
+              - paragraph [ref=e1886]: 28.01.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1887]
+          - paragraph [ref=e1888]: Iasi
+          - generic [ref=e1890]:
+            - generic [ref=e1891]:
+              - generic [ref=e1892]: Interval Orar
+              - generic [ref=e1893]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1894]: (60 min)
+            - button [ref=e1895] [cursor=pointer]:
+              - img [ref=e1896]
+        - generic [ref=e1901]:
+          - generic [ref=e1902]:
+            - generic [ref=e1903]: regular
+            - generic [ref=e1904]:
+              - paragraph [ref=e1905]: Luni
+              - paragraph [ref=e1906]: 26.01.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1907]
+          - paragraph [ref=e1908]: Iasi
+          - generic [ref=e1910]:
+            - generic [ref=e1911]:
+              - generic [ref=e1912]: Interval Orar
+              - generic [ref=e1913]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1914]: (60 min)
+            - button [ref=e1915] [cursor=pointer]:
+              - img [ref=e1916]
+        - generic [ref=e1921]:
+          - generic [ref=e1922]:
+            - generic [ref=e1923]: regular
+            - generic [ref=e1924]:
+              - paragraph [ref=e1925]: Miercuri
+              - paragraph [ref=e1926]: 21.01.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1927]
+          - paragraph [ref=e1928]: Iasi
+          - generic [ref=e1930]:
+            - generic [ref=e1931]:
+              - generic [ref=e1932]: Interval Orar
+              - generic [ref=e1933]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1934]: (60 min)
+            - button [ref=e1935] [cursor=pointer]:
+              - img [ref=e1936]
+        - generic [ref=e1941]:
+          - generic [ref=e1942]:
+            - generic [ref=e1943]: regular
+            - generic [ref=e1944]:
+              - paragraph [ref=e1945]: Luni
+              - paragraph [ref=e1946]: 19.01.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1947]
+          - paragraph [ref=e1948]: Iasi
+          - generic [ref=e1950]:
+            - generic [ref=e1951]:
+              - generic [ref=e1952]: Interval Orar
+              - generic [ref=e1953]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1954]: (60 min)
+            - button [ref=e1955] [cursor=pointer]:
+              - img [ref=e1956]
+        - generic [ref=e1961]:
+          - generic [ref=e1962]:
+            - generic [ref=e1963]: regular
+            - generic [ref=e1964]:
+              - paragraph [ref=e1965]: Miercuri
+              - paragraph [ref=e1966]: 14.01.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1967]
+          - paragraph [ref=e1968]: Iasi
+          - generic [ref=e1970]:
+            - generic [ref=e1971]:
+              - generic [ref=e1972]: Interval Orar
+              - generic [ref=e1973]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1974]: (60 min)
+            - button [ref=e1975] [cursor=pointer]:
+              - img [ref=e1976]
+        - generic [ref=e1981]:
+          - generic [ref=e1982]:
+            - generic [ref=e1983]: regular
+            - generic [ref=e1984]:
+              - paragraph [ref=e1985]: Luni
+              - paragraph [ref=e1986]: 12.01.2026
+          - heading "Copii Incepatori" [level=3] [ref=e1987]
+          - paragraph [ref=e1988]: Iasi
+          - generic [ref=e1990]:
+            - generic [ref=e1991]:
+              - generic [ref=e1992]: Interval Orar
+              - generic [ref=e1993]:
+                - text: 17:00 - 18:00
+                - generic [ref=e1994]: (60 min)
+            - button [ref=e1995] [cursor=pointer]:
+              - img [ref=e1996]
+        - generic [ref=e2001]:
+          - generic [ref=e2002]:
+            - generic [ref=e2003]: regular
+            - generic [ref=e2004]:
+              - paragraph
+              - paragraph [ref=e2005]: Invalid Date
+          - heading "Copii Incepatori" [level=3] [ref=e2006]
+          - paragraph [ref=e2007]: Iasi
+          - generic [ref=e2009]:
+            - generic [ref=e2010]:
+              - generic [ref=e2011]: Interval Orar
+              - generic [ref=e2012]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2013]: (60 min)
+            - button [ref=e2014] [cursor=pointer]:
+              - img [ref=e2015]
+        - generic [ref=e2020]:
+          - generic [ref=e2021]:
+            - generic [ref=e2022]: regular
+            - generic [ref=e2023]:
+              - paragraph [ref=e2024]: Marți
+              - paragraph [ref=e2025]: 16.06.2026
+          - heading "Copii Avansati" [level=3] [ref=e2026]
+          - paragraph [ref=e2027]: Iasi
+          - generic [ref=e2029]:
+            - generic [ref=e2030]:
+              - generic [ref=e2031]: Interval Orar
+              - generic [ref=e2032]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2033]: (90 min)
+            - button [ref=e2034] [cursor=pointer]:
+              - img [ref=e2035]
+        - generic [ref=e2040]:
+          - generic [ref=e2041]:
+            - generic [ref=e2042]: regular
+            - generic [ref=e2043]:
+              - paragraph [ref=e2044]: Luni
+              - paragraph [ref=e2045]: 15.06.2026
+          - heading "Copii Avansati" [level=3] [ref=e2046]
+          - paragraph [ref=e2047]: Iasi
+          - generic [ref=e2049]:
+            - generic [ref=e2050]:
+              - generic [ref=e2051]: Interval Orar
+              - generic [ref=e2052]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2053]: (90 min)
+            - button [ref=e2054] [cursor=pointer]:
+              - img [ref=e2055]
+        - generic [ref=e2060]:
+          - generic [ref=e2061]:
+            - generic [ref=e2062]: regular
+            - generic [ref=e2063]:
+              - paragraph [ref=e2064]: Joi
+              - paragraph [ref=e2065]: 11.06.2026
+          - heading "Copii Avansati" [level=3] [ref=e2066]
+          - paragraph [ref=e2067]: Iasi
+          - generic [ref=e2069]:
+            - generic [ref=e2070]:
+              - generic [ref=e2071]: Interval Orar
+              - generic [ref=e2072]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2073]: (90 min)
+            - button [ref=e2074] [cursor=pointer]:
+              - img [ref=e2075]
+        - generic [ref=e2080]:
+          - generic [ref=e2081]:
+            - generic [ref=e2082]: regular
+            - generic [ref=e2083]:
+              - paragraph [ref=e2084]: Joi
+              - paragraph [ref=e2085]: 11.06.2026
+          - heading "Retrasi" [level=3] [ref=e2086]
+          - paragraph [ref=e2087]: Iasi
+          - generic [ref=e2089]:
+            - generic [ref=e2090]:
+              - generic [ref=e2091]: Interval Orar
+              - generic [ref=e2092]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2093]: (90 min)
+            - button [ref=e2094] [cursor=pointer]:
+              - img [ref=e2095]
+        - generic [ref=e2100]:
+          - generic [ref=e2101]:
+            - generic [ref=e2102]: regular
+            - generic [ref=e2103]:
+              - paragraph [ref=e2104]: Miercuri
+              - paragraph [ref=e2105]: 10.06.2026
+          - heading "Retrasi" [level=3] [ref=e2106]
+          - paragraph [ref=e2107]: Iasi
+          - generic [ref=e2109]:
+            - generic [ref=e2110]:
+              - generic [ref=e2111]: Interval Orar
+              - generic [ref=e2112]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2113]: (90 min)
+            - button [ref=e2114] [cursor=pointer]:
+              - img [ref=e2115]
+        - generic [ref=e2120]:
+          - generic [ref=e2121]:
+            - generic [ref=e2122]: regular
+            - generic [ref=e2123]:
+              - paragraph [ref=e2124]: Marți
+              - paragraph [ref=e2125]: 09.06.2026
+          - heading "Copii Avansati" [level=3] [ref=e2126]
+          - paragraph [ref=e2127]: Iasi
+          - generic [ref=e2129]:
+            - generic [ref=e2130]:
+              - generic [ref=e2131]: Interval Orar
+              - generic [ref=e2132]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2133]: (90 min)
+            - button [ref=e2134] [cursor=pointer]:
+              - img [ref=e2135]
+        - generic [ref=e2140]:
+          - generic [ref=e2141]:
+            - generic [ref=e2142]: regular
+            - generic [ref=e2143]:
+              - paragraph [ref=e2144]: Luni
+              - paragraph [ref=e2145]: 08.06.2026
+          - heading "Copii Avansati" [level=3] [ref=e2146]
+          - paragraph [ref=e2147]: Iasi
+          - generic [ref=e2149]:
+            - generic [ref=e2150]:
+              - generic [ref=e2151]: Interval Orar
+              - generic [ref=e2152]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2153]: (90 min)
+            - button [ref=e2154] [cursor=pointer]:
+              - img [ref=e2155]
+        - generic [ref=e2160]:
+          - generic [ref=e2161]:
+            - generic [ref=e2162]: regular
+            - generic [ref=e2163]:
+              - paragraph [ref=e2164]: Joi
+              - paragraph [ref=e2165]: 04.06.2026
+          - heading "Copii Avansati" [level=3] [ref=e2166]
+          - paragraph [ref=e2167]: Iasi
+          - generic [ref=e2169]:
+            - generic [ref=e2170]:
+              - generic [ref=e2171]: Interval Orar
+              - generic [ref=e2172]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2173]: (90 min)
+            - button [ref=e2174] [cursor=pointer]:
+              - img [ref=e2175]
+        - generic [ref=e2180]:
+          - generic [ref=e2181]:
+            - generic [ref=e2182]: regular
+            - generic [ref=e2183]:
+              - paragraph [ref=e2184]: Joi
+              - paragraph [ref=e2185]: 04.06.2026
+          - heading "Retrasi" [level=3] [ref=e2186]
+          - paragraph [ref=e2187]: Iasi
+          - generic [ref=e2189]:
+            - generic [ref=e2190]:
+              - generic [ref=e2191]: Interval Orar
+              - generic [ref=e2192]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2193]: (90 min)
+            - button [ref=e2194] [cursor=pointer]:
+              - img [ref=e2195]
+        - generic [ref=e2200]:
+          - generic [ref=e2201]:
+            - generic [ref=e2202]: regular
+            - generic [ref=e2203]:
+              - paragraph [ref=e2204]: Miercuri
+              - paragraph [ref=e2205]: 03.06.2026
+          - heading "Retrasi" [level=3] [ref=e2206]
+          - paragraph [ref=e2207]: Iasi
+          - generic [ref=e2209]:
+            - generic [ref=e2210]:
+              - generic [ref=e2211]: Interval Orar
+              - generic [ref=e2212]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2213]: (90 min)
+            - button [ref=e2214] [cursor=pointer]:
+              - img [ref=e2215]
+        - generic [ref=e2220]:
+          - generic [ref=e2221]:
+            - generic [ref=e2222]: regular
+            - generic [ref=e2223]:
+              - paragraph [ref=e2224]: Marți
+              - paragraph [ref=e2225]: 02.06.2026
+          - heading "Copii Avansati" [level=3] [ref=e2226]
+          - paragraph [ref=e2227]: Iasi
+          - generic [ref=e2229]:
+            - generic [ref=e2230]:
+              - generic [ref=e2231]: Interval Orar
+              - generic [ref=e2232]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2233]: (90 min)
+            - button [ref=e2234] [cursor=pointer]:
+              - img [ref=e2235]
+        - generic [ref=e2240]:
+          - generic [ref=e2241]:
+            - generic [ref=e2242]: regular
+            - generic [ref=e2243]:
+              - paragraph [ref=e2244]: Luni
+              - paragraph [ref=e2245]: 01.06.2026
+          - heading "Copii Avansati" [level=3] [ref=e2246]
+          - paragraph [ref=e2247]: Iasi
+          - generic [ref=e2249]:
+            - generic [ref=e2250]:
+              - generic [ref=e2251]: Interval Orar
+              - generic [ref=e2252]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2253]: (90 min)
+            - button [ref=e2254] [cursor=pointer]:
+              - img [ref=e2255]
+        - generic [ref=e2260]:
+          - generic [ref=e2261]:
+            - generic [ref=e2262]: regular
+            - generic [ref=e2263]:
+              - paragraph [ref=e2264]: Joi
+              - paragraph [ref=e2265]: 28.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2266]
+          - paragraph [ref=e2267]: Iasi
+          - generic [ref=e2269]:
+            - generic [ref=e2270]:
+              - generic [ref=e2271]: Interval Orar
+              - generic [ref=e2272]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2273]: (90 min)
+            - button [ref=e2274] [cursor=pointer]:
+              - img [ref=e2275]
+        - generic [ref=e2280]:
+          - generic [ref=e2281]:
+            - generic [ref=e2282]: regular
+            - generic [ref=e2283]:
+              - paragraph [ref=e2284]: Joi
+              - paragraph [ref=e2285]: 28.05.2026
+          - heading "Retrasi" [level=3] [ref=e2286]
+          - paragraph [ref=e2287]: Iasi
+          - generic [ref=e2289]:
+            - generic [ref=e2290]:
+              - generic [ref=e2291]: Interval Orar
+              - generic [ref=e2292]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2293]: (90 min)
+            - button [ref=e2294] [cursor=pointer]:
+              - img [ref=e2295]
+        - generic [ref=e2300]:
+          - generic [ref=e2301]:
+            - generic [ref=e2302]: regular
+            - generic [ref=e2303]:
+              - paragraph [ref=e2304]: Miercuri
+              - paragraph [ref=e2305]: 27.05.2026
+          - heading "Retrasi" [level=3] [ref=e2306]
+          - paragraph [ref=e2307]: Iasi
+          - generic [ref=e2309]:
+            - generic [ref=e2310]:
+              - generic [ref=e2311]: Interval Orar
+              - generic [ref=e2312]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2313]: (90 min)
+            - button [ref=e2314] [cursor=pointer]:
+              - img [ref=e2315]
+        - generic [ref=e2320]:
+          - generic [ref=e2321]:
+            - generic [ref=e2322]: regular
+            - generic [ref=e2323]:
+              - paragraph [ref=e2324]: Marți
+              - paragraph [ref=e2325]: 26.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2326]
+          - paragraph [ref=e2327]: Iasi
+          - generic [ref=e2329]:
+            - generic [ref=e2330]:
+              - generic [ref=e2331]: Interval Orar
+              - generic [ref=e2332]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2333]: (90 min)
+            - button [ref=e2334] [cursor=pointer]:
+              - img [ref=e2335]
+        - generic [ref=e2340]:
+          - generic [ref=e2341]:
+            - generic [ref=e2342]: regular
+            - generic [ref=e2343]:
+              - paragraph [ref=e2344]: Luni
+              - paragraph [ref=e2345]: 25.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2346]
+          - paragraph [ref=e2347]: Iasi
+          - generic [ref=e2349]:
+            - generic [ref=e2350]:
+              - generic [ref=e2351]: Interval Orar
+              - generic [ref=e2352]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2353]: (90 min)
+            - button [ref=e2354] [cursor=pointer]:
+              - img [ref=e2355]
+        - generic [ref=e2360]:
+          - generic [ref=e2361]:
+            - generic [ref=e2362]: regular
+            - generic [ref=e2363]:
+              - paragraph [ref=e2364]: Joi
+              - paragraph [ref=e2365]: 21.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2366]
+          - paragraph [ref=e2367]: Iasi
+          - generic [ref=e2369]:
+            - generic [ref=e2370]:
+              - generic [ref=e2371]: Interval Orar
+              - generic [ref=e2372]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2373]: (90 min)
+            - button [ref=e2374] [cursor=pointer]:
+              - img [ref=e2375]
+        - generic [ref=e2380]:
+          - generic [ref=e2381]:
+            - generic [ref=e2382]: regular
+            - generic [ref=e2383]:
+              - paragraph [ref=e2384]: Joi
+              - paragraph [ref=e2385]: 21.05.2026
+          - heading "Retrasi" [level=3] [ref=e2386]
+          - paragraph [ref=e2387]: Iasi
+          - generic [ref=e2389]:
+            - generic [ref=e2390]:
+              - generic [ref=e2391]: Interval Orar
+              - generic [ref=e2392]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2393]: (90 min)
+            - button [ref=e2394] [cursor=pointer]:
+              - img [ref=e2395]
+        - generic [ref=e2400]:
+          - generic [ref=e2401]:
+            - generic [ref=e2402]: regular
+            - generic [ref=e2403]:
+              - paragraph [ref=e2404]: Miercuri
+              - paragraph [ref=e2405]: 20.05.2026
+          - heading "Retrasi" [level=3] [ref=e2406]
+          - paragraph [ref=e2407]: Iasi
+          - generic [ref=e2409]:
+            - generic [ref=e2410]:
+              - generic [ref=e2411]: Interval Orar
+              - generic [ref=e2412]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2413]: (90 min)
+            - button [ref=e2414] [cursor=pointer]:
+              - img [ref=e2415]
+        - generic [ref=e2420]:
+          - generic [ref=e2421]:
+            - generic [ref=e2422]: regular
+            - generic [ref=e2423]:
+              - paragraph [ref=e2424]: Marți
+              - paragraph [ref=e2425]: 19.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2426]
+          - paragraph [ref=e2427]: Iasi
+          - generic [ref=e2429]:
+            - generic [ref=e2430]:
+              - generic [ref=e2431]: Interval Orar
+              - generic [ref=e2432]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2433]: (90 min)
+            - button [ref=e2434] [cursor=pointer]:
+              - img [ref=e2435]
+        - generic [ref=e2440]:
+          - generic [ref=e2441]:
+            - generic [ref=e2442]: regular
+            - generic [ref=e2443]:
+              - paragraph [ref=e2444]: Luni
+              - paragraph [ref=e2445]: 18.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2446]
+          - paragraph [ref=e2447]: Iasi
+          - generic [ref=e2449]:
+            - generic [ref=e2450]:
+              - generic [ref=e2451]: Interval Orar
+              - generic [ref=e2452]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2453]: (90 min)
+            - button [ref=e2454] [cursor=pointer]:
+              - img [ref=e2455]
+        - generic [ref=e2460]:
+          - generic [ref=e2461]:
+            - generic [ref=e2462]: regular
+            - generic [ref=e2463]:
+              - paragraph [ref=e2464]: Joi
+              - paragraph [ref=e2465]: 14.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2466]
+          - paragraph [ref=e2467]: Iasi
+          - generic [ref=e2469]:
+            - generic [ref=e2470]:
+              - generic [ref=e2471]: Interval Orar
+              - generic [ref=e2472]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2473]: (90 min)
+            - button [ref=e2474] [cursor=pointer]:
+              - img [ref=e2475]
+        - generic [ref=e2480]:
+          - generic [ref=e2481]:
+            - generic [ref=e2482]: regular
+            - generic [ref=e2483]:
+              - paragraph [ref=e2484]: Miercuri
+              - paragraph [ref=e2485]: 13.05.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2486]
+          - paragraph [ref=e2487]: Iasi
+          - generic [ref=e2489]:
+            - generic [ref=e2490]:
+              - generic [ref=e2491]: Interval Orar
+              - generic [ref=e2492]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2493]: (60 min)
+            - button [ref=e2494] [cursor=pointer]:
+              - img [ref=e2495]
+        - generic [ref=e2500]:
+          - generic [ref=e2501]:
+            - generic [ref=e2502]: regular
+            - generic [ref=e2503]:
+              - paragraph [ref=e2504]: Miercuri
+              - paragraph [ref=e2505]: 13.05.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2506]
+          - paragraph [ref=e2507]: Iasi
+          - generic [ref=e2509]:
+            - generic [ref=e2510]:
+              - generic [ref=e2511]: Interval Orar
+              - generic [ref=e2512]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2513]: (60 min)
+            - button [ref=e2514] [cursor=pointer]:
+              - img [ref=e2515]
+        - generic [ref=e2520]:
+          - generic [ref=e2521]:
+            - generic [ref=e2522]: regular
+            - generic [ref=e2523]:
+              - paragraph [ref=e2524]: Marți
+              - paragraph [ref=e2525]: 12.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2526]
+          - paragraph [ref=e2527]: Iasi
+          - generic [ref=e2529]:
+            - generic [ref=e2530]:
+              - generic [ref=e2531]: Interval Orar
+              - generic [ref=e2532]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2533]: (90 min)
+            - button [ref=e2534] [cursor=pointer]:
+              - img [ref=e2535]
+        - generic [ref=e2540]:
+          - generic [ref=e2541]:
+            - generic [ref=e2542]: regular
+            - generic [ref=e2543]:
+              - paragraph [ref=e2544]: Luni
+              - paragraph [ref=e2545]: 11.05.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2546]
+          - paragraph [ref=e2547]: Iasi
+          - generic [ref=e2549]:
+            - generic [ref=e2550]:
+              - generic [ref=e2551]: Interval Orar
+              - generic [ref=e2552]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2553]: (60 min)
+            - button [ref=e2554] [cursor=pointer]:
+              - img [ref=e2555]
+        - generic [ref=e2560]:
+          - generic [ref=e2561]:
+            - generic [ref=e2562]: regular
+            - generic [ref=e2563]:
+              - paragraph [ref=e2564]: Luni
+              - paragraph [ref=e2565]: 11.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2566]
+          - paragraph [ref=e2567]: Iasi
+          - generic [ref=e2569]:
+            - generic [ref=e2570]:
+              - generic [ref=e2571]: Interval Orar
+              - generic [ref=e2572]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2573]: (90 min)
+            - button [ref=e2574] [cursor=pointer]:
+              - img [ref=e2575]
+        - generic [ref=e2580]:
+          - generic [ref=e2581]:
+            - generic [ref=e2582]: regular
+            - generic [ref=e2583]:
+              - paragraph [ref=e2584]: Joi
+              - paragraph [ref=e2585]: 07.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2586]
+          - paragraph [ref=e2587]: Iasi
+          - generic [ref=e2589]:
+            - generic [ref=e2590]:
+              - generic [ref=e2591]: Interval Orar
+              - generic [ref=e2592]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2593]: (90 min)
+            - button [ref=e2594] [cursor=pointer]:
+              - img [ref=e2595]
+        - generic [ref=e2600]:
+          - generic [ref=e2601]:
+            - generic [ref=e2602]: regular
+            - generic [ref=e2603]:
+              - paragraph [ref=e2604]: Miercuri
+              - paragraph [ref=e2605]: 06.05.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2606]
+          - paragraph [ref=e2607]: Iasi
+          - generic [ref=e2609]:
+            - generic [ref=e2610]:
+              - generic [ref=e2611]: Interval Orar
+              - generic [ref=e2612]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2613]: (60 min)
+            - button [ref=e2614] [cursor=pointer]:
+              - img [ref=e2615]
+        - generic [ref=e2620]:
+          - generic [ref=e2621]:
+            - generic [ref=e2622]: regular
+            - generic [ref=e2623]:
+              - paragraph [ref=e2624]: Miercuri
+              - paragraph [ref=e2625]: 06.05.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2626]
+          - paragraph [ref=e2627]: Iasi
+          - generic [ref=e2629]:
+            - generic [ref=e2630]:
+              - generic [ref=e2631]: Interval Orar
+              - generic [ref=e2632]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2633]: (60 min)
+            - button [ref=e2634] [cursor=pointer]:
+              - img [ref=e2635]
+        - generic [ref=e2640]:
+          - generic [ref=e2641]:
+            - generic [ref=e2642]: regular
+            - generic [ref=e2643]:
+              - paragraph [ref=e2644]: Marți
+              - paragraph [ref=e2645]: 05.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2646]
+          - paragraph [ref=e2647]: Iasi
+          - generic [ref=e2649]:
+            - generic [ref=e2650]:
+              - generic [ref=e2651]: Interval Orar
+              - generic [ref=e2652]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2653]: (90 min)
+            - button [ref=e2654] [cursor=pointer]:
+              - img [ref=e2655]
+        - generic [ref=e2660]:
+          - generic [ref=e2661]:
+            - generic [ref=e2662]: regular
+            - generic [ref=e2663]:
+              - paragraph [ref=e2664]: Luni
+              - paragraph [ref=e2665]: 04.05.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2666]
+          - paragraph [ref=e2667]: Iasi
+          - generic [ref=e2669]:
+            - generic [ref=e2670]:
+              - generic [ref=e2671]: Interval Orar
+              - generic [ref=e2672]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2673]: (60 min)
+            - button [ref=e2674] [cursor=pointer]:
+              - img [ref=e2675]
+        - generic [ref=e2680]:
+          - generic [ref=e2681]:
+            - generic [ref=e2682]: regular
+            - generic [ref=e2683]:
+              - paragraph [ref=e2684]: Luni
+              - paragraph [ref=e2685]: 04.05.2026
+          - heading "Copii Avansati" [level=3] [ref=e2686]
+          - paragraph [ref=e2687]: Iasi
+          - generic [ref=e2689]:
+            - generic [ref=e2690]:
+              - generic [ref=e2691]: Interval Orar
+              - generic [ref=e2692]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2693]: (90 min)
+            - button [ref=e2694] [cursor=pointer]:
+              - img [ref=e2695]
+        - generic [ref=e2700]:
+          - generic [ref=e2701]:
+            - generic [ref=e2702]: regular
+            - generic [ref=e2703]:
+              - paragraph [ref=e2704]: Joi
+              - paragraph [ref=e2705]: 30.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e2706]
+          - paragraph [ref=e2707]: Iasi
+          - generic [ref=e2709]:
+            - generic [ref=e2710]:
+              - generic [ref=e2711]: Interval Orar
+              - generic [ref=e2712]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2713]: (90 min)
+            - button [ref=e2714] [cursor=pointer]:
+              - img [ref=e2715]
+        - generic [ref=e2720]:
+          - generic [ref=e2721]:
+            - generic [ref=e2722]: regular
+            - generic [ref=e2723]:
+              - paragraph [ref=e2724]: Miercuri
+              - paragraph [ref=e2725]: 29.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2726]
+          - paragraph [ref=e2727]: Iasi
+          - generic [ref=e2729]:
+            - generic [ref=e2730]:
+              - generic [ref=e2731]: Interval Orar
+              - generic [ref=e2732]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2733]: (60 min)
+            - button [ref=e2734] [cursor=pointer]:
+              - img [ref=e2735]
+        - generic [ref=e2740]:
+          - generic [ref=e2741]:
+            - generic [ref=e2742]: regular
+            - generic [ref=e2743]:
+              - paragraph [ref=e2744]: Miercuri
+              - paragraph [ref=e2745]: 29.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2746]
+          - paragraph [ref=e2747]: Iasi
+          - generic [ref=e2749]:
+            - generic [ref=e2750]:
+              - generic [ref=e2751]: Interval Orar
+              - generic [ref=e2752]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2753]: (60 min)
+            - button [ref=e2754] [cursor=pointer]:
+              - img [ref=e2755]
+        - generic [ref=e2760]:
+          - generic [ref=e2761]:
+            - generic [ref=e2762]: regular
+            - generic [ref=e2763]:
+              - paragraph [ref=e2764]: Marți
+              - paragraph [ref=e2765]: 28.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e2766]
+          - paragraph [ref=e2767]: Iasi
+          - generic [ref=e2769]:
+            - generic [ref=e2770]:
+              - generic [ref=e2771]: Interval Orar
+              - generic [ref=e2772]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2773]: (90 min)
+            - button [ref=e2774] [cursor=pointer]:
+              - img [ref=e2775]
+        - generic [ref=e2780]:
+          - generic [ref=e2781]:
+            - generic [ref=e2782]: regular
+            - generic [ref=e2783]:
+              - paragraph [ref=e2784]: Luni
+              - paragraph [ref=e2785]: 27.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2786]
+          - paragraph [ref=e2787]: Iasi
+          - generic [ref=e2789]:
+            - generic [ref=e2790]:
+              - generic [ref=e2791]: Interval Orar
+              - generic [ref=e2792]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2793]: (60 min)
+            - button [ref=e2794] [cursor=pointer]:
+              - img [ref=e2795]
+        - generic [ref=e2800]:
+          - generic [ref=e2801]:
+            - generic [ref=e2802]: regular
+            - generic [ref=e2803]:
+              - paragraph [ref=e2804]: Luni
+              - paragraph [ref=e2805]: 27.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e2806]
+          - paragraph [ref=e2807]: Iasi
+          - generic [ref=e2809]:
+            - generic [ref=e2810]:
+              - generic [ref=e2811]: Interval Orar
+              - generic [ref=e2812]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2813]: (90 min)
+            - button [ref=e2814] [cursor=pointer]:
+              - img [ref=e2815]
+        - generic [ref=e2820]:
+          - generic [ref=e2821]:
+            - generic [ref=e2822]: regular
+            - generic [ref=e2823]:
+              - paragraph [ref=e2824]: Joi
+              - paragraph [ref=e2825]: 23.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e2826]
+          - paragraph [ref=e2827]: Iasi
+          - generic [ref=e2829]:
+            - generic [ref=e2830]:
+              - generic [ref=e2831]: Interval Orar
+              - generic [ref=e2832]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2833]: (90 min)
+            - button [ref=e2834] [cursor=pointer]:
+              - img [ref=e2835]
+        - generic [ref=e2840]:
+          - generic [ref=e2841]:
+            - generic [ref=e2842]: regular
+            - generic [ref=e2843]:
+              - paragraph [ref=e2844]: Miercuri
+              - paragraph [ref=e2845]: 22.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2846]
+          - paragraph [ref=e2847]: Iasi
+          - generic [ref=e2849]:
+            - generic [ref=e2850]:
+              - generic [ref=e2851]: Interval Orar
+              - generic [ref=e2852]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2853]: (60 min)
+            - button [ref=e2854] [cursor=pointer]:
+              - img [ref=e2855]
+        - generic [ref=e2860]:
+          - generic [ref=e2861]:
+            - generic [ref=e2862]: regular
+            - generic [ref=e2863]:
+              - paragraph [ref=e2864]: Marți
+              - paragraph [ref=e2865]: 21.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e2866]
+          - paragraph [ref=e2867]: Iasi
+          - generic [ref=e2869]:
+            - generic [ref=e2870]:
+              - generic [ref=e2871]: Interval Orar
+              - generic [ref=e2872]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2873]: (90 min)
+            - button [ref=e2874] [cursor=pointer]:
+              - img [ref=e2875]
+        - generic [ref=e2880]:
+          - generic [ref=e2881]:
+            - generic [ref=e2882]: regular
+            - generic [ref=e2883]:
+              - paragraph [ref=e2884]: Luni
+              - paragraph [ref=e2885]: 20.04.2026
+          - heading "Copii Incepatori" [level=3] [ref=e2886]
+          - paragraph [ref=e2887]: Iasi
+          - generic [ref=e2889]:
+            - generic [ref=e2890]:
+              - generic [ref=e2891]: Interval Orar
+              - generic [ref=e2892]:
+                - text: 17:00 - 18:00
+                - generic [ref=e2893]: (60 min)
+            - button [ref=e2894] [cursor=pointer]:
+              - img [ref=e2895]
+        - generic [ref=e2900]:
+          - generic [ref=e2901]:
+            - generic [ref=e2902]: regular
+            - generic [ref=e2903]:
+              - paragraph [ref=e2904]: Luni
+              - paragraph [ref=e2905]: 20.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e2906]
+          - paragraph [ref=e2907]: Iasi
+          - generic [ref=e2909]:
+            - generic [ref=e2910]:
+              - generic [ref=e2911]: Interval Orar
+              - generic [ref=e2912]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2913]: (90 min)
+            - button [ref=e2914] [cursor=pointer]:
+              - img [ref=e2915]
+        - generic [ref=e2920]:
+          - generic [ref=e2921]:
+            - generic [ref=e2922]: regular
+            - generic [ref=e2923]:
+              - paragraph [ref=e2924]: Joi
+              - paragraph [ref=e2925]: 16.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e2926]
+          - paragraph [ref=e2927]: Iasi
+          - generic [ref=e2929]:
+            - generic [ref=e2930]:
+              - generic [ref=e2931]: Interval Orar
+              - generic [ref=e2932]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2933]: (90 min)
+            - button [ref=e2934] [cursor=pointer]:
+              - img [ref=e2935]
+        - generic [ref=e2940]:
+          - generic [ref=e2941]:
+            - generic [ref=e2942]: regular
+            - generic [ref=e2943]:
+              - paragraph [ref=e2944]: Marți
+              - paragraph [ref=e2945]: 14.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e2946]
+          - paragraph [ref=e2947]: Iasi
+          - generic [ref=e2949]:
+            - generic [ref=e2950]:
+              - generic [ref=e2951]: Interval Orar
+              - generic [ref=e2952]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2953]: (90 min)
+            - button [ref=e2954] [cursor=pointer]:
+              - img [ref=e2955]
+        - generic [ref=e2960]:
+          - generic [ref=e2961]:
+            - generic [ref=e2962]: regular
+            - generic [ref=e2963]:
+              - paragraph [ref=e2964]: Luni
+              - paragraph [ref=e2965]: 13.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e2966]
+          - paragraph [ref=e2967]: Iasi
+          - generic [ref=e2969]:
+            - generic [ref=e2970]:
+              - generic [ref=e2971]: Interval Orar
+              - generic [ref=e2972]:
+                - text: 18:00 - 19:30
+                - generic [ref=e2973]: (90 min)
+            - button [ref=e2974] [cursor=pointer]:
+              - img [ref=e2975]
+        - generic [ref=e2980]:
+          - generic [ref=e2981]:
+            - generic [ref=e2982]: regular
+            - generic [ref=e2983]:
+              - paragraph [ref=e2984]: Joi
+              - paragraph [ref=e2985]: 09.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e2986]
+          - paragraph [ref=e2987]: Iasi
+          - generic [ref=e2989]:
+            - generic [ref=e2990]:
+              - generic [ref=e2991]: Interval Orar
+              - generic [ref=e2992]:
+                - text: 17:30 - 19:00
+                - generic [ref=e2993]: (90 min)
+            - button [ref=e2994] [cursor=pointer]:
+              - img [ref=e2995]
+        - generic [ref=e3000]:
+          - generic [ref=e3001]:
+            - generic [ref=e3002]: regular
+            - generic [ref=e3003]:
+              - paragraph [ref=e3004]: Marți
+              - paragraph [ref=e3005]: 07.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e3006]
+          - paragraph [ref=e3007]: Iasi
+          - generic [ref=e3009]:
+            - generic [ref=e3010]:
+              - generic [ref=e3011]: Interval Orar
+              - generic [ref=e3012]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3013]: (90 min)
+            - button [ref=e3014] [cursor=pointer]:
+              - img [ref=e3015]
+        - generic [ref=e3020]:
+          - generic [ref=e3021]:
+            - generic [ref=e3022]: regular
+            - generic [ref=e3023]:
+              - paragraph [ref=e3024]: Luni
+              - paragraph [ref=e3025]: 06.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e3026]
+          - paragraph [ref=e3027]: Iasi
+          - generic [ref=e3029]:
+            - generic [ref=e3030]:
+              - generic [ref=e3031]: Interval Orar
+              - generic [ref=e3032]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3033]: (90 min)
+            - button [ref=e3034] [cursor=pointer]:
+              - img [ref=e3035]
+        - generic [ref=e3040]:
+          - generic [ref=e3041]:
+            - generic [ref=e3042]: regular
+            - generic [ref=e3043]:
+              - paragraph [ref=e3044]: Joi
+              - paragraph [ref=e3045]: 02.04.2026
+          - heading "Copii Avansati" [level=3] [ref=e3046]
+          - paragraph [ref=e3047]: Iasi
+          - generic [ref=e3049]:
+            - generic [ref=e3050]:
+              - generic [ref=e3051]: Interval Orar
+              - generic [ref=e3052]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3053]: (90 min)
+            - button [ref=e3054] [cursor=pointer]:
+              - img [ref=e3055]
+        - generic [ref=e3060]:
+          - generic [ref=e3061]:
+            - generic [ref=e3062]: regular
+            - generic [ref=e3063]:
+              - paragraph [ref=e3064]: Marți
+              - paragraph [ref=e3065]: 31.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3066]
+          - paragraph [ref=e3067]: Iasi
+          - generic [ref=e3069]:
+            - generic [ref=e3070]:
+              - generic [ref=e3071]: Interval Orar
+              - generic [ref=e3072]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3073]: (90 min)
+            - button [ref=e3074] [cursor=pointer]:
+              - img [ref=e3075]
+        - generic [ref=e3080]:
+          - generic [ref=e3081]:
+            - generic [ref=e3082]: regular
+            - generic [ref=e3083]:
+              - paragraph [ref=e3084]: Luni
+              - paragraph [ref=e3085]: 30.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3086]
+          - paragraph [ref=e3087]: Iasi
+          - generic [ref=e3089]:
+            - generic [ref=e3090]:
+              - generic [ref=e3091]: Interval Orar
+              - generic [ref=e3092]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3093]: (90 min)
+            - button [ref=e3094] [cursor=pointer]:
+              - img [ref=e3095]
+        - generic [ref=e3100]:
+          - generic [ref=e3101]:
+            - generic [ref=e3102]: regular
+            - generic [ref=e3103]:
+              - paragraph [ref=e3104]: Luni
+              - paragraph [ref=e3105]: 30.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3106]
+          - paragraph [ref=e3107]: Iasi
+          - generic [ref=e3109]:
+            - generic [ref=e3110]:
+              - generic [ref=e3111]: Interval Orar
+              - generic [ref=e3112]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3113]: (90 min)
+            - button [ref=e3114] [cursor=pointer]:
+              - img [ref=e3115]
+        - generic [ref=e3120]:
+          - generic [ref=e3121]:
+            - generic [ref=e3122]: regular
+            - generic [ref=e3123]:
+              - paragraph [ref=e3124]: Luni
+              - paragraph [ref=e3125]: 30.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3126]
+          - paragraph [ref=e3127]: Iasi
+          - generic [ref=e3129]:
+            - generic [ref=e3130]:
+              - generic [ref=e3131]: Interval Orar
+              - generic [ref=e3132]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3133]: (90 min)
+            - button [ref=e3134] [cursor=pointer]:
+              - img [ref=e3135]
+        - generic [ref=e3140]:
+          - generic [ref=e3141]:
+            - generic [ref=e3142]: regular
+            - generic [ref=e3143]:
+              - paragraph [ref=e3144]: Joi
+              - paragraph [ref=e3145]: 26.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3146]
+          - paragraph [ref=e3147]: Iasi
+          - generic [ref=e3149]:
+            - generic [ref=e3150]:
+              - generic [ref=e3151]: Interval Orar
+              - generic [ref=e3152]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3153]: (90 min)
+            - button [ref=e3154] [cursor=pointer]:
+              - img [ref=e3155]
+        - generic [ref=e3160]:
+          - generic [ref=e3161]:
+            - generic [ref=e3162]: regular
+            - generic [ref=e3163]:
+              - paragraph [ref=e3164]: Marți
+              - paragraph [ref=e3165]: 24.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3166]
+          - paragraph [ref=e3167]: Iasi
+          - generic [ref=e3169]:
+            - generic [ref=e3170]:
+              - generic [ref=e3171]: Interval Orar
+              - generic [ref=e3172]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3173]: (90 min)
+            - button [ref=e3174] [cursor=pointer]:
+              - img [ref=e3175]
+        - generic [ref=e3180]:
+          - generic [ref=e3181]:
+            - generic [ref=e3182]: regular
+            - generic [ref=e3183]:
+              - paragraph [ref=e3184]: Luni
+              - paragraph [ref=e3185]: 23.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3186]
+          - paragraph [ref=e3187]: Iasi
+          - generic [ref=e3189]:
+            - generic [ref=e3190]:
+              - generic [ref=e3191]: Interval Orar
+              - generic [ref=e3192]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3193]: (90 min)
+            - button [ref=e3194] [cursor=pointer]:
+              - img [ref=e3195]
+        - generic [ref=e3200]:
+          - generic [ref=e3201]:
+            - generic [ref=e3202]: regular
+            - generic [ref=e3203]:
+              - paragraph [ref=e3204]: Joi
+              - paragraph [ref=e3205]: 19.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3206]
+          - paragraph [ref=e3207]: Iasi
+          - generic [ref=e3209]:
+            - generic [ref=e3210]:
+              - generic [ref=e3211]: Interval Orar
+              - generic [ref=e3212]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3213]: (90 min)
+            - button [ref=e3214] [cursor=pointer]:
+              - img [ref=e3215]
+        - generic [ref=e3220]:
+          - generic [ref=e3221]:
+            - generic [ref=e3222]: regular
+            - generic [ref=e3223]:
+              - paragraph [ref=e3224]: Marți
+              - paragraph [ref=e3225]: 17.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3226]
+          - paragraph [ref=e3227]: Iasi
+          - generic [ref=e3229]:
+            - generic [ref=e3230]:
+              - generic [ref=e3231]: Interval Orar
+              - generic [ref=e3232]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3233]: (90 min)
+            - button [ref=e3234] [cursor=pointer]:
+              - img [ref=e3235]
+        - generic [ref=e3240]:
+          - generic [ref=e3241]:
+            - generic [ref=e3242]: regular
+            - generic [ref=e3243]:
+              - paragraph [ref=e3244]: Luni
+              - paragraph [ref=e3245]: 16.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3246]
+          - paragraph [ref=e3247]: Iasi
+          - generic [ref=e3249]:
+            - generic [ref=e3250]:
+              - generic [ref=e3251]: Interval Orar
+              - generic [ref=e3252]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3253]: (90 min)
+            - button [ref=e3254] [cursor=pointer]:
+              - img [ref=e3255]
+        - generic [ref=e3260]:
+          - generic [ref=e3261]:
+            - generic [ref=e3262]: regular
+            - generic [ref=e3263]:
+              - paragraph [ref=e3264]: Joi
+              - paragraph [ref=e3265]: 12.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3266]
+          - paragraph [ref=e3267]: Iasi
+          - generic [ref=e3269]:
+            - generic [ref=e3270]:
+              - generic [ref=e3271]: Interval Orar
+              - generic [ref=e3272]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3273]: (90 min)
+            - button [ref=e3274] [cursor=pointer]:
+              - img [ref=e3275]
+        - generic [ref=e3280]:
+          - generic [ref=e3281]:
+            - generic [ref=e3282]: regular
+            - generic [ref=e3283]:
+              - paragraph [ref=e3284]: Marți
+              - paragraph [ref=e3285]: 10.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3286]
+          - paragraph [ref=e3287]: Iasi
+          - generic [ref=e3289]:
+            - generic [ref=e3290]:
+              - generic [ref=e3291]: Interval Orar
+              - generic [ref=e3292]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3293]: (90 min)
+            - button [ref=e3294] [cursor=pointer]:
+              - img [ref=e3295]
+        - generic [ref=e3300]:
+          - generic [ref=e3301]:
+            - generic [ref=e3302]: regular
+            - generic [ref=e3303]:
+              - paragraph [ref=e3304]: Luni
+              - paragraph [ref=e3305]: 09.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3306]
+          - paragraph [ref=e3307]: Iasi
+          - generic [ref=e3309]:
+            - generic [ref=e3310]:
+              - generic [ref=e3311]: Interval Orar
+              - generic [ref=e3312]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3313]: (90 min)
+            - button [ref=e3314] [cursor=pointer]:
+              - img [ref=e3315]
+        - generic [ref=e3320]:
+          - generic [ref=e3321]:
+            - generic [ref=e3322]: regular
+            - generic [ref=e3323]:
+              - paragraph [ref=e3324]: Joi
+              - paragraph [ref=e3325]: 05.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3326]
+          - paragraph [ref=e3327]: Iasi
+          - generic [ref=e3329]:
+            - generic [ref=e3330]:
+              - generic [ref=e3331]: Interval Orar
+              - generic [ref=e3332]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3333]: (90 min)
+            - button [ref=e3334] [cursor=pointer]:
+              - img [ref=e3335]
+        - generic [ref=e3340]:
+          - generic [ref=e3341]:
+            - generic [ref=e3342]: regular
+            - generic [ref=e3343]:
+              - paragraph [ref=e3344]: Marți
+              - paragraph [ref=e3345]: 03.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3346]
+          - paragraph [ref=e3347]: Iasi
+          - generic [ref=e3349]:
+            - generic [ref=e3350]:
+              - generic [ref=e3351]: Interval Orar
+              - generic [ref=e3352]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3353]: (90 min)
+            - button [ref=e3354] [cursor=pointer]:
+              - img [ref=e3355]
+        - generic [ref=e3360]:
+          - generic [ref=e3361]:
+            - generic [ref=e3362]: regular
+            - generic [ref=e3363]:
+              - paragraph [ref=e3364]: Luni
+              - paragraph [ref=e3365]: 02.03.2026
+          - heading "Copii Avansati" [level=3] [ref=e3366]
+          - paragraph [ref=e3367]: Iasi
+          - generic [ref=e3369]:
+            - generic [ref=e3370]:
+              - generic [ref=e3371]: Interval Orar
+              - generic [ref=e3372]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3373]: (90 min)
+            - button [ref=e3374] [cursor=pointer]:
+              - img [ref=e3375]
+        - generic [ref=e3380]:
+          - generic [ref=e3381]:
+            - generic [ref=e3382]: regular
+            - generic [ref=e3383]:
+              - paragraph [ref=e3384]: Joi
+              - paragraph [ref=e3385]: 26.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3386]
+          - paragraph [ref=e3387]: Iasi
+          - generic [ref=e3389]:
+            - generic [ref=e3390]:
+              - generic [ref=e3391]: Interval Orar
+              - generic [ref=e3392]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3393]: (90 min)
+            - button [ref=e3394] [cursor=pointer]:
+              - img [ref=e3395]
+        - generic [ref=e3400]:
+          - generic [ref=e3401]:
+            - generic [ref=e3402]: regular
+            - generic [ref=e3403]:
+              - paragraph [ref=e3404]: Marți
+              - paragraph [ref=e3405]: 24.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3406]
+          - paragraph [ref=e3407]: Iasi
+          - generic [ref=e3409]:
+            - generic [ref=e3410]:
+              - generic [ref=e3411]: Interval Orar
+              - generic [ref=e3412]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3413]: (90 min)
+            - button [ref=e3414] [cursor=pointer]:
+              - img [ref=e3415]
+        - generic [ref=e3420]:
+          - generic [ref=e3421]:
+            - generic [ref=e3422]: regular
+            - generic [ref=e3423]:
+              - paragraph [ref=e3424]: Luni
+              - paragraph [ref=e3425]: 23.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3426]
+          - paragraph [ref=e3427]: Iasi
+          - generic [ref=e3429]:
+            - generic [ref=e3430]:
+              - generic [ref=e3431]: Interval Orar
+              - generic [ref=e3432]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3433]: (90 min)
+            - button [ref=e3434] [cursor=pointer]:
+              - img [ref=e3435]
+        - generic [ref=e3440]:
+          - generic [ref=e3441]:
+            - generic [ref=e3442]: regular
+            - generic [ref=e3443]:
+              - paragraph [ref=e3444]: Joi
+              - paragraph [ref=e3445]: 19.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3446]
+          - paragraph [ref=e3447]: Iasi
+          - generic [ref=e3449]:
+            - generic [ref=e3450]:
+              - generic [ref=e3451]: Interval Orar
+              - generic [ref=e3452]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3453]: (90 min)
+            - button [ref=e3454] [cursor=pointer]:
+              - img [ref=e3455]
+        - generic [ref=e3460]:
+          - generic [ref=e3461]:
+            - generic [ref=e3462]: regular
+            - generic [ref=e3463]:
+              - paragraph [ref=e3464]: Marți
+              - paragraph [ref=e3465]: 17.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3466]
+          - paragraph [ref=e3467]: Iasi
+          - generic [ref=e3469]:
+            - generic [ref=e3470]:
+              - generic [ref=e3471]: Interval Orar
+              - generic [ref=e3472]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3473]: (90 min)
+            - button [ref=e3474] [cursor=pointer]:
+              - img [ref=e3475]
+        - generic [ref=e3480]:
+          - generic [ref=e3481]:
+            - generic [ref=e3482]: regular
+            - generic [ref=e3483]:
+              - paragraph [ref=e3484]: Luni
+              - paragraph [ref=e3485]: 16.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3486]
+          - paragraph [ref=e3487]: Iasi
+          - generic [ref=e3489]:
+            - generic [ref=e3490]:
+              - generic [ref=e3491]: Interval Orar
+              - generic [ref=e3492]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3493]: (90 min)
+            - button [ref=e3494] [cursor=pointer]:
+              - img [ref=e3495]
+        - generic [ref=e3500]:
+          - generic [ref=e3501]:
+            - generic [ref=e3502]: regular
+            - generic [ref=e3503]:
+              - paragraph [ref=e3504]: Joi
+              - paragraph [ref=e3505]: 12.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3506]
+          - paragraph [ref=e3507]: Iasi
+          - generic [ref=e3509]:
+            - generic [ref=e3510]:
+              - generic [ref=e3511]: Interval Orar
+              - generic [ref=e3512]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3513]: (90 min)
+            - button [ref=e3514] [cursor=pointer]:
+              - img [ref=e3515]
+        - generic [ref=e3520]:
+          - generic [ref=e3521]:
+            - generic [ref=e3522]: regular
+            - generic [ref=e3523]:
+              - paragraph [ref=e3524]: Marți
+              - paragraph [ref=e3525]: 10.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3526]
+          - paragraph [ref=e3527]: Iasi
+          - generic [ref=e3529]:
+            - generic [ref=e3530]:
+              - generic [ref=e3531]: Interval Orar
+              - generic [ref=e3532]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3533]: (90 min)
+            - button [ref=e3534] [cursor=pointer]:
+              - img [ref=e3535]
+        - generic [ref=e3540]:
+          - generic [ref=e3541]:
+            - generic [ref=e3542]: regular
+            - generic [ref=e3543]:
+              - paragraph [ref=e3544]: Luni
+              - paragraph [ref=e3545]: 09.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3546]
+          - paragraph [ref=e3547]: Iasi
+          - generic [ref=e3549]:
+            - generic [ref=e3550]:
+              - generic [ref=e3551]: Interval Orar
+              - generic [ref=e3552]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3553]: (90 min)
+            - button [ref=e3554] [cursor=pointer]:
+              - img [ref=e3555]
+        - generic [ref=e3560]:
+          - generic [ref=e3561]:
+            - generic [ref=e3562]: regular
+            - generic [ref=e3563]:
+              - paragraph [ref=e3564]: Joi
+              - paragraph [ref=e3565]: 05.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3566]
+          - paragraph [ref=e3567]: Iasi
+          - generic [ref=e3569]:
+            - generic [ref=e3570]:
+              - generic [ref=e3571]: Interval Orar
+              - generic [ref=e3572]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3573]: (90 min)
+            - button [ref=e3574] [cursor=pointer]:
+              - img [ref=e3575]
+        - generic [ref=e3580]:
+          - generic [ref=e3581]:
+            - generic [ref=e3582]: regular
+            - generic [ref=e3583]:
+              - paragraph [ref=e3584]: Marți
+              - paragraph [ref=e3585]: 03.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3586]
+          - paragraph [ref=e3587]: Iasi
+          - generic [ref=e3589]:
+            - generic [ref=e3590]:
+              - generic [ref=e3591]: Interval Orar
+              - generic [ref=e3592]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3593]: (90 min)
+            - button [ref=e3594] [cursor=pointer]:
+              - img [ref=e3595]
+        - generic [ref=e3600]:
+          - generic [ref=e3601]:
+            - generic [ref=e3602]: regular
+            - generic [ref=e3603]:
+              - paragraph [ref=e3604]: Luni
+              - paragraph [ref=e3605]: 02.02.2026
+          - heading "Copii Avansati" [level=3] [ref=e3606]
+          - paragraph [ref=e3607]: Iasi
+          - generic [ref=e3609]:
+            - generic [ref=e3610]:
+              - generic [ref=e3611]: Interval Orar
+              - generic [ref=e3612]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3613]: (90 min)
+            - button [ref=e3614] [cursor=pointer]:
+              - img [ref=e3615]
+        - generic [ref=e3620]:
+          - generic [ref=e3621]:
+            - generic [ref=e3622]: regular
+            - generic [ref=e3623]:
+              - paragraph [ref=e3624]: Joi
+              - paragraph [ref=e3625]: 29.01.2026
+          - heading "Copii Avansati" [level=3] [ref=e3626]
+          - paragraph [ref=e3627]: Iasi
+          - generic [ref=e3629]:
+            - generic [ref=e3630]:
+              - generic [ref=e3631]: Interval Orar
+              - generic [ref=e3632]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3633]: (90 min)
+            - button [ref=e3634] [cursor=pointer]:
+              - img [ref=e3635]
+        - generic [ref=e3640]:
+          - generic [ref=e3641]:
+            - generic [ref=e3642]: regular
+            - generic [ref=e3643]:
+              - paragraph [ref=e3644]: Marți
+              - paragraph [ref=e3645]: 27.01.2026
+          - heading "Copii Avansati" [level=3] [ref=e3646]
+          - paragraph [ref=e3647]: Iasi
+          - generic [ref=e3649]:
+            - generic [ref=e3650]:
+              - generic [ref=e3651]: Interval Orar
+              - generic [ref=e3652]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3653]: (90 min)
+            - button [ref=e3654] [cursor=pointer]:
+              - img [ref=e3655]
+        - generic [ref=e3660]:
+          - generic [ref=e3661]:
+            - generic [ref=e3662]: regular
+            - generic [ref=e3663]:
+              - paragraph [ref=e3664]: Joi
+              - paragraph [ref=e3665]: 22.01.2026
+          - heading "Copii Avansati" [level=3] [ref=e3666]
+          - paragraph [ref=e3667]: Iasi
+          - generic [ref=e3669]:
+            - generic [ref=e3670]:
+              - generic [ref=e3671]: Interval Orar
+              - generic [ref=e3672]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3673]: (90 min)
+            - button [ref=e3674] [cursor=pointer]:
+              - img [ref=e3675]
+        - generic [ref=e3680]:
+          - generic [ref=e3681]:
+            - generic [ref=e3682]: regular
+            - generic [ref=e3683]:
+              - paragraph [ref=e3684]: Marți
+              - paragraph [ref=e3685]: 20.01.2026
+          - heading "Copii Avansati" [level=3] [ref=e3686]
+          - paragraph [ref=e3687]: Iasi
+          - generic [ref=e3689]:
+            - generic [ref=e3690]:
+              - generic [ref=e3691]: Interval Orar
+              - generic [ref=e3692]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3693]: (90 min)
+            - button [ref=e3694] [cursor=pointer]:
+              - img [ref=e3695]
+        - generic [ref=e3700]:
+          - generic [ref=e3701]:
+            - generic [ref=e3702]: regular
+            - generic [ref=e3703]:
+              - paragraph [ref=e3704]: Luni
+              - paragraph [ref=e3705]: 19.01.2026
+          - heading "Copii Avansati" [level=3] [ref=e3706]
+          - paragraph [ref=e3707]: Iasi
+          - generic [ref=e3709]:
+            - generic [ref=e3710]:
+              - generic [ref=e3711]: Interval Orar
+              - generic [ref=e3712]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3713]: (90 min)
+            - button [ref=e3714] [cursor=pointer]:
+              - img [ref=e3715]
+        - generic [ref=e3720]:
+          - generic [ref=e3721]:
+            - generic [ref=e3722]: regular
+            - generic [ref=e3723]:
+              - paragraph [ref=e3724]: Joi
+              - paragraph [ref=e3725]: 15.01.2026
+          - heading "Copii Avansati" [level=3] [ref=e3726]
+          - paragraph [ref=e3727]: Iasi
+          - generic [ref=e3729]:
+            - generic [ref=e3730]:
+              - generic [ref=e3731]: Interval Orar
+              - generic [ref=e3732]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3733]: (90 min)
+            - button [ref=e3734] [cursor=pointer]:
+              - img [ref=e3735]
+        - generic [ref=e3740]:
+          - generic [ref=e3741]:
+            - generic [ref=e3742]: regular
+            - generic [ref=e3743]:
+              - paragraph [ref=e3744]: Marți
+              - paragraph [ref=e3745]: 13.01.2026
+          - heading "Copii Avansati" [level=3] [ref=e3746]
+          - paragraph [ref=e3747]: Iasi
+          - generic [ref=e3749]:
+            - generic [ref=e3750]:
+              - generic [ref=e3751]: Interval Orar
+              - generic [ref=e3752]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3753]: (90 min)
+            - button [ref=e3754] [cursor=pointer]:
+              - img [ref=e3755]
+        - generic [ref=e3760]:
+          - generic [ref=e3761]:
+            - generic [ref=e3762]: regular
+            - generic [ref=e3763]:
+              - paragraph [ref=e3764]: Luni
+              - paragraph [ref=e3765]: 12.01.2026
+          - heading "Copii Avansati" [level=3] [ref=e3766]
+          - paragraph [ref=e3767]: Iasi
+          - generic [ref=e3769]:
+            - generic [ref=e3770]:
+              - generic [ref=e3771]: Interval Orar
+              - generic [ref=e3772]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3773]: (90 min)
+            - button [ref=e3774] [cursor=pointer]:
+              - img [ref=e3775]
+        - generic [ref=e3780]:
+          - generic [ref=e3781]:
+            - generic [ref=e3782]: regular
+            - generic [ref=e3783]:
+              - paragraph [ref=e3784]: Joi
+              - paragraph [ref=e3785]: 08.01.2026
+          - heading "Copii Avansati" [level=3] [ref=e3786]
+          - paragraph [ref=e3787]: Iasi
+          - generic [ref=e3789]:
+            - generic [ref=e3790]:
+              - generic [ref=e3791]: Interval Orar
+              - generic [ref=e3792]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3793]: (90 min)
+            - button [ref=e3794] [cursor=pointer]:
+              - img [ref=e3795]
+        - generic [ref=e3800]:
+          - generic [ref=e3801]:
+            - generic [ref=e3802]: regular
+            - generic [ref=e3803]:
+              - paragraph
+              - paragraph [ref=e3804]: Invalid Date
+          - heading "Copii Avansati" [level=3] [ref=e3805]
+          - paragraph [ref=e3806]: Iasi
+          - generic [ref=e3808]:
+            - generic [ref=e3809]:
+              - generic [ref=e3810]: Interval Orar
+              - generic [ref=e3811]:
+                - text: 18:00 - 19:30
+                - generic [ref=e3812]: (90 min)
+            - button [ref=e3813] [cursor=pointer]:
+              - img [ref=e3814]
+        - generic [ref=e3819]:
+          - generic [ref=e3820]:
+            - generic [ref=e3821]: regular
+            - generic [ref=e3822]:
+              - paragraph
+              - paragraph [ref=e3823]: Invalid Date
+          - heading "Copii Avansati" [level=3] [ref=e3824]
+          - paragraph [ref=e3825]: Iasi
+          - generic [ref=e3827]:
+            - generic [ref=e3828]:
+              - generic [ref=e3829]: Interval Orar
+              - generic [ref=e3830]:
+                - text: 17:30 - 19:00
+                - generic [ref=e3831]: (90 min)
+            - button [ref=e3832] [cursor=pointer]:
+              - img [ref=e3833]
+  - contentinfo [ref=e3836]:
+    - paragraph [ref=e3837]: Realizat cu AI de Alin Lungu
+    - button "Asistent AI" [ref=e3838] [cursor=pointer]:
+      - img [ref=e3839]
+      - generic [ref=e3842]: Asistent AI

@@ -50,16 +50,24 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
     const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles, isMobileOpen, setIsMobileOpen, onOpenThemeEditor } = props;
     const { activeView, navigateRoot } = useNavigation();
     const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
-    const roleSwitcherRef = useRef<HTMLDivElement>(null);
+    const mobileRoleSwitcherRef = useRef<HTMLDivElement>(null);
+    const desktopRoleSwitcherRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (roleSwitcherRef.current && !roleSwitcherRef.current.contains(event.target as Node)) {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            const target = event.target as Node;
+            const inMobile = mobileRoleSwitcherRef.current?.contains(target);
+            const inDesktop = desktopRoleSwitcherRef.current?.contains(target);
+            if (!inMobile && !inDesktop) {
                 setIsRoleSwitcherOpen(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside as EventListener);
+        document.addEventListener('touchstart', handleClickOutside as EventListener, { passive: true });
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside as EventListener);
+            document.removeEventListener('touchstart', handleClickOutside as EventListener);
+        };
     }, []);
 
     const handleNavigate = (view: View) => {
@@ -67,9 +75,12 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
         setIsMobileOpen(false);
     };
 
+    const activeRoleContext = useMemo(() => userRoles.find(r => r.is_primary), [userRoles]);
+
     const { menuToDisplay, contextName, headerIcon: HeaderIcon } = useMemo(() => {
         let menu: MenuItem[], name: string, icon: React.ElementType;
         const normalizedRole = (activeRole || 'SPORTIV').replace(/ /g, '_').toUpperCase() as Rol['nume'];
+        const clubName = activeRoleContext?.club?.nume || currentUser.cluburi?.nume;
 
         switch (normalizedRole) {
             case ROLES.SUPER_ADMIN_FEDERATIE:
@@ -80,12 +91,12 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                 break;
             case ROLES.ADMIN_CLUB:
                 menu = adminClubMenu;
-                name = currentUser.cluburi?.nume || 'Club';
+                name = clubName || 'Club';
                 icon = ShieldCheckIcon;
                 break;
             case ROLES.INSTRUCTOR:
                 menu = instructorMenu;
-                name = currentUser.cluburi?.nume || 'Club';
+                name = clubName || 'Club';
                 icon = ShieldCheckIcon;
                 break;
             case ROLES.SPORTIV:
@@ -96,10 +107,9 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
                 break;
         }
         return { menuToDisplay: menu, contextName: name, headerIcon: icon };
-    }, [activeRole, currentUser.cluburi?.nume]);
+    }, [activeRole, activeRoleContext, currentUser.cluburi?.nume]);
 
     const iconColorClass = useMemo(() => 'text-sky-400', []);
-    const activeRoleContext = useMemo(() => userRoles.find(r => r.is_primary), [userRoles]);
 
     const roleLabel = useMemo(() => {
         const norm = (activeRole || 'SPORTIV').replace(/ /g, '_').toUpperCase();
@@ -125,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
         return map[norm] || 'text-slate-400 bg-slate-700/50';
     }, [activeRole]);
 
-    const buildSidebarContent = (effectiveExpanded: boolean) => (
+    const buildSidebarContent = (effectiveExpanded: boolean, switcherRef: React.RefObject<HTMLDivElement>) => (
         <div
             data-tutorial="sidebar"
             className="flex flex-col h-full min-h-0 shadow-2xl"
@@ -152,7 +162,7 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
             <div className="relative h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent mx-2" />
 
-            <div ref={roleSwitcherRef} className="relative">
+            <div ref={switcherRef} className="relative">
                 <RoleSwitcher
                     isExpanded={effectiveExpanded}
                     canSwitchRoles={canSwitchRoles}
@@ -227,11 +237,11 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
             <div className={`fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm transition-opacity md:hidden ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMobileOpen(false)} />
 
             <aside className={`fixed top-0 left-0 z-50 h-full w-72 transition-transform duration-300 ease-in-out md:hidden shadow-2xl overflow-hidden ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                {buildSidebarContent(true)}
+                {buildSidebarContent(true, mobileRoleSwitcherRef)}
             </aside>
 
             <aside className={`hidden md:block fixed top-0 left-0 h-full z-30 transition-all duration-300 overflow-hidden ${isExpanded ? 'w-64' : 'w-20'}`}>
-                {buildSidebarContent(isExpanded)}
+                {buildSidebarContent(isExpanded, desktopRoleSwitcherRef)}
             </aside>
 
             {/* Desktop Toggle Button */}

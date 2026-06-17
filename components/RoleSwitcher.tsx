@@ -23,7 +23,7 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = (props) => {
   return (
     <div className="relative p-2">
       <button
-        className={`w-full p-3 bg-slate-800/50 rounded-lg border border-slate-700/50 hover:border-amber-500/50 flex items-center text-left transition-all duration-300 group ${!canSwitchRoles && 'cursor-default'}`}
+        className={`w-full p-3 bg-slate-800/50 rounded-lg border border-slate-700/50 hover:border-amber-500/50 flex items-center text-left transition-all duration-300 group ${!canSwitchRoles ? 'cursor-default' : 'cursor-pointer'}`}
         onClick={() => canSwitchRoles && setIsRoleSwitcherOpen(!isRoleSwitcherOpen)}
         disabled={!canSwitchRoles || isSwitchingRole}
       >

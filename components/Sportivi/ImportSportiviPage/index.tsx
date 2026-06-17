@@ -7,7 +7,10 @@ import toast from 'react-hot-toast';
 import { ImportStep, ImportResult, UnifiedRow } from './types';
 import { formatDateForDisplay } from './utils';
 import { Pas0Upload } from './Pas0Upload';
+import { Pas05Configurare } from './Pas05Configurare';
 import { Pas1Revizuire } from './Pas1Revizuire';
+import { ImportConfig, FieldComparison } from './types';
+import { COL_TO_DB, KNOWN_COLS } from './utils';
 import { Pas2Raport } from './Pas2Raport';
 import { useData } from '../../../contexts/DataContext';
 import { usePermissions } from '../../../hooks/usePermissions';
@@ -30,6 +33,9 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
     const [importResult, setImportResult] = useState<ImportResult | null>(null);
     const [overwriteMode, setOverwriteMode] = useState(false);
     const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+    const [detectedColumns, setDetectedColumns] = useState<string[]>([]);
+    const [importConfig, setImportConfig] = useState<ImportConfig | null>(null);
+    const [fieldSelections, setFieldSelections] = useState<Map<number, Record<string, boolean>>>(new Map());
 
     useEffect(() => {
         console.log("ImportSportiviPage montat. Versiune: 2.1.0");
@@ -63,7 +69,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
 
         const fetchSportivi = async () => {
             try {
-                const { data, error } = await supabase.from('sportivi').select('id, nume, prenume, data_nasterii, cnp, email, telefon');
+                const { data, error } = await supabase.from('sportivi').select('id, nume, prenume, data_nasterii, cnp, email, telefon, gen, adresa, locul_nasterii, nr_legitimatie, cetatenia');
                 if (error) console.error("Eroare la preluarea sportivilor existenti:", error);
                 if (data) {
                     console.log("Sportivi existenti incarcati:", data.length);
@@ -76,6 +82,56 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         fetchSportivi();
     }, []);
 
+    const COL_ALIASES_LOCAL: Record<string, string> = {
+        'SEX': 'GEN',
+        'DATA NAȘTERII': 'DATA NASTERII',
+        'LOCUL NAȘTERII': 'LOCUL NASTERII',
+        'CETĂȚENIA': 'CETATENIA',
+        'CETĂŢENIA': 'CETATENIA',
+        'NR. PAȘAPORT SPORTIV/NU ARE': 'NR. PASAPORT SPORTIV',
+        'NR. PASAPORT SPORTIV/NU ARE': 'NR. PASAPORT SPORTIV',
+        'NR LEGITIMATIE': 'NR. PASAPORT SPORTIV',
+    };
+
+    const readFileHeaders = (file: File): Promise<string[]> => {
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        if (ext === 'xlsx' || ext === 'xls') {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const wb = XLSX.read(ev.target?.result, { type: 'array', cellDates: false });
+                        const sheetName = wb.SheetNames.find(n => n.trim().toUpperCase() === 'SPORTIVI') || wb.SheetNames[0];
+                        const ws = wb.Sheets[sheetName];
+                        const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false }) as string[][];
+                        const headerIdx = rawRows.findIndex(row =>
+                            row.some(cell => String(cell || '').trim() === 'NUME SPORTIV')
+                        );
+                        const headerRow = headerIdx >= 0 ? rawRows[headerIdx] : (rawRows[0] || []);
+                        const cols = headerRow.map(h => {
+                            const key = String(h || '').trim();
+                            if (key.startsWith('ADRESA')) return 'ADRESA';
+                            return COL_ALIASES_LOCAL[key] || key;
+                        }).filter(h => h && h !== 'Nr.crt');
+                        resolve(cols);
+                    } catch (err: any) { reject(err); }
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const text = ev.target?.result as string;
+                const firstLine = text.split('\n')[0];
+                resolve(firstLine.split(',').map(h => h.trim().replace(/^"|"$/g, '')).filter(h => h));
+            };
+            reader.onerror = reject;
+            reader.readAsText(file, 'UTF-8');
+        });
+    };
+
     const parseFileData = (file: File): Promise<any[]> => {
         const ext = file.name.split('.').pop()?.toLowerCase();
         if (ext === 'xlsx' || ext === 'xls') {
@@ -83,10 +139,62 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 const reader = new FileReader();
                 reader.onload = (ev) => {
                     try {
-                        const wb = XLSX.read(ev.target?.result, { type: 'array', cellDates: true });
-                        const ws = wb.Sheets[wb.SheetNames[0]];
-                        const data = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false }) as any[];
-                        resolve(data);
+                        const wb = XLSX.read(ev.target?.result, { type: 'array', cellDates: false });
+
+                        // Preferă sheet-ul "SPORTIVI"; fallback pe primul sheet
+                        const sheetName = wb.SheetNames.find(n => n.trim().toUpperCase() === 'SPORTIVI') || wb.SheetNames[0];
+                        const ws = wb.Sheets[sheetName];
+
+                        // Citim ca array 2D pentru a detecta rândul cu header-ul
+                        const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false }) as string[][];
+
+                        // Găsim rândul care conține "NUME SPORTIV"
+                        const headerIdx = rawRows.findIndex(row =>
+                            row.some(cell => String(cell || '').trim() === 'NUME SPORTIV')
+                        );
+
+                        if (headerIdx === -1) {
+                            // Nu s-a găsit header special — parse normal (ex: fișier template propriu)
+                            const data = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false }) as any[];
+                            resolve(data);
+                            return;
+                        }
+
+                        // Map coloane FRAM → chei interne
+                        const COL_ALIASES: Record<string, string> = {
+                            'SEX': 'GEN',
+                            'DATA NAȘTERII': 'DATA NASTERII',
+                            'DATA NASTERII': 'DATA NASTERII',
+                            'LOCUL NAȘTERII': 'LOCUL NASTERII',
+                            'CETĂȚENIA': 'CETATENIA',
+                            'CETĂŢENIA': 'CETATENIA',
+                            'NR. PAȘAPORT SPORTIV/NU ARE': 'NR. PASAPORT SPORTIV',
+                            'NR. PASAPORT SPORTIV/NU ARE': 'NR. PASAPORT SPORTIV',
+                            'NR LEGITIMATIE': 'NR. PASAPORT SPORTIV',
+                        };
+
+                        // Normalizăm headerele (trim + alias)
+                        const headers = rawRows[headerIdx].map(h => {
+                            const key = String(h || '').trim();
+                            // Adresa cu text lung → ADRESA
+                            if (key.startsWith('ADRESA')) return 'ADRESA';
+                            return COL_ALIASES[key] || key;
+                        });
+
+                        // Construim obiectele, sărim rândul "exemplu" și rândurile goale
+                        const result: any[] = [];
+                        for (let i = headerIdx + 1; i < rawRows.length; i++) {
+                            const row = rawRows[i];
+                            const firstCell = String(row[0] || '').trim().toLowerCase();
+                            if (firstCell === 'exemplu') continue;
+                            if (row.every(cell => !String(cell || '').trim())) continue;
+
+                            const obj: Record<string, any> = {};
+                            headers.forEach((h, idx) => { if (h) obj[h] = row[idx] ?? ''; });
+                            result.push(obj);
+                        }
+
+                        resolve(result);
                     } catch (err: any) { reject(err); }
                 };
                 reader.onerror = (err) => reject(err);
@@ -105,162 +213,168 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         ? (selectedClubIdOverride || currentClubId)
         : currentClubId;
 
-    const handleAnalyze = async () => {
-        if (!file) {
-            toast.error("Te rugam sa selectezi un fisier mai intai.");
-            return;
-        }
+    const handleReadHeaders = async () => {
+        if (!file) { toast.error("Selectează un fișier mai întâi."); return; }
         if (permissions.isFederationAdmin && !effectiveClubId) {
             toast.error("Selectează clubul destinație înainte de a analiza fișierul.");
             return;
         }
-        console.log("Incepere analiza fisier:", file.name);
+        setImporting(true);
+        try {
+            const cols = await readFileHeaders(file);
+            if (cols.length === 0) { toast.error("Fișierul nu are coloane detectabile."); return; }
+            setDetectedColumns(cols);
+            setStep(0.5);
+        } catch (err: any) {
+            toast.error("Eroare la citirea fișierului.");
+            console.error(err);
+        } finally {
+            setImporting(false);
+        }
+    };
+
+    const handleAnalyzeWithConfig = async (config: ImportConfig) => {
+        if (!file) return;
+        setImportConfig(config);
         setImporting(true);
 
         try {
             const rows = await parseFileData(file);
-            console.log("Parsare finalizata. Randuri gasite:", rows.length);
+            if (rows.length === 0) { toast.error("Fișierul este gol sau nu are formatul corect."); setImporting(false); return; }
 
             const duplicates: any[] = [];
             const uniques: any[] = [];
 
-            if (rows.length === 0) {
-                toast.error("Fisierul este gol sau nu are formatul corect.");
-                setImporting(false);
-                return;
-            }
-
             rows.forEach((row: any, index: number) => {
                 const numeCSV = row['NUME SPORTIV']?.trim();
                 const prenumeCSV = row['PRENUME SPORTIV']?.trim();
-
-                if (!numeCSV || !prenumeCSV) {
-                    console.warn(`Randul ${index + 1} lipseste numele sau prenumele. Se omite.`);
-                    return;
-                }
+                if (!numeCSV || !prenumeCSV) return;
 
                 const rawDate = row['DATA NASTERII']?.trim();
                 const dataNasteriiCSV = normalizeDate(rawDate);
-
                 const emailCSV = row['EMAIL']?.trim() || row['Email']?.trim() || row['email']?.trim();
-                const cnpCSV   = row['CNP']?.trim() || null;
-                const telefon  = row['TELEFON']?.trim() || row['Telefon']?.trim() || row['telefon']?.trim() || null;
+                const cnpCSV = config.selectedColumns.includes('CNP') ? (row['CNP']?.trim() || null) : null;
+                const telefon = config.selectedColumns.includes('TELEFON') ? (row['TELEFON']?.trim() || row['Telefon']?.trim() || row['telefon']?.trim() || null) : null;
 
                 const sportivData: any = {
-                    nume: numeCSV, prenume: prenumeCSV,
-                    cnp: cnpCSV,
+                    nume: numeCSV,
+                    prenume: prenumeCSV,
                     email: emailCSV || generateEmail(prenumeCSV, numeCSV),
                     data_nasterii: dataNasteriiCSV || null,
-                    adresa: row['ADRESA']?.trim() || null,
-                    locul_nasterii: row['LOCUL NASTERII']?.trim() || null,
-                    cetatenia: row['CETATENIA']?.trim() || null,
-                    departament: row['DEPARTAMENT']?.trim() || null,
-                    nr_legitimatie: row[' NR. PASAPORT SPORTIV ']?.trim() || null,
                     status: 'Activ',
                     data_inscrierii: new Date().toISOString().split('T')[0],
                     club_id: effectiveClubId,
                 };
 
+                if (config.selectedColumns.includes('CNP') && cnpCSV) sportivData.cnp = cnpCSV;
+                if (config.selectedColumns.includes('GEN')) {
+                    const rawGen = row['GEN']?.trim()?.toLowerCase();
+                    const gen = rawGen === 'masculin' || rawGen === 'm' ? 'Masculin'
+                               : rawGen === 'feminin' || rawGen === 'f' ? 'Feminin' : undefined;
+                    if (gen) sportivData.gen = gen;
+                }
+                if (config.selectedColumns.includes('ADRESA') && row['ADRESA']?.trim()) sportivData.adresa = row['ADRESA'].trim();
+                if (config.selectedColumns.includes('LOCUL NASTERII') && row['LOCUL NASTERII']?.trim()) sportivData.locul_nasterii = row['LOCUL NASTERII'].trim();
+                if (config.selectedColumns.includes('CETATENIA') && row['CETATENIA']?.trim()) sportivData.cetatenia = row['CETATENIA'].trim();
+                if (config.selectedColumns.includes('NR. PASAPORT SPORTIV')) {
+                    const nr = (row['NR. PASAPORT SPORTIV'] || row[' NR. PASAPORT SPORTIV '])?.trim();
+                    if (nr) sportivData.nr_legitimatie = nr;
+                }
                 if (telefon) sportivData.telefon = telefon;
 
-                const rawGen = row['GEN']?.trim()?.toLowerCase();
-                const gen = rawGen === 'masculin' || rawGen === 'm' ? 'Masculin'
-                           : rawGen === 'feminin' || rawGen === 'f' ? 'Feminin'
-                           : undefined;
-                if (gen) sportivData.gen = gen;
-
-                Object.keys(sportivData).forEach(key => {
-                    if (sportivData[key] === null || sportivData[key] === undefined || sportivData[key] === '') {
-                        delete sportivData[key];
-                    }
+                Object.keys(sportivData).forEach(k => {
+                    if (sportivData[k] === null || sportivData[k] === undefined || sportivData[k] === '') delete sportivData[k];
                 });
 
-                // Normalizare pentru comparare
-                const norm = (s: string) =>
-                    s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
-                const normTel = (t?: string | null) => {
-                    if (!t) return null;
-                    const d = t.replace(/\D/g, '');
-                    return d.length >= 10 ? (d.startsWith('40') && d.length === 11 ? '0' + d.slice(2) : d) : null;
-                };
+                const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+                const normTel = (t?: string | null) => { if (!t) return null; const d = t.replace(/\D/g, ''); return d.length >= 10 ? (d.startsWith('40') && d.length === 11 ? '0' + d.slice(2) : d) : null; };
                 const tokensPren = (p: string) => norm(p).split(' ').filter(x => x.length >= 3);
-
                 const numeN = norm(numeCSV);
                 const prenN = norm(prenumeCSV);
-                const telN  = normTel(telefon);
+                const telN = normTel(telefon);
                 const tokPren = tokensPren(prenumeCSV);
 
-                // Găsire duplicat cu criterii extinse
                 let matchStrict: any = null;
-                let matchLoose:  any = null;
+                let matchLoose: any = null;
                 let motivDuplicat = '';
 
                 for (const s of existingSportivi) {
                     const sNumeN = norm(s.nume);
                     const sPrenN = norm(s.prenume);
-                    const sTelN  = normTel(s.telefon);
+                    const sTelN = normTel(s.telefon);
                     const sTokPren = tokensPren(s.prenume);
 
-                    // CNP exact → strict imediat
-                    if (cnpCSV && s.cnp && cnpCSV === s.cnp.trim()) {
-                        matchStrict = s; motivDuplicat = 'CNP identic'; break;
-                    }
-
-                    // Nume + DOB exact → strict
-                    if (isSimilar(s.nume, numeCSV) && isSimilar(s.prenume, prenumeCSV) && dataNasteriiCSV && s.data_nasterii === dataNasteriiCSV) {
-                        matchStrict = s; motivDuplicat = 'Nume identic + dată naștere identică'; break;
-                    }
-
-                    // Email identic
-                    if (emailCSV && s.email && emailCSV.toLowerCase() === s.email.toLowerCase()) {
-                        if (!matchLoose) { matchLoose = s; motivDuplicat = 'Email identic'; }
-                        continue;
-                    }
-
-                    // Telefon identic
-                    if (telN && sTelN && telN === sTelN) {
-                        if (!matchLoose) { matchLoose = s; motivDuplicat = 'Telefon identic'; }
-                        continue;
-                    }
-
-                    // Nume similar fără DOB
-                    if (isSimilar(s.nume, numeCSV) && isSimilar(s.prenume, prenumeCSV)) {
-                        if (!matchLoose) { matchLoose = s; motivDuplicat = 'Nume similar'; }
-                        continue;
-                    }
-
-                    // Prenume parțial: "Casian" găsit în "Horatiu Casian" (același surname)
+                    if (cnpCSV && s.cnp && cnpCSV === s.cnp.trim()) { matchStrict = s; motivDuplicat = 'CNP identic'; break; }
+                    if (isSimilar(s.nume, numeCSV) && isSimilar(s.prenume, prenumeCSV) && dataNasteriiCSV && s.data_nasterii === dataNasteriiCSV) { matchStrict = s; motivDuplicat = 'Nume identic + dată naștere identică'; break; }
+                    if (emailCSV && s.email && emailCSV.toLowerCase() === s.email.toLowerCase()) { if (!matchLoose) { matchLoose = s; motivDuplicat = 'Email identic'; } continue; }
+                    if (telN && sTelN && telN === sTelN) { if (!matchLoose) { matchLoose = s; motivDuplicat = 'Telefon identic'; } continue; }
+                    if (isSimilar(s.nume, numeCSV) && isSimilar(s.prenume, prenumeCSV)) { if (!matchLoose) { matchLoose = s; motivDuplicat = 'Nume similar'; } continue; }
                     if (sNumeN === numeN || Math.abs(sNumeN.length - numeN.length) <= 1) {
                         const overlapTok = tokPren.some(t => sTokPren.includes(t)) || sTokPren.some(t => tokPren.includes(t));
-                        if (overlapTok && dataNasteriiCSV && s.data_nasterii === dataNasteriiCSV) {
-                            if (!matchLoose) { matchLoose = s; motivDuplicat = 'Prenume parțial + dată naștere identică'; }
-                            continue;
-                        }
+                        if (overlapTok && dataNasteriiCSV && s.data_nasterii === dataNasteriiCSV) { if (!matchLoose) { matchLoose = s; motivDuplicat = 'Prenume parțial + dată identică'; } continue; }
                     }
-
-                    // Cross-field: prenume CSV = surname DB (ex: importat "Casian" dar DB are prenume="Horatiu", nume="Casian")
-                    if ((prenN === sNumeN || numeN === sPrenN) && dataNasteriiCSV && s.data_nasterii === dataNasteriiCSV) {
-                        if (!matchLoose) { matchLoose = s; motivDuplicat = 'Posibil prenume/nume confundat + dată identică'; }
-                        continue;
-                    }
+                    if ((prenN === sNumeN || numeN === sPrenN) && dataNasteriiCSV && s.data_nasterii === dataNasteriiCSV) { if (!matchLoose) { matchLoose = s; motivDuplicat = 'Posibil prenume/nume confundat'; } continue; }
                 }
 
-                if (matchStrict) {
+                const existingSportiv = matchStrict || matchLoose;
+
+                if (existingSportiv && !config.updateExisting) {
+                    uniques.push({ ...sportivData, originalIndex: index, rawDate: rawDate || '', _omis: true, motiv: 'Sportiv existent (mod: adaugă noi)' });
+                } else if (matchStrict) {
                     duplicates.push({ type: 'strict', csvRow: row, existingSportiv: matchStrict, sportivData, originalIndex: index, rawDate: rawDate || '', motiv: motivDuplicat });
                 } else if (matchLoose) {
                     duplicates.push({ type: 'loose', csvRow: row, existingSportiv: matchLoose, sportivData, originalIndex: index, rawDate: rawDate || '', motiv: motivDuplicat });
                 } else {
                     if (!dataNasteriiCSV) {
                         const errorMsg = rawDate ? `Data nasterii invalida: ${rawDate}` : 'Lipseste data nasterii';
-                        console.error(`Randul ${index + 1} (${numeCSV} ${prenumeCSV}): ${errorMsg}`);
                         uniques.push({ ...sportivData, originalIndex: index, error: errorMsg, rawDate: rawDate || '' });
                     } else {
-                        uniques.push({ ...sportivData, originalIndex: index, rawDate: rawDate || '' });
+                        if (!config.addNew) {
+                            uniques.push({ ...sportivData, originalIndex: index, rawDate: rawDate || '', _omis: true, motiv: 'Sportiv nou (mod: actualizează existenți)' });
+                        } else {
+                            uniques.push({ ...sportivData, originalIndex: index, rawDate: rawDate || '' });
+                        }
                     }
                 }
             });
 
-            console.log(`Analiza finalizata: ${uniques.length} unici, ${duplicates.length} duplicate.`);
+            const initialSelections = new Map<number, Record<string, boolean>>();
+            duplicates.forEach(d => {
+                const selections: Record<string, boolean> = {};
+                config.selectedColumns.forEach(col => {
+                    const dbKey = COL_TO_DB[col];
+                    if (!dbKey) return;
+                    const dbVal = d.existingSportiv[dbKey] ?? null;
+                    const fileVal = d.sportivData[dbKey] ?? null;
+                    const isEmpty = !dbVal && (fileVal !== null && fileVal !== '');
+                    selections[dbKey] = isEmpty;
+                });
+                initialSelections.set(d.originalIndex, selections);
+
+                d.fieldComparisons = config.selectedColumns
+                    .map(col => {
+                        const dbKey = COL_TO_DB[col];
+                        if (!dbKey) return null;
+                        const dbVal = String(d.existingSportiv[dbKey] ?? '').trim() || null;
+                        const fileVal = String(d.sportivData[dbKey] ?? '').trim() || null;
+                        const status = !dbVal && !fileVal ? null
+                            : dbVal === fileVal ? 'identical'
+                            : !dbVal ? 'db_empty'
+                            : 'conflict';
+                        if (!status) return null;
+                        return {
+                            fieldKey: dbKey,
+                            label: KNOWN_COLS[col] || col,
+                            dbValue: dbVal,
+                            fileValue: fileVal,
+                            status,
+                            selected: status === 'db_empty',
+                        } as FieldComparison;
+                    })
+                    .filter(Boolean);
+            });
+
+            setFieldSelections(initialSelections);
             setToImportList(uniques);
             setPotentialDuplicates(duplicates);
             setSelectedIndices(new Set());
@@ -269,7 +383,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
             setStep(1);
         } catch (err: any) {
             console.error("Eroare la procesarea fisierului:", err);
-            toast.error("A aparut o eroare la procesarea fisierului. Verifica consola pentru detalii.");
+            toast.error("Eroare la procesarea fișierului.");
         } finally {
             setImporting(false);
         }
@@ -279,14 +393,23 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         const strictDuplicates = potentialDuplicates.filter(d => d.type === 'strict');
         const looseDuplicates = potentialDuplicates.filter(d => d.type === 'loose');
 
-        const buildUpdatePayload = (sportivData: any, existingSportiv: any) => {
+        const buildUpdatePayload = (sportivData: any, existingSportiv: any, originalIndex: number) => {
             if (overwriteMode) return { ...sportivData };
+            const selections = fieldSelections.get(originalIndex) || {};
             const safe: any = { id: existingSportiv.id };
-            for (const key of Object.keys(sportivData)) {
-                if (key === 'id') continue;
-                const existingVal = existingSportiv[key];
-                if (existingVal === null || existingVal === undefined || existingVal === '') {
-                    safe[key] = sportivData[key];
+            if (Object.keys(selections).length > 0) {
+                Object.keys(selections).forEach(key => {
+                    if (selections[key] && sportivData[key] !== undefined) {
+                        safe[key] = sportivData[key];
+                    }
+                });
+            } else {
+                for (const key of Object.keys(sportivData)) {
+                    if (key === 'id') continue;
+                    const existingVal = existingSportiv[key];
+                    if (existingVal === null || existingVal === undefined || existingVal === '') {
+                        safe[key] = sportivData[key];
+                    }
                 }
             }
             return safe;
@@ -294,15 +417,15 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
 
         const autoUpdates = strictDuplicates
             .filter((_, i) => !excludedStrictIndices.has(i))
-            .map(d => buildUpdatePayload(d.sportivData, d.existingSportiv));
+            .map(d => buildUpdatePayload(d.sportivData, d.existingSportiv, d.originalIndex));
 
         const selectedLoose = looseDuplicates
             .filter((_, i) => selectedIndices.has(i))
-            .map(d => buildUpdatePayload(d.sportivData, d.existingSportiv));
+            .map(d => buildUpdatePayload(d.sportivData, d.existingSportiv, d.originalIndex));
 
         const validUniques = toImportList
-            .filter(s => !s.error)
-            .map(({ originalIndex, error, rawDate, ...rest }) => rest);
+            .filter(s => !s.error && !s._omis)
+            .map(({ originalIndex, error, rawDate, _omis, motiv: _motiv, ...rest }) => rest);
 
         const invalidUniques = toImportList.filter(s => s.error);
         const finalToImport = [...validUniques, ...autoUpdates, ...selectedLoose];
@@ -421,8 +544,8 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 originalIndex: s.originalIndex,
                 nume: s.nume, prenume: s.prenume,
                 dataNasteriiCSV: s.rawDate || s.data_nasterii || '—',
-                status: s.error ? 'EROARE' : 'NOU',
-                motiv: s.error || '',
+                status: s.error ? 'EROARE' : s._omis ? 'OMIS' : 'NOU',
+                motiv: s.error || s.motiv || '',
                 sportivData: s,
             });
         });
@@ -437,6 +560,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 sportivData: d.sportivData,
                 existingSportiv: d.existingSportiv,
                 strictIndex: i,
+                fieldComparisons: d.fieldComparisons,
             });
         });
 
@@ -461,6 +585,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 sportivData: d.sportivData,
                 existingSportiv: d.existingSportiv,
                 looseIndex: i,
+                fieldComparisons: d.fieldComparisons,
             });
         });
 
@@ -470,6 +595,35 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
 
     if (step === 2 && importResult) {
         return <Pas2Raport importResult={importResult} onBack={onBack} />;
+    }
+
+    if (step === 0.5) {
+        return (
+            <div className="space-y-4">
+                {permissions.isFederationAdmin && (
+                    <div className="bg-slate-800/60 border border-blue-500/30 rounded-xl p-4">
+                        <label className="block text-sm font-medium text-blue-300 mb-2">
+                            Club destinație import <span className="text-red-400 ml-1">*</span>
+                        </label>
+                        <select
+                            value={selectedClubIdOverride}
+                            onChange={e => setSelectedClubIdOverride(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">— Selectează clubul —</option>
+                            {clubs.slice().sort((a, b) => a.nume.localeCompare(b.nume, 'ro')).map(c => (
+                                <option key={c.id} value={c.id}>{c.nume}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+                <Pas05Configurare
+                    allColumns={detectedColumns}
+                    onConfirm={handleAnalyzeWithConfig}
+                    onBack={() => setStep(0)}
+                />
+            </div>
+        );
     }
 
     if (step === 1) {
@@ -506,9 +660,41 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 onToggleSelection={toggleSelection}
                 onToggleExcludeStrict={toggleExcludeStrict}
                 onToggleExpandRow={toggleExpandRow}
+                fieldSelections={fieldSelections}
+                onToggleFieldSelection={(originalIndex, fieldKey, value) => {
+                    setFieldSelections(prev => {
+                        const next = new Map(prev);
+                        const row = { ...(next.get(originalIndex) || {}) };
+                        row[fieldKey] = value;
+                        next.set(originalIndex, row);
+                        return next;
+                    });
+                }}
+                onGlobalSelectAll={() => {
+                    setFieldSelections(prev => {
+                        const next = new Map(prev);
+                        next.forEach((fields, idx) => {
+                            const updated: Record<string, boolean> = {};
+                            Object.keys(fields).forEach(k => { updated[k] = true; });
+                            next.set(idx, updated);
+                        });
+                        return next;
+                    });
+                }}
+                onGlobalDeselectAll={() => {
+                    setFieldSelections(prev => {
+                        const next = new Map(prev);
+                        next.forEach((fields, idx) => {
+                            const updated: Record<string, boolean> = {};
+                            Object.keys(fields).forEach(k => { updated[k] = false; });
+                            next.set(idx, updated);
+                        });
+                        return next;
+                    });
+                }}
                 onToggleOverwrite={() => setOverwriteMode(v => !v)}
                 onExecuteImport={handleExecuteImport}
-                onBack={() => setStep(0)}
+                onBack={() => setStep(0.5)}
                 onCancelConfirm={() => setShowConfirm(false)}
             />
         );
@@ -547,7 +733,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 file={file}
                 importing={importing}
                 onFileChange={e => { if (e.target.files) setFile(e.target.files[0]); }}
-                onAnalyze={handleAnalyze}
+                onAnalyze={handleReadHeaders}
                 onBack={onBack}
             />
         </div>

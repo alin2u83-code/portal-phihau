@@ -2,12 +2,13 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { Card, Button, Input } from './ui';
 import { useData } from '../contexts/DataContext';
+import { usePermissions } from '../hooks/usePermissions';
 import toast from 'react-hot-toast';
 import { Search } from 'lucide-react';
 
 export const LegitimatiiPage: React.FC = () => {
-    const { currentUser, activeRoleContext, clubs } = useData();
-    const isFederationAdmin = currentUser?.roluri?.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE') ?? false;
+    const { activeRoleContext, clubs } = useData();
+    const { isFederationAdmin } = usePermissions(activeRoleContext);
 
     const defaultClubId = isFederationAdmin
         ? ''

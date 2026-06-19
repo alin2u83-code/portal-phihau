@@ -81,7 +81,7 @@ interface AdminMasterMapProps {
 export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deconturiFederatie, inscrieriExamene, plati, currentUser }) => {
     const { activeRoleContext } = useDataProvider();
     const permissions = usePermissions(activeRoleContext);
-    const { favorites, toggleFavorite, trackView } = useQuickAccess(currentUser?.id || 'anonymous');
+    const { favorites, topViews, toggleFavorite, trackView } = useQuickAccess(currentUser?.id || 'anonymous');
     const [antrenamenteAzi, setAntrenamenteAzi] = React.useState<number | null>(null);
 
     const labelMap: Record<string, string> = {
@@ -132,35 +132,32 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
         query.then(({ count }) => setAntrenamenteAzi(count ?? 0));
     }, [currentUser?.club_id]);
 
+    const hasPills = favorites.length > 0 || topViews.length > 0;
+
     return (
-        <div className="space-y-6">
-            <QuickAccess userId={currentUser?.id || 'anonymous'} onNavigate={onNavigate} labelMap={labelMap} />
-            {/* Hero: Prezență Rapidă */}
-            <div
-                onClick={() => onNavigate('prezenta')}
-                className="group relative overflow-hidden rounded-xl border border-emerald-500/40 bg-gradient-to-r from-emerald-900/40 via-slate-800/60 to-slate-900 p-5 cursor-pointer hover:border-emerald-400/70 hover:from-emerald-900/60 transition-all duration-200"
-            >
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-emerald-500/20 rounded-xl border border-emerald-500/30 group-hover:bg-emerald-500/30 transition-colors">
-                            <SparklesIcon className="w-7 h-7 text-emerald-400" />
-                        </div>
-                        <div>
-                            <p className="text-lg font-bold text-white">Prezență Rapidă</p>
-                            <p className="text-sm text-emerald-300/80">
-                                {antrenamenteAzi === null
-                                    ? 'Se încarcă...'
-                                    : antrenamenteAzi === 0
-                                    ? 'Niciun antrenament programat azi'
-                                    : `${antrenamenteAzi} antrenament${antrenamenteAzi > 1 ? 'e' : ''} programat${antrenamenteAzi > 1 ? 'e' : ''} azi`}
-                            </p>
-                        </div>
+        <div className="space-y-4">
+            {/* Prezență Rapidă compact + QuickAccess pills */}
+            <div className="rounded-xl border border-slate-700/60 overflow-hidden bg-slate-800/40">
+                <div
+                    onClick={() => nav('prezenta')}
+                    className="group flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-emerald-900/20 transition-colors"
+                >
+                    <div className="p-1.5 bg-emerald-500/20 rounded-lg border border-emerald-500/30 group-hover:bg-emerald-500/30 transition-colors shrink-0">
+                        <SparklesIcon className="w-4 h-4 text-emerald-400" />
                     </div>
-                    <ChevronRightIcon className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform" />
+                    <span className="font-semibold text-sm text-white">Prezență Rapidă</span>
+                    <span className="text-xs text-emerald-300/60 flex-1">
+                        {antrenamenteAzi === null
+                            ? '...'
+                            : antrenamenteAzi === 0
+                            ? 'Niciun antrenament azi'
+                            : `${antrenamenteAzi} antrenament${antrenamenteAzi > 1 ? 'e' : ''} azi`}
+                    </span>
+                    <ChevronRightIcon className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
                 </div>
-                {antrenamenteAzi !== null && antrenamenteAzi > 0 && (
-                    <div className="absolute top-0 right-0 w-32 h-full opacity-10">
-                        <ClipboardCheckIcon className="w-full h-full text-emerald-300" />
+                {hasPills && (
+                    <div className="border-t border-slate-700/50 px-3 py-2.5">
+                        <QuickAccess userId={currentUser?.id || 'anonymous'} onNavigate={onNavigate} labelMap={labelMap} />
                     </div>
                 )}
             </div>

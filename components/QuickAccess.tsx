@@ -41,7 +41,7 @@ export const QuickAccess: React.FC<QuickAccessProps> = ({ userId, onNavigate, la
     if (!hasFavorites && !hasTop) return null;
 
     return (
-        <div className="space-y-2 mb-4">
+        <div className="space-y-2">
             {hasFavorites && (
                 <div className="space-y-1.5">
                     <p className="text-[10px] font-semibold text-amber-400/70 uppercase tracking-widest">⭐ Preferate</p>

@@ -162,7 +162,7 @@ const AddExternalAthleteModal: React.FC<{
     );
 };
 
-export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> = ({ onSelectFull }) => {
+export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onAddSediinta?: () => void }> = ({ onSelectFull, onAddSediinta }) => {
     const { prezentId } = useStatusePrezenta();
     const { saveAttendance } = useAttendance();
     const { showError } = useError();
@@ -422,9 +422,18 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void }> =
     );
 
     if (sections.length === 0) return (
-        <Card className="text-center py-16">
+        <Card className="text-center py-12">
             <CalendarDaysIcon className="w-12 h-12 text-slate-700 mx-auto mb-3 opacity-30" />
-            <p className="text-slate-400 italic">Niciun antrenament programat pentru astazi.</p>
+            <p className="text-slate-400 italic mb-4">Niciun antrenament programat pentru astazi.</p>
+            {onAddSediinta && (
+                <button
+                    onClick={onAddSediinta}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-colors"
+                >
+                    <PlusIcon className="w-4 h-4" />
+                    Adaugă ședință azi
+                </button>
+            )}
         </Card>
     );
 

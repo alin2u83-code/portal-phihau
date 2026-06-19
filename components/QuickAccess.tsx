@@ -14,6 +14,7 @@ const Pill: React.FC<{
     onClick: () => void;
 }> = ({ label, isFavorite, onClick }) => (
     <button
+        type="button"
         onClick={onClick}
         className={`h-8 px-3 rounded-full text-xs font-medium border flex items-center gap-1.5 transition-all
             ${isFavorite

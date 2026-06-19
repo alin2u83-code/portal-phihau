@@ -86,7 +86,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
         const revenueByType: { [key: string]: number } = {};
         filteredTranzactii.forEach(t => {
             let tip = 'Avans / Neclasificat';
-            if (t.plata_ids.length > 0) {
+            if (t.plata_ids?.length > 0) {
                 const primaPlata = plati.find(p => p.id === t.plata_ids[0]);
                 if (primaPlata) tip = primaPlata.tip;
             }

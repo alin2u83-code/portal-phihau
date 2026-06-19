@@ -53,7 +53,7 @@ const SediintaAziModal: React.FC<{
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50 p-4" onClick={onClose}>
+        <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-[100] p-4" onClick={onClose}>
             <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between p-4 border-b border-slate-800">
                     <div>

@@ -8,13 +8,14 @@ import { useError } from '../ErrorProvider';
 import { clearCache } from '../../utils/cache';
 import { useCalendarView } from '../../hooks/useCalendarView';
 import { formatTime } from '../../utils/date';
+import { useIstoricMembriGrupa } from '../../hooks/useGrupeIstoric';
 
 interface GrupaWithDetails extends GrupaType {
     sportivi: { count: number }[];
     program: ProgramItem[];
 }
 
-type TabId = 'antrenamente' | 'orar' | 'sportivi';
+type TabId = 'antrenamente' | 'orar' | 'sportivi' | 'istoric';
 
 interface GrupaDetailViewProps {
     grupa: GrupaWithDetails;
@@ -626,6 +627,69 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
     );
 };
 
+function formatData(dateStr: string | null | undefined): string {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('ro-RO');
+}
+
+const TabIstoricMembri: React.FC<{ grupaId: string }> = ({ grupaId }) => {
+    const { data: istoric = [], isLoading, error } = useIstoricMembriGrupa(grupaId);
+
+    if (isLoading) return <p className="text-slate-400 italic p-4 text-center">Se încarcă...</p>;
+    if (error) return <p className="text-red-400 p-4 text-center">Eroare la încărcarea istoricului.</p>;
+    if (istoric.length === 0) {
+        return (
+            <Card>
+                <p className="text-slate-400 italic text-center py-8">
+                    Niciun istoric înregistrat pentru această grupă.
+                </p>
+            </Card>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                {istoric.length} înregistrări
+            </h3>
+            <Card className="overflow-hidden p-0">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-slate-700/50">
+                            <tr>
+                                <th className="px-4 py-3 font-semibold text-slate-300">Sportiv</th>
+                                <th className="px-4 py-3 font-semibold text-slate-300">Intrare</th>
+                                <th className="px-4 py-3 font-semibold text-slate-300">Ieșire</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700/50">
+                            {(istoric as any[]).map((entry: any) => {
+                                const activ = !entry.data_iesire;
+                                const sportiv = entry.sportivi;
+                                const numeSportiv = sportiv ? `${sportiv.nume} ${sportiv.prenume}` : '—';
+                                return (
+                                    <tr key={entry.id} className={activ ? 'bg-emerald-900/10' : ''}>
+                                        <td className="px-4 py-3 font-medium text-white flex items-center gap-2">
+                                            {activ && <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 shrink-0" />}
+                                            {numeSportiv}
+                                        </td>
+                                        <td className="px-4 py-3 text-slate-300">{formatData(entry.data_intrare)}</td>
+                                        <td className="px-4 py-3 text-slate-300">
+                                            {activ
+                                                ? <span className="text-emerald-400 font-medium">prezent</span>
+                                                : formatData(entry.data_iesire)}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
+        </div>
+    );
+};
+
 export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack, onOpenAdaugaSportivi }) => {
     const [activeTab, setActiveTab] = useState<TabId>('antrenamente');
     const [isModalAdaugareOpen, setIsModalAdaugareOpen] = useState(false);
@@ -660,7 +724,7 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
 
             {/* Tab bar */}
             <div className="flex border-b border-slate-700 gap-1">
-                {(['antrenamente', 'orar', 'sportivi'] as TabId[]).map(tab => (
+                {(['antrenamente', 'orar', 'sportivi', 'istoric'] as TabId[]).map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -670,7 +734,7 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
                                 : 'border-transparent text-slate-400 hover:text-slate-200'
                         }`}
                     >
-                        {tab === 'antrenamente' ? 'Antrenamente' : tab === 'orar' ? 'Orar' : 'Sportivi'}
+                        {tab === 'antrenamente' ? 'Antrenamente' : tab === 'orar' ? 'Orar' : tab === 'sportivi' ? 'Sportivi' : 'Istoric Membri'}
                     </button>
                 ))}
             </div>
@@ -686,6 +750,7 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
                 )}
                 {activeTab === 'orar' && <TabOrar grupa={grupa} />}
                 {activeTab === 'sportivi' && <TabSportivi grupa={grupa} onOpenAdaugaSportivi={onOpenAdaugaSportivi} />}
+                {activeTab === 'istoric' && <TabIstoricMembri grupaId={grupa.id} />}
             </div>
         </div>
     );

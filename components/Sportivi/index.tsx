@@ -25,6 +25,7 @@ import { useFamilyManager } from '../../hooks/useFamilyManager';
 import { getAge } from '../../utils/date';
 import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';
 import { Wand2, Copy, Check, Download, AlertTriangle } from 'lucide-react';
+import { mutaInGrupa, scoateDinGrupa } from '../../services/grupeIstoricService';
 
 
 
@@ -375,6 +376,13 @@ export const Sportivi: React.FC<{
         if (error) {
             showError('Eroare', error.message);
         } else {
+            // Tracking istoric grupe
+            const clubId = activeRoleContext?.club_id || currentUser?.club_id;
+            if (resolvedGrupaId && clubId) {
+                await mutaInGrupa(ids, resolvedGrupaId, grupaName, clubId, currentUser?.user_id || null);
+            } else if (!resolvedGrupaId) {
+                await scoateDinGrupa(ids, currentUser?.user_id || null);
+            }
             queryClient.invalidateQueries({ queryKey: ['sportivi'] });
             showSuccess('Succes', `${ids.length} sportivi mutați în ${grupaName}.`);
             setSelectedSportivIds(new Set());

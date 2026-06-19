@@ -482,6 +482,19 @@ export interface VizaSportiv {
   created_at?: string;
 }
 
+export interface SportivGrupaIstoric {
+  id: string;
+  sportiv_id: string;
+  grupa_id: string | null;
+  grupa_denumire: string;
+  data_intrare: string;
+  data_iesire: string | null;
+  schimbat_de_user_id: string | null;
+  motiv: string | null;
+  club_id: string;
+  created_at?: string;
+}
+
 export interface TipAbonament {
   id: string;
   denumire: string;

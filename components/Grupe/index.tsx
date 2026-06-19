@@ -20,6 +20,7 @@ import { OrarModificareModal } from './OrarModificareModal';
 import { GrupeSecundareModal } from './GrupeSecundareModal';
 import { GenerareAntrenamenteModal } from './GenerareAntrenamenteModal';
 import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';
+import { mutaInGrupa, scoateDinGrupa } from '../../services/grupeIstoricService';
 
 // Interfață extinsă pentru datele aduse din Supabase
 interface GrupaWithDetails extends GrupaType {
@@ -136,6 +137,14 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             showError("Eroare la adăugarea sportivilor", error);
             return;
         }
+        // Tracking istoric grupe
+        await mutaInGrupa(
+            sportiviIds,
+            grupaForAdaugaSportivi.id,
+            grupaForAdaugaSportivi.denumire,
+            grupaForAdaugaSportivi.club_id,
+            currentUser?.user_id || null
+        );
         // Actualizăm starea locală a sportivilor
         setSportivi(prev =>
             prev.map(s =>
@@ -169,8 +178,11 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
     const handleScoateSportivDinGrupa = async (sportiviId: string) => {
         const { error } = await supabase.from('sportivi').update({ grupa_id: null }).eq('id', sportiviId);
         if (error) { showError('Eroare', error); return; }
+        // Tracking istoric grupe
+        await scoateDinGrupa([sportiviId], currentUser?.user_id || null);
         setSportivi(prev => (prev as Sportiv[]).map(s => s.id === sportiviId ? { ...s, grupa_id: null } : s));
         queryClient.invalidateQueries({ queryKey: ['grupe'] });
+        queryClient.invalidateQueries({ queryKey: ['grupe-istoric-sportiv', sportiviId] });
         await refetchGrupe();
     };
 

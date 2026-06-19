@@ -28,6 +28,7 @@ import { ContactTab } from './UserProfile/ContactTab';
 import { GradeTab } from './UserProfile/GradeTab';
 import { FinanciarTab } from './UserProfile/FinanciarTab';
 import { FamilieTab } from './UserProfile/FamilieTab';
+import { GrupeIstoricTab } from './UserProfile/GrupeIstoricTab';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 import { getAge } from '../utils/date';
@@ -80,7 +81,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const [isAddGradeModalOpen, setIsAddGradeModalOpen] = useState(false);
     const [gradeEntryToEdit, setGradeEntryToEdit] = useState<{ id: string; grad_id: string; data_obtinere: string; observatii: string } | null>(null);
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie'>('profil');
+    const [activeTab, setActiveTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric'>('profil');
 
     const clubTheme = useMemo(() => {
         const club = clubs.find(c => c.id === sportiv.club_id);
@@ -660,6 +661,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                     { id: 'grade', label: 'Evoluție & Grade', icon: TrophyIcon, hidden: !canViewSensitiveInfo },
                     { id: 'financiar', label: 'Istoric Financiar', icon: BanknotesIcon },
                     { id: 'familie', label: 'Familie', icon: UsersIcon, hidden: !sportiv.familie_id },
+                    { id: 'grupe-istoric', label: 'Istoric Grupe', icon: CalendarDaysIcon, hidden: !canViewSensitiveInfo },
                 ].filter(tab => !tab.hidden).map(tab => (
                     <button
                         key={tab.id}
@@ -752,6 +754,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         tipuriAbonament={tipuriAbonament}
                         onViewSportiv={onViewSportiv ?? (() => {})}
                     />
+                )}
+
+                {activeTab === 'grupe-istoric' && (
+                    <GrupeIstoricTab sportiv={sportiv} />
                 )}
             </div>
 

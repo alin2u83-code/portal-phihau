@@ -492,7 +492,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                                         }`}>
                                                                             {gb.tip === 'principala' ? 'principală' : 'secundară'}
                                                                         </span>
-                                                                        <span className=”font-bold text-white”>
+                                                                        <span className="font-bold text-white">
                                                                             {gb.attendedTrainings}/{gb.totalTrainings}
                                                                         </span>
                                                                     </div>

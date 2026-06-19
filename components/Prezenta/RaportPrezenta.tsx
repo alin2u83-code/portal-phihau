@@ -8,6 +8,8 @@ import { useData } from '../../contexts/DataContext';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { supabase } from '../../supabaseClient';
 
+type ReportTab = 'general' | 'per-grupa';
+
 interface RaportPrezentaProps {
     onBack: () => void;
     onViewSportiv: (sportiv: Sportiv) => void;
@@ -39,6 +41,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
     const [filtersExpanded, setFiltersExpanded] = useState(false);
+    const [activeReportTab, setActiveReportTab] = useState<ReportTab>('general');
 
     // Map: grupa_id -> Sportiv[] (sportivi secundari activi)
     const [grupeSecundareMap, setGrupeSecundareMap] = useState<Map<string, Sportiv[]>>(new Map());
@@ -160,7 +163,36 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
         
         return { groupChartData: data, activeGroups: groupNames };
     }, [filteredPresenceRecords, monthNames]);
-    
+
+    // --- Per Grupă aggregation ---
+    const perGrupaData = useMemo(() => {
+        const map = new Map<string, { grupaNume: string; sportivNume: string; sportivId: string; sportiv: Sportiv; prezente: number }>();
+        filteredDetailedLog.forEach(rec => {
+            if (!rec.sportiv) return;
+            const key = `${rec.grupaNume}||${rec.sportiv.id}`;
+            if (!map.has(key)) {
+                map.set(key, {
+                    grupaNume: rec.grupaNume,
+                    sportivNume: rec.sportivNume,
+                    sportivId: rec.sportiv.id,
+                    sportiv: rec.sportiv,
+                    prezente: 0,
+                });
+            }
+            if (rec.status === 'Prezent') {
+                map.get(key)!.prezente++;
+            }
+        });
+        return Array.from(map.values()).sort((a, b) => {
+            if (a.grupaNume < b.grupaNume) return -1;
+            if (a.grupaNume > b.grupaNume) return 1;
+            return a.sportivNume.localeCompare(b.sportivNume);
+        });
+    }, [filteredDetailedLog]);
+
+    // --- Grupe unice pentru tab Per Grupă ---
+    const grupeUnice = useMemo(() => [...new Set(perGrupaData.map(r => r.grupaNume))], [perGrupaData]);
+
     // --- Columns for Summary Table ---
     const columnsSummary: Column<typeof athleteSummary[0]>[] = [
         {
@@ -287,7 +319,24 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
             <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
             <h1 className="text-3xl font-bold text-white">Analiză Prezențe</h1>
 
-            {/* Filtre collapse pe mobil â€” vizibile direct pe desktop */}
+            {/* Selector tab General / Per Grupă */}
+            <div className="flex gap-2">
+                <button
+                    onClick={() => setActiveReportTab('general')}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${activeReportTab === 'general' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+                >
+                    General
+                </button>
+                <button
+                    onClick={() => setActiveReportTab('per-grupa')}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${activeReportTab === 'per-grupa' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+                >
+                    Per Grupă
+                </button>
+            </div>
+
+            {activeReportTab === 'general' && <>
+            {/* Filtre collapse pe mobil - vizibile direct pe desktop */}
             <div className="lg:hidden rounded-lg bg-slate-800/50 overflow-hidden">
                 <button
                     onClick={() => setFiltersExpanded(prev => !prev)}
@@ -378,6 +427,49 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                     </div>
                 </Card>
             </div>
+            </>}
+
+            {activeReportTab === 'per-grupa' && (
+                <div className="space-y-6">
+                    {perGrupaData.length === 0 ? (
+                        <Card><p className="py-8 text-center text-slate-500 italic">Niciun rezultat conform filtrelor.</p></Card>
+                    ) : (
+                        grupeUnice.map(grupaNume => {
+                            const rânduri = perGrupaData.filter(r => r.grupaNume === grupaNume);
+                            return (
+                                <Card key={grupaNume} className="p-0 overflow-hidden">
+                                    <div className="p-4 bg-slate-700/50 font-bold text-white">{grupaNume}</div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="border-b border-slate-700">
+                                                    <th className="px-4 py-3 text-left text-slate-400 font-medium">Sportiv</th>
+                                                    <th className="px-4 py-3 text-center text-slate-400 font-medium">Nr. Prezențe</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {rânduri.map(row => (
+                                                    <tr key={row.sportivId} className="border-b border-slate-800 hover:bg-slate-800/40">
+                                                        <td className="px-4 py-3">
+                                                            <span
+                                                                className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer"
+                                                                onClick={() => onViewSportiv(row.sportiv)}
+                                                            >
+                                                                {row.sportivNume}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-center text-slate-300 font-bold">{row.prezente}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </Card>
+                            );
+                        })
+                    )}
+                </div>
+            )}
         </div>
     );
 };

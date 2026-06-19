@@ -47,6 +47,7 @@ export const ProgramAntrenamenteManagement = lazy(() => import('./Grupe/ProgramA
 export const AdminMasterMap = lazy(() => import('./AdminMasterMap').then(m => ({ default: m.AdminMasterMap })));
 export const SportivDashboard = lazy(() => import('./SportivDashboard').then(m => ({ default: m.SportivDashboard })));
 export const RaportLunarPrezenta = lazy(() => import('./Prezenta/RaportLunarPrezenta').then(m => ({ default: m.RaportLunarPrezenta })));
+export const RaportIntervalExamen = lazy(() => import('./Prezenta/RaportIntervalExamen').then(m => ({ default: m.RaportIntervalExamen })));
 export const AdminDashboard = lazy(() => import('./AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 export const ReportsDashboard = lazy(() => import('./ReportsDashboard').then(m => ({ default: m.ReportsDashboard })));
 export const LegitimatiiPage = lazy(() => import('./LegitimatiiPage').then(m => ({ default: m.LegitimatiiPage })));

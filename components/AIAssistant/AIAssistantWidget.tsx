@@ -21,6 +21,15 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({ activeRole
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentAgent = activeAgentId ? ALL_AGENTS.find((a) => a.id === activeAgentId) : null;
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setModalOpen(document.body.hasAttribute('data-modal-open'));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['data-modal-open'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -51,7 +60,7 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({ activeRole
   };
 
   return (
-    <div className="fixed bottom-[72px] right-4 md:bottom-12 md:right-6 z-[8000] flex flex-col items-end gap-3">
+    <div className={`fixed bottom-[72px] right-4 md:bottom-12 md:right-6 z-[8000] flex flex-col items-end gap-3${modalOpen ? ' hidden' : ''}`}>
       {/* Chat panel — se deschide deasupra butonului (mobil: FAB, desktop: buton din footer) */}
       {isOpen && (
         <div className="w-[calc(100vw-2rem)] sm:w-80 md:w-96 h-[min(460px,calc(100dvh-200px))] md:h-[520px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 flex flex-col overflow-hidden animate-fade-in-down relative">

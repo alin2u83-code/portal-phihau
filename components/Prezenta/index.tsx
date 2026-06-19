@@ -35,6 +35,11 @@ const SediintaAziModal: React.FC<{
     const [saving, setSaving] = useState(false);
     const { showError } = useError();
 
+    useEffect(() => {
+        document.body.setAttribute('data-modal-open', 'true');
+        return () => document.body.removeAttribute('data-modal-open');
+    }, []);
+
     const handleSave = async () => {
         if (!grupaId) return;
         setSaving(true);

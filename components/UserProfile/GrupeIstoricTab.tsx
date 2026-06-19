@@ -28,11 +28,11 @@ function exportCsv(rows: any[], numePrenume: string) {
     const header = 'Grupă,Dată Intrare,Dată Ieșire,Durată,Motiv';
     const lines = rows.map(r =>
         [
-            `"${r.grupa_denumire}"`,
+            `"${r.grupe?.denumire || r.grupa_id}"`,
             formatData(r.data_intrare),
             r.data_iesire ? formatData(r.data_iesire) : 'prezent',
             durata(r.data_intrare, r.data_iesire),
-            `"${r.motiv || ''}"`,
+            `"${r.motiv_iesire || ''}"`,
         ].join(',')
     );
     const csv = [header, ...lines].join('\n');
@@ -96,7 +96,7 @@ export const GrupeIstoricTab: React.FC<GrupeIstoricTabProps> = ({ sportiv }) => 
                                             {activ && (
                                                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 shrink-0" title="Grupă curentă" />
                                             )}
-                                            {entry.grupa_denumire}
+                                            {(entry as any).grupe?.denumire || entry.grupa_id}
                                         </td>
                                         <td className="px-4 py-3 text-slate-300">{formatData(entry.data_intrare)}</td>
                                         <td className="px-4 py-3 text-slate-300">
@@ -105,7 +105,7 @@ export const GrupeIstoricTab: React.FC<GrupeIstoricTabProps> = ({ sportiv }) => 
                                                 : formatData(entry.data_iesire)}
                                         </td>
                                         <td className="px-4 py-3 text-slate-400">{durata(entry.data_intrare, entry.data_iesire)}</td>
-                                        <td className="px-4 py-3 text-slate-400 italic">{entry.motiv || '—'}</td>
+                                        <td className="px-4 py-3 text-slate-400 italic">{entry.motiv_iesire || '—'}</td>
                                     </tr>
                                 );
                             })}

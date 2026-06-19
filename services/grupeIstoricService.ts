@@ -2,24 +2,24 @@ import { supabase } from '../supabaseClient';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-// Inchide intrarile deschise pentru sportivii dati (seteaza data_iesire = azi)
+// Inchide intrarile deschise pentru sportivii dati
 export const inchideIntrariDeschise = async (
     sportiviIds: string[],
     userId: string | null
 ): Promise<void> => {
     if (sportiviIds.length === 0) return;
     await supabase
-        .from('sportiv_grupe_istoric')
-        .update({ data_iesire: today(), schimbat_de_user_id: userId })
+        .from('sportiv_grupa_istoric')
+        .update({ data_iesire: today(), created_by: userId })
         .in('sportiv_id', sportiviIds)
-        .is('data_iesire', null);
+        .is('data_iesire', null)
+        .eq('tip', 'principala');
 };
 
 // Deschide intrari noi pentru sportivii dati intr-o grupa
 export const deschideIntrareGrupa = async (
     sportiviIds: string[],
     grupaId: string,
-    grupaDenumire: string,
     clubId: string,
     userId: string | null,
     motiv?: string
@@ -28,16 +28,16 @@ export const deschideIntrareGrupa = async (
     const rows = sportiviIds.map(sportivId => ({
         sportiv_id: sportivId,
         grupa_id: grupaId,
-        grupa_denumire: grupaDenumire,
-        data_intrare: today(),
         club_id: clubId,
-        schimbat_de_user_id: userId,
-        motiv: motiv || null,
+        tip: 'principala',
+        data_intrare: today(),
+        created_by: userId,
+        motiv_iesire: motiv || null,
     }));
-    await supabase.from('sportiv_grupe_istoric').insert(rows);
+    await supabase.from('sportiv_grupa_istoric').insert(rows);
 };
 
-// Scoate sportivii din grupa curenta (doar inchide intrarea, fara a deschide alta)
+// Scoate sportivii din grupa curenta
 export const scoateDinGrupa = async (
     sportiviIds: string[],
     userId: string | null
@@ -45,35 +45,33 @@ export const scoateDinGrupa = async (
     await inchideIntrariDeschise(sportiviIds, userId);
 };
 
-// Muta sportivii dintr-o grupa in alta: inchide vechi + deschide nou
+// Muta sportivii dintr-o grupa in alta
 export const mutaInGrupa = async (
     sportiviIds: string[],
     grupaId: string,
-    grupaDenumire: string,
+    _grupaDenumire: string,
     clubId: string,
     userId: string | null,
     motiv?: string
 ): Promise<void> => {
     await inchideIntrariDeschise(sportiviIds, userId);
-    await deschideIntrareGrupa(sportiviIds, grupaId, grupaDenumire, clubId, userId, motiv);
+    await deschideIntrareGrupa(sportiviIds, grupaId, clubId, userId, motiv);
 };
 
-// Fetch istoric pentru un sportiv (cel mai recent primul)
 export const fetchIstoricGrupeSportiv = async (sportiviId: string) => {
-    const { data, error } = await supabase
-        .from('sportiv_grupe_istoric')
-        .select('*')
+    return supabase
+        .from('sportiv_grupa_istoric')
+        .select('*, grupe(denumire)')
         .eq('sportiv_id', sportiviId)
+        .eq('tip', 'principala')
         .order('data_intrare', { ascending: false });
-    return { data, error };
 };
 
-// Fetch toti membrii (curenti + fostii) ai unei grupe
 export const fetchIstoricMembriGrupa = async (grupaId: string) => {
-    const { data, error } = await supabase
-        .from('sportiv_grupe_istoric')
-        .select('*, sportivi(id, nume, prenume, foto_url, grad_actual_id)')
+    return supabase
+        .from('sportiv_grupa_istoric')
+        .select('*, sportivi(id, nume, prenume)')
         .eq('grupa_id', grupaId)
+        .eq('tip', 'principala')
         .order('data_intrare', { ascending: false });
-    return { data, error };
 };

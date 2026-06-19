@@ -485,14 +485,16 @@ export interface VizaSportiv {
 export interface SportivGrupaIstoric {
   id: string;
   sportiv_id: string;
-  grupa_id: string | null;
-  grupa_denumire: string;
+  grupa_id: string;
+  club_id: string;
+  tip: string;
   data_intrare: string;
   data_iesire: string | null;
-  schimbat_de_user_id: string | null;
-  motiv: string | null;
-  club_id: string;
+  motiv_iesire: string | null;
   created_at?: string;
+  created_by: string | null;
+  // join
+  grupe?: { denumire: string } | null;
 }
 
 export interface TipAbonament {

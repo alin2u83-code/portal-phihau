@@ -44,7 +44,7 @@ const exportToCsv = (filename: string, rows: object[]) => {
 };
 
 const fmtDate = (d: string | null | undefined) => {
-    if (!d) return 'â€”';
+    if (!d) return '-';
     return new Date(d.slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO');
 };
 
@@ -318,7 +318,6 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             "Grad Actual": d.grad,
             "Planificate (luna)": d.totalTrainings,
             "Prezențe (luna)": d.attendedTrainings,
-            "Procentaj (luna)": d.totalTrainings > 0 ? `${Math.round((d.attendedTrainings / d.totalTrainings) * 100)}%` : 'N/A',
             "Planificate (perioadă examen)": d.totalPerioadaExamen,
             "Prezențe (perioadă examen)": d.attendedPerioadaExamen,
             "Perioadă Start": d.perioadaStart ? fmtDate(d.perioadaStart) : 'Început',
@@ -340,7 +339,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         const { start, end } = perioadaExamen;
         const startStr = start ? `după ${fmtDate(start)}` : 'De la început';
         const endStr = end === today.toISOString().slice(0, 10) ? 'azi' : `până la ${fmtDate(end)}`;
-        return `${startStr} â€” ${endStr}`;
+        return `${startStr} - ${endStr}`;
     }, [perioadaExamen]);
 
     return (
@@ -402,7 +401,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                         <th className="p-3 font-semibold w-6"></th>
                                         <th className="p-3 font-semibold">Nume Sportiv</th>
                                         <th className="p-3 font-semibold">Grad</th>
-                                        <th className="p-3 font-semibold text-center" colSpan={3}>
+                                        <th className="p-3 font-semibold text-center" colSpan={2}>
                                             <span>Luna curentă</span>
                                         </th>
                                         <th className="p-3 font-semibold text-center border-l border-[var(--t-border)]" colSpan={2}>
@@ -415,23 +414,19 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                         <th className="pb-2"></th>
                                         <th className="pb-2 text-center">Planificate</th>
                                         <th className="pb-2 text-center">Prezențe</th>
-                                        <th className="pb-2 text-center">%</th>
                                         <th className="pb-2 text-center border-l border-[var(--t-border)]">Prezențe</th>
                                         <th className="pb-2 text-center">din</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[var(--t-border)]">
                                     {reportData.map(row => {
-                                        const percentage = row.totalTrainings > 0
-                                            ? Math.round((row.attendedTrainings / row.totalTrainings) * 100)
-                                            : 0;
                                         const atRisk = row.attendedTrainings < 5;
                                         const isExpanded = expandedRows.has(row.sportivId);
                                         const hasMultiGrupe = row.grupeBreakdown.length > 1;
 
                                         return (
                                             <React.Fragment key={row.sportivId}>
-                                                <tr className={`${percentage < 50 ? 'bg-red-900/10' : ''} hover:bg-slate-700/30`}>
+                                                <tr className={`${atRisk ? 'bg-red-900/10' : ''} hover:bg-slate-700/30`}>
                                                     <td className="p-3 w-6">
                                                         {hasMultiGrupe && (
                                                             <button
@@ -447,8 +442,8 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                     </td>
                                                     <td className="p-3 font-medium text-white">
                                                         <div className="flex items-center gap-2">
-                                                            {percentage < 50 && (
-                                                                <span title="Prezență sub 50%">
+                                                            {atRisk && (
+                                                                <span title="Prezență scăzută">
                                                                     <ExclamationTriangleIcon className="w-4 h-4 text-red-500 shrink-0" />
                                                                 </span>
                                                             )}
@@ -465,9 +460,6 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                     <td className={`p-3 text-center font-bold ${atRisk ? 'text-red-400' : 'text-white'}`}>
                                                         {row.attendedTrainings}
                                                     </td>
-                                                    <td className={`p-3 text-center font-bold ${percentage < 50 ? 'text-red-400' : 'text-green-400'}`}>
-                                                        {percentage}%
-                                                    </td>
                                                     <td className="p-3 text-center border-l border-[var(--t-border)]">
                                                         <span className="font-bold text-indigo-300">
                                                             {row.attendedPerioadaExamen}
@@ -481,7 +473,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                 {/* Breakdown per grupă (expandat) */}
                                                 {isExpanded && hasMultiGrupe && (
                                                     <tr className="bg-[var(--t-surface-2)]">
-                                                        <td colSpan={8} className="px-8 py-2">
+                                                        <td colSpan={7} className="px-8 py-2">
                                                             <div className="flex flex-wrap gap-2">
                                                                 {row.grupeBreakdown.map(gb => (
                                                                     <div
@@ -500,17 +492,8 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                                         }`}>
                                                                             {gb.tip === 'principala' ? 'principală' : 'secundară'}
                                                                         </span>
-                                                                        <span className="font-bold text-white">
+                                                                        <span className=”font-bold text-white”>
                                                                             {gb.attendedTrainings}/{gb.totalTrainings}
-                                                                        </span>
-                                                                        <span className={`font-medium ${
-                                                                            gb.totalTrainings > 0 && gb.attendedTrainings / gb.totalTrainings < 0.5
-                                                                                ? 'text-red-400'
-                                                                                : 'text-green-400'
-                                                                        }`}>
-                                                                            {gb.totalTrainings > 0
-                                                                                ? `${Math.round((gb.attendedTrainings / gb.totalTrainings) * 100)}%`
-                                                                                : 'â€”'}
                                                                         </span>
                                                                     </div>
                                                                 ))}
@@ -528,11 +511,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                         {/* â”€â”€ Carduri mobile â”€â”€ */}
                         <div className="md:hidden divide-y divide-slate-700/50">
                             {reportData.map(row => {
-                                const percentage = row.totalTrainings > 0
-                                    ? Math.round((row.attendedTrainings / row.totalTrainings) * 100)
-                                    : 0;
-                                const atRisk = percentage < 50;
-                                const barWidth = Math.min(percentage, 100);
+                                const atRisk = row.attendedTrainings < 5;
                                 const isExpanded = expandedRows.has(row.sportivId);
                                 const hasMultiGrupe = row.grupeBreakdown.length > 1;
 
@@ -552,17 +531,6 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                                                     <p className="text-xs text-slate-400">{row.grad}</p>
                                                 </div>
                                             </div>
-                                            <span className={`text-lg font-bold shrink-0 ${atRisk ? 'text-red-400' : 'text-green-400'}`}>
-                                                {percentage}%
-                                            </span>
-                                        </div>
-
-                                        {/* Bară progres */}
-                                        <div className="w-full bg-slate-700 rounded-full h-1.5 mb-2">
-                                            <div
-                                                className={`h-1.5 rounded-full transition-all ${atRisk ? 'bg-red-500' : 'bg-green-500'}`}
-                                                style={{ width: `${barWidth}%` }}
-                                            />
                                         </div>
 
                                         {/* Stats luna */}

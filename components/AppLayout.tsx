@@ -77,7 +77,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 onOpenThemeEditor={() => setIsThemeEditorOpen(true)}
             />
 
-            <main className={`flex-1 min-w-0 overflow-x-hidden transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'} min-h-screen`}>
+            <main className={`flex-1 min-w-0 overflow-x-hidden transition-all duration-300 pt-16 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-20'} min-h-screen`} style={{ background: 'var(--t-content-bg)' }}>
                 <div className="p-4 pb-32 md:p-6 md:pb-28 lg:p-8 lg:pb-28 max-w-7xl mx-auto animate-fade-in">
                     <ErrorBoundary onNavigate={setActiveView}>
                         <ClubGuard>
@@ -105,7 +105,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             </main>
 
             {/* Footer fix desktop — bara de jos cu AI assistant integrat */}
-            <footer className={`hidden md:flex fixed bottom-0 right-0 z-[7999] h-12 items-center justify-between px-4 bg-slate-950/90 backdrop-blur border-t border-slate-800/80 transition-all duration-300 ${isSidebarExpanded ? 'left-64' : 'left-20'}`}>
+            <footer className={`hidden md:flex fixed bottom-0 right-0 z-[7999] h-12 items-center justify-between px-4 backdrop-blur border-t border-[var(--t-header-border)] transition-all duration-300 ${isSidebarExpanded ? 'left-64' : 'left-20'}`} style={{ background: 'var(--t-footer-bg)' }}>
                 <p className="text-[10px] text-slate-700 tracking-wide select-none">
                     Realizat cu <span className="text-amber-800">AI</span> de <span className="text-slate-600 font-semibold">Alin Lungu</span>
                 </p>

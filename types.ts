@@ -766,6 +766,11 @@ export interface ThemeConfig {
   tableHeaderBg: string;
   tableHeaderText: string;
   tableRowHover: string;
+  tableBorder: string;
+  contentBg: string;
+  inputBg: string;
+  inputFocusRing: string;
+  footerBg: string;
   statusSuccess: string;
   statusDanger: string;
   statusWarning: string;

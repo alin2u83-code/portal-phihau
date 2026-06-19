@@ -22,20 +22,27 @@ interface CustomThemeState {
   border: string;
   text: string;
   textMuted: string;
+  contentBg: string;
   // Butoane
   primary: string;
   secondaryBtn: string;
+  secondaryBtnFg: string;
   // Sidebar
   sidebarBg: string;
   sidebarText: string;
   sidebarActive: string;
-  // Header
+  // Header & Footer
   headerBg: string;
   headerBorder: string;
-  // Tables
+  footerBg: string;
+  // Tabele
   tableHeaderBg: string;
   tableHeaderText: string;
   tableRowHover: string;
+  tableBorder: string;
+  // Inputuri
+  inputBg: string;
+  inputFocusRing: string;
   // Status colors
   statusSuccess: string;
   statusDanger: string;
@@ -51,16 +58,22 @@ const DEFAULT_CUSTOM: CustomThemeState = {
   border: DEFAULT_THEME.border,
   text: DEFAULT_THEME.text,
   textMuted: DEFAULT_THEME.textMuted,
+  contentBg: DEFAULT_THEME.contentBg,
   primary: DEFAULT_THEME.primary,
   secondaryBtn: DEFAULT_THEME.secondary,
+  secondaryBtnFg: DEFAULT_THEME.secondaryFg,
   sidebarBg: DEFAULT_THEME.sidebarBg,
   sidebarText: DEFAULT_THEME.sidebarText,
   sidebarActive: DEFAULT_THEME.sidebarActive,
   headerBg: DEFAULT_THEME.headerBg,
   headerBorder: DEFAULT_THEME.headerBorder,
+  footerBg: DEFAULT_THEME.footerBg,
   tableHeaderBg: DEFAULT_THEME.tableHeaderBg,
   tableHeaderText: DEFAULT_THEME.tableHeaderText,
   tableRowHover: DEFAULT_THEME.tableRowHover,
+  tableBorder: DEFAULT_THEME.tableBorder,
+  inputBg: DEFAULT_THEME.inputBg,
+  inputFocusRing: DEFAULT_THEME.inputFocusRing,
   statusSuccess: DEFAULT_THEME.statusSuccess,
   statusDanger: DEFAULT_THEME.statusDanger,
   statusWarning: DEFAULT_THEME.statusWarning,
@@ -77,21 +90,26 @@ function buildCustomThemeConfig(c: CustomThemeState): ThemeConfig {
     border: c.border,
     text: c.text,
     textMuted: c.textMuted,
+    contentBg: c.contentBg,
     primary: c.primary,
     primaryHover: c.primary,
     primaryFg: '#ffffff',
     secondary: c.secondaryBtn,
     secondaryHover: c.secondaryBtn,
-    secondaryFg: c.text,
+    secondaryFg: c.secondaryBtnFg,
     sidebarBg: c.sidebarBg,
     sidebarText: c.sidebarText,
     sidebarActive: c.sidebarActive,
     sidebarActiveFg: '#ffffff',
     headerBg: c.headerBg,
     headerBorder: c.headerBorder,
+    footerBg: c.footerBg,
     tableHeaderBg: c.tableHeaderBg,
     tableHeaderText: c.tableHeaderText,
     tableRowHover: c.tableRowHover,
+    tableBorder: c.tableBorder,
+    inputBg: c.inputBg,
+    inputFocusRing: c.inputFocusRing,
     statusSuccess: c.statusSuccess,
     statusDanger: c.statusDanger,
     statusWarning: c.statusWarning,
@@ -294,17 +312,19 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ isOpen, onClose }) => 
 
           <div className="space-y-2 mb-6">
             <Section title="Layout & Text" defaultOpen>
-              <ColorPickerRow label="Fundal principal" field="bg" value={customTheme.bg} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Fundal principal (bg pagini)" field="bg" value={customTheme.bg} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Fundal conținut (zona centrală)" field="contentBg" value={customTheme.contentBg} onChange={handleCustomColorChange} />
               <ColorPickerRow label="Suprafețe (carduri)" field="surface" value={customTheme.surface} onChange={handleCustomColorChange} />
               <ColorPickerRow label="Suprafețe 2 (hover, badge bg)" field="surface2" value={customTheme.surface2} onChange={handleCustomColorChange} />
-              <ColorPickerRow label="Borduri" field="border" value={customTheme.border} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Borduri generale" field="border" value={customTheme.border} onChange={handleCustomColorChange} />
               <ColorPickerRow label="Text principal" field="text" value={customTheme.text} onChange={handleCustomColorChange} />
               <ColorPickerRow label="Text secundar / labels" field="textMuted" value={customTheme.textMuted} onChange={handleCustomColorChange} />
             </Section>
 
             <Section title="Butoane" defaultOpen>
               <ColorPickerRow label="Buton primar (Adaugă, Salvează)" field="primary" value={customTheme.primary} onChange={handleCustomColorChange} />
-              <ColorPickerRow label="Buton secundar (Înapoi, acțiuni 2)" field="secondaryBtn" value={customTheme.secondaryBtn} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Buton secundar — fundal" field="secondaryBtn" value={customTheme.secondaryBtn} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Buton secundar — text" field="secondaryBtnFg" value={customTheme.secondaryBtnFg} onChange={handleCustomColorChange} />
               <ColorPickerRow label="Buton succes (verde)" field="statusSuccess" value={customTheme.statusSuccess} onChange={handleCustomColorChange} />
               <ColorPickerRow label="Buton eroare (roșu)" field="statusDanger" value={customTheme.statusDanger} onChange={handleCustomColorChange} />
               <ColorPickerRow label="Buton avertizare (portocaliu)" field="statusWarning" value={customTheme.statusWarning} onChange={handleCustomColorChange} />
@@ -325,15 +345,22 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ isOpen, onClose }) => 
               <ColorPickerRow label="Element activ sidebar" field="sidebarActive" value={customTheme.sidebarActive} onChange={handleCustomColorChange} />
             </Section>
 
-            <Section title="Header (bara de sus)">
+            <Section title="Header & Footer">
               <ColorPickerRow label="Fundal header" field="headerBg" value={customTheme.headerBg} onChange={handleCustomColorChange} />
               <ColorPickerRow label="Bordură header" field="headerBorder" value={customTheme.headerBorder} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Fundal footer (bara de jos)" field="footerBg" value={customTheme.footerBg} onChange={handleCustomColorChange} />
             </Section>
 
             <Section title="Tabele">
               <ColorPickerRow label="Fundal header tabel" field="tableHeaderBg" value={customTheme.tableHeaderBg} onChange={handleCustomColorChange} />
               <ColorPickerRow label="Text header tabel" field="tableHeaderText" value={customTheme.tableHeaderText} onChange={handleCustomColorChange} />
               <ColorPickerRow label="Hover rând" field="tableRowHover" value={customTheme.tableRowHover} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Borduri rânduri tabel" field="tableBorder" value={customTheme.tableBorder} onChange={handleCustomColorChange} />
+            </Section>
+
+            <Section title="Inputuri & Formulare">
+              <ColorPickerRow label="Fundal input / select" field="inputBg" value={customTheme.inputBg} onChange={handleCustomColorChange} />
+              <ColorPickerRow label="Ring focus input" field="inputFocusRing" value={customTheme.inputFocusRing} onChange={handleCustomColorChange} />
             </Section>
 
             <Section title="Statusuri & Badge-uri">

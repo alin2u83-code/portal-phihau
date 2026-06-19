@@ -552,7 +552,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, id, error, ...props }, ref) => {
-    const errorClasses = error ? 'border-rose-500 focus:ring-rose-500 focus:border-rose-500' : 'border-[var(--t-border)] focus:ring-indigo-500 focus:border-indigo-500';
+    const errorClasses = error ? 'border-rose-500 focus:ring-rose-500 focus:border-rose-500' : 'border-[var(--t-border)] focus:border-[var(--t-input-focus-ring)]';
 
     return (
         <div className="w-full">
@@ -561,7 +561,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, id
                 id={id}
                 ref={ref}
                 {...props}
-                className={`w-full bg-[var(--t-bg)] border ${errorClasses} rounded-xl px-4 py-3 text-base sm:text-sm text-[var(--t-text)] placeholder-slate-500 focus:outline-none focus:ring-2 transition-all shadow-sm touch-manipulation appearance-none ${props.className ?? ""}`}
+                className={`w-full bg-[var(--t-input-bg)] border ${errorClasses} rounded-xl px-4 py-3 text-base sm:text-sm text-[var(--t-text)] placeholder-slate-500 focus:outline-none focus:ring-2 transition-all shadow-sm touch-manipulation appearance-none ${props.className ?? ""}`}
+                style={{ '--tw-ring-color': 'var(--t-input-focus-ring)', ...props.style } as React.CSSProperties}
             />
             {error && <p className="text-rose-400 text-xs mt-1.5 ml-1 font-medium flex items-center gap-1">⚠️ {error}</p>}
         </div>
@@ -576,7 +577,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ label,
     <div className="w-full">
         {label && <label htmlFor={id} className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">{label}</label>}
         <div className="relative">
-            <select id={id} ref={ref} {...props} className={`w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-base sm:text-sm text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm appearance-none touch-manipulation ${props.className ?? ""}`}>
+            <select id={id} ref={ref} {...props} className={`w-full bg-[var(--t-input-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-base sm:text-sm text-[var(--t-text)] focus:outline-none focus:ring-2 focus:border-[var(--t-input-focus-ring)] transition-all shadow-sm appearance-none touch-manipulation ${props.className ?? ""}`} style={{ '--tw-ring-color': 'var(--t-input-focus-ring)', ...props.style } as React.CSSProperties}>
                 {children}
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400">
@@ -701,7 +702,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ label, containerClassN
       </div>
       <input
         {...props}
-        className={`w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl pl-10 pr-4 py-3 text-base sm:text-sm text-[var(--t-text)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm touch-manipulation appearance-none ${className ?? ''}`}
+        className={`w-full bg-[var(--t-input-bg)] border border-[var(--t-border)] rounded-xl pl-10 pr-4 py-3 text-base sm:text-sm text-[var(--t-text)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:border-[var(--t-input-focus-ring)] transition-all shadow-sm touch-manipulation appearance-none ${className ?? ''}`}
+        style={{ '--tw-ring-color': 'var(--t-input-focus-ring)' } as React.CSSProperties}
       />
     </div>
   </div>

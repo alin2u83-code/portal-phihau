@@ -19,6 +19,14 @@
 - [ ] **GRD-03**: Admin poate vedea lista sportivilor eligibili pentru next grad (condiție: timp minim la gradul curent — luat din nomenclatorul de grade dacă există, altfel configurat)
 - [ ] **GRD-04**: Admin poate vedea istoricul examenelor per sportiv: timeline cu grad obținut, dată examen, sesiune — selectând sportivul dintr-un dropdown sau din lista de sportivi
 
+### Prezenta
+
+- [ ] **PRZ-01**: Instructorul vede antrenamentele tuturor grupelor sale simultan într-un singur calendar lunar, cu dots colorate per grupă
+- [ ] **PRZ-02**: Click pe o zi în calendar deschide direct form de marcare prezență (fără navigare prin Configurare Orar → Calendar → antrenament)
+- [ ] **PRZ-03**: Dacă 2+ grupe au antrenament în același interval orar, sportivii tuturor grupelor sunt vizibili împreună și marcarea se face într-o singură acțiune; prezența se salvează DOAR în antrenamentul grupei principale a fiecărui sportiv
+- [ ] **PRZ-04**: GeneratorProgramMasiv este accesibil direct din tab "Grupe" (nu doar din tab "Rapid")
+- [ ] **PRZ-05**: Există 3 rapoarte de prezență separate cu numere absolute (fără procente): (a) lunar per sportiv per lună; (b) per grupă per sportiv; (c) per interval examen — [start→examen1]→[examen1→examen2]→[ultimul examen→azi]
+
 ## Future Requirements (deferred)
 
 - Dashboard federație cu agregate multi-club (SUPER_ADMIN) — v2.0
@@ -45,3 +53,8 @@
 | GRD-02 | Phase 10 | — |
 | GRD-03 | Phase 10 | — |
 | GRD-04 | Phase 10 | — |
+| PRZ-01 | Phase 11 | 11-01-PLAN.md |
+| PRZ-02 | Phase 11 | 11-02-PLAN.md |
+| PRZ-03 | Phase 11 | 11-02-PLAN.md |
+| PRZ-04 | Phase 11 | 11-02-PLAN.md |
+| PRZ-05 | Phase 11 | 11-03-PLAN.md, 11-04-PLAN.md |

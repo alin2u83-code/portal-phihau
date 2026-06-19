@@ -307,8 +307,8 @@ for (const ant of antrenamente) {
 
 **Problema sportivilor din multiple grupe:** Un sportiv poate fi în Grupa A (principală) și Grupa B (secundară). Dacă ambele au antrenament simultan:
 - Sportivul apare o singură dată în form (deduplicat pe `id`)
-- Prezența lui se salvează în **ambele** `antrenament_id` (ant A și ant B)
-- Aceasta înregistrează o prezență la fiecare antrenament — comportament corect din punct de vedere al rapoartelor per grupă
+- **DECIZIE LOCKED (PRZ-03):** Prezența se salvează DOAR în antrenamentul grupei principale (`sportiv.grupa_id === antrenament.grupa_id`). Nu se salvează în grupe secundare.
+- UI marchează clar cărei grupe aparține fiecare sportiv (badge cu numele grupei).
 
 ---
 
@@ -461,22 +461,16 @@ function calculateGradeStats(
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **PRZ-05(c) — Sursa datelor "interval examen per sportiv"**
-   - Ce știm: `useAttendanceStats` calculează intervalele per sportiv din `istoricGrade` (array de `IstoricGrade`). `IstoricGrade` nu e în `filteredData` cache.
-   - Ce nu e clar: De unde vine `istoricGrade` pentru raportul club? Din `rezultate_examene JOIN sesiuni_examene` sau dintr-un view existent?
-   - Recomandare: Verifică dacă `vw_istoricprezenta_sportiv` include informații de grade sau dacă există un view `vw_istoricgrade_sportiv`. Alternativ, fetch `rezultate_examene` per club cu join la `sesiuni_examene`.
+1. **PRZ-05(c) — Sursa datelor "interval examen per sportiv"** ✅ RESOLVED
+   - **Răspuns:** `filteredData.istoricGrade` din DataContext conține `IstoricGrade[]` pentru toți sportivii vizibili. Vine din view-ul `vedere_istoric_grade_sportiv` (hooks/useDataProvider.ts linia 373). `RaportIntervalExamen.tsx` folosește `filteredData.istoricGrade` direct — NU fetch separat din `rezultate_examene`.
 
-2. **PRZ-03 — Comportament "prezență simultană"**
-   - Ce știm: Dacă 2 grupe au antrenament la 18:00-19:30, sportivul din ambele trebuie bifat o singură dată în UI.
-   - Ce nu e clar: Dacă prezența trebuie înregistrată în AMBELE `program_antrenamente` rows sau doar una (cea principală).
-   - Recomandare: Comportamentul implicit (salvare în ambele) e corect pentru rapoartele per grupă. Dar dacă instructorul vrea să vadă "20 prezențe la grupă A" și "20 la grupă B" și sportivul a venit la ambele, e corect. Dacă vrea "20 prezențe totale per sportiv" (nu duplicate), ar trebui deduplicare. Clarificați cu utilizatorul.
+2. **PRZ-03 — Comportament "prezență simultană"** ✅ RESOLVED
+   - **Răspuns (LOCKED):** Prezența se salvează DOAR în antrenamentul grupei principale (`sportiv.grupa_id === antrenament.grupa_id`). Nu se salvează în grupe secundare. Decizie confirmată de utilizator.
 
-3. **IstoricGrade type — disponibilitate în DataContext**
-   - Ce știm: `useAttendanceStats` primește `istoricGrade: IstoricGrade[]` ca param. Nu e în `filteredData`.
-   - Ce nu e clar: Există un hook/query care fetch-uiește `IstoricGrade[]` pentru toți sportivii clubului?
-   - Recomandare: Caută `IstoricGrade` în `types.ts` și în hooks existente; dacă nu există fetch la nivel de club, `RaportIntervalExamen.tsx` trebuie să fetch-uiască direct din `rezultate_examene`.
+3. **IstoricGrade type — disponibilitate în DataContext** ✅ RESOLVED
+   - **Răspuns:** `istoricGrade` ESTE în DataContext — `filteredData.istoricGrade: IstoricGrade[]` (hooks/useDataProvider.ts linia 28, 141). Disponibil via `useData().filteredData.istoricGrade`.
 
 ---
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { View, DecontFederatie, InscriereExamen, Plata, User } from '../types';
 import { Card, Accordion, AccordionItem } from './ui';
 import {
@@ -27,10 +27,13 @@ import {
     MinusCircleIcon,
 } from './icons';
 import { useState } from 'react';
-// SparklesIcon kept for Prezență Rapidă hero card
+// SparklesIcon kept for PrezenÈ›Äƒ RapidÄƒ hero card
 import { supabase } from '../supabaseClient';
 import { usePermissions } from '../hooks/usePermissions';
 import { useDataProvider } from '../hooks/useDataProvider';
+import { useQuickAccess } from '../hooks/useQuickAccess';
+import { QuickAccess } from './QuickAccess';
+import { StarIcon } from './icons';
 
 // --- Item card compact ---
 const ItemCard: React.FC<{
@@ -38,18 +41,29 @@ const ItemCard: React.FC<{
     view: View;
     icon: React.ElementType;
     badge?: number;
+    isFavorite?: boolean;
     onNavigate: (view: View) => void;
-}> = ({ title, view, icon: Icon, badge, onNavigate }) => (
+    onToggleFavorite?: (view: View) => void;
+}> = ({ title, view, icon: Icon, badge, isFavorite, onNavigate, onToggleFavorite }) => (
     <div
         onClick={() => onNavigate(view)}
-        className="relative bg-slate-800/60 p-4 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-slate-700/70 transition-colors border border-slate-700/50 hover:border-amber-400/40"
+        className="relative bg-slate-800/60 p-4 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-slate-700/70 transition-colors border border-slate-700/50 hover:border-amber-400/40 group"
     >
         <Icon className="w-5 h-5 text-amber-400 shrink-0" />
         <span className="font-medium text-slate-200 text-sm">{title}</span>
         {badge !== undefined && badge > 0 && (
-            <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            <span className="absolute bottom-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                 {badge > 9 ? '9+' : badge}
             </span>
+        )}
+        {onToggleFavorite && (
+            <button
+                onClick={e => { e.stopPropagation(); onToggleFavorite(view); }}
+                className={`absolute top-1.5 right-1.5 p-0.5 rounded transition-opacity ${isFavorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                title={isFavorite ? 'EliminÄƒ din preferate' : 'AdaugÄƒ la preferate'}
+            >
+                <StarIcon className={`w-3.5 h-3.5 ${isFavorite ? 'text-amber-400 fill-amber-400' : 'text-slate-500 hover:text-amber-400'}`} />
+            </button>
         )}
     </div>
 );
@@ -66,7 +80,32 @@ interface AdminMasterMapProps {
 export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deconturiFederatie, inscrieriExamene, plati, currentUser }) => {
     const { activeRoleContext } = useDataProvider();
     const permissions = usePermissions(activeRoleContext);
+    const { favorites, toggleFavorite, trackView } = useQuickAccess(currentUser?.id || 'anonymous');
     const [antrenamenteAzi, setAntrenamenteAzi] = React.useState<number | null>(null);
+
+    const labelMap: Record<string, string> = {
+        'sportivi': 'Sportivi', 'import-sportivi': 'Import Sportivi', 'deduplicare-sportivi': 'Deduplicare',
+        'familii': 'Familii', 'legitimatii': 'LegitimaÈ›ii', 'grade': 'Nomenclator Grade',
+        'user-management': 'Administrare Staff', 'grupe': 'Grupe & Orar',
+        'program-antrenamente': 'Program Antrenamente', 'prezenta': 'ÃŽnregistrare PrezenÈ›e',
+        'raport-prezenta': 'Raport PrezenÈ›e', 'raport-lunar-prezenta': 'Raport Lunar',
+        'activitati': 'Generator Program', 'calendar': 'Calendar',
+        'examene': 'Sesiuni Examene', 'rapoarte-examen': 'Rapoarte Examen',
+        'competitii': 'CompetiÈ›ii', 'stagii': 'Stagii NaÈ›ionale',
+        'activitati-nationale': 'ActivitÄƒÈ›i NaÈ›ionale', 'financial-dashboard': 'Dashboard Financiar',
+        'plati-scadente': 'Facturi & PlÄƒÈ›i', 'gestiune-facturi': 'Gestiune Facturi',
+        'jurnal-incasari': 'Jurnal ÃŽncasÄƒri', 'raport-financiar': 'Raport Financiar',
+        'taxe-anuale': 'Taxe Anuale', 'reduceri': 'Reduceri',
+        'tipuri-abonament': 'Config. Abonamente', 'configurare-preturi': 'Configurare PreÈ›uri',
+        'nomenclatoare': 'Nomenclatoare', 'deconturi-federatie': 'Deconturi FederaÈ›ie',
+        'setari-club': 'SetÄƒri Club', 'notificari': 'NotificÄƒri', 'admin-sms': 'SMS',
+        'cereri-inscriere': 'Cereri ÃŽnscriere', 'istoric-activitate': 'Istoric Activitate',
+        'account-settings': 'SetÄƒri Cont', 'cluburi': 'Gestiune Cluburi',
+        'structura-federatie': 'StructurÄƒ FederaÈ›ie', 'template-probe': 'Template Probe',
+        'data-maintenance': 'MentenanÈ›Äƒ Date', 'inlantuiri-admin': 'ÃŽnlÄƒnÈ›uiri Grade',
+    };
+
+    const nav = (view: View) => { trackView(view); onNavigate(view); };
     const [openSection, setOpenSection] = useState<string>('membri');
     const handleToggle = (id: string) => setOpenSection(prev => prev === id ? '' : id);
 
@@ -94,7 +133,8 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
 
     return (
         <div className="space-y-6">
-            {/* Hero: Prezență Rapidă */}
+            <QuickAccess userId={currentUser?.id || 'anonymous'} onNavigate={onNavigate} labelMap={labelMap} />
+            {/* Hero: PrezenÈ›Äƒ RapidÄƒ */}
             <div
                 onClick={() => onNavigate('prezenta')}
                 className="group relative overflow-hidden rounded-xl border border-emerald-500/40 bg-gradient-to-r from-emerald-900/40 via-slate-800/60 to-slate-900 p-5 cursor-pointer hover:border-emerald-400/70 hover:from-emerald-900/60 transition-all duration-200"
@@ -105,10 +145,10 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
                             <SparklesIcon className="w-7 h-7 text-emerald-400" />
                         </div>
                         <div>
-                            <p className="text-lg font-bold text-white">Prezență Rapidă</p>
+                            <p className="text-lg font-bold text-white">PrezenÈ›Äƒ RapidÄƒ</p>
                             <p className="text-sm text-emerald-300/80">
                                 {antrenamenteAzi === null
-                                    ? 'Se încarcă...'
+                                    ? 'Se Ã®ncarcÄƒ...'
                                     : antrenamenteAzi === 0
                                     ? 'Niciun antrenament programat azi'
                                     : `${antrenamenteAzi} antrenament${antrenamenteAzi > 1 ? 'e' : ''} programat${antrenamenteAzi > 1 ? 'e' : ''} azi`}
@@ -128,73 +168,73 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
             <Accordion>
                 <AccordionItem id="membri" title="Membri" icon={UsersIcon} isOpen={openSection === 'membri'} onToggle={handleToggle}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <ItemCard title="Sportivi" view="sportivi" icon={UsersIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Import Sportivi" view="import-sportivi" icon={ArchiveBoxIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Deduplicare Sportivi" view="deduplicare-sportivi" icon={ClipboardListIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Familii" view="familii" icon={UserPlusIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Legitimații" view="legitimatii" icon={FileTextIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Nomenclator Grade" view="grade" icon={BookOpenIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Administrare Staff" view="user-management" icon={CogIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Sportivi" view="sportivi" icon={UsersIcon} onNavigate={nav} isFavorite={favorites.includes('sportivi')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Import Sportivi" view="import-sportivi" icon={ArchiveBoxIcon} onNavigate={nav} isFavorite={favorites.includes('import-sportivi')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Deduplicare Sportivi" view="deduplicare-sportivi" icon={ClipboardListIcon} onNavigate={nav} isFavorite={favorites.includes('deduplicare-sportivi')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Familii" view="familii" icon={UserPlusIcon} onNavigate={nav} isFavorite={favorites.includes('familii')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="LegitimaÈ›ii" view="legitimatii" icon={FileTextIcon} onNavigate={nav} isFavorite={favorites.includes('legitimatii')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Nomenclator Grade" view="grade" icon={BookOpenIcon} onNavigate={nav} isFavorite={favorites.includes('grade')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Administrare Staff" view="user-management" icon={CogIcon} onNavigate={nav} isFavorite={favorites.includes('user-management')} onToggleFavorite={toggleFavorite} />
                     </div>
                 </AccordionItem>
 
-                <AccordionItem id="activitate" title="Activitate Sală" icon={ArchiveBoxIcon} isOpen={openSection === 'activitate'} onToggle={handleToggle}>
+                <AccordionItem id="activitate" title="Activitate SalÄƒ" icon={ArchiveBoxIcon} isOpen={openSection === 'activitate'} onToggle={handleToggle}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <ItemCard title="Grupe & Orar" view="grupe" icon={ArchiveBoxIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Program Antrenamente" view="program-antrenamente" icon={CalendarDaysIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Înregistrare Prezențe" view="prezenta" icon={ClipboardCheckIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Raport Prezențe" view="raport-prezenta" icon={ChartBarIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Raport Lunar Prezențe" view="raport-lunar-prezenta" icon={ChartBarIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Generator Program" view="activitati" icon={CalendarDaysIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Calendar" view="calendar" icon={CalendarIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Grupe & Orar" view="grupe" icon={ArchiveBoxIcon} onNavigate={nav} isFavorite={favorites.includes('grupe')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Program Antrenamente" view="program-antrenamente" icon={CalendarDaysIcon} onNavigate={nav} isFavorite={favorites.includes('program-antrenamente')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="ÃŽnregistrare PrezenÈ›e" view="prezenta" icon={ClipboardCheckIcon} onNavigate={nav} isFavorite={favorites.includes('prezenta')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Raport PrezenÈ›e" view="raport-prezenta" icon={ChartBarIcon} onNavigate={nav} isFavorite={favorites.includes('raport-prezenta')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Raport Lunar PrezenÈ›e" view="raport-lunar-prezenta" icon={ChartBarIcon} onNavigate={nav} isFavorite={favorites.includes('raport-lunar-prezenta')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Generator Program" view="activitati" icon={CalendarDaysIcon} onNavigate={nav} isFavorite={favorites.includes('activitati')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Calendar" view="calendar" icon={CalendarIcon} onNavigate={nav} isFavorite={favorites.includes('calendar')} onToggleFavorite={toggleFavorite} />
                     </div>
                 </AccordionItem>
 
-                <AccordionItem id="examene" title="Examene & Competiții" icon={TrophyIcon} isOpen={openSection === 'examene'} onToggle={handleToggle}>
+                <AccordionItem id="examene" title="Examene & CompetiÈ›ii" icon={TrophyIcon} isOpen={openSection === 'examene'} onToggle={handleToggle}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <ItemCard title="Sesiuni Examene" view="examene" icon={TrophyIcon} onNavigate={onNavigate} badge={pendingExamPayments} />
-                        <ItemCard title="Rapoarte Examen" view="rapoarte-examen" icon={FileTextIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Competiții" view="competitii" icon={TrophyIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Stagii Naționale" view="stagii" icon={BookMarkedIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Activități Naționale" view="activitati-nationale" icon={TrophyIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Sesiuni Examene" view="examene" icon={TrophyIcon} onNavigate={nav} badge={pendingExamPayments} isFavorite={favorites.includes('examene')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Rapoarte Examen" view="rapoarte-examen" icon={FileTextIcon} onNavigate={nav} isFavorite={favorites.includes('rapoarte-examen')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="CompetiÈ›ii" view="competitii" icon={TrophyIcon} onNavigate={nav} isFavorite={favorites.includes('competitii')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Stagii NaÈ›ionale" view="stagii" icon={BookMarkedIcon} onNavigate={nav} isFavorite={favorites.includes('stagii')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="ActivitÄƒÈ›i NaÈ›ionale" view="activitati-nationale" icon={TrophyIcon} onNavigate={nav} isFavorite={favorites.includes('activitati-nationale')} onToggleFavorite={toggleFavorite} />
                     </div>
                 </AccordionItem>
 
-                <AccordionItem id="financiar" title="Financiar & Plăți" icon={WalletIcon} isOpen={openSection === 'financiar'} onToggle={handleToggle}>
+                <AccordionItem id="financiar" title="Financiar & PlÄƒÈ›i" icon={WalletIcon} isOpen={openSection === 'financiar'} onToggle={handleToggle}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <ItemCard title="Dashboard Financiar" view="financial-dashboard" icon={TrendingUpIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Facturi & Plăți" view="plati-scadente" icon={WalletIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Gestiune Facturi" view="gestiune-facturi" icon={FileTextIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Jurnal Încasări" view="jurnal-incasari" icon={BanknotesIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Raport Financiar" view="raport-financiar" icon={ChartBarIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Taxe Anuale" view="taxe-anuale" icon={BanknotesIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Reduceri" view="reduceri" icon={MinusCircleIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Config. Abonamente" view="tipuri-abonament" icon={CogIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Configurare Prețuri" view="configurare-preturi" icon={CogIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Nomenclatoare" view="nomenclatoare" icon={BookOpenIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Deconturi Federație" view="deconturi-federatie" icon={BanknotesIcon} onNavigate={onNavigate} badge={pendingDeconturi} />
+                        <ItemCard title="Dashboard Financiar" view="financial-dashboard" icon={TrendingUpIcon} onNavigate={nav} isFavorite={favorites.includes('financial-dashboard')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Facturi & PlÄƒÈ›i" view="plati-scadente" icon={WalletIcon} onNavigate={nav} isFavorite={favorites.includes('plati-scadente')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Gestiune Facturi" view="gestiune-facturi" icon={FileTextIcon} onNavigate={nav} isFavorite={favorites.includes('gestiune-facturi')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Jurnal ÃŽncasÄƒri" view="jurnal-incasari" icon={BanknotesIcon} onNavigate={nav} isFavorite={favorites.includes('jurnal-incasari')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Raport Financiar" view="raport-financiar" icon={ChartBarIcon} onNavigate={nav} isFavorite={favorites.includes('raport-financiar')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Taxe Anuale" view="taxe-anuale" icon={BanknotesIcon} onNavigate={nav} isFavorite={favorites.includes('taxe-anuale')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Reduceri" view="reduceri" icon={MinusCircleIcon} onNavigate={nav} isFavorite={favorites.includes('reduceri')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Config. Abonamente" view="tipuri-abonament" icon={CogIcon} onNavigate={nav} isFavorite={favorites.includes('tipuri-abonament')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Configurare PreÈ›uri" view="configurare-preturi" icon={CogIcon} onNavigate={nav} isFavorite={favorites.includes('configurare-preturi')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Nomenclatoare" view="nomenclatoare" icon={BookOpenIcon} onNavigate={nav} isFavorite={favorites.includes('nomenclatoare')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Deconturi FederaÈ›ie" view="deconturi-federatie" icon={BanknotesIcon} onNavigate={nav} badge={pendingDeconturi} isFavorite={favorites.includes('deconturi-federatie')} onToggleFavorite={toggleFavorite} />
                     </div>
                 </AccordionItem>
 
-                <AccordionItem id="setari" title="Setări & Admin" icon={CogIcon} isOpen={openSection === 'setari'} onToggle={handleToggle}>
+                <AccordionItem id="setari" title="SetÄƒri & Admin" icon={CogIcon} isOpen={openSection === 'setari'} onToggle={handleToggle}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <ItemCard title="Setări Club" view="setari-club" icon={CogIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Notificări" view="notificari" icon={ClipboardCheckIcon} onNavigate={onNavigate} />
-                        <ItemCard title="SMS" view="admin-sms" icon={MessageSquareIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Cereri Înscriere" view="cereri-inscriere" icon={UserPlusIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Istoric Activitate" view="istoric-activitate" icon={ClockIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Setări Cont" view="account-settings" icon={CogIcon} onNavigate={onNavigate} />
+                        <ItemCard title="SetÄƒri Club" view="setari-club" icon={CogIcon} onNavigate={nav} isFavorite={favorites.includes('setari-club')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="NotificÄƒri" view="notificari" icon={ClipboardCheckIcon} onNavigate={nav} isFavorite={favorites.includes('notificari')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="SMS" view="admin-sms" icon={MessageSquareIcon} onNavigate={nav} isFavorite={favorites.includes('admin-sms')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Cereri ÃŽnscriere" view="cereri-inscriere" icon={UserPlusIcon} onNavigate={nav} isFavorite={favorites.includes('cereri-inscriere')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Istoric Activitate" view="istoric-activitate" icon={ClockIcon} onNavigate={nav} isFavorite={favorites.includes('istoric-activitate')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="SetÄƒri Cont" view="account-settings" icon={CogIcon} onNavigate={nav} isFavorite={favorites.includes('account-settings')} onToggleFavorite={toggleFavorite} />
                     </div>
                 </AccordionItem>
 
                 {permissions.isFederationAdmin && (
-                    <AccordionItem id="superadmin" title="Administrare Federație" icon={BuildingOfficeIcon} isOpen={openSection === 'superadmin'} onToggle={handleToggle}>
+                    <AccordionItem id="superadmin" title="Administrare FederaÈ›ie" icon={BuildingOfficeIcon} isOpen={openSection === 'superadmin'} onToggle={handleToggle}>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <ItemCard title="Gestiune Cluburi" view="cluburi" icon={BuildingOfficeIcon} onNavigate={onNavigate} />
-                            <ItemCard title="Structură Federație" view="structura-federatie" icon={SitemapIcon} onNavigate={onNavigate} />
-                            <ItemCard title="Template Probe" view="template-probe" icon={FileTextIcon} onNavigate={onNavigate} />
-                            <ItemCard title="Mentenanță Date" view="data-maintenance" icon={ArchiveBoxIcon} onNavigate={onNavigate} />
-                            <ItemCard title="Înlănțuiri Grade" view="inlantuiri-admin" icon={BookMarkedIcon} onNavigate={onNavigate} />
+                            <ItemCard title="Gestiune Cluburi" view="cluburi" icon={BuildingOfficeIcon} onNavigate={nav} isFavorite={favorites.includes('cluburi')} onToggleFavorite={toggleFavorite} />
+                            <ItemCard title="StructurÄƒ FederaÈ›ie" view="structura-federatie" icon={SitemapIcon} onNavigate={nav} isFavorite={favorites.includes('structura-federatie')} onToggleFavorite={toggleFavorite} />
+                            <ItemCard title="Template Probe" view="template-probe" icon={FileTextIcon} onNavigate={nav} isFavorite={favorites.includes('template-probe')} onToggleFavorite={toggleFavorite} />
+                            <ItemCard title="MentenanÈ›Äƒ Date" view="data-maintenance" icon={ArchiveBoxIcon} onNavigate={nav} isFavorite={favorites.includes('data-maintenance')} onToggleFavorite={toggleFavorite} />
+                            <ItemCard title="ÃŽnlÄƒnÈ›uiri Grade" view="inlantuiri-admin" icon={BookMarkedIcon} onNavigate={nav} isFavorite={favorites.includes('inlantuiri-admin')} onToggleFavorite={toggleFavorite} />
                         </div>
                     </AccordionItem>
                 )}
@@ -202,3 +242,5 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
         </div>
     );
 };
+
+

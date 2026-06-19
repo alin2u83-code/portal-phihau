@@ -464,6 +464,211 @@ export const FormularPrezenta: React.FC<{
     );
 };
 
+// PRZ-03 decizie LOCKED: prezența se salvează DOAR în antrenamentul grupei principale a sportivului, nu duplicat în toate grupele simultane.
+export const FormularPrezentaMultiGrupa: React.FC<{
+    antrenamente: (Antrenament & { grupe: Grupa & { sportivi: Sportiv[] } })[];
+    onBack: () => void;
+    onViewSportiv?: (s: Sportiv) => void;
+    saveAttendance: (id: string, records: { sportiv_id: string; status_id: string; is_invitat?: boolean; grupa_origine_id?: string }[], allSportivIds?: string[]) => Promise<boolean>;
+}> = ({ antrenamente, onBack, onViewSportiv, saveAttendance }) => {
+    const { prezentId } = useStatusePrezenta();
+    const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
+    const [loading, setLoading] = useState(false);
+    const [saved, setSaved] = useState(false);
+    const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Construiește lista deduplicată de sportivi + mapping grupă principală per sportiv
+    const { sportiviAfisati, grupePerSportiv, antrenamentPerSportiv } = useMemo(() => {
+        const sportiviMap = new Map<string, Sportiv>();
+        const grupePerSportiv = new Map<string, { id: string; denumire: string }[]>();
+        const antrenamentPerSportiv = new Map<string, string>(); // sportivId -> antrenamentId (grupa principală)
+
+        for (const ant of antrenamente) {
+            const sportivi = (ant.grupe?.sportivi || []).filter(s => s.status === 'Activ');
+            for (const s of sportivi) {
+                if (!sportiviMap.has(s.id)) sportiviMap.set(s.id, s);
+                const existing = grupePerSportiv.get(s.id) || [];
+                if (!existing.find(g => g.id === ant.grupe?.id)) {
+                    grupePerSportiv.set(s.id, [...existing, { id: ant.grupe?.id || '', denumire: ant.grupe?.denumire || '' }]);
+                }
+                // Grupă principală: sportiv.grupa_id === antrenament.grupe.id
+                if (s.grupa_id === ant.grupe?.id) {
+                    antrenamentPerSportiv.set(s.id, ant.id);
+                }
+            }
+        }
+
+        // Fallback: sportivi fără grupă principală → primul antrenament în care apar
+        for (const [sportivId] of sportiviMap) {
+            if (!antrenamentPerSportiv.has(sportivId)) {
+                for (const ant of antrenamente) {
+                    const found = (ant.grupe?.sportivi || []).find(s => s.id === sportivId && s.status === 'Activ');
+                    if (found) { antrenamentPerSportiv.set(sportivId, ant.id); break; }
+                }
+            }
+        }
+
+        return {
+            sportiviAfisati: [...sportiviMap.values()].sort((a, b) => a.nume.localeCompare(b.nume)),
+            grupePerSportiv,
+            antrenamentPerSportiv,
+        };
+    }, [antrenamente]);
+
+    useEffect(() => {
+        const initialPresent = new Set<string>(
+            antrenamente.flatMap(a => ((a as any).prezenta || []))
+                .filter((p: any) => p.status?.este_prezent === true)
+                .map((p: any) => p.sportiv_id as string)
+        );
+        setPresentIds(initialPresent);
+    }, [antrenamente]);
+
+    const toggleSportiv = (id: string) => {
+        setPresentIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const setAllAttendance = (isPresent: boolean) => {
+        setPresentIds(isPresent ? new Set(sportiviAfisati.map(s => s.id)) : new Set());
+    };
+
+    // PRZ-03 decizie LOCKED: prezența se salvează DOAR în antrenamentul grupei principale a sportivului, nu duplicat în toate grupele simultane.
+    const handleSaveMulti = async () => {
+        if (!prezentId) return;
+        setLoading(true);
+        setSaved(false);
+
+        for (const ant of antrenamente) {
+            const idsSportiviAntrenament = sportiviAfisati
+                .filter(s => antrenamentPerSportiv.get(s.id) === ant.id)
+                .map(s => s.id);
+            const allIdsGrupa = (ant.grupe?.sportivi || []).filter(s => s.status === 'Activ').map(s => s.id);
+            const records = idsSportiviAntrenament
+                .filter(id => presentIds.has(id))
+                .map(id => ({ sportiv_id: id, status_id: prezentId, is_invitat: false as boolean }));
+            const success = await saveAttendance(ant.id, records, allIdsGrupa);
+            if (!success) { setLoading(false); return; }
+        }
+
+        setLoading(false);
+        setSaved(true);
+        setTimeout(() => { setSaved(false); onBack(); }, 1500);
+    };
+
+    const firstAnt = antrenamente[0];
+    const dataFormatata = firstAnt
+        ? new Date((firstAnt.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })
+        : '';
+    const interval = firstAnt ? `${formatTime(firstAnt.ora_start)} - ${formatTime(firstAnt.ora_sfarsit || '')}` : '';
+    const grupeNume = antrenamente.map(a => a.grupe?.denumire).filter(Boolean).join(', ');
+
+    return (
+        <Card className={`transition-all duration-500 relative ${saved ? 'ring-4 ring-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)] scale-[1.01]' : 'border-slate-800'}`}>
+            {saved && (
+                <div className="absolute top-0 left-0 right-0 -mt-12 flex justify-center z-50 pointer-events-none">
+                    <div className="bg-emerald-500 text-white text-lg font-black px-6 py-3 rounded-2xl animate-bounce flex items-center gap-3 shadow-2xl border-4 border-slate-900">
+                        <CheckCircleIcon className="w-6 h-6" />
+                        <span>PREZENȚĂ SALVATĂ CU SUCCES!</span>
+                    </div>
+                </div>
+            )}
+
+            <div className="flex justify-between items-center mb-6">
+                <Button onClick={onBack} variant="secondary" size="sm">
+                    <ArrowLeftIcon className="w-4 h-4 mr-2" /> Înapoi
+                </Button>
+                <div className="text-right">
+                    <h2 className="text-2xl font-black text-white tracking-tight">{grupeNume}</h2>
+                    <p className="text-sm font-medium text-slate-400 flex items-center justify-end gap-2">
+                        <CalendarDaysIcon className="w-4 h-4" />
+                        {dataFormatata} • {interval}
+                    </p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
+                <Button size="sm" variant="secondary" onClick={() => setAllAttendance(true)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Prezenți</Button>
+                <Button size="sm" variant="secondary" onClick={() => setAllAttendance(false)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Absenți</Button>
+                <div className="sm:col-span-2 flex justify-center pt-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                        Status: <span className="text-indigo-400">{presentIds.size}</span> / {sportiviAfisati.length} prezenți
+                    </span>
+                </div>
+            </div>
+
+            <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar mb-6">
+                {sportiviAfisati.length === 0 ? (
+                    <div className="text-center py-8 text-slate-500 italic">Nu există sportivi în grupele selectate.</div>
+                ) : sportiviAfisati.map(s => {
+                    const isPresent = presentIds.has(s.id);
+                    const grupeS = grupePerSportiv.get(s.id) || [];
+                    const antPrincipalId = antrenamentPerSportiv.get(s.id);
+                    const grupaPrincipalaId = antrenamente.find(a => a.id === antPrincipalId)?.grupe?.id;
+                    return (
+                        <div
+                            key={s.id}
+                            className={`group flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${isPresent ? 'bg-emerald-500/10 border-emerald-500/30 shadow-sm' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'}`}
+                            onClick={() => toggleSportiv(s.id)}
+                        >
+                            <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-slate-600 group-hover:border-slate-500'}`}>
+                                <motion.div
+                                    initial={false}
+                                    animate={{ scale: isPresent ? 1 : 0 }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                >
+                                    <CheckCircleIcon className="w-4 h-4 text-white" />
+                                </motion.div>
+                            </div>
+                            <div className="flex-grow min-w-0 select-none">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                    <span className={`font-bold transition-colors ${isPresent ? 'text-emerald-400' : 'text-slate-300'}`}>
+                                        {s.nume} {s.prenume}
+                                    </span>
+                                    {grupeS.map(g => {
+                                        const isPrincipal = g.id === grupaPrincipalaId;
+                                        return (
+                                            <span key={g.id} className={`inline-flex items-center text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border leading-none shrink-0 ${isPrincipal ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-purple-500/20 text-purple-300 border-purple-500/30'}`}>
+                                                {isPrincipal ? 'PRINCIPALĂ' : 'SECUNDARĂ'}: {g.denumire}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            {onViewSportiv && (
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    className="opacity-0 group-hover:opacity-100 h-8 px-2 text-[10px]"
+                                    onClick={(e) => { e.stopPropagation(); setSelectedSportiv(s); setIsModalOpen(true); onViewSportiv(s); }}
+                                >
+                                    Profil
+                                </Button>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            <SportivInfoModal
+                sportiv={selectedSportiv}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
+
+            <div className="pt-4 border-t border-slate-800">
+                <Button variant="success" size="md" onClick={handleSaveMulti} isLoading={loading} className="w-full py-4 text-lg shadow-lg shadow-emerald-900/20">
+                    <CheckCircleIcon className="w-5 h-5 mr-2" /> Salvează Prezența ({antrenamente.length} grupe)
+                </Button>
+            </div>
+        </Card>
+    );
+};
+
 export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> = ({ grupa, onBack, onViewSportiv }) => {
     const { allTrainings, loading, refetch } = useAttendanceData(grupa.club_id);
     const { saveAttendance, loading: attendanceLoading } = useAttendance();

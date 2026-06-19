@@ -4,7 +4,8 @@ import { Button } from '../ui';
 import { ArrowLeftIcon, CalendarDaysIcon, UsersIcon, SparklesIcon, ClockIcon, PlusIcon, ChevronDownIcon, XIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
-import { ListaPrezentaAntrenament, FormularPrezenta } from './ListaPrezentaAntrenament';
+import { ListaPrezentaAntrenament, FormularPrezenta, FormularPrezentaMultiGrupa } from './ListaPrezentaAntrenament';
+import { CalendarActivitatiMultiGrupa } from './CalendarActivitatiMultiGrupa';
 import { useAttendance } from '../../hooks/useAttendance';
 import { useStatusePrezenta } from '../../hooks/useStatusePrezenta';
 import { GeneratorProgramMasiv } from '../Grupe/GeneratorProgramMasiv';
@@ -159,7 +160,7 @@ const ShortcutBar: React.FC<{
 );
 
 type Tab = 'rapid' | 'grupe' | 'istoric';
-type View = 'azi' | 'rapid' | 'grupe' | 'orar' | 'calendar' | 'prezenta' | 'prezenta-grupe' | 'istoric' | 'generator';
+type View = 'azi' | 'rapid' | 'grupe' | 'orar' | 'calendar' | 'calendar-all' | 'prezenta' | 'prezenta-multi' | 'prezenta-grupe' | 'istoric' | 'generator';
 interface ViewState { view: View; id: string | null; }
 
 const TAB_ROOTS: Record<Tab, View> = {
@@ -183,6 +184,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
     const today = new Date().toLocaleDateString('sv-SE');
     const [grupe, setGrupe] = useState<(Grupa & { program: ProgramItem[], sportivi_count: {count: number}[] })[]>([]);
     const [antrenamentDetaliu, setAntrenamentDetaliu] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }}) | null>(null);
+    const [antrenamenteMulti, setAntrenamenteMulti] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }})[]>([]);
     const [loading, setLoading] = useState(true);
     const { showError } = useError();
     const { saveAttendance } = useAttendance();
@@ -252,6 +254,27 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
         setLoading(false);
     };
 
+    const handleSelectMultipleAntrenamente = async (ids: string[]) => {
+        if (ids.length === 1) { handleSelectAntrenament(ids[0]); return; }
+        setLoading(true);
+        const { data, error } = await supabase.from('program_antrenamente')
+            .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id, grupa_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+            .in('id', ids);
+        if (error) { showError("Eroare", error.message); }
+        else if (data) {
+            const enriched = data.map((row: any) => ({
+                ...row,
+                prezenta: (row.prezenta || []).map((p: any) => ({
+                    ...p,
+                    status: p.status_id ? (statusById[p.status_id] ?? null) : null,
+                })),
+            }));
+            setAntrenamenteMulti(enriched as any);
+            navigateTo('prezenta-multi', null);
+        }
+        setLoading(false);
+    };
+
     const currentView = viewStack[viewStack.length - 1];
     const selectedGrupa = useMemo(() => grupe.find(g => g.id === currentView.id), [grupe, currentView]);
     const isAtRoot = viewStack.length === 1;
@@ -287,6 +310,9 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                             <ShortcutBar shortcuts={[
                                 { label: 'Raport Prezențe', icon: <SparklesIcon className="w-3.5 h-3.5" />, onClick: () => navTo('raport-prezenta') },
                                 { label: 'Raport Lunar', icon: <ClockIcon className="w-3.5 h-3.5" />, onClick: () => navTo('raport-lunar-prezenta') },
+                                { label: 'Calendar Toate Grupele', icon: <CalendarDaysIcon className="w-3.5 h-3.5" />, onClick: () => navigateTo('calendar-all', null) },
+                                { label: 'Generator Program', icon: <CalendarDaysIcon className="w-3.5 h-3.5" />, onClick: () => navigateTo('generator', null) },
+                                { label: 'Raport Interval Examen', icon: <ClockIcon className="w-3.5 h-3.5" />, onClick: () => navTo('raport-interval-examen') },
                             ]} />
                             <GrupeList
                                 onSelect={id => navigateTo('orar', id)}
@@ -304,6 +330,12 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                 return selectedGrupa
                     ? <CalendarActivitati grupa={selectedGrupa} onSelect={handleSelectAntrenament} onBack={navigateBack} grupe={grupe} />
                     : <p className="text-slate-400 p-8">Grupă negăsită.</p>;
+            case 'calendar-all':
+                return <CalendarActivitatiMultiGrupa grupe={grupe} onSelect={handleSelectAntrenament} onSelectMultiple={handleSelectMultipleAntrenamente} onBack={navigateBack} />;
+            case 'prezenta-multi':
+                return antrenamenteMulti.length > 0
+                    ? <FormularPrezentaMultiGrupa antrenamente={antrenamenteMulti} onBack={navigateBack} saveAttendance={saveAttendance} onViewSportiv={onViewSportiv} />
+                    : <p className="text-slate-400 p-8">Niciun antrenament selectat.</p>;
             case 'prezenta':
                 return antrenamentDetaliu
                     ? <FormularPrezenta antrenament={antrenamentDetaliu} onBack={navigateBack} saveAttendance={saveAttendance} onViewSportiv={onViewSportiv} />

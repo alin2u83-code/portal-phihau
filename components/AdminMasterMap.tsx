@@ -17,10 +17,20 @@ import {
     FileTextIcon,
     SparklesIcon,
     ChevronRightIcon,
+    CalendarIcon,
+    BuildingOfficeIcon,
+    SitemapIcon,
+    ClipboardListIcon,
+    MessageSquareIcon,
+    ClockIcon,
+    TrendingUpIcon,
+    MinusCircleIcon,
 } from './icons';
 import { useState } from 'react';
 // SparklesIcon kept for Prezență Rapidă hero card
 import { supabase } from '../supabaseClient';
+import { usePermissions } from '../hooks/usePermissions';
+import { useDataProvider } from '../hooks/useDataProvider';
 
 // --- Item card compact ---
 const ItemCard: React.FC<{
@@ -54,6 +64,8 @@ interface AdminMasterMapProps {
 }
 
 export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deconturiFederatie, inscrieriExamene, plati, currentUser }) => {
+    const { activeRoleContext } = useDataProvider();
+    const permissions = usePermissions(activeRoleContext);
     const [antrenamenteAzi, setAntrenamenteAzi] = React.useState<number | null>(null);
     const [openSection, setOpenSection] = useState<string>('membri');
     const handleToggle = (id: string) => setOpenSection(prev => prev === id ? '' : id);
@@ -117,7 +129,10 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
                 <AccordionItem id="membri" title="Membri" icon={UsersIcon} isOpen={openSection === 'membri'} onToggle={handleToggle}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <ItemCard title="Sportivi" view="sportivi" icon={UsersIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Import Sportivi" view="import-sportivi" icon={ArchiveBoxIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Deduplicare Sportivi" view="deduplicare-sportivi" icon={ClipboardListIcon} onNavigate={onNavigate} />
                         <ItemCard title="Familii" view="familii" icon={UserPlusIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Legitimații" view="legitimatii" icon={FileTextIcon} onNavigate={onNavigate} />
                         <ItemCard title="Nomenclator Grade" view="grade" icon={BookOpenIcon} onNavigate={onNavigate} />
                         <ItemCard title="Administrare Staff" view="user-management" icon={CogIcon} onNavigate={onNavigate} />
                     </div>
@@ -127,28 +142,62 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <ItemCard title="Grupe & Orar" view="grupe" icon={ArchiveBoxIcon} onNavigate={onNavigate} />
                         <ItemCard title="Program Antrenamente" view="program-antrenamente" icon={CalendarDaysIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Înregistrare Prezențe" view="prezenta" icon={ClipboardCheckIcon} onNavigate={onNavigate} />
                         <ItemCard title="Raport Prezențe" view="raport-prezenta" icon={ChartBarIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Raport Lunar Prezențe" view="raport-lunar-prezenta" icon={ChartBarIcon} onNavigate={onNavigate} />
                         <ItemCard title="Generator Program" view="activitati" icon={CalendarDaysIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Calendar" view="calendar" icon={CalendarIcon} onNavigate={onNavigate} />
                     </div>
                 </AccordionItem>
 
                 <AccordionItem id="examene" title="Examene & Competiții" icon={TrophyIcon} isOpen={openSection === 'examene'} onToggle={handleToggle}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <ItemCard title="Sesiuni Examene" view="examene" icon={TrophyIcon} onNavigate={onNavigate} badge={pendingExamPayments} />
+                        <ItemCard title="Rapoarte Examen" view="rapoarte-examen" icon={FileTextIcon} onNavigate={onNavigate} />
                         <ItemCard title="Competiții" view="competitii" icon={TrophyIcon} onNavigate={onNavigate} />
                         <ItemCard title="Stagii Naționale" view="stagii" icon={BookMarkedIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Rapoarte Examen" view="rapoarte-examen" icon={FileTextIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Activități Naționale" view="activitati-nationale" icon={TrophyIcon} onNavigate={onNavigate} />
                     </div>
                 </AccordionItem>
 
-                <AccordionItem id="financiar" title="Administrativ & Plăți" icon={WalletIcon} isOpen={openSection === 'financiar'} onToggle={handleToggle}>
+                <AccordionItem id="financiar" title="Financiar & Plăți" icon={WalletIcon} isOpen={openSection === 'financiar'} onToggle={handleToggle}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <ItemCard title="Dashboard Financiar" view="financial-dashboard" icon={TrendingUpIcon} onNavigate={onNavigate} />
                         <ItemCard title="Facturi & Plăți" view="plati-scadente" icon={WalletIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Gestiune Facturi" view="gestiune-facturi" icon={FileTextIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Jurnal Încasări" view="jurnal-incasari" icon={BanknotesIcon} onNavigate={onNavigate} />
                         <ItemCard title="Raport Financiar" view="raport-financiar" icon={ChartBarIcon} onNavigate={onNavigate} />
-                        <ItemCard title="Facturi Federale" view="deconturi-federatie" icon={BanknotesIcon} onNavigate={onNavigate} badge={pendingDeconturi} />
-                        <ItemCard title="Configurare" view="tipuri-abonament" icon={CogIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Taxe Anuale" view="taxe-anuale" icon={BanknotesIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Reduceri" view="reduceri" icon={MinusCircleIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Config. Abonamente" view="tipuri-abonament" icon={CogIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Configurare Prețuri" view="configurare-preturi" icon={CogIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Nomenclatoare" view="nomenclatoare" icon={BookOpenIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Deconturi Federație" view="deconturi-federatie" icon={BanknotesIcon} onNavigate={onNavigate} badge={pendingDeconturi} />
                     </div>
                 </AccordionItem>
+
+                <AccordionItem id="setari" title="Setări & Admin" icon={CogIcon} isOpen={openSection === 'setari'} onToggle={handleToggle}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <ItemCard title="Setări Club" view="setari-club" icon={CogIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Notificări" view="notificari" icon={ClipboardCheckIcon} onNavigate={onNavigate} />
+                        <ItemCard title="SMS" view="admin-sms" icon={MessageSquareIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Cereri Înscriere" view="cereri-inscriere" icon={UserPlusIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Istoric Activitate" view="istoric-activitate" icon={ClockIcon} onNavigate={onNavigate} />
+                        <ItemCard title="Setări Cont" view="account-settings" icon={CogIcon} onNavigate={onNavigate} />
+                    </div>
+                </AccordionItem>
+
+                {permissions.isFederationAdmin && (
+                    <AccordionItem id="superadmin" title="Administrare Federație" icon={BuildingOfficeIcon} isOpen={openSection === 'superadmin'} onToggle={handleToggle}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <ItemCard title="Gestiune Cluburi" view="cluburi" icon={BuildingOfficeIcon} onNavigate={onNavigate} />
+                            <ItemCard title="Structură Federație" view="structura-federatie" icon={SitemapIcon} onNavigate={onNavigate} />
+                            <ItemCard title="Template Probe" view="template-probe" icon={FileTextIcon} onNavigate={onNavigate} />
+                            <ItemCard title="Mentenanță Date" view="data-maintenance" icon={ArchiveBoxIcon} onNavigate={onNavigate} />
+                            <ItemCard title="Înlănțuiri Grade" view="inlantuiri-admin" icon={BookMarkedIcon} onNavigate={onNavigate} />
+                        </div>
+                    </AccordionItem>
+                )}
             </Accordion>
         </div>
     );

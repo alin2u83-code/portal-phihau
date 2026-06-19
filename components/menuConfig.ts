@@ -4,7 +4,7 @@ import {
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon,
     ClipboardCheckIcon, CogIcon, SitemapIcon, ArchiveBoxIcon, FileTextIcon,
     ChartBarIcon, UserPlusIcon, BookOpenIcon, BookMarkedIcon, WalletIcon,
-    ClockIcon, ClipboardListIcon, MessageSquareIcon,
+    ClockIcon, ClipboardListIcon, MessageSquareIcon, CalendarIcon,
 } from './icons';
 
 export interface MenuItem {
@@ -19,7 +19,7 @@ export interface SubMenuItem {
     view: View;
 }
 
-// Meniu complet pentru Adminii de Federație (fără Activitate Sală — doar cluburi)
+// Meniu complet pentru Adminii de Federație
 export const adminMenu: MenuItem[] = [
     { label: 'Dashboard', icon: HomeIcon, view: 'dashboard' },
     {
@@ -35,6 +35,17 @@ export const adminMenu: MenuItem[] = [
         ]
     },
     {
+        label: 'Activitate Sală', icon: CalendarDaysIcon,
+        submenu: [
+            { label: 'Grupe & Orar', view: 'grupe' },
+            { label: 'Program Antrenamente', view: 'program-antrenamente' },
+            { label: 'Înregistrare Prezențe', view: 'prezenta' },
+            { label: 'Raport Prezențe', view: 'raport-prezenta' },
+            { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
+            { label: 'Calendar', view: 'calendar' },
+        ]
+    },
+    {
         label: 'Examene', icon: TrophyIcon,
         submenu: [
             { label: 'Sesiuni Examene', view: 'examene' },
@@ -44,9 +55,25 @@ export const adminMenu: MenuItem[] = [
     {
         label: 'Activități Naționale', icon: TrophyIcon,
         submenu: [
+            { label: 'Activități Naționale', view: 'activitati-nationale' },
             { label: 'Competiții', view: 'competitii' },
             { label: 'Stagii', view: 'stagii' },
             { label: 'Template Probe', view: 'template-probe' },
+        ]
+    },
+    {
+        label: 'Financiar & Plăți', icon: BanknotesIcon,
+        submenu: [
+            { label: 'Dashboard Financiar', view: 'financial-dashboard' },
+            { label: 'Facturi & Plăți', view: 'plati-scadente' },
+            { label: 'Gestiune Facturi', view: 'gestiune-facturi' },
+            { label: 'Jurnal Încasări', view: 'jurnal-incasari' },
+            { label: 'Raport Financiar', view: 'raport-financiar' },
+            { label: 'Taxe Anuale', view: 'taxe-anuale' },
+            { label: 'Config. Abonamente', view: 'tipuri-abonament' },
+            { label: 'Configurare Prețuri', view: 'configurare-preturi' },
+            { label: 'Reduceri', view: 'reduceri' },
+            { label: 'Deconturi Federație', view: 'deconturi-federatie' },
         ]
     },
     {
@@ -56,8 +83,9 @@ export const adminMenu: MenuItem[] = [
             { label: 'Structură Federație', view: 'structura-federatie' },
             { label: 'Setări Club', view: 'setari-club' },
             { label: 'Mentenanță Date', view: 'data-maintenance' },
-            { label: 'Setări Cont', view: 'account-settings' },
+            { label: 'Nomenclatoare', view: 'nomenclatoare' },
             { label: 'Înlănțuiri', view: 'inlantuiri-admin' },
+            { label: 'Setări Cont', view: 'account-settings' },
         ]
     },
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
@@ -90,6 +118,7 @@ export const adminClubMenu: MenuItem[] = [
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' },
             { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
+            { label: 'Calendar', view: 'calendar' },
         ]
     },
     {
@@ -102,6 +131,7 @@ export const adminClubMenu: MenuItem[] = [
     {
         label: 'Activități Naționale', icon: TrophyIcon,
         submenu: [
+            { label: 'Activități Naționale', view: 'activitati-nationale' },
             { label: 'Competiții', view: 'competitii' },
             { label: 'Stagii', view: 'stagii' },
         ]
@@ -109,18 +139,23 @@ export const adminClubMenu: MenuItem[] = [
     {
         label: 'Financiar & Plăți', icon: BanknotesIcon,
         submenu: [
+            { label: 'Dashboard Financiar', view: 'financial-dashboard' },
             { label: 'Facturi & Plăți', view: 'plati-scadente' },
+            { label: 'Gestiune Facturi', view: 'gestiune-facturi' },
             { label: 'Jurnal Încasări', view: 'jurnal-incasari' },
             { label: 'Raport Financiar', view: 'raport-financiar' },
             { label: 'Taxe Anuale', view: 'taxe-anuale' },
             { label: 'Config. Abonamente', view: 'tipuri-abonament' },
             { label: 'Configurare Prețuri', view: 'configurare-preturi' },
+            { label: 'Reduceri', view: 'reduceri' },
+            { label: 'Deconturi Federație', view: 'deconturi-federatie' },
         ]
     },
     {
         label: 'Setări & Admin', icon: CogIcon,
         submenu: [
             { label: 'Setări Club', view: 'setari-club' },
+            { label: 'Nomenclatoare', view: 'nomenclatoare' },
             { label: 'Setări Cont', view: 'account-settings' },
         ]
     },
@@ -139,8 +174,10 @@ export const instructorMenu: MenuItem[] = [
         submenu: [
             { label: 'Grupe & Orar', view: 'grupe' },
             { label: 'Înregistrare Prezențe', view: 'prezenta-instructor' },
+            { label: 'Arhivă Prezențe', view: 'arhiva-prezente' },
             { label: 'Program Antrenamente', view: 'program-antrenamente' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' },
+            { label: 'Raport Activitate', view: 'raport-activitate' },
         ]
     },
     {
@@ -152,11 +189,13 @@ export const instructorMenu: MenuItem[] = [
     {
         label: 'Activități Naționale', icon: TrophyIcon,
         submenu: [
+            { label: 'Activități Naționale', view: 'activitati-nationale' },
             { label: 'Competiții', view: 'competitii' },
             { label: 'Stagii', view: 'stagii' },
         ]
     },
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
+    { label: 'Calendar', icon: CalendarIcon, view: 'calendar' },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
     { label: 'Setări Cont', icon: CogIcon, view: 'account-settings' },

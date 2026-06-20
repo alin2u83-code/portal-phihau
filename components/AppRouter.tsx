@@ -259,6 +259,15 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return <Lazy.FisaCompetitie onBack={handleBackToDashboard} currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} />;
                             case 'button-catalog':
                                 return renderProtected(<Lazy.ButtonCatalog />, isFederationAdmin);
+                            case 'produse':
+                                return renderProtected(
+                                    <Lazy.ProduseManagement
+                                        currentUser={currentUser!}
+                                        permissions={permissions}
+                                        onBack={handleBackToDashboard}
+                                    />,
+                                    isAtLeastClubAdmin
+                                );
                             case 'setup-mfa':
                                 return <SetupMFAPage />;
                             default:

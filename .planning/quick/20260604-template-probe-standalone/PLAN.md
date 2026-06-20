@@ -1,7 +1,7 @@
 ---
 slug: template-probe-standalone
 date: 2026-06-04
-status: in-progress
+status: complete
 ---
 
 # Template Probe Standalone — Acces în afara competiției

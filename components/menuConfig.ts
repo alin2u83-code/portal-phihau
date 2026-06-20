@@ -135,6 +135,7 @@ export const adminClubMenu: MenuItem[] = [
             { label: 'Activități Naționale', view: 'activitati-nationale' },
             { label: 'Competiții', view: 'competitii' },
             { label: 'Stagii', view: 'stagii' },
+            { label: 'Template Probe', view: 'template-probe' },
         ]
     },
     {

@@ -533,7 +533,7 @@ export interface Permissions {
   hasClubFilter: boolean;
 }
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'istoric-plati' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi' | 'structura-federatie' | 'deconturi-federatie' | 'istoric-prezenta' | 'account-settings' | 'federation-dashboard' | 'gestiune-facturi' | 'fisa-digitala' | 'fisa-competitie' | 'prezenta-instructor' | 'arhiva-prezente' | 'raport-activitate' | 'admin-console' | 'raport-lunar-prezenta' | 'raport-interval-examen' | 'portal-sportiv-admin' | 'admin-dashboard' | 'rapoarte' | 'program-antrenamente' | 'legitimatii' | 'import-sportivi' | 'istoric-activitate' | 'deduplicare-sportivi' | 'cereri-inscriere' | 'activitati-nationale' | 'inlantuiri-admin' | 'admin-sms' | 'template-probe' | 'setup-mfa' | 'button-catalog';
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'istoric-plati' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi' | 'structura-federatie' | 'deconturi-federatie' | 'istoric-prezenta' | 'account-settings' | 'federation-dashboard' | 'gestiune-facturi' | 'fisa-digitala' | 'fisa-competitie' | 'prezenta-instructor' | 'arhiva-prezente' | 'raport-activitate' | 'admin-console' | 'raport-lunar-prezenta' | 'raport-interval-examen' | 'portal-sportiv-admin' | 'admin-dashboard' | 'rapoarte' | 'program-antrenamente' | 'legitimatii' | 'import-sportivi' | 'istoric-activitate' | 'deduplicare-sportivi' | 'cereri-inscriere' | 'activitati-nationale' | 'inlantuiri-admin' | 'admin-sms' | 'template-probe' | 'setup-mfa' | 'button-catalog' | 'produse' | 'vanzari-produse';
 
 export interface VederePrezentaSportiv {
   id: string;
@@ -775,4 +775,105 @@ export interface ThemeConfig {
   statusDanger: string;
   statusWarning: string;
   statusInfo: string;
+}
+
+// ==================== MODUL PRODUSE ====================
+
+export interface ProdusCategorieDB {
+  id: string;
+  denumire: string;
+  ordine: number;
+  activa: boolean;
+  created_at: string;
+}
+
+export interface ProdusDB {
+  id: string;
+  club_id: string;
+  categorie_id: string;
+  denumire: string;
+  descriere: string | null;
+  activ: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProdusVariantaDB {
+  id: string;
+  produs_id: string;
+  culoare: string | null;
+  marime: string | null;
+  pret_intrare: number;
+  pret_vanzare: number;
+  stoc_curent: number;
+  stoc_minim: number;
+  activa: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProdusIntrareDB {
+  id: string;
+  club_id: string;
+  furnizor: string | null;
+  nr_factura: string | null;
+  data_factura: string;
+  observatii: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface ProdusIntrareDetaliuDB {
+  id: string;
+  intrare_id: string;
+  varianta_id: string;
+  cantitate: number;
+  pret_intrare_snapshot: number;
+  created_at: string;
+}
+
+export interface ProdusVanzareDB {
+  id: string;
+  club_id: string;
+  sportiv_id: string | null;
+  plata_id: string | null;
+  data_vanzare: string;
+  observatii: string | null;
+  total_vanzare: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface ProdusVanzareDetaliuDB {
+  id: string;
+  vanzare_id: string;
+  varianta_id: string;
+  cantitate: number;
+  pret_vanzare_snapshot: number;
+  pret_intrare_snapshot: number;
+  denumire_snapshot: string;
+  created_at: string;
+}
+
+// Tipuri compuse (join-uri frecvente)
+
+export interface ProdusVarianta extends ProdusVariantaDB {
+  produs_denumire?: string;
+  categorie_denumire?: string;
+}
+
+export interface Produs extends ProdusDB {
+  variante: ProdusVariantaDB[];
+  categorie?: ProdusCategorieDB;
+}
+
+export interface ProdusIntrare extends ProdusIntrareDB {
+  detalii: (ProdusIntrareDetaliuDB & {
+    varianta?: ProdusVariantaDB & { produs?: Pick<ProdusDB, 'denumire'> };
+  })[];
+}
+
+export interface ProdusVanzare extends ProdusVanzareDB {
+  detalii: ProdusVanzareDetaliuDB[];
+  sportiv_nume?: string;
 }

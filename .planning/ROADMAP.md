@@ -74,7 +74,7 @@ Plans:
 
 - [x] 12-01-PLAN.md — DB Schema (7 tabele) + RLS + seed 8 categorii + TypeScript types
 - [x] 12-02-PLAN.md — Service CRUD + Admin Catalog UI + ProdusFormModal + integrare LazyComponents/AppRouter/menuConfig
-- [ ] 12-03-PLAN.md — Intrări Marfă (modal + tab + actualizare stoc)
+- [x] 12-03-PLAN.md — Intrări Marfă (modal + tab + actualizare stoc)
 - [ ] 12-04-PLAN.md — Vânzări (VanzareModal + tab + Plata generată + SportivDashboard tab Echipamente)
 - [ ] 12-05-PLAN.md — Raport vânzări cu profit + export Excel/PDF
 
@@ -116,7 +116,7 @@ Phase 11 — Wave 1 (paralel): 11-01, 11-03, 11-04 (fără conflicte de fișier)
 | 9. Raport Financiar | 1/1 | Complete   | 2026-06-16 |
 | 10. Raport Grade & Examene | 0/? | Not started | - |
 | 11. Prezenta Refactorizata | 4/4 | Complete | 2026-06-19 |
-| 12. Modul Produse/Echipamente | 2/5 | In Progress|  |
+| 12. Modul Produse/Echipamente | 3/5 | In Progress|  |
 
 ---
 

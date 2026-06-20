@@ -61,3 +61,6 @@ export const AdminSMS = lazy(() => import('./SMS/AdminSMS').then(m => ({ default
 export const ButtonCatalog = lazy(() =>
   import('./ButtonCatalog').then(m => ({ default: m.ButtonCatalog }))
 );
+export const ProduseManagement = lazy(() =>
+  import('./Produse').then(m => ({ default: m.ProduseManagement }))
+);

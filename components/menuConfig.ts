@@ -4,7 +4,7 @@ import {
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon,
     ClipboardCheckIcon, CogIcon, SitemapIcon, ArchiveBoxIcon, FileTextIcon,
     ChartBarIcon, UserPlusIcon, BookOpenIcon, BookMarkedIcon, WalletIcon,
-    ClockIcon, ClipboardListIcon, MessageSquareIcon, CalendarIcon,
+    ClockIcon, ClipboardListIcon, MessageSquareIcon, CalendarIcon, PackageIcon,
 } from './icons';
 
 export interface MenuItem {
@@ -136,6 +136,13 @@ export const adminClubMenu: MenuItem[] = [
             { label: 'Competiții', view: 'competitii' },
             { label: 'Stagii', view: 'stagii' },
             { label: 'Template Probe', view: 'template-probe' },
+        ]
+    },
+    {
+        label: 'Echipamente', icon: PackageIcon,
+        submenu: [
+            { label: 'Catalog Produse', view: 'produse' },
+            { label: 'Vânzări', view: 'vanzari-produse' },
         ]
     },
     {

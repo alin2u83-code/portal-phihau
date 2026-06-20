@@ -1,7 +1,7 @@
 ---
 slug: financiar-filtre-perioade-editare-sume
 date: 2026-06-15
-status: in-progress
+status: complete
 ---
 
 # Financiar: Filtre Perioade + Editare Sume + Vizualizare Factură + UX Încasare

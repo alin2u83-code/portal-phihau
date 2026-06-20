@@ -420,6 +420,13 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             {/* ─── TAB: ÎNCASĂRI ─── */}
             {activeTab === 'incasari' && (
                 <div className="space-y-4">
+                    {/* Filtru perioadă — vizibil mereu */}
+                    <PeriodFilterBar
+                        startDate={filters.startDate}
+                        endDate={filters.endDate}
+                        onChange={(startDate, endDate) => setFilters((prev: typeof filters) => ({ ...prev, startDate, endDate }))}
+                    />
+
                     {/* Filtre colapsabile */}
                     <Card className="!p-0 overflow-hidden">
                         <button
@@ -437,11 +444,6 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         {filtersOpen && (
                             <div className="px-4 pb-4 border-t border-[var(--t-border)]">
                                 <div className="pt-3 space-y-3">
-                                    <PeriodFilterBar
-                                        startDate={filters.startDate}
-                                        endDate={filters.endDate}
-                                        onChange={(startDate, endDate) => setFilters((prev: typeof filters) => ({ ...prev, startDate, endDate }))}
-                                    />
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                     <Select label="Sportiv" name="sportivId" value={filters.sportivId} onChange={handleFilterChange} disabled={!!filters.familieId}>
                                         <option value="">Toți</option>

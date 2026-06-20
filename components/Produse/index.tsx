@@ -2,13 +2,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Button, Badge, Input, Select } from '../ui';
 import ProdusFormModal from './ProdusFormModal';
 import IntrareMarfaModal from './IntrareMarfaModal';
+import VanzareModal from './VanzareModal';
 import {
   fetchProduse,
   fetchCategorii,
   fetchIntrari,
+  fetchVanzari,
   deleteProdus,
 } from '../../services/produseService';
-import type { User, Permissions, Produs, ProdusCategorieDB, ProdusIntrare } from '../../types';
+import { useData } from '../../contexts/DataContext';
+import type { User, Permissions, Produs, ProdusCategorieDB, ProdusIntrare, ProdusVanzare } from '../../types';
 import { ArrowLeftIcon, PlusIcon } from '../icons';
 
 interface ProduseManagementProps {
@@ -57,14 +60,17 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
   permissions,
   onBack,
 }) => {
+  const { sportivi, tipuriPlati } = useData();
   const [produse, setProduse] = useState<Produs[]>([]);
   const [categorii, setCategorii] = useState<ProdusCategorieDB[]>([]);
   const [intrari, setIntrari] = useState<ProdusIntrare[]>([]);
+  const [vanzari, setVanzari] = useState<ProdusVanzare[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('catalog');
   const [showForm, setShowForm] = useState(false);
   const [showIntrareModal, setShowIntrareModal] = useState(false);
+  const [showVanzareModal, setShowVanzareModal] = useState(false);
   const [editProdus, setEditProdus] = useState<Produs | null>(null);
   const [filterCategorie, setFilterCategorie] = useState('');
   const [filterText, setFilterText] = useState('');
@@ -77,16 +83,21 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
     currentUser.club_id ??
     '';
 
+  // Determină tipul de plată pentru echipamente (câmpul `nume` în TipPlata)
+  const tipPlataEchipamente: string =
+    tipuriPlati.find(t => t.nume.toLowerCase().includes('echipament'))?.id ?? '';
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    Promise.all([fetchCategorii(), fetchProduse(), fetchIntrari()])
-      .then(([cats, prods, intrariData]) => {
+    Promise.all([fetchCategorii(), fetchProduse(), fetchIntrari(), fetchVanzari()])
+      .then(([cats, prods, intrariData, vanzariData]) => {
         if (!cancelled) {
           setCategorii(cats);
           setProduse(prods);
           setIntrari(intrariData);
+          setVanzari(vanzariData);
           setLoading(false);
         }
       })
@@ -440,8 +451,80 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
         </div>
       )}
 
-      {/* Placeholder taburi viitoare */}
-      {(activeTab === 'vanzari' || activeTab === 'raport') && (
+      {/* Conținut tab Vânzări */}
+      {activeTab === 'vanzari' && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-bold text-white">Vânzări Echipamente</h2>
+            {canManage && (
+              <Button onClick={() => setShowVanzareModal(true)}>+ Vânzare Nouă</Button>
+            )}
+          </div>
+
+          {!tipPlataEchipamente && (
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400 text-sm">
+              Tipul de plată "Echipamente" lipsește. Adaugă-l în Config. Abonamente → Tipuri Plăți.
+            </div>
+          )}
+
+          {/* Tabel vânzări desktop */}
+          <div className="hidden md:block bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl overflow-hidden">
+            <table className="w-full text-sm text-left">
+              <thead style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
+                <tr className="border-b border-[var(--t-border)]">
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Data</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Sportiv</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Produse</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--t-border)]">
+                {vanzari.map(v => (
+                  <tr key={v.id} className="hover:bg-[var(--t-table-row-hover)]">
+                    <td className="px-4 py-3 text-slate-300">{new Date(v.data_vanzare).toLocaleDateString('ro-RO')}</td>
+                    <td className="px-4 py-3 text-white">{v.sportiv_nume ?? '—'}</td>
+                    <td className="px-4 py-3 text-slate-300">{v.detalii.map(d => d.denumire_snapshot).join(', ')}</td>
+                    <td className="px-4 py-3 text-right font-bold text-white">{v.total_vanzare.toFixed(2)} RON</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {vanzari.length === 0 && <div className="py-12 text-center text-slate-400">Nicio vânzare înregistrată</div>}
+          </div>
+
+          {/* Carduri mobile */}
+          <div className="md:hidden space-y-2">
+            {vanzari.map(v => (
+              <div key={v.id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+                <div className="flex justify-between">
+                  <span className="text-white font-bold text-sm">{v.sportiv_nume ?? '—'}</span>
+                  <span className="text-white font-bold text-sm">{v.total_vanzare.toFixed(2)} RON</span>
+                </div>
+                <div className="text-slate-400 text-xs mt-1">{new Date(v.data_vanzare).toLocaleDateString('ro-RO')} · {v.detalii.length} produse</div>
+              </div>
+            ))}
+            {vanzari.length === 0 && <div className="py-8 text-center text-slate-400">Nicio vânzare</div>}
+          </div>
+
+          {showVanzareModal && (
+            <VanzareModal
+              produse={produse}
+              sportivi={sportivi}
+              clubId={clubId}
+              tipPlataId={tipPlataEchipamente}
+              onSave={async () => {
+                setShowVanzareModal(false);
+                const [p, v] = await Promise.all([fetchProduse(), fetchVanzari()]);
+                setProduse(p); setVanzari(v);
+              }}
+              onClose={() => setShowVanzareModal(false)}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Placeholder tab Raport */}
+      {activeTab === 'raport' && (
         <Card>
           <div className="py-12 text-center text-slate-400">
             Modul în curând disponibil

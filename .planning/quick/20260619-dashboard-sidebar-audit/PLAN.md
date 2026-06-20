@@ -1,7 +1,7 @@
 ---
 slug: dashboard-sidebar-audit
 date: 2026-06-19
-status: in-progress
+status: complete
 ---
 
 # Dashboard & Sidebar Audit — Completare linkuri lipsă

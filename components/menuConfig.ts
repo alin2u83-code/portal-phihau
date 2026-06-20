@@ -118,6 +118,7 @@ export const adminClubMenu: MenuItem[] = [
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
             { label: 'Raport Prezențe', view: 'raport-prezenta' },
             { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
+            { label: 'Raport Activitate', view: 'raport-activitate' },
             { label: 'Calendar', view: 'calendar' },
         ]
     },

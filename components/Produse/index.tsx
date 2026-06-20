@@ -3,6 +3,7 @@ import { Card, Button, Badge, Input, Select } from '../ui';
 import ProdusFormModal from './ProdusFormModal';
 import IntrareMarfaModal from './IntrareMarfaModal';
 import VanzareModal from './VanzareModal';
+import RaportProduse from './RaportProduse';
 import {
   fetchProduse,
   fetchCategorii,
@@ -60,7 +61,9 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
   permissions,
   onBack,
 }) => {
-  const { sportivi, tipuriPlati } = useData();
+  const { sportivi, tipuriPlati, clubs, activeRoleContext } = useData();
+
+  const clubNume = clubs?.find(c => c.id === activeRoleContext?.club_id)?.nume ?? 'Club QwanKiDo';
   const [produse, setProduse] = useState<Produs[]>([]);
   const [categorii, setCategorii] = useState<ProdusCategorieDB[]>([]);
   const [intrari, setIntrari] = useState<ProdusIntrare[]>([]);
@@ -523,13 +526,9 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
         </div>
       )}
 
-      {/* Placeholder tab Raport */}
+      {/* Tab Raport Vânzări */}
       {activeTab === 'raport' && (
-        <Card>
-          <div className="py-12 text-center text-slate-400">
-            Modul în curând disponibil
-          </div>
-        </Card>
+        <RaportProduse vanzari={vanzari} clubNume={clubNume} />
       )}
 
       {/* Modal produs */}

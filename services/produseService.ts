@@ -6,6 +6,8 @@ import type {
   Produs,
   ProdusIntrareDB,
   ProdusIntrare,
+  ProdusVanzareDB,
+  ProdusVanzare,
 } from '../types';
 
 export async function fetchCategorii(): Promise<ProdusCategorieDB[]> {
@@ -169,4 +171,104 @@ export async function createIntrareMarfa(input: {
   }));
 
   return intrare;
+}
+
+export async function fetchVanzari(): Promise<ProdusVanzare[]> {
+  const { data, error } = await supabase
+    .from('produse_vanzari')
+    .select(`
+      *,
+      detalii:produse_vanzari_detalii(*),
+      sportiv:sportivi(id, prenume, nume)
+    `)
+    .order('data_vanzare', { ascending: false })
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(`fetchVanzari: ${error.message}`);
+  return (data ?? []).map((v: any) => ({
+    ...v,
+    sportiv_nume: v.sportiv ? `${v.sportiv.prenume} ${v.sportiv.nume}` : null,
+  })) as ProdusVanzare[];
+}
+
+export async function fetchVanzariSportiv(sportivId: string): Promise<ProdusVanzare[]> {
+  const { data, error } = await supabase
+    .from('produse_vanzari')
+    .select(`*, detalii:produse_vanzari_detalii(*)`)
+    .eq('sportiv_id', sportivId)
+    .order('data_vanzare', { ascending: false });
+  if (error) throw new Error(`fetchVanzariSportiv: ${error.message}`);
+  return (data ?? []) as ProdusVanzare[];
+}
+
+export async function createVanzare(input: {
+  club_id: string;
+  sportiv_id: string | null;
+  data_vanzare: string;
+  observatii?: string;
+  linii: { varianta_id: string; cantitate: number; pret_vanzare_snapshot: number; pret_intrare_snapshot: number; denumire_snapshot: string }[];
+  tip_plata_id: string;
+}): Promise<ProdusVanzareDB> {
+  const total = input.linii.reduce((s, l) => s + l.pret_vanzare_snapshot * l.cantitate, 0);
+
+  // 1. Creează Plata în modulul Plăți existent
+  let plataId: string | null = null;
+  if (input.sportiv_id) {
+    const { data: plata, error: errPlata } = await supabase
+      .from('plati')
+      .insert({
+        sportiv_id: input.sportiv_id,
+        club_id: input.club_id,
+        tip_plata_id: input.tip_plata_id,
+        suma: total,
+        status: 'Neachitat',
+        data: input.data_vanzare,
+        descriere: `Echipamente: ${input.linii.map(l => l.denumire_snapshot).join(', ')}`,
+      })
+      .select('id')
+      .single();
+    if (errPlata) throw new Error(`createVanzare plata: ${errPlata.message}`);
+    plataId = plata.id;
+  }
+
+  // 2. Creează header vânzare
+  const { data: vanzare, error: errV } = await supabase
+    .from('produse_vanzari')
+    .insert({
+      club_id: input.club_id,
+      sportiv_id: input.sportiv_id,
+      plata_id: plataId,
+      data_vanzare: input.data_vanzare,
+      observatii: input.observatii ?? null,
+      total_vanzare: total,
+    })
+    .select()
+    .single();
+  if (errV) throw new Error(`createVanzare header: ${errV.message}`);
+
+  // 3. Inserează linii vânzare
+  const detalii = input.linii.map(l => ({
+    vanzare_id: vanzare.id,
+    varianta_id: l.varianta_id,
+    cantitate: l.cantitate,
+    pret_vanzare_snapshot: l.pret_vanzare_snapshot,
+    pret_intrare_snapshot: l.pret_intrare_snapshot,
+    denumire_snapshot: l.denumire_snapshot,
+  }));
+  const { error: errD } = await supabase.from('produse_vanzari_detalii').insert(detalii);
+  if (errD) throw new Error(`createVanzare detalii: ${errD.message}`);
+
+  // 4. Scade stoc per variantă
+  await Promise.all(input.linii.map(async (l) => {
+    const { data: v } = await supabase
+      .from('produse_variante')
+      .select('stoc_curent')
+      .eq('id', l.varianta_id)
+      .single();
+    await supabase
+      .from('produse_variante')
+      .update({ stoc_curent: Math.max(0, (v?.stoc_curent ?? 0) - l.cantitate), updated_at: new Date().toISOString() })
+      .eq('id', l.varianta_id);
+  }));
+
+  return vanzare;
 }

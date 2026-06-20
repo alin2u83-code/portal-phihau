@@ -1,7 +1,7 @@
 ---
 slug: pas1-sortare-filtrare-inscriisi
 description: useSortConfig hook + Pas1 empty start + hide înscriși + column sort
-status: planned
+status: complete
 created: 2026-06-09
 ---
 

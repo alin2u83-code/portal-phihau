@@ -3,7 +3,7 @@ quick_id: 260608-has
 slug: 7-fixes-filtrare-categorii-wizard-ramane
 title: 7 Fixes Competitii — filtrare, navigare, responsive, bugs
 date: 2026-06-08
-status: planned
+status: complete
 ---
 
 # 7 Fixes Competitii — filtrare, navigare, responsive, bugs

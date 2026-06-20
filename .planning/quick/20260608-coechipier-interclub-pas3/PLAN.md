@@ -1,6 +1,7 @@
 ---
 slug: coechipier-interclub-pas3
 created: 2026-06-08
+status: complete
 ---
 
 # Readaugă buton "Solicită coechipier inter-club" în Pas3Echipe.tsx

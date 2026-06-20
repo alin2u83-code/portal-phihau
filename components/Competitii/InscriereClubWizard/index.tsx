@@ -76,7 +76,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     }
     setAutoCategorie(prev => prev.size > 0 ? prev : newAuto);
     setQuyenAles(prev => prev.size > 0 ? prev : newQuyen);
-    setSelectedSportiviMap(prev => prev.size > 0 ? prev : newSelectedMap);
+    // start gol — nu pre-selectăm sportivii din înscrieri existente (utilizatorul alege explicit)
   }, [inscrieri, categorii, probe, clubId]);
 
   const handleToggleExclus = useCallback((sportivId: string) => {

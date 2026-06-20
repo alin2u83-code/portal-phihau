@@ -789,7 +789,7 @@ export interface ProdusCategorieDB {
 
 export interface ProdusDB {
   id: string;
-  club_id: string;
+  club_id: string | null; // null = catalog global federație
   categorie_id: string;
   denumire: string;
   descriere: string | null;
@@ -853,6 +853,14 @@ export interface ProdusVanzareDetaliuDB {
   pret_intrare_snapshot: number;
   denumire_snapshot: string;
   created_at: string;
+}
+
+export interface ProdusPreturiClubDB {
+  id: string;
+  varianta_id: string;
+  club_id: string;
+  pret_vanzare: number;
+  updated_at: string;
 }
 
 // Tipuri compuse (join-uri frecvente)

@@ -55,6 +55,31 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 12: Modul Produse/Echipamente
+
+**Goal**: ADMIN_CLUB gestionează un catalog de produse sportive per club (Vo-phuc, esarfe, mănuși, tibiere etc.) cu variante pe mărime/culoare, prețuri intrare/vânzare, jurnal stoc cu intrări marfă, vânzări integrate care generează facturi în modulul Plăți, raport financiar cu profit brut. Sportivii văd catalogul și istoricul propriu de achiziții.
+**Mode**: mvp
+**Depends on**: Nothing (independent)
+**Requirements**: PRD-01, PRD-02, PRD-03, PRD-04, PRD-05, PRD-06
+**Success Criteria** (what must be TRUE):
+
+  1. ADMIN_CLUB vede "Echipamente > Catalog Produse" în sidebar, poate adăuga/edita/șterge produse cu variante (culoare + mărime + pret_intrare + pret_vanzare + stoc_minim) — badge "Stoc redus" apare când stoc_curent < stoc_minim
+  2. Admin înregistrează intrare marfă (furnizor, nr. factură, linii produs+cantitate) — stocul variantelor crește automat
+  3. Admin creează vânzare (selectează sportiv + produse + cantități) → se generează Plata în modulul Plăți cu suma totală; stocul scade
+  4. Sportivul vede tab "Echipamente" în dashboard: catalog produse cu prețuri de vânzare + istoricul achizițiilor proprii — fără pret_intrare
+  5. Tab "Raport" în modulul Produse: tabel per produs cu cantitate vândută, venit total, cost total, profit brut, margin % — filtrare perioadă live + export Excel + PDF
+
+**Plans**: 5 plans
+Plans:
+
+- [x] 12-01-PLAN.md — DB Schema (7 tabele) + RLS + seed 8 categorii + TypeScript types
+- [ ] 12-02-PLAN.md — Service CRUD + Admin Catalog UI + ProdusFormModal + integrare LazyComponents/AppRouter/menuConfig
+- [ ] 12-03-PLAN.md — Intrări Marfă (modal + tab + actualizare stoc)
+- [ ] 12-04-PLAN.md — Vânzări (VanzareModal + tab + Plata generată + SportivDashboard tab Echipamente)
+- [ ] 12-05-PLAN.md — Raport vânzări cu profit + export Excel/PDF
+
+**UI hint**: yes
+
 ### Phase 11: Prezenta Refactorizata
 
 **Goal**: Instructorul poate vedea toate grupele sale într-un singur calendar, poate marca prezența direct cu click pe zi, poate gestiona grupe cu același interval orar simultan, și poate accesa rapoarte de prezență (lunar, per grupă, per interval între examene)
@@ -72,10 +97,10 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 11-01-PLAN.md — useMultiCalendarView + CalendarActivitatiMultiGrupa (fundație calendar multi-grupă, dots colorate) — PRZ-01
-- [ ] 11-02-PLAN.md — Cablare navigare calendar-all + click-direct + grupe simultane (FormularPrezentaMultiGrupa) + shortcut Generator — PRZ-02, PRZ-03, PRZ-04
-- [ ] 11-03-PLAN.md — Rapoarte fără procente: raport lunar curățat + tab Per Grupă în RaportPrezenta — PRZ-05 (a, b)
-- [ ] 11-04-PLAN.md — RaportIntervalExamen nou (count per interval examen) + rută globală — PRZ-05 (c)
+- [x] 11-01-PLAN.md — useMultiCalendarView + CalendarActivitatiMultiGrupa (fundație calendar multi-grupă, dots colorate) — PRZ-01
+- [x] 11-02-PLAN.md — Cablare navigare calendar-all + click-direct + grupe simultane (FormularPrezentaMultiGrupa) + shortcut Generator — PRZ-02, PRZ-03, PRZ-04
+- [x] 11-03-PLAN.md — Rapoarte fără procente: raport lunar curățat + tab Per Grupă în RaportPrezenta — PRZ-05 (a, b)
+- [x] 11-04-PLAN.md — RaportIntervalExamen nou (count per interval examen) + rută globală — PRZ-05 (c)
 
 **UI hint**: yes
 
@@ -90,7 +115,8 @@ Phase 11 — Wave 1 (paralel): 11-01, 11-03, 11-04 (fără conflicte de fișier)
 |-------|----------------|--------|-----------|
 | 9. Raport Financiar | 1/1 | Complete   | 2026-06-16 |
 | 10. Raport Grade & Examene | 0/? | Not started | - |
-| 11. Prezenta Refactorizata | 0/4 | Not started | - |
+| 11. Prezenta Refactorizata | 4/4 | Complete | 2026-06-19 |
+| 12. Modul Produse/Echipamente | 1/5 | In Progress|  |
 
 ---
 

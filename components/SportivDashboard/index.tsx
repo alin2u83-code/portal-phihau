@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, Antrenament, Permissions, Rol, IstoricGrade } from '../../types';
+import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, Antrenament, Permissions, Rol, IstoricGrade, Produs, ProdusVanzare } from '../../types';
+import { fetchProduse, fetchVanzariSportiv } from '../../services/produseService';
 import { Card, Button, Skeleton, Modal } from '../ui';
 import { NotificationPermissionWidget } from '../NotificationPermissionWidget';
 import { useError } from '../ErrorProvider';
@@ -57,6 +58,12 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     const { isViewingOwnProfile } = useDashboardPermissions(currentUser, viewedUser, permissions);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
+    // Echipamente state
+    const [produseCatalog, setProduseCatalog] = useState<Produs[]>([]);
+    const [vanzariMele, setVanzariMele] = useState<ProdusVanzare[]>([]);
+    const [loadingProduse, setLoadingProduse] = useState(false);
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'echipamente'>('dashboard');
+
     // Fix: dacă grupe din context e gol (RLS sportiv), fetch direct grupa sportivului
     const [grupaName, setGrupaName] = useState<string>('');
     const [grupaLoading, setGrupaLoading] = useState(false);
@@ -78,6 +85,20 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
         };
         fetchGrupa();
     }, [viewedUser.grupa_id, grupe]);
+
+    // Fetch echipamente pentru tab Echipamente
+    useEffect(() => {
+        if (!viewedUser?.id) return;
+        setLoadingProduse(true);
+        Promise.all([
+            fetchProduse(),
+            fetchVanzariSportiv(viewedUser.id),
+        ]).then(([p, v]) => {
+            setProduseCatalog(p.filter(p2 => p2.activ));
+            setVanzariMele(v);
+            setLoadingProduse(false);
+        }).catch(() => setLoadingProduse(false));
+    }, [viewedUser.id]);
 
     const todayString = useMemo(() => {
         const d = new Date();
@@ -186,6 +207,106 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
 
     return (
         <div className="space-y-4 md:space-y-5 pb-28 md:pb-24">
+
+            {/* ── MINI TABS ───────────────────────────────────────────── */}
+            <div className="flex gap-1 bg-[var(--t-surface-2)] p-1 rounded-xl border border-[var(--t-border)]">
+                <button
+                    onClick={() => setActiveTab('dashboard')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                        activeTab === 'dashboard'
+                            ? 'bg-[var(--accent)] text-white shadow'
+                            : 'text-slate-400 hover:text-white hover:bg-slate-700/40'
+                    }`}
+                >
+                    Dashboard
+                </button>
+                <button
+                    onClick={() => setActiveTab('echipamente')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                        activeTab === 'echipamente'
+                            ? 'bg-[var(--accent)] text-white shadow'
+                            : 'text-slate-400 hover:text-white hover:bg-slate-700/40'
+                    }`}
+                >
+                    Echipamente
+                </button>
+            </div>
+
+            {/* ── TAB ECHIPAMENTE ─────────────────────────────────────── */}
+            {activeTab === 'echipamente' && (
+                <div className="space-y-6">
+                    {/* Istoricul achizițiilor */}
+                    <div>
+                        <h3 className="text-base font-bold text-white mb-3">Achizițiile mele</h3>
+                        {loadingProduse ? (
+                            <div className="text-slate-400 text-sm">Se încarcă...</div>
+                        ) : vanzariMele.length === 0 ? (
+                            <div className="text-slate-400 text-sm py-4 text-center">Nicio achiziție înregistrată</div>
+                        ) : (
+                            <div className="space-y-2">
+                                {vanzariMele.map(v => (
+                                    <div key={v.id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <div className="text-white font-medium text-sm">
+                                                    {v.detalii.map(d => d.denumire_snapshot).join(', ')}
+                                                </div>
+                                                <div className="text-slate-400 text-xs mt-1">
+                                                    {new Date(v.data_vanzare).toLocaleDateString('ro-RO')} · {v.detalii.length} produse
+                                                </div>
+                                            </div>
+                                            <span className="text-white font-bold text-sm shrink-0">{v.total_vanzare.toFixed(2)} RON</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Catalog produse disponibile */}
+                    <div>
+                        <h3 className="text-base font-bold text-white mb-3">Produse disponibile</h3>
+                        {loadingProduse ? (
+                            <div className="text-slate-400 text-sm">Se încarcă...</div>
+                        ) : produseCatalog.length === 0 ? (
+                            <div className="text-slate-400 text-sm py-4 text-center">Niciun produs în catalog</div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {produseCatalog.map(p => {
+                                    const varianteActive = p.variante.filter(v => v.activa);
+                                    const preturi = varianteActive.map(v => v.pret_vanzare);
+                                    const pretMin = preturi.length > 0 ? Math.min(...preturi) : 0;
+                                    const pretMax = preturi.length > 0 ? Math.max(...preturi) : 0;
+                                    return (
+                                        <div key={p.id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+                                            <div className="text-white font-medium text-sm">{p.denumire}</div>
+                                            <div className="text-slate-400 text-xs mt-1">{p.categorie?.denumire}</div>
+                                            <div className="text-slate-300 text-sm font-bold mt-2">
+                                                {varianteActive.length === 0 ? 'Indisponibil' :
+                                                    pretMin === pretMax ? `${pretMin.toFixed(2)} RON` :
+                                                    `${pretMin.toFixed(2)} – ${pretMax.toFixed(2)} RON`
+                                                }
+                                            </div>
+                                            {varianteActive.length > 0 && (
+                                                <div className="flex flex-wrap gap-1 mt-2">
+                                                    {varianteActive.map(v => (
+                                                        <span key={v.id} className="text-xs bg-slate-700 text-slate-300 rounded px-2 py-0.5">
+                                                            {[v.culoare, v.marime].filter(Boolean).join(' ') || 'Standard'}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* ── CONȚINUT DASHBOARD ──────────────────────────────────── */}
+            {activeTab === 'dashboard' && <>
 
             {/* ── HEADER CARD ─────────────────────────────────────────── */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/60 shadow-xl">
@@ -490,6 +611,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             )}
 
             <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} istoric={istoricPrezenta} />
+
+            </> /* end activeTab === 'dashboard' */}
         </div>
     );
 };

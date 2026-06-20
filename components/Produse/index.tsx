@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Button, Badge, Input, Select } from '../ui';
 import ProdusFormModal from './ProdusFormModal';
+import IntrareMarfaModal from './IntrareMarfaModal';
 import {
   fetchProduse,
   fetchCategorii,
+  fetchIntrari,
   deleteProdus,
 } from '../../services/produseService';
-import type { User, Permissions, Produs, ProdusCategorieDB } from '../../types';
+import type { User, Permissions, Produs, ProdusCategorieDB, ProdusIntrare } from '../../types';
 import { ArrowLeftIcon, PlusIcon } from '../icons';
 
 interface ProduseManagementProps {
@@ -57,10 +59,12 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
 }) => {
   const [produse, setProduse] = useState<Produs[]>([]);
   const [categorii, setCategorii] = useState<ProdusCategorieDB[]>([]);
+  const [intrari, setIntrari] = useState<ProdusIntrare[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('catalog');
   const [showForm, setShowForm] = useState(false);
+  const [showIntrareModal, setShowIntrareModal] = useState(false);
   const [editProdus, setEditProdus] = useState<Produs | null>(null);
   const [filterCategorie, setFilterCategorie] = useState('');
   const [filterText, setFilterText] = useState('');
@@ -77,11 +81,12 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    Promise.all([fetchCategorii(), fetchProduse()])
-      .then(([cats, prods]) => {
+    Promise.all([fetchCategorii(), fetchProduse(), fetchIntrari()])
+      .then(([cats, prods, intrariData]) => {
         if (!cancelled) {
           setCategorii(cats);
           setProduse(prods);
+          setIntrari(intrariData);
           setLoading(false);
         }
       })
@@ -186,15 +191,8 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
         ))}
       </div>
 
-      {/* Conținut tab */}
-      {activeTab !== 'catalog' ? (
-        <Card>
-          <div className="py-12 text-center text-slate-400">
-            Modul în curând disponibil
-          </div>
-        </Card>
-      ) : (
-        /* Tab Catalog */
+      {/* Conținut tab Catalog */}
+      {activeTab === 'catalog' && (
         <div>
           {loading ? (
             <Card>
@@ -371,7 +369,87 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
         </div>
       )}
 
-      {/* Modal */}
+      {/* Conținut tab Intrări Marfă */}
+      {activeTab === 'intrari' && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-bold text-white">Intrări Marfă</h2>
+            {canManage && (
+              <Button onClick={() => setShowIntrareModal(true)} leftIcon={<PlusIcon className="w-4 h-4" />}>
+                Intrare Nouă
+              </Button>
+            )}
+          </div>
+
+          {/* Tabel intrări desktop */}
+          <div className="hidden md:block bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl overflow-hidden">
+            <table className="w-full text-sm text-left">
+              <thead style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
+                <tr className="border-b border-[var(--t-border)]">
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Data</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Furnizor</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Nr. Factură</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Produse</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Total intrare</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--t-border)]">
+                {intrari.map(i => (
+                  <tr key={i.id} className="hover:bg-[var(--t-table-row-hover)]">
+                    <td className="px-4 py-3 text-slate-300">
+                      {new Date(i.data_factura).toLocaleDateString('ro-RO')}
+                    </td>
+                    <td className="px-4 py-3 text-white">{i.furnizor ?? '—'}</td>
+                    <td className="px-4 py-3 text-slate-300">{i.nr_factura ?? '—'}</td>
+                    <td className="px-4 py-3 text-right text-slate-300">{i.detalii.length} linii</td>
+                    <td className="px-4 py-3 text-right font-bold text-emerald-400">
+                      {i.detalii.reduce((s, d) => s + d.pret_intrare_snapshot * d.cantitate, 0).toFixed(2)} RON
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {intrari.length === 0 && (
+              <div className="py-12 text-center text-slate-400">Nicio intrare de marfă înregistrată</div>
+            )}
+          </div>
+
+          {/* Carduri mobile */}
+          <div className="md:hidden space-y-2">
+            {intrari.map(i => (
+              <div key={i.id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+                <div className="flex justify-between">
+                  <span className="text-white font-bold text-sm">{i.furnizor ?? 'Fără furnizor'}</span>
+                  <span className="text-emerald-400 font-bold text-sm">
+                    {i.detalii.reduce((s, d) => s + d.pret_intrare_snapshot * d.cantitate, 0).toFixed(2)} RON
+                  </span>
+                </div>
+                <div className="text-slate-400 text-xs mt-1">
+                  {new Date(i.data_factura).toLocaleDateString('ro-RO')}
+                  {' · '}
+                  {i.nr_factura ? `Nr. ${i.nr_factura}` : 'Fără nr. factură'}
+                  {' · '}
+                  {i.detalii.length} linii
+                </div>
+              </div>
+            ))}
+            {intrari.length === 0 && (
+              <div className="py-8 text-center text-slate-400">Nicio intrare de marfă</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Placeholder taburi viitoare */}
+      {(activeTab === 'vanzari' || activeTab === 'raport') && (
+        <Card>
+          <div className="py-12 text-center text-slate-400">
+            Modul în curând disponibil
+          </div>
+        </Card>
+      )}
+
+      {/* Modal produs */}
       {showForm && (
         <ProdusFormModal
           produs={editProdus}
@@ -379,6 +457,21 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
           clubId={clubId}
           onSave={handleSave}
           onClose={closeForm}
+        />
+      )}
+
+      {/* Modal intrare marfă */}
+      {showIntrareModal && (
+        <IntrareMarfaModal
+          produse={produse}
+          clubId={clubId}
+          onSave={async () => {
+            setShowIntrareModal(false);
+            const [updatedProduse, updatedIntrari] = await Promise.all([fetchProduse(), fetchIntrari()]);
+            setProduse(updatedProduse);
+            setIntrari(updatedIntrari);
+          }}
+          onClose={() => setShowIntrareModal(false)}
         />
       )}
     </div>

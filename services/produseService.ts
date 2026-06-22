@@ -35,7 +35,7 @@ export async function fetchProduse(): Promise<Produs[]> {
 }
 
 export async function createProdus(
-  input: Pick<ProdusDB, 'club_id' | 'categorie_id' | 'denumire' | 'descriere'>
+  input: Pick<ProdusDB, 'club_id' | 'categorie_id' | 'denumire' | 'descriere' | 'tip_produs'>
 ): Promise<ProdusDB> {
   const { data, error } = await supabase
     .from('produse')
@@ -48,7 +48,7 @@ export async function createProdus(
 
 export async function updateProdus(
   id: string,
-  input: Partial<Pick<ProdusDB, 'categorie_id' | 'denumire' | 'descriere' | 'activ'>>
+  input: Partial<Pick<ProdusDB, 'categorie_id' | 'denumire' | 'descriere' | 'activ' | 'tip_produs'>>
 ): Promise<ProdusDB> {
   const { data, error } = await supabase
     .from('produse')

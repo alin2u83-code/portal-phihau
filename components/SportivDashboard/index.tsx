@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, Antrenament, Permissions, Rol, IstoricGrade, Produs, ProdusVanzare } from '../../types';
+import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, Antrenament, Permissions, Rol, IstoricGrade, Produs, ProdusVanzare, ProdusVariantaDB, CerereProdusFull } from '../../types';
 import { fetchProduse, fetchVanzariSportiv } from '../../services/produseService';
-import { Card, Button, Skeleton, Modal } from '../ui';
+import { fetchCereriSportiv, createCerere, fetchAdminClubUserIds } from '../../services/comenziService';
+import { Card, Button, Skeleton, Modal, Select } from '../ui';
+import toast from 'react-hot-toast';
 import { NotificationPermissionWidget } from '../NotificationPermissionWidget';
 import { useError } from '../ErrorProvider';
 import { supabase } from '../../supabaseClient';
@@ -64,6 +66,14 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     const [loadingProduse, setLoadingProduse] = useState(false);
     const [activeTab, setActiveTab] = useState<'dashboard' | 'echipamente'>('dashboard');
 
+    // Comenzile mele state (CMD-02)
+    const [cereriMele, setCereriMele] = useState<CerereProdusFull[]>([]);
+    const [cerereModalOpen, setCerereModalOpen] = useState(false);
+    const [selectedProdusId, setSelectedProdusId] = useState<string>('');
+    const [selectedVariantaId, setSelectedVariantaId] = useState<string>('');
+    const [cantitate, setCantitate] = useState<string>('1');
+    const [submittingCerere, setSubmittingCerere] = useState(false);
+
     // Fix: dacă grupe din context e gol (RLS sportiv), fetch direct grupa sportivului
     const [grupaName, setGrupaName] = useState<string>('');
     const [grupaLoading, setGrupaLoading] = useState(false);
@@ -100,6 +110,17 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
         }).catch(() => setLoadingProduse(false));
     }, [viewedUser.id]);
 
+    // Fetch cereri proprii (CMD-02) — silent catch (tab secundar)
+    const fetchCereriMele = () => {
+        if (!viewedUser?.id) return;
+        fetchCereriSportiv(viewedUser.id).then(setCereriMele).catch(() => {});
+    };
+
+    useEffect(() => {
+        fetchCereriMele();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [viewedUser.id]);
+
     const todayString = useMemo(() => {
         const d = new Date();
         return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
@@ -114,6 +135,37 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             .sort((a, b) => a.ora_start.localeCompare(b.ora_start)),
         [antrenamente, todayString, currentUser]
     );
+
+    // Handler plasare cerere echipament (CMD-02)
+    // Guard: numai dacă e profilul propriu al sportivului
+    const handlePlasareCerere = async () => {
+        if (!isViewingOwnProfile || !viewedUser.id || !viewedUser.club_id) return;
+        if (!selectedVariantaId || parseInt(cantitate) < 1) {
+            toast.error('Selectați un produs, o variantă și o cantitate validă.');
+            return;
+        }
+        setSubmittingCerere(true);
+        try {
+            const adminIds = await fetchAdminClubUserIds(viewedUser.club_id);
+            await createCerere({
+                club_id: viewedUser.club_id,
+                sportiv_id: viewedUser.id,
+                varianta_id: selectedVariantaId,
+                cantitate: parseInt(cantitate) || 1,
+                adminClubUserIds: adminIds,
+            });
+            toast.success('Cererea a fost trimisă adminului clubului.');
+            setCerereModalOpen(false);
+            setSelectedProdusId('');
+            setSelectedVariantaId('');
+            setCantitate('1');
+            fetchCereriMele();
+        } catch (err: any) {
+            toast.error(err?.message ?? 'Eroare la trimiterea cererii.');
+        } finally {
+            setSubmittingCerere(false);
+        }
+    };
 
     const handleStatusChange = async (trainingId: string, status: AnuntStatus) => {
         if (!currentUser?.id || !currentUser.user_id || !currentUser.club_id) {
@@ -235,6 +287,131 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             {/* ── TAB ECHIPAMENTE ─────────────────────────────────────── */}
             {activeTab === 'echipamente' && (
                 <div className="space-y-6">
+
+                    {/* ── COMENZILE MELE (CMD-02) ─────────────────────── */}
+                    <div>
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-base font-bold text-white">Comenzile mele</h3>
+                            {isViewingOwnProfile && viewedUser.club_id && (
+                                <Button
+                                    variant="primary"
+                                    size="sm"
+                                    onClick={() => setCerereModalOpen(true)}
+                                >
+                                    Solicită produs
+                                </Button>
+                            )}
+                        </div>
+                        {cereriMele.length === 0 ? (
+                            <div className="text-slate-400 text-sm py-4 text-center bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl">
+                                Nicio cerere plasată
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                {cereriMele.map(c => (
+                                    <div key={c.id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+                                        <div className="flex justify-between items-start gap-2">
+                                            <div className="min-w-0">
+                                                <div className="text-white font-medium text-sm truncate">
+                                                    {c.varianta?.produs?.denumire ?? 'Produs necunoscut'}
+                                                </div>
+                                                <div className="text-slate-400 text-xs mt-0.5">
+                                                    {[c.varianta?.culoare, c.varianta?.marime].filter(Boolean).join(' · ') || 'Variantă standard'}
+                                                    {' · '}Cant. {c.cantitate}
+                                                </div>
+                                                <div className="text-slate-500 text-xs mt-0.5">
+                                                    {new Date(c.created_at).toLocaleDateString('ro-RO')}
+                                                </div>
+                                            </div>
+                                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                                                c.stare_cerere === 'SOLICITATA' ? 'bg-amber-500/15 text-amber-400' :
+                                                c.stare_cerere === 'CONFIRMATA' ? 'bg-sky-500/15 text-sky-400' :
+                                                c.stare_cerere === 'PLASATA' ? 'bg-indigo-500/15 text-indigo-400' :
+                                                c.stare_cerere === 'SOSITA' ? 'bg-emerald-500/15 text-emerald-400' :
+                                                c.stare_cerere === 'PREDATA' ? 'bg-green-500/15 text-green-400' :
+                                                c.stare_cerere === 'PLATITA' ? 'bg-green-600/15 text-green-300' :
+                                                'bg-rose-500/15 text-rose-400'
+                                            }`}>
+                                                {c.stare_cerere}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Modal plasare cerere */}
+                    <Modal
+                        isOpen={cerereModalOpen}
+                        onClose={() => {
+                            setCerereModalOpen(false);
+                            setSelectedProdusId('');
+                            setSelectedVariantaId('');
+                            setCantitate('1');
+                        }}
+                        title="Solicită produs"
+                    >
+                        <div className="space-y-4">
+                            <Select
+                                label="Produs"
+                                value={selectedProdusId}
+                                onChange={e => {
+                                    setSelectedProdusId(e.target.value);
+                                    setSelectedVariantaId('');
+                                }}
+                            >
+                                <option value="">— Selectați produsul —</option>
+                                {produseCatalog.filter(p => (p.tip_produs ?? 'per_sportiv') === 'per_sportiv').map(p => (
+                                    <option key={p.id} value={p.id}>{p.denumire}</option>
+                                ))}
+                            </Select>
+                            {selectedProdusId && (
+                                <Select
+                                    label="Variantă"
+                                    value={selectedVariantaId}
+                                    onChange={e => setSelectedVariantaId(e.target.value)}
+                                >
+                                    <option value="">— Selectați varianta —</option>
+                                    {(produseCatalog.find(p => p.id === selectedProdusId)?.variante ?? [])
+                                        .filter((v: ProdusVariantaDB) => v.activa)
+                                        .map((v: ProdusVariantaDB) => (
+                                            <option key={v.id} value={v.id}>
+                                                {[v.culoare, v.marime].filter(Boolean).join(' ') || 'Standard'} — {v.pret_vanzare.toFixed(2)} RON
+                                            </option>
+                                        ))}
+                                </Select>
+                            )}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">Cantitate</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value={cantitate}
+                                    onChange={e => setCantitate(e.target.value)}
+                                    className="w-full bg-[var(--t-input-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-sm text-[var(--t-text)] focus:outline-none focus:ring-2 transition-all"
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3 border-t border-[var(--t-border)] pt-4">
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setCerereModalOpen(false)}
+                                    disabled={submittingCerere}
+                                >
+                                    Anulează
+                                </Button>
+                                <Button
+                                    onClick={handlePlasareCerere}
+                                    isLoading={submittingCerere}
+                                    disabled={!selectedVariantaId || parseInt(cantitate) < 1}
+                                >
+                                    Trimite cerere
+                                </Button>
+                            </div>
+                        </div>
+                    </Modal>
+
                     {/* Istoricul achizițiilor */}
                     <div>
                         <h3 className="text-base font-bold text-white mb-3">Achizițiile mele</h3>

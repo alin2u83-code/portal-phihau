@@ -8,7 +8,7 @@ import {
   deleteVarianta,
   fetchProduse,
 } from '../../services/produseService';
-import type { Produs, ProdusCategorieDB, ProdusVariantaDB } from '../../types';
+import type { Produs, ProdusCategorieDB, ProdusDB, ProdusVariantaDB } from '../../types';
 import { PlusIcon, XIcon } from '../icons';
 
 interface VariantaForm {
@@ -64,6 +64,9 @@ const ProdusFormModal: React.FC<ProdusFormModalProps> = ({
   const [denumire, setDenumire] = useState(produs?.denumire ?? '');
   const [categorieId, setCategorieId] = useState(produs?.categorie_id ?? (categorii[0]?.id ?? ''));
   const [descriere, setDescriere] = useState(produs?.descriere ?? '');
+  const [tipProdus, setTipProdus] = useState<ProdusDB['tip_produs']>(
+    produs?.tip_produs ?? 'per_sportiv'
+  );
   const [variante, setVariante] = useState<VariantaForm[]>(
     produs?.variante?.filter(v => v.activa).map(variantaToForm) ?? []
   );
@@ -75,6 +78,7 @@ const ProdusFormModal: React.FC<ProdusFormModalProps> = ({
       setDenumire(produs.denumire);
       setCategorieId(produs.categorie_id);
       setDescriere(produs.descriere ?? '');
+      setTipProdus(produs.tip_produs ?? 'per_sportiv');
       setVariante(produs.variante?.filter(v => v.activa).map(variantaToForm) ?? []);
     }
   }, [produs]);
@@ -124,6 +128,7 @@ const ProdusFormModal: React.FC<ProdusFormModalProps> = ({
           denumire: denumire.trim(),
           categorie_id: categorieId,
           descriere: descriere.trim() || null,
+          tip_produs: tipProdus,
         });
         produsId = produs.id;
       } else {
@@ -132,6 +137,7 @@ const ProdusFormModal: React.FC<ProdusFormModalProps> = ({
           categorie_id: categorieId,
           denumire: denumire.trim(),
           descriere: descriere.trim() || null,
+          tip_produs: tipProdus,
         });
         produsId = nou.id;
       }
@@ -211,6 +217,14 @@ const ProdusFormModal: React.FC<ProdusFormModalProps> = ({
               {c.denumire}
             </option>
           ))}
+        </Select>
+        <Select
+          label="Tip distribuție produs"
+          value={tipProdus ?? 'per_sportiv'}
+          onChange={e => setTipProdus(e.target.value as ProdusDB['tip_produs'])}
+        >
+          <option value="per_sportiv">Per sportiv — se distribuie individual</option>
+          <option value="per_club">Per club — rămâne la club</option>
         </Select>
         <div>
           <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">

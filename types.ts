@@ -794,6 +794,7 @@ export interface ProdusDB {
   denumire: string;
   descriere: string | null;
   activ: boolean;
+  tip_produs?: 'per_sportiv' | 'per_club'; // CMD-09: per_sportiv (default) sau per_club
   created_at: string;
   updated_at: string;
 }
@@ -884,4 +885,99 @@ export interface ProdusIntrare extends ProdusIntrareDB {
 export interface ProdusVanzare extends ProdusVanzareDB {
   detalii: ProdusVanzareDetaliuDB[];
   sportiv_nume?: string;
+}
+
+// ===================================================
+// Tipuri Phase 13: Sistem Tracking Comenzi Produse
+// ===================================================
+
+// Union types — mașina de stări
+export type StareCerereProdusTip =
+  | 'SOLICITATA'
+  | 'CONFIRMATA'
+  | 'PLASATA'
+  | 'SOSITA'
+  | 'PREDATA'
+  | 'PLATITA'
+  | 'ANULATA';
+
+export type TipComandaProdusTip =
+  | 'club_furnizor'
+  | 'federatie_club'
+  | 'club_federatie';
+
+export type StareComandaProdusTip =
+  | 'DESCHISA'
+  | 'PLASATA'
+  | 'SOSITA'
+  | 'FINALIZATA'
+  | 'ANULATA';
+
+// Interfețe BD — oglindesc coloanele DB
+
+export interface CerereProdusBD {
+  id: string;
+  club_id: string;
+  sportiv_id: string | null;
+  comanda_id: string | null;
+  varianta_id: string;
+  cantitate: number;
+  stare_cerere: StareCerereProdusTip;
+  platit_dupa_predare: boolean;
+  plata_id: string | null;
+  batch_urmatoarea: boolean;
+  observatii: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComandaProduseBD {
+  id: string;
+  club_id: string | null; // NULLABLE — null pentru comenzi tip federatie_club
+  tip_comanda: TipComandaProdusTip;
+  stare: StareComandaProdusTip;
+  furnizor: string | null;
+  observatii: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComandaProduseItemBD {
+  id: string;
+  comanda_id: string;
+  varianta_id: string;
+  cantitate: number;
+  created_at: string;
+}
+
+export interface ComandaProduseClubBD {
+  id: string;
+  comanda_id: string;
+  club_id: string;
+  cantitate: number;
+  confirmat: boolean;
+  confirmat_at: string | null;
+  created_at: string;
+}
+
+// Interfețe Full (cu join-uri pentru UI)
+
+export interface CerereProdusFull extends CerereProdusBD {
+  varianta?: ProdusVariantaDB & {
+    produs?: Pick<ProdusDB, 'denumire' | 'tip_produs'>;
+  };
+  sportiv_nume?: string;
+  sportiv?: { user_id?: string | null };
+}
+
+export interface ComandaProduseiFull extends ComandaProduseBD {
+  cereri: CerereProdusFull[];
+  iteme: (ComandaProduseItemBD & {
+    varianta?: ProdusVariantaDB & {
+      produs?: Pick<ProdusDB, 'denumire'>;
+    };
+  })[];
+  cluburi?: ComandaProduseClubBD[];
 }

@@ -21,9 +21,9 @@ decisions:
   - "tip_produs adăugat ca câmp opțional pe ProdusDB (string | undefined) pentru compatibilitate retroactivă cu produse existente fără câmpul setat"
 metrics:
   completed_date: "2026-06-22"
-  tasks_completed: 2
+  tasks_completed: 3
   tasks_total: 3
-  duration_estimate: "~30 min"
+  duration_estimate: "~40 min"
 ---
 
 # Phase 13 Plan 01: Schema DB + Tipuri TypeScript Comenzi Produse Summary
@@ -66,7 +66,13 @@ Adăugat la finalul secțiunii Produse din `types.ts`:
 
 ### Task 3: supabase db push
 
-**CHECKPOINT** — Pas manual obligatoriu. Developerul trebuie să aplice migrația în Supabase.
+**COMPLETAT** — Migrația aplicată via Supabase MCP (`apply_migration` tool) de orchestrator.
+
+Confirmat de orchestrator:
+- Tabele create cu RLS activat: `comenzi_produse`, `cereri_produse`, `comenzi_produse_iteme`, `comenzi_produse_cluburi`
+- Coloana `tip_produs` adăugată la tabela `produse` (TEXT NOT NULL, default 'per_sportiv')
+- Toți indecșii creați
+- Toate politicile RLS create
 
 ## Deviations from Plan
 
@@ -93,8 +99,9 @@ Adăugat la finalul secțiunii Produse din `types.ts`:
 | Hash | Task | Description |
 |------|------|-------------|
 | cff6487 | Task 1 + Task 2 | feat(13-01): schema DB + tipuri TypeScript sistem comenzi produse |
+| 434c128 | docs | docs(13-01): SUMMARY plan 01 — schema DB + tipuri TypeScript comenzi produse |
 
-Notă: Task 1 (SQL) și Task 2 (types.ts) au fost grupate în același commit deoarece fișierul SQL nu poate fi comis (exclud .gitignore).
+Notă: Task 1 (SQL) și Task 2 (types.ts) au fost grupate în același commit deoarece fișierul SQL nu poate fi comis (exclud .gitignore). Task 3 (migrație DB) aplicat via Supabase MCP de orchestrator — nu necesită commit suplimentar în repo.
 
 ## Verification
 
@@ -108,7 +115,7 @@ Notă: Task 1 (SQL) și Task 2 (types.ts) au fost grupate în același commit de
 
 ## Known Stubs
 
-Niciun stub UI în acest plan — plan pur DB + tipuri. Task 3 (checkpoint) necesită aplicarea manuală a migrației.
+Niciun stub UI în acest plan — plan pur DB + tipuri. Toate cele 3 task-uri sunt complete.
 
 ## Threat Flags
 
@@ -125,3 +132,11 @@ Plan implementează explicit toate mitigările din threat model:
 - types.ts modificat: FOUND
 - Commit cff6487: FOUND
 - tsc --noEmit: PASSED (0 erori)
+- Task 3 — migrație DB aplicată: CONFIRMED via Supabase MCP (orchestrator verification)
+  - comenzi_produse: CREATED cu RLS
+  - cereri_produse: CREATED cu RLS
+  - comenzi_produse_iteme: CREATED cu RLS
+  - comenzi_produse_cluburi: CREATED cu RLS
+  - produse.tip_produs: COLUMN ADDED
+  - Toți indecșii: CREATED
+  - Toate politicile RLS: CREATED

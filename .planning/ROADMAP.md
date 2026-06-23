@@ -126,7 +126,7 @@ Plans:
 
 - [x] 13-01-PLAN.md — DB Schema (4 tabele noi + ALTER produse tip_produs + RLS + TypeScript types) — CMD-01, CMD-09
 - [x] 13-02-PLAN.md — Service comenzi + cerere sportiv din dashboard + notificare admin + selector tip_produs — CMD-02, CMD-09
-- [ ] 13-03-PLAN.md — Tab Comenzi admin: agregare, mașină de stări, predare + factură automată + notificări — CMD-01, CMD-03, CMD-06
+- [x] 13-03-PLAN.md — Tab Comenzi admin: agregare, mașină de stări, predare + factură automată + notificări — CMD-01, CMD-03, CMD-06
 - [ ] 13-04-PLAN.md — Fluxuri federație (B top-down + C bottom-up) + confirmare recepție + cele 4 notificări — CMD-04, CMD-05
 - [ ] 13-05-PLAN.md — Export PDF bon predare + Excel furnizor + RaportProduse extins cu date comenzi — CMD-07, CMD-08
 
@@ -145,7 +145,7 @@ Phase 11 — Wave 1 (paralel): 11-01, 11-03, 11-04 (fără conflicte de fișier)
 | 10. Raport Grade & Examene | 0/? | Not started | - |
 | 11. Prezenta Refactorizata | 4/4 | Complete | 2026-06-19 |
 | 12. Modul Produse/Echipamente | 5/5 | Complete   | 2026-06-20 |
-| 13. Tracking Comenzi Produse | 2/5 | In Progress|  |
+| 13. Tracking Comenzi Produse | 3/5 | In Progress|  |
 
 ---
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Phase 10 context gathered
-last_updated: "2026-06-22T19:22:03.395Z"
-last_activity: 2026-06-22 -- Phase 13 execution started
+stopped_at: context exhaustion at 78% (2026-06-23)
+last_updated: "2026-06-23T08:30:49.315Z"
+last_activity: 2026-06-23 -- Phase 13 execution started
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 15
-  completed_plans: 9
+  completed_plans: 11
   percent: 40
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 13 (tracking-comenzi-produse) — EXECUTING
-Plan: 1 of 5
+Plan: 4 of 5 (13-03 complete — next: 13-04)
 Status: Executing Phase 13
-Last activity: 2026-06-22 -- Phase 13 execution started
+Last activity: 2026-06-23 -- Plan 13-03 complete (Tab Comenzi admin + Flux A verificat)
 
 ```
 Progress: [░░░░░░░░░░] 0% (0/2 phases)
@@ -68,6 +68,9 @@ Recent decisions affecting current work:
 - jsPDF + jspdf-autotable pentru PDF export — deja instalat
 - PapaParse pentru CSV export — deja instalat
 - Filtrare client-side pe date deja cached în React Query — fără query-uri noi Supabase
+- guard comandă duplicată: gasesteSauCreeazaComandaActiva() — refolosire comandă activă, nu creare a doua per tip+club
+- scădere stoc NUMAI per_sportiv la predare — per_club gestionat separat prin IntrareMarfaModal (13-03)
+- sportivi.nume + prenume în locul nome_complet — coloana nome_complet nu există în DB (fix 13-03)
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-06-19T19:12:29.308Z
-Stopped at: Phase 10 context gathered
-Resume file: .planning/phases/10-raport-grade-examene/10-CONTEXT.md
+Last session: 2026-06-23
+Stopped at: Plan 13-03 complete — checkpoint human-verify PASSED, continuat cu SUMMARY + state updates
+Resume file: .planning/phases/13-tracking-comenzi-produse/13-04-PLAN.md

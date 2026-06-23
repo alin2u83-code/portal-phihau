@@ -35,10 +35,10 @@ decisions:
   - usePrezenteLuna folosește vedere_prezenta_sportiv direct (status string confirmat din IstoricPrezentaGlobal.tsx)
   - genereazaFacturaAbonament nu recalculează soldul (anti-pattern interzis din RESEARCH.md)
 metrics:
-  duration: ~35min
+  duration: ~40min
   completed_date: "2026-06-23"
-  tasks_completed: 3
-  tasks_pending: 1
+  tasks_completed: 4
+  tasks_pending: 0
   files_created: 6
   files_modified: 0
 ---
@@ -56,11 +56,11 @@ metrics:
 | 2 (GREEN) | usePrezenteLuna + util calcul luni lipsă | ea05d9e | utils/luniLipsa.ts, hooks/usePrezenteLuna.ts |
 | 3 | Serviciu generare factură Abonament reutilizabil | 9de76ff | services/facturaService.ts |
 
-## Tasks Pending
+## Tasks Completed (continuare)
 
-| Task | Name | Status | Blocker |
-|------|------|--------|---------|
-| 4 | Checkpoint: aplicare migrație SQL în Supabase | PENDING — awaiting human action | User trebuie să ruleze add_data_start_facturare.sql în Supabase Dashboard |
+| Task | Name | Status | Confirmare |
+|------|------|--------|------------|
+| 4 | Checkpoint: aplicare migrație SQL în Supabase | COMPLETE | Migrație aplicată via MCP Supabase. Coloana data_start_facturare (DATE, nullable) există. Index parțial creat. RLS UPDATE verificat — Assumption A3 confirmată (politicile existente acoperă câmpul nou, nicio politică suplimentară necesară). |
 
 ## Artifacts Produced
 
@@ -142,7 +142,7 @@ Nicio suprafață nouă de securitate introdusă față de `<threat_model>` din 
 
 - T-14-01: validare luna/an/suma în `genereazaFacturaAbonament` ✓
 - T-14-02: RLS pe vedere_prezenta_sportiv acoperit de politicile existente ✓
-- T-14-03: verificat prin checkpoint (Task 4) ✓
+- T-14-03: CONFIRMAT în checkpoint Task 4 — RLS UPDATE reușește pentru ADMIN_CLUB, Assumption A3 validată ✓
 - T-14-SC: zero pachete noi instalate ✓
 
 ## Self-Check: PASSED

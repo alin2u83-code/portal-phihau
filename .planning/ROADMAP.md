@@ -53,7 +53,13 @@ Plans:
   3. Tab sau secțiune "Eligibili Next Grad" afișează lista sportivilor care îndeplinesc condiția de timp minim la gradul curent — cu afișarea numelui, gradului curent și timpului petrecut la grad
   4. Selectând un sportiv din dropdown sau din lista de sportivi, adminul vede timeline-ul examenelor acelui sportiv: data, sesiunea, gradul obținut, rezultat Promovat/Respins
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+
+- [ ] 14-01-PLAN.md — Fundație: migrație data_start_facturare + usePrezenteLuna + useDataStartFacturare + utils luniLipsa + facturaService — PLF-01, PLF-02, PLF-03, PLF-05
+- [ ] 14-02-PLAN.md — Prezențe în factură (PlatiScadente inline + modal FinanciarTab) + restricție ștergere — PLF-01, PLF-04
+- [ ] 14-03-PLAN.md — Generare factură manual (calendar picker, fără duplicate) + restricție ștergere — PLF-02, PLF-04
+- [ ] 14-04-PLAN.md — Wizard luni lipsă bulk + tab Luni Lipsă în RaportFinanciar + badge profil — PLF-03, PLF-05
 **UI hint**: yes
 
 ### Phase 12: Modul Produse/Echipamente

@@ -573,22 +573,16 @@ CREATE INDEX IF NOT EXISTS idx_sportivi_data_start_facturare
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`data_start_facturare` pe sportivi vs. pe un tabel separat de configurare per club**
-   - Ce știm: câmpul trebuie să fie per sportiv (decizie LOCKED: calcul față de o dată de start configurabilă de admin per sportiv)
-   - Ce e neclar: dacă AR trebui să existe și o dată de start default per club (pentru completare rapidă la editare sportiv)
-   - Recomandare (Claude's Discretion): câmpul pe tabelul `sportivi` (NULL-able) este suficient pentru MVP. Valoarea default per club poate fi adăugată ca `deferred idea` în v2. NU necesită tabel separat.
+   - RESOLVED: câmpul merge pe tabelul `sportivi` (NULL-able DATE). Valoarea default per club = deferred v2. NU necesită tabel separat pentru MVP.
 
 2. **PLF-01 în PlatiScadente: expandare inline sau modal?**
-   - Ce știm: PlatiScadente nu are modal de detalii — lista de facturi este tabel/carduri
-   - Ce e neclar: UX preferabil — expandare rând in-place (accordion) sau buton "Detalii" care deschide modal
-   - Recomandare (Claude's Discretion): expandare inline per rând în table desktop (un `<tr>` aditional colapsabil) și accordion în mobile cards. Evită modal suplimentar care ar complica state management.
+   - RESOLVED: expandare inline accordion per rând (un `<tr>` aditional colapsabil desktop, accordion card mobile). Evită modal suplimentar și state management suplimentar.
 
 3. **Facturile de familie (familie_id non-null) — prezențe agregate sau omise?**
-   - Ce știm: `plata.sportiv_id = null` pentru facturi de familie
-   - Ce e neclar: CONTEXT.md nu specifică dacă PLF-01 se aplică și pentru facturi de familie
-   - Recomandare (Claude's Discretion): omitere pentru MVP. Câmpul "Prezențe" nu apare pentru facturi cu `familie_id`. Se poate extinde în v2.
+   - RESOLVED: omise pentru MVP. Câmpul "Prezențe" nu apare pentru facturi cu `familie_id != null` (`sportiv_id = null`). Extensibil în v2.
 
 ---
 

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Button } from '../ui';
-import type { ProdusVanzare } from '../../types';
+import type { ProdusVanzare, CerereProdusFull } from '../../types';
 
 // ─── Tipuri locale ────────────────────────────────────────────────────────────
 
@@ -18,6 +18,7 @@ type RandRaport = {
 
 interface RaportProduseProps {
   vanzari: ProdusVanzare[];
+  cereri?: CerereProdusFull[];
   clubNume?: string;
 }
 
@@ -44,6 +45,7 @@ function StatItem({
 
 const RaportProduse: React.FC<RaportProduseProps> = ({
   vanzari,
+  cereri = [],
   clubNume = 'Club QwanKiDo',
 }) => {
   const [startDate, setStartDate] = useState('');
@@ -93,6 +95,29 @@ const RaportProduse: React.FC<RaportProduseProps> = ({
   const totalProfit = totalVenit - totalCost;
   const totalMargin = totalVenit > 0 ? (totalProfit / totalVenit) * 100 : 0;
 
+  // ── Filtrare cereri pe perioadă ────────────────────────────────────────────
+  const cereriFiltrate = useMemo(() => {
+    return cereri.filter(c => {
+      const d = new Date(c.created_at);
+      const afterStart = !startDate || d >= new Date(startDate);
+      const beforeEnd = !endDate || d <= new Date(endDate);
+      return afterStart && beforeEnd;
+    });
+  }, [cereri, startDate, endDate]);
+
+  // ── Metrici comenzi ────────────────────────────────────────────────────────
+  const totalCereri = cereriFiltrate.length;
+  const totalPredate = cereriFiltrate.filter(c =>
+    ['PREDATA', 'PLATITA'].includes(c.stare_cerere)
+  ).length;
+  const totalPlatite = cereriFiltrate.filter(c => c.stare_cerere === 'PLATITA').length;
+  const valoareRestanta = cereriFiltrate
+    .filter(c => c.stare_cerere === 'PREDATA' && !c.platit_dupa_predare)
+    .reduce((sum, c) => {
+      const pret = c.varianta?.pret_vanzare ?? 0;
+      return sum + pret * (c.cantitate ?? 1);
+    }, 0);
+
   // ── Export Excel ──────────────────────────────────────────────────────────
   const handleExportExcel = async () => {
     const { utils, writeFile } = await import('xlsx');
@@ -117,6 +142,29 @@ const RaportProduse: React.FC<RaportProduseProps> = ({
     ]);
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, 'Raport Produse');
+
+    // Sheet Comenzi
+    const wsComenzi = utils.aoa_to_sheet([
+      ['Produs', 'Variantă', 'Sportiv', 'Cantitate', 'Stare', 'Dată'],
+      ...cereriFiltrate.map(c => {
+        const produs = c.varianta?.produs?.denumire ?? '—';
+        const variantaParts = [
+          c.varianta?.culoare ?? '',
+          c.varianta?.marime ?? '',
+        ].filter(Boolean);
+        const varianta = variantaParts.length > 0 ? variantaParts.join(' ') : '—';
+        return [
+          produs,
+          varianta,
+          c.sportiv_nume ?? '—',
+          c.cantitate ?? 1,
+          c.stare_cerere,
+          new Date(c.created_at).toLocaleDateString('ro-RO'),
+        ];
+      }),
+    ]);
+    utils.book_append_sheet(wb, wsComenzi, 'Comenzi');
+
     const suffix = startDate || endDate ? `${startDate || 'inceput'}-${endDate || 'azi'}` : 'total';
     writeFile(wb, `raport-produse-${suffix}.xlsx`);
   };
@@ -258,7 +306,7 @@ const RaportProduse: React.FC<RaportProduseProps> = ({
         </div>
       </div>
 
-      {/* Bara sumar */}
+      {/* Bara sumar vânzări */}
       <div className="flex flex-wrap gap-4 bg-[var(--t-surface-2)] border border-[var(--t-border)] rounded-xl px-4 py-3">
         <StatItem label="Vânzări" value={vanzariFiltrate.length.toString()} />
         <StatItem
@@ -282,6 +330,31 @@ const RaportProduse: React.FC<RaportProduseProps> = ({
           className={totalMargin >= 0 ? 'text-emerald-400' : 'text-red-400'}
         />
       </div>
+
+      {/* Secțiune metrici comenzi (CMD-08) */}
+      {cereri.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Comenzi Echipamente</h3>
+          <div className="flex flex-wrap gap-4 bg-[var(--t-surface-2)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+            <StatItem label="Total cereri" value={totalCereri.toString()} />
+            <StatItem
+              label="Predate"
+              value={totalPredate.toString()}
+              className="text-emerald-400"
+            />
+            <StatItem
+              label="Plătite"
+              value={totalPlatite.toString()}
+              className="text-emerald-400"
+            />
+            <StatItem
+              label="Valoare restantă"
+              value={`${valoareRestanta.toFixed(2)} RON`}
+              className={valoareRestanta > 0 ? 'text-amber-400' : 'text-slate-300'}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Empty state */}
       {randuri.length === 0 ? (

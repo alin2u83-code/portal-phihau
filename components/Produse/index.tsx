@@ -589,7 +589,7 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
 
       {/* Tab Raport Vânzări */}
       {activeTab === 'raport' && (
-        <RaportProduse vanzari={vanzari} clubNume={clubNume} />
+        <RaportProduse vanzari={vanzari} cereri={cereri} clubNume={clubNume} />
       )}
 
       {/* Modal produs */}

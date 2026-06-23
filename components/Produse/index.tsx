@@ -4,6 +4,7 @@ import ProdusFormModal from './ProdusFormModal';
 import IntrareMarfaModal from './IntrareMarfaModal';
 import VanzareModal from './VanzareModal';
 import RaportProduse from './RaportProduse';
+import ComenziProduse from './ComenziProduse';
 import {
   fetchProduse,
   fetchCategorii,
@@ -11,8 +12,9 @@ import {
   fetchVanzari,
   deleteProdus,
 } from '../../services/produseService';
+import { fetchCereriClub, fetchComenziClub } from '../../services/comenziService';
 import { useData } from '../../contexts/DataContext';
-import type { User, Permissions, Produs, ProdusCategorieDB, ProdusIntrare, ProdusVanzare } from '../../types';
+import type { User, Permissions, Produs, ProdusCategorieDB, ProdusIntrare, ProdusVanzare, CerereProdusFull, ComandaProduseiFull } from '../../types';
 import { ArrowLeftIcon, PlusIcon } from '../icons';
 
 interface ProduseManagementProps {
@@ -21,7 +23,7 @@ interface ProduseManagementProps {
   onBack: () => void;
 }
 
-type ActiveTab = 'catalog' | 'intrari' | 'vanzari' | 'raport';
+type ActiveTab = 'catalog' | 'intrari' | 'vanzari' | 'comenzi' | 'raport';
 
 function hasStocRedus(produs: Produs): boolean {
   return produs.variante.some(
@@ -53,6 +55,7 @@ const TAB_LABELS: { id: ActiveTab; label: string }[] = [
   { id: 'catalog', label: 'Catalog' },
   { id: 'intrari', label: 'Intrări Marfă' },
   { id: 'vanzari', label: 'Vânzări' },
+  { id: 'comenzi', label: 'Comenzi' },
   { id: 'raport', label: 'Raport' },
 ];
 
@@ -78,6 +81,11 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
   const [filterCategorie, setFilterCategorie] = useState('');
   const [filterText, setFilterText] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // State comenzi — lazy fetch doar când tab-ul comenzi e activ (Pitfall 5)
+  const [cereri, setCereri] = useState<CerereProdusFull[]>([]);
+  const [comenzi, setComenzi] = useState<ComandaProduseiFull[]>([]);
+  const [loadingComenzi, setLoadingComenzi] = useState(false);
 
   const canManage = permissions.isAdminClub || permissions.isFederationAdmin;
 
@@ -112,6 +120,43 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
       });
     return () => { cancelled = true; };
   }, []);
+
+  // Lazy fetch comenzi — doar când tab-ul comenzi devine activ (Pitfall 5)
+  const refetchComenzi = () => {
+    if (!clubId) return;
+    setLoadingComenzi(true);
+    Promise.all([fetchCereriClub(clubId), fetchComenziClub(clubId)])
+      .then(([cereriData, comenziData]) => {
+        setCereri(cereriData);
+        setComenzi(comenziData);
+        setLoadingComenzi(false);
+      })
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : 'Eroare la încărcare comenzi.');
+        setLoadingComenzi(false);
+      });
+  };
+
+  useEffect(() => {
+    if (activeTab !== 'comenzi') return;
+    let cancelled = false;
+    setLoadingComenzi(true);
+    Promise.all([fetchCereriClub(clubId), fetchComenziClub(clubId)])
+      .then(([cereriData, comenziData]) => {
+        if (!cancelled) {
+          setCereri(cereriData);
+          setComenzi(comenziData);
+          setLoadingComenzi(false);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Eroare la încărcare comenzi.');
+          setLoadingComenzi(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [activeTab, clubId]);
 
   const produseFiltrate = useMemo(() => {
     return produse.filter(p => {
@@ -524,6 +569,20 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
             />
           )}
         </div>
+      )}
+
+      {/* Tab Comenzi */}
+      {activeTab === 'comenzi' && (
+        <ComenziProduse
+          cereri={cereri}
+          comenzi={comenzi}
+          loading={loadingComenzi}
+          clubId={clubId}
+          permissions={permissions}
+          tipPlataEchipamenteId={tipPlataEchipamente}
+          onRefetch={refetchComenzi}
+          clubNume={clubNume}
+        />
       )}
 
       {/* Tab Raport Vânzări */}

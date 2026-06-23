@@ -457,6 +457,34 @@ export const Sportivi: React.FC<{
             showSuccess("Succes", "Sportivul a fost marcat ca inactiv.");
         }
     };
+
+    const handleToggleStatus = async (sportiv: Sportiv) => {
+        const newStatus = sportiv.status === 'Activ' ? 'Inactiv' : 'Activ';
+        const { error } = await supabase.from('sportivi').update({ status: newStatus }).eq('id', sportiv.id);
+        if (error) {
+            showError("Eroare", error.message);
+        } else {
+            setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, status: newStatus } : s));
+            queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+            showSuccess("Succes", `${sportiv.nume} ${sportiv.prenume} → ${newStatus}`);
+        }
+    };
+
+    const handleBulkStatusUpdate = async (newStatus: 'Activ' | 'Inactiv') => {
+        if (selectedSportivIds.size === 0) return;
+        setBulkLoading(true);
+        const ids = [...selectedSportivIds];
+        const { error } = await supabase.from('sportivi').update({ status: newStatus }).in('id', ids);
+        if (error) {
+            showError("Eroare bulk status", error.message);
+        } else {
+            setSportivi(prev => prev.map(s => ids.includes(s.id) ? { ...s, status: newStatus } : s));
+            queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+            showSuccess("Succes", `${ids.length} sportivi marcați ca ${newStatus}.`);
+            setSelectedSportivIds(new Set());
+        }
+        setBulkLoading(false);
+    };
     
     const handleDelete = async (sportivToDelete: Sportiv) => {
         if (!sportivToDelete) return;
@@ -748,11 +776,17 @@ export const Sportivi: React.FC<{
                     <span className="text-sm font-semibold text-brand-primary shrink-0">
                         {selectedSportivIds.size} {selectedSportivIds.size === 1 ? 'sportiv selectat' : 'sportivi selectați'}
                     </span>
-                    <div className="flex gap-2 ml-auto">
-                        <Button variant="primary" size="sm" onClick={() => setShowMutaGrupaModal(true)}>
+                    <div className="flex flex-wrap gap-2 ml-auto">
+                        <Button variant="primary" size="sm" onClick={() => setShowMutaGrupaModal(true)} disabled={bulkLoading}>
                             Mută în grupă
                         </Button>
-                        <Button variant="secondary" size="sm" onClick={() => setSelectedSportivIds(new Set())}>
+                        <Button variant="secondary" size="sm" onClick={() => handleBulkStatusUpdate('Activ')} disabled={bulkLoading} className="!bg-green-700 hover:!bg-green-600 !border-green-600 !text-white">
+                            ✓ Marchează Activ
+                        </Button>
+                        <Button variant="secondary" size="sm" onClick={() => handleBulkStatusUpdate('Inactiv')} disabled={bulkLoading} className="!bg-red-900/60 hover:!bg-red-800/60 !border-red-700 !text-red-300">
+                            ✗ Marchează Inactiv
+                        </Button>
+                        <Button variant="secondary" size="sm" onClick={() => setSelectedSportivIds(new Set())} disabled={bulkLoading}>
                             Anulează selecția
                         </Button>
                     </div>
@@ -792,6 +826,7 @@ export const Sportivi: React.FC<{
                     onOpenAccountSettings={setAccountSettingsSportiv}
                     onDelete={setSportivToDelete}
                     onResetParola={setSportivForResetParola}
+                    onToggleStatus={handleToggleStatus}
                     requestSort={requestSort}
                     sortConfig={sortConfig}
                     selectedIds={selectedSportivIds}

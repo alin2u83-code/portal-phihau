@@ -259,6 +259,7 @@ export const IstoricPrezentaGlobal: React.FC<{ onBack: () => void, onViewSportiv
                         onSort={handleSort}
                         sortConfig={{ key: sortField, direction: sortDirection }}
                         renderMobileItem={renderMobileItem}
+                        idKey="prezenta_id"
                     />
                 </div>
             </Card>

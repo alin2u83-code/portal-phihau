@@ -11,8 +11,9 @@ import { ResponsiveTable, Column } from './ResponsiveTable';
 type SortKey = keyof RaportActivitateRecord;
 
 export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-    const { currentUser, grade } = useData();
-    const [data, setData] = useState<RaportActivitateRecord[]>([]);
+    const { currentUser, grade, sportivi: sportiviCache, activeRoleContext } = useData();
+    type RawData = { antrenamente: {id: string; data: string}[]; prezente: {sportiv_id: string; antrenament_id: string}[]; activeClubId: string };
+    const [rawData, setRawData] = useState<RawData | null>(null);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'asc' | 'desc' }>({ key: 'nume_complet', direction: 'asc' });
     const [showAtRiskOnly, setShowAtRiskOnly] = useState(false);
@@ -21,22 +22,81 @@ export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) =
     useEffect(() => {
         const fetchData = async () => {
             if (!supabase) {
-                 showError("Eroare", "Client Supabase neconfigurat.");
-                 setLoading(false);
-                 return;
+                showError("Eroare", "Client Supabase neconfigurat.");
+                setLoading(false);
+                return;
             }
             setLoading(true);
-            const { data: rpcData, error } = await supabase.rpc('get_raport_prezenta_detaliat');
-            
-            if (error) {
-                showError("Eroare la încărcare raport", `Asigurați-vă că funcția RPC 'get_raport_prezenta_detaliat' există în baza de date și nu necesită parametri. Detalii: ${error.message}`);
-            } else {
-                setData(rpcData as RaportActivitateRecord[]);
+
+            const today = new Date().toISOString().split('T')[0];
+            const activeClubId = activeRoleContext?.club_id;
+
+            if (!activeClubId) {
+                showError("Eroare", "Niciun club activ selectat.");
+                setLoading(false);
+                return;
             }
+
+            const [antrenamenteRes, prezenteRes] = await Promise.all([
+                supabase
+                    .from('program_antrenamente')
+                    .select('id, data')
+                    .lte('data', today)
+                    .eq('club_id', activeClubId),
+                supabase
+                    .from('prezenta_antrenament')
+                    .select('sportiv_id, antrenament_id')
+                    .eq('club_id', activeClubId)
+                    .eq('status_id', 'bbb719f2-808d-451b-9ab2-977272104074')
+                    .limit(10000),
+            ]);
+
+            if (antrenamenteRes.error || prezenteRes.error) {
+                const err = antrenamenteRes.error || prezenteRes.error;
+                showError("Eroare la încărcare raport", err?.message || 'Eroare necunoscută');
+                setLoading(false);
+                return;
+            }
+
+            setRawData({ antrenamente: antrenamenteRes.data || [], prezente: prezenteRes.data || [], activeClubId });
             setLoading(false);
         };
         fetchData();
     }, [currentUser.id, showError]);
+
+    const data = useMemo<RaportActivitateRecord[]>(() => {
+        if (!rawData || sportiviCache.length === 0) return [];
+        const { antrenamente, prezente, activeClubId } = rawData;
+        const antrenamenteDateMap: Record<string, string> = {};
+        for (const a of antrenamente) antrenamenteDateMap[a.id] = a.data;
+
+        const prezenteMap: Record<string, { set: Set<string>; lastDate: string }> = {};
+        for (const p of prezente) {
+            if (!prezenteMap[p.sportiv_id]) prezenteMap[p.sportiv_id] = { set: new Set(), lastDate: '' };
+            prezenteMap[p.sportiv_id].set.add(p.antrenament_id);
+            const d = antrenamenteDateMap[p.antrenament_id] || '';
+            if (d > prezenteMap[p.sportiv_id].lastDate) prezenteMap[p.sportiv_id].lastDate = d;
+        }
+
+        const totalAntrenamente = antrenamente.length;
+        const sportiviActivi = sportiviCache.filter(s =>
+            s.club_id === activeClubId && s.status === 'Activ'
+        );
+
+        return sportiviActivi.map(s => {
+            const pInfo = prezenteMap[s.id];
+            const prezente_efective = pInfo?.set.size || 0;
+            return {
+                sportiv_id: s.id,
+                nume_complet: `${s.nume} ${s.prenume}`.trim(),
+                grad_actual_id: s.grad_actual_id,
+                antrenamente_tinute: totalAntrenamente,
+                prezente_efective,
+                procentaj_prezenta: totalAntrenamente > 0 ? Math.round(prezente_efective / totalAntrenamente * 1000) / 10 : 0,
+                ultima_prezenta: pInfo?.lastDate || null,
+            };
+        }).sort((a, b) => a.nume_complet.localeCompare(b.nume_complet, 'ro'));
+    }, [rawData, sportiviCache]);
 
     const getGradName = (gradId: string | null) => {
         if (!gradId) return 'Începător';

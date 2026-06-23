@@ -18,6 +18,7 @@ interface SportiviTableProps {
   onOpenAccountSettings: (sportiv: Sportiv) => void;
   onDelete: (sportiv: Sportiv) => void;
   onResetParola?: (sportiv: Sportiv) => void;
+  onToggleStatus?: (sportiv: Sportiv) => void;
   requestSort: (key: string) => void;
   sortConfig: SortConfigEntry[];
   searchTerm?: string;
@@ -27,7 +28,7 @@ interface SportiviTableProps {
 }
 
 export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
-  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, onResetParola, requestSort, sortConfig, searchTerm, onSearchChange, selectedIds, onSelectionChange } = props;
+  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, onResetParola, onToggleStatus, requestSort, sortConfig, searchTerm, onSearchChange, selectedIds, onSelectionChange } = props;
 
   const allSelected = sportivi.length > 0 && sportivi.every(s => selectedIds?.has(s.id));
 
@@ -101,12 +102,20 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
             </div>
         )
     },
-    { 
-        key: 'status', 
+    {
+        key: 'status',
         label: 'Status',
-        tooltip: "Indică dacă sportivul este activ sau inactiv.",
+        tooltip: "Indică dacă sportivul este activ sau inactiv. Click pentru toggle rapid.",
         className: 'hidden md:table-cell',
-        render: (s) => (
+        render: (s) => onToggleStatus ? (
+            <button
+                onClick={(e) => { e.stopPropagation(); onToggleStatus(s); }}
+                title={s.status === 'Activ' ? 'Click pentru a marca Inactiv' : 'Click pentru a marca Activ'}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer hover:opacity-75 transition-opacity ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+            >
+                {s.status}
+            </button>
+        ) : (
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                 {s.status}
             </span>

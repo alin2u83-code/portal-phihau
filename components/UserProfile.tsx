@@ -98,10 +98,25 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         obiective: sportiv.obiective || '',
     });
     const [isSavingFeedback, setIsSavingFeedback] = useState(false);
-    
+
+    const handleToggleStatus = async () => {
+        if (!isAdminOrAbove) return;
+        const newStatus = sportiv.status === 'Activ' ? 'Inactiv' : 'Activ';
+        setIsTogglingStatus(true);
+        const { error } = await supabase.from('sportivi').update({ status: newStatus }).eq('id', sportiv.id);
+        if (error) {
+            showError("Eroare", error.message);
+        } else {
+            setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, status: newStatus } : s));
+            showSuccess("Status actualizat", `${sportiv.nume} ${sportiv.prenume} → ${newStatus}`);
+        }
+        setIsTogglingStatus(false);
+    };
+
     const [plataToEdit, setPlataToEdit] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isTogglingStatus, setIsTogglingStatus] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isApproving, setIsApproving] = useState(false);
     const [isRejecting, setIsRejecting] = useState(false);
@@ -617,9 +632,20 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         )}
                         <p className="text-lg text-slate-300 font-medium">{grupe.find(g => g.id === sportiv.grupa_id)?.denumire || 'Fără grupă'}</p>
                         <div className="flex items-center justify-center md:justify-start gap-2 mt-2">
-                             <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full ${sportiv.status === 'Activ' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
-                                {sportiv.status}
-                            </span>
+                            {isAdminOrAbove ? (
+                                <button
+                                    onClick={handleToggleStatus}
+                                    disabled={isTogglingStatus}
+                                    title={sportiv.status === 'Activ' ? 'Click pentru a marca Inactiv' : 'Click pentru a marca Activ'}
+                                    className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full cursor-pointer hover:opacity-75 transition-opacity disabled:opacity-50 ${sportiv.status === 'Activ' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}
+                                >
+                                    {isTogglingStatus ? '...' : sportiv.status}
+                                </button>
+                            ) : (
+                                <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full ${sportiv.status === 'Activ' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                    {sportiv.status}
+                                </span>
+                            )}
                             {sportiv.cod_sportiv && (
                                 <span className="px-3 py-1 text-xs font-mono text-slate-400 bg-slate-800 rounded-full border border-slate-700">
                                     #{sportiv.cod_sportiv}

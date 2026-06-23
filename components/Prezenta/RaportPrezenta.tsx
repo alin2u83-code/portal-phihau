@@ -42,6 +42,8 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
     const [filtersExpanded, setFiltersExpanded] = useState(false);
     const [activeReportTab, setActiveReportTab] = useState<ReportTab>('general');
+    const [perGrupaPagini, setPerGrupaPagini] = useState<Record<string, number>>({});
+    const PER_GRUPA_PAGE_SIZE = 15;
 
     // Map: grupa_id -> Sportiv[] (sportivi secundari activi)
     const [grupeSecundareMap, setGrupeSecundareMap] = useState<Map<string, Sportiv[]>>(new Map());
@@ -66,6 +68,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters(prev => ({...prev, [e.target.name]: e.target.value}));
+        setPerGrupaPagini({});
     };
     
     const monthNames = useMemo(() => ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Nov", "Dec"], []);
@@ -436,9 +439,16 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                     ) : (
                         grupeUnice.map(grupaNume => {
                             const rânduri = perGrupaData.filter(r => r.grupaNume === grupaNume);
+                            const paginaCurenta = perGrupaPagini[grupaNume] ?? 0;
+                            const totalPagini = Math.ceil(rânduri.length / PER_GRUPA_PAGE_SIZE);
+                            const rânduriPagina = rânduri.slice(paginaCurenta * PER_GRUPA_PAGE_SIZE, (paginaCurenta + 1) * PER_GRUPA_PAGE_SIZE);
+                            const setPagina = (p: number) => setPerGrupaPagini(prev => ({ ...prev, [grupaNume]: p }));
                             return (
                                 <Card key={grupaNume} className="p-0 overflow-hidden">
-                                    <div className="p-4 bg-slate-700/50 font-bold text-white">{grupaNume}</div>
+                                    <div className="p-4 bg-slate-700/50 flex justify-between items-center">
+                                        <span className="font-bold text-white">{grupaNume}</span>
+                                        <span className="text-xs text-slate-400">{rânduri.length} sportivi</span>
+                                    </div>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm">
                                             <thead>
@@ -448,7 +458,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {rânduri.map(row => (
+                                                {rânduriPagina.map(row => (
                                                     <tr key={row.sportivId} className="border-b border-slate-800 hover:bg-slate-800/40">
                                                         <td className="px-4 py-3">
                                                             <span
@@ -464,6 +474,30 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                                             </tbody>
                                         </table>
                                     </div>
+                                    {totalPagini > 1 && (
+                                        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-700 bg-slate-800/30">
+                                            <span className="text-xs text-slate-400">
+                                                {paginaCurenta * PER_GRUPA_PAGE_SIZE + 1}–{Math.min((paginaCurenta + 1) * PER_GRUPA_PAGE_SIZE, rânduri.length)} din {rânduri.length}
+                                            </span>
+                                            <div className="flex gap-1">
+                                                <button
+                                                    onClick={() => setPagina(paginaCurenta - 1)}
+                                                    disabled={paginaCurenta === 0}
+                                                    className="px-2 py-1 text-xs rounded bg-slate-700 text-slate-300 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                >
+                                                    ‹ Prev
+                                                </button>
+                                                <span className="px-2 py-1 text-xs text-slate-400">{paginaCurenta + 1} / {totalPagini}</span>
+                                                <button
+                                                    onClick={() => setPagina(paginaCurenta + 1)}
+                                                    disabled={paginaCurenta >= totalPagini - 1}
+                                                    className="px-2 py-1 text-xs rounded bg-slate-700 text-slate-300 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                >
+                                                    Next ›
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </Card>
                             );
                         })

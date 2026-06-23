@@ -16,7 +16,7 @@ Toate datele vin din tabele existente (plati, examene, rezultate_examene, grade,
 - [x] **Phase 9: Raport Financiar** - Tabel restanțe per sportiv cu filtrare dată și export CSV/PDF (completed 2026-06-16)
 - [ ] **Phase 10: Raport Grade & Examene** - Distribuție grade, promovabilitate, eligibili, istoric per sportiv
 - [ ] **Phase 11: Prezenta Refactorizata** - Calendar multi-grupă cu marcare directă, grupe simultane pe același interval, generator recurent accesibil din Grupe, rapoarte prezențe (lunar/per grupă/per interval examen)
-- [ ] **Phase 13: Sistem Tracking Comenzi Produse** - Ciclu complet comandă echipamente: 3 fluxuri (sportiv→club→furnizor, federație→cluburi, club→federație), stări SOLICITATĂ→PREDATĂ, notificări in-app, factură automată, export PDF/Excel
+- [x] **Phase 13: Sistem Tracking Comenzi Produse** - Ciclu complet comandă echipamente: 3 fluxuri (sportiv→club→furnizor, federație→cluburi, club→federație), stări SOLICITATĂ→PREDATĂ, notificări in-app, factură automată, export PDF/Excel (completed 2026-06-23)
 
 ## Phase Details
 
@@ -128,7 +128,7 @@ Plans:
 - [x] 13-02-PLAN.md — Service comenzi + cerere sportiv din dashboard + notificare admin + selector tip_produs — CMD-02, CMD-09
 - [x] 13-03-PLAN.md — Tab Comenzi admin: agregare, mașină de stări, predare + factură automată + notificări — CMD-01, CMD-03, CMD-06
 - [x] 13-04-PLAN.md — Fluxuri federație (B top-down + C bottom-up) + confirmare recepție + cele 4 notificări — CMD-04, CMD-05
-- [ ] 13-05-PLAN.md — Export PDF bon predare + Excel furnizor + RaportProduse extins cu date comenzi — CMD-07, CMD-08
+- [x] 13-05-PLAN.md — Export PDF bon predare + Excel furnizor + RaportProduse extins cu date comenzi — CMD-07, CMD-08
 
 **UI hint**: yes
 
@@ -145,7 +145,7 @@ Phase 11 — Wave 1 (paralel): 11-01, 11-03, 11-04 (fără conflicte de fișier)
 | 10. Raport Grade & Examene | 0/? | Not started | - |
 | 11. Prezenta Refactorizata | 4/4 | Complete | 2026-06-19 |
 | 12. Modul Produse/Echipamente | 5/5 | Complete   | 2026-06-20 |
-| 13. Tracking Comenzi Produse | 4/5 | In Progress|  |
+| 13. Tracking Comenzi Produse | 5/5 | Complete   | 2026-06-23 |
 
 ---
 

@@ -9,6 +9,222 @@ import type {
 } from '../types';
 import { sendNotification, sendBulkNotifications } from '../utils/notifications';
 
+// ===================================================
+// Fluxuri Federație (Plan 13-04): Flux B (top-down) + Flux C (bottom-up)
+// ===================================================
+
+/**
+ * Creează o comandă federație (Flux B: federatie_club) sau o cerere de la club (Flux C: club_federatie).
+ * - INSERT comenzi_produse (cu club_id = primul destinatar pentru federatie_club sau clubul sursă pentru club_federatie)
+ * - INSERT comenzi_produse_iteme pentru fiecare item
+ * - INSERT comenzi_produse_cluburi pentru fiecare destinatar (per CMD-04)
+ * - Notifică adminii fiecărui club destinatar (per CMD-04 — club primește notificare)
+ * Guard Pitfall 2: adminClubUserIdsPerClub filtrat — null/undefined eliminați.
+ */
+export async function creareComandaFederatie(input: {
+  tip_comanda: 'federatie_club' | 'club_federatie';
+  furnizor?: string;
+  observatii?: string;
+  iteme: { varianta_id: string; cantitate: number }[];
+  destinatari: { club_id: string; cantitate: number }[];
+  adminClubUserIdsPerClub: Record<string, string[]>;
+}): Promise<ComandaProduseBD> {
+  // club_id pentru header comandă:
+  // - federatie_club: folosim primul destinatar (federația trimite la cluburi)
+  // - club_federatie: clubul sursă e în destinatari[0] (clubul cere federației)
+  const headerClubId = input.destinatari[0]?.club_id ?? null;
+
+  const { data: comanda, error: errComanda } = await supabase
+    .from('comenzi_produse')
+    .insert({
+      club_id: headerClubId,
+      tip_comanda: input.tip_comanda,
+      stare: 'DESCHISA',
+      furnizor: input.furnizor ?? null,
+      observatii: input.observatii ?? null,
+    })
+    .select()
+    .single();
+  if (errComanda) throw new Error(`creareComandaFederatie: ${errComanda.message}`);
+
+  // INSERT iteme comandă
+  if (input.iteme.length > 0) {
+    const itemeRows = input.iteme.map(item => ({
+      comanda_id: comanda.id,
+      varianta_id: item.varianta_id,
+      cantitate: item.cantitate,
+    }));
+    const { error: errIteme } = await supabase
+      .from('comenzi_produse_iteme')
+      .insert(itemeRows);
+    if (errIteme) throw new Error(`creareComandaFederatie iteme: ${errIteme.message}`);
+  }
+
+  // INSERT destinatari per club (CMD-04 — comenzi_produse_cluburi)
+  if (input.destinatari.length > 0) {
+    const destinatariRows = input.destinatari.map(d => ({
+      comanda_id: comanda.id,
+      club_id: d.club_id,
+      cantitate: d.cantitate,
+      confirmat: false,
+    }));
+    const { error: errDest } = await supabase
+      .from('comenzi_produse_cluburi')
+      .insert(destinatariRows);
+    if (errDest) throw new Error(`creareComandaFederatie destinatari: ${errDest.message}`);
+  }
+
+  // Notifică adminii fiecărui club destinatar (CMD-04 — per Pitfall 2: guard null/undefined)
+  for (const dest of input.destinatari) {
+    const adminIds = (input.adminClubUserIdsPerClub[dest.club_id] ?? []).filter(
+      (id): id is string => typeof id === 'string' && id.length > 0
+    );
+    if (adminIds.length > 0) {
+      const payloads = adminIds.map(userId => ({
+        recipient_user_id: userId,
+        title: 'Comandă nouă de la federație',
+        body: `Federația a plasat o comandă pentru clubul tău. Verifică tab-ul Comenzi.`,
+      }));
+      await sendBulkNotifications(payloads).catch(err =>
+        console.error('creareComandaFederatie: notificare admin eșuată:', err)
+      );
+    }
+  }
+
+  return comanda as ComandaProduseBD;
+}
+
+/**
+ * Fetch toate comenzile de tip federatie_club și club_federatie.
+ * Disponibil doar pentru SUPER_ADMIN_FEDERATIE (RLS via is_super_admin()).
+ */
+export async function fetchComenziFederatie(): Promise<ComandaProduseiFull[]> {
+  const { data, error } = await supabase
+    .from('comenzi_produse')
+    .select(`
+      *,
+      cereri:cereri_produse(
+        *,
+        varianta:produse_variante(*, produs:produse(denumire, tip_produs)),
+        sportiv:sportivi(nume, prenume, user_id)
+      ),
+      iteme:comenzi_produse_iteme(
+        *,
+        varianta:produse_variante(*, produs:produse(denumire))
+      ),
+      cluburi:comenzi_produse_cluburi(*)
+    `)
+    .in('tip_comanda', ['federatie_club', 'club_federatie'])
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(`fetchComenziFederatie: ${error.message}`);
+
+  return ((data ?? []) as any[]).map(row => ({
+    ...row,
+    cereri: ((row.cereri ?? []) as any[]).map((c: any) => ({
+      ...c,
+      sportiv_nume: c.sportiv ? `${c.sportiv.nume} ${c.sportiv.prenume}`.trim() : null,
+    })),
+    iteme: row.iteme ?? [],
+    cluburi: row.cluburi ?? [],
+  })) as ComandaProduseiFull[];
+}
+
+/**
+ * Confirmă recepția unui lot per club (CMD-04/CMD-05).
+ * Setează confirmat=true, confirmat_at=now() pentru intrarea din comenzi_produse_cluburi.
+ * RLS: club_id = get_active_club_id() — clubul confirmă doar propriile recepții (T-13-13).
+ */
+export async function confirmaReceptieClub(comandaClubId: string): Promise<void> {
+  const { error } = await supabase
+    .from('comenzi_produse_cluburi')
+    .update({
+      confirmat: true,
+      confirmat_at: new Date().toISOString(),
+    })
+    .eq('id', comandaClubId);
+  if (error) throw new Error(`confirmaReceptieClub: ${error.message}`);
+}
+
+/**
+ * Distribuie un lot primit de la federație la sportivii clubului (CMD-05).
+ * Pentru produse per_sportiv: INSERT cereri_produse per sportiv cu stare SOSITA.
+ * Notifică fiecare sportiv (guard Pitfall 2: sportiv_user_id non-null).
+ */
+export async function distribuieLaSportivi(input: {
+  comanda_id: string;
+  club_id: string;
+  alocari: {
+    sportiv_id: string;
+    varianta_id: string;
+    cantitate: number;
+    sportiv_user_id?: string | null;
+  }[];
+}): Promise<void> {
+  if (input.alocari.length === 0) return;
+
+  const cereriRows = input.alocari.map(a => ({
+    club_id: input.club_id,
+    sportiv_id: a.sportiv_id,
+    comanda_id: input.comanda_id,
+    varianta_id: a.varianta_id,
+    cantitate: a.cantitate,
+    stare_cerere: 'SOSITA' as const,
+  }));
+
+  const { error } = await supabase
+    .from('cereri_produse')
+    .insert(cereriRows);
+  if (error) throw new Error(`distribuieLaSportivi: ${error.message}`);
+
+  // Notifică sportivii (guard Pitfall 2: user_id non-null)
+  for (const a of input.alocari) {
+    if (a.sportiv_user_id) {
+      await sendNotification({
+        recipient_user_id: a.sportiv_user_id,
+        title: 'Echipamentul a sosit!',
+        body: 'Echipamentul tău a sosit la club. Poți veni să îl ridici.',
+      }).catch(err =>
+        console.error('distribuieLaSportivi: notificare sportiv eșuată:', err)
+      );
+    }
+  }
+}
+
+/**
+ * Fetch comenzile de tip club_federatie (cereri de la cluburi) pentru agreagare de SUPER_ADMIN.
+ * Flux C: SUPER_ADMIN vede cererile cluburilor și le poate agrega într-o comandă centrală.
+ */
+export async function fetchCereriCluburiPtFederatie(): Promise<ComandaProduseiFull[]> {
+  const { data, error } = await supabase
+    .from('comenzi_produse')
+    .select(`
+      *,
+      cereri:cereri_produse(
+        *,
+        varianta:produse_variante(*, produs:produse(denumire, tip_produs)),
+        sportiv:sportivi(nume, prenume, user_id)
+      ),
+      iteme:comenzi_produse_iteme(
+        *,
+        varianta:produse_variante(*, produs:produse(denumire))
+      ),
+      cluburi:comenzi_produse_cluburi(*)
+    `)
+    .eq('tip_comanda', 'club_federatie')
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(`fetchCereriCluburiPtFederatie: ${error.message}`);
+
+  return ((data ?? []) as any[]).map(row => ({
+    ...row,
+    cereri: ((row.cereri ?? []) as any[]).map((c: any) => ({
+      ...c,
+      sportiv_nume: c.sportiv ? `${c.sportiv.nume} ${c.sportiv.prenume}`.trim() : null,
+    })),
+    iteme: row.iteme ?? [],
+    cluburi: row.cluburi ?? [],
+  })) as ComandaProduseiFull[];
+}
+
 /**
  * Fetch toate cererile de produse ale unui club (pentru admin/instructor).
  * Include join la varianta → produs și sportiv (pentru afișare în managementul comenzilor).

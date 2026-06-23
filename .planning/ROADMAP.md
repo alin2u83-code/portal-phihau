@@ -146,6 +146,29 @@ Phase 11 — Wave 1 (paralel): 11-01, 11-03, 11-04 (fără conflicte de fișier)
 | 11. Prezenta Refactorizata | 4/4 | Complete | 2026-06-19 |
 | 12. Modul Produse/Echipamente | 5/5 | Complete   | 2026-06-20 |
 | 13. Tracking Comenzi Produse | 5/5 | Complete   | 2026-06-23 |
+| 14. Corelare Prezențe-Facturi | 0/4 | Not started | - |
+
+### Phase 14: Corelare Prezențe-Facturi
+
+**Goal**: ADMIN_CLUB poate vedea prezențele unui sportiv corelate cu factura lunară (număr + liste date expandabilă în modalul facturii), poate genera facturi manual pentru orice lună (trecut/viitor) și bulk pentru lunile lipsă, poate șterge facturi neplatite, și are vizibilitate completă asupra lunilor fără factură pentru sportivii activi (badge pe profil + raport centralizat).
+**Mode**: mvp
+**Depends on**: Phase 13
+**Requirements**: PLF-01, PLF-02, PLF-03, PLF-04, PLF-05
+**Success Criteria** (what must be TRUE):
+
+  1. Modalul de detalii factură (din PlatiScadente și din profilul sportivului) afișează câmpul "Prezențe în [luna]: N ▾" — click expandează lista datelor exacte (din tabelul prezente) pentru luna facturii
+  2. ADMIN_CLUB poate genera o factură lunară pentru orice lună (trecut sau viitor) selectând sportivul + luna din calendar picker — fără a duplica facturi existente
+  3. ADMIN_CLUB vede wizard "Luni fără factură" care detectează automat lunile lipsă per sportiv activ (față de o dată de start configurabilă per sportiv) și permite generare bulk cu un singur click
+  4. Butonul "Șterge factură" este activ doar pentru facturi cu status neplatit; pentru facturi platite, butonul e dezactivat (tooltip explicativ)
+  5. Badge "X luni fără factură" apare pe profilul fiecărui sportiv activ care are luni neacoperite; secțiune/tab "Luni Lipsă" în modulul Plăți listează toți sportivii activi cu numărul de luni neacoperite
+
+**Plans**: 4 plans
+Plans:
+- [ ] 14-01-PLAN.md — Fundație: migrație data_start_facturare + usePrezenteLuna + util luni lipsă + serviciu factură — PLF-01..03,05
+- [ ] 14-02-PLAN.md — Prezențe în factură (PlatiScadente inline + modal FinanciarTab) + restricție ștergere — PLF-01, PLF-04
+- [ ] 14-03-PLAN.md — Generare Abonament per lună (month picker, fără duplicate) + restricție ștergere — PLF-02, PLF-04
+- [ ] 14-04-PLAN.md — Wizard luni lipsă + generare bulk + tab Luni Lipsă + badge profil — PLF-03, PLF-05
+
 
 ---
 

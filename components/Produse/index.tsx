@@ -582,6 +582,8 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
           tipPlataEchipamenteId={tipPlataEchipamente}
           onRefetch={refetchComenzi}
           clubNume={clubNume}
+          clubs={clubs ?? []}
+          produse={produse}
         />
       )}
 

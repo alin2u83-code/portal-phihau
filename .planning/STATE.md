@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 13 (tracking-comenzi-produse) — EXECUTING
-Plan: 4 of 5 (13-03 complete — next: 13-04)
+Plan: 5 of 5 (13-04 complete — next: 13-05)
 Status: Executing Phase 13
-Last activity: 2026-06-23 -- Plan 13-03 complete (Tab Comenzi admin + Flux A verificat)
+Last activity: 2026-06-23 -- Plan 13-04 complete (Fluxuri federație B+C + FederatieComandaView + confirmare recepție club)
 
 ```
 Progress: [░░░░░░░░░░] 0% (0/2 phases)
@@ -71,6 +71,8 @@ Recent decisions affecting current work:
 - guard comandă duplicată: gasesteSauCreeazaComandaActiva() — refolosire comandă activă, nu creare a doua per tip+club
 - scădere stoc NUMAI per_sportiv la predare — per_club gestionat separat prin IntrareMarfaModal (13-03)
 - sportivi.nume + prenume în locul nome_complet — coloana nome_complet nu există în DB (fix 13-03)
+- FederatieComandaView condiționat pe isFederationAdmin (nu pe rol string direct) — consistent cu RLS is_super_admin()
+- confirmaReceptieClub operează pe comenzi_produse_cluburi.id — fiecare club confirmă recepția proprie independent
 
 ### Pending Todos
 
@@ -106,5 +108,5 @@ None at roadmap creation. De verificat înainte de Phase 9:
 ## Session Continuity
 
 Last session: 2026-06-23
-Stopped at: Plan 13-03 complete — checkpoint human-verify PASSED, continuat cu SUMMARY + state updates
-Resume file: .planning/phases/13-tracking-comenzi-produse/13-04-PLAN.md
+Stopped at: Plan 13-04 complete — FederatieComandaView + Fluxuri B/C + confirmaReceptieClub, checkpoint human-verify PASSED via Playwright
+Resume file: .planning/phases/13-tracking-comenzi-produse/13-05-PLAN.md

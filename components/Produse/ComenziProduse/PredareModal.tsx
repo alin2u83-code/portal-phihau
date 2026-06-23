@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Modal, Button } from '../../ui';
 import { marcheazaPredare } from '../../../services/comenziService';
+import { exportBonPredare } from '../../../utils/exportBonPredare';
 import type { CerereProdusFull } from '../../../types';
 
 interface PredareModalProps {
   cerere: CerereProdusFull;
   clubId: string;
+  clubNume: string;
   tipPlataEchipamenteId: string;
   onDone: () => void;
   onClose: () => void;
@@ -23,12 +26,14 @@ function getDenumireVarianta(cerere: CerereProdusFull): string {
 const PredareModal: React.FC<PredareModalProps> = ({
   cerere,
   clubId,
+  clubNume,
   tipPlataEchipamenteId,
   onDone,
   onClose,
 }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bonDescarcabil, setBonDescarcabil] = useState(false);
 
   const denumire = getDenumireVarianta(cerere);
   const pret = cerere.varianta?.pret_vanzare ?? 0;
@@ -58,6 +63,7 @@ const PredareModal: React.FC<PredareModalProps> = ({
         denumire_varianta: denumire,
         sportiv_user_id: cerere.sportiv?.user_id ?? null,
       });
+      setBonDescarcabil(true);
       onDone();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Eroare la predare.');
@@ -100,6 +106,24 @@ const PredareModal: React.FC<PredareModalProps> = ({
         {error && (
           <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">
             {error}
+          </div>
+        )}
+
+        {bonDescarcabil && (
+          <div className="flex justify-center">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={async () => {
+                try {
+                  await exportBonPredare(cerere, clubNume);
+                } catch {
+                  toast.error('Eroare la generarea bonului PDF.');
+                }
+              }}
+            >
+              Descarcă bon predare (PDF)
+            </Button>
           </div>
         )}
 

@@ -41,6 +41,7 @@ const ComenziProduse: React.FC<ComenziProduseProps> = ({
   permissions,
   tipPlataEchipamenteId,
   onRefetch,
+  clubNume,
   clubs = [],
   produse = [],
 }) => {
@@ -344,6 +345,7 @@ const ComenziProduse: React.FC<ComenziProduseProps> = ({
                   comanda={comanda}
                   tipPlataEchipamenteId={tipPlataEchipamenteId}
                   clubId={clubId}
+                  clubNume={clubNume ?? 'Club QwanKiDo'}
                   onRefetch={onRefetch}
                 />
               ))}
@@ -365,6 +367,7 @@ const ComenziProduse: React.FC<ComenziProduseProps> = ({
                 comanda={comanda}
                 tipPlataEchipamenteId={tipPlataEchipamenteId}
                 clubId={clubId}
+                clubNume={clubNume ?? 'Club QwanKiDo'}
                 onRefetch={onRefetch}
               />
             ))}

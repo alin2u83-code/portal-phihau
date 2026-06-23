@@ -7,6 +7,7 @@ import {
   marcheazaPlatita,
   trimiteReminderPlata,
 } from '../../../services/comenziService';
+import { exportBonPredare, exportExcelFurnizor } from '../../../utils/exportBonPredare';
 import type { ComandaProduseiFull, CerereProdusFull, StareCerereProdusTip } from '../../../types';
 
 interface SumarVarianta {
@@ -20,6 +21,7 @@ interface ComandaCardProps {
   comanda: ComandaProduseiFull;
   tipPlataEchipamenteId: string;
   clubId: string;
+  clubNume: string;
   onRefetch: () => void;
 }
 
@@ -66,6 +68,7 @@ const ComandaCard: React.FC<ComandaCardProps> = ({
   comanda,
   tipPlataEchipamenteId,
   clubId,
+  clubNume,
   onRefetch,
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -170,12 +173,30 @@ const ComandaCard: React.FC<ComandaCardProps> = ({
             {new Date(comanda.created_at).toLocaleDateString('ro-RO')} · {comanda.cereri.length} cereri
           </p>
         </div>
-        <button
-          onClick={() => setExpanded(e => !e)}
-          className="shrink-0 text-xs text-[var(--accent)] hover:underline"
-        >
-          {expanded ? 'Ascunde' : 'Detalii'}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {comanda.stare === 'PLASATA' && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={async () => {
+                try {
+                  await exportExcelFurnizor(comanda, clubNume);
+                } catch {
+                  toast.error('Eroare la generarea Excel furnizor.');
+                }
+              }}
+              title="Export produse+cantități pentru furnizor"
+            >
+              Export furnizor (Excel)
+            </Button>
+          )}
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="text-xs text-[var(--accent)] hover:underline"
+          >
+            {expanded ? 'Ascunde' : 'Detalii'}
+          </button>
+        </div>
       </div>
 
       {/* Sumar agregat per produs (CMD-03) */}
@@ -206,6 +227,7 @@ const ComandaCard: React.FC<ComandaCardProps> = ({
                   const canPreda = cerere.stare_cerere === 'SOSITA';
                   const canPlatita = cerere.stare_cerere === 'PREDATA';
                   const canReminder = cerere.stare_cerere === 'PREDATA' && !!cerere.sportiv?.user_id;
+                  const canBonPredare = ['PREDATA', 'PLATITA'].includes(cerere.stare_cerere);
                   const canAnula = !['PREDATA', 'PLATITA', 'ANULATA'].includes(cerere.stare_cerere);
 
                   return (
@@ -265,6 +287,24 @@ const ComandaCard: React.FC<ComandaCardProps> = ({
                             Reminder plată
                           </Button>
                         )}
+                        {/* Buton Bon predare PDF — vizibil pentru PREDATA/PLATITA (CMD-07) */}
+                        {canBonPredare && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={isLoading}
+                            onClick={async () => {
+                              try {
+                                await exportBonPredare(cerere, clubNume);
+                              } catch {
+                                toast.error('Eroare la generarea bonului PDF.');
+                              }
+                            }}
+                            title="Descarcă bon predare PDF"
+                          >
+                            Bon predare
+                          </Button>
+                        )}
                         {canAnula && (
                           <Button
                             size="sm"
@@ -290,6 +330,7 @@ const ComandaCard: React.FC<ComandaCardProps> = ({
         <PredareModal
           cerere={predareModal}
           clubId={clubId}
+          clubNume={clubNume}
           tipPlataEchipamenteId={tipPlataEchipamenteId}
           onDone={() => {
             setPredareModal(null);

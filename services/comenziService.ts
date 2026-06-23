@@ -19,7 +19,7 @@ export async function fetchCereriClub(clubId: string): Promise<CerereProdusFull[
     .select(`
       *,
       varianta:produse_variante(*, produs:produse(denumire, tip_produs)),
-      sportiv:sportivi(nume_complet, user_id)
+      sportiv:sportivi(nume, prenume, user_id)
     `)
     .eq('club_id', clubId)
     .order('created_at', { ascending: false });
@@ -27,7 +27,7 @@ export async function fetchCereriClub(clubId: string): Promise<CerereProdusFull[
 
   return ((data ?? []) as any[]).map((row) => ({
     ...row,
-    sportiv_nume: row.sportiv?.nume_complet ?? null,
+    sportiv_nume: row.sportiv ? `${row.sportiv.nume} ${row.sportiv.prenume}`.trim() : null,
   })) as CerereProdusFull[];
 }
 
@@ -125,7 +125,7 @@ export async function fetchComenziClub(clubId: string): Promise<ComandaProduseiF
       cereri:cereri_produse(
         *,
         varianta:produse_variante(*, produs:produse(denumire, tip_produs)),
-        sportiv:sportivi(nume_complet, user_id)
+        sportiv:sportivi(nume, prenume, user_id)
       ),
       iteme:comenzi_produse_iteme(
         *,
@@ -140,7 +140,7 @@ export async function fetchComenziClub(clubId: string): Promise<ComandaProduseiF
     ...row,
     cereri: ((row.cereri ?? []) as any[]).map((c: any) => ({
       ...c,
-      sportiv_nume: c.sportiv?.nume_complet ?? null,
+      sportiv_nume: c.sportiv ? `${c.sportiv.nume} ${c.sportiv.prenume}`.trim() : null,
     })),
     iteme: row.iteme ?? [],
   })) as ComandaProduseiFull[];

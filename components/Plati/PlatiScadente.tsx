@@ -1,7 +1,7 @@
 ﻿import React, { useState, useMemo } from 'react';
 import { Plata, Sportiv, Permissions, Club } from '../../types';
 import { Button, Input, Select, Card, Modal, SearchInput, ClubSelect } from '../ui';
-import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon } from '../icons';
+import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon, CalendarDaysIcon, ChevronDownIcon, ChevronUpIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { sendBulkNotifications } from '../../utils/notifications';
@@ -10,13 +10,63 @@ import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../../constants';
 import { useData } from '../../contexts/DataContext';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
+import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
+import { formatLuna } from '../../utils/luniLipsa';
 
-interface PlatiScadenteProps { 
+interface PlatiScadenteProps {
     onIncaseazaMultiple: (plati: Plata[]) => void;
     onBack: () => void;
     onViewSportiv: (sportiv: Sportiv) => void;
     permissions: Permissions;
 }
+
+/** PLF-01: Sub-component pentru afișarea prezențelor unui sportiv într-o lună.
+ * Montat doar când rândul e expandat (enabled controlat) — lazy-load.
+ * Facturile de familie (sportiv_id null) nu trebuie să monteze acest component.
+ */
+const PrezenteFacturaRow: React.FC<{
+    sportivId: string;
+    luna: number;
+    an: number;
+}> = ({ sportivId, luna, an }) => {
+    const [expanded, setExpanded] = useState(false);
+    const { data: datePrezente, isLoading } = usePrezenteLuna(sportivId, luna, an, true);
+
+    const lunaText = formatLuna(luna, an);
+    const count = datePrezente?.length ?? 0;
+
+    return (
+        <div className="px-3 py-2 border-t border-slate-700/30 bg-slate-900/30">
+            <button
+                className="flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setExpanded(v => !v); }}
+            >
+                <CalendarDaysIcon className="w-3.5 h-3.5" />
+                {isLoading ? (
+                    <span className="text-slate-500">Se încarcă prezențele...</span>
+                ) : (
+                    <>
+                        <span>Prezențe în {lunaText}: <strong>{count}</strong></span>
+                        {expanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}
+                    </>
+                )}
+            </button>
+            {expanded && !isLoading && (
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {count === 0 ? (
+                        <span className="text-xs text-slate-500 italic">Nicio prezență înregistrată în această lună.</span>
+                    ) : (
+                        datePrezente!.map(d => (
+                            <span key={d} className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600/40">
+                                {new Date(d).toLocaleDateString('ro-RO')}
+                            </span>
+                        ))
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const initialFilters = { sportiv: '', tip: '', status: '', clubId: '' };
 
@@ -32,6 +82,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const grupe = filteredData.grupe;
 
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -355,6 +406,25 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
         if(!supabase) return;
         setIsDeleting(true);
 
+        // PLF-04 guard server-side: re-fetch statusul real din DB înainte de ștergere (T-14-04)
+        const { data: plataStatus, error: statusErr } = await supabase
+            .from('plati')
+            .select('status')
+            .eq('id', id)
+            .maybeSingle();
+        if (statusErr) {
+            setIsDeleting(false);
+            showError("Eroare la verificare", statusErr.message);
+            setPlataToDelete(null);
+            return;
+        }
+        if (plataStatus?.status === 'Achitat') {
+            setIsDeleting(false);
+            showError("Ștergere imposibilă", "Facturile achitate nu pot fi șterse.");
+            setPlataToDelete(null);
+            return;
+        }
+
         // Verifică dacă plata este referențiată de înscrieri la examene
         const { data: inscrieri, error: inscrieriError } = await supabase
             .from('inscrieri_examene')
@@ -628,38 +698,78 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[var(--t-border)]">
-                            {platiCuDetalii.map(p => (
-                                <tr key={p.id} className={`${selectedIds.has(p.id) ? 'bg-brand-primary/20' : ''}`}>
-                                    <td className="p-3"><input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleSelectRow(p.id)} className="h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary" /></td>
-                                    <td className="p-3">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
-                                    <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" style={{ touchAction: 'manipulation' }} onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!) }}>{getEntityName(p)}</td>
-                                    <td className="p-3"><div className="font-medium text-white">{p.descriereDetaliata}</div>{p.reducereDetalii && <div className="text-xs text-slate-400">Aplicat: {p.reducereDetalii.nume}</div>}</td>
-                                    <td className="p-3 text-right">
-                                        <div className="font-bold text-white">{p.suma.toFixed(2)} RON</div>
-                                        {p.reducereDetalii && p.suma_initiala && (
-                                            <div className="text-xs text-slate-400">
-                                                <span className="line-through">{p.suma_initiala.toFixed(2)}</span>
-                                                <span className="text-red-400 ml-1">(-{p.reducereDetalii.valoare.toFixed(2)})</span>
-                                            </div>
+                            {platiCuDetalii.map(p => {
+                                const isExpanded = expandedId === p.id;
+                                const showPrezente = !!p.sportiv_id && !p.familie_id && p.tip === 'Abonament';
+                                const luna = p.luna ?? (p.data ? new Date(p.data.toString().slice(0, 10)).getMonth() + 1 : null);
+                                const an = p.an ?? (p.data ? new Date(p.data.toString().slice(0, 10)).getFullYear() : null);
+                                return (
+                                    <React.Fragment key={p.id}>
+                                        <tr className={`${selectedIds.has(p.id) ? 'bg-brand-primary/20' : ''}`}>
+                                            <td className="p-3"><input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleSelectRow(p.id)} className="h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary" /></td>
+                                            <td className="p-3">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
+                                            <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" style={{ touchAction: 'manipulation' }} onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!) }}>{getEntityName(p)}</td>
+                                            <td className="p-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div>
+                                                        <div className="font-medium text-white">{p.descriereDetaliata}</div>
+                                                        {p.reducereDetalii && <div className="text-xs text-slate-400">Aplicat: {p.reducereDetalii.nume}</div>}
+                                                    </div>
+                                                    {showPrezente && luna && an && (
+                                                        <button
+                                                            onClick={() => setExpandedId(isExpanded ? null : p.id)}
+                                                            className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-sky-900/40 text-sky-400 border border-sky-700/40 hover:bg-sky-800/40 transition-colors shrink-0"
+                                                            title="Prezențe în luna facturii"
+                                                        >
+                                                            <CalendarDaysIcon className="w-3 h-3" />
+                                                            {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="p-3 text-right">
+                                                <div className="font-bold text-white">{p.suma.toFixed(2)} RON</div>
+                                                {p.reducereDetalii && p.suma_initiala && (
+                                                    <div className="text-xs text-slate-400">
+                                                        <span className="line-through">{p.suma_initiala.toFixed(2)}</span>
+                                                        <span className="text-red-400 ml-1">(-{p.reducereDetalii.valoare.toFixed(2)})</span>
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="p-3 text-center">{(() => { const ds = getDisplayStatus(p); const cfg = STATUS_DISPLAY_CONFIG[ds]; return <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.cls}`}>{cfg.label}</span>; })()}</td>
+                                            <td className="p-3 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    {p.status !== 'Achitat' && (
+                                                        <Button size="sm" variant="success" onClick={() => {
+                                                            setPlataForPayment(p);
+                                                            setPaymentAmount(p.suma.toString());
+                                                        }} title="Încasează Rapid">
+                                                            <WalletIcon className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
+                                                    <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)}><EditIcon className="w-4 h-4"/></Button>
+                                                    {/* PLF-04: buton Șterge dezactivat pentru facturi Achitat */}
+                                                    {p.status === 'Achitat' ? (
+                                                        <span title="Facturile achitate nu pot fi șterse" className="cursor-not-allowed">
+                                                            <Button size="sm" variant="danger" disabled className="pointer-events-none opacity-40"><TrashIcon className="w-4 h-4"/></Button>
+                                                        </span>
+                                                    ) : (
+                                                        <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)}><TrashIcon className="w-4 h-4"/></Button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {/* PLF-01: rând expandabil cu prezențe */}
+                                        {isExpanded && showPrezente && luna && an && (
+                                            <tr>
+                                                <td colSpan={7} className="p-0">
+                                                    <PrezenteFacturaRow sportivId={p.sportiv_id!} luna={luna} an={an} />
+                                                </td>
+                                            </tr>
                                         )}
-                                    </td>
-                                    <td className="p-3 text-center">{(() => { const ds = getDisplayStatus(p); const cfg = STATUS_DISPLAY_CONFIG[ds]; return <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.cls}`}>{cfg.label}</span>; })()}</td>
-                                    <td className="p-3 text-right">
-                                        <div className="flex justify-end gap-2">
-                                            {p.status !== 'Achitat' && (
-                                                <Button size="sm" variant="success" onClick={() => {
-                                                    setPlataForPayment(p);
-                                                    setPaymentAmount(p.suma.toString());
-                                                }} title="Încasează Rapid">
-                                                    <WalletIcon className="w-4 h-4" />
-                                                </Button>
-                                            )}
-                                            <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)}><EditIcon className="w-4 h-4"/></Button>
-                                            <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)}><TrashIcon className="w-4 h-4"/></Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                    </React.Fragment>
+                                );
+                            })}
                         </tbody>
                     </table>
                     {platiCuDetalii.length === 0 && (
@@ -682,62 +792,92 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 {platiCuDetalii.map(p => {
                     const ds = getDisplayStatus(p);
                     const cfg = STATUS_DISPLAY_CONFIG[ds];
+                    const isExpanded = expandedId === p.id;
+                    const showPrezente = !!p.sportiv_id && !p.familie_id && p.tip === 'Abonament';
+                    const luna = p.luna ?? (p.data ? new Date(p.data.toString().slice(0, 10)).getMonth() + 1 : null);
+                    const an = p.an ?? (p.data ? new Date(p.data.toString().slice(0, 10)).getFullYear() : null);
                     return (
-                        <div key={p.id} className={`bg-[var(--t-bg)] border rounded-xl px-4 py-3 ${selectedIds.has(p.id) ? 'border-indigo-500/60' : 'border-[var(--t-border)]'}`}>
-                            <div className="flex items-start gap-3">
-                                <input
-                                    type="checkbox"
-                                    checked={selectedIds.has(p.id)}
-                                    onChange={() => handleSelectRow(p.id)}
-                                    className="mt-1 h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary shrink-0"
-                                    onClick={e => e.stopPropagation()}
-                                />
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div className="min-w-0">
-                                            <p
-                                                className="text-white font-semibold text-sm truncate cursor-pointer hover:text-indigo-300"
-                                                onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!); }}
-                                            >
-                                                {getEntityName(p)}
-                                            </p>
-                                            <p className="text-slate-400 text-xs mt-0.5 truncate">{p.descriereDetaliata}</p>
-                                            {p.reducereDetalii && (
-                                                <p className="text-xs text-slate-500 mt-0.5">Reducere: {p.reducereDetalii.nume}</p>
-                                            )}
-                                        </div>
-                                        <div className="shrink-0 text-right">
-                                            <p className="text-white font-bold text-sm whitespace-nowrap">{p.suma.toFixed(2)} RON</p>
-                                            {p.reducereDetalii && p.suma_initiala && (
-                                                <p className="text-xs text-slate-500">
-                                                    <span className="line-through">{p.suma_initiala.toFixed(2)}</span>
+                        <div key={p.id} className={`bg-[var(--t-bg)] border rounded-xl overflow-hidden ${selectedIds.has(p.id) ? 'border-indigo-500/60' : 'border-[var(--t-border)]'}`}>
+                            <div className="px-4 py-3">
+                                <div className="flex items-start gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedIds.has(p.id)}
+                                        onChange={() => handleSelectRow(p.id)}
+                                        className="mt-1 h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary shrink-0"
+                                        onClick={e => e.stopPropagation()}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <p
+                                                    className="text-white font-semibold text-sm truncate cursor-pointer hover:text-indigo-300"
+                                                    onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!); }}
+                                                >
+                                                    {getEntityName(p)}
                                                 </p>
-                                            )}
+                                                <p className="text-slate-400 text-xs mt-0.5 truncate">{p.descriereDetaliata}</p>
+                                                {p.reducereDetalii && (
+                                                    <p className="text-xs text-slate-500 mt-0.5">Reducere: {p.reducereDetalii.nume}</p>
+                                                )}
+                                            </div>
+                                            <div className="shrink-0 text-right">
+                                                <p className="text-white font-bold text-sm whitespace-nowrap">{p.suma.toFixed(2)} RON</p>
+                                                {p.reducereDetalii && p.suma_initiala && (
+                                                    <p className="text-xs text-slate-500">
+                                                        <span className="line-through">{p.suma_initiala.toFixed(2)}</span>
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center justify-between mt-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs text-slate-500">
-                                                {new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}
-                                            </span>
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${cfg.cls}`}>{cfg.label}</span>
-                                        </div>
-                                        <div className="flex gap-1.5">
-                                            {p.status !== 'Achitat' && (
-                                                <Button size="sm" variant="success" onClick={() => { setPlataForPayment(p); setPaymentAmount(p.suma.toString()); }} title="Încasează">
-                                                    <WalletIcon className="w-3.5 h-3.5" />
+                                        <div className="flex items-center justify-between mt-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-slate-500">
+                                                    {new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}
+                                                </span>
+                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${cfg.cls}`}>{cfg.label}</span>
+                                                {/* PLF-01: buton expandare prezențe pe mobile */}
+                                                {showPrezente && luna && an && (
+                                                    <button
+                                                        onClick={() => setExpandedId(isExpanded ? null : p.id)}
+                                                        className="flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-sky-900/40 text-sky-400 border border-sky-700/40"
+                                                        title="Prezențe"
+                                                    >
+                                                        <CalendarDaysIcon className="w-3 h-3" />
+                                                        {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="flex gap-1.5">
+                                                {p.status !== 'Achitat' && (
+                                                    <Button size="sm" variant="success" onClick={() => { setPlataForPayment(p); setPaymentAmount(p.suma.toString()); }} title="Încasează">
+                                                        <WalletIcon className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                )}
+                                                <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)} title="Editează">
+                                                    <EditIcon className="w-3.5 h-3.5" />
                                                 </Button>
-                                            )}
-                                            <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)} title="Editează">
-                                                <EditIcon className="w-3.5 h-3.5" />
-                                            </Button>
-                                            <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} title="Șterge">
-                                                <TrashIcon className="w-3.5 h-3.5" />
-                                            </Button>
+                                                {/* PLF-04: buton Șterge dezactivat pentru facturi Achitat */}
+                                                {p.status === 'Achitat' ? (
+                                                    <span title="Facturile achitate nu pot fi șterse" className="cursor-not-allowed">
+                                                        <Button size="sm" variant="danger" disabled className="pointer-events-none opacity-40" title="">
+                                                            <TrashIcon className="w-3.5 h-3.5" />
+                                                        </Button>
+                                                    </span>
+                                                ) : (
+                                                    <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} title="Șterge">
+                                                        <TrashIcon className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            {/* PLF-01: secțiune expandabilă prezențe pe mobile */}
+                            {isExpanded && showPrezente && luna && an && (
+                                <PrezenteFacturaRow sportivId={p.sportiv_id!} luna={luna} an={an} />
+                            )}
                         </div>
                     );
                 })}

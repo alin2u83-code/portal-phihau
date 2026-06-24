@@ -15,6 +15,9 @@ import { useError } from '../ErrorProvider';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
 import { formatNume } from '../../utils/formatareSportiv';
+import { calculeazaLuniLipsa, formatLuna } from '../../utils/luniLipsa';
+import { useDataStartFacturareAll } from '../../hooks/useDataStartFacturareAll';
+import { LuniLipsaWizard } from './LuniLipsaWizard';
 
 interface RaportFinanciarProps {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
@@ -51,7 +54,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     const { currentUser, activeRoleContext, clubs } = useData();
     const { showError, showSuccess } = useError();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
-    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii' | 'restante'>('incasari');
+    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii' | 'restante' | 'luni_lipsa'>('incasari');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [restanteStart, setRestanteStart] = useState('');
@@ -321,6 +324,28 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             });
     }, [istoricPlatiDetaliat, sportivi, familii, restanteStart, restanteEnd]);
 
+    // ─── Tab Luni Lipsă (PLF-05) ─────────────────────────────────────────────
+    // Un singur fetch pentru toți sportivii activi (nu hook per rând — anti-pattern)
+    const dataStartMap = useDataStartFacturareAll();
+
+    // State pentru wizard per sportiv
+    const [wizardSportiv, setWizardSportiv] = useState<Sportiv | null>(null);
+
+    // Calcul sportivi cu luni lipsă: active + dataStart setat + nr luni > 0, sortați desc
+    const sportiviCuLuniLipsa = useMemo(() => {
+        return sportivi
+            .filter(s => s.status === 'Activ' && dataStartMap[s.id])
+            .map(s => ({
+                sportiv: s,
+                dataStart: dataStartMap[s.id] as string,
+                luniLipsa: calculeazaLuniLipsa(dataStartMap[s.id], plati.filter(p => p.sportiv_id === s.id)),
+            }))
+            .filter(({ luniLipsa }) => luniLipsa.length > 0)
+            .sort((a, b) => b.luniLipsa.length - a.luniLipsa.length);
+    }, [sportivi, dataStartMap, plati]);
+
+    const { tipuriAbonament } = useData();
+
     const SportivLink: React.FC<{ row: IstoricPlataDetaliat }> = ({ row }) => {
         const name = row.nume_complet_sportiv || '—';
         if (!row.sportiv_id || !onViewSportiv) return <span>{name}</span>;
@@ -343,6 +368,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         { id: 'grafice' as const,     label: 'Grafice',      icon: <TrendingUpIcon className="w-4 h-4" /> },
         { id: 'familii' as const,     label: 'Familii',      icon: <UsersIcon className="w-4 h-4" /> },
         { id: 'restante' as const,    label: 'Restanțe',     icon: <ExclamationTriangleIcon className="w-4 h-4 text-amber-400" /> },
+        { id: 'luni_lipsa' as const,  label: 'Luni Lipsă',  icon: <ExclamationTriangleIcon className="w-4 h-4 text-amber-400" /> },
     ];
 
     return (
@@ -1103,6 +1129,99 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         </div>
                     )}
                 </div>
+            )}
+
+            {/* ─── TAB: LUNI LIPSĂ (PLF-05) ─── */}
+            {activeTab === 'luni_lipsa' && (
+                <div className="space-y-4">
+                    {/* Empty state */}
+                    {sportiviCuLuniLipsa.length === 0 && (
+                        <Card>
+                            <div className="flex flex-col items-center gap-3 py-12 text-center">
+                                <CheckCircleIcon className="w-10 h-10 text-emerald-400 opacity-60" />
+                                <p className="text-slate-300 font-bold">Toți sportivii activi au facturile la zi.</p>
+                                <p className="text-slate-500 text-sm">Nicio lună de abonament neacoperită.</p>
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* Tabel desktop */}
+                    {sportiviCuLuniLipsa.length > 0 && (
+                        <div className="hidden md:block bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl overflow-hidden">
+                            <table className="w-full text-left text-sm">
+                                <thead>
+                                    <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+                                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Sportiv</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Data Start Facturare</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Nr. Luni Lipsă</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Acțiune</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[var(--t-border)]">
+                                    {sportiviCuLuniLipsa.map(({ sportiv, dataStart, luniLipsa }) => (
+                                        <tr key={sportiv.id} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
+                                            <td className="px-4 py-3 text-white font-medium">{formatNume(sportiv)}</td>
+                                            <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{formatDate(dataStart)}</td>
+                                            <td className="px-4 py-3 text-right">
+                                                <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                                    {luniLipsa.length} {luniLipsa.length === 1 ? 'lună' : 'luni'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setWizardSportiv(sportiv)}
+                                                    className="px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600/70 hover:bg-indigo-600 border border-indigo-500/50 rounded-lg transition-colors"
+                                                >
+                                                    Generează
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {/* Carduri mobile */}
+                    {sportiviCuLuniLipsa.length > 0 && (
+                        <div className="md:hidden space-y-2">
+                            {sportiviCuLuniLipsa.map(({ sportiv, dataStart, luniLipsa }) => (
+                                <div key={sportiv.id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <p className="text-white font-bold text-sm truncate">{formatNume(sportiv)}</p>
+                                            <p className="text-slate-400 text-xs mt-1">Start: {formatDate(dataStart)}</p>
+                                        </div>
+                                        <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                                            {luniLipsa.length} {luniLipsa.length === 1 ? 'lună' : 'luni'}
+                                        </span>
+                                    </div>
+                                    <div className="mt-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setWizardSportiv(sportiv)}
+                                            className="w-full py-2 text-xs font-semibold text-white bg-indigo-600/70 hover:bg-indigo-600 border border-indigo-500/50 rounded-lg transition-colors"
+                                        >
+                                            Generează facturi lipsă
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ─── WIZARD LUNI LIPSĂ (PLF-03) ─── */}
+            {wizardSportiv && (
+                <LuniLipsaWizard
+                    sportiv={wizardSportiv}
+                    plati={plati}
+                    tipuriAbonament={tipuriAbonament}
+                    setPlati={setPlati}
+                    onClose={() => setWizardSportiv(null)}
+                />
             )}
 
             {/* ─── MODAL FACTURĂ / CHITANȚĂ ─── */}

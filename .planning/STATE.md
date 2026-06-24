@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Plan 13-04 complete — FederatieComandaView + Fluxuri B/C + confirmaReceptieClub, checkpoint human-verify PASSED via Playwright
-last_updated: "2026-06-23T13:35:48.426Z"
-last_activity: 2026-06-23 -- Plan 13-04 complete (Fluxuri federație B+C + FederatieComandaView + confirmare recepție club)
+stopped_at: context exhaustion at 75% (2026-06-23)
+last_updated: "2026-06-23T20:21:16.292Z"
+last_activity: 2026-06-23 -- Phase 14 execution started
 progress:
-  total_phases: 5
-  completed_phases: 2
-  total_plans: 15
-  completed_plans: 11
-  percent: 40
+  total_phases: 6
+  completed_phases: 3
+  total_plans: 19
+  completed_plans: 14
+  percent: 50
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 13 — tracking-comenzi-produse
+**Current focus:** Phase 14 — corelare-prezente-facturi
 
 ## Current Position
 
-Phase: 13 (tracking-comenzi-produse) — EXECUTING
-Plan: 5 of 5 (13-04 complete — next: 13-05)
-Status: Executing Phase 13
-Last activity: 2026-06-23 -- Plan 13-04 complete (Fluxuri federație B+C + FederatieComandaView + confirmare recepție club)
+Phase: 14 (corelare-prezente-facturi) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 14
+Last activity: 2026-06-23 -- Phase 14 execution started
 
 ```
 Progress: [░░░░░░░░░░] 0% (0/2 phases)
@@ -107,6 +107,6 @@ None at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-06-23
-Stopped at: Plan 13-04 complete — FederatieComandaView + Fluxuri B/C + confirmaReceptieClub, checkpoint human-verify PASSED via Playwright
+Last session: 2026-06-23T18:03:02.059Z
+Stopped at: context exhaustion at 75% (2026-06-23)
 Resume file: .planning/phases/13-tracking-comenzi-produse/13-05-PLAN.md

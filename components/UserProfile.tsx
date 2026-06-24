@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect, useTransition } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, Grupa, VizualizarePlata } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge, Skeleton } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon, UserCircleIcon, ClipboardListIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, UsersIcon, CheckIcon, XIcon } from './icons';
+import { calculeazaLuniLipsa } from '../utils/luniLipsa';
+import { useDataStartFacturare } from '../hooks/useDataStartFacturare';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { SportivFormModal } from './Sportivi/SportivFormModal';
@@ -82,6 +84,25 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const [gradeEntryToEdit, setGradeEntryToEdit] = useState<{ id: string; grad_id: string; data_obtinere: string; observatii: string } | null>(null);
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric'>('profil');
+
+    // ─── PLF-05: data_start_facturare + badge luni lipsă ────────────────────
+    const { dataStartFacturare, setDataStartFacturare, isSaving: isSavingDataStart } = useDataStartFacturare(sportiv.id);
+    const [isEditingDataStart, setIsEditingDataStart] = useState(false);
+    const [dataStartInput, setDataStartInput] = useState('');
+
+    // Plăți ale acestui sportiv (pentru calcul badge)
+    const platiSportiv = useMemo(() => plati.filter(p => p.sportiv_id === sportiv.id), [plati, sportiv.id]);
+
+    const luniLipsaBadge = useMemo(() => {
+        if (sportiv.status !== 'Activ') return [];
+        return calculeazaLuniLipsa(dataStartFacturare, platiSportiv);
+    }, [dataStartFacturare, platiSportiv, sportiv.status]);
+
+    const handleSalveazaDataStart = () => {
+        if (!dataStartInput) return;
+        setDataStartFacturare(dataStartInput);
+        setIsEditingDataStart(false);
+    };
 
     const clubTheme = useMemo(() => {
         const club = clubs.find(c => c.id === sportiv.club_id);
@@ -670,7 +691,54 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                                     #{sportiv.cod_sportiv}
                                 </span>
                             )}
+                            {/* PLF-05: badge luni fără factură */}
+                            {sportiv.status === 'Activ' && dataStartFacturare && luniLipsaBadge.length > 0 && (
+                                <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                    {luniLipsaBadge.length} {luniLipsaBadge.length === 1 ? 'lună' : 'luni'} fără factură
+                                </span>
+                            )}
                         </div>
+                        {/* PLF-05: setare data_start_facturare (vizibil doar pentru admini) */}
+                        {isAdminOrAbove && (
+                            <div className="flex items-center gap-2 mt-2 justify-center md:justify-start">
+                                {!isEditingDataStart ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setDataStartInput(dataStartFacturare ?? ''); setIsEditingDataStart(true); }}
+                                        className="text-xs text-slate-500 hover:text-slate-300 transition-colors underline underline-offset-2"
+                                        title="Setează data de start a facturării abonamentului"
+                                    >
+                                        {dataStartFacturare
+                                            ? `Facturare din: ${new Date(dataStartFacturare).toLocaleDateString('ro-RO')}`
+                                            : 'Setează dată start facturare'}
+                                    </button>
+                                ) : (
+                                    <div className="flex items-center gap-1.5">
+                                        <input
+                                            type="date"
+                                            value={dataStartInput}
+                                            onChange={e => setDataStartInput(e.target.value)}
+                                            className="px-2 py-1 text-xs bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleSalveazaDataStart}
+                                            disabled={!dataStartInput || isSavingDataStart}
+                                            className="px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg transition-colors font-semibold"
+                                        >
+                                            {isSavingDataStart ? '...' : 'OK'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsEditingDataStart(false)}
+                                            className="px-2 py-1 text-xs text-slate-400 hover:text-white rounded-lg transition-colors"
+                                        >
+                                            Anulează
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-wrap justify-center gap-3 z-10">

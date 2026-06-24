@@ -192,7 +192,24 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                             if (row.every(cell => !String(cell || '').trim())) continue;
 
                             const obj: Record<string, any> = {};
-                            headers.forEach((h, idx) => { if (h) obj[h] = row[idx] ?? ''; });
+                            headers.forEach((h, idx) => {
+                                if (h) {
+                                    let val: any = row[idx] ?? '';
+                                    // Excel date serials formatted with short year (e.g. "2/10/16") fail
+                                    // validation. Detect and convert via XLSX.SSF to avoid timezone issues.
+                                    if (typeof val === 'string' && /^\d{1,2}\/\d{1,2}\/\d{2}$/.test(val)) {
+                                        const cellAddr = XLSX.utils.encode_cell({ r: i, c: idx });
+                                        const cell = ws[cellAddr];
+                                        if (cell && cell.t === 'n' && typeof cell.v === 'number') {
+                                            const parsed = (XLSX as any).SSF.parse_date_code(cell.v);
+                                            if (parsed && parsed.y > 1900) {
+                                                val = `${parsed.y}-${String(parsed.m).padStart(2, '0')}-${String(parsed.d).padStart(2, '0')}`;
+                                            }
+                                        }
+                                    }
+                                    obj[h] = val;
+                                }
+                            });
                             result.push(obj);
                         }
 

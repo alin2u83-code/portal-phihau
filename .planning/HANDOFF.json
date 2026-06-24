@@ -1,34 +1,28 @@
 {
   "version": "1.0",
-  "timestamp": "2026-06-23T08:38:02.944Z",
-  "phase": "13",
-  "phase_name": "tracking-comenzi-produse",
-  "phase_dir": ".planning/phases/13-tracking-comenzi-produse",
-  "plan": 3,
-  "task": 3,
-  "total_tasks": 3,
-  "status": "paused",
+  "timestamp": "2026-06-24T10:35:00+03:00",
+  "phase": "14",
+  "phase_name": "corelare-prezente-facturi",
+  "phase_dir": ".planning/phases/14-corelare-prezente-facturi",
+  "plan": 4,
+  "task": 4,
+  "total_tasks": 4,
+  "status": "phase_complete",
   "completed_tasks": [
-    {"id": "13-01", "name": "Schema DB + tipuri TS", "status": "done", "commit": "ab5af22"},
-    {"id": "13-02", "name": "comenziService CRUD + UI sportiv + tip_produs", "status": "done", "commit": "ab5af22"},
-    {"id": "13-03", "name": "Tab Comenzi admin + Flux A verificat", "status": "done", "commit": "d0bc998"}
+    {"id": "14-01", "name": "Fundație: migrație data_start_facturare + hooks + serviciu", "status": "done", "commit": "547a44b"},
+    {"id": "14-02", "name": "PLF-01 + PLF-04 în PlatiScadente și FinanciarTab", "status": "done", "commit": "bbe28b2"},
+    {"id": "14-03", "name": "PLF-02 + PLF-04 în GestiuneFacturi (month picker)", "status": "done", "commit": "57dc2a7"},
+    {"id": "14-04", "name": "LuniLipsaWizard + tab RaportFinanciar + badge profil (PLF-03, PLF-05)", "status": "done", "commit": "6a6dbf4"}
   ],
-  "remaining_tasks": [
-    {"id": "13-04", "name": "Fluxuri federație B+C + FederatieComandaView", "status": "not_started", "wave": 4, "autonomous": false},
-    {"id": "13-05", "name": "Exporturi PDF/Excel bon predare + RaportProduse extins", "status": "not_started", "wave": 4, "autonomous": true}
-  ],
-  "blockers": [
-    {
-      "description": "Worktree-uri stale: agent-acdd40bbaf83f7bb3 și agent-ae02533e1c86e7eb1",
-      "type": "technical",
-      "workaround": "git worktree remove --force + git branch -D + git worktree prune înainte de wave 4"
-    }
-  ],
+  "remaining_tasks": [],
+  "blockers": [],
   "human_actions_pending": [],
   "decisions": [
-    {"decision": "sportivi(nume, prenume, user_id) nu nome_complet", "rationale": "Coloana nome_complet nu există în DB — depistat via Playwright HTTP 400", "phase": "13"}
+    {"decision": "Playwright pentru toate verificările UI în loc de manual", "rationale": "Automatizare verificări repetitive — reduce timp și erori umane", "phase": "14"},
+    {"decision": "mcp__playwright__browser_type parametru 'target' nu 'ref'", "rationale": "Parametrul corect pentru MCP Playwright este 'target'; 'ref' cauzează InputValidationError", "phase": "14"},
+    {"decision": "Badge luni lipsă: filtrează p.luna != null && p.an != null", "rationale": "Abonamentele generate prin sistem au luna/an set; cele manuale pot să nu aibă — filtrul e corect", "phase": "14"}
   ],
   "uncommitted_files": [],
-  "next_action": "Curăță worktree-urile stale, apoi /gsd-execute-phase 13 --wave 4",
-  "context_notes": "Wave 3 complet verificat Playwright. 13-04 și 13-05 nu partajează fișiere — rulează în paralel. Checkpoint 13-04 poate fi verificat automat via Playwright."
+  "next_action": "Run /gsd-plan-phase 10 to plan Phase 10 — Raport Grade & Examene (last remaining phase in milestone v1.1)",
+  "context_notes": "Phase 14 fully complete and verified via Playwright. All 4 plans done. Phase 10 (Raport Grade & Examene) is the only unplanned/unstarted phase remaining in v1.1. It was skipped earlier — needs planning before execution."
 }

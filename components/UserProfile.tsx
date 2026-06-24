@@ -461,6 +461,25 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         if (!supabase) return;
         setIsDeleting(true);
 
+        // PLF-04 guard server-side: re-fetch statusul real din DB înainte de ștergere (T-14-04, T-14-06)
+        const { data: plataStatus, error: statusErr } = await supabase
+            .from('plati')
+            .select('status')
+            .eq('id', id)
+            .maybeSingle();
+        if (statusErr) {
+            setIsDeleting(false);
+            showError("Eroare la verificare", statusErr.message);
+            setPlataToDelete(null);
+            return;
+        }
+        if (plataStatus?.status === 'Achitat') {
+            setIsDeleting(false);
+            showError("Ștergere imposibilă", "Facturile achitate nu pot fi șterse.");
+            setPlataToDelete(null);
+            return;
+        }
+
         // Verifică dacă plata este referențiată de înscrieri la examene
         const { data: inscrieri, error: inscrieriError } = await supabase
             .from('inscrieri_examene')

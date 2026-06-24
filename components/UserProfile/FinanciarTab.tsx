@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Sportiv, TipAbonament, Familie, VizualizarePlata, Plata, Tranzactie } from '../../types';
 import { Card, Button, Skeleton, Modal } from '../ui';
-import { UsersIcon, ExclamationTriangleIcon, CalendarDaysIcon, EditIcon, TrashIcon, BanknotesIcon, CheckCircleIcon, WalletIcon } from '../icons';
+import { UsersIcon, ExclamationTriangleIcon, CalendarDaysIcon, EditIcon, TrashIcon, BanknotesIcon, CheckCircleIcon, WalletIcon, ChevronDownIcon, ChevronUpIcon } from '../icons';
+import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
+import { formatLuna } from '../../utils/luniLipsa';
 
 interface Incasare {
     data_plata: string;
@@ -29,6 +31,57 @@ interface FinanciarTabProps {
     setPlataToDelete: (plata: Plata | null) => void;
     tranzactii: Tranzactie[];
 }
+
+/** PLF-01: Sub-component afișare prezențe în modalul de detalii factură.
+ * Montat doar pentru facturi cu sportiv_id non-null (facturile de familie sunt omise — Pitfall 4).
+ */
+const PrezenteModalSection: React.FC<{
+    sportivId: string;
+    luna: number;
+    an: number;
+}> = ({ sportivId, luna, an }) => {
+    const [expanded, setExpanded] = useState(false);
+    const { data: datePrezente, isLoading } = usePrezenteLuna(sportivId, luna, an, true);
+
+    const lunaText = formatLuna(luna, an);
+    const count = datePrezente?.length ?? 0;
+
+    return (
+        <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/40">
+            <button
+                className="flex items-center gap-2 w-full text-left"
+                onClick={() => setExpanded(v => !v)}
+            >
+                <CalendarDaysIcon className="w-4 h-4 text-sky-400 shrink-0" />
+                <span className="text-xs font-semibold text-slate-300 flex-1">
+                    {isLoading ? (
+                        <span className="text-slate-500">Se încarcă prezențele...</span>
+                    ) : (
+                        <>Prezențe în {lunaText}: <span className="text-white font-bold">{count}</span></>
+                    )}
+                </span>
+                {!isLoading && (
+                    expanded
+                        ? <ChevronUpIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        : <ChevronDownIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                )}
+            </button>
+            {expanded && !isLoading && (
+                <div className="mt-2 pt-2 border-t border-slate-700/40 flex flex-wrap gap-1.5">
+                    {count === 0 ? (
+                        <span className="text-xs text-slate-500 italic">Nicio prezență înregistrată în această lună.</span>
+                    ) : (
+                        datePrezente!.map(d => (
+                            <span key={d} className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600/40">
+                                {new Date(d).toLocaleDateString('ro-RO')}
+                            </span>
+                        ))
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const cfg =
@@ -262,10 +315,19 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                                             onClick={() => setPlataToEdit(plati.find(pl => pl.id === p.plata_id) || null)}>
                                             <EditIcon className="w-3.5 h-3.5 mr-1" /> Editează
                                         </Button>
-                                        <Button size="sm" variant="danger"
-                                            onClick={() => setPlataToDelete(plati.find(pl => pl.id === p.plata_id) || null)}>
-                                            <TrashIcon className="w-3.5 h-3.5 mr-1" /> Șterge
-                                        </Button>
+                                        {/* PLF-04: buton Șterge dezactivat pentru facturi Achitat */}
+                                        {p.status === 'Achitat' ? (
+                                            <span title="Facturile achitate nu pot fi șterse" className="cursor-not-allowed">
+                                                <Button size="sm" variant="danger" disabled className="pointer-events-none opacity-40">
+                                                    <TrashIcon className="w-3.5 h-3.5 mr-1" /> Șterge
+                                                </Button>
+                                            </span>
+                                        ) : (
+                                            <Button size="sm" variant="danger"
+                                                onClick={() => setPlataToDelete(plati.find(pl => pl.id === p.plata_id) || null)}>
+                                                <TrashIcon className="w-3.5 h-3.5 mr-1" /> Șterge
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             );
@@ -334,6 +396,20 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                                 <p className="text-right text-xs text-slate-500">{procent.toFixed(0)}% achitat</p>
                             </div>
                         </div>
+
+                        {/* PLF-01: Prezențe în luna facturii — doar pentru facturi individuale Abonament */}
+                        {!isFamilie && p.sportiv_id && (() => {
+                            const d = new Date(p.data_emitere.slice(0, 10));
+                            const luna = d.getMonth() + 1; // 1-indexed (Pitfall 5)
+                            const an = d.getFullYear();
+                            return (
+                                <PrezenteModalSection
+                                    sportivId={p.sportiv_id}
+                                    luna={luna}
+                                    an={an}
+                                />
+                            );
+                        })()}
 
                         {/* Timeline încasări */}
                         <div>

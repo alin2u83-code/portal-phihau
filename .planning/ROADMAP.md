@@ -56,10 +56,11 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 14-01-PLAN.md — Fundație: migrație data_start_facturare + usePrezenteLuna + useDataStartFacturare + utils luniLipsa + facturaService — PLF-01, PLF-02, PLF-03, PLF-05
-- [ ] 14-02-PLAN.md — Prezențe în factură (PlatiScadente inline + modal FinanciarTab) + restricție ștergere — PLF-01, PLF-04
-- [ ] 14-03-PLAN.md — Generare factură manual (calendar picker, fără duplicate) + restricție ștergere — PLF-02, PLF-04
-- [ ] 14-04-PLAN.md — Wizard luni lipsă bulk + tab Luni Lipsă în RaportFinanciar + badge profil — PLF-03, PLF-05
+- [x] 14-01-PLAN.md — Fundație: migrație data_start_facturare + usePrezenteLuna + useDataStartFacturare + utils luniLipsa + facturaService — PLF-01, PLF-02, PLF-03, PLF-05
+- [x] 14-02-PLAN.md — Prezențe în factură (PlatiScadente inline + modal FinanciarTab) + restricție ștergere — PLF-01, PLF-04
+- [x] 14-03-PLAN.md — Generare factură manual (calendar picker, fără duplicate) + restricție ștergere — PLF-02, PLF-04
+- [x] 14-04-PLAN.md — Wizard luni lipsă bulk + tab Luni Lipsă în RaportFinanciar + badge profil — PLF-03, PLF-05
+
 **UI hint**: yes
 
 ### Phase 12: Modul Produse/Echipamente
@@ -152,7 +153,7 @@ Phase 11 — Wave 1 (paralel): 11-01, 11-03, 11-04 (fără conflicte de fișier)
 | 11. Prezenta Refactorizata | 4/4 | Complete | 2026-06-19 |
 | 12. Modul Produse/Echipamente | 5/5 | Complete   | 2026-06-20 |
 | 13. Tracking Comenzi Produse | 5/5 | Complete   | 2026-06-23 |
-| 14. Corelare Prezențe-Facturi | 0/4 | Not started | - |
+| 14. Corelare Prezențe-Facturi | 4/4 | Complete   | 2026-06-24 |
 
 ### Phase 14: Corelare Prezențe-Facturi
 
@@ -170,11 +171,11 @@ Phase 11 — Wave 1 (paralel): 11-01, 11-03, 11-04 (fără conflicte de fișier)
 
 **Plans**: 4 plans
 Plans:
+
 - [ ] 14-01-PLAN.md — Fundație: migrație data_start_facturare + usePrezenteLuna + util luni lipsă + serviciu factură — PLF-01..03,05
 - [ ] 14-02-PLAN.md — Prezențe în factură (PlatiScadente inline + modal FinanciarTab) + restricție ștergere — PLF-01, PLF-04
 - [ ] 14-03-PLAN.md — Generare Abonament per lună (month picker, fără duplicate) + restricție ștergere — PLF-02, PLF-04
 - [ ] 14-04-PLAN.md — Wizard luni lipsă + generare bulk + tab Luni Lipsă + badge profil — PLF-03, PLF-05
-
 
 ---
 

@@ -261,6 +261,13 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
             const rows = await parseFileData(file);
             if (rows.length === 0) { toast.error("Fișierul este gol sau nu are formatul corect."); setImporting(false); return; }
 
+            // Refetch sportivi existenți înainte de analiză — garantează date proaspete din DB
+            const { data: freshSportivi } = await supabase.from('sportivi').select('id, nume, prenume, data_nasterii, cnp, email, telefon, gen, adresa, locul_nasterii, cetatenia');
+            if (freshSportivi && freshSportivi.length > 0) {
+                setExistingSportivi(freshSportivi);
+            }
+            const sportiviPentruMatching = freshSportivi || existingSportivi;
+
             const duplicates: any[] = [];
             const uniques: any[] = [];
 
@@ -317,7 +324,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 let matchLoose: any = null;
                 let motivDuplicat = '';
 
-                for (const s of existingSportivi) {
+                for (const s of sportiviPentruMatching) {
                     const sNumeN = norm(s.nume);
                     const sPrenN = norm(s.prenume);
                     const sTelN = normTel(s.telefon);
@@ -415,7 +422,13 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         const buildUpdatePayload = (sportivData: any, existingSportiv: any, originalIndex: number) => {
             if (overwriteMode) return { ...sportivData };
             const selections = fieldSelections.get(originalIndex) || {};
-            const safe: any = { id: existingSportiv.id };
+            // Include câmpuri obligatorii (NOT NULL cu trigger) din existing — previne erori INSERT în upsert
+            const safe: any = {
+                id: existingSportiv.id,
+                nume: existingSportiv.nume,
+                prenume: existingSportiv.prenume,
+                data_nasterii: existingSportiv.data_nasterii,
+            };
             if (Object.keys(selections).length > 0) {
                 Object.keys(selections).forEach(key => {
                     if (selections[key] && sportivData[key] !== undefined) {
@@ -518,7 +531,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 setImportResult(result);
                 toast.success(`Import finalizat: ${result.adaugati.length} noi, ${result.actualizati.length} actualizati.`, { id: processingToastId });
 
-                const { data } = await supabase.from('sportivi').select('id, nume, prenume, data_nasterii');
+                const { data } = await supabase.from('sportivi').select('id, nume, prenume, data_nasterii, cnp, email, telefon, gen, adresa, locul_nasterii, cetatenia');
                 if (data) setExistingSportivi(data);
 
                 setStep(2);

@@ -7,8 +7,11 @@ import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { useData } from '../../contexts/DataContext';
+import { usePermissions } from '../../hooks/usePermissions';
 import { getPretValabil, getPretProdus } from '../../utils/pricing';
 import { formatNume } from '../../utils/formatareSportiv';
+import { genereazaFacturaAbonament } from '../../services/facturaService';
+import { formatLuna } from '../../utils/luniLipsa';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
 import { PeriodFilterBar } from './PeriodFilterBar';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
@@ -39,8 +42,15 @@ const initialFormState = {
 
 export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, currentUser, sportivi, plati, setPlati, setTranzactii, tipuriPlati, familii, onViewSportiv }) => {
     const { showError, showSuccess } = useError();
-    const { preturiConfig, tipuriAbonament, reduceri } = useData();
+    const { preturiConfig, tipuriAbonament, reduceri, activeRoleContext } = useData();
+    const permissions = usePermissions(activeRoleContext);
     const [formState, setFormState] = useState(initialFormState);
+
+    // PLF-02: state pentru generare abonament per lună
+    const [lunaGen, setLunaGen] = useState<number>(new Date().getMonth() + 1);
+    const [anGen, setAnGen] = useState<number>(new Date().getFullYear());
+    const [sportivGenId, setSportivGenId] = useState<string>('');
+    const [isGeneratingLuna, setIsGeneratingLuna] = useState(false);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -238,6 +248,58 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         }
     };
 
+    // PLF-02: generează factură Abonament pentru luna/an selectat
+    const handleGenerateAbonamentLuna = async () => {
+        if (!sportivGenId) {
+            showError('Date invalide', 'Selectați un sportiv.');
+            return;
+        }
+        if (!Number.isInteger(lunaGen) || lunaGen < 1 || lunaGen > 12) {
+            showError('Date invalide', 'Luna selectată este invalidă (1–12).');
+            return;
+        }
+        if (!Number.isInteger(anGen) || anGen < 2020 || anGen > 2100) {
+            showError('Date invalide', 'Anul selectat este invalid (2020–2100).');
+            return;
+        }
+
+        const sportiv = sportivi.find(s => s.id === sportivGenId);
+        if (!sportiv) {
+            showError('Eroare', 'Sportivul selectat nu a fost găsit.');
+            return;
+        }
+
+        // Calculează suma abonamentului identic cu logica useEffect (liniile 87-95)
+        let suma = 0;
+        if (sportiv.familie_id) {
+            const nr = sportivi.filter(s => s.familie_id === sportiv.familie_id && s.status === 'Activ').length;
+            const config = tipuriAbonament.find(ab => ab.numar_membri === nr) || tipuriAbonament.find(ab => ab.numar_membri === 1);
+            suma = config?.pret || 0;
+        } else {
+            const config = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id);
+            suma = config?.pret || 0;
+        }
+
+        setIsGeneratingLuna(true);
+        const { data, error } = await genereazaFacturaAbonament({
+            sportiv,
+            luna: lunaGen,
+            an: anGen,
+            suma,
+            descriere: 'Abonament ' + formatLuna(lunaGen, anGen),
+        });
+        setIsGeneratingLuna(false);
+
+        if (error) {
+            showError('Generare eșuată', error.message);
+            return;
+        }
+        if (data) {
+            setPlati(prev => [data, ...prev]);
+            showSuccess('Succes', 'Factura a fost generată pentru ' + formatLuna(lunaGen, anGen) + '.');
+        }
+    };
+
     const handleOpenEdit = (plata: Plata) => {
         setPlataToEdit(plata);
         setEditStatus(plata.status);
@@ -278,6 +340,15 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const handleDelete = async () => {
         if (!plataToDelete || !supabase) return;
         setIsDeleting(true);
+
+        // PLF-04: guard server-side — blochează ștergerea facturilor Achitat
+        const { data: checkPlata } = await supabase.from('plati').select('status').eq('id', plataToDelete.id).maybeSingle();
+        if (checkPlata?.status === 'Achitat') {
+            showError('Ștergere imposibilă', 'Facturile achitate nu pot fi șterse.');
+            setIsDeleting(false);
+            setPlataToDelete(null);
+            return;
+        }
 
         // Verifică dacă plata este referențiată de înscrieri la examene
         const { data: inscrieri, error: inscrieriError } = await supabase
@@ -449,7 +520,13 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     )}
                     <Button size="sm" variant="secondary" onClick={() => setPlataForView(p)} title="Vizualizează factura"><EyeIcon className="w-4 h-4" /></Button>
                     <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(p)} title="Editează"><EditIcon className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} title="Șterge"><TrashIcon className="w-4 h-4" /></Button>
+                    {p.status === 'Achitat' ? (
+                        <span title="Facturile achitate nu pot fi șterse" className="cursor-not-allowed">
+                            <Button size="sm" variant="danger" disabled className="pointer-events-none opacity-40"><TrashIcon className="w-4 h-4" /></Button>
+                        </span>
+                    ) : (
+                        <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} title="Șterge"><TrashIcon className="w-4 h-4" /></Button>
+                    )}
                 </div>
             )
         }
@@ -491,7 +568,13 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 )}
                 <Button size="sm" variant="secondary" onClick={() => setPlataForView(p)} className="flex-1 justify-center"><EyeIcon className="w-4 h-4 mr-2" /> Vizualizează</Button>
                 <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(p)} className="flex-1 justify-center"><EditIcon className="w-4 h-4 mr-2" /> Editează</Button>
-                <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} className="flex-1 justify-center"><TrashIcon className="w-4 h-4 mr-2" /> Șterge</Button>
+                {p.status === 'Achitat' ? (
+                    <span title="Facturile achitate nu pot fi șterse" className="cursor-not-allowed flex-1">
+                        <Button size="sm" variant="danger" disabled className="pointer-events-none opacity-40 w-full justify-center"><TrashIcon className="w-4 h-4 mr-2" /> Șterge</Button>
+                    </span>
+                ) : (
+                    <Button size="sm" variant="danger" onClick={() => setPlataToDelete(p)} className="flex-1 justify-center"><TrashIcon className="w-4 h-4 mr-2" /> Șterge</Button>
+                )}
             </div>
         </Card>
     );
@@ -574,6 +657,49 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     </div>
                 </form>
             </Card>
+
+            {permissions?.canManageFinances && (
+                <Card className="p-6 border-brand-primary/20 bg-slate-800/50">
+                    <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <PlusIcon className="w-5 h-5 text-brand-primary" />
+                        Generează Abonament pentru o lună
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <Select
+                            label="Sportiv"
+                            value={sportivGenId}
+                            onChange={e => setSportivGenId(e.target.value)}
+                        >
+                            <option value="">Selectează Sportiv</option>
+                            {clubSportivi.map(s => (
+                                <option key={s.id} value={s.id}>{formatNume(s)}</option>
+                            ))}
+                        </Select>
+                        <Input
+                            label="Lună"
+                            type="month"
+                            value={`${anGen}-${String(lunaGen).padStart(2, '0')}`}
+                            onChange={e => {
+                                const parts = e.target.value.split('-');
+                                if (parts.length === 2) {
+                                    setAnGen(parseInt(parts[0], 10));
+                                    setLunaGen(parseInt(parts[1], 10));
+                                }
+                            }}
+                        />
+                        <Button
+                            variant="success"
+                            onClick={handleGenerateAbonamentLuna}
+                            isLoading={isGeneratingLuna}
+                            disabled={isGeneratingLuna}
+                            className="w-full"
+                        >
+                            <PlusIcon className="w-5 h-5 mr-2" />
+                            Generează
+                        </Button>
+                    </div>
+                </Card>
+            )}
 
             <Card className="p-0 overflow-hidden">
                 <div className="p-4 bg-slate-700/50 flex flex-col gap-3">

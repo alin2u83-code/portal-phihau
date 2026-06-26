@@ -25,6 +25,9 @@ export const ClubSettings = lazy(() => import('./ClubSettings').then(m => ({ def
 export const ReduceriManagement = lazy(() => import('./Plati/Reduceri').then(m => ({ default: m.ReduceriManagement })));
 export const Notificari = lazy(() => import('./Notificari').then(m => ({ default: m.Notificari })));
 export const TaxeAnuale = lazy(() => import('./Plati/TaxeAnuale').then(m => ({ default: m.TaxeAnuale })));
+export const PerioadaVacantaView = lazy(() =>
+  import('./Plati/PerioadaVacanta').then(m => ({ default: m.PerioadaVacantaView }))
+);
 export const GestionareNomenclatoare = lazy(() => import('./Grade/GestionareNomenclatoare').then(m => ({ default: m.GestionareNomenclatoare })));
 export const FinancialDashboard = lazy(() => import('./Plati/FinancialDashboard').then(m => ({ default: m.FinancialDashboard })));
 export const GestiuneFacturi = lazy(() => import('./Plati/GestiuneFacturi').then(m => ({ default: m.GestiuneFacturi })));

@@ -162,7 +162,7 @@ const AddExternalAthleteModal: React.FC<{
     );
 };
 
-export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onAddSediinta?: () => void }> = ({ onSelectFull, onAddSediinta }) => {
+export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onAddSediinta?: () => void; refreshKey?: number }> = ({ onSelectFull, onAddSediinta, refreshKey }) => {
     const { prezentId } = useStatusePrezenta();
     const { saveAttendance } = useAttendance();
     const { showError } = useError();
@@ -270,7 +270,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
         setLoading(false);
     }, [today, showError, gradeById, clubId]);
 
-    useEffect(() => { fetchTrainings(); }, [fetchTrainings]);
+    useEffect(() => { fetchTrainings(); }, [fetchTrainings, refreshKey]);
 
     // Verifica daca o sectiune are modificari fata de starea initiala
     const hasUnsavedChanges = useCallback((section: TrainingSection): boolean => {

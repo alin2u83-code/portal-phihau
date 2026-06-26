@@ -180,6 +180,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
     const [viewStack, setViewStack] = useState<ViewState[]>([{ view: 'rapid', id: null }]);
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [showSediintaModal, setShowSediintaModal] = useState(false);
+    const [rapidRefreshKey, setRapidRefreshKey] = useState(0);
     const addMenuRef = useRef<HTMLDivElement>(null);
     const today = new Date().toLocaleDateString('sv-SE');
     const [grupe, setGrupe] = useState<(Grupa & { program: ProgramItem[], sportivi_count: {count: number}[] })[]>([]);
@@ -299,6 +300,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                         <PrezentaRapida
                             onSelectFull={handleSelectAntrenament}
                             onAddSediinta={canAdd ? () => setShowSediintaModal(true) : undefined}
+                            refreshKey={rapidRefreshKey}
                         />
                     </div>
                 );
@@ -455,7 +457,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                     clubId={activeRoleContext?.club_id ?? currentUser?.club_id ?? null}
                     today={today}
                     onClose={() => setShowSediintaModal(false)}
-                    onSaved={() => switchTab('rapid')}
+                    onSaved={() => { setRapidRefreshKey(k => k + 1); switchTab('rapid'); }}
                 />
             )}
 

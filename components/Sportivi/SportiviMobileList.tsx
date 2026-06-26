@@ -3,6 +3,7 @@ import { Sportiv, Familie, Grupa, Grad } from '../../types';
 import { Card, Button, RoleBadge } from '../ui';
 import { WalletIcon } from '../icons';
 import { GradBadge } from '../../utils/grades';
+import { formatNume } from '../../utils/formatareSportiv';
 
 interface SportiviMobileListProps {
   sportivi: Sportiv[];
@@ -53,7 +54,7 @@ export const SportiviMobileList: React.FC<SportiviMobileListProps> = (props) => 
             <Card key={sportiv.id} id={`row-${sportiv.id}`} onClick={() => onRowClick(sportiv)} className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-bold text-white text-lg mb-1">{sportiv.prenume} {sportiv.nume}</p>
+                  <p className="font-bold text-white text-lg mb-1">{formatNume(sportiv)}</p>
                   <GradBadge grad={grad} />
                   <p className="text-sm text-slate-400 mt-2">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
                 </div>

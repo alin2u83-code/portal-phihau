@@ -152,11 +152,11 @@ const AdaugaParticipantiModal: React.FC<AdaugaParticipantiModalProps> = ({
         const { error } = await supabase.from('participare_vacanta').insert(rows);
         if (error) {
             showError('Eroare adăugare participanți', error);
+            setIsSaving(false);
         } else {
             onSaved();
-            onClose();
+            onClose(); // component unmounts — no further state updates after this
         }
-        setIsSaving(false);
     };
 
     const allSelected = rezultateCautare.length > 0 && selected.size === rezultateCautare.length;
@@ -290,9 +290,13 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
             .from('participare_vacanta')
             .select('*, sportivi(id, nume, prenume, grad_actual_id, status)')
             .eq('perioada_id', perioadaId);
-        if (!error) setParticipari(prev => ({ ...prev, [perioadaId]: data ?? [] }));
+        if (error) {
+            showError('Eroare la încărcarea participanților', error);
+        } else {
+            setParticipari(prev => ({ ...prev, [perioadaId]: data ?? [] }));
+        }
         setLoadingParticipari(prev => ({ ...prev, [perioadaId]: false }));
-    }, []);
+    }, [showError]);
 
     const handleToggleExpand = (id: string) => {
         if (expandedId === id) { setExpandedId(null); return; }
@@ -304,43 +308,51 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
     const handleSavePeriada = async (values: { denumire: string; data_start: string; data_end: string }) => {
         if (!clubId) return;
         setIsSaving(true);
-        if (modalState?.mode === 'edit' && modalState.item) {
-            const { error } = await supabase
-                .from('perioade_vacanta')
-                .update(values)
-                .eq('id', modalState.item.id);
-            if (error) showError('Eroare la actualizare', error);
-            else { await fetchPerioade(); setModalState(null); }
-        } else {
-            const { error } = await supabase
-                .from('perioade_vacanta')
-                .insert({ ...values, club_id: clubId });
-            if (error) showError('Eroare la creare', error);
-            else { await fetchPerioade(); setModalState(null); }
+        try {
+            if (modalState?.mode === 'edit' && modalState.item) {
+                const { error } = await supabase
+                    .from('perioade_vacanta')
+                    .update(values)
+                    .eq('id', modalState.item.id)
+                    .eq('club_id', clubId);
+                if (error) showError('Eroare la actualizare', error);
+                else { await fetchPerioade(); setModalState(null); }
+            } else {
+                const { error } = await supabase
+                    .from('perioade_vacanta')
+                    .insert({ ...values, club_id: clubId });
+                if (error) showError('Eroare la creare', error);
+                else { await fetchPerioade(); setModalState(null); }
+            }
+        } finally {
+            setIsSaving(false);
         }
-        setIsSaving(false);
     };
 
     const handleDeletePeriada = async () => {
         if (!perioadaToDelete) return;
         setIsDeleting(true);
-        const { error } = await supabase
-            .from('perioade_vacanta')
-            .delete()
-            .eq('id', perioadaToDelete.id);
-        if (error) {
-            showError('Eroare la ștergere', error);
-        } else {
-            await fetchPerioade();
-            if (expandedId === perioadaToDelete.id) setExpandedId(null);
-            setParticipari(prev => {
-                const next = { ...prev };
-                delete next[perioadaToDelete.id];
-                return next;
-            });
+        try {
+            const { error } = await supabase
+                .from('perioade_vacanta')
+                .delete()
+                .eq('id', perioadaToDelete.id)
+                .eq('club_id', clubId);
+            if (error) {
+                showError('Eroare la ștergere', error);
+            } else {
+                await fetchPerioade();
+                if (expandedId === perioadaToDelete.id) setExpandedId(null);
+                setParticipari(prev => {
+                    const next = { ...prev };
+                    delete next[perioadaToDelete.id];
+                    return next;
+                });
+            }
+        } finally {
+            setIsDeleting(false);
+            setPerioadaToDelete(null);
         }
-        setIsDeleting(false);
-        setPerioadaToDelete(null);
     };
 
     // Scoatere participant individual
@@ -350,7 +362,7 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
             .delete()
             .eq('id', participareId);
         if (error) showError('Eroare la scoatere participant', error);
-        else fetchParticipanti(perioadaId);
+        else await fetchParticipanti(perioadaId);
     };
 
     // Mesaj confirmare ștergere cu număr participanți

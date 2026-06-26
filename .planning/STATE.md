@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: context exhaustion at 83% (2026-06-24)
-last_updated: "2026-06-24T10:31:03.197Z"
-last_activity: 2026-06-24 -- Phase 14 complete (PLF-01..PLF-05 verified)
+stopped_at: context exhaustion at 77% (2026-06-24)
+last_updated: "2026-06-24T14:28:02.135Z"
+last_activity: 2026-06-26 -- Quick task 260626-buf: sistem perioade vacanță antrenamente
 progress:
   total_phases: 6
   completed_phases: 4
@@ -80,11 +80,12 @@ None yet.
 
 ### Quick Tasks Completed
 
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
+| # | Description | Date | Commit | Status | Directory |
+|---|-------------|------|--------|--------|-----------|
 | 260609-vvj | Butoane ghost/transparente - adauga border si culoare pentru vizibilitate | 2026-06-09 | 86f64bb | [260609-vvj-butoane-ghost-transparente-adauga-border](./quick/260609-vvj-butoane-ghost-transparente-adauga-border/) |
 | 260610-ka8 | export Excel fise examen (notare + validare) | 2026-06-10 | 380b989 | [260610-ka8-export-excel-fise-examen-notare-validare](./quick/260610-ka8-export-excel-fise-examen-notare-validare/) |
 | 260615-financiar | Filtre perioade + editare sume în modulul Financiar | 2026-06-15 | - | [260615-financiar-filtre-perioade-editare-sume](./quick/260615-financiar-filtre-perioade-editare-sume/) |
+| 260626-buf | Sistem perioade vacanță antrenamente — CRUD + selecție sportivi participanți | 2026-06-26 | 3c548b1 | Needs Review | [260626-buf-task-3-perioade-vacanta-antrenamente](./quick/260626-buf-task-3-perioade-vacanta-antrenamente/) |
 
 ### Blockers/Concerns
 
@@ -107,6 +108,6 @@ None at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-06-24T10:31:03.167Z
-Stopped at: context exhaustion at 83% (2026-06-24)
+Last session: 2026-06-24T14:28:02.091Z
+Stopped at: context exhaustion at 77% (2026-06-24)
 Resume file: .planning/phases/13-tracking-comenzi-produse/13-05-PLAN.md

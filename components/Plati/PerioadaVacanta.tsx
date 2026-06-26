@@ -9,6 +9,7 @@ import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useData } from '../../contexts/DataContext';
+import { usePermissions } from '../../hooks/usePermissions';
 
 // Helper formatare dată în format românesc: "01 Ian 2026"
 function formatDataRo(dateStr: string): string {
@@ -245,11 +246,12 @@ const AdaugaParticipantiModal: React.FC<AdaugaParticipantiModalProps> = ({
 // ─── View Principal ───────────────────────────────────────────────────────────
 
 export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack }) => {
-    const { filteredData, activeRoleContext, permissions } = useData();
+    const { filteredData, activeRoleContext } = useData();
     const { showError } = useError();
+    const permissions = usePermissions(activeRoleContext);
 
     const clubId = activeRoleContext?.club_id;
-    const isAdmin = permissions?.isAdminClub || permissions?.isFederationAdmin;
+    const isAdmin = permissions.isAdminClub || permissions.isFederationAdmin;
 
     // State principal
     const [perioade, setPerioade] = useState<PerioadaVacanta[]>([]);

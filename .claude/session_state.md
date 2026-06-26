@@ -1,35 +1,35 @@
 # Session State
-**2026-06-17 11:36** | Branch: main
+**2026-06-26 09:57** | Branch: main
 
 ## Fisiere modificate
 ```
  M .claude/hooks/.last-captured-hash
  M .claude/session_state.md
  M .claude/settings.local.json
- D .planning/HANDOFF.json
- M .planning/config.json
- D .playwright-mcp/console-2026-06-09T20-02-48-862Z.log
- D .playwright-mcp/console-2026-06-09T20-09-09-946Z.log
- D .playwright-mcp/console-2026-06-09T20-28-50-076Z.log
- D .playwright-mcp/console-2026-06-09T20-37-15-770Z.log
- D .playwright-mcp/console-2026-06-09T20-45-06-024Z.log
- D .playwright-mcp/console-2026-06-09T20-47-16-151Z.log
- D .playwright-mcp/console-2026-06-09T20-56-03-625Z.log
- M components/Sportivi/ImportSportiviPage/index.tsx
- M components/Sportivi/ImportSportiviPage/types.ts
- M components/Sportivi/ImportSportiviPage/utils.tsx
- M utils/date.ts
-?? .planning/debug/import-examene-proceseaza-20260611.md
-?? .planning/phases/03-calendar-crud-antrenamente/03-PATTERNS.md
-?? .planning/quick/260615-financiar-filtre-perioade-editare-sume/
-?? .playwright-mcp/01-dashboard.png
+ M .planning/STATE.md
+ M .planning/phases/13-tracking-comenzi-produse/13-RESEARCH.md
+ D .playwright-mcp/console-2026-06-11T10-42-07-880Z.log
+ D .playwright-mcp/console-2026-06-11T13-53-05-702Z.log
+ D .playwright-mcp/console-2026-06-11T13-59-17-873Z.log
+ D .playwright-mcp/console-2026-06-11T14-15-26-341Z.log
+ D .playwright-mcp/console-2026-06-15T12-50-27-191Z.log
+ D .playwright-mcp/console-2026-06-15T13-24-57-864Z.log
+ D .playwright-mcp/console-2026-06-15T13-52-16-510Z.log
+ D .playwright-mcp/console-2026-06-15T13-56-07-097Z.log
+ D .playwright-mcp/console-2026-06-16T08-50-15-731Z.log
+ D .playwright-mcp/console-2026-06-17T06-37-33-290Z.log
+ D .playwright-mcp/console-2026-06-17T06-45-58-603Z.log
+ M .playwright-mcp/console-2026-06-17T06-47-14-647Z.log
+ D .playwright-mcp/console-verify.log
+ M .playwright-mcp/reports/INDEX.md
+?? .claude/worktrees/
 ```
 
 ## Ultimele commit-uri
 ```
-95483fd docs: plan implementare import flexibil sportivi - 6 task-uri, cod complet
-dd506d0 docs: spec import flexibil sportivi — wizard 4 pasi, selectie campuri, comparatie DB vs fisier
-78822d7 fix(sidebar): dual-ref mobile role switcher, club name, false className
-ff74a72 docs(09): add code review fix report
-44b5fe5 fix(09): WR-05 relabel Scadenta column to Data emitere in raportLunarData table
+6290bb2 fix(header): adaugă titlu VIEW_TITLES pentru perioade-vacanta
+43e5778 docs(quick-260626-buf): sistem perioade vacanță antrenamente — plan + summary + verificare
+3c548b1 fix(quick-260626-buf-01): code review fixes — error handling + club_id filter + finally blocks
+a05ca55 fix(quick-260626-buf-01): importă usePermissions direct - permissions nu e în useData()
+5a2cfde feat(quick-260626-buf-01): wiring complet menu + LazyComponents + AppRouter
 ```

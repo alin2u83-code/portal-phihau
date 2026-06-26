@@ -10,6 +10,7 @@ import { SportivFormModal } from './Sportivi/SportivFormModal';
 import { SportivWallet } from './Sportivi/SportivWallet';
 import { DeleteAuditModal } from './Sportivi/DeleteAuditModal';
 import { SportivFeedbackReport } from './Sportivi/SportivFeedbackReport';
+import { RaportCompletSportiv } from './Sportivi/RaportCompletSportiv';
 import { SportivProgressChart, ChartDataPoint } from './Sportivi/SportivProgressChart';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../constants';
 import { AddGradeModal } from './Grade/AddGradeModal';
@@ -79,6 +80,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [isRaportCompletOpen, setIsRaportCompletOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isAddGradeModalOpen, setIsAddGradeModalOpen] = useState(false);
     const [gradeEntryToEdit, setGradeEntryToEdit] = useState<{ id: string; grad_id: string; data_obtinere: string; observatii: string } | null>(null);
@@ -759,6 +761,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         </>
                     )}
                     {isAdminOrAbove && (
+                        <Button variant="secondary" onClick={() => setIsRaportCompletOpen(true)} className="shadow-sm hover:shadow-md transition-all" title="Raport financiar + prezențe">
+                            <ClipboardListIcon className="w-4 h-4 mr-2"/> Raport
+                        </Button>
+                    )}
+                    {isAdminOrAbove && (
                         <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)} className="shadow-sm hover:shadow-md transition-all">
                             <TrashIcon className="w-4 h-4 mr-2"/> Șterge
                         </Button>
@@ -879,6 +886,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allSportivi={sportivi} vizualizarePlati={vizualizarePlati} allPlati={plati} setPlati={setPlati} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
+            {isRaportCompletOpen && <RaportCompletSportiv isOpen={isRaportCompletOpen} onClose={() => setIsRaportCompletOpen(false)} sportiv={sportiv} />}
             {isTransferModalOpen && <TransferModal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} sportiv={sportiv} clubs={clubs} onTransferComplete={(updatedSportiv) => { setSportivi(p => p.map(s => s.id === updatedSportiv.id ? updatedSportiv : s)); setIsTransferModalOpen(false); }} />}
             {isAddGradeModalOpen && <AddGradeModal isOpen={isAddGradeModalOpen} onClose={() => setIsAddGradeModalOpen(false)} onSave={handleAddGrade} sportiv={sportiv} grades={grade} />}
             {gradeEntryToEdit && <AddGradeModal isOpen={!!gradeEntryToEdit} onClose={() => setGradeEntryToEdit(null)} onSave={handleEditGrade} sportiv={sportiv} grades={grade} initialData={gradeEntryToEdit} />}

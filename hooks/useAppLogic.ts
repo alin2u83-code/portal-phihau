@@ -28,7 +28,7 @@ export const useAppLogic = () => {
 
     const handleLogout = useCallback(async () => {
         try {
-            logAuditEvent({ operatie: 'LOGOUT', userId: currentUser?.id ?? null });
+            await logAuditEvent({ operatie: 'LOGOUT', userId: currentUser?.user_id ?? session?.user?.id ?? null });
             localStorage.removeItem('phi-hau-active-role-context-id');
             localStorage.removeItem('phi-hau-active-view');
             localStorage.removeItem('activeRole');
@@ -38,7 +38,7 @@ export const useAppLogic = () => {
             console.error('Logout error:', error);
             window.location.href = '/';
         }
-    }, []);
+    }, [currentUser, session]);
 
     const handleSwitchRole = useCallback(async (targetContext: any) => {
         if (!targetContext?.id) {

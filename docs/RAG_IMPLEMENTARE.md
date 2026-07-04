@@ -229,7 +229,7 @@ când sunt găsite rezultate relevante.
       ├── pgvector găsește top-5 chunks similare
       └── Returnează chunks cu similarity score
 4. system prompt = agent.buildSystemPrompt() + formatRAGContext(chunks)
-5. POST /api/claude-proxy cu system prompt îmbogățit
+5. POST /api/llm-proxy?provider=groq cu system prompt îmbogățit
 6. Claude răspunde cu informații concrete din knowledge base
 ```
 

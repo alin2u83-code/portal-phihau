@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 14 (corelare-prezente-facturi) — COMPLETE
 Plan: 4/4
 Status: All plans verified via Playwright
-Last activity: 2026-07-04 -- Completed quick task 260704-nbx: fix status stale hub Înscriere club după retragere echipă
+Last activity: 2026-07-05 -- Completed quick task 260704-x9p: sistem istoric activitate SUPER_ADMIN_FEDERATIE (audit_log extins, Jurnal Audit)
 
 ```
 Progress: [████████░░] 83% (5/6 phases)
@@ -87,6 +87,7 @@ None yet.
 | 260615-financiar | Filtre perioade + editare sume în modulul Financiar | 2026-06-15 | - | [260615-financiar-filtre-perioade-editare-sume](./quick/260615-financiar-filtre-perioade-editare-sume/) |
 | 260626-buf | Sistem perioade vacanță antrenamente — CRUD + selecție sportivi participanți | 2026-06-26 | 3c548b1 | Needs Review | [260626-buf-task-3-perioade-vacanta-antrenamente](./quick/260626-buf-task-3-perioade-vacanta-antrenamente/) |
 | 260704-nbx | Fix status stale hub Înscriere club după retragere echipă — re-fetch echipeFormate | 2026-07-04 | a700a79 | Verified | [260704-nbx-fix-status-stale-hub-inscriere-club-dupa](./quick/260704-nbx-fix-status-stale-hub-inscriere-club-dupa/) |
+| 260704-x9p | Sistem istoric activitate SUPER_ADMIN_FEDERATIE — audit_log extins, triggere CRUD, logare login/logout/rol, pagina Jurnal Audit | 2026-07-05 | 6a6abe8 | Verified | [260704-x9p-sistem-istoric-activitate-super-admin-fe](./quick/260704-x9p-sistem-istoric-activitate-super-admin-fe/) |
 
 ### Blockers/Concerns
 

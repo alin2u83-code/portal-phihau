@@ -201,7 +201,7 @@ export const SMSConfigurare: React.FC<SMSConfigurareProps> = ({
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await fetch('/api/sms-test-connection', {
+      const res = await fetch('/api/sms?action=test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ club_id: selectedClubId, test_phone: testPhone }),

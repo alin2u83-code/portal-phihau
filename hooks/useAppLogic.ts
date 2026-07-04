@@ -4,6 +4,7 @@ import { useError } from '../components/ErrorProvider';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useRoleManager } from '../hooks/useRoleManager';
 import { useData } from '../contexts/DataContext';
+import { logAuditEvent } from '../services/auditLogService';
 import { View } from '../types';
 
 export const useAppLogic = () => {
@@ -27,6 +28,7 @@ export const useAppLogic = () => {
 
     const handleLogout = useCallback(async () => {
         try {
+            logAuditEvent({ operatie: 'LOGOUT', userId: currentUser?.id ?? null });
             localStorage.removeItem('phi-hau-active-role-context-id');
             localStorage.removeItem('phi-hau-active-view');
             localStorage.removeItem('activeRole');

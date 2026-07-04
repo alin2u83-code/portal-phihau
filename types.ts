@@ -533,6 +533,20 @@ export interface Permissions {
   hasClubFilter: boolean;
 }
 
+export interface AuditLogEntry {
+  id: string;
+  created_at: string;
+  user_id: string | null;
+  club_id: string | null;
+  role_context_id: string | null;
+  tabel: string;
+  operatie: 'INSERT' | 'UPDATE' | 'DELETE' | 'SELECT_SENSIBIL' | 'LOGIN' | 'LOGOUT' | 'ROL_SCHIMBAT';
+  rand_id: string | null;
+  date_vechi: Record<string, any> | null;
+  date_noi: Record<string, any> | null;
+  sursa: string;
+}
+
 export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'istoric-plati' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi' | 'structura-federatie' | 'deconturi-federatie' | 'istoric-prezenta' | 'account-settings' | 'federation-dashboard' | 'gestiune-facturi' | 'fisa-digitala' | 'fisa-competitie' | 'prezenta-instructor' | 'arhiva-prezente' | 'raport-activitate' | 'admin-console' | 'raport-lunar-prezenta' | 'raport-interval-examen' | 'portal-sportiv-admin' | 'admin-dashboard' | 'rapoarte' | 'program-antrenamente' | 'legitimatii' | 'import-sportivi' | 'istoric-activitate' | 'deduplicare-sportivi' | 'cereri-inscriere' | 'activitati-nationale' | 'inlantuiri-admin' | 'admin-sms' | 'template-probe' | 'setup-mfa' | 'button-catalog' | 'produse' | 'vanzari-produse' | 'perioade-vacanta';
 
 export interface VederePrezentaSportiv {

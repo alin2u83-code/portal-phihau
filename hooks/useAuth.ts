@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { createAccount, CreateAccountParams } from '../services/authService';
+import { logAuditEvent } from '../services/auditLogService';
 import { getAuthErrorMessage } from '../utils/error';
 
 export function useAuth() {
@@ -27,6 +28,8 @@ export function useAuth() {
             if (authError) {
                 throw new Error(getAuthErrorMessage(authError));
             }
+
+            logAuditEvent({ operatie: 'LOGIN', userId: data.user?.id ?? null });
 
             return data;
         } catch (err: any) {

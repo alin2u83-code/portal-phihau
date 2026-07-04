@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
 import { useLocalStorage } from './useLocalStorage';
+import { logAuditEvent } from '../services/auditLogService';
 
 export const useRoleManager = (userId: string | undefined) => {
     const { showError } = useError();
@@ -33,6 +34,7 @@ export const useRoleManager = (userId: string | undefined) => {
 
             // Salvăm în local storage și dăm refresh
             setActiveRoleContextId(newContextId);
+            logAuditEvent({ operatie: 'ROL_SCHIMBAT', userId, roleContextId: newContextId });
             window.location.reload();
         } catch (error: any) {
             showError("Eroare la schimbarea rolului", error.message);

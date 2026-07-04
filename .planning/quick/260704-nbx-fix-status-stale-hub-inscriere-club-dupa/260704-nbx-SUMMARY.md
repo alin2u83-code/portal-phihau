@@ -65,7 +65,7 @@ Toate propurile noi sunt opționale (`?`) — API-ul componentelor rămâne comp
 4. ✅ Zero erori JS în consolă pe tot fluxul.
 5. ✅ Date de test curățate: Înscrieri (0), Sincron 0/12.
 
-Screenshot: `verify-fix-stale-hub-0of12-no-refresh.png` (rădăcina repo).
+Screenshot: `.playwright-mcp/verify-fix-stale-hub-0of12-no-refresh.png`.
 
 ## Deviations from Plan
 

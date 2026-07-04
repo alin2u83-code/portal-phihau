@@ -15,7 +15,7 @@ export type { PickCategorie, IndivPicks } from './types';
 const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   competitie, probe, categorii, sportivi, grade,
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
-  onOpenEditEchipa, onOpenInscriereModal,
+  onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh,
 }) => {
   // step: 'hub'=carduri probe, 1=selectare sportivi (doar quyen), 2=quyen, 3=echipe/giao_dau, 4=sumar
   const [step, setStep] = useState<1 | 'hub' | 2 | 3 | 4>('hub');
@@ -300,6 +300,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
           return next;
         })}
         onOpenInscriereModal={(cat) => onOpenInscriereModal?.(cat)}
+        onEchipeRefresh={onEchipeRefresh}
         onBack={() => setStep('hub')}
       />
     );

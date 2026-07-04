@@ -462,6 +462,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 myClubId={myClubId}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}
+                onEchipeRefresh={fetchDataSilent}
                 onOpenInscriereModal={(cat, goToHub) => {
                   setInscriereModal(cat);
                   goToHubAfterModalRef.current = goToHub ?? null;

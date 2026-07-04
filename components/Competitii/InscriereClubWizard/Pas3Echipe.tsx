@@ -23,6 +23,8 @@ interface Pas3Props {
   skippedCategorii?: Set<string>;
   onToggleSkipCategorie?: (catId: string) => void;
   onOpenInscriereModal?: (cat: CategorieCompetitie) => void;
+  /** Refresh silențios al prop-ului `echipe` (fetchDataSilent) — apelat după retragere/reset echipă */
+  onEchipeRefresh?: () => void;
   onBack: () => void;
 }
 
@@ -30,7 +32,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   categorii, probe, echipe, clubId, sportivi, grade, dataCompetitie,
   competitieId, clubSolicitantId,
   skippedCategorii, onToggleSkipCategorie,
-  onOpenInscriereModal, onBack,
+  onOpenInscriereModal, onEchipeRefresh, onBack,
 }) => {
   const { showError } = useError();
   const [cereriInterclub, setCereriInterclub] = useState<Map<string, 'pending' | 'aprobat' | 'respins'>>(new Map());
@@ -93,6 +95,8 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
         .eq('id', echipaId);
       if (error) { showError('Retragere echipă', error.message); return; }
       setEchipeRetraseLocal(prev => new Set(prev).add(echipaId));
+      // Refresh silențios al prop-ului `echipe` de nivel competiție (hub-ul reflectă imediat starea reală)
+      onEchipeRefresh?.();
     }
     // Marchează categoria ca skipped în parent state
     if (!(skippedCategorii?.has(catId))) onToggleSkipCategorie?.(catId);
@@ -300,7 +304,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                     {onToggleSkipCategorie && areEligibili && isCatSkipped && (
                       <button
                         type="button"
-                        onClick={() => onToggleSkipCategorie(cat.id)}
+                        onClick={() => { onToggleSkipCategorie(cat.id); onEchipeRefresh?.(); }}
                         style={{ touchAction: 'manipulation' }}
                         className="text-xs text-brand-primary underline hover:text-white transition-colors"
                       >

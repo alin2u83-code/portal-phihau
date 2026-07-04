@@ -54,7 +54,7 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
 
             // Dacă sportivul are cont de login, actualizăm și în auth.users
             if (currentSportiv.user_id) {
-                const response = await fetch('/api/schimba-email', {
+                const response = await fetch('/api/account?action=email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: currentSportiv.user_id, new_email: newEmail }),
@@ -86,7 +86,7 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
             if (usernameError) throw usernameError;
 
             if (currentSportiv.user_id) {
-                const response = await fetch('/api/schimba-username', {
+                const response = await fetch('/api/account?action=username', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: currentSportiv.user_id, username: newUsername.trim() }),

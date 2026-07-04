@@ -80,7 +80,7 @@ export async function askClaude(
 ): Promise<string> {
   const systemPrompt = buildSystemPrompt(context);
 
-  const response = await fetch('/api/groq-proxy', {
+  const response = await fetch('/api/llm-proxy?provider=groq', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, system: systemPrompt }),

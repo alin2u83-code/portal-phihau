@@ -9,8 +9,11 @@ function claudeProxyPlugin(apiKey: string): Plugin {
     name: 'claude-proxy-dev',
     configureServer(server) {
       server.middlewares.use(
-        '/api/claude-proxy',
-        (req: IncomingMessage, res: ServerResponse) => {
+        '/api/llm-proxy',
+        (req: IncomingMessage, res: ServerResponse, next: (err?: any) => void) => {
+          const provider = new URL(req.url || '', 'http://localhost').searchParams.get('provider');
+          if (provider !== 'claude') return next();
+
           if (req.method !== 'POST') {
             res.writeHead(405, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Method not allowed' }));

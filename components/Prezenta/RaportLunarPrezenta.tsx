@@ -7,7 +7,7 @@ import { useData } from '../../contexts/DataContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { supabase } from '../../supabaseClient';
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Helpers ─────────────────────────────────────────────────────────────────â”€â”€â”€â”€
 
 const exportToCsv = (filename: string, rows: object[]) => {
     if (!rows || rows.length === 0) {
@@ -48,7 +48,7 @@ const fmtDate = (d: string | null | undefined) => {
     return new Date(d.slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO');
 };
 
-// â”€â”€â”€ Tipuri â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Tipuri ───────────────────────────────────────────────────────────────────â”€â”€â”€â”€
 
 interface GrupaBreakdown {
     grupaId: string;
@@ -84,7 +84,7 @@ interface RaportLunarPrezentaProps {
     onBack: () => void;
 }
 
-// â”€â”€â”€ Componentă principală â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Componentă principală ────────────────────────────────────────────────────
 
 export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack }) => {
     const { filteredData, grade, activeRoleContext } = useData();
@@ -95,7 +95,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
 
     const clubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
 
-    // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── State ─────────────────────────────────────────────────────────────────
     const [grupeSecundareMap, setGrupeSecundareMap] = useState<Map<string, Set<string>>>(new Map());
     const [sesiuniExamene, setSesiuniExamene] = useState<SesiuneExamenMinim[]>([]);
     const [loadingExamene, setLoadingExamene] = useState(false);
@@ -108,7 +108,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         grupaId: '',
     });
 
-    // â”€â”€ Fetch grupe secundare â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Fetch grupe secundare ─────────────────────────────────────────────────
     useEffect(() => {
         const fetchGrupeSecundare = async () => {
             let query = supabase
@@ -136,7 +136,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         fetchGrupeSecundare();
     }, [grupe, permissions.isFederationLevel]);
 
-    // â”€â”€ Fetch sesiuni examene â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Fetch sesiuni examene ─────────────────────────────────────────────────
     useEffect(() => {
         const fetchExamene = async () => {
             setLoadingExamene(true);
@@ -160,7 +160,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         fetchExamene();
     }, [clubId]);
 
-    // â”€â”€ Calculează intervalul perioadei de examen (din perspectiva lunii selectate) â”€
+    // ── Calculează intervalul perioadei de examen (din perspectiva lunii selectate) ──
     const perioadaExamen = useMemo(() => {
         // Luăm data de referință = prima zi a lunii selectate
         const refDate = new Date(filters.year, filters.month, 1);
@@ -172,7 +172,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             .sort();
 
         if (sortedDates.length === 0) {
-            // Nu există examene în DB â€” perioada = de la data_inscrierii sau 2024-01-01 până azi
+            // Nu există examene în DB — perioada = de la data_inscrierii sau 2024-01-01 până azi
             return { start: null, end: todayStr };
         }
 
@@ -187,7 +187,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         return { start, end };
     }, [sesiuniExamene, filters.year, filters.month, today]);
 
-    // â”€â”€ Toggle expand row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Toggle expand row ─────────────────────────────────────────────────────
     const toggleExpand = (sportivId: string) => {
         setExpandedRows(prev => {
             const next = new Set(prev);
@@ -202,7 +202,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         setFilters(prev => ({ ...prev, [name]: name === 'grupaId' ? value : parseInt(value, 10) }));
     };
 
-    // â”€â”€ Calcul date raport â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Calcul date raport ────────────────────────────────────────────────────
     const reportData = useMemo((): ReportRow[] => {
         const { month, year, grupaId } = filters;
 
@@ -238,7 +238,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             return true;
         });
 
-        // Map grupă id â†’ denumire
+        // Map grupă id → denumire
         const grupeMap = new Map(grupe.map(g => [g.id, g.denumire]));
 
         return sportiviFiltrati.map(sportiv => {
@@ -253,7 +253,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             const grupaSportivExista = sportiv.grupa_id && grupe.find(g => g.id === sportiv.grupa_id);
             if (!grupaSportivExista && !grupaId && grupeDeContorizat.size === 0) return null;
 
-            // â”€â”€ Prezențe luna curentă â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── Prezențe luna curentă ────────────────────────────────────────────
             const antrenamenteGrupaLuna = antrenamenteInLuna.filter(
                 a => a.grupa_id && grupeDeContorizat.has(a.grupa_id)
             );
@@ -262,7 +262,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                 (a.prezenta || []).some((p: any) => p.sportiv_id === sportiv.id && p.status?.este_prezent === true)
             ).length;
 
-            // â”€â”€ Prezențe perioadă examen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── Prezențe perioadă examen ──────────────────────────────────────────
             const antrenamenteGrupaPeriodaExamen = antrenamentePerioadaExamen.filter(
                 a => a.grupa_id && grupeDeContorizat.has(a.grupa_id)
             );
@@ -271,7 +271,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                 (a.prezenta || []).some((p: any) => p.sportiv_id === sportiv.id && p.status?.este_prezent === true)
             ).length;
 
-            // â”€â”€ Breakdown per grupă (luna curentă) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── Breakdown per grupă (luna curentă) ────────────────────────────────
             const grupeBreakdown: GrupaBreakdown[] = [];
             grupeDeContorizat.forEach(gid => {
                 const antTrGrupa = antrenamenteInLuna.filter(a => a.grupa_id === gid);
@@ -311,7 +311,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
 
     }, [filters, sportivi, grupe, antrenamente, grade, grupeSecundareMap, perioadaExamen]);
 
-    // â”€â”€ Export CSV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Export CSV ────────────────────────────────────────────────────────────
     const handleExport = () => {
         const dataToExport = reportData.map(d => ({
             "Nume Sportiv": d.nume,
@@ -334,7 +334,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
     }));
     const years = [2024, 2025, 2026];
 
-    // â”€â”€ Randare perioadă examen header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Randare perioadă examen header ────────────────────────────────────────
     const perioadaLabel = useMemo(() => {
         const { start, end } = perioadaExamen;
         const startStr = start ? `după ${fmtDate(start)}` : 'De la început';
@@ -393,7 +393,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                     </p>
                 ) : (
                     <>
-                        {/* â”€â”€ Tabel desktop â”€â”€ */}
+                        {/* ── Tabel desktop ── */}
                         <div className="hidden md:block overflow-x-auto">
                             <table className="w-full text-left text-sm">
                                 <thead style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
@@ -508,7 +508,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                             </table>
                         </div>
 
-                        {/* â”€â”€ Carduri mobile â”€â”€ */}
+                        {/* ── Carduri mobile ── */}
                         <div className="md:hidden divide-y divide-slate-700/50">
                             {reportData.map(row => {
                                 const atRisk = row.attendedTrainings < 5;

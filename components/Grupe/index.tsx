@@ -118,6 +118,13 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
             if (newGrupa) {
                 const { data: finalGrupa } = await supabase.from('grupe').select('*, sportivi!grupa_id(count), program:orar_saptamanal!grupa_id(*)').eq('id', newGrupa.id).single();
                 setGrupe(prev => [...(prev as GrupaWithDetails[]), finalGrupa as GrupaWithDetails]);
+                // BUG-4 fix: invalidateQueries nu forțează un refetch real dacă cache-ul
+                // localStorage (cache_grupe_*, TTL 10 min în hooks/useGrupe.ts) e încă valid —
+                // queryFn îl întoarce direct, fără să mai interogheze Supabase. Golim cache-ul
+                // local, la fel ca în handleRefresh, ca grupa nou creată să apară imediat în listă.
+                Object.keys(localStorage)
+                    .filter(k => k.startsWith('cache_grupe_'))
+                    .forEach(k => clearCache(k));
                 queryClient.invalidateQueries({ queryKey: ['grupe'] });
                 showSuccess("Succes", "Grupa a fost creată.");
             }

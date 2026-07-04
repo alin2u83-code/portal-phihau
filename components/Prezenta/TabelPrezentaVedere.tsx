@@ -76,7 +76,7 @@ export const TabelPrezentaVedere: React.FC<TabelPrezentaVedereProps> = ({ istori
                                     })}
                                 </span>
                                 <span className="text-sm text-slate-400">
-                                    {p.nume_grupa} â€¢ {formatTime(p.ora_start)}
+                                    {p.nume_grupa} • {formatTime(p.ora_start)}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">

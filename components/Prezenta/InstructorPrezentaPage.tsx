@@ -171,7 +171,7 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                     </button>
                 </div>
 
-                {/* Mode toggle â€” only for today */}
+                {/* Mode toggle — only for today */}
                 {isToday && (
                     <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 ml-auto">
                         <button
@@ -211,11 +211,11 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-white">{t.grupe?.denumire || 'Antrenament Liber'}</h3>
-                                    <p className="text-sm text-slate-400">{formatTime(t.ora_start)} - {formatTime(t.ora_sfarsit)} â€¢ {t.grupe?.sportivi.length || 0} sportivi</p>
+                                    <p className="text-sm text-slate-400">{formatTime(t.ora_start)} - {formatTime(t.ora_sfarsit)} • {t.grupe?.sportivi.length || 0} sportivi</p>
                                 </div>
                             </div>
                             <Button size="sm" onClick={() => setSelectedTraining(t)} className="w-full sm:w-auto">
-                                Bifează Prezența â†’
+                                Bifează Prezența →
                             </Button>
                         </div>
                     ))}

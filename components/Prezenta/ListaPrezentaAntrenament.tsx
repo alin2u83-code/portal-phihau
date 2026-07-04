@@ -173,7 +173,7 @@ export const FormularPrezenta: React.FC<{
             .filter(s => s.status === 'Activ')
             .map(s => ({ ...s, tip: 'principal' as TipMembru }));
 
-        // Eliminăm duplicatele â€” dacă un sportiv apare și ca principal și ca secundar,
+        // Eliminăm duplicatele — dacă un sportiv apare și ca principal și ca secundar,
         // rămâne doar varianta principală
         const idPrincipali = new Set(principali.map(s => s.id));
         const secundariFiltrati = sportiviSecundari.filter(s => !idPrincipali.has(s.id));
@@ -283,7 +283,7 @@ export const FormularPrezenta: React.FC<{
                     <h2 className="text-2xl font-black text-white tracking-tight">{antrenament.grupe?.denumire}</h2>
                     <p className="text-sm font-medium text-slate-400 flex items-center justify-end gap-2">
                         <CalendarDaysIcon className="w-4 h-4" />
-                        {new Date((antrenament.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })} â€¢ {formatTime(antrenament.ora_start)}
+                        {new Date((antrenament.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })} • {formatTime(antrenament.ora_start)}
                     </p>
                 </div>
             </div>
@@ -672,9 +672,35 @@ export const FormularPrezentaMultiGrupa: React.FC<{
 export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> = ({ grupa, onBack, onViewSportiv }) => {
     const { allTrainings, loading, refetch } = useAttendanceData(grupa.club_id);
     const { saveAttendance, loading: attendanceLoading } = useAttendance();
+    const { byId: statusById } = useStatusePrezenta();
     const [selectedTraining, setSelectedTraining] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }}) | null>(null);
+    const [selectingId, setSelectingId] = useState<string | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { showError, showSuccess } = useError();
+
+    // BUG-1 FIX: rândurile din allTrainings vin din VIEW-ul plat vedere_cluburi_program_antrenamente
+    // (fără .grupe embedat, pentru performanță — vezi FIX TIMEOUT în useAttendanceData.ts).
+    // La selecție facem un fetch dedicat, îmbogățit cu grupe(*, sportivi), la fel ca handleSelectAntrenament
+    // din Prezenta/index.tsx:238-256, pentru ca FormularPrezenta să primească lista reală de sportivi.
+    const handleSelectTraining = async (id: string) => {
+        setSelectingId(id);
+        const { data, error } = await supabase.from('program_antrenamente')
+            .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+            .eq('id', id).single();
+        if (error) {
+            showError("Eroare", error.message);
+        } else if (data) {
+            const enriched = {
+                ...data,
+                prezenta: (data.prezenta || []).map((p: any) => ({
+                    ...p,
+                    status: p.status_id ? (statusById[p.status_id] ?? null) : null,
+                })),
+            };
+            setSelectedTraining(enriched as any);
+        }
+        setSelectingId(null);
+    };
 
     // Filters and Sorting
     const [filterSportivId, setFilterSportivId] = useState<string>('');
@@ -861,7 +887,12 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                                                 <p className="text-lg font-bold text-white leading-none">{formatTime(a.ora_start)} - {formatTime(a.ora_sfarsit)}</p>
                                             </div>
                                         </div>
-                                        <Button size="sm" onClick={() => setSelectedTraining(a as any)} className={`w-full sm:w-auto shadow-lg ${isToday ? 'shadow-indigo-500/20' : 'shadow-slate-900/20'}`}>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => handleSelectTraining(a.id)}
+                                            isLoading={selectingId === a.id}
+                                            className={`w-full sm:w-auto shadow-lg ${isToday ? 'shadow-indigo-500/20' : 'shadow-slate-900/20'}`}
+                                        >
                                             {isToday ? 'Bifează Prezența' : 'Vezi Prezența'} &rarr;
                                         </Button>
                                     </div>

@@ -372,7 +372,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
                             onClick={() => setFiltersExpanded(false)}
                             className="mt-3 w-full py-2 rounded-lg bg-amber-500 text-black text-sm font-bold"
                         >
-                            Aplică filtre â†’
+                            Aplică filtre →
                         </button>
                     </div>
                 )}

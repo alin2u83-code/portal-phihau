@@ -64,9 +64,9 @@ const UnsavedWarningDialog: React.FC<{
                         </svg>
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-sm mb-1">Modificari nesalvate</h3>
+                        <h3 className="font-bold text-white text-sm mb-1">Modificări nesalvate</h3>
                         <p className="text-slate-400 text-sm leading-relaxed">
-                            Ai modificari nesalvate la grupa <span className="text-amber-300 font-semibold">{warning.sectionName}</span>. Salveaza inainte de a continua.
+                            Ai modificări nesalvate la grupa <span className="text-amber-300 font-semibold">{warning.sectionName}</span>. Salvează înainte de a continua.
                         </p>
                     </div>
                 </div>
@@ -424,7 +424,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
     if (sections.length === 0) return (
         <Card className="text-center py-12">
             <CalendarDaysIcon className="w-12 h-12 text-slate-700 mx-auto mb-3 opacity-30" />
-            <p className="text-slate-400 italic mb-4">Niciun antrenament programat pentru astazi.</p>
+            <p className="text-slate-400 italic mb-4">Niciun antrenament programat pentru astăzi.</p>
             {onAddSediinta && (
                 <button
                     onClick={onAddSediinta}
@@ -456,7 +456,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
             <div data-tour="prezenta-data" className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <SparklesIcon className="w-4 h-4 text-amber-400 shrink-0" />
-                    <p className="text-xs text-slate-400">Apasa pe un sportiv pentru a comuta prezenta.</p>
+                    <p className="text-xs text-slate-400">Apasă pe un sportiv pentru a comuta prezența.</p>
                 </div>
                 <div className="flex items-center gap-1">
                     <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5 border border-slate-700/50">
@@ -513,13 +513,13 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
                                     <div className="flex items-center gap-2">
                                         <h3 className="text-sm font-bold text-white truncate">{section.grup}</h3>
                                         {isUnsaved && (
-                                            <span className="shrink-0 w-2 h-2 rounded-full bg-amber-400" title="Modificari nesalvate" />
+                                            <span className="shrink-0 w-2 h-2 rounded-full bg-amber-400" title="Modificări nesalvate" />
                                         )}
                                         {isSaved && !isUnsaved && (
                                             <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500">{formatTime(section.ora_start)} â€“ {formatTime(section.ora_sfarsit)}</p>
+                                    <p className="text-xs text-slate-500">{formatTime(section.ora_start)} – {formatTime(section.ora_sfarsit)}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 shrink-0 ml-3">
@@ -552,13 +552,13 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
                                     onClick={() => markAll(section.id, true)}
                                     className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors font-medium"
                                 >
-                                    Toti prezenti
+                                    Toți prezenți
                                 </button>
                                 <button
                                     onClick={() => markAll(section.id, false)}
                                     className="text-xs px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors font-medium"
                                 >
-                                    Toti absenti
+                                    Toți absenți
                                 </button>
                                 <button
                                     onClick={() => setAddingToTrainingId(section.id)}
@@ -599,7 +599,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
                                                     {a.isExtra && <span className="ml-1.5 text-[10px] text-slate-500 font-normal">extern</span>}
                                                 </span>
                                                 <span className="text-xs text-slate-500 w-28 text-right shrink-0 truncate">
-                                                    {a.gradNume || <span className="text-slate-700">â€”</span>}
+                                                    {a.gradNume || <span className="text-slate-700">—</span>}
                                                 </span>
                                             </button>
                                         ))}
@@ -622,14 +622,14 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
                                 >
                                     {isSaved && !isUnsaved
                                         ? <><CheckCircleIcon className="w-4 h-4 mr-1.5" /> Salvat</>
-                                        : 'Salveaza Prezenta'}
+                                        : 'Salvează Prezența'}
                                 </Button>
                                 {onSelectFull && (
                                     <button
                                         onClick={() => onSelectFull(section.id)}
                                         className="text-xs text-slate-500 hover:text-slate-300 transition-colors shrink-0 px-2"
                                     >
-                                        Complet â†’
+                                        Complet →
                                     </button>
                                 )}
                             </div>

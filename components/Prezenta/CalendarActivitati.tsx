@@ -8,7 +8,7 @@ import { supabase } from '../../supabaseClient';
 import { Input } from '../ui';
 import { formatTime } from '../../utils/date';
 
-// â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── helpers ───────────────────────────────────────────────────────────────
 
 const ZILE_SCURTE = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
 
@@ -20,9 +20,9 @@ function ymd(year: number, month: number, day: number): string {
 /** Build an array of calendar cells (null = empty padding, string = YYYY-MM-DD). */
 function buildCalendarGrid(year: number, month: number): (string | null)[] {
     const firstDay = new Date(year, month - 1, 1);
-    // getDay() â†’ 0=Sun â€¦ 6=Sat; we want Mon=0 â€¦ Sun=6
+    // getDay() → 0=Sun … 6=Sat; we want Mon=0 … Sun=6
     let startPad = firstDay.getDay() - 1;
-    if (startPad < 0) startPad = 6; // Sunday â†’ last column
+    if (startPad < 0) startPad = 6; // Sunday → last column
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const cells: (string | null)[] = [];
@@ -37,14 +37,14 @@ function monthLabel(year: number, month: number): string {
     return new Date(year, month - 1, 1).toLocaleString('ro-RO', { month: 'long', year: 'numeric' });
 }
 
-// â”€â”€â”€ sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── sub-components ─────────────────────────────────────────────────────────
 
 interface DotProps { color: string }
 const Dot: React.FC<DotProps> = ({ color }) => (
     <span className={`inline-block w-1.5 h-1.5 rounded-full ${color}`} />
 );
 
-// â”€â”€â”€ main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── main component ──────────────────────────────────────────────────────────
 
 export const CalendarActivitati: React.FC<{
     grupa: Grupa; onSelect: (id: string) => void; onBack: () => void; grupe: Grupa[]
@@ -61,7 +61,7 @@ export const CalendarActivitati: React.FC<{
         handleSaveCustom
     } = useCalendarView(grupa.id);
 
-    // â”€â”€ parse current month from `date` â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── parse current month from `date` ─────────────────────────────────────
     const [year, month] = useMemo(() => {
         const parts = date.split('-');
         return [parseInt(parts[0]), parseInt(parts[1])];
@@ -73,7 +73,7 @@ export const CalendarActivitati: React.FC<{
         [year, month]
     );
 
-    // â”€â”€ eventi fetch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── eventi fetch ──────────────────────────────────────────────────────────
     const [evenimente, setEvenimente] = useState<Eveniment[]>([]);
     useEffect(() => {
         supabase
@@ -84,10 +84,10 @@ export const CalendarActivitati: React.FC<{
             .then(({ data }) => setEvenimente((data as Eveniment[]) || []));
     }, [startOfMonth, endOfMonth]);
 
-    // â”€â”€ calendar grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── calendar grid ─────────────────────────────────────────────────────────
     const cells = useMemo(() => buildCalendarGrid(year, month), [year, month]);
 
-    // map date â†’ list of trainings / events for quick lookup
+    // map date → list of trainings / events for quick lookup
     const antrenamenteByDate = useMemo(() => {
         const map: Record<string, typeof antrenamente> = {};
         for (const a of antrenamente) {
@@ -106,7 +106,7 @@ export const CalendarActivitati: React.FC<{
         return map;
     }, [evenimente]);
 
-    // â”€â”€ month navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── month navigation ──────────────────────────────────────────────────────
     const goToPrevMonth = () => {
         const d = new Date(year, month - 2, 1); // month-2 because JS months are 0-indexed
         setDate(d.toLocaleDateString('sv-SE'));
@@ -118,11 +118,11 @@ export const CalendarActivitati: React.FC<{
         setSelectedDate(null);
     };
 
-    // â”€â”€ selected day data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── selected day data ─────────────────────────────────────────────────────
     const selectedAntrenamente = selectedDate ? (antrenamenteByDate[selectedDate] || []) : [];
     const selectedEvenimente = selectedDate ? (evenimenteByDate[selectedDate] || []) : [];
 
-    // â”€â”€ render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── render ────────────────────────────────────────────────────────────────
     return (
         <div className="space-y-6 animate-fade-in">
             <Button onClick={onBack} variant="secondary" size="sm">
@@ -156,7 +156,7 @@ export const CalendarActivitati: React.FC<{
                         </Button>
                     </div>
 
-                    {/* â”€â”€ monthly calendar grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                    {/* ── monthly calendar grid ───────────────────────────────────────────── */}
                     <div className="bg-slate-800/20 rounded-2xl border border-slate-700/30 overflow-hidden">
                         {/* month navigation */}
                         <div className="flex items-center justify-between px-4 py-3 bg-slate-800/40 border-b border-slate-700/30">
@@ -165,7 +165,7 @@ export const CalendarActivitati: React.FC<{
                                 className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-300 hover:text-white transition-colors"
                                 aria-label="Luna anterioară"
                             >
-                                â€¹
+                                ‹
                             </button>
                             <h3 className="text-base font-semibold text-white capitalize">
                                 {monthLabel(year, month)}
@@ -175,7 +175,7 @@ export const CalendarActivitati: React.FC<{
                                 className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-300 hover:text-white transition-colors"
                                 aria-label="Luna următoare"
                             >
-                                â€º
+                                ›
                             </button>
                         </div>
 
@@ -256,14 +256,14 @@ export const CalendarActivitati: React.FC<{
                         )}
                     </div>
 
-                    {/* â”€â”€ legend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                    {/* ── legend ──────────────────────────────────────────────────────────── */}
                     <div className="flex flex-wrap gap-4 text-xs text-slate-400">
                         <span className="flex items-center gap-1.5"><Dot color="bg-indigo-400" /> Antrenament</span>
                         <span className="flex items-center gap-1.5"><Dot color="bg-emerald-400" /> Stagiu</span>
                         <span className="flex items-center gap-1.5"><Dot color="bg-rose-400" /> Competiție</span>
                     </div>
 
-                    {/* â”€â”€ selected day details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                    {/* ── selected day details ────────────────────────────────────────────── */}
                     {selectedDate && (
                         <div className="space-y-4">
                             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">

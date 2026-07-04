@@ -75,7 +75,7 @@ export const DashboardPrezentaAzi: React.FC<{
                                 onClick={onMassGenerator}
                                 className="mt-3 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                             >
-                                Generează program â†’
+                                Generează program →
                             </button>
                         </div>
                     ) : (
@@ -116,7 +116,7 @@ export const DashboardPrezentaAzi: React.FC<{
                                         {isBifat ? (
                                             <CheckCircleIcon className="w-5 h-5 text-emerald-400 shrink-0" />
                                         ) : (
-                                            <span className="text-xs text-indigo-400 font-bold shrink-0 group-hover:underline">Bifează â†’</span>
+                                            <span className="text-xs text-indigo-400 font-bold shrink-0 group-hover:underline">Bifează →</span>
                                         )}
                                     </div>
                                 );

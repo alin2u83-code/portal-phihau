@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 14 (corelare-prezente-facturi) — COMPLETE
 Plan: 4/4
 Status: All plans verified via Playwright
-Last activity: 2026-06-24 -- Phase 14 complete (PLF-01..PLF-05 verified)
+Last activity: 2026-07-04 -- Completed quick task 260704-nbx: fix status stale hub Înscriere club după retragere echipă
 
 ```
 Progress: [████████░░] 83% (5/6 phases)
@@ -86,6 +86,7 @@ None yet.
 | 260610-ka8 | export Excel fise examen (notare + validare) | 2026-06-10 | 380b989 | [260610-ka8-export-excel-fise-examen-notare-validare](./quick/260610-ka8-export-excel-fise-examen-notare-validare/) |
 | 260615-financiar | Filtre perioade + editare sume în modulul Financiar | 2026-06-15 | - | [260615-financiar-filtre-perioade-editare-sume](./quick/260615-financiar-filtre-perioade-editare-sume/) |
 | 260626-buf | Sistem perioade vacanță antrenamente — CRUD + selecție sportivi participanți | 2026-06-26 | 3c548b1 | Needs Review | [260626-buf-task-3-perioade-vacanta-antrenamente](./quick/260626-buf-task-3-perioade-vacanta-antrenamente/) |
+| 260704-nbx | Fix status stale hub Înscriere club după retragere echipă — re-fetch echipeFormate | 2026-07-04 | a700a79 | Verified | [260704-nbx-fix-status-stale-hub-inscriere-club-dupa](./quick/260704-nbx-fix-status-stale-hub-inscriere-club-dupa/) |
 
 ### Blockers/Concerns
 

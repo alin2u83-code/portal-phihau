@@ -87,6 +87,7 @@ export const adminMenu: MenuItem[] = [
             { label: 'Nomenclatoare', view: 'nomenclatoare' },
             { label: 'Înlănțuiri', view: 'inlantuiri-admin' },
             { label: 'Setări Cont', view: 'account-settings' },
+            { label: 'Jurnal Audit', view: 'jurnal-audit' },
         ]
     },
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },

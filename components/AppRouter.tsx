@@ -126,6 +126,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.ImportSportiviPage onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
                             case 'istoric-activitate':
                                 return renderProtected(<Lazy.IstoricActivitate onBack={handleBackToDashboard} />, isAtLeastInstructor);
+                            case 'jurnal-audit':
+                                return renderProtected(<Lazy.JurnalAudit onBack={handleBackToDashboard} />, permissions.isSuperAdmin);
                             case 'deduplicare-sportivi':
                                 return renderProtected(<Lazy.DeduplicareSportivi onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
                             case 'cereri-inscriere':

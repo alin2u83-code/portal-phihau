@@ -56,6 +56,7 @@ export const ReportsDashboard = lazy(() => import('./ReportsDashboard').then(m =
 export const LegitimatiiPage = lazy(() => import('./LegitimatiiPage').then(m => ({ default: m.LegitimatiiPage })));
 export const ImportSportiviPage = lazy(() => import('./Sportivi/ImportSportiviPage').then(m => ({ default: m.ImportSportiviPage })));
 export const IstoricActivitate = lazy(() => import('./IstoricActivitate').then(m => ({ default: m.IstoricActivitate })));
+export const JurnalAudit = lazy(() => import('./JurnalAudit').then(m => ({ default: m.JurnalAudit })));
 export const DeduplicareSportivi = lazy(() => import('./Sportivi/DeduplicareSportivi').then(m => ({ default: m.DeduplicareSportivi })));
 export const CereriInscriere = lazy(() => import('./Sportivi/CereriInscriere').then(m => ({ default: m.CereriInscriere })));
 export const ActivitatiNationale = lazy(() => import('./ActivitatiNationale').then(m => ({ default: m.ActivitatiNationale })));

@@ -72,7 +72,7 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
 
                 const { data: sp, error: spErr } = await supabase
                     .from('sportivi')
-                    .select('id, nume, prenume, data_nasterii, email, cnp, telefon, club_id, grad_actual_id, data_inscrierii, status, user_id')
+                    .select('id, nume, prenume, data_nasterii, email, cnp, telefon, adresa, club_id, grad_actual_id, data_inscrierii, status, user_id')
                     .order('nume').order('prenume');
                 if (spErr) throw spErr;
 
@@ -170,13 +170,22 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
                 if (!primar.email && secundar.email) completari.email = secundar.email;
                 if (!primar.data_nasterii && secundar.data_nasterii) completari.data_nasterii = secundar.data_nasterii;
                 if (!primar.grad_actual_id && secundar.grad_actual_id) completari.grad_actual_id = secundar.grad_actual_id;
+                if (!primar.telefon && secundar.telefon) completari.telefon = secundar.telefon;
+                if (!primar.adresa && secundar.adresa) completari.adresa = secundar.adresa;
                 if (Object.keys(completari).length > 0) {
                     await supabase.from('sportivi').update(completari).eq('id', primarId);
                 }
 
-                await supabase.from('sportivi')
-                    .update({ status: 'Inactiv' })
-                    .eq('id', secundarId);
+                // Sterge efectiv duplicatul; fallback la dezactivare daca stergerea
+                // esueaza (ex. FK ramas nereasignat sau policy DELETE lipsa in mod
+                // degradat local) - calea RPC (merge_sportivi) e cea primara si
+                // sterge garantat, acest fallback ramane doar pentru robustete.
+                const { error: delErr } = await supabase.from('sportivi').delete().eq('id', secundarId);
+                if (delErr) {
+                    await supabase.from('sportivi')
+                        .update({ status: 'Inactiv' })
+                        .eq('id', secundarId);
+                }
             }
 
             // Aplică selecțiile câmp cu câmp din merge selectiv
@@ -189,7 +198,7 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
             setModalPereche(null);
 
             const numePrimar = formatNume(modalPereche.sportiv_a.id === primarId ? modalPereche.sportiv_a : modalPereche.sportiv_b);
-            showSuccess('Fuzionat cu succes', `Contul duplicat a fost dezactivat. Profilul principal: ${numePrimar}.`);
+            showSuccess('Fuzionat cu succes', `Contul duplicat a fost eliminat. Profilul principal: ${numePrimar}.`);
         } catch (err: any) {
             showError('Eroare la fuzionare', err.message ?? String(err));
         } finally {

@@ -6,6 +6,7 @@ export interface SportivCard {
     email: string | null;
     cnp: string | null;
     telefon?: string | null;
+    adresa?: string | null;
     club_id: string | null;
     grad_actual_id: string | null;
     data_inscrierii: string;

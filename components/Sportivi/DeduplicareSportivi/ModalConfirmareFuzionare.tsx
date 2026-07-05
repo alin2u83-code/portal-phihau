@@ -88,7 +88,7 @@ export const ModalConfirmareFuzionare: React.FC<{
                         <p className="text-xs text-amber-400/80 mt-1">
                             Toate relațiile (plăți, examene, prezențe, grade etc.) se transferă la{' '}
                             <strong className="text-amber-300">{formatNume(primar)}</strong>.
-                            Contul <strong className="text-amber-300">{formatNume(secundar)}</strong> se dezactivează.
+                            Contul <strong className="text-amber-300">{formatNume(secundar)}</strong> se șterge definitiv.
                         </p>
                     </div>
                 </div>

@@ -117,7 +117,7 @@ export const CardPereache: React.FC<{
             {!ignorata && (
                 <p className="text-[11px] text-slate-600 mt-3 italic">
                     Click pe un sportiv pentru a-l marca ca Primar (se pastreaza).
-                    Cel secundar va fi dezactivat dupa fuzionare.
+                    Cel secundar va fi sters dupa fuzionare.
                 </p>
             )}
         </Card>

@@ -7,9 +7,11 @@ export const SportivInfoCard: React.FC<{
     esteSelectat: boolean;
     eticheta: 'PRIMAR' | 'SECUNDAR';
     gradeMap: Record<string, string>;
+    clubMap: Record<string, string>;
+    afiseazaClub: boolean;
     onClick: () => void;
     disabled?: boolean;
-}> = ({ sportiv, esteSelectat, eticheta, gradeMap, onClick, disabled }) => (
+}> = ({ sportiv, esteSelectat, eticheta, gradeMap, clubMap, afiseazaClub, onClick, disabled }) => (
     <button
         type="button"
         onClick={onClick}
@@ -59,6 +61,11 @@ export const SportivInfoCard: React.FC<{
             {sportiv.grad_actual_id && (
                 <p className="text-xs text-sky-400 font-medium">
                     Grad: {gradeMap[sportiv.grad_actual_id] || '—'}
+                </p>
+            )}
+            {afiseazaClub && sportiv.club_id && (
+                <p className="text-xs text-slate-500">
+                    Club: {clubMap[sportiv.club_id] || '—'}
                 </p>
             )}
             <div className="flex items-center justify-between mt-1.5">

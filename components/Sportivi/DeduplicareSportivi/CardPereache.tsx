@@ -11,12 +11,14 @@ export const CardPereache: React.FC<{
     inProgres: boolean;
     primarId: string;
     gradeMap: Record<string, string>;
+    clubMap: Record<string, string>;
+    afiseazaClub: boolean;
     onSelectPrimar: (id: string) => void;
     onIgnora: () => void;
     onFuzioneaza: () => void;
 }> = ({
     pereche, ignorata, fuzionata, inProgres, primarId,
-    gradeMap, onSelectPrimar, onIgnora, onFuzioneaza,
+    gradeMap, clubMap, afiseazaClub, onSelectPrimar, onIgnora, onFuzioneaza,
 }) => {
     const scoreColor =
         pereche.similarity_score >= 0.95 ? 'text-rose-400 bg-rose-500/15 border-rose-500/30' :
@@ -95,6 +97,8 @@ export const CardPereache: React.FC<{
                     esteSelectat={primarId === pereche.sportiv_a.id}
                     eticheta={primarId === pereche.sportiv_a.id ? 'PRIMAR' : 'SECUNDAR'}
                     gradeMap={gradeMap}
+                    clubMap={clubMap}
+                    afiseazaClub={afiseazaClub}
                     onClick={() => onSelectPrimar(pereche.sportiv_a.id)}
                     disabled={inProgres}
                 />
@@ -103,6 +107,8 @@ export const CardPereache: React.FC<{
                     esteSelectat={primarId === pereche.sportiv_b.id}
                     eticheta={primarId === pereche.sportiv_b.id ? 'PRIMAR' : 'SECUNDAR'}
                     gradeMap={gradeMap}
+                    clubMap={clubMap}
+                    afiseazaClub={afiseazaClub}
                     onClick={() => onSelectPrimar(pereche.sportiv_b.id)}
                     disabled={inProgres}
                 />

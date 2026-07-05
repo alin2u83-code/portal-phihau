@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../../../supabaseClient';
 import { useData } from '../../../contexts/DataContext';
+import { usePermissions } from '../../../hooks/usePermissions';
 import { useError } from '../../ErrorProvider';
 import { Card, Button } from '../../ui';
 import {
@@ -17,11 +18,13 @@ import { CardPereache } from './CardPereache';
 import { ModalConfirmareFuzionare } from './ModalConfirmareFuzionare';
 
 export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-    const { setSportivi } = useData();
+    const { setSportivi, activeRoleContext } = useData();
+    const permissions = usePermissions(activeRoleContext);
     const { showError, showSuccess } = useError();
 
     const [perechi, setPerechi] = useState<PereacheDuplicat[]>([]);
     const [gradeMap, setGradeMap] = useState<Record<string, string>>({});
+    const [clubMap, setClubMap] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [modRPC, setModRPC] = useState(true);
 
@@ -44,6 +47,11 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
             const gm: Record<string, string> = {};
             (gr || []).forEach((g: any) => { gm[g.id] = g.nume; });
             setGradeMap(gm);
+
+            const { data: cl } = await supabase.from('cluburi').select('id, nume');
+            const cm: Record<string, string> = {};
+            (cl || []).forEach((c: any) => { cm[c.id] = c.nume; });
+            setClubMap(cm);
 
             const { data: rpcData, error: rpcErr } = await supabase.rpc('find_similar_sportivi');
 
@@ -213,6 +221,8 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
         [perechi, ignorate, fuzionate]
     );
 
+    const afiseazaClub = permissions.isFederationAdmin;
+
     if (loading) {
         return (
             <Card className="p-8 sm:p-12 text-center">
@@ -359,6 +369,8 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
                             inProgres={inProgres.has(p.id)}
                             primarId={getPrimar(p)}
                             gradeMap={gradeMap}
+                            clubMap={clubMap}
+                            afiseazaClub={afiseazaClub}
                             onSelectPrimar={id => selecteazaPrimar(p.id, id)}
                             onIgnora={() => toggleIgnora(p.id)}
                             onFuzioneaza={() => deschideModalFuzionare(p)}

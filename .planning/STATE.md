@@ -4,8 +4,8 @@ milestone: v1.1
 milestone_name: milestone
 status: verifying
 stopped_at: context exhaustion at 76% (2026-06-26)
-last_updated: "2026-06-26T06:57:00.500Z"
-last_activity: 2026-06-24 -- Phase 14 complete (PLF-01..PLF-05 verified)
+last_updated: "2026-07-05T15:37:04.972Z"
+last_activity: "2026-07-05 -- Completed quick task 260705-pgg: refactor Deduplicare Sportivi (include inactivi in detectie, merge_sportivi sterge duplicatul + guard acces club) - migratie SQL scrisa, NEaplicata live"
 progress:
   total_phases: 6
   completed_phases: 4
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 14 (corelare-prezente-facturi) — COMPLETE
 Plan: 4/4
 Status: All plans verified via Playwright
-Last activity: 2026-07-05 -- Completed quick task 260705-irg: fix RLS cross-club leak (context-aware role helpers + Select_Sportivi_Unified) + club display in Deduplicare pentru super admin
+Last activity: 2026-07-05 -- Completed quick task 260705-pgg: refactor Deduplicare Sportivi (include inactivi in detectie, merge_sportivi sterge duplicatul + guard acces club) - migratie SQL scrisa, NEaplicata live
 
 ```
 Progress: [████████░░] 83% (5/6 phases)
@@ -73,6 +73,7 @@ Recent decisions affecting current work:
 - sportivi.nume + prenume în locul nome_complet — coloana nome_complet nu există în DB (fix 13-03)
 - FederatieComandaView condiționat pe isFederationAdmin (nu pe rol string direct) — consistent cu RLS is_super_admin()
 - confirmaReceptieClub operează pe comenzi_produse_cluburi.id — fiecare club confirmă recepția proprie independent
+- [Phase ?]: Migratie SQL deduplicare (find_similar_sportivi + merge_sportivi: include inactivi, delete efectiv, guard acces club) scrisa dar NEaplicata live - user trebuie sa o aplice manual
 
 ### Pending Todos
 
@@ -90,13 +91,15 @@ None yet.
 | 260704-x9p | Sistem istoric activitate SUPER_ADMIN_FEDERATIE — audit_log extins, triggere CRUD, logare login/logout/rol, pagina Jurnal Audit | 2026-07-05 | 6a6abe8 | Verified | [260704-x9p-sistem-istoric-activitate-super-admin-fe](./quick/260704-x9p-sistem-istoric-activitate-super-admin-fe/) |
 | 260705-1js | Consolidare endpoint-uri Vercel API 14->9 — fix deploy blocat de limita Hobby (12 functii) | 2026-07-05 | bcfd0a4 | Verified | [260705-1js-consolideaza-endpoint-uri-vercel-api-sub](./quick/260705-1js-consolideaza-endpoint-uri-vercel-api-sub/) |
 | 260705-irg | Fix RLS cross-club leak (is_super_admin/este_staff_club/has_access_to_club + Select_Sportivi_Unified ignorau contextul activ) + afiseaza club per sportiv in Deduplicare pentru super admin | 2026-07-05 | d9e0ec8 | Verified | [260705-irg-fix-rls-context-aware-role-check-si-afis](./quick/260705-irg-fix-rls-context-aware-role-check-si-afis/) |
+| 260705-pgg | Refactor Deduplicare Sportivi: include inactivi in detectie, merge_sportivi sterge duplicatul (delete efectiv, FK dinamic), guard acces club — migratie SQL scrisa, NEaplicata live | 2026-07-05 | 70db87e | Needs SQL apply | [260705-pgg-refactor-deduplicare-sportivi-include-in](./quick/260705-pgg-refactor-deduplicare-sportivi-include-in/) |
 
 ### Blockers/Concerns
 
-None at roadmap creation. De verificat înainte de Phase 9:
+at roadmap creation. De verificat înainte de Phase 9:
 
 - `rbv_sportivi_complet` view — confirmă că include `grad_curent_id` și `data_grad_curent` (sau echivalent) pentru calculul eligibilitate next grad
 - `grade` tabel — verifică dacă are coloana `timp_minim_luni` sau echivalent pentru condiția de eligibilitate GRD-03
+- Aplica manual migratia sql/fixes/fix_deduplicare_include_inactivi_merge_delete.sql in Supabase (SQL Editor / apply_migration) - contine DELETE ireversibil in merge_sportivi()
 
 ## Deferred Items
 
@@ -112,6 +115,6 @@ None at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-06-26T06:57:00.482Z
+Last session: 2026-07-05T15:36:39.084Z
 Stopped at: context exhaustion at 76% (2026-06-26)
 Resume file: .planning/phases/13-tracking-comenzi-produse/13-05-PLAN.md

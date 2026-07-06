@@ -190,22 +190,22 @@ Plans:
   3. SUPER_ADMIN_FEDERATIE pastreaza accesul cross-club pe toate cele 8 tabele
   4. Migratia noua este aplicata pe DB live (nu doar scrisa local)
 
+**Plans:** 1/1 plans complete
+
+Plans:
+
+- [x] 15-01-PLAN.md — Inspectie schema live + migratie 8 politici RLS per-club + aplicare live + verificare izolare — SEC-01, SEC-02
+
+### Phase 16: Elimina politici RLS USING(true) ramase (rezultate, facturi_federale, note_examene, etc) si restrictioneaza public.users
+
+**Goal:** Ultimele politici RLS periculoase de tip USING(true) ramase pe DB live sunt eliminate: public.users nu mai expune email-urile tuturor userilor, knowledge_base nu mai poate fi vandalizat de orice user autentificat, iar datele GDPR medicale din fisa_inscriere sunt izolate pe clubul propriu (nu mai sunt vizibile/editabile cross-club de orice ADMIN_CLUB).
+**Requirements**: SEC-03, SEC-04, SEC-05
+**Depends on:** Phase 15
 **Plans:** 1 plan
 
 Plans:
 
-- [ ] 15-01-PLAN.md — Inspectie schema live + migratie 8 politici RLS per-club + aplicare live + verificare izolare — SEC-01, SEC-02
-
-### Phase 16: Elimina politici RLS USING(true) ramase (rezultate, facturi_federale, note_examene, etc) si restrictioneaza public.users
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 15
-**Plans:** 0 plans
-
-Plans:
-
-- [ ] TBD (run /gsd-plan-phase 16 to break down)
+- [ ] 16-01-PLAN.md — Fix RLS USING(true): users (SELECT scoped propriul rand), knowledge_base (scriere doar super-admin), fisa_inscriere (izolare cross-club GDPR via practicant_id -> sportivi.club_id)
 
 ### Phase 17: Verifica aplicare live migratie deduplicare sportivi si decide MFA obligatoriu vs opțional
 

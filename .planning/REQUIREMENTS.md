@@ -31,6 +31,9 @@
 
 - [ ] **SEC-01**: Izolare cross-club stricta pe cele 8 tabele financiare (alocari_plati, tranzactie_plata, incasari_efective, obligatii_plata, aplicare_reduceri, detalii_decont, sesiune_activitate, staging_inscrieri) — RLS restrictioneaza randurile la clubul activ (`club_id = public.get_active_club_id()` sau echivalent prin FK), nu doar la existenta unui club activ
 - [ ] **SEC-02**: SUPER_ADMIN_FEDERATIE pastreaza accesul cross-club legitim pe cele 8 tabele financiare (exceptia `public.is_super_admin()` pastrata in fiecare politica)
+- [ ] **SEC-03**: `public.users` — politica de SELECT nu mai expune intreg tabelul (email + tema_config) catre orice utilizator autentificat; SELECT restrictionat la propriul rand (`id = auth.uid()`) sau super-admin (`public.is_super_admin()`); politica de UPDATE existenta (`own_row_update`, scope `id = auth.uid()`) ramane neatinsa
+- [ ] **SEC-04**: `public.knowledge_base` — SELECT ramane deschis tuturor utilizatorilor autentificati (continut de ajutor partajat, sensibilitate mica), dar INSERT/UPDATE/DELETE sunt restrictionate la `public.is_super_admin()` (previne vandalizarea/alterarea bazei de cunostinte AI de catre orice utilizator autentificat)
+- [ ] **SEC-05**: `public.fisa_inscriere` — izolare cross-club pe date GDPR medicale/familiale; politica `Club_Admin_Examen_Access` (anterior doar verificare de rol ADMIN_CLUB, fara scoping de club) restrictioneaza randurile la sportivii propriului club activ (`practicant_id -> sportivi.club_id = public.get_active_club_id()`); exceptia super-admin ramane prin politica `Bypass_Super_Admin`
 
 ## Future Requirements (deferred)
 
@@ -65,3 +68,6 @@
 | PRZ-05 | Phase 11 | 11-03-PLAN.md, 11-04-PLAN.md |
 | SEC-01 | Phase 15 | 15-01-PLAN.md |
 | SEC-02 | Phase 15 | 15-01-PLAN.md |
+| SEC-03 | Phase 16 | 16-01-PLAN.md |
+| SEC-04 | Phase 16 | 16-01-PLAN.md |
+| SEC-05 | Phase 16 | 16-01-PLAN.md |

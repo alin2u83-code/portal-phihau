@@ -8,7 +8,6 @@ import {
     ArrowLeftIcon,
     CheckIcon,
     SearchIcon,
-    ExclamationTriangleIcon,
     CheckCircleIcon,
 } from '../../icons';
 import { PereacheDuplicat, SportivCard } from './types';
@@ -26,6 +25,8 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
     const [gradeMap, setGradeMap] = useState<Record<string, string>>({});
     const [clubMap, setClubMap] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
+    // Fuzionarea foloseste mereu RPC merge_sportivi() (stergere efectiva); trece pe
+    // logica locala doar daca RPC-ul chiar lipseste din baza de date (42883).
     const [modRPC, setModRPC] = useState(true);
 
     const [primarMap, setPrimarMap] = useState<Record<string, string>>({});
@@ -53,32 +54,20 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
             (cl || []).forEach((c: any) => { cm[c.id] = c.nume; });
             setClubMap(cm);
 
-            const { data: rpcData, error: rpcErr } = await supabase.rpc('find_similar_sportivi');
+            // Detectare duplicate: mereu local (Levenshtein + email/telefon/nume partial,
+            // fara restrictie club_id) - RPC find_similar_sportivi() e prea stricta
+            // (cere acelasi club_id pt nume similare, nu verifica email/telefon) si
+            // ascundea duplicate reale vizibile inainte in sistemul local. Fuzionarea
+            // foloseste in continuare RPC merge_sportivi() (stergere efectiva + FK
+            // dinamic + guard acces club), neschimbat.
+            const { data: sp, error: spErr } = await supabase
+                .from('sportivi')
+                .select('id, nume, prenume, data_nasterii, email, cnp, telefon, adresa, club_id, grad_actual_id, data_inscrierii, status, user_id')
+                .order('nume').order('prenume');
+            if (spErr) throw spErr;
 
-            if (!rpcErr && rpcData) {
-                const perecheRPC: PereacheDuplicat[] = (rpcData as any[]).map((r) => ({
-                    id: `rpc-${r.sportiv_a_id}-${r.sportiv_b_id}`,
-                    sportiv_a: r.sportiv_a_json as SportivCard,
-                    sportiv_b: r.sportiv_b_json as SportivCard,
-                    similarity_score: parseFloat(r.similarity_score),
-                    motiv: r.motiv,
-                    sursa: 'rpc' as const,
-                }));
-                setPerechi(perecheRPC);
-                setModRPC(true);
-            } else {
-                console.warn('[DeduplicareSportivi] RPC find_similar_sportivi indisponibil, folosim detectare locala:', rpcErr?.message);
-                setModRPC(false);
-
-                const { data: sp, error: spErr } = await supabase
-                    .from('sportivi')
-                    .select('id, nume, prenume, data_nasterii, email, cnp, telefon, adresa, club_id, grad_actual_id, data_inscrierii, status, user_id')
-                    .order('nume').order('prenume');
-                if (spErr) throw spErr;
-
-                const local = detecteazaLocalDuplicate((sp || []) as SportivCard[]);
-                setPerechi(local);
-            }
+            const local = detecteazaLocalDuplicate((sp || []) as SportivCard[]);
+            setPerechi(local);
         } catch (err: any) {
             showError('Eroare incarcare', err.message);
         } finally {
@@ -269,34 +258,10 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
                     </div>
                 </div>
 
-                <div className={`
-                    flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border self-start sm:self-auto
-                    ${modRPC
-                        ? 'text-sky-400 bg-sky-500/10 border-sky-500/30'
-                        : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
-                    }
-                `}>
-                    {modRPC
-                        ? <><CheckCircleIcon className="h-3.5 w-3.5" /> Detectare fuzzy (pg_trgm)</>
-                        : <><ExclamationTriangleIcon className="h-3.5 w-3.5" /> Detectare locala (Levenshtein)</>
-                    }
+                <div className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border self-start sm:self-auto text-sky-400 bg-sky-500/10 border-sky-500/30">
+                    <CheckCircleIcon className="h-3.5 w-3.5" /> Detectare locala (Levenshtein + CNP/email/telefon)
                 </div>
             </div>
-
-            {!modRPC && (
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-sm">
-                    <ExclamationTriangleIcon className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                    <div>
-                        <span className="font-semibold text-amber-300">Mod detectare locala</span>
-                        <span className="text-amber-400/80 ml-1">
-                            — Functia SQL <code className="font-mono text-xs bg-slate-800 px-1 rounded">find_similar_sportivi()</code> nu este disponibila.
-                            Activati extensia <strong>pg_trgm</strong> in Supabase si rulati migratia
-                            <code className="font-mono text-xs bg-slate-800 px-1 ml-1 rounded">add_deduplicare_sportivi.sql</code>
-                            pentru detectare mai precisa.
-                        </span>
-                    </div>
-                </div>
-            )}
 
             {(perechi.length - fuzionate.size) > 0 && (
                 <div className="flex gap-2 items-center">

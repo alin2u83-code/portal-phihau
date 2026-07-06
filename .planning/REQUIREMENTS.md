@@ -27,6 +27,11 @@
 - [ ] **PRZ-04**: GeneratorProgramMasiv este accesibil direct din tab "Grupe" (nu doar din tab "Rapid")
 - [ ] **PRZ-05**: Există 3 rapoarte de prezență separate cu numere absolute (fără procente): (a) lunar per sportiv per lună; (b) per grupă per sportiv; (c) per interval examen — [start→examen1]→[examen1→examen2]→[ultimul examen→azi]
 
+### Securitate (v1.1 — hardening RLS)
+
+- [ ] **SEC-01**: Izolare cross-club stricta pe cele 8 tabele financiare (alocari_plati, tranzactie_plata, incasari_efective, obligatii_plata, aplicare_reduceri, detalii_decont, sesiune_activitate, staging_inscrieri) — RLS restrictioneaza randurile la clubul activ (`club_id = public.get_active_club_id()` sau echivalent prin FK), nu doar la existenta unui club activ
+- [ ] **SEC-02**: SUPER_ADMIN_FEDERATIE pastreaza accesul cross-club legitim pe cele 8 tabele financiare (exceptia `public.is_super_admin()` pastrata in fiecare politica)
+
 ## Future Requirements (deferred)
 
 - Dashboard federație cu agregate multi-club (SUPER_ADMIN) — v2.0
@@ -58,3 +63,5 @@
 | PRZ-03 | Phase 11 | 11-02-PLAN.md |
 | PRZ-04 | Phase 11 | 11-02-PLAN.md |
 | PRZ-05 | Phase 11 | 11-03-PLAN.md, 11-04-PLAN.md |
+| SEC-01 | Phase 15 | 15-01-PLAN.md |
+| SEC-02 | Phase 15 | 15-01-PLAN.md |

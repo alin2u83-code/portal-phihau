@@ -177,6 +177,124 @@ Plans:
 - [ ] 14-03-PLAN.md — Generare Abonament per lună (month picker, fără duplicate) + restricție ștergere — PLF-02, PLF-04
 - [ ] 14-04-PLAN.md — Wizard luni lipsă + generare bulk + tab Luni Lipsă + badge profil — PLF-03, PLF-05
 
+### Phase 15: Fix RLS izolare cross-club pe tabele financiare (alocari_plati, tranzactie_plata, incasari_efective, obligatii_plata, aplicare_reduceri, detalii_decont, sesiune_activitate, staging_inscrieri)
+
+**Goal:** Elimina scurgerea de date financiare intre cluburi: un ADMIN_CLUB/INSTRUCTOR nu mai poate citi sau scrie randuri (tranzactii, incasari, obligatii, alocari, reduceri, deconturi, sesiuni activitate, staging) apartinand altui club, iar SUPER_ADMIN_FEDERATIE pastreaza accesul cross-club legitim
+**Mode**: standard
+**Requirements**: SEC-01, SEC-02
+**Depends on:** Phase 14
+**Success Criteria** (what must be TRUE):
+
+  1. Cele 8 politici `club_member_access` (alocari_plati, tranzactie_plata, incasari_efective, obligatii_plata, aplicare_reduceri, detalii_decont, sesiune_activitate, staging_inscrieri) verifica apartenenta randului la clubul activ (`club_id = public.get_active_club_id()` sau echivalent prin FK), nu doar existenta unui club activ
+  2. Un ADMIN_CLUB in contextul clubului A nu returneaza niciun rand apartinand altui club B pe niciuna din cele 8 tabele; accesul legitim in propriul club ramane intact
+  3. SUPER_ADMIN_FEDERATIE pastreaza accesul cross-club pe toate cele 8 tabele
+  4. Migratia noua este aplicata pe DB live (nu doar scrisa local)
+
+**Plans:** 1 plan
+
+Plans:
+
+- [ ] 15-01-PLAN.md — Inspectie schema live + migratie 8 politici RLS per-club + aplicare live + verificare izolare — SEC-01, SEC-02
+
+### Phase 16: Elimina politici RLS USING(true) ramase (rezultate, facturi_federale, note_examene, etc) si restrictioneaza public.users
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 16 to break down)
+
+### Phase 17: Verifica aplicare live migratie deduplicare sportivi si decide MFA obligatoriu vs opțional
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 16
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 17 to break down)
+
+### Phase 18: Fix suprascriere silentioasa grad in istoric_grade (sportivService) si unifica sursa de adevar grad_actual_id (elimina dual-write manual vs trigger)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 17
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 18 to break down)
+
+### Phase 19: Elimina ignoreDuplicates silentios pe upsert istoric_grade (8 locuri) si adauga rollback plati/tranzactii in GestiuneFacturi
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 18
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 19 to break down)
+
+### Phase 20: Fix club_id lipsa in useAttendance si aliniaza retragere individuala competitie (DELETE) cu retragere echipa (UPDATE status)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 19
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 20 to break down)
+
+### Phase 21: Fix race conditions: Pas4Sumar competitii (insert dublu wizard), login dublu-click, bucla schimbare parola obligatorie, refetch lipsa in update/delete PlatiScadente
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 20
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 21 to break down)
+
+### Phase 22: Decizie React Query vs useDataProvider ca sursa de adevar server-state si unifica calcul sold financiar intr-un hook canonic useSoldSportiv
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 21
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 22 to break down)
+
+### Phase 23: Sparge ManagementInscrieri.tsx (1694L) in module separate pe responsabilitate
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 22
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 23 to break down)
+
+### Phase 24: Unifica cele 3 fisiere import Excel examene intr-un serviciu comun promoveazaSportivGrad si migreaza type=date la DateInputDMY pe fisierele cu expunere mobila
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 23
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 24 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

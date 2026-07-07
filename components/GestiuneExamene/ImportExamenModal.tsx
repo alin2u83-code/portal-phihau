@@ -304,8 +304,9 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         const { data: allSportivi, error } = await supabase.from('sportivi').select('*');
         if (error) { showError("Eroare la validare", error.message); return []; }
 
-        const { data: existingInscrieri } = await supabase.from('inscrieri_examene').select('sportiv_id, sesiune_id');
+        const { data: existingInscrieri } = await supabase.from('inscrieri_examene').select('sportiv_id, sesiune_id, rezultat');
         const inscrieriSet = new Set((existingInscrieri || []).map(i => `${i.sportiv_id}_${i.sesiune_id}`));
+        const inscrieriRezultatMap = new Map((existingInscrieri || []).map(i => [`${i.sportiv_id}_${i.sesiune_id}`, i.rezultat]));
 
         const validationPromises = data.map(async (row, index): Promise<PreviewRow> => {
             const baseRow: Omit<PreviewRow, 'sessionInfo' | 'status' | 'message'> = { ...row, originalIndex: index };
@@ -385,7 +386,11 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     const sportivId = exactBirthdateMatch.id;
                     const existingSessionId = sessionInfo.existingSessionId;
                     if (existingSessionId && inscrieriSet.has(`${sportivId}_${existingSessionId}`)) {
-                        return { ...baseRow, status: 'skipped', message: 'Deja înscris la această sesiune — sărit (există în baza de date)', existingSportiv: exactBirthdateMatch, sessionInfo, birthdate };
+                        const rezultatVechi = inscrieriRezultatMap.get(`${sportivId}_${existingSessionId}`);
+                        if (rezultatVechi === row.Rezultat) {
+                            return { ...baseRow, status: 'skipped', message: `Deja înscris cu același rezultat (${rezultatVechi || 'Neprezentat'}) — sărit`, existingSportiv: exactBirthdateMatch, sessionInfo, birthdate };
+                        }
+                        return { ...baseRow, status: 'valid', message: `Deja înscris — va actualiza rezultat din "${rezultatVechi}" în "${row.Rezultat}"`, existingSportiv: exactBirthdateMatch, sessionInfo, birthdate };
                     }
                     return {
                         ...baseRow,
@@ -402,7 +407,11 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     const sportivId = potentialMatches[0].id;
                     const existingSessionId = sessionInfo.existingSessionId;
                     if (existingSessionId && inscrieriSet.has(`${sportivId}_${existingSessionId}`)) {
-                        return { ...baseRow, status: 'skipped', message: 'Deja înscris la această sesiune — sărit (există în baza de date)', existingSportiv: potentialMatches[0], sessionInfo, birthdate };
+                        const rezultatVechi = inscrieriRezultatMap.get(`${sportivId}_${existingSessionId}`);
+                        if (rezultatVechi === row.Rezultat) {
+                            return { ...baseRow, status: 'skipped', message: `Deja înscris cu același rezultat (${rezultatVechi || 'Neprezentat'}) — sărit`, existingSportiv: potentialMatches[0], sessionInfo, birthdate };
+                        }
+                        return { ...baseRow, status: 'valid', message: `Deja înscris — va actualiza rezultat din "${rezultatVechi}" în "${row.Rezultat}"`, existingSportiv: potentialMatches[0], sessionInfo, birthdate };
                     }
                     return {
                         ...baseRow,

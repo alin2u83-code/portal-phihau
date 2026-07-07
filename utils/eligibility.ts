@@ -88,8 +88,11 @@ export const getEligibleGrade = (
             return new Date(dateB).getTime() - new Date(dateA).getTime();
         })[0];
     
-    const lastPromotionDate = lastAdmittedParticipation 
-        ? new Date(allExamene.find(e => e.id === lastAdmittedParticipation.sesiune_id)!.data)
+    const lastPromotionSesiuneData = lastAdmittedParticipation
+        ? allExamene.find(e => e.id === lastAdmittedParticipation.sesiune_id)?.data
+        : undefined;
+    const lastPromotionDate = lastPromotionSesiuneData
+        ? new Date(lastPromotionSesiuneData)
         : new Date(sportiv.data_inscrierii);
     
     const monthsToWait = parseDurationToMonths(nextGrade.timp_asteptare);

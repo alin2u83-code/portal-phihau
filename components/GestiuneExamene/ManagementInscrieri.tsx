@@ -57,6 +57,21 @@ const getAgeBasedSuggestion = (sportiv: Sportiv, sesiuneData: string, grade: Gra
     const age = getAgeOnDate(sportiv.data_nasterii, sesiuneData);
     const isDangGrade = (g: Grad) => g.nume.toLowerCase().includes('dang');
 
+    // Sportiv fără grad actual (Debutant): sugestie pe brackete de vârstă,
+    // nu doar "primul grad din ordine" indiferent de vârstă.
+    if (!sportiv.grad_actual_id) {
+        const sortedGrades = [...grade].sort((a, b) => a.ordine - b.ordine);
+        let recommended: Grad | null = null;
+        if (age < 7) {
+            recommended = sortedGrades.find(g => g.nume.toLowerCase().includes('micul dragon')) || null;
+        } else if (age <= 12) {
+            recommended = sortedGrades.find(g => g.nume.toLowerCase() === '1 cap') || sortedGrades.find(g => g.nume.toLowerCase().includes('1 cap rosu') || g.nume.toLowerCase().includes('1 câp roșu')) || null;
+        } else {
+            recommended = sortedGrades.find(g => g.nume.toLowerCase().includes('1 cap albastru') || g.nume.toLowerCase().includes('1 câp albastru')) || null;
+        }
+        return recommended ? recommended.id : getDefaultNextGradeId(sportiv, grade) || null;
+    }
+
     // Gradul următor secvențial (ordine + 1)
     const nextGradeId = getDefaultNextGradeId(sportiv, grade);
     if (!nextGradeId) return null;
@@ -88,12 +103,13 @@ interface SingleAddInscriereModalProps {
     onSave: (selections: { sportiv_id: string; grad_sustinut_id: string }[]) => Promise<void>;
     sportivi: Sportiv[];
     grade: Grad[];
+    sesiune: SesiuneExamen;
     sesiuneData: string;
     inscrisiIds: Set<string>;
 }
 
-const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpen, onClose, onSave, sportivi, grade, sesiuneData, inscrisiIds }) => {
-    const { vizeSportivi } = useData();
+const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpen, onClose, onSave, sportivi, grade, sesiune, sesiuneData, inscrisiIds }) => {
+    const { vizeSportivi, sesiuniExamene, inscrieriExamene } = useData();
     const [selectedSportivId, setSelectedSportivId] = useState('');
     const [gradVizatId, setGradVizatId] = useState('');
     const [loading, setLoading] = useState(false);
@@ -101,6 +117,13 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
     const { showError } = useError();
 
     const selectedSportiv = useMemo(() => sportivi.find(s => s.id === selectedSportivId), [sportivi, selectedSportivId]);
+
+    const eligibilityWarning = useMemo(() => {
+        if (!selectedSportiv) return null;
+        const status = getEligibleGrade(selectedSportiv, sesiune, grade, inscrieriExamene, sesiuniExamene);
+        if (!status.eligible && status.message.startsWith('Stagiu minim')) return status.message;
+        return null;
+    }, [selectedSportiv, sesiune, grade, inscrieriExamene, sesiuniExamene]);
 
     const ageAtExam = useMemo(() => {
         if (!selectedSportiv || !sesiuneData) return null;
@@ -232,6 +255,11 @@ const SingleAddInscriereModal: React.FC<SingleAddInscriereModalProps> = ({ isOpe
                                 <XCircleIcon className="w-4 h-4" /> LIPSĂ VIZĂ ANUALĂ {new Date(sesiuneData).getFullYear()}
                             </div>
                         )}
+                        {eligibilityWarning && (
+                            <div className="mt-2 p-2 bg-amber-900/30 border border-amber-700/50 rounded text-amber-400 text-xs font-bold flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4" /> {eligibilityWarning}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -275,10 +303,11 @@ interface BulkAddSportiviModalProps {
     grade: Grad[];
     istoricGrade: IstoricGrade[];
     inscrisiIds: Set<string>;
+    sesiune: SesiuneExamen;
 }
 
-const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: string }> = ({ isOpen, onClose, onSave, sportivi, grade, istoricGrade, inscrisiIds, sesiuneData }) => {
-    const { vizeSportivi } = useData();
+const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: string }> = ({ isOpen, onClose, onSave, sportivi, grade, istoricGrade, inscrisiIds, sesiune, sesiuneData }) => {
+    const { vizeSportivi, sesiuniExamene, inscrieriExamene } = useData();
     const [selections, setSelections] = useState<Map<string, string>>(new Map());
     const [suggestions, setSuggestions] = useState<Map<string, string>>(new Map());
     const [filterTerm, setFilterTerm] = useState('');
@@ -301,11 +330,15 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                 const hasVisa = vizeSportivi.some(v => v.sportiv_id === s.id && v.an === sesiuneYear && v.status_viza === 'Activ');
                 const isEligible = true; // Restricțiile au fost eliminate conform cerinței
 
+                const eligStatus = getEligibleGrade(s, sesiune, grade, inscrieriExamene, sesiuniExamene);
+                const stagiuWarning = !eligStatus.eligible && eligStatus.message.startsWith('Stagiu minim') ? eligStatus.message : null;
+
                 return {
                     ...s,
                     defaultNextGradeId: getDefaultNextGradeId(s, grade),
                     isEligible: isEligible,
                     hasVisa: hasVisa,
+                    stagiuWarning,
                     lastPromotionDate: lastPromotionDate.toLocaleDateString('ro-RO')
                 };
             })
@@ -447,7 +480,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                     )}
                    {(filteredSportivi || []).map(s => {
                        const isSelected = selections.has(s.id);
-                       const { isEligible, hasVisa } = s;
+                       const { isEligible, hasVisa, stagiuWarning } = s;
                        const gradSelectat = selections.get(s.id) || '';
                        const gradSelectatNume = grade.find(g => g.id === gradSelectat)?.nume;
                        return (
@@ -485,6 +518,11 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                                                {!hasVisa && (
                                                    <span className="text-xs text-red-400 font-bold uppercase">
                                                        Fără viză {sesiuneYear}
+                                                   </span>
+                                               )}
+                                               {stagiuWarning && (
+                                                   <span className="text-xs text-amber-400 font-bold" title={stagiuWarning}>
+                                                       ⚠ {stagiuWarning}
                                                    </span>
                                                )}
                                            </div>
@@ -1653,6 +1691,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 grade={grade}
                 istoricGrade={istoricGrade}
                 inscrisiIds={inscrisiInSesiuneIds}
+                sesiune={sesiune}
                 sesiuneData={sesiune.data}
             />
 
@@ -1662,6 +1701,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 onSave={handleBulkSave}
                 sportivi={sportivi}
                 grade={grade}
+                sesiune={sesiune}
                 sesiuneData={sesiune.data}
                 inscrisiIds={inscrisiInSesiuneIds}
             />

@@ -178,6 +178,13 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
         const newIstoricGrade: IstoricGrade[] = [];
         const raportRanduri: RaportRand[] = [];
 
+        // Rezultatele deja înregistrate pentru această sesiune, pentru feedback la re-import
+        const { data: existingInscrieriData } = await supabase
+            .from('inscrieri_examene')
+            .select('sportiv_id, rezultat')
+            .eq('sesiune_id', sesiune.id);
+        const rezultatVechiMap = new Map((existingInscrieriData || []).map(r => [r.sportiv_id, r.rezultat]));
+
         for (let i = 0; i < randuri.length; i++) {
             const rand = randuri[i];
             const ov = overrides[i] || {};
@@ -295,18 +302,6 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     .maybeSingle();
 
                 if (errI) {
-                    // 23505 = deja înscris în această sesiune (re-import) → skip, nu eroare
-                    if (errI.code === '23505') {
-                        raportRanduri.push({
-                            numeRaw: rand.numeRaw,
-                            gradNume: rand.gradNume,
-                            rezultat: rand.rezultat,
-                            status: 'skip',
-                            motiv: 'Deja înscris în această sesiune (re-import)',
-                            sportivNou: esteNou,
-                        });
-                        continue;
-                    }
                     console.error(`[ImportExcel] Eroare înscriere ${rand.numeRaw}:`, errI);
                     raportRanduri.push({
                         numeRaw: rand.numeRaw,
@@ -347,12 +342,25 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
                     if (ig) newIstoricGrade.push(ig as IstoricGrade);
                 }
 
+                // ── Clasificare feedback: nou / neschimbat / actualizat ──
+                const rezultatVechi = rezultatVechiMap.get(sportivId);
+                let motiv: string;
+                let status: RaportStatus = 'success';
+                if (esteNou || rezultatVechi === undefined) {
+                    motiv = esteNou ? 'Sportiv creat și înscris' : 'Înscris cu succes (nou)';
+                } else if (rezultatVechi === rand.rezultat) {
+                    status = 'skip';
+                    motiv = `Deja înscris cu același rezultat (${rand.rezultat || 'Neprezentat'}) — nicio modificare`;
+                } else {
+                    motiv = `Actualizat: rezultat schimbat din "${rezultatVechi}" în "${rand.rezultat}"`;
+                }
+
                 raportRanduri.push({
                     numeRaw: rand.numeRaw,
                     gradNume: rand.gradNume,
                     rezultat: rand.rezultat,
-                    status: 'success',
-                    motiv: esteNou ? 'Sportiv creat și înscris' : 'Înscris cu succes',
+                    status,
+                    motiv,
                     sportivNou: esteNou,
                 });
 

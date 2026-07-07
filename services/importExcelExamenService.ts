@@ -568,6 +568,12 @@ function parseExLocal(
     const iRez     = colRez     >= 0 ? colRez     : 4;
     const iContrib = colContrib >= 0 ? colContrib : 5;
 
+    // Header "NUME / PRENUME" merge vizual 2 coloane; celula alăturată din header
+    // rămâne goală, dar rândurile de date au Prenume scris separat acolo.
+    const iNumeNext = iNume + 1;
+    const nextColOverlapsOtherField = iNumeNext === iGrad || iNumeNext === iRez || iNumeNext === iContrib;
+    const hasSeparatePrenumeCol = iNumeNext < iGrad && !nextColOverlapsOtherField && !headerCells[iNumeNext]?.trim();
+
     // Parsare rânduri date
     const randuri: RandImport[] = [];
     for (let r = headerRow + 1; r < rows.length; r++) {
@@ -575,8 +581,8 @@ function parseExLocal(
         const nr = row[0];
         if (!nr || typeof nr !== 'number') continue;
 
-        const numeRaw = String(row[iNume] || '').trim();
-        if (!numeRaw) continue;
+        const numeCol = String(row[iNume] || '').trim();
+        if (!numeCol) continue;
 
         const gradNume = String(row[iGrad] || '').trim();
         let rezultat: 'Admis' | 'Respins' | undefined;
@@ -586,10 +592,19 @@ function parseExLocal(
 
         const contributie = typeof row[iContrib] === 'number' ? row[iContrib] : undefined;
 
-        // Split nume: primul cuvânt = Nume, restul = Prenume
-        const parts = numeRaw.split(' ');
-        const nume = parts[0] || '';
-        const prenume = parts.slice(1).join(' ') || '';
+        let nume: string;
+        let prenume: string;
+        if (hasSeparatePrenumeCol) {
+            // Nume și Prenume în coloane separate
+            nume = numeCol;
+            prenume = String(row[iNumeNext] || '').trim();
+        } else {
+            // Split nume: primul cuvânt = Nume, restul = Prenume
+            const parts = numeCol.split(' ');
+            nume = parts[0] || '';
+            prenume = parts.slice(1).join(' ') || '';
+        }
+        const numeRaw = prenume ? `${nume} ${prenume}` : nume;
 
         const match = matchSportiv(numeRaw, sportivi);
         const gradObj = matchGrad(gradNume, grade);

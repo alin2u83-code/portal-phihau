@@ -20,8 +20,12 @@ export const importSportivi = async (
   const report: ImportReport = { succes: 0, erori: 0, detalii_erori: [] };
 
   // Helper to find grade ID
+  // Gradul implicit = cel cu ordinea (rank) minimă din nomenclator, nu un id/nume hardcodat
+  const debutantGrade: Grad | null = grade.length > 0
+    ? grade.reduce((min, g) => (g.ordine < min.ordine ? g : min), grade[0])
+    : null;
+
   const findGradeId = (gradNume: string | null | undefined): string | null => {
-    const debutantGrade = grade.find(g => g.ordine === 0 || g.nume.toLowerCase() === 'debutant');
 
     if (!gradNume || gradNume.trim() === '' || gradNume.trim().toLowerCase() === 'debutant') {
       return debutantGrade ? debutantGrade.id : null;

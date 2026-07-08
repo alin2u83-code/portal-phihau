@@ -6,6 +6,7 @@ import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircl
 import { useError } from '../ErrorProvider';
 import { Modal, Button, Input, Select } from '../ui';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
+import { matchGrad } from '../../services/importExcelExamenService';
 
 interface ImportExamenModalProps {
     isOpen: boolean;
@@ -153,23 +154,15 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         URL.revokeObjectURL(url);
     };
 
-    // Matches a grade name/level string to a grade ordine number
+    // Matches a grade name/level string to a grade ordine number.
+    // Refolose\u0219te matchGrad din engine-ul comun (importExcelExamenService.ts) \u2014
+    // aceea\u0219i logic\u0103 folosit\u0103 la import XLS rezultate (aliasuri cr/cv/1ca etc.,
+    // matching ordine numeric, fuzzy Levenshtein), \u00een loc de o reimplementare
+    // proprie divergent\u0103 cu prag fix 0.5 \u0219i f\u0103r\u0103 tabelul de aliasuri.
     const findGradeOrdine = (gradName: string): string => {
         if (!gradName) return '';
-        const normalized = gradName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        // Try exact match first
-        const exact = grades.find(g => g.nume.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized);
-        if (exact) return String(exact.ordine);
-        // Try numeric ordine directly (e.g. "3")
-        const asNum = parseInt(gradName.trim(), 10);
-        if (!isNaN(asNum) && grades.some(g => g.ordine === asNum)) return String(asNum);
-        // Fuzzy: find best similarity
-        let best = { score: 0, ordine: '' };
-        for (const g of grades) {
-            const score = stringSimilarity(normalized, g.nume.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
-            if (score > best.score) best = { score, ordine: String(g.ordine) };
-        }
-        return best.score > 0.5 ? best.ordine : '';
+        const found = matchGrad(gradName, grades);
+        return found ? String(found.ordine) : '';
     };
 
     const NOTA_PROMOVARE = 7;

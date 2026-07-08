@@ -363,6 +363,26 @@ export const useDataProvider = () => {
                 }
             }
 
+            // Bugfix istoric_grade: PostgREST limitează implicit orice request la 1000 rânduri.
+            // Un club mediu poate avea >1000 rânduri în istoric_grade (ex. C.S. Phi Hau are 1514),
+            // iar întreaga federație are 2000+ — un simplu `.select('*')` fără paginare pierde
+            // silențios rânduri (fără nicio eroare), afectând sportivi individuali imprevizibil
+            // (ex. BINDAC ALEXANDRU DANUT — lipseau 4 din 9 rânduri din istoric).
+            // Paginăm explicit cu `.range()` până epuizăm toate rândurile care corespund filtrului.
+            const PAGE_SIZE = 1000;
+            const fetchAllPages = async (buildQuery: (from: number, to: number) => any) => {
+                let allRows: any[] = [];
+                let from = 0;
+                while (true) {
+                    const { data, error } = await buildQuery(from, from + PAGE_SIZE - 1);
+                    if (error) return { data: allRows, error };
+                    allRows = allRows.concat(data || []);
+                    if (!data || data.length < PAGE_SIZE) break;
+                    from += PAGE_SIZE;
+                }
+                return { data: allRows, error: null };
+            };
+
             if (isSportiv && activeCtx.sportiv_id) {
                 criticalQueries.inscrieriExamene = cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('sportiv_id', activeCtx.sportiv_id);
                 criticalQueries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('sportiv_id', activeCtx.sportiv_id);
@@ -370,7 +390,23 @@ export const useDataProvider = () => {
                 criticalQueries.inscrieriExamene = clubId
                     ? cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('club_id', clubId)
                     : cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id');
-                criticalQueries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*');
+
+                if (clubId) {
+                    // Scopăm explicit după sportivii clubului activ (id-uri — sigur chiar dacă
+                    // hg.club_id e null în date vechi) + club_id (derivat acum din sportivi.club_id
+                    // în view, vezi migrarea `vedere_istoric_grade_sportiv`), simetric cu inscrieriExamene,
+                    // ȘI paginăm rezultatul ca să nu pierdem rânduri peste plafonul de 1000/request.
+                    const { data: clubSportivIds } = await cleanedSupabase
+                        .from('sportivi')
+                        .select('id')
+                        .eq('club_id', clubId);
+                    const idsInClub = (clubSportivIds || []).map((s: any) => s.id);
+                    criticalQueries.istoricGrade = idsInClub.length
+                        ? fetchAllPages((from, to) => cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').in('sportiv_id', idsInClub).eq('club_id', clubId).order('id', { ascending: true }).range(from, to))
+                        : cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('club_id', clubId);
+                } else {
+                    criticalQueries.istoricGrade = fetchAllPages((from, to) => cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').order('id', { ascending: true }).range(from, to));
+                }
             }
 
             const criticalKeys = Object.keys(criticalQueries);

@@ -72,6 +72,7 @@ Doua livrabile independente, ambele din audit-ul 2026-07-06 (val 1 - Securitate)
 
 - MFA obligatoriu pentru toti userii (inclusiv sportivi) — respins pentru acum, friction prea mare la 3500+ sportivi; poate revenit in discutie daca adoptia MFA creste organic.
 - Perioada de gratie / banner de avertizare — respins, enforcement e blocare imediata.
+- Feature flag / "buton de panica" pentru dezactivare rapida enforcement MFA — respins explicit. Daca apare o problema in productie (ex. admin blocat afara), se repara prin cod + deploy nou, nu prin comutator runtime. Planul NU trebuie sa includa niciun mecanism de tip config toggle pentru enforcement MFA.
 
 </deferred>
 

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: verifying
+status: completed
 stopped_at: context exhaustion at 76% (2026-06-26)
-last_updated: "2026-07-05T15:37:04.972Z"
-last_activity: "2026-07-05 -- Completed quick task 260705-pgg: refactor Deduplicare Sportivi (include inactivi in detectie, merge_sportivi sterge duplicatul + guard acces club) - migratie SQL scrisa, NEaplicata live"
+last_updated: "2026-07-06T10:29:08.086Z"
+last_activity: 2026-07-06 -- Phase 16 marked complete
 progress:
-  total_phases: 6
-  completed_phases: 4
-  total_plans: 19
-  completed_plans: 18
-  percent: 67
+  total_phases: 16
+  completed_phases: 6
+  total_plans: 21
+  completed_plans: 20
+  percent: 38
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 14 — COMPLETE. Next: phase verification + ROADMAP update.
+**Current focus:** Phase 16 — elimina-politici-rls-using-true-ramase-rezultate-facturi-fed
 
 ## Current Position
 
-Phase: 14 (corelare-prezente-facturi) — COMPLETE
-Plan: 4/4
-Status: All plans verified via Playwright
-Last activity: 2026-07-05 -- Completed quick task 260705-pgg: refactor Deduplicare Sportivi (include inactivi in detectie, merge_sportivi sterge duplicatul + guard acces club) - migratie SQL scrisa, NEaplicata live
+Phase: 16 — COMPLETE
+Plan: 1 of 1
+Status: Phase 16 complete
+Last activity: 2026-07-06 -- Phase 16 marked complete
 
 ```
 Progress: [████████░░] 83% (5/6 phases)
@@ -74,6 +74,7 @@ Recent decisions affecting current work:
 - FederatieComandaView condiționat pe isFederationAdmin (nu pe rol string direct) — consistent cu RLS is_super_admin()
 - confirmaReceptieClub operează pe comenzi_produse_cluburi.id — fiecare club confirmă recepția proprie independent
 - [Phase ?]: Migratie SQL deduplicare (find_similar_sportivi + merge_sportivi: include inactivi, delete efectiv, guard acces club) scrisa dar NEaplicata live - user trebuie sa o aplice manual
+- [260708-h7k]: unificare matching sportivi (Jaccard ImportExamenModal vs Levenshtein engine comun) amanata deliberat — risc financiar/identitate, necesita test regresie pe CSV istorice reale inainte de swap (relevant pt Phase 24)
 
 ### Pending Todos
 
@@ -92,6 +93,22 @@ None yet.
 | 260705-1js | Consolidare endpoint-uri Vercel API 14->9 — fix deploy blocat de limita Hobby (12 functii) | 2026-07-05 | bcfd0a4 | Verified | [260705-1js-consolideaza-endpoint-uri-vercel-api-sub](./quick/260705-1js-consolideaza-endpoint-uri-vercel-api-sub/) |
 | 260705-irg | Fix RLS cross-club leak (is_super_admin/este_staff_club/has_access_to_club + Select_Sportivi_Unified ignorau contextul activ) + afiseaza club per sportiv in Deduplicare pentru super admin | 2026-07-05 | d9e0ec8 | Verified | [260705-irg-fix-rls-context-aware-role-check-si-afis](./quick/260705-irg-fix-rls-context-aware-role-check-si-afis/) |
 | 260705-pgg | Refactor Deduplicare Sportivi: include inactivi in detectie, merge_sportivi sterge duplicatul (delete efectiv, FK dinamic), guard acces club — migratie SQL scrisa, NEaplicata live | 2026-07-05 | 70db87e | Needs SQL apply | [260705-pgg-refactor-deduplicare-sportivi-include-in](./quick/260705-pgg-refactor-deduplicare-sportivi-include-in/) |
+| 260708-h7k | Fix istoric grade Bindac (limita 1000 randuri PostgREST + club_id gresit in view) + grad implicit sportiv nou (trigger conditie moarta) + retroactiv 5 sportivi + unifica matching grad import CSV cu engine comun | 2026-07-08 | 94a4c7a | Verified | [260708-h7k-fix-istoric-grade-bindac-grad-implicit-unifica](./quick/260708-h7k-fix-istoric-grade-bindac-grad-implicit-unifica/) |
+
+### Roadmap Evolution
+
+- Phase 15 added: Fix RLS izolare cross-club pe tabele financiare (alocari_plati, tranzactie_plata, incasari_efective, obligatii_plata, aplicare_reduceri, detalii_decont, sesiune_activitate, staging_inscrieri)
+- Phase 16 added: Elimina politici RLS USING(true) ramase (rezultate, facturi_federale, note_examene, etc) si restrictioneaza public.users
+- Phase 17 added: Verifica aplicare live migratie deduplicare sportivi si decide MFA obligatoriu vs opțional
+- Phase 18 added: Fix suprascriere silentioasa grad in istoric_grade (sportivService) si unifica sursa de adevar grad_actual_id
+- Phase 19 added: Elimina ignoreDuplicates silentios pe upsert istoric_grade (8 locuri) si adauga rollback plati/tranzactii in GestiuneFacturi
+- Phase 20 added: Fix club_id lipsa in useAttendance si aliniaza retragere individuala competitie cu retragere echipa
+- Phase 21 added: Fix race conditions (Pas4Sumar competitii, login dublu-click, bucla schimbare parola, refetch PlatiScadente)
+- Phase 22 added: Decizie React Query vs useDataProvider si unifica calcul sold financiar intr-un hook canonic
+- Phase 23 added: Sparge ManagementInscrieri.tsx (1694L) in module separate pe responsabilitate
+- Phase 24 added: Unifica cele 3 fisiere import Excel examene si migreaza type=date la DateInputDMY
+
+Sursa: audit complet 2026-07-06 (vezi memory project_audit_complet_20260706.md). Ordine executie: 15→16→17 (securitate, urgent) apoi 18→19→20 (integritate date) apoi 21 (race conditions) apoi 22→23→24 (arhitectura, fara urgenta).
 
 ### Blockers/Concerns
 

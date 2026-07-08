@@ -201,22 +201,24 @@ Plans:
 **Goal:** Ultimele politici RLS periculoase de tip USING(true) ramase pe DB live sunt eliminate: public.users nu mai expune email-urile tuturor userilor, knowledge_base nu mai poate fi vandalizat de orice user autentificat, iar datele GDPR medicale din fisa_inscriere sunt izolate pe clubul propriu (nu mai sunt vizibile/editabile cross-club de orice ADMIN_CLUB).
 **Requirements**: SEC-03, SEC-04, SEC-05
 **Depends on:** Phase 15
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 
-- [ ] 16-01-PLAN.md — Fix RLS USING(true): users (SELECT scoped propriul rand), knowledge_base (scriere doar super-admin), fisa_inscriere (izolare cross-club GDPR via practicant_id -> sportivi.club_id)
+- [x] 16-01-PLAN.md — Fix RLS USING(true): users (SELECT scoped propriul rand), knowledge_base (scriere doar super-admin), fisa_inscriere (izolare cross-club GDPR via practicant_id -> sportivi.club_id)
 
 ### Phase 17: Verifica aplicare live migratie deduplicare sportivi si decide MFA obligatoriu vs opțional
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Comentariul stale din migratia de deduplicare (care afirma fals ca nu e aplicata live) este corectat dupa verificare reproductibila, iar MFA (TOTP) devine obligatoriu si blocat imediat pentru rolurile privilegiate ADMIN_CLUB + SUPER_ADMIN_FEDERATIE (INSTRUCTOR/SPORTIV raman voluntari), cu render-gate real fara flash de continut protejat si o plasa de siguranta anti-lockout la rollout
+**Requirements**: DEDUP-VERIFY-01, MFA-01, MFA-02, MFA-03
 **Depends on:** Phase 16
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 17 to break down)
+- [ ] 17-01-PLAN.md — Verifica live functiile dedup (pg_get_functiondef) + corecteaza antetul stale al fisierului SQL — DEDUP-VERIFY-01
+- [ ] 17-02-PLAN.md — MFA cod: SetupMFAPage TOTP + useMFAGuard scoped 2 roluri + render-gate App.tsx — MFA-01, MFA-02
+- [ ] 17-03-PLAN.md — Rollout safety: script audit acoperire MFA (service-role) + checkpoint verificare end-to-end — MFA-03
 
 ### Phase 18: Fix suprascriere silentioasa grad in istoric_grade (sportivService) si unifica sursa de adevar grad_actual_id (elimina dual-write manual vs trigger)
 

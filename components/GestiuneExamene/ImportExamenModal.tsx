@@ -512,6 +512,14 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         errorDetails.push({ row: row.originalIndex + 1, name: `${row.Nume} ${row.Prenume}`, error: 'ID sesiune nedeterminat.' });
                         return;
                     }
+                    // Bug fix (260709-m7m): currentUser.club_id e undefined pentru staff
+                    // fără profil sportiv propriu (cazul comun INSTRUCTOR/ADMIN_CLUB) — asta
+                    // crea sportivi/înscrieri cu club_id NULL, invizibili în orice flux
+                    // scopat pe club (RLS + filtrare client). Folosim clubul sesiunii
+                    // (sursa corectă de adevăr pentru "cărui club îi aparține acest sportiv
+                    // în acest import"), cu fallback pe currentUser.club_id doar dacă sesiunea
+                    // chiar nu are club (eveniment federație).
+                    const sesiuneClubId = localSesiuni.find(s => s.id === sessionId)?.club_id ?? currentUser.club_id ?? null;
                     try {
                         const gradOrdine = parseInt(row.Grad_Nou_Ordine);
                         if (isNaN(gradOrdine)) throw new Error(`Grad invalid: "${row.Grad_Nou_Ordine}"`);
@@ -533,7 +541,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                 .insert({
                                     nume: row.Nume,
                                     prenume: row.Prenume,
-                                    club_id: currentUser.club_id || null,
+                                    club_id: sesiuneClubId,
                                     grad_actual_id: row.Rezultat === 'Admis' ? gradId : null,
                                     status: 'Activ',
                                     data_inscrierii: new Date().toISOString().split('T')[0],
@@ -571,7 +579,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                     sesiune_id: sessionId,
                                     grad_sustinut_id: gradId,
                                     grad_actual_id: row.Rezultat === 'Admis' ? gradId : null,
-                                    club_id: currentUser.club_id || null,
+                                    club_id: sesiuneClubId,
                                     varsta_la_examen: 0,
                                     rezultat: row.Rezultat,
                                     status_inscriere: 'Validat',
@@ -598,7 +606,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                                     grad_id: gradId,
                                     data_obtinere: dataExamen,
                                     sesiune_examen_id: sessionId,
-                                    club_id: currentUser.club_id || null,
+                                    club_id: sesiuneClubId,
                                 }, { onConflict: 'sportiv_id,grad_id' });
                         }
 

@@ -8,53 +8,10 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { ManagementInscrieri } from './ManagementInscrieri';
 import { HartaExamene } from './HartaExamene';
+import { ComisieMembriEditor, ComisieEntry } from './ComisieMembriEditor';
+import { fetchComisieMembri, syncComisieMembri, ComisieEntryInput } from '../../hooks/useComisieMembri';
 
 // --- SUB-COMPONENTE PENTRU MANAGEMENTUL SESIUNILOR (PĂSTRATE) ---
-
-const ComisieEditor: React.FC<{
-    membri: string[];
-    setMembri: (membri: string[]) => void;
-}> = ({ membri, setMembri }) => {
-    const [newMembru, setNewMembru] = useState('');
-
-    const handleAdd = () => {
-        const trimmed = newMembru.trim();
-        if (trimmed && !membri.includes(trimmed)) {
-            setMembri([...membri, trimmed]);
-            setNewMembru('');
-        }
-    };
-
-    const handleRemove = (membruToRemove: string) => {
-        setMembri(membri.filter(m => m !== membruToRemove));
-    };
-
-    return (
-        <div>
-            <label className="block text-[11px] uppercase font-bold text-slate-400 mb-2 ml-1">Membri Comisie</label>
-            <div className="space-y-2 mb-3">
-                {membri.map(membru => (
-                    <div key={membru} className="bg-slate-700/50 p-2 rounded-md flex justify-between items-center text-sm">
-                        <span className="font-medium text-white">{membru}</span>
-                        <Button type="button" size="sm" variant="danger" onClick={() => handleRemove(membru)} className="!p-1.5 h-auto" title={`Elimină pe ${membru}`}>
-                            <TrashIcon className="w-4 h-4" />
-                        </Button>
-                    </div>
-                ))}
-                {membri.length === 0 && <p className="text-xs text-slate-500 italic text-center py-2">Niciun membru adăugat.</p>}
-            </div>
-            <div className="flex items-end gap-2">
-                <div className="flex-grow">
-                    <Input label="" value={newMembru} onChange={e => setNewMembru(e.target.value)} placeholder="Nume și prenume membru..." 
-                        onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAdd(); } }}/>
-                </div>
-                <Button type="button" variant="info" onClick={handleAdd} className="h-[38px] aspect-square p-0" title="Adaugă membru">
-                    <PlusIcon className="w-5 h-5" />
-                </Button>
-            </div>
-        </div>
-    );
-};
 
 interface LocatieFormProps {
   isOpen: boolean;
@@ -96,9 +53,10 @@ const LocatieFormModal: React.FC<LocatieFormProps> = ({ isOpen, onClose, onSave 
   );
 };
 
-interface SesiuneFormProps { isOpen: boolean; onClose: () => void; onSave: (sesiune: Partial<SesiuneExamen>) => Promise<void>; sesiuneToEdit: SesiuneExamen | null; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; clubs: Club[]; currentUser: User; }
+interface SesiuneFormProps { isOpen: boolean; onClose: () => void; onSave: (sesiune: Partial<SesiuneExamen>, comisieEntries: ComisieEntry[]) => Promise<void>; sesiuneToEdit: SesiuneExamen | null; locatii: Locatie[]; setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; clubs: Club[]; currentUser: User; }
 const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesiuneToEdit, locatii, setLocatii, clubs, currentUser }) => {
   const [formState, setFormState] = useState<Partial<SesiuneExamen>>({ data: new Date().toISOString().split('T')[0], nume: 'Vara', locatie_id: '', comisia: [] });
+  const [comisieEntries, setComisieEntries] = useState<ComisieEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [isLocatieModalOpen, setIsLocatieModalOpen] = useState(false);
   const { showError, showSuccess } = useError();
@@ -109,19 +67,36 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
           const comisiaAsAny = sesiuneToEdit.comisia as any;
           const comisieArray = Array.isArray(comisiaAsAny) ? comisiaAsAny : (typeof comisiaAsAny === 'string' ? comisiaAsAny.split(',').map(s => s.trim()).filter(Boolean) : []);
           setFormState({ ...sesiuneToEdit, comisia: comisieArray });
+          fetchComisieMembri(sesiuneToEdit.id)
+              .then(membri => {
+                  if (membri.length > 0) {
+                      setComisieEntries(membri.map(m => ({ user_id: m.user_id, nume_afisat: m.nume_afisat })));
+                  } else {
+                      setComisieEntries(comisieArray.map(nume => ({ user_id: null, nume_afisat: nume })));
+                  }
+              })
+              .catch(() => setComisieEntries(comisieArray.map(nume => ({ user_id: null, nume_afisat: nume }))));
       } else {
-          setFormState({ 
-              data: new Date().toISOString().split('T')[0], 
+          setFormState({
+              data: new Date().toISOString().split('T')[0],
               nume: 'Vara',
-              locatie_id: '', 
+              locatie_id: '',
               comisia: [],
               club_id: isSuperAdmin ? '' : currentUser.club_id
           });
+          setComisieEntries([]);
       }
   }, [sesiuneToEdit, isOpen, isSuperAdmin, currentUser.club_id]);
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormState(p => ({ ...p, [e.target.name]: e.target.value }));
-  const handleSubmit = async (e: React.FormEvent) => { e.preventDefault(); setLoading(true); await onSave(formState); setLoading(false); onClose(); };
+  const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
+      const payload: Partial<SesiuneExamen> = { ...formState, comisia: comisieEntries.map(m => m.nume_afisat) };
+      await onSave(payload, comisieEntries);
+      setLoading(false);
+      onClose();
+  };
 
   const handleSaveLocatie = async (locatieData: { nume: string, adresa: string }) => {
         if (!supabase) { showError("Eroare", "Client Supabase neconfigurat."); return; }
@@ -160,7 +135,7 @@ const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesi
             </div>
             <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[38px] aspect-square p-0" title="Adaugă locație nouă"><PlusIcon className="w-5 h-5"/></Button>
         </div>
-        <ComisieEditor membri={formState.comisia || []} setMembri={(newMembri) => setFormState(p => ({ ...p, comisia: newMembri }))} />
+        <ComisieMembriEditor entries={comisieEntries} setEntries={setComisieEntries} />
         <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" isLoading={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div>
     </form>
   </Modal>
@@ -822,7 +797,7 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
 
   const handleBackToList = () => setSelectedSesiuneId(null);
 
-  const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>) => {
+  const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>, comisieEntries: ComisieEntryInput[] = []) => {
     const locatieSelectata = locatii.find(l => l.id === sesiuneData.locatie_id);
     const dataToSave: Partial<SesiuneExamen> = {
         ...sesiuneData,
@@ -832,19 +807,21 @@ export const RapoarteExamen: React.FC<RapoarteExamenProps> = ({ currentUser, clu
 
     if (sesiuneToEdit) {
         const { data, error } = await supabase.from('sesiuni_examene').update(dataToSave).eq('id', sesiuneToEdit.id).select().maybeSingle();
-        if (error) { showError("Eroare la actualizare", error); } else if (data) { 
+        if (error) { showError("Eroare la actualizare", error); } else if (data) {
+            await syncComisieMembri(data.id, comisieEntries);
             const { data: viewData, error: viewError } = await supabase.from('sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
             const finalData = viewData || data;
-            setSesiuni(prev => prev.map(e => e.id === finalData.id ? finalData as SesiuneExamen : e)); 
-            showSuccess("Succes", "Sesiunea a fost actualizată."); 
+            setSesiuni(prev => prev.map(e => e.id === finalData.id ? finalData as SesiuneExamen : e));
+            showSuccess("Succes", "Sesiunea a fost actualizată.");
         }
     } else {
         const { data, error } = await supabase.from('sesiuni_examene').insert(dataToSave).select().maybeSingle();
-        if (error) { showError("Eroare la adăugare", error); } else if (data) { 
+        if (error) { showError("Eroare la adăugare", error); } else if (data) {
+            await syncComisieMembri(data.id, comisieEntries);
             const { data: viewData, error: viewError } = await supabase.from('sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
             const finalData = viewData || data;
-            setSesiuni(prev => [...prev, finalData as SesiuneExamen]); 
-            showSuccess("Succes", "Sesiunea a fost creată."); 
+            setSesiuni(prev => [...prev, finalData as SesiuneExamen]);
+            showSuccess("Succes", "Sesiunea a fost creată.");
         }
     }
   };

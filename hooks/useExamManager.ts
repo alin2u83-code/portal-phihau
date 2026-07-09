@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
 import { SesiuneExamen, InscriereExamen, DecontFederatie, Sportiv, IstoricGrade, Grad } from '../types';
+import { syncComisieMembri, ComisieEntryInput } from './useComisieMembri';
 
 export const useExamManager = (
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>,
@@ -13,7 +14,7 @@ export const useExamManager = (
     const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
 
-    const saveSesiune = async (sesiuneData: Partial<SesiuneExamen>, sesiuneToEdit: SesiuneExamen | null, locatii: any[]) => {
+    const saveSesiune = async (sesiuneData: Partial<SesiuneExamen>, sesiuneToEdit: SesiuneExamen | null, locatii: any[], comisieEntries: ComisieEntryInput[] = []) => {
         if (!supabase) {
             showError("Eroare", "Client Supabase neconfigurat.");
             return;
@@ -33,6 +34,7 @@ export const useExamManager = (
                 const { data, error } = response;
                 if (error) throw error;
                 if (data) {
+                    await syncComisieMembri(data.id, comisieEntries);
                     const { data: viewData, error: viewError } = await supabase.from('sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
                     // Fallback to inserted data if view filters it out (e.g. different club context)
                     const finalData = viewData || data;
@@ -45,6 +47,7 @@ export const useExamManager = (
                 const { data, error } = response;
                 if (error) throw error;
                 if (data) {
+                    await syncComisieMembri(data.id, comisieEntries);
                     const { data: viewData, error: viewError } = await supabase.from('sesiuni_examene').select('*').eq('id', data.id).maybeSingle();
                     // Fallback to inserted data if view filters it out
                     const finalData = viewData || data;

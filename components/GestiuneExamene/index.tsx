@@ -13,6 +13,7 @@ import { ImportTutorial } from './ImportTutorial';
 import { SesiuneForm } from './SesiuneForm';
 import { DetaliiSesiune } from './DetaliiSesiune';
 import { useExamManager } from '../../hooks/useExamManager';
+import { ComisieEntryInput } from '../../hooks/useComisieMembri';
 import { useData } from '../../contexts/DataContext';
 
 // --- COMPONENTA PRINCIPALĂ (REFActorizată) ---
@@ -154,11 +155,13 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
     if (locationFilter) {
       filtered = filtered.filter(s => s.locatie_id === locationFilter);
     }
-    if (isFederationAdmin && clubFilter) {
+    if (clubFilter) {
       filtered = filtered.filter(s => s.club_id === clubFilter);
-    } else if (!isFederationAdmin && currentUser.club_id) {
-      filtered = filtered.filter(s => s.club_id === currentUser.club_id);
     }
+    // Fara restrictie by-default pe clubul propriu: o sesiune de examen poate fi
+    // multi-club, iar RLS pe sesiuni_examene deja limiteaza ce sesiuni sunt vizibile
+    // (staff de club vede toate, ca sa poata inscrie sportivi la o sesiune gazduita
+    // de alt club). Vezi migrarea 20260709_examene_multiclub_comisie.sql.
     if (statusFilter) {
       filtered = filtered.filter(s => s.status === statusFilter);
     }
@@ -175,8 +178,8 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
     }
   };
 
-  const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>) => {
-      await saveSesiune(sesiuneData, sesiuneToEdit, locatii);
+  const handleSaveSesiune = async (sesiuneData: Partial<SesiuneExamen>, comisieEntries: ComisieEntryInput[] = []) => {
+      await saveSesiune(sesiuneData, sesiuneToEdit, locatii, comisieEntries);
       if (!managerLoading) setIsFormOpen(false); // Close only if successful (hook handles errors)
   };
 

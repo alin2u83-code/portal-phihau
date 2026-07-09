@@ -12,6 +12,7 @@ import { getEligibleGrade } from '../../utils/eligibility';
 import { sendBulkNotifications } from '../../utils/notifications';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { ExportExamenModal } from './ExportExamenModal';
+import { useComisieInscrieriSesiune } from '../../hooks/useComisieInscrieriSesiune';
 
 import { useData } from '../../contexts/DataContext';
 
@@ -631,6 +632,17 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     const [showAdmitAllConfirm, setShowAdmitAllConfirm] = useState(false);
     const [, startTransition] = useTransition();
     
+    // Comisie de examen: adaugam si participantii altor cluburi la aceasta sesiune,
+    // altfel lista globala (scopata pe clubul activ) i-ar ascunde.
+    const { isComisie, inscrieriCrossClub } = useComisieInscrieriSesiune(sesiune.id);
+    useEffect(() => {
+        if (!isComisie || !inscrieriCrossClub) return;
+        setInscrieri(prev => {
+            const altele = prev.filter(i => i.sesiune_id !== sesiune.id);
+            return [...altele, ...inscrieriCrossClub];
+        });
+    }, [isComisie, inscrieriCrossClub, sesiune.id, setInscrieri]);
+
     const inscrisiInSesiuneIds = useMemo(() => {
         return new Set((allInscrieri || []).filter(i => i.sesiune_id === sesiune.id).map(i => i.sportiv_id));
     }, [allInscrieri, sesiune.id]);
@@ -1326,11 +1338,14 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 const prenume = inscriere.sportiv_prenume || inscriere.sportivi?.prenume || '';
                 const fullName = `${nume} ${prenume}`.trim() || 'Necunoscut';
                 return (
-                    <p 
+                    <p
                         className="font-medium text-white hover:text-brand-primary hover:underline cursor-pointer"
                         onClick={(e) => { e.stopPropagation(); if(sportiv) onViewSportiv(sportiv); }}
                     >
                         {fullName}
+                        {isComisie && inscriere.club_nume && (
+                            <span className="block text-[10px] font-normal text-slate-500 uppercase">{inscriere.club_nume}</span>
+                        )}
                     </p>
                 );
             }
@@ -1440,6 +1455,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         >
                             {fullName}
                         </p>
+                        {isComisie && inscriere.club_nume && (
+                            <p className="text-[10px] font-medium text-slate-500 uppercase">{inscriere.club_nume}</p>
+                        )}
                         {/* Grade: actual â†’ vizat */}
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className="text-xs text-slate-400">

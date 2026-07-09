@@ -4,22 +4,24 @@ import { PlusIcon } from '../icons';
 import { SesiuneExamen, Locatie, Club, User } from '../../types';
 import { useError } from '../ErrorProvider';
 import { supabase } from '../../supabaseClient';
-import { ComisieEditor } from './ComisieEditor';
+import { ComisieMembriEditor, ComisieEntry } from './ComisieMembriEditor';
 import { LocatieFormModal } from './LocatieFormModal';
+import { fetchComisieMembri, syncComisieMembri } from '../../hooks/useComisieMembri';
 
-export interface SesiuneFormProps { 
-    isOpen: boolean; 
-    onClose: () => void; 
-    onSave: (sesiune: Partial<SesiuneExamen>) => Promise<void>; 
-    sesiuneToEdit: SesiuneExamen | null; 
-    locatii: Locatie[]; 
-    setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>; 
-    clubs: Club[]; 
-    currentUser: User; 
+export interface SesiuneFormProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (sesiune: Partial<SesiuneExamen>, comisieEntries: ComisieEntry[]) => Promise<void>;
+    sesiuneToEdit: SesiuneExamen | null;
+    locatii: Locatie[];
+    setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>;
+    clubs: Club[];
+    currentUser: User;
 }
 
 export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSave, sesiuneToEdit, locatii, setLocatii, clubs, currentUser }) => {
   const [formState, setFormState] = useState<Partial<SesiuneExamen>>({ data: new Date().toISOString().split('T')[0], locatie_id: '', comisia: [], nume: 'Vara' });
+  const [comisieEntries, setComisieEntries] = useState<ComisieEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [isLocatieModalOpen, setIsLocatieModalOpen] = useState(false);
   const { showError, showSuccess } = useError();
@@ -36,6 +38,16 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
                   normalizedData = `${y}-${m}-${d}`;
               }
               setFormState({ ...sesiuneToEdit, data: normalizedData, comisia: comisieArray });
+              fetchComisieMembri(sesiuneToEdit.id)
+                  .then(membri => {
+                      if (membri.length > 0) {
+                          setComisieEntries(membri.map(m => ({ user_id: m.user_id, nume_afisat: m.nume_afisat })));
+                      } else {
+                          // Sesiune veche fara membri legati - pastreaza numele ca intrari manuale
+                          setComisieEntries(comisieArray.map(nume => ({ user_id: null, nume_afisat: nume })));
+                      }
+                  })
+                  .catch(() => setComisieEntries(comisieArray.map(nume => ({ user_id: null, nume_afisat: nume }))));
           } else {
               setFormState({
                   data: new Date().toISOString().split('T')[0],
@@ -44,12 +56,20 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
                   nume: 'Vara',
                   club_id: isSuperAdmin ? '' : currentUser.club_id
               });
+              setComisieEntries([]);
           }
       }
   }, [sesiuneToEdit, isOpen, isSuperAdmin, currentUser.club_id]);
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormState(p => ({ ...p, [e.target.name]: e.target.value }));
-  const handleSubmit = async (e: React.FormEvent) => { e.preventDefault(); setLoading(true); await onSave(formState); setLoading(false); onClose(); };
+  const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
+      const payload: Partial<SesiuneExamen> = { ...formState, comisia: comisieEntries.map(m => m.nume_afisat) };
+      await onSave(payload, comisieEntries);
+      setLoading(false);
+      onClose();
+  };
 
   const handleSaveLocatie = async (locatieData: { nume: string, adresa: string }) => {
         if (!supabase) { showError("Eroare", "Client Supabase neconfigurat."); return; }
@@ -89,7 +109,7 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
             </div>
             <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[50px] w-[50px] !p-0 flex items-center justify-center flex-shrink-0" title="Adaugă locație nouă"><PlusIcon className="w-6 h-6"/></Button>
         </div>
-        <ComisieEditor membri={formState.comisia || []} setMembri={(newMembri) => setFormState(p => ({ ...p, comisia: newMembri }))} />
+        <ComisieMembriEditor entries={comisieEntries} setEntries={setComisieEntries} />
         <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" isLoading={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div>
     </form>
   </Modal>

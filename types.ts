@@ -260,6 +260,23 @@ export interface SesiuneExamen {
   nr_inscrisi?: number;
 }
 
+export interface ComisieMembru {
+  id: string;
+  sesiune_id: string;
+  user_id: string | null;
+  nume_afisat: string;
+  created_at?: string;
+}
+
+export interface CandidatComisie {
+  sportiv_id: string;
+  user_id: string;
+  nume: string;
+  prenume: string;
+  club_nume: string | null;
+  rol_denumire: string;
+}
+
 export interface InscriereExamen {
   id: string;
   sportiv_id: string;

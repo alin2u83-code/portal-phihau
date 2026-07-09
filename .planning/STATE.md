@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 16 — COMPLETE
 Plan: 1 of 1
 Status: Phase 16 complete
-Last activity: 2026-07-09 - Completed quick task 260709-fth: Gestiune Sesiuni Examen scoping strict club + ani dinamici
+Last activity: 2026-07-09 - Completed quick task 260709-kr1: SearchableSelect pentru filtre luna/an si alte filtre lista lunga
 
 ```
 Progress: [████████░░] 83% (5/6 phases)
@@ -96,6 +96,7 @@ None yet.
 | 260708-h7k | Fix istoric grade Bindac (limita 1000 randuri PostgREST + club_id gresit in view) + grad implicit sportiv nou (trigger conditie moarta) + retroactiv 5 sportivi + unifica matching grad import CSV cu engine comun | 2026-07-08 | 94a4c7a | Verified | [260708-h7k-fix-istoric-grade-bindac-grad-implicit-unifica](./quick/260708-h7k-fix-istoric-grade-bindac-grad-implicit-unifica/) |
 | 260709-eiw | Restyle Import Sportivi + ecran principal Sesiuni Examen la paleta/stil carduri din AdminMasterMap (slate-800/60 + amber-400) | 2026-07-09 | 80bb077 | Verified | [260709-eiw-restyle-import-sportivi-si-modulul-exame](./quick/260709-eiw-restyle-import-sportivi-si-modulul-exame/) |
 | 260709-fth | Gestiune Sesiuni Examen: scoping strict club activ (non-federatie) + dropdown ani derivat dinamic din sesiuni reale | 2026-07-09 | b73fba2 | [260709-fth-gestiune-sesiuni-examen-filtrare-club-si](./quick/260709-fth-gestiune-sesiuni-examen-filtrare-club-si/) |
+| 260709-kr1 | SearchableSelect (scriere+listă) pentru filtre Lună/An Gestiune Sesiuni Examen + ClubSelect + Sportivi (Grupă/Grad) + Prezență + Plăți + Competiții (Probă/Grad min-max) | 2026-07-09 | 12c3a11 | [260709-kr1-searchableselect-pentru-filtre-luna-an-g](./quick/260709-kr1-searchableselect-pentru-filtre-luna-an-g/) |
 
 ### Roadmap Evolution
 

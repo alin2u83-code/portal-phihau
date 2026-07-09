@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useData } from '../contexts/DataContext';
 import { fetchAuditLog, AuditLogFilters } from '../services/auditLogService';
 import { useAuditUserNames } from '../hooks/useAuditUserNames';
+import { AuditSesiuni } from './AuditSesiuni';
 import type { AuditLogEntry } from '../types';
 import { Card, Button, Input, Select, Badge, SearchableSelect } from './ui';
 import { ArrowLeftIcon, ShieldCheckIcon, ClockIcon } from './icons';
@@ -44,6 +45,7 @@ export const JurnalAudit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const clubMap = useMemo(() => Object.fromEntries(clubs.map(c => [c.id, c.nume])), [clubs]);
     const { nameMap, options: userOptions } = useAuditUserNames();
 
+    const [tab, setTab] = useState<'jurnal' | 'sesiuni'>('jurnal');
     const [clubId, setClubId] = useState('');
     const [operatie, setOperatie] = useState('');
     const [userId, setUserId] = useState('');
@@ -69,6 +71,7 @@ export const JurnalAudit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             return data;
         },
         staleTime: 60_000,
+        enabled: tab === 'jurnal',
     });
 
     const inregistrari: AuditLogEntry[] = data ?? [];
@@ -101,6 +104,24 @@ export const JurnalAudit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <p className="text-slate-400 text-sm">Istoric complet al operațiilor din baza de date — acces exclusiv Super Admin</p>
                     </div>
                 </div>
+            </div>
+
+            {/* Taburi */}
+            <div className="flex gap-2">
+                <Button
+                    variant={tab === 'jurnal' ? 'primary' : 'secondary'}
+                    size="sm"
+                    onClick={() => setTab('jurnal')}
+                >
+                    Jurnal
+                </Button>
+                <Button
+                    variant={tab === 'sesiuni' ? 'primary' : 'secondary'}
+                    size="sm"
+                    onClick={() => setTab('sesiuni')}
+                >
+                    Sesiuni / Trafic
+                </Button>
             </div>
 
             {/* Filtre */}
@@ -151,8 +172,18 @@ export const JurnalAudit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </div>
             </Card>
 
-            {/* Tabel */}
-            {isLoading ? (
+            {/* Tab Sesiuni / Trafic */}
+            {tab === 'sesiuni' && (
+                <AuditSesiuni
+                    userId={userId || undefined}
+                    dataStart={dataStart || undefined}
+                    dataEnd={dataEnd ? `${dataEnd}T23:59:59` : undefined}
+                    nameMap={nameMap}
+                />
+            )}
+
+            {/* Tabel Jurnal */}
+            {tab === 'jurnal' && (isLoading ? (
                 <Card className="p-8 text-center">
                     <div className="animate-spin h-8 w-8 border-2 border-sky-500 border-t-transparent rounded-full mx-auto mb-3" />
                     <p className="text-slate-400">Se încarcă jurnalul de audit...</p>
@@ -204,10 +235,10 @@ export const JurnalAudit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         </table>
                     </div>
                 </Card>
-            )}
+            ))}
 
             {/* Paginare */}
-            {!isLoading && !error && (
+            {tab === 'jurnal' && !isLoading && !error && (
                 <div className="flex items-center justify-between pb-4">
                     <Button
                         variant="secondary"

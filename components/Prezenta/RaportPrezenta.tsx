@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useState, useEffect } from 'react';
 import { Antrenament, Sportiv, Grupa, View } from '../../types';
-import { Card, Input, Select, Button } from '../ui';
+import { Card, Input, Select, Button, SearchableSelect } from '../ui';
 import { ArrowLeftIcon, ExclamationTriangleIcon } from '../icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
@@ -298,10 +298,14 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
     const filterContent = (
         <div className="space-y-4">
             <Input label="Caută Sportiv" name="searchTerm" value={filters.searchTerm} onChange={handleFilterChange} placeholder="Nume..." />
-            <Select label="Grupă" name="grupaFilter" value={filters.grupaFilter} onChange={handleFilterChange}>
-                <option value="">Toate Grupele</option>
-                {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-            </Select>
+            <SearchableSelect
+                label="Grupă"
+                value={filters.grupaFilter}
+                onChange={val => handleFilterChange({ target: { name: 'grupaFilter', value: val } } as unknown as React.ChangeEvent<HTMLSelectElement>)}
+                options={grupe.map(g => ({ value: g.id, label: g.denumire }))}
+                emptyLabel="Toate Grupele"
+                placeholder="Toate Grupele"
+            />
             <Select label="Sală" name="salaFilter" value={filters.salaFilter} onChange={handleFilterChange}>
                 <option value="">Toate sălile</option>
                 {sali.map(s => <option key={s} value={s}>{s}</option>)}

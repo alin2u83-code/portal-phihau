@@ -1,7 +1,7 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Antrenament, Sportiv, Grupa } from '../../types';
-import { Card, Button, Modal, Input, Select } from '../ui';
+import { Card, Button, Modal, Input, Select, SearchableSelect } from '../ui';
 import { ArrowLeftIcon, CheckCircleIcon, CalendarDaysIcon, UsersIcon, SearchIcon, PlusIcon } from '../icons';
 import { useAttendanceData } from '../../hooks/useAttendanceData';
 import { useAttendance } from '../../hooks/useAttendance';
@@ -838,16 +838,14 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
                             <option value="asc">Cele mai vechi</option>
                         </Select>
 
-                        <Select 
-                            label="Filtru Sportiv (Vizualizare)" 
-                            value={filterSportivId} 
-                            onChange={e => setFilterSportivId(e.target.value)}
-                        >
-                            <option value="">Toți Sportivii</option>
-                            {sportiviInGrupa.map((s: any) => (
-                                <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>
-                            ))}
-                        </Select>
+                        <SearchableSelect
+                            label="Filtru Sportiv (Vizualizare)"
+                            value={filterSportivId}
+                            onChange={val => setFilterSportivId(val)}
+                            options={sportiviInGrupa.map((s: any) => ({ value: s.id, label: `${s.nume} ${s.prenume}` }))}
+                            emptyLabel="Toți Sportivii"
+                            placeholder="Toți Sportivii"
+                        />
                     </div>
                 
                     {loading ? (

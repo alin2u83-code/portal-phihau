@@ -1,6 +1,6 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, Grupa, Antrenament, Grad } from '../../types';
-import { Card, Select, Button } from '../ui';
+import { Card, Select, Button, SearchableSelect } from '../ui';
 import { ArrowLeftIcon, DocumentArrowDownIcon, ExclamationTriangleIcon, ChevronDownIcon, ChevronRightIcon } from '../icons';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useData } from '../../contexts/DataContext';
@@ -360,10 +360,14 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                 <Select label="Lună" name="month" value={String(filters.month)} onChange={handleFilterChange}>
                     {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                 </Select>
-                <Select label="Grupă" name="grupaId" value={filters.grupaId} onChange={handleFilterChange}>
-                    <option value="">Toate Grupele</option>
-                    {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
-                </Select>
+                <SearchableSelect
+                    label="Grupă"
+                    value={filters.grupaId}
+                    onChange={val => handleFilterChange({ target: { name: 'grupaId', value: val } } as unknown as React.ChangeEvent<HTMLSelectElement>)}
+                    options={grupe.map(g => ({ value: g.id, label: g.denumire }))}
+                    emptyLabel="Toate Grupele"
+                    placeholder="Toate Grupele"
+                />
             </Card>
 
             {/* Banner perioadă examen */}

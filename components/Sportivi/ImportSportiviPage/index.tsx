@@ -647,14 +647,14 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
             <div className="space-y-4">
                 <WizardSteps current={0.5} />
                 {permissions.isFederationAdmin && (
-                    <div className="bg-slate-800/60 border border-blue-500/30 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-blue-300 mb-2">
+                    <div className="bg-slate-800/60 border border-amber-500/30 rounded-xl p-4">
+                        <label className="block text-sm font-medium text-amber-300 mb-2">
                             Club destinație import <span className="text-red-400 ml-1">*</span>
                         </label>
                         <select
                             value={selectedClubIdOverride}
                             onChange={e => setSelectedClubIdOverride(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
                         >
                             <option value="">— Selectează clubul —</option>
                             {clubs.slice().sort((a, b) => a.nume.localeCompare(b.nume, 'ro')).map(c => (
@@ -755,15 +755,15 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         <div className="space-y-4">
             <WizardSteps current={0} />
             {permissions.isFederationAdmin && (
-                <div className="bg-slate-800/60 border border-blue-500/30 rounded-xl p-4">
-                    <label className="block text-sm font-medium text-blue-300 mb-2">
+                <div className="bg-slate-800/60 border border-amber-500/30 rounded-xl p-4">
+                    <label className="block text-sm font-medium text-amber-300 mb-2">
                         Club destinație import
                         <span className="text-red-400 ml-1">*</span>
                     </label>
                     <select
                         value={selectedClubIdOverride}
                         onChange={e => setSelectedClubIdOverride(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     >
                         <option value="">— Selectează clubul —</option>
                         {clubs

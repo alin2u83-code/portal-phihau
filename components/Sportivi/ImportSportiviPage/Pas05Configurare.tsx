@@ -57,9 +57,9 @@ export const Pas05Configurare: React.FC<Props> = ({ allColumns, onConfirm, onBac
                         <button
                             key={id}
                             onClick={set}
-                            className={`flex items-start gap-3 p-3 rounded-lg border-2 text-left transition-colors ${val ? 'border-blue-500 bg-blue-500/10' : 'border-slate-700 bg-slate-900 hover:border-slate-600'}`}
+                            className={`flex items-start gap-3 p-3 rounded-lg border-2 text-left transition-colors ${val ? 'border-amber-500 bg-amber-500/10' : 'border-slate-700 bg-slate-900 hover:border-slate-600'}`}
                         >
-                            <span className={`mt-0.5 w-4 h-4 rounded flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 ${val ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-600'}`}>
+                            <span className={`mt-0.5 w-4 h-4 rounded flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 ${val ? 'bg-amber-500 border-amber-500 text-white' : 'border-slate-600'}`}>
                                 {val ? '✓' : ''}
                             </span>
                             <div>
@@ -78,17 +78,17 @@ export const Pas05Configurare: React.FC<Props> = ({ allColumns, onConfirm, onBac
                 <div className="flex items-center justify-between mb-3">
                     <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Ce informații să fie importate?</p>
                     <div className="flex gap-3">
-                        <button className="text-xs text-blue-400 font-semibold" onClick={() => setSelected(new Set(optionalKnown))}>Toate</button>
-                        <button className="text-xs text-blue-400 font-semibold" onClick={() => setSelected(new Set())}>Niciunul</button>
+                        <button className="text-xs text-amber-400 font-semibold" onClick={() => setSelected(new Set(optionalKnown))}>Toate</button>
+                        <button className="text-xs text-amber-400 font-semibold" onClick={() => setSelected(new Set())}>Niciunul</button>
                     </div>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 mb-3">
                     {LOCKED_COLS.map(col => (
-                        <span key={col} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-900/40 border border-blue-800 text-blue-300">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                        <span key={col} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-900/40 border border-amber-800 text-amber-300">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
                             {col === 'NUME SPORTIV' ? 'Nume' : 'Prenume'}
-                            <span className="text-[10px] text-blue-500">mereu</span>
+                            <span className="text-[10px] text-amber-500">mereu</span>
                         </span>
                     ))}
                 </div>
@@ -100,9 +100,9 @@ export const Pas05Configurare: React.FC<Props> = ({ allColumns, onConfirm, onBac
                             <button
                                 key={col}
                                 onClick={() => toggle(col)}
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${on ? 'bg-blue-900/40 border-blue-700 text-blue-300' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${on ? 'bg-amber-900/40 border-amber-700 text-amber-300' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
                             >
-                                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${on ? 'bg-blue-400' : 'bg-slate-600'}`} />
+                                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${on ? 'bg-amber-400' : 'bg-slate-600'}`} />
                                 {KNOWN_COLS[col]}
                             </button>
                         );

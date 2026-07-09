@@ -80,7 +80,7 @@ export const Pas1Revizuire: React.FC<Props> = ({
                 <div className="flex items-center justify-between bg-slate-800/50 border border-slate-700/40 rounded-lg px-3 py-2 mb-3 gap-2 flex-wrap">
                     <span className="text-xs text-slate-500">Câmpuri sportivi existenți</span>
                     <div className="flex gap-2">
-                        <button onClick={onGlobalSelectAll} className="text-xs font-semibold text-blue-400 hover:text-blue-300">☑ Selectează toate</button>
+                        <button onClick={onGlobalSelectAll} className="text-xs font-semibold text-amber-400 hover:text-amber-300">☑ Selectează toate</button>
                         <button onClick={onGlobalDeselectAll} className="text-xs font-semibold text-slate-400 hover:text-slate-300">☐ Deselectează toate</button>
                     </div>
                 </div>
@@ -93,7 +93,7 @@ export const Pas1Revizuire: React.FC<Props> = ({
                     </span>
                 )}
                 {countActualizare > 0 && (
-                    <span className="bg-blue-500/20 text-blue-400 border border-blue-500/50 px-3 py-1 rounded text-sm font-medium">
+                    <span className="bg-amber-500/20 text-amber-400 border border-amber-500/50 px-3 py-1 rounded text-sm font-medium">
                         ACTUALIZARE: {countActualizare}
                     </span>
                 )}
@@ -149,7 +149,7 @@ export const Pas1Revizuire: React.FC<Props> = ({
                                                         type="checkbox"
                                                         checked={!excludedNouIndices.has(row.originalIndex)}
                                                         onChange={() => onToggleExcludeNou(row.originalIndex)}
-                                                        className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-indigo-500 focus:ring-indigo-500"
+                                                        className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-amber-500 focus:ring-amber-500"
                                                         title="Debifați pentru a nu adăuga acest sportiv"
                                                     />
                                                     Adaugă
@@ -161,7 +161,7 @@ export const Pas1Revizuire: React.FC<Props> = ({
                                                         type="checkbox"
                                                         checked={selectedIndices.has(row.looseIndex)}
                                                         onChange={() => onToggleSelection(row.looseIndex!)}
-                                                        className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-indigo-500 focus:ring-indigo-500"
+                                                        className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-amber-500 focus:ring-amber-500"
                                                         title="Bifati pentru a actualiza"
                                                     />
                                                     <button
@@ -224,7 +224,7 @@ export const Pas1Revizuire: React.FC<Props> = ({
                                                                             ) : (
                                                                                 <button
                                                                                     onClick={() => onToggleFieldSelection(row.originalIndex, fc.fieldKey, !sel)}
-                                                                                    className={`w-4 h-4 rounded border-2 flex items-center justify-center mx-auto text-[10px] font-bold transition-colors ${sel ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-600 bg-slate-900'}`}
+                                                                                    className={`w-4 h-4 rounded border-2 flex items-center justify-center mx-auto text-[10px] font-bold transition-colors ${sel ? 'bg-amber-500 border-amber-500 text-white' : 'border-slate-600 bg-slate-900'}`}
                                                                                 >
                                                                                     {sel ? '✓' : ''}
                                                                                 </button>
@@ -241,7 +241,7 @@ export const Pas1Revizuire: React.FC<Props> = ({
                                                         </div>
                                                     )}
                                                     <div className="flex justify-end gap-3 px-3 py-1.5 bg-slate-800/40 border-t border-slate-700">
-                                                        <button onClick={() => { row.fieldComparisons?.forEach(fc => { if (fc.status !== 'identical') onToggleFieldSelection(row.originalIndex, fc.fieldKey, true); }); }} className="text-xs text-blue-400 font-semibold">Toate</button>
+                                                        <button onClick={() => { row.fieldComparisons?.forEach(fc => { if (fc.status !== 'identical') onToggleFieldSelection(row.originalIndex, fc.fieldKey, true); }); }} className="text-xs text-amber-400 font-semibold">Toate</button>
                                                         <button onClick={() => { row.fieldComparisons?.forEach(fc => { onToggleFieldSelection(row.originalIndex, fc.fieldKey, false); }); }} className="text-xs text-slate-400 font-semibold">Niciunul</button>
                                                     </div>
                                                 </div>
@@ -320,7 +320,7 @@ export const Pas1Revizuire: React.FC<Props> = ({
                                             type="checkbox"
                                             checked={!excludedNouIndices.has(row.originalIndex)}
                                             onChange={() => onToggleExcludeNou(row.originalIndex)}
-                                            className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-indigo-500"
+                                            className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-amber-500"
                                         />
                                         Adaugă
                                     </label>
@@ -332,7 +332,7 @@ export const Pas1Revizuire: React.FC<Props> = ({
                                                 type="checkbox"
                                                 checked={selectedIndices.has(row.looseIndex)}
                                                 onChange={() => onToggleSelection(row.looseIndex!)}
-                                                className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-indigo-500"
+                                                className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-amber-500"
                                             />
                                             Actualizeaza
                                         </label>

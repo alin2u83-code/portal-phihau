@@ -158,9 +158,9 @@ export const Pas2Raport: React.FC<Props> = ({ importResult, onBack }) => {
                     <div className="text-3xl font-bold text-green-400">{importResult.adaugati.length}</div>
                     <div className="text-sm text-green-300 mt-1">Adaugati (noi)</div>
                 </div>
-                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-center">
-                    <div className="text-3xl font-bold text-blue-400">{importResult.actualizati.length}</div>
-                    <div className="text-sm text-blue-300 mt-1">Actualizati</div>
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 text-center">
+                    <div className="text-3xl font-bold text-amber-400">{importResult.actualizati.length}</div>
+                    <div className="text-sm text-amber-300 mt-1">Actualizati</div>
                 </div>
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-red-400">{importResult.omisi.length}</div>
@@ -332,7 +332,7 @@ export const Pas2Raport: React.FC<Props> = ({ importResult, onBack }) => {
                         className="w-full flex items-center justify-between px-4 py-3 bg-zinc-800/50 hover:bg-zinc-800 transition-colors text-left"
                         onClick={() => toggleSection('actualizati')}
                     >
-                        <span className="font-medium text-blue-400">Actualizati ({importResult.actualizati.length})</span>
+                        <span className="font-medium text-amber-400">Actualizati ({importResult.actualizati.length})</span>
                         <span className="text-zinc-400 text-sm">{expandedSections.has('actualizati') ? '▲' : '▶'}</span>
                     </button>
                     {expandedSections.has('actualizati') && (

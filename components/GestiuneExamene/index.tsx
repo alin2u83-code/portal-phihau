@@ -61,7 +61,19 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
   ];
 
   const currentYear = new Date().getFullYear();
-  const ANI = Array.from({ length: 8 }, (_, i) => currentYear - 5 + i);
+
+  // Ani distincti derivati din sesiunile existente (scoped deja pe rol/club),
+  // UNION cu anul curent (mereu inclus, chiar daca fara sesiuni inca).
+  // Sortare descrescatoare — cel mai recent an primul.
+  const ANI = useMemo(() => {
+    const aniSet = new Set<number>([currentYear]);
+    (sesiuni || []).forEach(s => {
+      const dataStr = (s.data || s.data_examen || '').toString();
+      const an = dataStr.length >= 4 ? parseInt(dataStr.slice(0, 4), 10) : NaN;
+      if (!isNaN(an)) aniSet.add(an);
+    });
+    return Array.from(aniSet).sort((a, b) => b - a);
+  }, [sesiuni, currentYear]);
 
   // Derivăm dateFrom / dateTo din selecțiile de lună + an
   const dateFrom = useMemo(() => {

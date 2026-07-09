@@ -9,7 +9,8 @@ export const useAttendance = () => {
     const saveAttendance = useCallback(async (
         antrenamentId: string,
         records: { sportiv_id: string; status_id: string; is_invitat?: boolean; grupa_origine_id?: string }[],
-        allSportivIds?: string[]
+        allSportivIds?: string[],
+        clubId?: string | null
     ) => {
         if (!antrenamentId) {
             showError("Eroare", "ID antrenament lipsă.");
@@ -39,6 +40,7 @@ export const useAttendance = () => {
                     status_id: r.status_id,
                     is_invitat: r.is_invitat ?? false,
                     ...(r.grupa_origine_id ? { grupa_origine_id: r.grupa_origine_id } : {}),
+                    ...(clubId ? { club_id: clubId } : {}),
                 }));
                 const { error } = await supabase
                     .from('prezenta_antrenament')

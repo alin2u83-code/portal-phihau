@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { Eveniment, View, Sportiv, Rezultat, Plata, Permissions } from '../types';
+import { Eveniment, View, Sportiv, Rezultat, Plata, Permissions, Antrenament, Grupa } from '../types';
 import { Button, Modal, Input } from './ui';
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
 import { useData } from '../contexts/DataContext';
+import { FormularPrezenta } from './Prezenta/ListaPrezentaAntrenament';
+import { useAttendance } from '../hooks/useAttendance';
+import { useStatusePrezenta } from '../hooks/useStatusePrezenta';
 
 interface CalendarEvent {
   id: string;
@@ -136,9 +139,10 @@ interface CalendarViewProps {
     onBack: () => void;
     onNavigate: (view: View) => void;
     permissions: Permissions;
+    onViewSportiv?: (s: Sportiv) => void;
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, permissions }) => {
+export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, permissions, onViewSportiv }) => {
     const { filteredData, locatii, currentUser, setRezultate, setPlati, preturiConfig } = useData();
     const antrenamente = filteredData.antrenamente;
     const sesiuniExamene = filteredData.sesiuniExamene;
@@ -155,6 +159,32 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
     });
     const { showError, showSuccess } = useError();
     const [modalEvent, setModalEvent] = useState<Eveniment | null>(null);
+
+    // Click pe un antrenament -> deschide direct formularul de prezenta al acelui antrenament/grupa
+    const { saveAttendance } = useAttendance();
+    const { byId: statusById } = useStatusePrezenta();
+    const [antrenamentDetaliu, setAntrenamentDetaliu] = useState<(Antrenament & { grupe: Grupa & { sportivi: Sportiv[] } }) | null>(null);
+    const [loadingAntrenament, setLoadingAntrenament] = useState(false);
+
+    const handleSelectAntrenament = async (id: string) => {
+        setLoadingAntrenament(true);
+        const { data, error } = await supabase.from('program_antrenamente')
+            .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+            .eq('id', id).single();
+        if (error) {
+            showError("Eroare", error.message);
+        } else if (data) {
+            const enriched = {
+                ...data,
+                prezenta: (data.prezenta || []).map((p: any) => ({
+                    ...p,
+                    status: p.status_id ? (statusById[p.status_id] ?? null) : null,
+                })),
+            };
+            setAntrenamentDetaliu(enriched as any);
+        }
+        setLoadingAntrenament(false);
+    };
 
     const changeMonth = (delta: number) => {
         setCurrentDate(prev => {
@@ -300,6 +330,24 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
         return eventStyles.clubDefault;
     };
 
+    if (loadingAntrenament) {
+        return (
+            <div className="flex justify-center py-20">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
+            </div>
+        );
+    }
+
+    if (antrenamentDetaliu) {
+        return (
+            <FormularPrezenta
+                antrenament={antrenamentDetaliu}
+                onBack={() => setAntrenamentDetaliu(null)}
+                onViewSportiv={onViewSportiv}
+                saveAttendance={saveAttendance}
+            />
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -345,7 +393,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
                                     <div className="mt-2 space-y-2 overflow-y-auto">
                                         {dayEvents.map(event => (
                                             <div key={event.id} className="space-y-1">
-                                                <div title={event.title} className={`p-1 rounded-md text-[10px] font-bold truncate ${getEventStyleClass(event)}`}>
+                                                <div
+                                                    title={event.type === 'Antrenament' ? `${event.title} — apasă pentru prezență` : event.title}
+                                                    onClick={event.type === 'Antrenament' ? () => handleSelectAntrenament(event.id) : undefined}
+                                                    className={`p-1 rounded-md text-[10px] font-bold truncate ${getEventStyleClass(event)} ${event.type === 'Antrenament' ? 'cursor-pointer hover:brightness-125 transition-all' : ''}`}
+                                                >
                                                     {event.time && <span className="font-mono mr-1">{event.time}</span>}
                                                     {event.title}
                                                 </div>
@@ -368,7 +420,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
                                 <div className="mt-2 space-y-4">
                                     {events.map(event => (
                                         <div key={event.id}>
-                                            <div className={`p-2 rounded-md ${getEventStyleClass(event)}`}>
+                                            <div
+                                                onClick={event.type === 'Antrenament' ? () => handleSelectAntrenament(event.id) : undefined}
+                                                className={`p-2 rounded-md ${getEventStyleClass(event)} ${event.type === 'Antrenament' ? 'cursor-pointer active:brightness-125' : ''}`}
+                                            >
                                                 <p className="font-bold">{event.title}</p>
                                                 {event.time && <p className="text-xs font-mono">{event.time}</p>}
                                             </div>

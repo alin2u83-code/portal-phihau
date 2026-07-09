@@ -13,7 +13,7 @@ import { generateTrainingsFromSchedule } from '../../utils/trainingGenerator';
 import { useStatusePrezenta } from '../../hooks/useStatusePrezenta';
 
 // Tip extins pentru sportiv cu informație de apartenența la grupă
-export type TipMembru = 'principal' | 'secundar';
+export type TipMembru = 'principal' | 'secundar' | 'vacanta';
 export interface SportivCuTip extends Sportiv {
     tip?: TipMembru;
 }
@@ -112,7 +112,7 @@ export const FormularPrezenta: React.FC<{
     antrenament: Antrenament & { grupe: Grupa & { sportivi: Sportiv[] }};
     onBack: () => void;
     onViewSportiv?: (s: Sportiv) => void;
-    saveAttendance: (id: string, records: { sportiv_id: string; status_id: string; is_invitat?: boolean; grupa_origine_id?: string }[], allSportivIds?: string[]) => Promise<boolean>;
+    saveAttendance: (id: string, records: { sportiv_id: string; status_id: string; is_invitat?: boolean; grupa_origine_id?: string }[], allSportivIds?: string[], clubId?: string | null) => Promise<boolean>;
 }> = ({ antrenament, onBack, onViewSportiv, saveAttendance }) => {
     const { prezentId, absentId } = useStatusePrezenta();
     const { sportivi: totiSportivii } = useData();
@@ -122,6 +122,7 @@ export const FormularPrezenta: React.FC<{
     const [selectedSportiv, setSelectedSportiv] = useState<Sportiv | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sportiviSecundari, setSportiviSecundari] = useState<SportivCuTip[]>([]);
+    const [sportiviVacanta, setSportiviVacanta] = useState<SportivCuTip[]>([]);
     const [invitati, setInvitati] = useState<SportivCuTip[]>([]);
     const [showInvitatModal, setShowInvitatModal] = useState(false);
     const [searchInvitat, setSearchInvitat] = useState('');
@@ -167,7 +168,56 @@ export const FormularPrezenta: React.FC<{
         fetchSecundari();
     }, [antrenament.grupe?.id, (antrenament as any).grupa_id]);
 
-    // Lista combinată: principali + secundari, fără duplicate
+    // Fetch sportivi înrolați într-o perioadă de vacanță activă la data antrenamentului
+    // (participare_vacanta e club-wide, nu legat de grupă — vezi 260626-buf-CONTEXT.md)
+    useEffect(() => {
+        const clubId = antrenament.grupe?.club_id ?? (antrenament as any).club_id;
+        const dataAntrenament = (antrenament.data || '').toString().slice(0, 10);
+        if (!clubId || !dataAntrenament) { setSportiviVacanta([]); return; }
+
+        const fetchVacanta = async () => {
+            const { data: perioade, error: perioadeError } = await supabase
+                .from('perioade_vacanta')
+                .select('id')
+                .eq('club_id', clubId)
+                .lte('data_start', dataAntrenament)
+                .gte('data_end', dataAntrenament);
+
+            if (perioadeError) {
+                console.error('Eroare fetch perioade_vacanta:', perioadeError.message);
+                setSportiviVacanta([]);
+                return;
+            }
+
+            const perioadaIds = (perioade || []).map((p: any) => p.id);
+            if (perioadaIds.length === 0) { setSportiviVacanta([]); return; }
+
+            const { data, error } = await supabase
+                .from('participare_vacanta')
+                .select('sportiv_id, sportivi(id, nume, prenume, grad_actual_id, status)')
+                .in('perioada_id', perioadaIds);
+
+            if (error) {
+                console.error('Eroare fetch participare_vacanta:', error.message);
+                setSportiviVacanta([]);
+                return;
+            }
+
+            const dedupMap = new Map<string, SportivCuTip>();
+            (data || []).forEach((row: any) => {
+                const s = row.sportivi;
+                if (s && s.status === 'Activ' && !dedupMap.has(s.id)) {
+                    dedupMap.set(s.id, { ...s, tip: 'vacanta' as TipMembru });
+                }
+            });
+
+            setSportiviVacanta([...dedupMap.values()]);
+        };
+
+        fetchVacanta();
+    }, [antrenament.grupe?.club_id, (antrenament as any).club_id, antrenament.data]);
+
+    // Lista combinată: principali + secundari + vacanță, fără duplicate
     const sportiviInGrupa = useMemo((): SportivCuTip[] => {
         const principali: SportivCuTip[] = (antrenament.grupe?.sportivi || [])
             .filter(s => s.status === 'Activ')
@@ -178,9 +228,13 @@ export const FormularPrezenta: React.FC<{
         const idPrincipali = new Set(principali.map(s => s.id));
         const secundariFiltrati = sportiviSecundari.filter(s => !idPrincipali.has(s.id));
 
-        return [...principali, ...secundariFiltrati]
+        // Sportivii din vacanță: excludem pe cei deja principali sau secundari
+        const idExcluse = new Set([...idPrincipali, ...secundariFiltrati.map(s => s.id)]);
+        const vacantaFiltrati = sportiviVacanta.filter(s => !idExcluse.has(s.id));
+
+        return [...principali, ...secundariFiltrati, ...vacantaFiltrati]
             .sort((a, b) => a.nume.localeCompare(b.nume));
-    }, [antrenament.grupe, sportiviSecundari]);
+    }, [antrenament.grupe, sportiviSecundari, sportiviVacanta]);
 
     // 2. Checkbox State Management
     const toggleSportiv = (sportivId: string) => {
@@ -252,7 +306,8 @@ export const FormularPrezenta: React.FC<{
             .filter(s => presentIds.has(s.id))
             .map(s => ({ sportiv_id: s.id, status_id: prezentId, is_invitat: true, grupa_origine_id: s.grupa_id ?? undefined }));
 
-        const success = await saveAttendance(antrenament.id, [...recordsGrupa, ...recordsInvitati], allSportivIds);
+        const clubId = antrenament.grupe?.club_id ?? (antrenament as any).club_id;
+        const success = await saveAttendance(antrenament.id, [...recordsGrupa, ...recordsInvitati], allSportivIds, clubId);
 
         setLoading(false);
         if (success) {
@@ -357,6 +412,11 @@ export const FormularPrezenta: React.FC<{
                                             {(s as SportivCuTip).tip === 'secundar' && (
                                                 <span className="inline-flex items-center bg-purple-500/20 text-purple-300 text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border border-purple-500/30 leading-none shrink-0">
                                                     SECUNDAR
+                                                </span>
+                                            )}
+                                            {(s as SportivCuTip).tip === 'vacanta' && (
+                                                <span className="inline-flex items-center bg-teal-500/20 text-teal-300 text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border border-teal-500/30 leading-none shrink-0">
+                                                    VACANȚĂ
                                                 </span>
                                             )}
                                         </div>
@@ -469,7 +529,7 @@ export const FormularPrezentaMultiGrupa: React.FC<{
     antrenamente: (Antrenament & { grupe: Grupa & { sportivi: Sportiv[] } })[];
     onBack: () => void;
     onViewSportiv?: (s: Sportiv) => void;
-    saveAttendance: (id: string, records: { sportiv_id: string; status_id: string; is_invitat?: boolean; grupa_origine_id?: string }[], allSportivIds?: string[]) => Promise<boolean>;
+    saveAttendance: (id: string, records: { sportiv_id: string; status_id: string; is_invitat?: boolean; grupa_origine_id?: string }[], allSportivIds?: string[], clubId?: string | null) => Promise<boolean>;
 }> = ({ antrenamente, onBack, onViewSportiv, saveAttendance }) => {
     const { prezentId } = useStatusePrezenta();
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
@@ -551,7 +611,8 @@ export const FormularPrezentaMultiGrupa: React.FC<{
             const records = idsSportiviAntrenament
                 .filter(id => presentIds.has(id))
                 .map(id => ({ sportiv_id: id, status_id: prezentId, is_invitat: false as boolean }));
-            const success = await saveAttendance(ant.id, records, allIdsGrupa);
+            const antClubId = ant.grupe?.club_id ?? (ant as any).club_id;
+            const success = await saveAttendance(ant.id, records, allIdsGrupa, antClubId);
             if (!success) { setLoading(false); return; }
         }
 

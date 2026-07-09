@@ -210,7 +210,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'raport-interval-examen':
                                 return renderProtected(<Lazy.RaportIntervalExamen onViewSportiv={onViewSportiv} onBack={handleBackToDashboard} />, isAtLeastInstructor);
                             case 'calendar':
-                                return <Lazy.CalendarView onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} permissions={permissions} />;
+                                return <Lazy.CalendarView onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} permissions={permissions} onViewSportiv={onViewSportiv} />;
                             case 'financial-dashboard':
                                 return renderProtected(<Lazy.FinancialDashboard onBack={handleBackToDashboard} plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} />, isAtLeastClubAdmin);
                             case 'gestiune-facturi':

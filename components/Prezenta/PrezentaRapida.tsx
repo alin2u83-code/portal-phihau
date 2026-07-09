@@ -166,7 +166,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
     const { prezentId } = useStatusePrezenta();
     const { saveAttendance } = useAttendance();
     const { showError } = useError();
-    const { grade, activeRoleContext, currentUser } = useData();
+    const { grade, activeRoleContext, currentUser, filteredData } = useData();
     const clubId: string | null = (activeRoleContext?.club_id ?? currentUser?.club_id) || null;
     const [sections, setSections] = useState<TrainingSection[]>([]);
     const [loading, setLoading] = useState(true);
@@ -188,6 +188,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
     const [highlightedSaveId, setHighlightedSaveId] = useState<string | null>(null);
 
     const gradeById = useMemo(() => Object.fromEntries((grade || []).map(g => [g.id, g])), [grade]);
+    const sportivById = useMemo(() => Object.fromEntries((filteredData.sportivi || []).map(s => [s.id, s])), [filteredData.sportivi]);
 
     const today = new Date().toLocaleDateString('sv-SE');
 
@@ -226,13 +227,19 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
                 (t.prezenta || []).filter((p: any) => p.status_id && statusById[p.status_id]?.este_prezent === true).map((p: any) => p.sportiv_id)
             );
             const extraIds = [...initialPresent].filter(id => !sportivi.some((s: any) => s.id === id));
-            const extraAthletes: AthletePill[] = extraIds.map(id => ({
-                id,
-                nume: '...',
-                prenume: '(extra)',
-                isPresent: true,
-                isExtra: true,
-            }));
+            const extraAthletes: AthletePill[] = extraIds.map(id => {
+                const s = sportivById[id];
+                const grad = s?.grad_actual_id ? gradeById[s.grad_actual_id] : null;
+                return {
+                    id,
+                    nume: s?.nume ?? '...',
+                    prenume: s?.prenume ?? '(extra)',
+                    isPresent: true,
+                    isExtra: true,
+                    gradNume: grad?.nume,
+                    gradOrdine: grad?.ordine,
+                };
+            });
 
             return {
                 id: t.id,
@@ -268,7 +275,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
         }
 
         setLoading(false);
-    }, [today, showError, gradeById, clubId]);
+    }, [today, showError, gradeById, clubId, sportivById]);
 
     useEffect(() => { fetchTrainings(); }, [fetchTrainings, refreshKey]);
 
@@ -377,7 +384,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
         const records = section.athletes
             .filter(a => a.isPresent)
             .map(a => ({ sportiv_id: a.id, status_id: prezentId }));
-        const ok = await saveAttendance(trainingId, records, allSportivIds);
+        const ok = await saveAttendance(trainingId, records, allSportivIds, clubId);
         if (ok) {
             setSavedIds(prev => new Set(prev).add(trainingId));
             setUnsavedSectionIds(prev => {

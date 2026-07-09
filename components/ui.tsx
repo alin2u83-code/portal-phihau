@@ -717,12 +717,22 @@ export const ClubSelect: React.FC<{
   allLabel?: string;
   name?: string;
   renderOption?: (club: Club) => string;
-}> = ({ clubs, value, onChange, label = 'Club', allLabel = 'Toate cluburile', name, renderOption }) => (
-  <Select label={label} name={name} value={value} onChange={onChange}>
-    <option value="">{allLabel}</option>
-    {clubs.map(c => <option key={c.id} value={c.id}>{renderOption ? renderOption(c) : c.nume}</option>)}
-  </Select>
-);
+}> = ({ clubs, value, onChange, label = 'Club', allLabel = 'Toate cluburile', name, renderOption }) => {
+  const options: SearchableSelectOption[] = clubs.map(c => ({ value: c.id, label: renderOption ? renderOption(c) : c.nume }));
+  const handleChange = (val: string) => {
+    onChange({ target: { value: val, name } } as unknown as React.ChangeEvent<HTMLSelectElement>);
+  };
+  return (
+    <SearchableSelect
+      label={label}
+      value={value}
+      onChange={handleChange}
+      options={options}
+      emptyLabel={allLabel}
+      placeholder={allLabel}
+    />
+  );
+};
 
 // -----------------------------------------------
 // SEARCHABLE SELECT
@@ -742,6 +752,7 @@ interface SearchableSelectProps {
   label?: string;
   className?: string;
   emptyLabel?: string; // eticheta pentru opțiunea "goală" (ex: "Orice grad")
+  disabled?: boolean;
 }
 
 function highlightMatch(text: string, query: string): React.ReactNode {
@@ -765,6 +776,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   label,
   className = '',
   emptyLabel,
+  disabled = false,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
@@ -843,6 +855,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   }, [onChange, options]);
 
   const handleInputClick = () => {
+    if (disabled) return;
     if (!open) {
       // Deschide dropdown și selectează textul existent
       setQuery('');
@@ -861,6 +874,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
     if (!open) {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -934,7 +948,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           <select
             value={value}
             onChange={e => onChange(e.target.value)}
-            className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-base text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm appearance-none touch-manipulation"
+            disabled={disabled}
+            className={`w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-base text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm appearance-none touch-manipulation ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {emptyLabel !== undefined && <option value="">{emptyLabel}</option>}
             {options.map(o => (
@@ -965,7 +980,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         role="combobox"
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-sm text-[var(--t-text)] focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all shadow-sm flex items-center gap-2"
+        aria-disabled={disabled}
+        className={`w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-sm text-[var(--t-text)] focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all shadow-sm flex items-center gap-2 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <input
           ref={inputRef}
@@ -975,11 +991,13 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           onClick={handleInputClick}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          className="flex-1 min-w-0 bg-transparent outline-none text-sm text-white placeholder-slate-500 cursor-text"
+          disabled={disabled}
+          className="flex-1 min-w-0 bg-transparent outline-none text-sm text-white placeholder-slate-500 cursor-text disabled:cursor-not-allowed"
           autoComplete="off"
           aria-autocomplete="list"
           aria-controls="searchable-select-listbox"
         />
+        {!disabled && (
         <div className="flex items-center gap-1 shrink-0">
           {value && (
             <button
@@ -1004,10 +1022,11 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
             </svg>
           </button>
         </div>
+        )}
       </div>
 
       {/* Dropdown */}
-      {open && (
+      {open && !disabled && (
         <ul
           id="searchable-select-listbox"
           ref={listRef}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Input, Select, ClubSelect } from '../ui';
+import { Input, Select, ClubSelect, SearchableSelect } from '../ui';
 import { Grupa, Rol, Grad, Club, Permissions } from '../../types';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -54,19 +54,14 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
           <option value="Inactiv">Inactiv</option>
         </Select>
       </div>
-      <Select
+      <SearchableSelect
         label="Grupă"
         value={filters.grupaFilter}
-        onChange={(e) => onFilterChange('grupaFilter', e.target.value)}
-      >
-        <option value="">Toate Grupele</option>
-        <option value="fara-grupa">Fără Grupă</option>
-        {grupe.map(g => (
-          <option key={g.id} value={g.id}>
-            {g.denumire || 'Fără denumire'}
-          </option>
-        ))}
-      </Select>
+        onChange={(val) => onFilterChange('grupaFilter', val)}
+        options={[{ value: 'fara-grupa', label: 'Fără Grupă' }, ...grupe.map(g => ({ value: g.id, label: g.denumire || 'Fără denumire' }))]}
+        emptyLabel="Toate Grupele"
+        placeholder="Toate Grupele"
+      />
       <Select
         label="Rol"
         value={filters.rolFilter}
@@ -75,14 +70,14 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
         <option value="">Toate Rolurile</option>
         {(allRoles || []).map(r => <option key={r.id} value={r.id}>{r.nume}</option>)}
       </Select>
-      <Select
+      <SearchableSelect
         label="Grad"
         value={filters.gradFilter}
-        onChange={(e) => onFilterChange('gradFilter', e.target.value)}
-      >
-        <option value="">Toate Gradele</option>
-        {[...(grade || [])].sort((a,b) => a.ordine - b.ordine).map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
-      </Select>
+        onChange={(val) => onFilterChange('gradFilter', val)}
+        options={[...(grade || [])].sort((a,b) => a.ordine - b.ordine).map(g => ({ value: g.id, label: g.nume }))}
+        emptyLabel="Toate Gradele"
+        placeholder="Toate Gradele"
+      />
       {permissions?.isFederationAdmin && clubs && (
         <ClubSelect
           clubs={clubs}

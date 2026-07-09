@@ -1,6 +1,6 @@
 import React, { ReactNode, useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { XIcon, SearchIcon, ChevronDownIcon, TrashIcon, ExclamationTriangleIcon, AlertCircleIcon } from './icons';
+import { XIcon, SearchIcon, ChevronDownIcon, TrashIcon, ExclamationTriangleIcon, AlertCircleIcon, CalendarDaysIcon } from './icons';
 import { Rol, Club } from '../types';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -204,6 +204,22 @@ export interface ConfirmButtonProps extends Omit<ButtonProps & { as?: 'label'; h
   confirmLabel?: string;
   cancelLabel?: string;
 }
+
+// Buton rapid catre Calendar (Activitate Sala) - reutilizat in header-ul paginilor Grupe, Program Antrenamente, Prezenta, Rapoarte
+export const CalendarQuickLink: React.FC<{ onNavigate?: (view: any) => void; className?: string }> = ({ onNavigate, className }) => {
+  if (!onNavigate) return null;
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      leftIcon={<CalendarDaysIcon className="w-4 h-4" />}
+      onClick={() => onNavigate('calendar')}
+      className={className}
+    >
+      Calendar
+    </Button>
+  );
+};
 
 export const ConfirmButton: React.FC<ConfirmButtonProps> = ({
   onConfirm,

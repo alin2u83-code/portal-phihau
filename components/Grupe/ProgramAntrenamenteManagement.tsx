@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Antrenament } from '../../types';
-import { Button, Card, Input, Select, Modal } from '../ui';
+import { Button, Card, Input, Select, Modal, CalendarQuickLink } from '../ui';
 import { ArrowLeftIcon, CalendarDaysIcon, EditIcon, TrashIcon, PlusIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -10,9 +10,10 @@ import { formatTime } from '../../utils/date';
 
 interface ProgramAntrenamenteManagementProps {
     onBack: () => void;
+    onNavigate?: (view: any) => void;
 }
 
-export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManagementProps> = ({ onBack }) => {
+export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManagementProps> = ({ onBack, onNavigate }) => {
     const { filteredData, setAntrenamente, loading, refetch, clubs, activeRoleContext } = useData();
     const { showError, showSuccess } = useError();
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -127,6 +128,7 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                         <ArrowLeftIcon className="w-5 h-5 mr-2" />
                         Înapoi
                     </Button>
+                    <CalendarQuickLink onNavigate={onNavigate} />
                 </div>
             </div>
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { User, RaportActivitateRecord } from '../types';
 import { useError } from './ErrorProvider';
-import { Card, Button, Switch } from './ui';
+import { Card, Button, Switch, CalendarQuickLink } from './ui';
 import { DocumentArrowDownIcon } from './icons';
 import { exportToCsv } from '../utils/csv';
 import { useData } from '../contexts/DataContext';
@@ -10,7 +10,7 @@ import { ResponsiveTable, Column } from './ResponsiveTable';
 
 type SortKey = keyof RaportActivitateRecord;
 
-export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+export const RaportActivitate: React.FC<{ onBack: () => void; onNavigate?: (view: any) => void }> = ({ onBack, onNavigate }) => {
     const { currentUser, grade, sportivi: sportiviCache, activeRoleContext } = useData();
     type RawData = { antrenamente: {id: string; data: string}[]; prezente: {sportiv_id: string; antrenament_id: string}[]; activeClubId: string };
     const [rawData, setRawData] = useState<RawData | null>(null);
@@ -217,8 +217,9 @@ export const RaportActivitate: React.FC<{ onBack: () => void }> = ({ onBack }) =
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-3">
                 <h1 className="text-3xl font-bold text-white">Raport de Activitate</h1>
+                <CalendarQuickLink onNavigate={onNavigate} />
             </div>
             
             <Card>

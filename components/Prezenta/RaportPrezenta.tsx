@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useState, useEffect } from 'react';
 import { Antrenament, Sportiv, Grupa, View } from '../../types';
-import { Card, Input, Select, Button, SearchableSelect } from '../ui';
+import { Card, Input, Select, Button, SearchableSelect, CalendarQuickLink } from '../ui';
 import { ArrowLeftIcon, ExclamationTriangleIcon } from '../icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
@@ -12,6 +12,7 @@ type ReportTab = 'general' | 'per-grupa';
 
 interface RaportPrezentaProps {
     onBack: () => void;
+    onNavigate?: (view: any) => void;
     onViewSportiv: (sportiv: Sportiv) => void;
 }
 
@@ -33,7 +34,7 @@ const initialFilters: RaportFilters = {
 
 const GROUP_COLORS = ['#4DBCE9', '#3D3D99', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#ec4899', '#64748b'];
 
-export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSportiv }) => {
+export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSportiv, onNavigate }) => {
     const { filteredData } = useData();
     const antrenamente = filteredData.antrenamente;
     const sportivi = filteredData.sportivi;
@@ -323,7 +324,10 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            <div className="flex items-center gap-3 flex-wrap">
+                <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+                <CalendarQuickLink onNavigate={onNavigate} className="mb-2" />
+            </div>
             <h1 className="text-3xl font-bold text-white">Analiză Prezențe</h1>
 
             {/* Selector tab General / Per Grupă */}

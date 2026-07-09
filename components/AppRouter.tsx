@@ -188,25 +188,25 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 );
                             }
                             case 'prezenta':
-                                return renderProtected(<Lazy.PrezentaManagement onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
+                                return renderProtected(<Lazy.PrezentaManagement onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} onNavigate={setActiveView} />, isAtLeastInstructor);
                             case 'prezenta-instructor':
                                 return renderProtected(<Lazy.InstructorPrezentaPage onBack={handleBackToDashboard} onNavigate={setActiveView} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
                             case 'arhiva-prezente':
                                 return renderProtected(<Lazy.ArhivaPrezente onBack={() => setActiveView('prezenta-instructor')} />, permissions.isInstructor);
                             case 'raport-activitate':
-                                return renderProtected(<Lazy.RaportActivitate onBack={handleBackToDashboard} />, isAtLeastInstructor);
+                                return renderProtected(<Lazy.RaportActivitate onBack={handleBackToDashboard} onNavigate={setActiveView} />, isAtLeastInstructor);
                             case 'raport-lunar-prezenta':
-                                return renderProtected(<Lazy.RaportLunarPrezenta onBack={handleBackToDashboard} />, isAtLeastInstructor);
+                                return renderProtected(<Lazy.RaportLunarPrezenta onBack={handleBackToDashboard} onNavigate={setActiveView} />, isAtLeastInstructor);
                             case 'program-antrenamente':
-                                return renderProtected(<Lazy.ProgramAntrenamenteManagement onBack={handleBackToDashboard} />, isAtLeastInstructor);
+                                return renderProtected(<Lazy.ProgramAntrenamenteManagement onBack={handleBackToDashboard} onNavigate={setActiveView} />, isAtLeastInstructor);
                             case 'rapoarte':
                                 return renderProtected(<Lazy.ReportsDashboard onNavigate={setActiveView} />, isAtLeastInstructor);
                             case 'grupe':
-                                return renderProtected(<Lazy.GrupeManagement onBack={handleBackToDashboard} />, isAtLeastInstructor);
+                                return renderProtected(<Lazy.GrupeManagement onBack={handleBackToDashboard} onNavigate={setActiveView} />, isAtLeastInstructor);
                             case 'activitati':
                                 return renderProtected(<Lazy.ProgramareActivitati onBack={handleBackToDashboard} />, isAtLeastInstructor);
                             case 'raport-prezenta':
-                                return renderProtected(<Lazy.RaportPrezenta onViewSportiv={onViewSportiv} onBack={handleBackToDashboard} />, isAtLeastInstructor);
+                                return renderProtected(<Lazy.RaportPrezenta onViewSportiv={onViewSportiv} onBack={handleBackToDashboard} onNavigate={setActiveView} />, isAtLeastInstructor);
                             case 'raport-interval-examen':
                                 return renderProtected(<Lazy.RaportIntervalExamen onViewSportiv={onViewSportiv} onBack={handleBackToDashboard} />, isAtLeastInstructor);
                             case 'calendar':

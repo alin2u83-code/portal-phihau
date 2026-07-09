@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Antrenament, Sportiv, Grupa, ProgramItem } from '../../types';
-import { Button } from '../ui';
+import { Button, CalendarQuickLink } from '../ui';
 import { ArrowLeftIcon, CalendarDaysIcon, UsersIcon, SparklesIcon, ClockIcon, PlusIcon, ChevronDownIcon, XIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -170,7 +170,7 @@ const TAB_ROOTS: Record<Tab, View> = {
 };
 
 // --- Componenta Principală de Navigare ---
-export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sportiv) => void }> = ({ onBack, onViewSportiv }) => {
+export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sportiv) => void; onNavigate?: (view: any) => void }> = ({ onBack, onViewSportiv, onNavigate }) => {
     const { currentUser, activeRoleContext } = useData();
     const { navigateTo: navTo } = useNavigation();
     const permissions = usePermissions(activeRoleContext);
@@ -407,6 +407,8 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                         </button>
                     ))}
                 </div>
+
+                {isAtRoot && <CalendarQuickLink onNavigate={onNavigate} className={!(canAdd && activeTab === 'rapid') ? 'ml-auto shrink-0' : 'shrink-0'} />}
 
                 {/* Buton adaugare — doar ADMIN/INSTRUCTOR */}
                 {canAdd && isAtRoot && activeTab === 'rapid' && (

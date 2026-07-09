@@ -15,9 +15,15 @@ created: 2026-07-09
 - **timeline:** A mers inainte, s-a stricat recent (posibil regresie dintr-o modificare recenta in Prezenta/Calendar).
 - **reproduction:** Deschide Prezenta > Calendar, apasa pe o grupa/zi cu antrenament -> nimic nu se intampla.
 
-## Cerinta suplimentara (nu bug, feature request)
+## Cerinta suplimentara (nu bug, feature request) — REZOLVATA
 
-Utilizatorul vrea acces rapid la Calendar din orice sub-tab din "Activitate Sala" (Rapid/Grupe/Istoric/Program Antrenamente/Raport Prezente/Raport Lunar/Raport Activitate), fara sa navigheze prin meniul lateral complet. De adresat dupa rezolvarea bug-ului de click.
+Utilizatorul vrea acces rapid la Calendar din orice sub-tab din "Activitate Sala" (Rapid/Grupe/Istoric/Program Antrenamente/Raport Prezente/Raport Lunar/Raport Activitate), fara sa navigheze prin meniul lateral complet.
+
+**Implementare:** Componenta reutilizabila `CalendarQuickLink` (components/ui.tsx) — buton mic "Calendar" cu icon, randat doar daca `onNavigate` e trecut. Adaugata in header-ul a 6 pagini: `components/Grupe/index.tsx` (Grupe & Orar), `components/Grupe/ProgramAntrenamenteManagement.tsx`, `components/Prezenta/index.tsx` (Inregistrare Prezente — vizibil doar la root, langa tab-urile Rapid/Grupe/Istoric), `components/Prezenta/RaportPrezenta.tsx`, `components/Prezenta/RaportLunarPrezenta.tsx`, `components/RaportActivitate.tsx`. Fiecare componenta a primit un prop nou `onNavigate?: (view: any) => void`, iar `AppRouter.tsx` il alimenteaza cu `setActiveView` pentru toate cele 6 case-uri corespunzatoare.
+
+**Atentie evitata:** `components/Prezenta/index.tsx` are propriul view-stack intern cu o valoare `'calendar'` (folosita pentru CalendarActivitati.tsx, alt ecran). Prop-ul nou `onNavigate` e complet separat de `navigateTo`/`switchTab` interne, ca sa nu se suprapuna cu view-ul intern — apeleaza direct `setActiveView('calendar')` de la nivel de App, adica CalendarView.tsx (ecranul reparat mai sus).
+
+**Verificat live cu Playwright:** click pe butonul Calendar din Grupe & Orar, Program Antrenamente si Inregistrare Prezente -> toate deschid corect grid-ul CalendarView.tsx (nu ecranul intern de Prezenta). Zero erori consola. `npx tsc --noEmit` exit 0.
 
 ## Current Focus
 
@@ -92,4 +98,6 @@ reasoning_checkpoint:
 - verification: `npx tsc --noEmit` exit 0. Verificat live cu Playwright (browser real): sidebar Activitate Sala > Calendar -> tile-urile de Antrenament acum au cursor pointer si titlu "Antrenament — apasa pentru prezenta" -> click pe ziua 9 (azi) -> se deschide direct FormularPrezenta pentru "Grupa vacanta" (7 sportivi: 6 SECUNDAR + 1 cu badge VACANTA, confirmand si fix-ul din sesiunea prezente-vacanta-lista-goala) -> "Inapoi" revine corect la grid -> zero erori in consola.
 - files_changed:
   - components/CalendarView.tsx (added handleSelectAntrenament, antrenamentDetaliu state, onClick wiring on Antrenament tiles, FormularPrezenta render swap)
-  - components/AppRouter.tsx (threaded onViewSportiv prop into Lazy.CalendarView for case 'calendar')
+  - components/AppRouter.tsx (threaded onViewSportiv prop into Lazy.CalendarView for case 'calendar'; threaded onNavigate={setActiveView} into 6 other cases for the quick-link feature)
+  - components/ui.tsx (nou: CalendarQuickLink)
+  - components/Grupe/index.tsx, components/Grupe/ProgramAntrenamenteManagement.tsx, components/Prezenta/index.tsx, components/Prezenta/RaportPrezenta.tsx, components/Prezenta/RaportLunarPrezenta.tsx, components/RaportActivitate.tsx (buton CalendarQuickLink in header + prop onNavigate)

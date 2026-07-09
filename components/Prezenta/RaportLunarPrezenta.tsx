@@ -1,6 +1,6 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, Grupa, Antrenament, Grad } from '../../types';
-import { Card, Select, Button, SearchableSelect } from '../ui';
+import { Card, Select, Button, SearchableSelect, CalendarQuickLink } from '../ui';
 import { ArrowLeftIcon, DocumentArrowDownIcon, ExclamationTriangleIcon, ChevronDownIcon, ChevronRightIcon } from '../icons';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useData } from '../../contexts/DataContext';
@@ -82,11 +82,12 @@ interface SesiuneExamenMinim {
 
 interface RaportLunarPrezentaProps {
     onBack: () => void;
+    onNavigate?: (view: any) => void;
 }
 
 // ─── Componentă principală ────────────────────────────────────────────────────
 
-export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack }) => {
+export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack, onNavigate }) => {
     const { filteredData, grade, activeRoleContext } = useData();
     const permissions = usePermissions(activeRoleContext);
     const sportivi = filteredData.sportivi;
@@ -350,6 +351,7 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
                     <ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi
                 </Button>
                 <h1 className="text-xl md:text-3xl font-bold text-white truncate">Raport Lunar Prezență</h1>
+                <CalendarQuickLink onNavigate={onNavigate} className="shrink-0" />
             </div>
 
             {/* Filtre */}

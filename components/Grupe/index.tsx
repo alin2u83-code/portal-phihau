@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Grupa as GrupaType, ProgramItem, User, Club, Sportiv, Locatie } from '../../types';
-import { Button, Modal, Input, Select, Card } from '../ui';
+import { Button, Modal, Input, Select, Card, CalendarQuickLink } from '../ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon, UsersIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -29,10 +29,11 @@ interface GrupaWithDetails extends GrupaType {
 }
 
 // Componenta Principală
-interface GrupeManagementProps { 
-    onBack: () => void; 
+interface GrupeManagementProps {
+    onBack: () => void;
+    onNavigate?: (view: any) => void;
 }
-export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
+export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) => {
     const { currentUser, clubs, setGrupe, locatii, setLocatii, activeRoleContext, sportivi, setSportivi } = useData();
 
     // Fetch grupe direct — nu prin context (evită probleme de timing/cache la nivel de provider)
@@ -252,6 +253,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack }) => {
                         <div className="flex items-center gap-3">
                             <Button variant="secondary" onClick={onBack}><ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi</Button>
                             <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
+                            <CalendarQuickLink onNavigate={onNavigate} />
                         </div>
                         <div className="flex gap-2 w-full sm:w-auto">
                             <Button

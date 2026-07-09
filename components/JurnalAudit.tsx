@@ -2,8 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../contexts/DataContext';
 import { fetchAuditLog, AuditLogFilters } from '../services/auditLogService';
+import { useAuditUserNames } from '../hooks/useAuditUserNames';
 import type { AuditLogEntry } from '../types';
-import { Card, Button, Input, Select, Badge } from './ui';
+import { Card, Button, Input, Select, Badge, SearchableSelect } from './ui';
 import { ArrowLeftIcon, ShieldCheckIcon, ClockIcon } from './icons';
 
 const PAGE_SIZE = 50;
@@ -41,6 +42,7 @@ const formateazaDataOra = (iso: string): string => {
 export const JurnalAudit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const { clubs } = useData();
     const clubMap = useMemo(() => Object.fromEntries(clubs.map(c => [c.id, c.nume])), [clubs]);
+    const { nameMap, options: userOptions } = useAuditUserNames();
 
     const [clubId, setClubId] = useState('');
     const [operatie, setOperatie] = useState('');
@@ -52,7 +54,7 @@ export const JurnalAudit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const filters: AuditLogFilters = {
         clubId: clubId || undefined,
         operatie: operatie || undefined,
-        userId: userId.trim() || undefined,
+        userId: userId || undefined,
         dataStart: dataStart || undefined,
         dataEnd: dataEnd ? `${dataEnd}T23:59:59` : undefined,
         limit: PAGE_SIZE,
@@ -123,11 +125,13 @@ export const JurnalAudit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <option key={o.value} value={o.value}>{o.label}</option>
                         ))}
                     </Select>
-                    <Input
-                        label="ID utilizator"
-                        placeholder="UUID utilizator"
+                    <SearchableSelect
+                        label="Utilizator"
                         value={userId}
-                        onChange={e => schimbaFiltru(setUserId)(e.target.value)}
+                        onChange={schimbaFiltru(setUserId)}
+                        options={userOptions}
+                        emptyLabel="Toți utilizatorii"
+                        placeholder="Caută utilizator..."
                     />
                     <Input
                         label="De la data"
@@ -186,7 +190,13 @@ export const JurnalAudit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         </td>
                                         <td className="px-3 py-2 text-slate-300">{item.tabel}</td>
                                         <td className="px-3 py-2 text-slate-400">{item.club_id ? (clubMap[item.club_id] || item.club_id) : '—'}</td>
-                                        <td className="px-3 py-2 text-slate-500 font-mono text-xs">{item.user_id || '—'}</td>
+                                        <td className="px-3 py-2 text-slate-400" title={item.user_id || ''}>
+                                            {item.user_id && nameMap[item.user_id] ? (
+                                                <span>{nameMap[item.user_id]}</span>
+                                            ) : (
+                                                <span className="font-mono text-xs text-slate-500">{item.user_id || '—'}</span>
+                                            )}
+                                        </td>
                                         <td className="px-3 py-2 text-slate-400">{item.sursa}</td>
                                     </tr>
                                 ))}

@@ -822,17 +822,14 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
             else {
                 showSuccess("Succes", "Antrenamentul recurent a fost adăugat în orar.");
                 // Trigger generation
+                // CR-04: NU exista fallback global (fara grupaId) — ar genera
+                // antrenamente pentru TOATE grupele din TOATE cluburile (query fara
+                // filtru club_id in trainingGenerator.ts), vezi useCalendarView.ts.
                 try {
                     await generateTrainingsFromSchedule(30, grupa.id);
                     await refetch();
                 } catch (genError: any) {
-                    // Fallback
-                    try {
-                        await generateTrainingsFromSchedule(30);
-                        await refetch();
-                    } catch (genError2: any) {
-                        showError("Eroare generare", genError2.message);
-                    }
+                    showError("Eroare generare", genError.message);
                 }
             }
         } else {

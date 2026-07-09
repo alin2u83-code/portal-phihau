@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View, IstoricGrade } from '../../types';
-import { Button, Modal, Input, Select, Card, ClubSelect } from '../ui';
+import { Button, Modal, Input, Select, Card, ClubSelect, SearchableSelect } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon, UploadCloudIcon, BookOpenIcon } from '../icons';
 import { MartialArtsSkeleton } from '../MartialArtsSkeleton';
 import { supabase } from '../../supabaseClient';
@@ -293,29 +293,23 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
           <div className="flex flex-col sm:flex-row gap-2 flex-1">
             <div className="flex-1">
               <label className="block text-xs font-medium text-slate-400 mb-1">De la — Lună</label>
-              <select
+              <SearchableSelect
                 value={monthFrom}
-                onChange={e => setMonthFrom(e.target.value)}
-                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
-              >
-                <option value="">Orice lună</option>
-                {LUNI.map((luna, idx) => (
-                  <option key={idx + 1} value={String(idx + 1)}>{luna}</option>
-                ))}
-              </select>
+                onChange={val => setMonthFrom(val)}
+                options={LUNI.map((luna, idx) => ({ value: String(idx + 1), label: luna }))}
+                emptyLabel="Orice lună"
+                placeholder="Orice lună"
+              />
             </div>
             <div className="flex-1">
               <label className="block text-xs font-medium text-slate-400 mb-1">De la — An</label>
-              <select
+              <SearchableSelect
                 value={yearFrom}
-                onChange={e => setYearFrom(e.target.value)}
-                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
-              >
-                <option value="">Orice an</option>
-                {ANI.map(an => (
-                  <option key={an} value={String(an)}>{an}</option>
-                ))}
-              </select>
+                onChange={val => setYearFrom(val)}
+                options={ANI.map(an => ({ value: String(an), label: String(an) }))}
+                emptyLabel="Orice an"
+                placeholder="Orice an"
+              />
             </div>
           </div>
 
@@ -328,29 +322,23 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
           <div className="flex flex-col sm:flex-row gap-2 flex-1">
             <div className="flex-1">
               <label className="block text-xs font-medium text-slate-400 mb-1">Până la — Lună</label>
-              <select
+              <SearchableSelect
                 value={monthTo}
-                onChange={e => setMonthTo(e.target.value)}
-                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
-              >
-                <option value="">Orice lună</option>
-                {LUNI.map((luna, idx) => (
-                  <option key={idx + 1} value={String(idx + 1)}>{luna}</option>
-                ))}
-              </select>
+                onChange={val => setMonthTo(val)}
+                options={LUNI.map((luna, idx) => ({ value: String(idx + 1), label: luna }))}
+                emptyLabel="Orice lună"
+                placeholder="Orice lună"
+              />
             </div>
             <div className="flex-1">
               <label className="block text-xs font-medium text-slate-400 mb-1">Până la — An</label>
-              <select
+              <SearchableSelect
                 value={yearTo}
-                onChange={e => setYearTo(e.target.value)}
-                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
-              >
-                <option value="">Orice an</option>
-                {ANI.map(an => (
-                  <option key={an} value={String(an)}>{an}</option>
-                ))}
-              </select>
+                onChange={val => setYearTo(val)}
+                options={ANI.map(an => ({ value: String(an), label: String(an) }))}
+                emptyLabel="Orice an"
+                placeholder="Orice an"
+              />
             </div>
           </div>
 

@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 16 — COMPLETE
 Plan: 1 of 1
 Status: Phase 16 complete
-Last activity: 2026-07-06 -- Phase 16 marked complete
+Last activity: 2026-07-09 - Completed quick task 260709-eiw: Restyle Import Sportivi si ecran principal Sesiuni Examen la paleta AdminMasterMap
 
 ```
 Progress: [████████░░] 83% (5/6 phases)
@@ -94,6 +94,7 @@ None yet.
 | 260705-irg | Fix RLS cross-club leak (is_super_admin/este_staff_club/has_access_to_club + Select_Sportivi_Unified ignorau contextul activ) + afiseaza club per sportiv in Deduplicare pentru super admin | 2026-07-05 | d9e0ec8 | Verified | [260705-irg-fix-rls-context-aware-role-check-si-afis](./quick/260705-irg-fix-rls-context-aware-role-check-si-afis/) |
 | 260705-pgg | Refactor Deduplicare Sportivi: include inactivi in detectie, merge_sportivi sterge duplicatul (delete efectiv, FK dinamic), guard acces club — migratie SQL scrisa, NEaplicata live | 2026-07-05 | 70db87e | Needs SQL apply | [260705-pgg-refactor-deduplicare-sportivi-include-in](./quick/260705-pgg-refactor-deduplicare-sportivi-include-in/) |
 | 260708-h7k | Fix istoric grade Bindac (limita 1000 randuri PostgREST + club_id gresit in view) + grad implicit sportiv nou (trigger conditie moarta) + retroactiv 5 sportivi + unifica matching grad import CSV cu engine comun | 2026-07-08 | 94a4c7a | Verified | [260708-h7k-fix-istoric-grade-bindac-grad-implicit-unifica](./quick/260708-h7k-fix-istoric-grade-bindac-grad-implicit-unifica/) |
+| 260709-eiw | Restyle Import Sportivi + ecran principal Sesiuni Examen la paleta/stil carduri din AdminMasterMap (slate-800/60 + amber-400) | 2026-07-09 | 80bb077 | Verified | [260709-eiw-restyle-import-sportivi-si-modulul-exame](./quick/260709-eiw-restyle-import-sportivi-si-modulul-exame/) |
 
 ### Roadmap Evolution
 

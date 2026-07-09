@@ -61,7 +61,19 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
   ];
 
   const currentYear = new Date().getFullYear();
-  const ANI = Array.from({ length: 8 }, (_, i) => currentYear - 5 + i);
+
+  // Ani distincti derivati din sesiunile existente (scoped deja pe rol/club),
+  // UNION cu anul curent (mereu inclus, chiar daca fara sesiuni inca).
+  // Sortare descrescatoare — cel mai recent an primul.
+  const ANI = useMemo(() => {
+    const aniSet = new Set<number>([currentYear]);
+    (sesiuni || []).forEach(s => {
+      const dataStr = (s.data || s.data_examen || '').toString();
+      const an = dataStr.length >= 4 ? parseInt(dataStr.slice(0, 4), 10) : NaN;
+      if (!isNaN(an)) aniSet.add(an);
+    });
+    return Array.from(aniSet).sort((a, b) => b - a);
+  }, [sesiuni, currentYear]);
 
   // Derivăm dateFrom / dateTo din selecțiile de lună + an
   const dateFrom = useMemo(() => {
@@ -158,10 +170,15 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
     if (clubFilter) {
       filtered = filtered.filter(s => s.club_id === clubFilter);
     }
-    // Fara restrictie by-default pe clubul propriu: o sesiune de examen poate fi
-    // multi-club, iar RLS pe sesiuni_examene deja limiteaza ce sesiuni sunt vizibile
-    // (staff de club vede toate, ca sa poata inscrie sportivi la o sesiune gazduita
-    // de alt club). Vezi migrarea 20260709_examene_multiclub_comisie.sql.
+    // Scoping explicit client-side pentru non-fed: RLS pe sesiuni_examene NU
+    // filtreaza pe club (grant intentionat cross-club pt comisii, vezi migrarea
+    // 20260709_examene_multiclub_comisie.sql). Fara acest filtru, ADMIN_CLUB/
+    // INSTRUCTOR ar vedea si sesiunile altor cluburi unde sunt doar comisari.
+    // SUPER_ADMIN_FEDERATIE/ADMIN isi pastreaza comportamentul actual (fara
+    // default, doar clubFilter optional cand e setat mai sus).
+    if (!isFederationAdmin) {
+      filtered = filtered.filter(s => s.club_id === currentUser.club_id);
+    }
     if (statusFilter) {
       filtered = filtered.filter(s => s.status === statusFilter);
     }

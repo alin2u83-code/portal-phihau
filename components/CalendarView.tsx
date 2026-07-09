@@ -311,7 +311,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
 
     const agendaDays = useMemo(() => {
         return days.filter((d): d is Date => d !== null).map(day => {
-            const dateString = day.toISOString().split('T')[0];
+            // FIX: toISOString() convertește la UTC, ceea ce decalează data cu o zi
+            // pentru fusuri orare pozitive (ex. România, UTC+2/+3). Folosim data locală.
+            const dateString = day.toLocaleDateString('sv-SE');
             return { day, events: eventsByDate.get(dateString) || [] };
         }).filter(d => d.events.length > 0);
     }, [days, eventsByDate]);
@@ -384,7 +386,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
                     <div className="grid grid-cols-7 min-h-[60vh]">
                         {days.map((day, index) => {
                             if (!day) return <div key={`pad-${index}`} className="border-r border-b border-slate-700 bg-deep-navy"></div>;
-                            const dateString = day.toISOString().split('T')[0];
+                            // FIX: toISOString() convertește la UTC, ceea ce decalează data cu o zi
+                            // pentru fusuri orare pozitive (ex. România, UTC+2/+3). Folosim data locală.
+                            const dateString = day.toLocaleDateString('sv-SE');
                             const dayEvents = eventsByDate.get(dateString) || [];
                             const isCurrentDay = day.getTime() === today.getTime();
                             return (

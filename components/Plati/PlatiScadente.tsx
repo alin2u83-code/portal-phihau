@@ -1,6 +1,6 @@
 ﻿import React, { useState, useMemo } from 'react';
 import { Plata, Sportiv, Permissions, Club } from '../../types';
-import { Button, Input, Select, Card, Modal, SearchInput, ClubSelect } from '../ui';
+import { Button, Input, Select, Card, Modal, SearchInput, ClubSelect, SearchableSelect } from '../ui';
 import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon, CalendarDaysIcon, ChevronDownIcon, ChevronUpIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -651,10 +651,14 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     <option value="Achitat Parțial">Doar Achitat Parțial</option>
                     <option value="Achitat">Achitat</option>
                 </Select>
-                <Select label="Tip Plată" name="tip" value={filter.tip} onChange={e => setFilter(p => ({...p, tip: e.target.value}))}>
-                     <option value="">Toate Tipurile</option>
-                     {[...new Set((plati || []).map(p=>p.tip))].sort().map(tip => <option key={tip || 'fara-tip'} value={tip || ''}>{tip || 'Fără tip'}</option>)}
-                </Select>
+                <SearchableSelect
+                    label="Tip Plată"
+                    value={filter.tip}
+                    onChange={val => setFilter(p => ({...p, tip: val}))}
+                    options={[...new Set((plati || []).map(p=>p.tip))].sort().map(tip => ({ value: tip || '', label: tip || 'Fără tip' }))}
+                    emptyLabel="Toate Tipurile"
+                    placeholder="Toate Tipurile"
+                />
                 
                 <SearchInput
                     label="Caută Sportiv / Familie"

@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useState } from 'react';
 import { IstoricPlataDetaliat, Sportiv, Familie, Plata, Tranzactie } from '../../types';
-import { Card, Input, Select, Button } from '../ui';
+import { Card, Input, Select, Button, SearchableSelect } from '../ui';
 import { PeriodFilterBar } from './PeriodFilterBar';
 import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon, ExclamationTriangleIcon, CheckCircleIcon, WalletIcon, XIcon, TrendingUpIcon, UsersIcon, DownloadIcon, DocumentArrowDownIcon } from '../icons';
 import { RevenueBarChart } from './RevenueBarChart';
@@ -471,14 +471,24 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                             <div className="px-4 pb-4 border-t border-[var(--t-border)]">
                                 <div className="pt-3 space-y-3">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                    <Select label="Sportiv" name="sportivId" value={filters.sportivId} onChange={handleFilterChange} disabled={!!filters.familieId}>
-                                        <option value="">Toți</option>
-                                        {sportivi.map(s => <option key={s.id} value={s.id}>{formatNume(s)}</option>)}
-                                    </Select>
-                                    <Select label="Familie" name="familieId" value={filters.familieId} onChange={handleFilterChange} disabled={!!filters.sportivId}>
-                                        <option value="">Toate</option>
-                                        {familii.map(f => <option key={f.id} value={f.id}>{f.nume}</option>)}
-                                    </Select>
+                                    <SearchableSelect
+                                        label="Sportiv"
+                                        value={filters.sportivId}
+                                        onChange={val => handleFilterChange({ target: { name: 'sportivId', value: val } } as unknown as React.ChangeEvent<HTMLSelectElement>)}
+                                        options={sportivi.map(s => ({ value: s.id, label: formatNume(s) }))}
+                                        emptyLabel="Toți"
+                                        placeholder="Toți"
+                                        disabled={!!filters.familieId}
+                                    />
+                                    <SearchableSelect
+                                        label="Familie"
+                                        value={filters.familieId}
+                                        onChange={val => handleFilterChange({ target: { name: 'familieId', value: val } } as unknown as React.ChangeEvent<HTMLSelectElement>)}
+                                        options={familii.map(f => ({ value: f.id, label: f.nume }))}
+                                        emptyLabel="Toate"
+                                        placeholder="Toate"
+                                        disabled={!!filters.sportivId}
+                                    />
                                     <Select label="Metodă" name="metodaPlata" value={filters.metodaPlata} onChange={handleFilterChange}>
                                         <option value="">Toate</option>
                                         <option value="Cash">Cash</option>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { ProbaCompetitie, Grad } from '../../types';
 import type { CompetitieFiltre } from '../../hooks/useCompetitieFilters';
+import { SearchableSelect } from '../ui';
 
 export interface CompetitieFilterBarProps {
   filtre: CompetitieFiltre;
@@ -79,19 +80,16 @@ export const CompetitieFilterBar: React.FC<CompetitieFilterBarProps> = ({
               </div>
             </div>
 
-            {/* Probă — native select */}
+            {/* Probă — searchable select */}
             <div className="space-y-1.5">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Probă</div>
-              <select
+              <SearchableSelect
                 value={filtre.probaId}
-                onChange={e => setFiltre({ probaId: e.target.value })}
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-brand-primary/60"
-              >
-                <option value="">Toate probele</option>
-                {probe.map(p => (
-                  <option key={p.id} value={p.id}>{p.denumire}</option>
-                ))}
-              </select>
+                onChange={val => setFiltre({ probaId: val })}
+                options={probe.map(p => ({ value: p.id, label: p.denumire }))}
+                emptyLabel="Toate probele"
+                placeholder="Toate probele"
+              />
             </div>
 
             {/* Vârstă — două inputs numerice */}
@@ -118,31 +116,29 @@ export const CompetitieFilterBar: React.FC<CompetitieFilterBarProps> = ({
               </div>
             </div>
 
-            {/* Grad — două native selects, value = ordine (nu id) */}
+            {/* Grad — două searchable selects, value = ordine (nu id) */}
             <div className="space-y-1.5">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Grad</div>
               <div className="flex items-center gap-2">
-                <select
-                  value={filtre.gradMin}
-                  onChange={e => setFiltre({ gradMin: e.target.value })}
-                  className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-brand-primary/60"
-                >
-                  <option value="">Orice grad</option>
-                  {[...grade].sort((a, b) => a.ordine - b.ordine).map(g => (
-                    <option key={g.id} value={g.ordine.toString()}>{g.nume}</option>
-                  ))}
-                </select>
+                <div className="flex-1">
+                  <SearchableSelect
+                    value={filtre.gradMin}
+                    onChange={val => setFiltre({ gradMin: val })}
+                    options={[...grade].sort((a, b) => a.ordine - b.ordine).map(g => ({ value: g.ordine.toString(), label: g.nume }))}
+                    emptyLabel="Orice grad"
+                    placeholder="Orice grad"
+                  />
+                </div>
                 <span className="text-slate-500 text-xs">–</span>
-                <select
-                  value={filtre.gradMax}
-                  onChange={e => setFiltre({ gradMax: e.target.value })}
-                  className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-brand-primary/60"
-                >
-                  <option value="">Orice grad</option>
-                  {[...grade].sort((a, b) => a.ordine - b.ordine).map(g => (
-                    <option key={g.id} value={g.ordine.toString()}>{g.nume}</option>
-                  ))}
-                </select>
+                <div className="flex-1">
+                  <SearchableSelect
+                    value={filtre.gradMax}
+                    onChange={val => setFiltre({ gradMax: val })}
+                    options={[...grade].sort((a, b) => a.ordine - b.ordine).map(g => ({ value: g.ordine.toString(), label: g.nume }))}
+                    emptyLabel="Orice grad"
+                    placeholder="Orice grad"
+                  />
+                </div>
               </div>
             </div>
 

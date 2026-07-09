@@ -279,7 +279,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               <select
                 value={monthFrom}
                 onChange={e => setMonthFrom(e.target.value)}
-                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
               >
                 <option value="">Orice lună</option>
                 {LUNI.map((luna, idx) => (
@@ -292,7 +292,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               <select
                 value={yearFrom}
                 onChange={e => setYearFrom(e.target.value)}
-                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
               >
                 <option value="">Orice an</option>
                 {ANI.map(an => (
@@ -314,7 +314,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               <select
                 value={monthTo}
                 onChange={e => setMonthTo(e.target.value)}
-                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
               >
                 <option value="">Orice lună</option>
                 {LUNI.map((luna, idx) => (
@@ -327,7 +327,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               <select
                 value={yearTo}
                 onChange={e => setYearTo(e.target.value)}
-                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary"
+                className="w-full bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
               >
                 <option value="">Orice an</option>
                 {ANI.map(an => (
@@ -353,7 +353,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
 
         {/* Rezumat interval activ */}
         {hasDateFilter && (yearFrom || yearTo) && (
-          <div className="text-xs text-brand-secondary/80 font-medium">
+          <div className="text-xs text-amber-400/80 font-medium">
             Interval activ:{' '}
             {yearFrom
               ? `${monthFrom ? LUNI[Number(monthFrom) - 1] : 'Ianuarie'} ${yearFrom}`
@@ -377,7 +377,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               key={sc.value}
               type="button"
               onClick={() => applyShortcut(sc.value)}
-              className="shrink-0 px-3 py-1 text-xs font-medium rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] bg-[var(--t-surface-2)] hover:bg-brand-secondary/20 hover:border-brand-secondary hover:text-brand-secondary transition-colors"
+              className="shrink-0 px-3 py-1 text-xs font-medium rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] bg-[var(--t-surface-2)] hover:bg-amber-400/20 hover:border-amber-400 hover:text-amber-400 transition-colors"
             >
               {sc.label}
             </button>
@@ -414,9 +414,9 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                 const club = (clubs || []).find(c => c.id === s.club_id);
                 const cardStyle = club?.theme_config ? (club.theme_config as React.CSSProperties) : {};
                 return (
-                    <Card 
-                        key={s.id} 
-                        className="sesiune-card flex flex-col group"
+                    <Card
+                        key={s.id}
+                        className="sesiune-card flex flex-col group bg-slate-800/60 border border-slate-700/50 hover:border-amber-400/40 transition-colors rounded-lg"
                         style={cardStyle}
                     >
                         <div className="flex-grow">
@@ -426,7 +426,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                                 </span>
                                 <span className="text-sm font-bold text-slate-300">{new Date((s.data || s.data_examen || '').toString().slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO')}</span>
                             </div>
-                            <h3 className="text-lg font-bold text-white mt-3 group-hover:text-brand-secondary transition-colors">{s.locatie_nume || (locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
+                            <h3 className="text-lg font-bold text-white mt-3 group-hover:text-amber-400 transition-colors">{s.locatie_nume || (locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
                             <p className="text-xs text-slate-400">{s.club_nume || (s.club_id ? (((clubs || []).find(c => c.id === s.club_id))?.nume || 'Club Necunoscut') : 'Eveniment Federație')}</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-[var(--border-color)] flex justify-between items-center">

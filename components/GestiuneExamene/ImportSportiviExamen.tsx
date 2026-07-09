@@ -285,7 +285,12 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                     data_inscrierii: new Date().toISOString().slice(0, 10),
                     email: generateEmail(prenume, nume),
                     telefon: telefon || undefined,
-                    club_id: currentUser.club_id || undefined,
+                    // Bug fix (260709-m7m): currentUser.club_id e undefined pentru staff
+                    // fără profil sportiv propriu (INSTRUCTOR/ADMIN_CLUB fără cont de
+                    // sportiv) — sportivul nou era creat cu club_id NULL, invizibil in
+                    // orice flux scopat pe club. Sesiunea curentă e sursa corectă de
+                    // adevăr pentru clubul sportivului nou-creat.
+                    club_id: sesiune.club_id || currentUser.club_id || undefined,
                     grad_actual_id: debutantGrad?.id || undefined,
                     grupa_id: null,
                     status: 'Activ',

@@ -418,7 +418,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
             });
             return;
         }
-        // Selectăm toți eligibili din filtrare (fără să așteptăm sugestiile â€” le setăm din defaultNextGradeId)
+        // Selectăm toți eligibili din filtrare (fără să așteptăm sugestiile — le setăm din defaultNextGradeId)
         setSelections(prev => {
             const next = new Map(prev);
             filteredSportivi.forEach(s => {
@@ -535,7 +535,7 @@ const BulkAddSportiviModal: React.FC<BulkAddSportiviModalProps & { sesiuneData: 
                                            )}
                                        </div>
                                    </div>
-                                   {/* Select grad â€” vizibil mereu dar disabled dacă nu e selectat */}
+                                   {/* Select grad — vizibil mereu dar disabled dacă nu e selectat */}
                                    <div className="w-full sm:w-52 pl-8 sm:pl-0 flex-shrink-0">
                                        <Select
                                            label=""
@@ -804,7 +804,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             );
             if (areGradulDeja) {
                 showError(
-                    `Grad deja obținut â€” ${sportiv.nume} ${sportiv.prenume}`,
+                    `Grad deja obținut — ${sportiv.nume} ${sportiv.prenume}`,
                     `Sportivul are deja gradul "${grad.nume}" în istoric. Înscrierea a fost ignorată.`
                 );
                 skipCount++;
@@ -827,7 +827,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         gradSugeratNume = regDetails[0].grad_sugerat_nume || grad.nume;
                     }
                 } catch {
-                    // RPC indisponibil â€” continuăm fără taxă automată
+                    // RPC indisponibil — continuăm fără taxă automată
                     console.warn(`[ManagementInscrieri] get_registration_details indisponibil pentru ${sportiv.id}, continuăm fără taxă.`);
                 }
 
@@ -1458,12 +1458,12 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                         {isComisie && inscriere.club_nume && (
                             <p className="text-[10px] font-medium text-slate-500 uppercase">{inscriere.club_nume}</p>
                         )}
-                        {/* Grade: actual â†’ vizat */}
+                        {/* Grade: actual → vizat */}
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className="text-xs text-slate-400">
                                 {gradActualNume || inscriere.nume_grad_actual || 'Fără grad'}
                             </span>
-                            <span className="text-slate-600 text-xs">â†’</span>
+                            <span className="text-slate-600 text-xs">→</span>
                             <span className="text-xs font-bold text-brand-secondary">
                                 {gradVizatNume || 'Necunoscut'}
                             </span>
@@ -1520,7 +1520,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
 
     return (
         <div className="space-y-5">
-            {/* â”€â”€ Card Înscriere â”€â”€ */}
+            {/* ── Card Înscriere ── */}
             {!isReadOnly && (
                 <Card>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
@@ -1540,7 +1540,7 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                 </Card>
             )}
 
-            {/* â”€â”€ Statistici rezultate (afișate doar dacă există participanți) â”€â”€ */}
+            {/* ── Statistici rezultate (afișate doar dacă există participanți) ── */}
             {participantiInscrisi.length > 0 && (
                 <div className="grid grid-cols-3 gap-3">
                     <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-xl p-3 text-center">

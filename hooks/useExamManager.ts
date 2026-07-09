@@ -98,8 +98,15 @@ export const useExamManager = (
             if (updateSesiuneError) throw updateSesiuneError;
 
             let totalSportivi = 0;
-            const updatedSportiviIds = new Set<string>();
             const newIstoricEntries: IstoricGrade[] = [];
+            // Bug fix (260709-m7m): urmărim EXPLICIT gradul aplicat efectiv în DB per
+            // sportiv (doar când targetOrdine > currentOrdine, aceeași gardă ca update-ul
+            // DB de mai jos), ca update-ul de state local să nu mai suprascrie
+            // grad_actual_id necondiționat — vezi bug-ul din secțiunea de sincronizare
+            // state (mai jos), care seta grad_actual_id la grad_sustinut_id indiferent
+            // de ordine, provocând un downgrade optimist doar în UI (DB rămânea corect,
+            // grație gărzii de mai jos, dar afișajul se dezincroniza până la refetch).
+            const appliedGradeBySportiv = new Map<string, string>();
             
             // 2. Process each inscriere
             for (const inscriere of inscrieriSesiune) {
@@ -146,7 +153,6 @@ export const useExamManager = (
 
                         if (insertIstoricError) throw insertIstoricError;
                         if (newIstoricData) newIstoricEntries.push(newIstoricData as IstoricGrade);
-                        updatedSportiviIds.add(inscriere.sportiv_id);
                     }
 
                     // Actualizează grad_actual_id direct în DB.
@@ -163,23 +169,27 @@ export const useExamManager = (
                             .update({ grad_actual_id: targetGradId })
                             .eq('id', inscriere.sportiv_id);
                         if (gradUpdateError) throw gradUpdateError;
+                        appliedGradeBySportiv.set(inscriere.sportiv_id, targetGradId);
                     }
                 }
                 totalSportivi++;
             }
 
-            // Update local state for sportivi - the trigger will handle the DB update, 
-            // but we update local state for immediate feedback
-            if (setSportivi && updatedSportiviIds.size > 0) {
+            // Update local state for sportivi - the trigger will handle the DB update,
+            // but we update local state for immediate feedback.
+            // Bug fix (260709-m7m): folosim appliedGradeBySportiv (populat DOAR când
+            // targetOrdine > currentOrdine, aceeași gardă ca update-ul DB de mai sus) în
+            // loc de a suprascrie necondiționat cu grad_sustinut_id — altfel un sportiv cu
+            // un rezultat "Admis" pentru un grad INFERIOR celui deja deținut (ex. istoric_grade
+            // introdus retroactiv) ar apărea downgradat optimist în UI, deși DB rămâne corect.
+            if (setSportivi && appliedGradeBySportiv.size > 0) {
                 setSportivi(prev => prev.map(s => {
-                    if (updatedSportiviIds.has(s.id)) {
-                        const inscriere = inscrieriSesiune.find(i => i.sportiv_id === s.id && i.rezultat === 'Admis');
-                        if (inscriere) {
-                            return { 
-                                ...s, 
-                                grad_actual_id: inscriere.grad_sustinut_id
-                            };
-                        }
+                    const appliedGradId = appliedGradeBySportiv.get(s.id);
+                    if (appliedGradId) {
+                        return {
+                            ...s,
+                            grad_actual_id: appliedGradId
+                        };
                     }
                     return s;
                 }));

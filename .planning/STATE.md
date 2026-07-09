@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 16 — COMPLETE
 Plan: 1 of 1
 Status: Phase 16 complete
-Last activity: 2026-07-09 - Completed quick task 260709-m7m: Fix 3 bug-uri modul Examene (diacritice, sportiv nou lipsa, grad curent)
+Last activity: 2026-07-09 - Completed quick task 260710-07l: Jurnal Audit nume utilizator + filtru + tab Sesiuni/Trafic
 
 ```
 Progress: [████████░░] 83% (5/6 phases)
@@ -98,6 +98,7 @@ None yet.
 | 260709-m7m | Fix 3 bug-uri modul Examene: diacritice mojibake in ManagementInscrieri, sportiv nou cu club_id NULL din import (invizibil in lista sesiune), grad_actual_id suprascris gresit in state local finalizeExamen | 2026-07-09 | 7e44c54 | Verified (self-check) | [260709-m7m-fix-3-bug-uri-modul-examene-1-diacritice](./quick/260709-m7m-fix-3-bug-uri-modul-examene-1-diacritice/) |
 | 260709-fth | Gestiune Sesiuni Examen: scoping strict club activ (non-federatie) + dropdown ani derivat dinamic din sesiuni reale | 2026-07-09 | b73fba2 | [260709-fth-gestiune-sesiuni-examen-filtrare-club-si](./quick/260709-fth-gestiune-sesiuni-examen-filtrare-club-si/) |
 | 260709-kr1 | SearchableSelect (scriere+listă) pentru filtre Lună/An Gestiune Sesiuni Examen + ClubSelect + Sportivi (Grupă/Grad) + Prezență + Plăți + Competiții (Probă/Grad min-max) | 2026-07-09 | 12c3a11 | [260709-kr1-searchableselect-pentru-filtre-luna-an-g](./quick/260709-kr1-searchableselect-pentru-filtre-luna-an-g/) |
+| 260710-07l | Jurnal Audit: coloană nume utilizator (nu UUID) + filtru SearchableSelect pe nume + tab Sesiuni/Trafic derivat din LOGIN/LOGOUT existent (durată sesiune, "în curs" pt sesiuni neînchise) | 2026-07-09 | 50e8a57 | Verified (human checkpoint) | [260710-07l-audit-log-afiseaza-nume-utilizator-nu-uu](./quick/260710-07l-audit-log-afiseaza-nume-utilizator-nu-uu/) |
 
 ### Roadmap Evolution
 

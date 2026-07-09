@@ -28,6 +28,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
     const [potentialDuplicates, setPotentialDuplicates] = useState<any[]>([]);
     const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
     const [excludedStrictIndices, setExcludedStrictIndices] = useState<Set<number>>(new Set());
+    const [excludedNouIndices, setExcludedNouIndices] = useState<Set<number>>(new Set());
     const [currentClubId, setCurrentClubId] = useState<string | null>(null);
     const [selectedClubIdOverride, setSelectedClubIdOverride] = useState<string>('');
     const [showConfirm, setShowConfirm] = useState(false);
@@ -456,7 +457,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
             .map(d => buildUpdatePayload(d.sportivData, d.existingSportiv, d.originalIndex));
 
         const validUniques = toImportList
-            .filter(s => !s.error && !s._omis)
+            .filter(s => !s.error && !s._omis && !excludedNouIndices.has(s.originalIndex))
             .map(({ originalIndex, error, rawDate, _omis, motiv: _motiv, ...rest }) => rest);
 
         const invalidUniques = toImportList.filter(s => s.error);
@@ -507,7 +508,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 );
                 const result: ImportResult = {
                     adaugati: toImportList
-                        .filter(s => !s.error)
+                        .filter(s => !s.error && !s._omis && !excludedNouIndices.has(s.originalIndex))
                         .map(s => ({
                             id: insertedByName.get(`${s.nume}|${s.prenume}`) || '',
                             nume: s.nume, prenume: s.prenume, data_nasterii: s.data_nasterii || null
@@ -550,6 +551,13 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         if (newSet.has(index)) newSet.delete(index);
         else newSet.add(index);
         setSelectedIndices(newSet);
+    };
+
+    const toggleExcludeNou = (originalIndex: number) => {
+        const newSet = new Set(excludedNouIndices);
+        if (newSet.has(originalIndex)) newSet.delete(originalIndex);
+        else newSet.add(originalIndex);
+        setExcludedNouIndices(newSet);
     };
 
     const toggleExcludeStrict = (index: number) => {
@@ -675,7 +683,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
         const countEroare = unifiedRows.filter(r => r.status === 'EROARE').length;
         const activeAutoUpdates = strictDuplicates.filter((_, i) => !excludedStrictIndices.has(i)).length;
         const selectedLooseCount = selectedIndices.size;
-        const validNouCount = toImportList.filter(s => !s.error).length;
+        const validNouCount = toImportList.filter(s => !s.error && !s._omis && !excludedNouIndices.has(s.originalIndex)).length;
         const seVaImporta = validNouCount + activeAutoUpdates + selectedLooseCount;
 
         return (
@@ -685,6 +693,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 unifiedRows={unifiedRows}
                 selectedIndices={selectedIndices}
                 excludedStrictIndices={excludedStrictIndices}
+                excludedNouIndices={excludedNouIndices}
                 expandedRows={expandedRows}
                 overwriteMode={overwriteMode}
                 importing={importing}
@@ -699,6 +708,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 countEroare={countEroare}
                 onToggleSelection={toggleSelection}
                 onToggleExcludeStrict={toggleExcludeStrict}
+                onToggleExcludeNou={toggleExcludeNou}
                 onToggleExpandRow={toggleExpandRow}
                 fieldSelections={fieldSelections}
                 onToggleFieldSelection={(originalIndex, fieldKey, value) => {

@@ -7,6 +7,7 @@ interface Props {
     unifiedRows: UnifiedRow[];
     selectedIndices: Set<number>;
     excludedStrictIndices: Set<number>;
+    excludedNouIndices: Set<number>;
     expandedRows: Set<number>;
     fieldSelections: Map<number, Record<string, boolean>>;
     overwriteMode: boolean;
@@ -22,6 +23,7 @@ interface Props {
     countEroare: number;
     onToggleSelection: (index: number) => void;
     onToggleExcludeStrict: (index: number) => void;
+    onToggleExcludeNou: (originalIndex: number) => void;
     onToggleExpandRow: (index: number) => void;
     onToggleOverwrite: () => void;
     onToggleFieldSelection: (originalIndex: number, fieldKey: string, value: boolean) => void;
@@ -33,11 +35,11 @@ interface Props {
 }
 
 export const Pas1Revizuire: React.FC<Props> = ({
-    unifiedRows, selectedIndices, excludedStrictIndices, expandedRows,
+    unifiedRows, selectedIndices, excludedStrictIndices, excludedNouIndices, expandedRows,
     fieldSelections, overwriteMode, importing, showConfirm, seVaImporta,
     validNouCount, activeAutoUpdates, selectedLooseCount,
     countNou, countActualizare, countDuplicat, countEroare,
-    onToggleSelection, onToggleExcludeStrict, onToggleExpandRow,
+    onToggleSelection, onToggleExcludeStrict, onToggleExcludeNou, onToggleExpandRow,
     onToggleOverwrite, onToggleFieldSelection, onGlobalSelectAll,
     onGlobalDeselectAll, onExecuteImport, onBack, onCancelConfirm,
 }) => {
@@ -141,6 +143,18 @@ export const Pas1Revizuire: React.FC<Props> = ({
                                         <td className="px-3 py-2.5">{getStatusBadge(row.status)}</td>
                                         <td className="px-3 py-2.5 text-zinc-500 text-xs max-w-xs truncate" title={row.motiv}>{row.motiv || '—'}</td>
                                         <td className="px-3 py-2.5">
+                                            {row.status === 'NOU' && (
+                                                <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!excludedNouIndices.has(row.originalIndex)}
+                                                        onChange={() => onToggleExcludeNou(row.originalIndex)}
+                                                        className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-indigo-500 focus:ring-indigo-500"
+                                                        title="Debifați pentru a nu adăuga acest sportiv"
+                                                    />
+                                                    Adaugă
+                                                </label>
+                                            )}
                                             {row.status === 'POSIBIL_DUPLICAT' && row.looseIndex !== undefined && (
                                                 <div className="flex items-center gap-2">
                                                     <input
@@ -300,6 +314,17 @@ export const Pas1Revizuire: React.FC<Props> = ({
                                 <div className="text-xs text-zinc-500 mb-2 leading-relaxed">{row.motiv}</div>
                             )}
                             <div className="flex items-center gap-2 flex-wrap">
+                                {row.status === 'NOU' && (
+                                    <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={!excludedNouIndices.has(row.originalIndex)}
+                                            onChange={() => onToggleExcludeNou(row.originalIndex)}
+                                            className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-indigo-500"
+                                        />
+                                        Adaugă
+                                    </label>
+                                )}
                                 {row.status === 'POSIBIL_DUPLICAT' && row.looseIndex !== undefined && (
                                     <>
                                         <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer">

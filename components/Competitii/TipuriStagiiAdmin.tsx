@@ -1,5 +1,5 @@
 ﻿/**
- * TipuriStagiiAdmin â€” wrapper peste TipuriNomenclatorAdmin
+ * TipuriStagiiAdmin — wrapper peste TipuriNomenclatorAdmin
  * pentru gestionarea tipurilor de stagiu.
  */
 import React from 'react';

@@ -32,7 +32,7 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
                 .maybeSingle();
 
             if (existing?.id) {
-                // Plata există deja â€” actualizează dacă suma diferă
+                // Plata există deja — actualizează dacă suma diferă
                 const { error: updateError } = await supabase
                     .from('plati')
                     .update({
@@ -42,7 +42,7 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
                     .eq('id', existing.id);
                 if (updateError) throw updateError;
             } else {
-                // Plata nu există â€” inserează cu sesiune_id pentru unicitate
+                // Plata nu există — inserează cu sesiune_id pentru unicitate
                 const { data: sportivData } = await supabase
                     .from('sportivi')
                     .select('club_id')

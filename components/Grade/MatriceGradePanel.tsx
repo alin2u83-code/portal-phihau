@@ -160,7 +160,7 @@ const SubTabelGrup: React.FC<SubTabelProps> = ({
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
                           ) : !active && !isBusy ? (
-                            <span className="text-slate-500 text-xs leading-none select-none">â€”</span>
+                            <span className="text-slate-500 text-xs leading-none select-none">—</span>
                           ) : null}
                         </button>
                       ) : (
@@ -172,7 +172,7 @@ const SubTabelGrup: React.FC<SubTabelProps> = ({
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
                           ) : (
-                            <span className="text-slate-500 text-xs leading-none select-none">â€”</span>
+                            <span className="text-slate-500 text-xs leading-none select-none">—</span>
                           )}
                         </div>
                       )}
@@ -294,7 +294,7 @@ export const MatriceGradePanel: React.FC<Props> = ({ tab, canEdit }) => {
               onClick={clearFiltre}
               className="text-xs px-2 py-1 rounded border border-[var(--t-border)] bg-[var(--t-surface)] text-[var(--t-text-muted)] hover:text-white hover:border-slate-500 transition-colors"
             >
-              âœ• Toate
+              ✕ Toate
             </button>
           )}
           {grade.map(g => {

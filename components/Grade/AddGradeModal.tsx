@@ -42,7 +42,7 @@ export const AddGradeModal: React.FC<AddGradeModalProps> = ({ isOpen, onClose, o
     const sortedGrades = [...grades].sort((a,b) => a.ordine - b.ordine);
 
     const title = isEditing
-        ? `Editează Intrare Grad â€” ${sportiv.nume} ${sportiv.prenume}`
+        ? `Editează Intrare Grad — ${sportiv.nume} ${sportiv.prenume}`
         : `Adaugă Grad Manual pentru ${sportiv.nume} ${sportiv.prenume}`;
 
     return (

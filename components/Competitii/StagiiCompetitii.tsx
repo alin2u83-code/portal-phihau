@@ -195,10 +195,10 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     const [searchSportiv, setSearchSportiv] = useState('');
     const [isSportivDropdownOpen, setIsSportivDropdownOpen] = useState(false);
 
-    // CVD arm tracking â€” activ doar pentru stagii naționale
+    // CVD arm tracking — activ doar pentru stagii naționale
     const esteStaguNationalCVD = eveniment.tip === 'Stagiu' && eveniment.tip_eveniment === 'FEDERATIE';
     const [stagiiCVD, setStagiiCVD] = useState<StagiuCVDParticipare[]>([]);
-    const [armePick, setArmePick] = useState<Record<string, string>>({}); // sportivId â†’ arma
+    const [armePick, setArmePick] = useState<Record<string, string>>({}); // sportivId → arma
     const [savingArma, setSavingArma] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
@@ -516,7 +516,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
     </Card>
     )}
 
-    {/* Secțiune CVD â€” arme per participant, vizibilă doar la stagii naționale */}
+    {/* Secțiune CVD — arme per participant, vizibilă doar la stagii naționale */}
     {esteStaguNationalCVD && rezultate.length > 0 && (
         <div className="mt-6 border-t border-[var(--t-border)] pt-6">
             <h4 className="text-lg font-semibold mb-1 text-amber-400">Arme CVD practiciate</h4>
@@ -717,7 +717,7 @@ export const StagiiCompetitiiManagement: React.FC<StagiiCompetitiiProps> = ({ ty
                                 <div className="min-w-0">
                                     <p className="text-white font-semibold truncate">{ev.denumire}</p>
                                     <p className="text-slate-400 text-sm mt-0.5">
-                                        {formatDateRange(ev.data)} â€” {formatDateRange(ev.data_sfarsit)}
+                                        {formatDateRange(ev.data)} — {formatDateRange(ev.data_sfarsit)}
                                     </p>
                                     {ev.locatie && <p className="text-slate-500 text-xs mt-0.5 truncate">{ev.locatie}</p>}
                                 </div>

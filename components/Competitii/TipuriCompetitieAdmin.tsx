@@ -1,5 +1,5 @@
 ﻿/**
- * TipuriCompetitieAdmin â€” wrapper peste TipuriNomenclatorAdmin
+ * TipuriCompetitieAdmin — wrapper peste TipuriNomenclatorAdmin
  * pentru gestionarea tipurilor de competiție.
  */
 import React from 'react';

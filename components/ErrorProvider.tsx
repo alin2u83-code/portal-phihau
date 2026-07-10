@@ -36,6 +36,8 @@ export const ErrorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (errorObj?.status === 403 || message.includes('403')) {
         message = "Nu aveți permisiunea necesară pentru a efectua această acțiune. Vă rugăm contactați un administrator.";
+    } else if (errorObj?.code === '42501' || message.includes('row-level security policy')) {
+        message = "Nu aveți permisiunea necesară pentru a efectua această acțiune. Verificați rolul/clubul selectat sau contactați un administrator.";
     } else if (message.includes('duplicate key value violates unique constraint')) {
         message = "Datele introduse sunt deja în sistem (duplicat).";
     }

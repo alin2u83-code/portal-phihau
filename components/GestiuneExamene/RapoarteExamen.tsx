@@ -206,7 +206,7 @@ const DetaliiSesiune: React.FC<{
             let totalSportivi = 0;
             const updatedSportiviIds = new Set<string>();
             const newIstoricEntries: IstoricGrade[] = [];
-            // Map sportiv_id â†’ targetGradId rezolvat, pentru update local corect
+            // Map sportiv_id → targetGradId rezolvat, pentru update local corect
             const sportiviGradMap = new Map<string, string>();
 
             // 2. Process each inscriere
@@ -328,7 +328,7 @@ const DetaliiSesiune: React.FC<{
                 <div className="space-y-6">
                     <div className={`p-4 rounded-xl border ${confirmConfig.variant === 'warning' ? 'bg-amber-900/20 border-amber-700/50 text-amber-200' : 'bg-sky-900/20 border-sky-700/50 text-sky-200'}`}>
                         <div className="flex items-start gap-3">
-                            <span className="text-2xl">{confirmConfig.variant === 'warning' ? 'âš ï¸' : 'â„¹ï¸'}</span>
+                            <span className="text-2xl">{confirmConfig.variant === 'warning' ? '⚠️' : 'ℹ️'}</span>
                             <p className="text-sm leading-relaxed font-medium">
                                 {confirmConfig.message}
                             </p>
@@ -461,7 +461,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
     const SortBtn: React.FC<{ field: SortField; label: string }> = ({ field, label }) => (
         <button onClick={() => handleSort(field)} className="flex items-center gap-1 font-semibold hover:text-blue-300 transition-colors">
             {label}
-            <span className="text-xs">{sortField === field ? (sortDir === 'asc' ? 'â†‘' : 'â†“') : 'â†•'}</span>
+            <span className="text-xs">{sortField === field ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}</span>
         </button>
     );
 
@@ -612,7 +612,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                             onClick={() => setFiltersExpanded(false)}
                             className="mt-3 w-full py-2 rounded-lg bg-amber-500 text-black text-sm font-bold"
                         >
-                            Aplică filtre â†’
+                            Aplică filtre →
                         </button>
                     </div>
                 )}
@@ -658,12 +658,12 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                         return (
                                             <tr key={r.inscriere_id} className="hover:bg-[var(--t-table-row-hover)]">
                                                 <td className="p-3 font-medium text-white">{r.sportiv_nume} {r.sportiv_prenume}</td>
-                                                <td className="p-3 text-slate-300">{r.club_nume || 'â€”'}</td>
-                                                <td className="p-3 text-slate-300">{r.grad_sustinut || 'â€”'}</td>
-                                                <td className="p-3"><span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cls}`}>{val || 'â€”'}</span></td>
-                                                <td className="p-3 text-slate-300">{r.data_examen ? new Date(r.data_examen + 'T00:00:00').toLocaleDateString('ro-RO') : 'â€”'}</td>
-                                                <td className="p-3 text-slate-300 hidden lg:table-cell">{r.sesiune_nume || 'â€”'}</td>
-                                                <td className="p-3 text-slate-400 hidden lg:table-cell">{r.locatie_nume || 'â€”'}</td>
+                                                <td className="p-3 text-slate-300">{r.club_nume || '—'}</td>
+                                                <td className="p-3 text-slate-300">{r.grad_sustinut || '—'}</td>
+                                                <td className="p-3"><span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cls}`}>{val || '—'}</span></td>
+                                                <td className="p-3 text-slate-300">{r.data_examen ? new Date(r.data_examen + 'T00:00:00').toLocaleDateString('ro-RO') : '—'}</td>
+                                                <td className="p-3 text-slate-300 hidden lg:table-cell">{r.sesiune_nume || '—'}</td>
+                                                <td className="p-3 text-slate-400 hidden lg:table-cell">{r.locatie_nume || '—'}</td>
                                                 <td className="p-3 text-right">
                                                     <div className="flex justify-end gap-1">
                                                         <Button variant="secondary" size="sm" onClick={() => { const s = sportivi.find(x => x.id === r.sportiv_id); if (s) onViewSportiv(s); }} title="Profil sportiv"><UserCircleIcon className="w-3.5 h-3.5" /></Button>
@@ -697,14 +697,14 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="min-w-0">
                                             <p className="text-white font-semibold text-sm truncate">{r.sportiv_nume} {r.sportiv_prenume}</p>
-                                            <p className="text-slate-400 text-xs mt-0.5 truncate">{r.grad_sustinut || 'â€”'} Â· {r.locatie_nume || 'â€”'}</p>
+                                            <p className="text-slate-400 text-xs mt-0.5 truncate">{r.grad_sustinut || '—'} · {r.locatie_nume || '—'}</p>
                                         </div>
-                                        <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${cls}`}>{val || 'â€”'}</span>
+                                        <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${cls}`}>{val || '—'}</span>
                                     </div>
                                     <div className="flex items-center justify-between mt-2">
                                         <span className="text-xs text-slate-500">
-                                            {r.data_examen ? new Date(r.data_examen + 'T00:00:00').toLocaleDateString('ro-RO') : 'â€”'}
-                                            {r.sesiune_nume ? ` Â· ${r.sesiune_nume}` : ''}
+                                            {r.data_examen ? new Date(r.data_examen + 'T00:00:00').toLocaleDateString('ro-RO') : '—'}
+                                            {r.sesiune_nume ? ` · ${r.sesiune_nume}` : ''}
                                         </span>
                                         <div className="flex gap-1">
                                             <Button variant="secondary" size="sm" onClick={() => { const s = sportivi.find(x => x.id === r.sportiv_id); if (s) onViewSportiv(s); }} title="Profil sportiv"><UserCircleIcon className="w-3.5 h-3.5" /></Button>
@@ -723,7 +723,7 @@ const RaportInscrieri: React.FC<{ sesiuni: SesiuneExamen[]; grade: Grad[]; curre
                 <div className="space-y-4">
                     <Select label="Sesiunea" name="sesiune_id" value={formState.sesiune_id} onChange={e => setFormState(p => ({ ...p, sesiune_id: e.target.value }))} required>
                         <option value="">Selectează sesiunea...</option>
-                        {sesiuni.map(s => <option key={s.id} value={s.id}>{s.data ? new Date(s.data + 'T00:00:00').toLocaleDateString('ro-RO') : ''} â€” {s.nume} {s.locatie_nume || ''}</option>)}
+                        {sesiuni.map(s => <option key={s.id} value={s.id}>{s.data ? new Date(s.data + 'T00:00:00').toLocaleDateString('ro-RO') : ''} — {s.nume} {s.locatie_nume || ''}</option>)}
                     </Select>
                     <Select label="Grad" name="grad_sustinut_id" value={formState.grad_sustinut_id} onChange={e => setFormState(p => ({ ...p, grad_sustinut_id: e.target.value }))} required>
                         <option value="">Selectează gradul...</option>

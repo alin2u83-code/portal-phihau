@@ -1119,9 +1119,12 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
             // 2. Handle grade promotion if Admis
             if (newResult === 'Admis') {
                 const newGradId = inscriere.grad_sustinut_id;
+                if (!newGradId) {
+                    throw new Error('Sportivul nu are un grad vizat setat pentru această înscriere. Setează gradul vizat înainte de a marca "Admis".');
+                }
                 allPromises.push(
                     supabase.from('istoric_grade').upsert(
-                        { sportiv_id: inscriere.sportiv_id, grad_id: newGradId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id },
+                        { sportiv_id: inscriere.sportiv_id, grad_id: newGradId, data_obtinere: sesiune.data, sesiune_examen_id: sesiune.id, club_id: sesiune.club_id },
                         { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
                     )
                 );

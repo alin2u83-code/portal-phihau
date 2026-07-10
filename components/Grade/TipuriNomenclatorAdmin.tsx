@@ -1,5 +1,5 @@
 ﻿/**
- * TipuriNomenclatorAdmin â€” componentă generică pentru editarea denumirilor
+ * TipuriNomenclatorAdmin — componentă generică pentru editarea denumirilor
  * din tabele de nomenclator (tipuri_competitie, tipuri_stagii etc.)
  * Vizibil și funcțional DOAR pentru SUPER_ADMIN_FEDERATIE / ADMIN.
  */

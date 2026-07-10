@@ -170,7 +170,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
 
     const mapGrilaToCsvRow = (row: GrilaRow): CsvRow => {
         // Verifică fiecare probă: dacă nu e introdusă, se consideră nota de promovare (7)
-        // Dacă orice probă introdusă < 7 â†’ Respins
+        // Dacă orice probă introdusă < 7 → Respins
         let rezultat: CsvRow['Rezultat'] = 'Admis';
         for (const proba of PROBE_GRILA) {
             const raw = row[proba];
@@ -181,7 +181,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     break;
                 }
             }
-            // dacă e goală â†’ 7 implicit â†’ trece
+            // dacă e goală → 7 implicit → trece
         }
         return {
             Nume: row.NUME || '',
@@ -374,7 +374,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     ? potentialMatches.find(s => parseDateToISO(String(s.data_nasterii || '')) === parseDateToISO(birthdate))
                     : null;
 
-                // Auto-resolve: nume similar + data nașterii identică â†’ valid fără intervenție manuală
+                // Auto-resolve: nume similar + data nașterii identică → valid fără intervenție manuală
                 if (exactBirthdateMatch && exactBirthdateMatch.similarity >= 0.7) {
                     const sportivId = exactBirthdateMatch.id;
                     const existingSessionId = sessionInfo.existingSessionId;
@@ -395,7 +395,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     };
                 }
 
-                // Potrivire exactă de nume (similarity = 1) fără dată â†’ valid automat
+                // Potrivire exactă de nume (similarity = 1) fără dată → valid automat
                 if (potentialMatches[0].similarity === 1) {
                     const sportivId = potentialMatches[0].id;
                     const existingSessionId = sessionInfo.existingSessionId;
@@ -416,11 +416,11 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     };
                 }
 
-                // Altfel â†’ conflict manual
+                // Altfel → conflict manual
                 return { ...baseRow, status: 'conflict', message: 'Potriviri similare — alege sportivul corect', conflicts: potentialMatches, sessionInfo, birthdate };
             }
 
-            // Niciun sportiv găsit â†’ va fi creat automat
+            // Niciun sportiv găsit → va fi creat automat
             return { ...baseRow, status: 'create', message: `Sportiv nou — va fi creat și înregistrat la examen`, generatedCode: undefined, sessionInfo, birthdate };
         });
 
@@ -445,7 +445,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         setImportProgress({ done: 0, total: rowsToProcess.length });
 
         try {
-            // â”€â”€ Pas 1: Creare sesiuni & locații â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── Pas 1: Creare sesiuni & locații ──────────────────────────────
             const newSessionsToCreate = new Map<string, PreviewRow['sessionInfo']>();
             rowsToProcess.forEach(row => {
                 if (row.sessionInfo.isNew && !newSessionsToCreate.has(row.sessionInfo.key))
@@ -468,7 +468,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     locatie = newLoc;
                     localLocatii.push(newLoc);
                 }
-                // Sesiune â€” verifică din nou în DB după dată + denumire (fix: nu doar dată)
+                // Sesiune — verifică din nou în DB după dată + denumire (fix: nu doar dată)
                 const existingCheck = localSesiuni.find(
                     s => s.data === sessionInfo.dataExamen && s.nume === sessionInfo.sesiuneDenumire
                 );
@@ -497,7 +497,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             setLocatii(localLocatii);
             setSesiuni(localSesiuni);
 
-            // â”€â”€ Pas 2: Procesare în batch-uri paralele â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── Pas 2: Procesare în batch-uri paralele ────────────────────────
             let done = 0;
             for (let i = 0; i < rowsToProcess.length; i += BATCH_SIZE) {
                 const batch = rowsToProcess.slice(i, i + BATCH_SIZE);
@@ -773,7 +773,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         <Modal isOpen={isOpen} onClose={onClose} title="Import Bulk Rezultate Examen">
             <div className="space-y-6">
 
-                {/* â”€â”€ Ghid de import â”€â”€ */}
+                {/* ── Ghid de import ── */}
                 <div className="border border-slate-700 rounded-lg overflow-hidden">
                     <button
                         type="button"
@@ -1017,7 +1017,7 @@ const ConflictResolver: React.FC<{ row: PreviewRow, onResolve: (index: number, r
                         <button key={c.id} onClick={() => { onResolve(row.originalIndex, { action: 'use_existing', sportivId: c.id }); setIsOpen(false); }} className="w-full text-left p-2 hover:bg-slate-600 rounded text-xs mb-1 border border-slate-600">
                             <div className="font-bold text-white">{c.nume} {c.prenume}</div>
                             <div className="text-slate-400">Cod: {c.cod_sportiv || 'N/A'} | Data N.: {c.data_nasterii || 'N/A'}</div>
-                            {c.data_nasterii === row.birthdate && <div className="text-amber-400 font-bold mt-1">âš ï¸ Data nașterii identică!</div>}
+                            {c.data_nasterii === row.birthdate && <div className="text-amber-400 font-bold mt-1">⚠️ Data nașterii identică!</div>}
                         </button>
                     ))}
                     <button onClick={() => { onResolve(row.originalIndex, { action: 'create' }); setIsOpen(false); }} className="w-full text-left p-2 hover:bg-slate-600 rounded text-xs font-bold text-green-400 mt-2 border border-green-900 bg-green-900/20">

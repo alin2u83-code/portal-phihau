@@ -3,8 +3,8 @@
  *
  * Ghid complet pentru adăugarea sportivilor în sesiunile de examen.
  * Acoperă 2 fluxuri:
- *   A) Import Sportivi (buton â€žImport Sportivi") â€” wizard CSV 2 pași
- *   B) Import XLS (buton â€žImport XLS") â€” fișiere oficiale federație
+ *   A) Import Sportivi (buton „Import Sportivi") — wizard CSV 2 pași
+ *   B) Import XLS (buton „Import XLS") — fișiere oficiale federație
  *
  * Poate fi afișat ca pagină întreagă (onBack prezent) sau ca modal (asModal + onClose).
  */
@@ -23,7 +23,7 @@ import {
 } from '../icons';
 import { Button, Modal } from '../ui';
 
-// â”€â”€â”€ Props â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface ImportTutorialProps {
     onBack?: () => void;
@@ -32,7 +32,7 @@ interface ImportTutorialProps {
     onClose?: () => void;
 }
 
-// â”€â”€â”€ Sub-componente â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sub-componente ───────────────────────────────────────────────────────────
 
 const Step: React.FC<{ number: number; title: string; children: React.ReactNode }> = ({ number, title, children }) => (
     <div className="flex gap-4">
@@ -79,7 +79,7 @@ const Badge: React.FC<{ color: 'emerald' | 'amber' | 'rose' | 'sky' | 'slate'; c
     );
 };
 
-// â”€â”€â”€ Conținut tutorial â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Conținut tutorial ────────────────────────────────────────────────────────
 
 const TutorialContent: React.FC = () => (
     <div className="space-y-6">
@@ -92,9 +92,9 @@ const TutorialContent: React.FC = () => (
             </p>
         </div>
 
-        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-        {/* FLUX A â€” Import Sportivi (CSV)                          */}
-        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        {/* ════════════════════════════════════════════════════════ */}
+        {/* FLUX A — Import Sportivi (CSV)                          */}
+        {/* ════════════════════════════════════════════════════════ */}
         <CollapsibleSection title={'Flux A \u2014 Import Sportivi din CSV (buton \u201eImport Sportivi\u201d)'} defaultOpen>
             <div className="space-y-5">
 
@@ -113,7 +113,7 @@ const TutorialContent: React.FC = () => (
                         din ecranul detalii sesiune.
                     </p>
                     <p>
-                        Descarcă <strong className="text-white">șablonul CSV</strong> (butonul â€žȘablon CSV") și completează-l
+                        Descarcă <strong className="text-white">șablonul CSV</strong> (butonul „Șablon CSV") și completează-l
                         cu datele sportivilor. Șablonul arată exact ce câmpuri sunt necesare:
                     </p>
 
@@ -169,13 +169,13 @@ const TutorialContent: React.FC = () => (
                                     <td className="py-1.5 px-3 text-white">Ionescu</td>
                                     <td className="py-1.5 px-3 text-white">Alexandru</td>
                                     <td className="py-1.5 px-3 text-slate-300 font-mono">15/03/2015</td>
-                                    <td className="py-1.5 px-3 text-slate-500 italic">â€”</td>
+                                    <td className="py-1.5 px-3 text-slate-500 italic">—</td>
                                 </tr>
                                 <tr className="border-b border-slate-800">
                                     <td className="py-1.5 px-3 text-white">Popescu</td>
                                     <td className="py-1.5 px-3 text-white">Maria Elena</td>
                                     <td className="py-1.5 px-3 text-slate-300 font-mono">22/07/2018</td>
-                                    <td className="py-1.5 px-3 text-slate-500 italic">â€”</td>
+                                    <td className="py-1.5 px-3 text-slate-500 italic">—</td>
                                 </tr>
                                 <tr>
                                     <td className="py-1.5 px-3 text-white">Constantin</td>
@@ -187,7 +187,7 @@ const TutorialContent: React.FC = () => (
                         </table>
                     </div>
                     <p className="text-slate-500 text-xs mt-2">
-                        Nu include coloane cu ID-uri sau alte date din sistem â€” acestea sunt generate automat.
+                        Nu include coloane cu ID-uri sau alte date din sistem — acestea sunt generate automat.
                     </p>
 
                     <p className="mt-3">Sistemul verifică automat fiecare rând:</p>
@@ -196,14 +196,14 @@ const TutorialContent: React.FC = () => (
                             <CheckCircleIcon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                             <div>
                                 <Badge color="emerald">Creat</Badge>
-                                <span className="text-slate-300 text-xs ml-2">Sportiv nou â€” adăugat cu grad Debutant, clubul tău, fără grupă.</span>
+                                <span className="text-slate-300 text-xs ml-2">Sportiv nou — adăugat cu grad Debutant, clubul tău, fără grupă.</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 p-2.5 rounded-lg bg-sky-900/20 border border-sky-700/40">
                             <CheckCircleIcon className="w-4 h-4 text-sky-400 flex-shrink-0" />
                             <div>
                                 <Badge color="sky">Existent</Badge>
-                                <span className="text-slate-300 text-xs ml-2">Sportivul există deja (același Nume+Prenume+Data nașterii) â€” ignorat, nu se duplică.</span>
+                                <span className="text-slate-300 text-xs ml-2">Sportivul există deja (același Nume+Prenume+Data nașterii) — ignorat, nu se duplică.</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 p-2.5 rounded-lg bg-rose-900/20 border border-rose-700/40">
@@ -247,9 +247,9 @@ const TutorialContent: React.FC = () => (
             </div>
         </CollapsibleSection>
 
-        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-        {/* FLUX B â€” Import XLS (fișiere federație)                */}
-        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        {/* ════════════════════════════════════════════════════════ */}
+        {/* FLUX B — Import XLS (fișiere federație)                */}
+        {/* ════════════════════════════════════════════════════════ */}
         <CollapsibleSection title={'Flux B \u2014 Import XLS fi\u0219iere federa\u021bie (buton \u201eImport XLS\u201d)'}>
             <div className="space-y-4">
 
@@ -260,7 +260,7 @@ const TutorialContent: React.FC = () => (
 
                 <div className="space-y-3">
                     <div className="rounded-lg border border-emerald-700/40 bg-emerald-900/10 p-4">
-                        <p className="font-bold text-emerald-300 mb-1">Format 1 Â· Ex. Local (1 sheet)</p>
+                        <p className="font-bold text-emerald-300 mb-1">Format 1 · Ex. Local (1 sheet)</p>
                         <p className="text-slate-400 text-xs">
                             Fișierul trimis federației după examene locale:{' '}
                             <code className="font-mono text-xs bg-slate-800 px-1 rounded">Phi Hau - Ex. Local - YYYY.MM.DD.xls</code>
@@ -268,18 +268,18 @@ const TutorialContent: React.FC = () => (
                         <p className="text-slate-500 text-xs mt-1">Importă: înscrierea + rezultat (Admis/Respins) + contribuție</p>
                     </div>
                     <div className="rounded-lg border border-blue-700/40 bg-blue-900/10 p-4">
-                        <p className="font-bold text-blue-300 mb-1">Format 2 Â· Examen de Grad (mai multe sheet-uri)</p>
+                        <p className="font-bold text-blue-300 mb-1">Format 2 · Examen de Grad (mai multe sheet-uri)</p>
                         <p className="text-slate-400 text-xs">
                             Fișierul cu note individuale:{' '}
                             <code className="font-mono text-xs bg-slate-800 px-1 rounded">examen de grad YYYY.MM.DD.xls</code>
                         </p>
-                        <p className="text-slate-400 text-xs mt-1">Fiecare sheet = un grad. Coloane: Nr. Â· Nume Â· Prenume Â· Grad Â· Tehnică Â· Doc Luyá»‡n Â· Song ÄÃ´i Â· Tháº£o Quyá»n Â· Notă Generală</p>
+                        <p className="text-slate-400 text-xs mt-1">Fiecare sheet = un grad. Coloane: Nr. · Nume · Prenume · Grad · Tehnică · Doc Luyện · Song Đôi · Thảo Quyền · Notă Generală</p>
                         <p className="text-slate-500 text-xs mt-1">Importă: înscrierea + notele detaliate per disciplină</p>
                     </div>
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-sm font-bold text-white">Cum funcționează â€” 3 pași</h2>
+                    <h2 className="text-sm font-bold text-white">Cum funcționează — 3 pași</h2>
 
                     <Step number={1} title="Încarcă fișierul XLS">
                         <p>
@@ -293,13 +293,13 @@ const TutorialContent: React.FC = () => (
                         <p className="text-slate-400 text-xs">Sistemul detectează automat formatul după numărul de sheet-uri.</p>
                     </Step>
 
-                    <Step number={2} title="Verifică potrivirile â€” rezolvă cazurile nesigure">
+                    <Step number={2} title="Verifică potrivirile — rezolvă cazurile nesigure">
                         <div className="space-y-2">
                             <div className="flex items-center gap-3 p-2.5 rounded-lg bg-emerald-900/20 border border-emerald-700/40">
                                 <CheckCircleIcon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                                 <div>
                                     <Badge color="emerald">Găsit exact</Badge>
-                                    <span className="text-slate-300 text-xs ml-2">Identificat cu certitudine (â‰¥95%). Nicio acțiune.</span>
+                                    <span className="text-slate-300 text-xs ml-2">Identificat cu certitudine (≥95%). Nicio acțiune.</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 p-2.5 rounded-lg bg-amber-900/20 border border-amber-700/40">
@@ -325,7 +325,7 @@ const TutorialContent: React.FC = () => (
                             <ExclamationTriangleIcon className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
                             <p className="text-amber-200 text-xs">
                                 Sportivii marcați <strong>Admis</strong> vor fi înregistrați automat în istoricul de grade.
-                                Importul face upsert â€” rularea de două ori nu creează duplicate.
+                                Importul face upsert — rularea de două ori nu creează duplicate.
                             </p>
                         </div>
                     </Step>
@@ -347,19 +347,19 @@ const TutorialContent: React.FC = () => (
                     },
                     {
                         q: 'Pot importa un sportiv care are deja un grad mai mare decât Debutant?',
-                        a: 'Dacă sportivul există deja în sistem, va fi identificat ca â€žExistent" și nu se modifică nimic din profilul lui. La Pasul 2 poți selecta orice grad susținut.',
+                        a: 'Dacă sportivul există deja în sistem, va fi identificat ca „Existent" și nu se modifică nimic din profilul lui. La Pasul 2 poți selecta orice grad susținut.',
                     },
                     {
                         q: 'Ce se întâmplă dacă sportivul are deja gradul pe care vreau să-l testez?',
-                        a: 'La Pasul 2, sistemul verifică istoricul de grade. Dacă sportivul are deja gradul respectiv, este trecut automat la â€žIgnorat â€” are deja gradul X" și nu este înscris în sesiune.',
+                        a: 'La Pasul 2, sistemul verifică istoricul de grade. Dacă sportivul are deja gradul respectiv, este trecut automat la „Ignorat — are deja gradul X" și nu este înscris în sesiune.',
                     },
                     {
                         q: 'Pot rula importul de mai multe ori cu același fișier?',
                         a: 'Da. La Pasul 1, sportivii existenți sunt ignorați (nu se dublează). La Pasul 2, sportivii deja înscriși în sesiune sunt ignorați. Este sigur să rulezi de mai ori.',
                     },
                     {
-                        q: 'Care e diferența între â€žImport Sportivi" și â€žImport XLS"?',
-                        a: 'â€žImport Sportivi" (CSV) este pentru adăugarea sportivilor noi în sistem + înscrierea lor în sesiune, cu date minime. â€žImport XLS" este pentru fișierele oficiale ale federației care conțin deja rezultatele (Admis/Respins) și notele.',
+                        q: 'Care e diferența între „Import Sportivi" și „Import XLS"?',
+                        a: '„Import Sportivi" (CSV) este pentru adăugarea sportivilor noi în sistem + înscrierea lor în sesiune, cu date minime. „Import XLS" este pentru fișierele oficiale ale federației care conțin deja rezultatele (Admis/Respins) și notele.',
                     },
                 ].map(({ q, a }, i) => (
                     <div key={i}>
@@ -372,12 +372,12 @@ const TutorialContent: React.FC = () => (
     </div>
 );
 
-// â”€â”€â”€ Componenta principală â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Componenta principală ─────────────────────────────────────────────────────
 
 export const ImportTutorial: React.FC<ImportTutorialProps> = ({ onBack, asModal, isOpen = false, onClose }) => {
     if (asModal && onClose !== undefined) {
         return (
-            <Modal isOpen={isOpen} title="Ghid Import â€” Sesiuni Examene" onClose={onClose}>
+            <Modal isOpen={isOpen} title="Ghid Import — Sesiuni Examene" onClose={onClose}>
                 <TutorialContent />
             </Modal>
         );
@@ -392,7 +392,7 @@ export const ImportTutorial: React.FC<ImportTutorialProps> = ({ onBack, asModal,
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
                         <BookOpenIcon className="w-7 h-7 text-brand-secondary" />
-                        Ghid Import â€” Sesiuni Examene
+                        Ghid Import — Sesiuni Examene
                     </h1>
                     <p className="text-slate-400 text-sm mt-1">
                         Adaugă sportivi în sesiune prin CSV sau fișiere XLS federație.

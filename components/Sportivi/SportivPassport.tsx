@@ -114,29 +114,29 @@ const EVENT_STYLES: Record<TimelineEventType, { dot: string; icon: React.ReactNo
     inscriere: {
         dot: 'bg-sky-500 ring-sky-500/30',
         icon: <CalendarDaysIcon className="w-3.5 h-3.5 text-sky-400" />,
-        label: 'ðŸ“…',
+        label: '📅',
     },
     grad_obtinut: {
         dot: 'bg-amber-500 ring-amber-500/30',
         icon: <TrophyIcon className="w-3.5 h-3.5 text-amber-400" />,
-        label: 'ðŸ¥‹',
+        label: '🥋',
     },
     viza_medicala: {
         dot: 'bg-emerald-500 ring-emerald-500/30',
         icon: <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-400" />,
-        label: 'ðŸ¥',
+        label: '🏥',
     },
     viza_expirata: {
         dot: 'bg-rose-500 ring-rose-500/30',
         icon: <ExclamationTriangleIcon className="w-3.5 h-3.5 text-rose-400" />,
-        label: 'âš ï¸',
+        label: '⚠️',
     },
 };
 
 export const SportivPassport: React.FC<SportivPassportProps> = ({
     viewedUser, grade, participari, examene, istoricGrade, plati,
 }) => {
-    // â”€â”€ PROGRES SPRE GRAD URMĂTOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── PROGRES SPRE GRAD URMĂTOR ─────────────────────────────────
     const progress = useMemo(() => {
         const sortedGrades = [...(grade || [])].sort((a, b) => a.ordine - b.ordine);
         const currentGrad = viewedUser.grad_actual_id
@@ -181,7 +181,7 @@ export const SportivPassport: React.FC<SportivPassportProps> = ({
         return { nextGrad, currentGrad, percentage, monthsElapsed, monthsRequired, monthsLeft, isDan };
     }, [viewedUser, grade, participari, examene]);
 
-    // â”€â”€ TIMELINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── TIMELINE ─────────────────────────────────────────────────
     const events = useMemo(
         () => buildTimeline(viewedUser, grade, participari, examene, istoricGrade, plati),
         [viewedUser, grade, participari, examene, istoricGrade, plati]
@@ -198,7 +198,7 @@ export const SportivPassport: React.FC<SportivPassportProps> = ({
                 Pașaport Sportiv
             </h3>
 
-            {/* â”€â”€ PROGRES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/* ── PROGRES ────────────────────────────────────────── */}
             {progress && (
                 <div className="mb-5 p-4 rounded-xl bg-slate-800/60 border border-slate-700/50">
                     <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
@@ -236,14 +236,14 @@ export const SportivPassport: React.FC<SportivPassportProps> = ({
                                         Eligibil examen
                                     </span>
                                 )
-                                : `${progress.percentage}% â€” mai ai ${progress.monthsLeft} luni`
+                                : `${progress.percentage}% — mai ai ${progress.monthsLeft} luni`
                             }
                         </span>
                     </div>
                 </div>
             )}
 
-            {/* â”€â”€ TIMELINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/* ── TIMELINE ───────────────────────────────────────── */}
             {events.length > 0 && (
                 <div className="relative">
                     {/* Linie verticală */}

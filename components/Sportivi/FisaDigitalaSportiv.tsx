@@ -122,7 +122,7 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
                 )}
             </Card>
 
-            {/* â”€â”€â”€ Widget Eligibilitate Examen â”€â”€â”€ */}
+            {/* ─── Widget Eligibilitate Examen ─── */}
             {nextGrad && (() => {
                 const stagSuficient = timeToNextGrade.percentage >= 100;
                 const financiarOk = totalRestante === 0;
@@ -153,7 +153,7 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
                                     <p className="text-sm font-semibold text-white">Stagiu minim de pregătire</p>
                                     <p className="text-xs text-slate-400 mt-0.5">
                                         {timeToNextGrade.monthsElapsed} / {timeToNextGrade.monthsRequired} luni completate
-                                        {!stagSuficient && ` Â· mai ${timeToNextGrade.monthsRequired - timeToNextGrade.monthsElapsed} luni`}
+                                        {!stagSuficient && ` · mai ${timeToNextGrade.monthsRequired - timeToNextGrade.monthsElapsed} luni`}
                                     </p>
                                     <div className="w-full bg-slate-700 rounded-full h-1.5 mt-2">
                                         <div
@@ -175,7 +175,7 @@ export const FisaDigitalaSportiv: React.FC<FisaDigitalaSportivProps> = ({ curren
                                     <p className={`text-xs mt-0.5 ${financiarOk ? 'text-slate-400' : 'text-red-300'}`}>
                                         {financiarOk
                                             ? 'Toate plățile sunt la zi'
-                                            : `Restanță: ${totalRestante.toFixed(2)} RON â€” contactați secretariatul`
+                                            : `Restanță: ${totalRestante.toFixed(2)} RON — contactați secretariatul`
                                         }
                                     </p>
                                 </div>

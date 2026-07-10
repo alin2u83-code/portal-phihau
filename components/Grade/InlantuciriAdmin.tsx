@@ -59,7 +59,7 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
   if (!canEdit) {
     return (
       <div className="text-center py-16 text-slate-400">
-        Acces restricționat â€” doar SUPER_ADMIN_FEDERATIE.
+        Acces restricționat — doar SUPER_ADMIN_FEDERATIE.
       </div>
     );
   }
@@ -132,7 +132,7 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
             </button>
           </div>
 
-          {/* Buton Adaugă â€” doar în modul per-inlantuire */}
+          {/* Buton Adaugă — doar în modul per-inlantuire */}
           {viewMode === 'per-inlantuire' && (
             <Button onClick={openAdd}>
               <PlusIcon className="w-4 h-4 mr-1" />

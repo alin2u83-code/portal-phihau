@@ -3,18 +3,18 @@
  *
  * Wizard 2 pași pentru adăugarea sportivilor în sesiunea de examen:
  *
- * PAS 1 â€” Import sportivi din CSV
- *   â€¢ Parsare CSV cu Nume, Prenume, Data nașterii (DD/MM/YYYY), Telefon (opțional)
- *   â€¢ Verificare duplicate (nume+prenume+data nașterii, case-insensitive, fără diacritice)
- *   â€¢ Sportivii noi â†’ creați cu grad Debutant, clubul utilizatorului curent, fără grupă
- *   â€¢ Sportivii existenți â†’ ignorați
- *   â€¢ Raport: creați / ignorați / erori
+ * PAS 1 — Import sportivi din CSV
+ *   • Parsare CSV cu Nume, Prenume, Data nașterii (DD/MM/YYYY), Telefon (opțional)
+ *   • Verificare duplicate (nume+prenume+data nașterii, case-insensitive, fără diacritice)
+ *   • Sportivii noi → creați cu grad Debutant, clubul utilizatorului curent, fără grupă
+ *   • Sportivii existenți → ignorați
+ *   • Raport: creați / ignorați / erori
  *
- * PAS 2 â€” Adăugare în sesiunea de examen
- *   â€¢ Selectare grad susținut per sportiv
- *   â€¢ Verificare: sportivul nu are deja gradul (din istoricGrade)
- *   â€¢ Verificare: sportivul nu este deja înscris în sesiune
- *   â€¢ Raport final: adăugați / ignorați (motiv) / erori
+ * PAS 2 — Adăugare în sesiunea de examen
+ *   • Selectare grad susținut per sportiv
+ *   • Verificare: sportivul nu are deja gradul (din istoricGrade)
+ *   • Verificare: sportivul nu este deja înscris în sesiune
+ *   • Raport final: adăugați / ignorați (motiv) / erori
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
@@ -31,7 +31,7 @@ import { Sportiv, Grad, SesiuneExamen, InscriereExamen, IstoricGrade, User } fro
 import { getPretProdus } from '../../utils/pricing';
 import { sendBulkNotifications } from '../../utils/notifications';
 
-// â”€â”€â”€ Utilitare â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Utilitare ────────────────────────────────────────────────────────────────
 
 const normalizeStr = (s: string) =>
     (s || '')
@@ -55,7 +55,7 @@ const parseDate = (raw: string): string | null => {
     return null;
 };
 
-// â”€â”€â”€ Tipuri interne â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Tipuri interne ───────────────────────────────────────────────────────────
 
 type RowStatus = 'pending' | 'exists' | 'created' | 'error';
 
@@ -83,7 +83,7 @@ interface Step2Row extends ParsedRow {
     step2Message: string;
 }
 
-// â”€â”€â”€ Template CSV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Template CSV ─────────────────────────────────────────────────────────────
 
 const CSV_TEMPLATE =
     'Nume*,Prenume*,Data nasterii* (ZZ/LL/AAAA),Telefon\n' +
@@ -91,7 +91,7 @@ const CSV_TEMPLATE =
     'Popescu,Maria Elena,22/07/2018,\n' +
     'Constantin,Andrei Mihai,08/11/2012,0722123456\n';
 
-// â”€â”€â”€ Props â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Props ───────────────────────────────────────────────────────────────────
 
 export interface ImportSportiviExamenProps {
     isOpen: boolean;
@@ -106,7 +106,7 @@ export interface ImportSportiviExamenProps {
     currentUser: User;
 }
 
-// â”€â”€â”€ Sub-componente UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sub-componente UI ────────────────────────────────────────────────────────
 
 const StatusBadge: React.FC<{ status: RowStatus | Step2Status }> = ({ status }) => {
     const map: Record<string, string> = {
@@ -120,7 +120,7 @@ const StatusBadge: React.FC<{ status: RowStatus | Step2Status }> = ({ status }) 
     };
     const label: Record<string, string> = {
         created: 'Creat', adaugat: 'Adăugat', exists: 'Existent',
-        ignorat: 'Ignorat', error: 'Eroare', eroare: 'Eroare', pending: 'â€”',
+        ignorat: 'Ignorat', error: 'Eroare', eroare: 'Eroare', pending: '—',
     };
     return (
         <span className={`inline-block px-2 py-0.5 rounded-full border text-xs font-bold ${map[status] ?? map.pending}`}>
@@ -129,7 +129,7 @@ const StatusBadge: React.FC<{ status: RowStatus | Step2Status }> = ({ status }) 
     );
 };
 
-// â”€â”€â”€ Componenta principală â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Componenta principală ─────────────────────────────────────────────────────
 
 export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
     isOpen, onClose, sesiune, sportivi, setSportivi, grade,
@@ -162,7 +162,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         [allInscrieri, sesiune.id]
     );
 
-    // â”€â”€ Reset la închidere â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Reset la închidere ──────────────────────────────────────────────────
 
     const handleClose = useCallback(() => {
         setStep(1);
@@ -175,7 +175,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         onClose();
     }, [onClose]);
 
-    // â”€â”€ Download template â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Download template ───────────────────────────────────────────────────
 
     const downloadTemplate = () => {
         const blob = new Blob(['\uFEFF' + CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
@@ -187,7 +187,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         URL.revokeObjectURL(url);
     };
 
-    // â”€â”€ Parsare CSV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Parsare CSV ─────────────────────────────────────────────────────────
 
     const parseCSV = (text: string): Array<{ nume: string; prenume: string; data: string; telefon: string }> => {
         const lines = text.split(/\r?\n/).filter(l => l.trim());
@@ -214,7 +214,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         }).filter(r => r.nume || r.prenume);
     };
 
-    // â”€â”€ Procesare Pas 1 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Procesare Pas 1 ─────────────────────────────────────────────────────
 
     const processCsv = async (text: string) => {
         setIsProcessing(true);
@@ -316,7 +316,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                         sportiv_id: newSportiv.id,
                         grad_id: debutantGrad.id,
                         data_obtinere: new Date().toISOString().slice(0, 10),
-                        observatii: 'Import inițial â€” sesiune examen',
+                        observatii: 'Import inițial — sesiune examen',
                     });
                 }
 
@@ -346,7 +346,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         setIsProcessing(false);
     };
 
-    // â”€â”€ Fișier upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Fișier upload ───────────────────────────────────────────────────────
 
     const handleFile = (file: File) => {
         if (!file.name.endsWith('.csv') && file.type !== 'text/csv' && !file.type.includes('text')) {
@@ -371,7 +371,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         e.target.value = '';
     };
 
-    // â”€â”€ Pregătire Pas 2 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Pregătire Pas 2 ─────────────────────────────────────────────────────
 
     const goToStep2 = () => {
         // Pregătim rândurile pentru pasul 2:
@@ -402,13 +402,13 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         setStep(2);
     };
 
-    // â”€â”€ Actualizare grad selectat în Pas 2 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Actualizare grad selectat în Pas 2 ─────────────────────────────────
 
     const updateGrad = (idx: number, gradId: string) => {
         setStep2Rows(prev => prev.map((r, i) => i === idx ? { ...r, gradSustinutId: gradId } : r));
     };
 
-    // â”€â”€ Salvare Pas 2 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Salvare Pas 2 ───────────────────────────────────────────────────────
 
     const handleSaveStep2 = async () => {
         setIsSaving(true);
@@ -449,7 +449,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
             }
 
             try {
-                // Calcul taxă via RPC â€” fallback la 0 dacă funcția nu e disponibilă
+                // Calcul taxă via RPC — fallback la 0 dacă funcția nu e disponibilă
                 let taxaSuma = 0;
                 try {
                     const { data: regDetails, error: regError } = await supabase.rpc('get_registration_details', {
@@ -463,7 +463,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                 let plataId: string | null = null;
                 if (taxaSuma > 0) {
                     // Verificăm mai întâi dacă există deja o plată pentru sportiv+sesiune
-                    // (import poate fi rulat de mai multe ori â€” nu dorim duplicate)
+                    // (import poate fi rulat de mai multe ori — nu dorim duplicate)
                     const { data: existing } = await supabase
                         .from('plati')
                         .select('id')
@@ -485,7 +485,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                                 status: 'Neachitat',
                                 descriere: `Taxa examen ${grad.nume}`,
                                 tip: 'Taxa Examen',
-                                observatii: 'Generat automat â€” import sesiune examen',
+                                observatii: 'Generat automat — import sesiune examen',
                                 club_id: sportiv.club_id,
                             })
                             .select('id')
@@ -559,7 +559,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         if (errors > 0) showError('Erori import', `${errors} sportivi nu au putut fi adăugați.`);
     };
 
-    // â”€â”€ Descărcare raport CSV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Descărcare raport CSV ───────────────────────────────────────────────
 
     const handleDescarcaRaport = useCallback(() => {
         // Sumar pas 1 + pas 2 combinat
@@ -603,7 +603,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         URL.revokeObjectURL(url);
     }, [rows, step2Rows, grade, sesiune.data]);
 
-    // â”€â”€ Statistici â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Statistici ──────────────────────────────────────────────────────────
 
     const step1Stats = useMemo(() => ({
         created: rows.filter(r => r.status === 'created').length,
@@ -624,15 +624,15 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
         [rows]
     );
 
-    // â”€â”€â”€ Randare â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Randare ─────────────────────────────────────────────────────────────
 
     return (
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            title={`Import Sportivi în Sesiune â€” Pas ${step} din 2`}
+            title={`Import Sportivi în Sesiune — Pas ${step} din 2`}
         >
-            {/* â”€â”€ Indicator pași â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/* ── Indicator pași ─────────────────────────────────────── */}
             <div className="flex gap-2 mb-6">
                 {([1, 2] as const).map(s => (
                     <div
@@ -644,16 +644,16 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                 ))}
             </div>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            {/* ═══════════════════════════════════════════════════════════
                 PAS 1: Upload + procesare CSV
-            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            ═══════════════════════════════════════════════════════════ */}
             {step === 1 && (
                 <div className="space-y-5">
 
                     {/* Header + download template */}
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div>
-                            <h3 className="text-white font-semibold">Pasul 1 â€” Adaugă sportivi în sistem</h3>
+                            <h3 className="text-white font-semibold">Pasul 1 — Adaugă sportivi în sistem</h3>
                             <p className="text-slate-400 text-sm mt-1">
                                 Importă un fișier CSV cu sportivii care susțin examenul.
                                 Sportivii noi vor fi creați automat cu grad <strong className="text-white">{debutantGrad?.nume || 'Debutant'}</strong>,
@@ -701,7 +701,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                             </table>
                         </div>
                         <p className="text-slate-500 text-xs mt-3">
-                            Nu include coloane cu ID-uri sau date din baza de date â€” sistemul le ignoră oricum.
+                            Nu include coloane cu ID-uri sau date din baza de date — sistemul le ignoră oricum.
                         </p>
                     </div>
 
@@ -743,7 +743,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                         </div>
                     )}
 
-                    {/* â”€â”€ Raport Pas 1 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                    {/* ── Raport Pas 1 ──────────────────────────────────── */}
                     {step1Done && (
                         <div className="space-y-4">
 
@@ -816,15 +816,15 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                 </div>
             )}
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            {/* ═══════════════════════════════════════════════════════════
                 PAS 2: Selectare grad + adăugare în sesiune
-            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            ═══════════════════════════════════════════════════════════ */}
             {step === 2 && (
                 <div className="space-y-5">
 
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                         <div>
-                            <h3 className="text-white font-semibold">Pasul 2 â€” Adaugă sportivii în sesiunea de examen</h3>
+                            <h3 className="text-white font-semibold">Pasul 2 — Adaugă sportivii în sesiunea de examen</h3>
                             <p className="text-slate-400 text-sm mt-1">
                                 Selectează gradul susținut pentru fiecare sportiv. Sunt excluși automat sportivii
                                 care au deja gradul respectiv sau care sunt deja înscriși în sesiune.
@@ -881,7 +881,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                             })}
                         </div>
                     ) : (
-                        /* â”€â”€ Raport Pas 2 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+                        /* ── Raport Pas 2 ──────────────────────────────── */
                         <div className="space-y-4">
                             {/* Summary cards */}
                             <div className="grid grid-cols-3 gap-3">
@@ -917,7 +917,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                                                     {r.numeRaw} {r.prenumeRaw}
                                                 </td>
                                                 <td className="py-2 px-3 text-slate-300">
-                                                    {grade.find(g => g.id === r.gradSustinutId)?.nume || 'â€”'}
+                                                    {grade.find(g => g.id === r.gradSustinutId)?.nume || '—'}
                                                 </td>
                                                 <td className="py-2 px-3">
                                                     <StatusBadge status={r.step2Status} />
@@ -961,7 +961,7 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                                 </Button>
                                 <Button variant="primary" onClick={handleClose}>
                                     <CheckCircleIcon className="w-4 h-4 mr-2" />
-                                    Finalizat â€” Închide
+                                    Finalizat — Închide
                                 </Button>
                             </>
                         )}

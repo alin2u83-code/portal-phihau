@@ -122,7 +122,7 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
     };
 
     const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return 'â€”';
+        if (!dateStr) return '—';
         return new Date(dateStr).toLocaleDateString('ro-RO', {
             day: '2-digit',
             month: '2-digit',
@@ -131,7 +131,7 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
     };
 
     const formatDateTime = (dateStr: string | null) => {
-        if (!dateStr) return 'â€”';
+        if (!dateStr) return '—';
         return new Date(dateStr).toLocaleString('ro-RO', {
             day: '2-digit',
             month: '2-digit',
@@ -293,12 +293,12 @@ export const CereriInscriere: React.FC<CereriInscriereProps> = ({ onBack }) => {
                                     <p className="text-xs text-slate-600 pt-1">
                                         Cerere depusă: {formatDateTime(cerere.created_at)}
                                         {cerere.procesat_la && (
-                                            <> Â· Procesat: {formatDateTime(cerere.procesat_la)}</>
+                                            <> · Procesat: {formatDateTime(cerere.procesat_la)}</>
                                         )}
                                     </p>
                                 </div>
 
-                                {/* Actions â€” only for in_asteptare */}
+                                {/* Actions — only for in_asteptare */}
                                 {cerere.status === 'in_asteptare' && (
                                     <div className="flex gap-2 sm:flex-col shrink-0">
                                         <button

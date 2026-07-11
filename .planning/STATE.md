@@ -78,7 +78,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- [2026-07-11-investigheaza-hang-loading-fetchallpages-istoric-grade.md](todos/pending/2026-07-11-investigheaza-hang-loading-fetchallpages-istoric-grade.md) — hang loading app, query fetchAllPages vedere_istoric_grade_sportiv pending indefinit prin PostgREST (rapid direct pe DB)
 
 ### Quick Tasks Completed
 

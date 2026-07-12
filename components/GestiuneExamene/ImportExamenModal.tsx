@@ -6,7 +6,7 @@ import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircl
 import { useError } from '../ErrorProvider';
 import { Modal, Button, Input, Select } from '../ui';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
-import { matchGrad } from '../../services/importExcelExamenService';
+import { matchGrad, matchSportiv, normalizeStr, similarity, parseExcelExamen, RandImport } from '../../services/importExcelExamenService';
 
 interface ImportExamenModalProps {
     isOpen: boolean;
@@ -19,7 +19,7 @@ interface ImportExamenModalProps {
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>;
 }
 
-type CsvFormat = 'own' | 'grila' | 'federatie';
+type CsvFormat = 'own' | 'grila' | 'federatie' | 'xls_ex_local';
 
 interface CsvRow {
     Nume: string;
@@ -63,17 +63,13 @@ interface BirthdateRow {
     Data_Nasterii: string;
 }
 
-interface PotentialMatch extends Sportiv {
-    similarity: number;
-}
-
 interface PreviewRow extends CsvRow {
     originalIndex: number;
     status: 'pending' | 'valid' | 'conflict' | 'create' | 'error' | 'resolved' | 'skipped';
     message: string;
     existingSportiv?: Sportiv;
     generatedCode?: string;
-    conflicts?: PotentialMatch[];
+    conflicts?: Sportiv[];
     resolution?: { action: 'create' } | { action: 'use_existing', sportivId: string };
     sessionInfo: {
         key: string;
@@ -85,16 +81,6 @@ interface PreviewRow extends CsvRow {
     };
     birthdate?: string; // From second file
 }
-
-const stringSimilarity = (a: string, b: string): number => {
-    const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
-    const setA = new Set(normalize(a));
-    const setB = new Set(normalize(b));
-    if (setA.size === 0 && setB.size === 0) return 1;
-    const intersection = new Set([...setA].filter(x => setB.has(x)));
-    const union = new Set([...setA, ...setB]);
-    return union.size === 0 ? 0 : intersection.size / union.size;
-};
 
 // Normalizează orice format de dată la yyyy-mm-dd
 // Acceptă: yyyy-mm-dd, dd/mm/yyyy, d/m/yyyy, dd-mm-yyyy
@@ -210,6 +196,17 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         };
     };
 
+    const mapExLocalToCsvRow = (row: RandImport): CsvRow => ({
+        Nume: row.nume,
+        Prenume: row.prenume,
+        Grad_Nou_Ordine: findGradeOrdine(row.gradNume),
+        Rezultat: row.rezultat || 'Neprezentat',
+        Contributie: row.contributie != null ? String(row.contributie) : '0',
+        Data_Examen: sessionOverride.data,
+        Sesiune_Denumire: sessionOverride.sesiune_denumire,
+        Localitate: sessionOverride.localitate,
+    });
+
     const handleProcessFiles = async () => {
         if (!examFile) return;
         if (grades.length === 0) {
@@ -239,8 +236,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         results.data.forEach(row => {
                             if (row.Nume && row.Prenume && row.Data_Nasterii) {
                                 const fullName = `${row.Nume} ${row.Prenume}`;
-                                // Replace non-alphanumeric with space to handle "Ana-Maria" -> "Ana Maria"
-                                const normalized = fullName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+                                const normalized = normalizeStr(fullName);
                                 birthdateRecords.push({
                                     normalizedName: normalized,
                                     originalName: fullName,
@@ -255,6 +251,27 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         }
 
         // 2. Parse Exam File
+        if (csvFormat === 'xls_ex_local') {
+            try {
+                const buffer = await examFile.arrayBuffer();
+                const { randuri, erori } = parseExcelExamen(buffer, [], grades);
+                if (erori.length > 0) {
+                    showError('Eroare procesare XLS', erori.join(' '));
+                    setIsProcessing(false);
+                    return;
+                }
+                const rows = randuri.map(mapExLocalToCsvRow);
+                const processed = await validateData(rows, birthdateRecords);
+                setPreviewData(processed);
+            } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : String(err);
+                showError('Eroare procesare XLS', msg);
+            } finally {
+                setIsProcessing(false);
+            }
+            return;
+        }
+
         Papa.parse<any>(examFile, {
             header: true,
             skipEmptyLines: true,
@@ -307,11 +324,8 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
             // --- Improved Birthdate Matching Logic ---
             let birthdate: string | undefined;
             if (row.Nume && row.Prenume) {
-                // Replace non-alphanumeric with space to handle "Ana-Maria" -> "Ana Maria"
-                const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
-                
-                const name1 = normalize(`${row.Nume} ${row.Prenume}`);
-                const name2 = normalize(`${row.Prenume} ${row.Nume}`); // Reverse order check
+                const name1 = normalizeStr(`${row.Nume} ${row.Prenume}`);
+                const name2 = normalizeStr(`${row.Prenume} ${row.Nume}`); // Reverse order check
 
                 // 1. Exact Match
                 let match = birthdateRecords.find(r => r.normalizedName === name1 || r.normalizedName === name2);
@@ -321,10 +335,10 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     let bestScore = 0;
                     let bestMatch = null;
                     for (const record of birthdateRecords) {
-                        const score1 = stringSimilarity(name1, record.normalizedName);
-                        const score2 = stringSimilarity(name2, record.normalizedName); // Check reverse too
+                        const score1 = similarity(name1, record.normalizedName);
+                        const score2 = similarity(name2, record.normalizedName); // Check reverse too
                         const maxScore = Math.max(score1, score2);
-                        
+
                         if (maxScore > bestScore) {
                             bestScore = maxScore;
                             bestMatch = record;
@@ -363,19 +377,18 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
 
             // Potrivire după Nume + Prenume (+ Data Nașterii dacă e disponibilă)
             const fullNameCsv = `${row.Nume} ${row.Prenume}`;
-            const potentialMatches = (allSportivi || [])
-                .map(s => ({ ...s, similarity: stringSimilarity(fullNameCsv, `${s.nume} ${s.prenume}`) }))
-                .filter(s => s.similarity > 0.7)
-                .sort((a, b) => b.similarity - a.similarity)
-                .slice(0, 3);
-            
+            const sportivMatch = matchSportiv(fullNameCsv, allSportivi || []);
+            const potentialMatches: Sportiv[] = sportivMatch.sportiv
+                ? [sportivMatch.sportiv, ...sportivMatch.alternatives]
+                : [];
+
             if (potentialMatches.length > 0) {
                 const exactBirthdateMatch = birthdate
                     ? potentialMatches.find(s => parseDateToISO(String(s.data_nasterii || '')) === parseDateToISO(birthdate))
                     : null;
 
                 // Auto-resolve: nume similar + data nașterii identică → valid fără intervenție manuală
-                if (exactBirthdateMatch && exactBirthdateMatch.similarity >= 0.7) {
+                if (exactBirthdateMatch) {
                     const sportivId = exactBirthdateMatch.id;
                     const existingSessionId = sessionInfo.existingSessionId;
                     if (existingSessionId && inscrieriSet.has(`${sportivId}_${existingSessionId}`)) {
@@ -395,8 +408,8 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     };
                 }
 
-                // Potrivire exactă de nume (similarity = 1) fără dată → valid automat
-                if (potentialMatches[0].similarity === 1) {
+                // Potrivire exactă de nume (status 'exact', fără dată) → valid automat
+                if (sportivMatch.status === 'exact') {
                     const sportivId = potentialMatches[0].id;
                     const existingSessionId = sessionInfo.existingSessionId;
                     if (existingSessionId && inscrieriSet.has(`${sportivId}_${existingSessionId}`)) {
@@ -819,6 +832,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                         <option value="own">Format Propriu</option>
                         <option value="grila">Format Grilă Examen</option>
                         <option value="federatie">Format Tabel Federație</option>
+                        <option value="xls_ex_local">Format Excel "Ex. Local" (.xls/.xlsx)</option>
                     </Select>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
@@ -852,7 +866,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">Fișier Examen (Obligatoriu)</label>
                             <input
                                 type="file"
-                                accept=".csv"
+                                accept={csvFormat === 'xls_ex_local' ? '.xls,.xlsx' : '.csv'}
                                 onChange={(e) => setExamFile(e.target.files?.[0] || null)}
                                 className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 text-sm text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer"
                             />

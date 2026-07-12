@@ -83,7 +83,7 @@ export function normalizeStr(s: string): string {
 }
 
 /** Distanță Levenshtein normalizată → similaritate 0-1 */
-function similarity(a: string, b: string): number {
+export function similarity(a: string, b: string): number {
     if (!a || !b) return 0;
     if (a === b) return 1;
     const la = a.length, lb = b.length;

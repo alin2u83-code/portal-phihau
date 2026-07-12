@@ -1,23 +1,19 @@
 # Session State
-**2026-07-12 09:05** | Branch: main
+**2026-07-13 00:03** | Branch: main
 
 ## Fisiere modificate
 ```
  M .claude/hooks/.last-captured-hash
  M .claude/session_state.md
- M .claude/settings.local.json
- M components/AppLayout.tsx
- M components/GestiuneExamene/ImportExcelExamen.tsx
- M components/Header.tsx
- M components/Sidebar.tsx
- M components/UserProfile/TransferModal.tsx
+ M components/GestiuneExamene/ImportExamenModal.tsx
+ M services/importExcelExamenService.ts
 ```
 
 ## Ultimele commit-uri
 ```
-c5f795b chore: actualizeaza hash captura hook
-fa1169d fix(examene): merge pe id pentru inscrieri cross-club comisie, nu inlocuire in bloc
-7d55d4d chore: actualizeaza session state si permisiuni Claude Code
-ba5affd docs: sincronizeaza artefacte planning acumulate + curata gitignore
-db76cce docs: update debug knowledge base with loading-hang-istoric-grade
+fd8a94b fix(examene): rafineaza reguli audit grade + navigare inapoi din profil
+8381c36 feat(examene): audit grade - detectare anomalii progresie sportivi
+9cc60b9 fix(examene): sincronizare grad_actual_id la marcare Admis examen
+d0cce3f chore: actualizeaza session state si permisiuni Claude Code
+52e2a6b fix(layout,sportivi): sidebar breakpoint tableta + transfer sportiv blocat
 ```

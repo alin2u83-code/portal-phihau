@@ -239,6 +239,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.ConfigurarePreturi grade={grade} onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
                             case 'grade':
                                 return renderProtected(<Lazy.GradeManagement grade={grade} setGrade={setGrade} onBack={handleBackToDashboard} canEdit={permissions.isSuperAdmin} />, isAtLeastClubAdmin);
+                            case 'audit-grade':
+                                return renderProtected(<Lazy.AuditGrade onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, isAtLeastClubAdmin);
                             case 'reduceri':
                                 return renderProtected(<Lazy.ReduceriManagement onBack={handleBackToDashboard} reduceri={reduceri} setReduceri={setReduceri} />, isAtLeastClubAdmin);
                             case 'nomenclatoare':

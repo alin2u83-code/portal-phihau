@@ -55,6 +55,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 clubs={clubs}
                 permissions={permissions}
                 activeRole={activeRole}
+                activeRoleContext={activeRoleContext}
                 canSwitchRoles={canSwitchRoles}
                 onSwitchRole={onSwitchRole}
                 isSwitchingRole={isSwitchingRole}

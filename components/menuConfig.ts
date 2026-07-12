@@ -50,6 +50,7 @@ export const adminMenu: MenuItem[] = [
         submenu: [
             { label: 'Sesiuni Examene', view: 'examene' },
             { label: 'Rapoarte Examen', view: 'rapoarte-examen' },
+            { label: 'Audit Grade', view: 'audit-grade' },
         ]
     },
     {
@@ -129,6 +130,7 @@ export const adminClubMenu: MenuItem[] = [
         submenu: [
             { label: 'Sesiuni Examene', view: 'examene' },
             { label: 'Rapoarte Examen', view: 'rapoarte-examen' },
+            { label: 'Audit Grade', view: 'audit-grade' },
         ]
     },
     {

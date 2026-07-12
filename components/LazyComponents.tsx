@@ -6,6 +6,7 @@ export const UserProfile = lazy(() => import('./UserProfile').then(m => ({ defau
 export const GestiuneExamene = lazy(() => import('./GestiuneExamene').then(m => ({ default: m.GestiuneExamene })));
 export const ExameneManagement = lazy(() => import('./GestiuneExamene').then(m => ({ default: m.ExameneManagement })));
 export const GradeManagement = lazy(() => import('./Grade/Grade').then(m => ({ default: m.GradeManagement })));
+export const AuditGrade = lazy(() => import('./Grade/AuditGrade').then(m => ({ default: m.AuditGrade })));
 export const PrezentaManagement = lazy(() => import('./Prezenta').then(m => ({ default: m.Prezenta })));
 export const GrupeManagement = lazy(() => import('./Grupe').then(m => ({ default: m.Grupe })));
 export const RaportPrezenta = lazy(() => import('./Prezenta/RaportPrezenta').then(m => ({ default: m.RaportPrezenta })));

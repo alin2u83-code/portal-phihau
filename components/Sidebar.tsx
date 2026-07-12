@@ -17,6 +17,7 @@ interface SidebarProps {
     clubs: Club[];
     permissions?: Permissions;
     activeRole: string;
+    activeRoleContext?: any;
     canSwitchRoles: boolean;
     onSwitchRole: (context: any) => void;
     isSwitchingRole: boolean;
@@ -47,7 +48,7 @@ const UserAvatar: React.FC<{ user: User; size?: 'sm' | 'md' }> = ({ user, size =
 };
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
-    const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, permissions, activeRole, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles, isMobileOpen, setIsMobileOpen, onOpenThemeEditor } = props;
+    const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, permissions, activeRole, activeRoleContext, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles, isMobileOpen, setIsMobileOpen, onOpenThemeEditor } = props;
     const { activeView, navigateRoot } = useNavigation();
     const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
     const mobileRoleSwitcherRef = useRef<HTMLDivElement>(null);
@@ -74,8 +75,6 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
         navigateRoot(view);
         setIsMobileOpen(false);
     };
-
-    const activeRoleContext = useMemo(() => userRoles.find(r => r.is_primary), [userRoles]);
 
     const { menuToDisplay, contextName, headerIcon: HeaderIcon } = useMemo(() => {
         let menu: MenuItem[], name: string, icon: React.ElementType;

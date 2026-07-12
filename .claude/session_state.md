@@ -1,21 +1,35 @@
 # Session State
-**2026-07-04 17:05** | Branch: main
+**2026-07-12 07:49** | Branch: main
 
-## Sesiunea 2026-07-04 — rezumat
-
-1. **Debug `competitii-inscriere-20260605` închis + arhivat** → `.planning/debug/resolved/`. Fix-urile (carduri giao_dau/echipe blocate "Nu participăm" după refactoring 46b7bee) erau deja aplicate în commits 78fe854..46bdde2; sesiunea a verificat + documentat.
-2. **Verificare Playwright** flux Înscriere club (competiția "Cupa", ADMIN_CLUB): toate cardurile deschizibile, flux echipe + individual end-to-end OK, 0 erori JS. Raport: `.playwright-mcp/reports/raport-competitii-inscriere-verify-2026-07-04.md`.
-3. **Quick task 260704-nbx** — fix status stale hub după retragere echipă: prop nou opțional `onEchipeRefresh` → `fetchDataSilent`, apelat în `handleNuParticipaEchipa` + butonul "← Participăm" (Pas3Echipe.tsx). Verificat Playwright: hub "0/12" imediat, fără Refresh. Commit fix: `a700a79`.
+## Fisiere modificate
+```
+ M .claude/hooks/.last-captured-hash
+ M .claude/session_state.md
+ M .claude/settings.local.json
+ M .planning/phases/13-tracking-comenzi-produse/13-03-SUMMARY.md
+ M .planning/phases/13-tracking-comenzi-produse/13-04-SUMMARY.md
+ M .planning/phases/13-tracking-comenzi-produse/13-05-SUMMARY.md
+ M .planning/phases/13-tracking-comenzi-produse/13-RESEARCH.md
+ M .planning/phases/14-corelare-prezente-facturi/14-01-SUMMARY.md
+ M .planning/phases/14-corelare-prezente-facturi/14-02-SUMMARY.md
+ M .planning/phases/14-corelare-prezente-facturi/14-03-SUMMARY.md
+ M .planning/phases/14-corelare-prezente-facturi/14-04-SUMMARY.md
+ M .planning/quick/260626-buf-task-3-perioade-vacanta-antrenamente/260626-buf-SUMMARY.md
+ M .planning/quick/260704-nbx-fix-status-stale-hub-inscriere-club-dupa/260704-nbx-SUMMARY.md
+ M .planning/quick/260704-x9p-sistem-istoric-activitate-super-admin-fe/260704-x9p-SUMMARY.md
+ M .planning/quick/260705-1js-consolideaza-endpoint-uri-vercel-api-sub/260705-1js-SUMMARY.md
+ M .planning/quick/260705-irg-fix-rls-context-aware-role-check-si-afis/260705-irg-SUMMARY.md
+ M .planning/quick/260705-pgg-refactor-deduplicare-sportivi-include-in/260705-pgg-SUMMARY.md
+ M .planning/quick/260708-h7k-fix-istoric-grade-bindac-grad-implicit-unifica/260708-h7k-SUMMARY.md
+ M .planning/quick/260709-eiw-restyle-import-sportivi-si-modulul-exame/260709-eiw-SUMMARY.md
+ M .planning/quick/260709-fth-gestiune-sesiuni-examen-filtrare-club-si/260709-fth-SUMMARY.md
+```
 
 ## Ultimele commit-uri
 ```
-5f2a02b docs(debug): elimină sesiunea competitii-inscriere-20260605 din activ (mutată în resolved/)
-2efb439 docs(quick-260704-nbx): fix status stale hub Inscriere club — summary verificat + STATE.md + arhivare debug session
-a700a79 fix(quick-260704-nbx-01): refresh silențios hub la retragere/reset echipă
-f206840 docs(260704-nbx): pre-dispatch plan pentru fix status stale hub Inscriere club
-5fee5d9 docs(state): actualizare STATE.md + session state după sesiunea 2026-06-26
+db76cce docs: update debug knowledge base with loading-hang-istoric-grade
+f44e62b docs: remove stale pending todo (resolved as loading-hang-istoric-grade)
+de2cd07 docs: resolve debug loading-hang-istoric-grade
+364dabc fix(istoric-grade): elimina .in(sportiv_id) redundant care bloca loading la cluburi mari
+c6ba409 docs: capture todo - Investigheaza hang loading fetchAllPages istoric grade
 ```
-
-## De reținut
-- Dev server pornit pe :5173 în background (task bd6um791p) — oprește manual dacă nu mai e nevoie.
-- Executor GSD cu `isolation="worktree"`: harness a creat worktree la baza veche (5fee5d9) în loc de HEAD curent → base mismatch → re-rulat fără worktree, direct pe main. De urmărit dacă se repetă.

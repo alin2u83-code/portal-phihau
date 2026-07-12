@@ -55,7 +55,7 @@ export const ExamenPhiHauSimplu: React.FC<ExamenPhiHauSimpluProps> = ({ sesiune,
                     data_obtinere: sesiune.data || sesiune.data_examen || new Date().toISOString().split('T')[0],
                     sesiune_examen_id: sesiune.id,
                     observatii: 'Promovat prin examen (Phi Hau)'
-                }, { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }));
+                }, { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: false }));
                 sportivGradUpdate = inscriere.grad_sustinut_id;
             } else if (oldResult === 'Admis') {
                 // Delete from istoric_grade to trigger automatic update on sportivi

@@ -392,18 +392,19 @@ export const useDataProvider = () => {
                     : cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id');
 
                 if (clubId) {
-                    // Scopăm explicit după sportivii clubului activ (id-uri — sigur chiar dacă
-                    // hg.club_id e null în date vechi) + club_id (derivat acum din sportivi.club_id
-                    // în view, vezi migrarea `vedere_istoric_grade_sportiv`), simetric cu inscrieriExamene,
-                    // ȘI paginăm rezultatul ca să nu pierdem rânduri peste plafonul de 1000/request.
-                    const { data: clubSportivIds } = await cleanedSupabase
-                        .from('sportivi')
-                        .select('id')
-                        .eq('club_id', clubId);
-                    const idsInClub = (clubSportivIds || []).map((s: any) => s.id);
-                    criticalQueries.istoricGrade = idsInClub.length
-                        ? fetchAllPages((from, to) => cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').in('sportiv_id', idsInClub).eq('club_id', clubId).order('id', { ascending: true }).range(from, to))
-                        : cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('club_id', clubId);
+                    // Scopăm după club_id (derivat acum din sportivi.club_id în view — vezi
+                    // migrarea `vedere_istoric_grade_sportiv` / fix 260708-h7k, COALESCE(s.club_id, hg.club_id)),
+                    // simetric cu inscrieriExamene. ȘI paginăm rezultatul ca să nu pierdem
+                    // rânduri peste plafonul de 1000/request.
+                    //
+                    // BUGFIX 2026-07-12: NU mai adăugăm `.in('sportiv_id', idsInClub)` — pentru
+                    // cluburi mari (400+ sportivi) enumerarea tuturor id-urilor în URL genera un
+                    // query string de 14-17KB+, peste limita acceptată de infrastructura Supabase
+                    // (proxy/gateway), cauzând request-ul să rămână blocat indefinit (hang tacut,
+                    // fără eroare, fără timeout) — vezi .planning/debug/resolved/loading-hang-istoric-grade.md.
+                    // `.eq('club_id', clubId)` singur e suficient și corect de când club_id e derivat
+                    // corect în view (verificat: aceleași rânduri, fără pierdere de date).
+                    criticalQueries.istoricGrade = fetchAllPages((from, to) => cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('club_id', clubId).order('id', { ascending: true }).range(from, to));
                 } else {
                     criticalQueries.istoricGrade = fetchAllPages((from, to) => cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').order('id', { ascending: true }).range(from, to));
                 }

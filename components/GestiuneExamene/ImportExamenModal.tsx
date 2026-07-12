@@ -1,8 +1,8 @@
 ﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Papa from 'papaparse';
 import { supabase } from '../../supabaseClient';
-import { Grad, User, Sportiv, SesiuneExamen, Locatie } from '../../types';
-import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon, UserPlusIcon, ChevronDownIcon, BookOpenIcon, MinusCircleIcon } from '../icons';
+import { Grad, User, Sportiv, SesiuneExamen, Locatie, InscriereExamen } from '../../types';
+import { ExclamationTriangleIcon, CheckCircleIcon, DocumentArrowDownIcon, XCircleIcon, UserPlusIcon, ChevronDownIcon, BookOpenIcon, MinusCircleIcon, SearchIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { Modal, Button, Input, Select } from '../ui';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
@@ -17,6 +17,9 @@ interface ImportExamenModalProps {
     setLocatii: React.Dispatch<React.SetStateAction<Locatie[]>>;
     sesiuni: SesiuneExamen[];
     setSesiuni: React.Dispatch<React.SetStateAction<SesiuneExamen[]>>;
+    sportivi: Sportiv[];
+    inscrieri: InscriereExamen[];
+    grade: Grad[];
 }
 
 type CsvFormat = 'own' | 'grila' | 'federatie' | 'xls_ex_local';
@@ -95,37 +98,33 @@ const parseDateToISO = (raw: string): string => {
     return s.slice(0, 10);
 };
 
-export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, onClose, onImportComplete, currentUser, locatii: initialLocatii, setLocatii, sesiuni: initialSesiuni, setSesiuni }) => {
+export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, onClose, onImportComplete, currentUser, locatii: initialLocatii, setLocatii, sesiuni: initialSesiuni, setSesiuni, sportivi, inscrieri, grade: grades }) => {
     const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [grades, setGrades] = useState<Grad[]>([]);
     const [errorLog, setErrorLog] = useState<any | null>(null);
     const { showError, showSuccess } = useError();
-    
+
     const [examFile, setExamFile] = useState<File | null>(null);
     const [birthdateFile, setBirthdateFile] = useState<File | null>(null);
     const [csvFormat, setCsvFormat] = useState<CsvFormat>('own');
     const [sessionOverride, setSessionOverride] = useState({ data: '', sesiune_denumire: '', localitate: '' });
     const [ghidOpen, setGhidOpen] = useState(false);
     const [importProgress, setImportProgress] = useState<{ done: number; total: number } | null>(null);
+    const [previewFilter, setPreviewFilter] = useState<'toti' | 'valid' | 'conflict' | 'create' | 'skipped' | 'error'>('toti');
+    const [previewSearch, setPreviewSearch] = useState('');
 
     useEffect(() => {
         if (isOpen) {
-            const fetchGrades = async () => {
-                if (supabase) {
-                    const { data, error } = await supabase.from('grade').select('*').order('ordine');
-                    if (error) showError("Eroare la preluare grade", error.message); else setGrades(data || []);
-                }
-            };
-            fetchGrades();
             setPreviewData([]);
             setErrorLog(null);
             setExamFile(null);
             setBirthdateFile(null);
             setImportProgress(null);
             setSessionOverride({ data: '', sesiune_denumire: '', localitate: '' });
+            setPreviewFilter('toti');
+            setPreviewSearch('');
         }
-    }, [isOpen, showError]);
+    }, [isOpen]);
 
     const downloadTemplate = () => {
         const headers = 'Nume,Prenume,CNP,Grad_Nou_Ordine,Rezultat,Contributie,Data_Examen,Sesiune_Denumire,Localitate';
@@ -311,12 +310,9 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     };
 
     const validateData = useCallback(async (data: CsvRow[], birthdateRecords: { normalizedName: string; originalName: string; birthdate: string }[]): Promise<PreviewRow[]> => {
-        const { data: allSportivi, error } = await supabase.from('sportivi').select('*');
-        if (error) { showError("Eroare la validare", error.message); return []; }
-
-        const { data: existingInscrieri } = await supabase.from('inscrieri_examene').select('sportiv_id, sesiune_id, rezultat');
-        const inscrieriSet = new Set((existingInscrieri || []).map(i => `${i.sportiv_id}_${i.sesiune_id}`));
-        const inscrieriRezultatMap = new Map((existingInscrieri || []).map(i => [`${i.sportiv_id}_${i.sesiune_id}`, i.rezultat]));
+        const allSportivi = sportivi;
+        const inscrieriSet = new Set((inscrieri || []).map(i => `${i.sportiv_id}_${i.sesiune_id}`));
+        const inscrieriRezultatMap = new Map((inscrieri || []).map(i => [`${i.sportiv_id}_${i.sesiune_id}`, i.rezultat]));
 
         const validationPromises = data.map(async (row, index): Promise<PreviewRow> => {
             const baseRow: Omit<PreviewRow, 'sessionInfo' | 'status' | 'message'> = { ...row, originalIndex: index };
@@ -438,7 +434,7 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
         });
 
         return Promise.all(validationPromises);
-    }, [grades, showError, initialSesiuni]);
+    }, [grades, showError, initialSesiuni, sportivi, inscrieri]);
 
     const BATCH_SIZE = 10; // cereri paralele simultane
 
@@ -782,6 +778,18 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
     const unresolvedConflicts = previewData.some(r => r.status === 'conflict');
     const importableRowsCount = previewData.filter(r => r.status === 'valid' || r.status === 'create' || r.status === 'resolved').length;
 
+    const visiblePreviewData = useMemo(() => {
+        let rows = previewData;
+        if (previewFilter !== 'toti') {
+            rows = rows.filter(r => previewFilter === 'valid' ? (r.status === 'valid' || r.status === 'resolved') : r.status === previewFilter);
+        }
+        if (previewSearch.trim()) {
+            const q = normalizeStr(previewSearch);
+            rows = rows.filter(r => normalizeStr(`${r.Nume} ${r.Prenume}`).includes(q));
+        }
+        return rows;
+    }, [previewData, previewFilter, previewSearch]);
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Import Bulk Rezultate Examen">
             <div className="space-y-6">
@@ -898,50 +906,48 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                     <div className="space-y-4 animate-fade-in-down">
                         <h2 className="text-xl font-bold">Previzualizare și Confirmare</h2>
 
-                        {/* Debug Stats Panel */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <div className="bg-slate-800 rounded-lg p-3 text-center">
-                                <p className="text-2xl font-bold text-white">{previewData.length}</p>
-                                <p className="text-xs text-slate-400">Total Rânduri</p>
-                            </div>
-                            <div className="bg-green-900/30 rounded-lg p-3 text-center border border-green-800">
-                                <p className="text-2xl font-bold text-green-400">{previewData.filter(r => r.status === 'valid').length}</p>
-                                <p className="text-xs text-slate-400">Găsiți (Exact)</p>
-                            </div>
-                            <div className="bg-amber-900/30 rounded-lg p-3 text-center border border-amber-800">
-                                <p className="text-2xl font-bold text-amber-400">{previewData.filter(r => r.status === 'conflict').length}</p>
-                                <p className="text-xs text-slate-400">Conflicte de Rezolvat</p>
-                            </div>
-                            <div className="bg-blue-900/30 rounded-lg p-3 text-center border border-blue-800">
-                                <p className="text-2xl font-bold text-blue-400">{previewData.filter(r => r.status === 'create').length}</p>
-                                <p className="text-xs text-slate-400">Sportivi Noi (creați automat)</p>
-                            </div>
-                            {previewData.filter(r => r.status === 'skipped').length > 0 && (
-                                <div className="bg-slate-800 rounded-lg p-3 text-center border border-slate-600 col-span-2 md:col-span-1">
-                                    <p className="text-2xl font-bold text-slate-400">{previewData.filter(r => r.status === 'skipped').length}</p>
-                                    <p className="text-xs text-slate-400">Sărite (deja există)</p>
-                                </div>
-                            )}
-                            {previewData.filter(r => r.status === 'error').length > 0 && (
-                                <div className="bg-red-900/30 rounded-lg p-3 text-center border border-red-800 col-span-2 md:col-span-1">
-                                    <p className="text-2xl font-bold text-red-400">{previewData.filter(r => r.status === 'error').length}</p>
-                                    <p className="text-xs text-slate-400">Erori CSV</p>
-                                </div>
-                            )}
-                            {previewData.filter(r => r.status === 'resolved').length > 0 && (
-                                <div className="bg-purple-900/30 rounded-lg p-3 text-center border border-purple-800 col-span-2 md:col-span-1">
-                                    <p className="text-2xl font-bold text-purple-400">{previewData.filter(r => r.status === 'resolved').length}</p>
-                                    <p className="text-xs text-slate-400">Conflicte Rezolvate</p>
-                                </div>
-                            )}
+                        {/* Filtre status (click = filtrează tabelul) */}
+                        <div className="flex gap-2 flex-wrap">
+                            {([
+                                { key: 'toti',     label: `Toate (${previewData.length})`, cls: 'bg-slate-700 text-slate-200' },
+                                { key: 'valid',    label: `Găsiți (${previewData.filter(r => r.status === 'valid' || r.status === 'resolved').length})`, cls: 'bg-green-900/40 text-green-300 border border-green-800' },
+                                { key: 'conflict', label: `Conflicte (${previewData.filter(r => r.status === 'conflict').length})`, cls: 'bg-amber-900/40 text-amber-300 border border-amber-800' },
+                                { key: 'create',   label: `Sportivi Noi (${previewData.filter(r => r.status === 'create').length})`, cls: 'bg-blue-900/40 text-blue-300 border border-blue-800' },
+                                { key: 'skipped',  label: `Sărite (${previewData.filter(r => r.status === 'skipped').length})`, cls: 'bg-slate-700/60 text-slate-400 border border-slate-600' },
+                                { key: 'error',    label: `Erori (${previewData.filter(r => r.status === 'error').length})`, cls: 'bg-red-900/40 text-red-300 border border-red-800' },
+                            ] as const).filter(f => f.key === 'toti' || f.key === 'valid' || f.key === 'conflict' || f.key === 'create' || previewData.some(r => r.status === f.key)).map(({ key, label, cls }) => (
+                                <button
+                                    key={key}
+                                    type="button"
+                                    onClick={() => setPreviewFilter(prev => prev === key ? 'toti' : key)}
+                                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${cls} ${previewFilter === key ? 'ring-2 ring-white/40' : 'opacity-80 hover:opacity-100'}`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Căutare rapidă după nume */}
+                        <div className="relative max-w-sm">
+                            <SearchIcon className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input
+                                type="text"
+                                value={previewSearch}
+                                onChange={e => setPreviewSearch(e.target.value)}
+                                placeholder="Caută după nume..."
+                                className="w-full bg-[var(--t-bg)] border border-[var(--t-border)] rounded-lg pl-9 pr-3 py-2 text-sm text-[var(--t-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
                         </div>
 
                         <div className="max-h-[45vh] overflow-y-auto border border-slate-700 rounded-lg">
                             <ResponsiveTable
                                 columns={columns}
-                                data={previewData}
+                                data={visiblePreviewData}
                                 renderMobileItem={renderMobileItem}
                             />
+                            {visiblePreviewData.length === 0 && (
+                                <p className="py-6 text-center text-slate-500 text-sm">Nicio înregistrare pentru filtrul/căutarea curentă.</p>
+                            )}
                         </div>
                     </div>
                 )}

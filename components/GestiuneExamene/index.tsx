@@ -463,7 +463,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
       )}
       <SesiuneForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={handleSaveSesiune} sesiuneToEdit={sesiuneToEdit} locatii={locatii} setLocatii={setLocatii} clubs={clubs} currentUser={currentUser} />
       <ConfirmDeleteModal isOpen={!!sesiuneToDelete} onClose={() => setSesiuneToDelete(null)} onConfirm={() => { if(sesiuneToDelete) confirmDeleteSesiune(sesiuneToDelete.id) }} tableName="Sesiuni (și toate înscrierile asociate)" isLoading={managerLoading} />
-       <ImportExamenModal 
+       <ImportExamenModal
             isOpen={isBulkImportModalOpen}
             onClose={() => setIsBulkImportModalOpen(false)}
             onImportComplete={handleImportComplete}
@@ -472,6 +472,9 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
             setLocatii={setLocatii}
             sesiuni={sesiuni}
             setSesiuni={setSesiuni}
+            sportivi={sportivi}
+            inscrieri={inscrieri}
+            grade={grade}
        />
     </div> 
   );

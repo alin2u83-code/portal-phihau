@@ -398,7 +398,8 @@
       "Skill(gsd-capture)",
       "Bash(disown)",
       "Bash(echo \"exit=$?\")",
-      "Bash(xargs -n1 dirname)"
+      "Bash(xargs -n1 dirname)",
+      "mcp__playwright__browser_find"
     ],
     "additionalDirectories": [
       "C:\\nvm4w\\nodejs"

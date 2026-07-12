@@ -1,17 +1,16 @@
 import { Sportiv, IstoricGrade, Grad, SesiuneExamen } from '../types';
 import { getAgeOnDate, parseDurationToMonths } from './eligibility';
 
-// Toleranță pt. atenționări "aproape de limită" - cazuri care au respectat tehnic
-// minimul, dar la limită (ex. promovat cu doar 2 sesiuni distanță când minimul e 3).
-export const TOLERANTA_ZILE = 30;
-export const SESIUNI_MINIME_TOLERANTA = 3;
+// Marja de eroare pt. distanța minimă intre grade - susținerea mai devreme decât minimul,
+// dar în limita a 2 luni, ține de data sesiunii de examen (alegerea antrenorului), nu e o anomalie.
+export const MARJA_EROARE_LUNI = 2;
 
 export type TipAnomalieGrad =
     | 'varsta_debut'
     | 'distanta_insuficienta'
     | 'varsta_sub_minim'
     | 'grad_sarit'
-    | 'aproape_limita';
+    | 'incompatibil_varsta_grad';
 
 export interface AnomalieGrad {
     sportiv_id: string;
@@ -29,9 +28,32 @@ const numeleEsteSerieGalbena = (nume: string): boolean => {
     return n.includes('galben') || n.includes('debutant');
 };
 
+type CuloareGrad = 'galben' | 'rosu' | 'violet' | 'albastru' | 'negru' | 'altul';
+
+const culoareGrad = (nume: string): CuloareGrad => {
+    const n = nume.toLowerCase();
+    if (n.includes('galben') || n.includes('debutant')) return 'galben';
+    if (n.includes('roșu') || n.includes('rosu')) return 'rosu';
+    if (n.includes('violet') || n.startsWith('c.v.')) return 'violet';
+    if (n.includes('albastru')) return 'albastru';
+    if (n.includes('neagră') || n.includes('neagra') || n.startsWith('c.n.')) return 'negru';
+    return 'altul';
+};
+
+// Seriile "de copii" (galben/roșu/violet) nu au plafon propriu de vârstă - dar dacă
+// sportivul a ajuns deja la vârsta minimă a seriei Albastru, nu mai are sens sa tina
+// un grad din aceste serii - e semn de eroare de date, nu de progresie normala.
+const SERII_COPII: CuloareGrad[] = ['galben', 'rosu', 'violet'];
+
 const adaugaLuni = (dataStr: string, luni: number): Date => {
     const d = new Date(dataStr);
     d.setMonth(d.getMonth() + luni);
+    return d;
+};
+
+const adaugaAni = (dataStr: string, ani: number): Date => {
+    const d = new Date(dataStr);
+    d.setFullYear(d.getFullYear() + ani);
     return d;
 };
 
@@ -44,8 +66,11 @@ export const computeAnomaliiGrade = (
     sesiuniExamene: SesiuneExamen[],
 ): AnomalieGrad[] => {
     const gradById = new Map(grade.map(g => [g.id, g]));
-    const sesiuniSortate = [...sesiuniExamene].sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
     const anomalii: AnomalieGrad[] = [];
+
+    const pragVarstaAlbastru = grade
+        .filter(g => culoareGrad(g.nume) === 'albastru')
+        .reduce((min, g) => Math.min(min, g.varsta_minima), Infinity);
 
     const istoricPerSportiv = new Map<string, IstoricGrade[]>();
     for (const inreg of istoricGrade) {
@@ -90,46 +115,76 @@ export const computeAnomaliiGrade = (
             // 3. Varsta sub minim la momentul obtinerii gradului
             const varstaLaCurent = getAgeOnDate(sportiv.data_nasterii, curent.inreg.data_obtinere);
             if (varstaLaCurent < curent.grad.varsta_minima) {
+                const dataImplinireVarstaMinima = adaugaAni(sportiv.data_nasterii, curent.grad.varsta_minima);
                 anomalii.push({
                     sportiv_id: sportiv.id,
                     sportiv_nume: sportivNume,
                     club_id: sportiv.club_id ?? null,
                     tip: 'varsta_sub_minim',
                     severitate: 'critic',
-                    mesaj: `A obținut "${curent.grad.nume}" la ${varstaLaCurent} ani, sub vârsta minimă (${curent.grad.varsta_minima} ani).`,
+                    mesaj: `A obținut "${curent.grad.nume}" la ${varstaLaCurent} ani, sub vârsta minimă (${curent.grad.varsta_minima} ani) — împlinește vârsta minimă la ${dataImplinireVarstaMinima.toLocaleDateString('ro-RO')}.`,
                     grad_relevant: curent.grad.nume,
                     data_relevanta: curent.inreg.data_obtinere,
                 });
             }
 
             // 4. Grad sarit din secventa
+            // Gradele "lipsa" cu varsta_minima <= varsta la primul examen nu erau oricum
+            // aplicabile sportivului (a intrat deja prea mare pt acel nivel) - nu se raporteaza.
             const gapOrdine = curent.grad.ordine - anterior.grad.ordine;
             if (gapOrdine > 1) {
                 const lipsa = grade
                     .filter(g => g.ordine > anterior.grad.ordine && g.ordine < curent.grad.ordine)
+                    .filter(g => g.varsta_minima > varstaLaPrim)
                     .sort((a, b) => a.ordine - b.ordine)
                     .map(g => g.nume);
+                if (lipsa.length > 0) {
+                    anomalii.push({
+                        sportiv_id: sportiv.id,
+                        sportiv_nume: sportivNume,
+                        club_id: sportiv.club_id ?? null,
+                        tip: 'grad_sarit',
+                        severitate: 'critic',
+                        mesaj: `Salt de la "${anterior.grad.nume}" direct la "${curent.grad.nume}" — lipsește: ${lipsa.join(', ')}.`,
+                        grad_relevant: curent.grad.nume,
+                        data_relevanta: curent.inreg.data_obtinere,
+                    });
+                }
+            } else if (gapOrdine <= 0) {
+                // Istoric neregulat (grad retrogradat/duplicat) - nu intra in scope-ul de distanta/varsta de mai jos
+                continue;
+            }
+
+            // Incompatibilitate varsta-grad: gradul curent apartine unei serii "de copii"
+            // (galben/roșu/violet), dar varsta sportivului la obtinere deja depaseste
+            // varsta minima a seriei Albastru - semn de eroare de introducere date.
+            if (
+                SERII_COPII.includes(culoareGrad(curent.grad.nume)) &&
+                pragVarstaAlbastru !== Infinity &&
+                varstaLaCurent >= pragVarstaAlbastru
+            ) {
                 anomalii.push({
                     sportiv_id: sportiv.id,
                     sportiv_nume: sportivNume,
                     club_id: sportiv.club_id ?? null,
-                    tip: 'grad_sarit',
+                    tip: 'incompatibil_varsta_grad',
                     severitate: 'critic',
-                    mesaj: `Salt de la "${anterior.grad.nume}" direct la "${curent.grad.nume}" — lipsește: ${lipsa.join(', ') || 'grad(e) intermediar(e)'}.`,
+                    mesaj: `Eroare probabilă de date: "${curent.grad.nume}" (grad de vârstă mică) obținut la ${varstaLaCurent} ani — vârstă deja peste pragul seriei Albastru (${pragVarstaAlbastru} ani).`,
                     grad_relevant: curent.grad.nume,
                     data_relevanta: curent.inreg.data_obtinere,
                 });
-            } else if (gapOrdine <= 0) {
-                // Istoric neregulat (grad retrogradat/duplicat) - nu intra in scope-ul de distanta/varsta de mai jos
                 continue;
             }
 
             // 2 & 5. Distanta fata de gradul anterior
             const luniNecesare = parseDurationToMonths(curent.grad.timp_asteptare);
             const dataEligibilitate = adaugaLuni(anterior.inreg.data_obtinere, luniNecesare);
+            const dataPragCuMarja = adaugaLuni(anterior.inreg.data_obtinere, luniNecesare - MARJA_EROARE_LUNI);
             const dataCurenta = new Date(curent.inreg.data_obtinere);
 
-            if (dataCurenta < dataEligibilitate) {
+            // In marja de 2 luni fata de termenul minim - considerat alegerea antrenorului
+            // pt. data sesiunii de examen, nu o anomalie reala.
+            if (dataCurenta < dataPragCuMarja) {
                 const zileLipsa = zileIntre(dataEligibilitate, dataCurenta);
                 anomalii.push({
                     sportiv_id: sportiv.id,
@@ -141,25 +196,6 @@ export const computeAnomaliiGrade = (
                     grad_relevant: curent.grad.nume,
                     data_relevanta: curent.inreg.data_obtinere,
                 });
-            } else {
-                const margineZile = zileIntre(dataCurenta, dataEligibilitate);
-                const nrSesiuni = sesiuniSortate.filter(s => {
-                    const d = new Date(s.data);
-                    return d > new Date(anterior.inreg.data_obtinere) && d <= dataCurenta;
-                }).length;
-
-                if (margineZile <= TOLERANTA_ZILE || nrSesiuni < SESIUNI_MINIME_TOLERANTA) {
-                    anomalii.push({
-                        sportiv_id: sportiv.id,
-                        sportiv_nume: sportivNume,
-                        club_id: sportiv.club_id ?? null,
-                        tip: 'aproape_limita',
-                        severitate: 'atentie',
-                        mesaj: `"${curent.grad.nume}" obținut la limită: ${margineZile} zile peste minimul necesar, ${nrSesiuni} sesiune(i) de examen distanță de "${anterior.grad.nume}".`,
-                        grad_relevant: curent.grad.nume,
-                        data_relevanta: curent.inreg.data_obtinere,
-                    });
-                }
             }
         }
     }

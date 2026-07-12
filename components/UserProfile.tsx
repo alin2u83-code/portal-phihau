@@ -43,9 +43,10 @@ interface UserProfileProps {
     onNavigate?: (view: import('../types').View) => void;
     onViewExameneRaport?: (sportivId: string) => void;
     onViewSportiv?: (sportiv: Sportiv) => void;
+    initialTab?: 'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric';
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNavigate, onViewExameneRaport, onViewSportiv }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNavigate, onViewExameneRaport, onViewSportiv, initialTab }) => {
     const {
         currentUser,
         activeRoleContext,
@@ -85,7 +86,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const [isAddGradeModalOpen, setIsAddGradeModalOpen] = useState(false);
     const [gradeEntryToEdit, setGradeEntryToEdit] = useState<{ id: string; grad_id: string; data_obtinere: string; observatii: string } | null>(null);
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric'>('profil');
+    const [activeTab, setActiveTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric'>(initialTab || 'profil');
 
     // ─── PLF-05: data_start_facturare + badge luni lipsă ────────────────────
     const { dataStartFacturare, setDataStartFacturare, isSaving: isSavingDataStart } = useDataStartFacturare(sportiv.id);

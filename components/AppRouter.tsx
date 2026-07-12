@@ -101,12 +101,17 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     };
 
     const [sportivIdPentruRaport, setSportivIdPentruRaport] = useState<string | null>(null);
+    const [sportivProfilTab, setSportivProfilTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric' | undefined>(undefined);
 
     const isAtLeastInstructor = permissions.isFederationAdmin || permissions.isAdminClub || permissions.isInstructor;
     const isAtLeastClubAdmin = permissions.isAdminClub || permissions.isFederationAdmin;
     const isFederationAdmin = permissions.isFederationAdmin;
     const canManageFinances = permissions.canManageFinances;
-    const onViewSportiv = (s: Sportiv) => { setSelectedSportiv(s); setActiveView('profil-sportiv'); };
+    const onViewSportiv = (s: Sportiv, tab?: 'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric') => {
+        setSelectedSportiv(s);
+        setSportivProfilTab(tab);
+        setActiveView('profil-sportiv');
+    };
 
     return (
         <AnimatePresence mode="wait">
@@ -162,7 +167,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 const currentSportiv = selectedSportiv
                                     ? (filteredData.sportivi.find(s => s.id === selectedSportiv.id) || selectedSportiv)
                                     : null;
-                                return renderProtected(currentSportiv ? <Lazy.UserProfile sportiv={currentSportiv} onBack={() => setActiveView('sportivi')} onNavigate={setActiveView} onViewExameneRaport={(id) => { setSportivIdPentruRaport(id); setActiveView('rapoarte-examen'); }} onViewSportiv={onViewSportiv} /> : null, isAtLeastInstructor);
+                                return renderProtected(currentSportiv ? <Lazy.UserProfile sportiv={currentSportiv} onBack={() => canGoBack ? goBack() : setActiveView('sportivi')} onNavigate={setActiveView} onViewExameneRaport={(id) => { setSportivIdPentruRaport(id); setActiveView('rapoarte-examen'); }} onViewSportiv={onViewSportiv} initialTab={sportivProfilTab} /> : null, isAtLeastInstructor);
                             }
                             case 'structura-federatie':
                                 return renderProtected(<Lazy.FederationStructure clubs={clubs} sportivi={sportivi} grupe={grupe} onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} />, isFederationAdmin);

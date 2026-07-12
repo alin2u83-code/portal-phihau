@@ -747,21 +747,17 @@ Se adaugă `'comenzi'` la `ActiveTab` și `TAB_LABELS`. Conținutul tabului este
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Stocul se scade la predarea din comandă?**
-   - Ce știm: `createVanzare` scade stocul la vânzare directă
-   - Ce e neclar: Dacă la „predare din comandă" se dorește același comportament (produsul a ajuns la furnizor → a ajuns la club → stocul clubului ar trebui actualizat?)
-   - Recomandare: Da, scade stocul la predare dacă produsul este `per_sportiv`. Pentru `per_club`, stocul se gestionează separat prin IntrareMarfaModal.
+1. **Stocul se scade la predarea din comandă? → REZOLVAT: DA**
+   - **Decizie:** La `marcheazaPredare` cu produs `per_sportiv`: INSERT în `plati` (factură automată) + scădere stoc variantă (ca în `createVanzare`). Pentru `per_club`: fără scădere stoc la predare — stocul e gestionat prin `IntrareMarfaModal` separat.
+   - **Impact în planuri:** Plan 13-03 Task 1 (`marcheazaPredare`) trebuie să includă scădere stoc pentru `tip_produs = per_sportiv`.
 
-2. **Multiple comenzi active simultan per club?**
-   - Ce știm: Claude's Discretion — decizia e la planificator
-   - Ce e neclar: Un club poate să aibă simultan o comandă `club_furnizor` deschisă și una `club_federatie`?
-   - Recomandare: Da, maxim una per tip. Un club poate avea `club_furnizor` deschisă + `club_federatie` deschisă simultan, dar nu două de același tip.
+2. **Multiple comenzi active simultan per club? → REZOLVAT: DA, maxim una per tip**
+   - **Decizie:** Un club poate avea simultan o comandă deschisă de tip `club_furnizor` ȘI una de tip `club_federatie`, dar NU două de același tip. Guard în `createComanda`: verifică că nu există deja o comandă cu `tip_comanda = X AND stare NOT IN ('PREDATĂ', 'ANULATĂ')` pentru club_id.
 
-3. **Cine primește notificarea de cerere nouă când adminul nu are `user_id` distinct?**
-   - Ce știm: Adminul are `user_id` în `utilizator_roluri_multicont`
-   - Recomandare: Căutare în `utilizator_roluri_multicont WHERE club_id = cerere.club_id AND rol_denumire IN ('ADMIN_CLUB')` → trimite la toți adminii clubului.
+3. **Cine primește notificarea de cerere nouă? → REZOLVAT: toți adminii clubului**
+   - **Decizie:** `sendBulkNotifications` cu recipient_ids = `SELECT user_id FROM utilizator_roluri_multicont WHERE club_id = cerere.club_id AND rol_denumire = 'ADMIN_CLUB'`. Implementat în `comenziService.ts::createCerere`.
 
 ---
 

@@ -638,8 +638,25 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
     useEffect(() => {
         if (!isComisie || !inscrieriCrossClub) return;
         setInscrieri(prev => {
-            const altele = prev.filter(i => i.sesiune_id !== sesiune.id);
-            return [...altele, ...inscrieriCrossClub];
+            const altSesiuni = prev.filter(i => i.sesiune_id !== sesiune.id);
+            const aceastaSesiune = prev.filter(i => i.sesiune_id === sesiune.id);
+            // Merge pe id in loc de inlocuire in bloc: fetch-ul cross-club (comisie)
+            // poate intoarce temporar sportiv_nume/prenume goale (ex: gaura RLS sau
+            // race la reload) - nu trebuie sa suprascrie randuri deja corecte venite
+            // din fetch-ul principal scopat pe club.
+            const byId = new Map(aceastaSesiune.map(i => [i.id, i]));
+            for (const rand of inscrieriCrossClub) {
+                const existent = byId.get(rand.id);
+                if (!existent) {
+                    byId.set(rand.id, rand);
+                    continue;
+                }
+                const numeNouLipsa = !rand.sportiv_nume && !rand.sportiv_prenume;
+                byId.set(rand.id, numeNouLipsa
+                    ? { ...rand, sportiv_nume: existent.sportiv_nume, sportiv_prenume: existent.sportiv_prenume }
+                    : rand);
+            }
+            return [...altSesiuni, ...Array.from(byId.values())];
         });
     }, [isComisie, inscrieriCrossClub, sesiune.id, setInscrieri]);
 

@@ -377,10 +377,24 @@ export const ImportExcelExamen: React.FC<ImportExcelExamenProps> = ({
 
         // Actualizare stare locală
         if (newSportivi.length) setSportivi(prev => [...prev, ...newSportivi]);
-        if (newInscrieri.length) setInscrieri(prev => {
-            const ids = new Set(newInscrieri.map(i => i.id));
-            return [...prev.filter(i => !ids.has(i.id)), ...newInscrieri];
-        });
+        if (newInscrieri.length) {
+            // newInscrieri vine din upsert direct pe tabela inscrieri_examene, deci
+            // are doar coloanele brute (fără sportiv_nume/prenume/grad_sustinut, care
+            // sunt calculate prin JOIN în view). Re-preluăm rândurile complete din
+            // vedere_detalii_examen ca să nu afișăm "Necunoscut" în tabel după import.
+            const idsInserate = newInscrieri.map(i => i.id);
+            const { data: viewRows, error: viewError } = await supabase
+                .from('vedere_detalii_examen')
+                .select('*, id:inscriere_id')
+                .in('inscriere_id', idsInserate);
+            const inscrieriCuDetalii = (!viewError && viewRows?.length)
+                ? (viewRows as InscriereExamen[])
+                : newInscrieri;
+            setInscrieri(prev => {
+                const ids = new Set(inscrieriCuDetalii.map(i => i.id));
+                return [...prev.filter(i => !ids.has(i.id)), ...inscrieriCuDetalii];
+            });
+        }
         if (newIstoricGrade.length) setIstoricGrade(prev => [...prev, ...newIstoricGrade]);
 
         // Construire raport

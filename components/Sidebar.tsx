@@ -234,19 +234,19 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
 
     return (
         <>
-            <div className={`fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm transition-opacity md:hidden ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMobileOpen(false)} />
+            <div className={`fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm transition-opacity lg:hidden ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMobileOpen(false)} />
 
-            <aside className={`fixed top-0 left-0 z-50 h-full w-72 transition-transform duration-300 ease-in-out md:hidden shadow-2xl overflow-hidden ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed top-0 left-0 z-50 h-full w-72 transition-transform duration-300 ease-in-out lg:hidden shadow-2xl overflow-hidden ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {buildSidebarContent(true, mobileRoleSwitcherRef)}
             </aside>
 
-            <aside className={`hidden md:block fixed top-0 left-0 h-full z-30 transition-all duration-300 overflow-hidden ${isExpanded ? 'w-64' : 'w-20'}`}>
+            <aside className={`hidden lg:block fixed top-0 left-0 h-full z-30 transition-all duration-300 overflow-hidden ${isExpanded ? 'w-64' : 'w-20'}`}>
                 {buildSidebarContent(isExpanded, desktopRoleSwitcherRef)}
             </aside>
 
             {/* Desktop Toggle Button */}
             <button
-                className={`hidden md:flex items-center justify-center fixed top-6 z-40 w-6 h-6 bg-slate-800 border border-slate-700 rounded-full text-slate-400 hover:text-white hover:bg-amber-500/20 hover:border-amber-500/50 transition-all duration-300 shadow-md ${isExpanded ? 'left-[15.2rem]' : 'left-[4.2rem]'}`}
+                className={`hidden lg:flex items-center justify-center fixed top-6 z-40 w-6 h-6 bg-slate-800 border border-slate-700 rounded-full text-slate-400 hover:text-white hover:bg-amber-500/20 hover:border-amber-500/50 transition-all duration-300 shadow-md ${isExpanded ? 'left-[15.2rem]' : 'left-[4.2rem]'}`}
                 onClick={() => setIsExpanded(!isExpanded)}
                 title={isExpanded ? "Restrânge meniul" : "Extinde meniul"}
             >

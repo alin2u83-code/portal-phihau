@@ -31,14 +31,13 @@ export const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, o
         try {
             const { error: rpcError } = await supabase.rpc('transfer_sportiv', {
                 p_sportiv_id: sportiv.id,
-                p_new_club_id: newClubId,
-                p_old_club_id: sportiv.club_id
+                p_new_club_id: newClubId
             });
             if (rpcError) throw rpcError;
 
             const { data: updatedSportiv, error: fetchError } = await supabase
                 .from('sportivi')
-                .select('*, roluri(id, nume)')
+                .select('*')
                 .eq('id', sportiv.id)
                 .maybeSingle();
             if (fetchError) throw fetchError;
@@ -46,13 +45,14 @@ export const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose, o
 
             showSuccess("Transfer Finalizat", `${sportiv.nume} ${sportiv.prenume} a fost mutat la noul club.`);
             setTransferSuccess(true);
-            
+
             setTimeout(() => {
-                onTransferComplete(updatedSportiv as Sportiv);
+                onTransferComplete({ ...updatedSportiv, roluri: sportiv.roluri } as Sportiv);
             }, 2000);
 
         } catch (err: any) {
             showError("Eroare la Transfer", err.message);
+            setLoading(false);
         }
     };
     

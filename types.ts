@@ -1044,6 +1044,9 @@ export interface ParticipareVacanta {
   created_at: string;
   perioada_id: string;
   sportiv_id: string;
+  tip_abonament_anterior_id?: string | null;
+  abonament_procesat?: boolean;
+  abonament_revertit?: boolean;
   // câmp joined pentru display
   sportivi?: {
     id: string;
@@ -1051,5 +1054,6 @@ export interface ParticipareVacanta {
     prenume: string;
     grad_actual_id: string | null;
     status: string;
+    tip_abonament_id?: string | null;
   };
 }

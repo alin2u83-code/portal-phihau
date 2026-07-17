@@ -4,12 +4,12 @@ milestone: v1.1
 milestone_name: milestone
 status: completed
 stopped_at: Phase 17 context gathered
-last_updated: "2026-07-08T14:03:35.124Z"
-last_activity: 2026-07-06 -- Phase 16 marked complete
+last_updated: "2026-07-17T08:22:28.945Z"
+last_activity: "2026-07-17 - Completed quick task 260717-f99: Creare in masa abonament vacanta + revert automat"
 progress:
   total_phases: 16
   completed_phases: 6
-  total_plans: 21
+  total_plans: 24
   completed_plans: 20
   percent: 38
 ---
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 16 — COMPLETE
 Plan: 1 of 1
 Status: Phase 16 complete
-Last activity: 2026-07-09 - Completed quick task 260710-07l: Jurnal Audit nume utilizator + filtru + tab Sesiuni/Trafic
+Last activity: 2026-07-17 - Completed quick task 260717-f99: Creare in masa abonament vacanta + revert automat
 
 ```
 Progress: [████████░░] 83% (5/6 phases)
@@ -75,6 +75,7 @@ Recent decisions affecting current work:
 - confirmaReceptieClub operează pe comenzi_produse_cluburi.id — fiecare club confirmă recepția proprie independent
 - [Phase ?]: Migratie SQL deduplicare (find_similar_sportivi + merge_sportivi: include inactivi, delete efectiv, guard acces club) scrisa dar NEaplicata live - user trebuie sa o aplice manual
 - [260708-h7k]: unificare matching sportivi (Jaccard ImportExamenModal vs Levenshtein engine comun) amanata deliberat — risc financiar/identitate, necesita test regresie pe CSV istorice reale inainte de swap (relevant pt Phase 24)
+- [Phase ?]: 260717-f99: creare/skip abonament vacanta per participant + revert automat la incheiere perioada; coloane noi participare_vacanta (SQL scrisa, NEaplicata live)
 
 ### Pending Todos
 
@@ -99,6 +100,7 @@ Recent decisions affecting current work:
 | 260709-fth | Gestiune Sesiuni Examen: scoping strict club activ (non-federatie) + dropdown ani derivat dinamic din sesiuni reale | 2026-07-09 | b73fba2 | [260709-fth-gestiune-sesiuni-examen-filtrare-club-si](./quick/260709-fth-gestiune-sesiuni-examen-filtrare-club-si/) |
 | 260709-kr1 | SearchableSelect (scriere+listă) pentru filtre Lună/An Gestiune Sesiuni Examen + ClubSelect + Sportivi (Grupă/Grad) + Prezență + Plăți + Competiții (Probă/Grad min-max) | 2026-07-09 | 12c3a11 | [260709-kr1-searchableselect-pentru-filtre-luna-an-g](./quick/260709-kr1-searchableselect-pentru-filtre-luna-an-g/) |
 | 260710-07l | Jurnal Audit: coloană nume utilizator (nu UUID) + filtru SearchableSelect pe nume + tab Sesiuni/Trafic derivat din LOGIN/LOGOUT existent (durată sesiune, "în curs" pt sesiuni neînchise) | 2026-07-09 | 50e8a57 | Verified (human checkpoint) | [260710-07l-audit-log-afiseaza-nume-utilizator-nu-uu](./quick/260710-07l-audit-log-afiseaza-nume-utilizator-nu-uu/) |
+| 260717-f99 | Creare în masă abonament pentru participanții unei perioade de vacanță + revert automat la încheiere perioadă — migrație SQL scrisă (NEaplicată live) | 2026-07-17 | 61bd09d | Needs SQL apply | [260717-f99-adauga-logica-creare-abonament-pentru-sp](./quick/260717-f99-adauga-logica-creare-abonament-pentru-sp/) |
 
 ### Roadmap Evolution
 
@@ -137,6 +139,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-07-08T14:03:35.107Z
+Last session: 2026-07-17T08:21:50.343Z
 Stopped at: Phase 17 context gathered
 Resume file: .planning/phases/17-verifica-aplicare-live-migratie-deduplicare-sportivi-si-deci/17-CONTEXT.md

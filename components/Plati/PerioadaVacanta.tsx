@@ -243,6 +243,141 @@ const AdaugaParticipantiModal: React.FC<AdaugaParticipantiModalProps> = ({
     );
 };
 
+// ─── Modal Creează Abonamente ─────────────────────────────────────────────────
+
+interface CreeazaAbonamenteModalProps {
+    perioadaId: string;
+    clubId: string;
+    participanti: ParticipareVacanta[];
+    onClose: () => void;
+    onSaved: () => void;
+}
+
+const CreeazaAbonamenteModal: React.FC<CreeazaAbonamenteModalProps> = ({
+    perioadaId,
+    clubId,
+    participanti,
+    onClose,
+    onSaved,
+}) => {
+    const { filteredData } = useData();
+    const { showError, showSuccess } = useError();
+    const [tipAles, setTipAles] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const tipuriAbonament = filteredData.tipuriAbonament ?? [];
+
+    const handleCreeaza = async () => {
+        if (!tipAles) return;
+        setIsSaving(true);
+        try {
+            let creati = 0;
+            let sariti = 0;
+            for (const participant of participanti) {
+                const sportivId = participant.sportiv_id;
+                const tipCurent = participant.sportivi?.tip_abonament_id ?? null;
+
+                if (tipCurent) {
+                    // are deja tip de abonament — nu suprascriem
+                    sariti += 1;
+                    continue;
+                }
+
+                const { error: errSportiv } = await supabase
+                    .from('sportivi')
+                    .update({ tip_abonament_id: tipAles })
+                    .eq('id', sportivId)
+                    .eq('club_id', clubId);
+                if (errSportiv) {
+                    showError('Eroare la actualizare sportiv', errSportiv);
+                    continue;
+                }
+
+                const { error: errParticipare } = await supabase
+                    .from('participare_vacanta')
+                    .update({
+                        tip_abonament_anterior_id: null,
+                        abonament_procesat: true,
+                        abonament_revertit: false,
+                    })
+                    .eq('id', participant.id);
+                if (errParticipare) {
+                    showError('Eroare la marcare participant', errParticipare);
+                    continue;
+                }
+                creati += 1;
+            }
+            showSuccess(
+                'Abonamente create',
+                `${creati} sportivi au primit abonamentul${sariti > 0 ? `, ${sariti} au fost sariți (aveau deja un abonament)` : ''}.`
+            );
+            onSaved();
+            onClose(); // component unmounts — no further state updates after this
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <Modal
+            isOpen={true}
+            onClose={onClose}
+            title="Creează Abonamente"
+        >
+            <div className="space-y-3">
+                <p className="text-sm text-slate-400">
+                    Sportivii participanți fără abonament setat vor primi tipul ales.
+                    Cei cu abonament existent sunt sariti automat.
+                </p>
+
+                <div className="max-h-64 overflow-y-auto rounded border border-slate-700">
+                    {tipuriAbonament.length === 0 ? (
+                        <p className="text-center text-sm text-slate-500 py-6">
+                            Niciun tip de abonament definit pentru acest club.
+                        </p>
+                    ) : (
+                        tipuriAbonament.map(tip => {
+                            const isSelected = tipAles === tip.id;
+                            return (
+                                <div
+                                    key={tip.id}
+                                    onClick={() => setTipAles(tip.id)}
+                                    className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors select-none ${
+                                        isSelected
+                                            ? 'bg-blue-900/40 text-blue-200'
+                                            : 'hover:bg-slate-700/50 text-slate-300'
+                                    }`}
+                                >
+                                    <div className={`h-4 w-4 rounded-full border flex-shrink-0 flex items-center justify-center ${
+                                        isSelected ? 'bg-blue-500 border-blue-500' : 'border-slate-500'
+                                    }`}>
+                                        {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                                    </div>
+                                    <span className="text-sm">{tip.denumire}</span>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+                <Button variant="secondary" onClick={onClose} disabled={isSaving}>
+                    Anulează
+                </Button>
+                <Button
+                    variant="primary"
+                    onClick={handleCreeaza}
+                    isLoading={isSaving}
+                    disabled={!tipAles}
+                >
+                    Creează
+                </Button>
+            </div>
+        </Modal>
+    );
+};
+
 // ─── View Principal ───────────────────────────────────────────────────────────
 
 export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack }) => {
@@ -266,6 +401,7 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
     const [isDeleting, setIsDeleting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [adaugaParticipantiPerioadaId, setAdaugaParticipantiPerioadaId] = useState<string | null>(null);
+    const [creeazaAbonamentePerioadaId, setCreeazaAbonamentePerioadaId] = useState<string | null>(null);
 
     // Fetch perioade pentru clubul activ
     const fetchPerioade = useCallback(async () => {
@@ -288,7 +424,7 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
         setLoadingParticipari(prev => ({ ...prev, [perioadaId]: true }));
         const { data, error } = await supabase
             .from('participare_vacanta')
-            .select('*, sportivi(id, nume, prenume, grad_actual_id, status)')
+            .select('*, sportivi(id, nume, prenume, grad_actual_id, status, tip_abonament_id)')
             .eq('perioada_id', perioadaId);
         if (error) {
             showError('Eroare la încărcarea participanților', error);
@@ -508,9 +644,17 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
                                                     const numeSportiv = s
                                                         ? `${s.prenume} ${s.nume}`
                                                         : lp.sportiv_id;
+                                                    const abonamentCreat = lp.abonament_procesat && !lp.abonament_revertit;
                                                     return (
                                                         <li key={lp.id} className="flex items-center justify-between gap-2 py-1">
-                                                            <span className="text-sm text-slate-300">{numeSportiv}</span>
+                                                            <span className="text-sm text-slate-300 flex items-center gap-2">
+                                                                {numeSportiv}
+                                                                {abonamentCreat && (
+                                                                    <span className="inline-flex items-center rounded-full bg-emerald-900/40 px-2 py-0.5 text-xs text-emerald-300">
+                                                                        abonament creat
+                                                                    </span>
+                                                                )}
+                                                            </span>
                                                             {isAdmin && (
                                                                 <button
                                                                     type="button"
@@ -528,14 +672,25 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
                                         )}
 
                                         {isAdmin && (
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                onClick={() => setAdaugaParticipantiPerioadaId(p.id)}
-                                                leftIcon={<PlusIcon className="h-4 w-4" />}
-                                            >
-                                                Adaugă Participanți
-                                            </Button>
+                                            <div className="flex flex-wrap gap-2">
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={() => setAdaugaParticipantiPerioadaId(p.id)}
+                                                    leftIcon={<PlusIcon className="h-4 w-4" />}
+                                                >
+                                                    Adaugă Participanți
+                                                </Button>
+                                                {listaParticipanti.length > 0 && (
+                                                    <Button
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        onClick={() => setCreeazaAbonamentePerioadaId(p.id)}
+                                                    >
+                                                        Creează abonamente
+                                                    </Button>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -563,6 +718,17 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
                     existingIds={new Set((participari[adaugaParticipantiPerioadaId] ?? []).map(lp => lp.sportiv_id))}
                     onClose={() => setAdaugaParticipantiPerioadaId(null)}
                     onSaved={() => fetchParticipanti(adaugaParticipantiPerioadaId)}
+                />
+            )}
+
+            {/* Modal Creează Abonamente */}
+            {creeazaAbonamentePerioadaId && clubId && (
+                <CreeazaAbonamenteModal
+                    perioadaId={creeazaAbonamentePerioadaId}
+                    clubId={clubId}
+                    participanti={participari[creeazaAbonamentePerioadaId] ?? []}
+                    onClose={() => setCreeazaAbonamentePerioadaId(null)}
+                    onSaved={() => fetchParticipanti(creeazaAbonamentePerioadaId)}
                 />
             )}
 

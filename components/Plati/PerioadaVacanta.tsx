@@ -403,6 +403,55 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
     const [adaugaParticipantiPerioadaId, setAdaugaParticipantiPerioadaId] = useState<string | null>(null);
     const [creeazaAbonamentePerioadaId, setCreeazaAbonamentePerioadaId] = useState<string | null>(null);
 
+    // Revert automat abonament la încheierea perioadei — best-effort, fara reprocesare
+    // (abonament_revertit=true marcheaza participantul ca deja procesat la urmatorul load)
+    const revertAbonamenteExpirate = useCallback(async (perioadeCurente: PerioadaVacanta[]) => {
+        if (!clubId) return;
+        const azi = new Date().toISOString().slice(0, 10);
+        const perioadeExpirate = perioadeCurente.filter(p => p.data_end < azi);
+        if (perioadeExpirate.length === 0) return;
+
+        for (const perioada of perioadeExpirate) {
+            const { data: participantiPerioada, error: errFetch } = await supabase
+                .from('participare_vacanta')
+                .select('id, sportiv_id, tip_abonament_anterior_id, abonament_procesat, abonament_revertit')
+                .eq('perioada_id', perioada.id);
+            if (errFetch) {
+                showError('Eroare la verificare revert abonamente', errFetch);
+                continue;
+            }
+
+            const deRevertit = (participantiPerioada ?? []).filter(
+                p => p.abonament_procesat === true && p.abonament_revertit !== true
+            );
+            if (deRevertit.length === 0) continue;
+
+            for (const participant of deRevertit) {
+                const { error: errSportiv } = await supabase
+                    .from('sportivi')
+                    .update({ tip_abonament_id: participant.tip_abonament_anterior_id ?? null })
+                    .eq('id', participant.sportiv_id)
+                    .eq('club_id', clubId);
+                if (errSportiv) {
+                    showError('Eroare la revert abonament sportiv', errSportiv);
+                    continue;
+                }
+                const { error: errParticipare } = await supabase
+                    .from('participare_vacanta')
+                    .update({ abonament_revertit: true })
+                    .eq('id', participant.id);
+                if (errParticipare) {
+                    showError('Eroare la marcare revert participant', errParticipare);
+                }
+            }
+
+            // reface participantii perioadei expandate ca badge-urile sa dispara
+            if (expandedId === perioada.id) {
+                fetchParticipanti(perioada.id);
+            }
+        }
+    }, [clubId, expandedId, showError]);
+
     // Fetch perioade pentru clubul activ
     const fetchPerioade = useCallback(async () => {
         if (!clubId) return;
@@ -412,8 +461,12 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
             .select('*')
             .eq('club_id', clubId)
             .order('data_start', { ascending: false });
-        if (error) showError('Eroare la încărcare', error);
-        else setPerioade(data ?? []);
+        if (error) {
+            showError('Eroare la încărcare', error);
+        } else {
+            setPerioade(data ?? []);
+            revertAbonamenteExpirate(data ?? []);
+        }
         setLoading(false);
     }, [clubId]);
 

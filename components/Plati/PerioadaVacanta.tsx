@@ -272,16 +272,9 @@ const CreeazaAbonamenteModal: React.FC<CreeazaAbonamenteModalProps> = ({
         setIsSaving(true);
         try {
             let creati = 0;
-            let sariti = 0;
             for (const participant of participanti) {
                 const sportivId = participant.sportiv_id;
-                const tipCurent = participant.sportivi?.tip_abonament_id ?? null;
-
-                if (tipCurent) {
-                    // are deja tip de abonament — nu suprascriem
-                    sariti += 1;
-                    continue;
-                }
+                const tipAnterior = participant.sportivi?.tip_abonament_id ?? null;
 
                 const { error: errSportiv } = await supabase
                     .from('sportivi')
@@ -296,7 +289,7 @@ const CreeazaAbonamenteModal: React.FC<CreeazaAbonamenteModalProps> = ({
                 const { error: errParticipare } = await supabase
                     .from('participare_vacanta')
                     .update({
-                        tip_abonament_anterior_id: null,
+                        tip_abonament_anterior_id: tipAnterior,
                         abonament_procesat: true,
                         abonament_revertit: false,
                     })
@@ -309,7 +302,7 @@ const CreeazaAbonamenteModal: React.FC<CreeazaAbonamenteModalProps> = ({
             }
             showSuccess(
                 'Abonamente create',
-                `${creati} sportivi au primit abonamentul${sariti > 0 ? `, ${sariti} au fost sariți (aveau deja un abonament)` : ''}.`
+                `${creati} sportivi din perioada de vacanță au primit abonamentul (abonamentul anterior va fi restaurat automat la încheierea perioadei).`
             );
             onSaved();
             onClose(); // component unmounts — no further state updates after this
@@ -326,8 +319,8 @@ const CreeazaAbonamenteModal: React.FC<CreeazaAbonamenteModalProps> = ({
         >
             <div className="space-y-3">
                 <p className="text-sm text-slate-400">
-                    Sportivii participanți fără abonament setat vor primi tipul ales.
-                    Cei cu abonament existent sunt sariti automat.
+                    Toți sportivii din această perioadă de vacanță vor primi tipul de abonament ales.
+                    Abonamentul lor actual este reținut și restaurat automat la încheierea perioadei.
                 </p>
 
                 <div className="max-h-64 overflow-y-auto rounded border border-slate-700">

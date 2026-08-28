@@ -111,3 +111,9 @@ None - nicio configurare de serviciu extern necesara.
 ---
 *Phase: 25-audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha*
 *Completed: 2026-08-28*
+
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/25-audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha/25-AUDIT-FRONTEND.md`
+- FOUND: commit `b2a13eb` (Task 1)
+- FOUND: commit `6d390fe` (Task 2)

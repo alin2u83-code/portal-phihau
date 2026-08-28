@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Grupa as GrupaType, ProgramItem, User, Club, Sportiv, Locatie } from '../../types';
-import { Button, Modal, Input, Select, Card, CalendarQuickLink } from '../ui';
+import { Button, Modal, Input, Select, CalendarQuickLink, EmptyState } from '../ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon, UsersIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -276,9 +276,13 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                             ))}
                         </div>
                     ) : (
-                        <Card className="text-center p-12">
-                            <p className="text-slate-400 italic">Nicio grupă definită pentru acest club.</p>
-                        </Card>
+                        <EmptyState
+                            icon={<UsersIcon className="w-10 h-10 text-[var(--t-text-muted)]" />}
+                            title="Nicio grupă creată încă"
+                            description="Grupele organizează sportivii pe zile și ore de antrenament, iar prezența se ia pe grupă. Creează prima grupă pentru a începe."
+                            actionLabel="Adaugă Grupă"
+                            onAction={handleOpenAdd}
+                        />
                     )}
                 </>
             )}

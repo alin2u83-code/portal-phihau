@@ -1,14 +1,18 @@
 ﻿import React from 'react';
 import { Grupa } from '../../types';
-import { Button, Card } from '../ui';
+import { Button, Card, EmptyState } from '../ui';
 import { CalendarDaysIcon, UsersIcon, CogIcon } from '../icons';
+import { useNavigation } from '../../contexts/NavigationContext';
 
-export const GrupeList: React.FC<{ 
-    onSelect: (id: string) => void; 
-    onSelectToday: (id: string) => void; 
-    onGlobalHistory: () => void; 
-    grupe: (Grupa & {sportivi_count: {count: number}[]})[] 
-}> = ({ onSelect, onSelectToday, onGlobalHistory, grupe }) => (
+export const GrupeList: React.FC<{
+    onSelect: (id: string) => void;
+    onSelectToday: (id: string) => void;
+    onGlobalHistory: () => void;
+    grupe: (Grupa & {sportivi_count: {count: number}[]})[]
+}> = ({ onSelect, onSelectToday, onGlobalHistory, grupe }) => {
+    const { navigateTo } = useNavigation();
+
+    return (
     <div className="space-y-4 md:space-y-8 animate-fade-in">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
@@ -21,6 +25,15 @@ export const GrupeList: React.FC<{
             </Button>
         </div>
 
+        {grupe.length === 0 ? (
+            <EmptyState
+                icon={<UsersIcon className="w-10 h-10 text-[var(--t-text-muted)]" />}
+                title="Nicio grupă disponibilă"
+                description="Prezența se ia pe grupe. Trebuie creată întâi o grupă în modulul Grupe & Orar înainte de a putea marca prezența sportivilor."
+                actionLabel="Creează prima grupă"
+                onAction={() => navigateTo('grupe')}
+            />
+        ) : (
         <div data-tour="prezenta-grupa" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
             {grupe.map(g => (
                 <Card key={g.id} className="group relative flex flex-col overflow-hidden border-none shadow-xl hover:shadow-2xl transition-all duration-300 bg-slate-900/40 backdrop-blur-sm">
@@ -74,6 +87,8 @@ export const GrupeList: React.FC<{
                 </Card>
             ))}
         </div>
+        )}
     </div>
-);
+    );
+};
 

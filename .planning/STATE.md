@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Phase 25 context gathered
-last_updated: "2026-08-28T15:07:40.729Z"
-last_activity: "2026-07-17 - Completed quick task 260717-f99: Creare in masa abonament vacanta + revert automat"
+stopped_at: Completed 25-01-PLAN.md
+last_updated: "2026-08-28T16:28:00.351Z"
+last_activity: 2026-08-28 -- Phase 25 execution started
 progress:
   total_phases: 18
   completed_phases: 6
-  total_plans: 24
-  completed_plans: 20
+  total_plans: 28
+  completed_plans: 21
   percent: 33
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 16 — elimina-politici-rls-using-true-ramase-rezultate-facturi-fed
+**Current focus:** Phase 25 — audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha
 
 ## Current Position
 
-Phase: 16 — COMPLETE
-Plan: 1 of 1
+Phase: 25 (audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-07-17 - Completed quick task 260717-f99: Creare in masa abonament vacanta + revert automat
+Last activity: 2026-08-28 -- Phase 25 execution started
 
 ```
 Progress: [████████░░] 83% (5/6 phases)
@@ -54,6 +54,7 @@ Progress: [████████░░] 83% (5/6 phases)
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 25 P01 | 70min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Migratie SQL deduplicare (find_similar_sportivi + merge_sportivi: include inactivi, delete efectiv, guard acces club) scrisa dar NEaplicata live - user trebuie sa o aplice manual
 - [260708-h7k]: unificare matching sportivi (Jaccard ImportExamenModal vs Levenshtein engine comun) amanata deliberat — risc financiar/identitate, necesita test regresie pe CSV istorice reale inainte de swap (relevant pt Phase 24)
 - [Phase ?]: 260717-f99: creare/skip abonament vacanta per participant + revert automat la incheiere perioada; coloane noi participare_vacanta (SQL scrisa, NEaplicata live)
+- [Phase ?]: Faza 25: evenimente NU foloseste get_my_club_ids() (deja migrata 2026-03-10), migratia originala pentru grupe/evenimente s-a redus doar la grupe
+- [Phase ?]: Faza 25: gap real de tampering gasit pe rbv_plati_insert/update/delete (WRITE fara scoping de club) - reparat in migratia scrisa in 25-01
+- [Phase ?]: Faza 25: risc rezidual loggat NEATINS - posibile politici RLS duplicate pe prezenta_antrenament (rbv_prezenta_* vs politici vechi 20260305), necesita audit separat
 
 ### Pending Todos
 
@@ -143,6 +147,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-08-28T13:31:33.815Z
-Stopped at: Phase 25 context gathered
-Resume file: .planning/phases/25-audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha/25-CONTEXT.md
+Last session: 2026-08-28T16:28:00.332Z
+Stopped at: Completed 25-01-PLAN.md
+Resume file: None

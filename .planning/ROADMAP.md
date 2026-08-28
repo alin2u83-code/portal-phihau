@@ -302,13 +302,13 @@ Plans:
 **Goal:** Grupe, Prezenta si Abonamente sunt izolate real per club (RLS scopat pe contextul activ, fail-closed pe randuri orfane), codul deriva clubul din contextul activ, iar un club nou fara date primeste empty-state cu CTA in loc de ecran gol.
 **Requirements**: MCLB-01, MCLB-02, MCLB-03, MCLB-04, MCLB-05, MCLB-06, MCLB-07, MCLB-08
 **Depends on:** Nothing (PRIORITATE URGENTA — se executa inaintea fazelor 18-24, vezi STATE.md)
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 Plans:
 **Wave 1**
 
 - [x] 25-01-PLAN.md — Audit live (pg_policies + date reale), raspuns la cele 3 Open Questions, scrierea migratiei RLS (wave 1)
 - [x] 25-02-PLAN.md — Componenta EmptyState in ui.tsx + aplicare pe Grupe, Prezenta si Tipuri Abonament (wave 1)
-- [ ] 25-03-PLAN.md — Audit + fix derivare club din contextul activ in Prezenta, GrupaFormModal, PlatiScadente (wave 1)
+- [x] 25-03-PLAN.md — Audit + fix derivare club din contextul activ in Prezenta, GrupaFormModal, PlatiScadente (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

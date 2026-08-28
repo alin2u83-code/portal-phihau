@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 25-01-PLAN.md
-last_updated: "2026-08-28T16:28:00.351Z"
+stopped_at: Completed 25-02-PLAN.md
+last_updated: "2026-08-28T16:41:50.924Z"
 last_activity: 2026-08-28 -- Phase 25 execution started
 progress:
   total_phases: 18
   completed_phases: 6
   total_plans: 28
-  completed_plans: 21
+  completed_plans: 22
   percent: 33
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 25 (audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-08-28 -- Phase 25 execution started
 
@@ -55,6 +55,7 @@ Progress: [████████░░] 83% (5/6 phases)
 
 *Updated after each plan completion*
 | Phase 25 P01 | 70min | 3 tasks | 3 files |
+| Phase 25 P02 | 7min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Faza 25: evenimente NU foloseste get_my_club_ids() (deja migrata 2026-03-10), migratia originala pentru grupe/evenimente s-a redus doar la grupe
 - [Phase ?]: Faza 25: gap real de tampering gasit pe rbv_plati_insert/update/delete (WRITE fara scoping de club) - reparat in migratia scrisa in 25-01
 - [Phase ?]: Faza 25: risc rezidual loggat NEATINS - posibile politici RLS duplicate pe prezenta_antrenament (rbv_prezenta_* vs politici vechi 20260305), necesita audit separat
+- [Phase ?]: [Phase 25-02]: EmptyState (componenta noua in ui.tsx) inlocuieste fallback-urile text italic din Grupe/Prezenta-GrupeList/TipuriAbonament — buton actiune randat doar cand actionLabel+onAction sunt ambele definite
 
 ### Pending Todos
 
@@ -147,6 +149,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-08-28T16:28:00.332Z
-Stopped at: Completed 25-01-PLAN.md
+Last session: 2026-08-28T16:41:50.900Z
+Stopped at: Completed 25-02-PLAN.md
 Resume file: None

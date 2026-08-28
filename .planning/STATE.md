@@ -90,6 +90,7 @@ Recent decisions affecting current work:
 ### Pending Todos
 
 - [2026-07-11-investigheaza-hang-loading-fetchallpages-istoric-grade.md](todos/pending/2026-07-11-investigheaza-hang-loading-fetchallpages-istoric-grade.md) — hang loading app, query fetchAllPages vedere_istoric_grade_sportiv pending indefinit prin PostgREST (rapid direct pe DB)
+- [2026-08-28-audit-politici-rls-fantoma-pe-tabele-in-afara-fazei-25.md](todos/pending/2026-08-28-audit-politici-rls-fantoma-pe-tabele-in-afara-fazei-25.md) — politici RLS fantoma (aplicate direct pe DB, niciodata comise) gasite si pe tranzactii/grade/istoric_grade/eveniment/reduceri/cluburi, in afara scope-ului Fazei 25 — audit + fix urmator
 
 ### Quick Tasks Completed
 

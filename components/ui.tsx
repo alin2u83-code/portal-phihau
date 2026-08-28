@@ -287,6 +287,26 @@ export const Card: React.FC<CardProps> = ({ children, className, ...props }) => 
   </div>
 );
 
+interface EmptyStateProps {
+  icon?: ReactNode;
+  title: string;
+  description?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  className?: string;
+}
+
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, actionLabel, onAction, className }) => (
+  <Card className={`flex flex-col items-center justify-center text-center py-12 px-6 gap-3 ${className ?? ''}`}>
+    {icon}
+    <p className="text-[var(--t-text)] font-semibold text-base">{title}</p>
+    {description && <p className="text-[var(--t-text-muted)] text-sm max-w-sm">{description}</p>}
+    {actionLabel && onAction && (
+      <Button variant="info" onClick={onAction} className="mt-2">{actionLabel}</Button>
+    )}
+  </Card>
+);
+
 interface StatCardProps {
   label: string;
   value: React.ReactNode;

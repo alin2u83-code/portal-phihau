@@ -71,7 +71,7 @@ const PrezenteFacturaRow: React.FC<{
 const initialFilters = { sportiv: '', tip: '', status: '', clubId: '' };
 
 export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultiple, onBack, onViewSportiv, permissions }) => {
-    const { filteredData, setPlati, currentUser, clubs, grade } = useData();
+    const { filteredData, setPlati, currentUser, clubs, grade, activeRoleContext } = useData();
     const plati = filteredData.plati;
     const sportivi = filteredData.sportivi;
     const familii = filteredData.familii;
@@ -131,7 +131,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 throw new Error("Adminii de federație nu pot genera abonamente la nivel de club. Această acțiune aparține adminului de club.");
             }
 
-            const clubId = currentUser?.club_id;
+            const clubId = activeRoleContext?.club_id ?? currentUser?.club_id;
             if (!clubId) {
                 throw new Error("Nu este asociat niciun club contului tău. Contactează un super admin.");
             }

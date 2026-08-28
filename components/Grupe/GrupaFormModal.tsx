@@ -78,7 +78,10 @@ export const GrupaFormModal: React.FC<{
     clubs: Club[];
     locatii: Locatie[];
     onLocatieAdded?: (locatie: Locatie) => void;
-}> = ({ isOpen, onClose, onSave, grupaToEdit, currentUser, clubs, locatii, onLocatieAdded }) => {
+    /** Clubul contextului activ (activeRoleContext.club_id) — sursa primara pentru clubul implicit al unei grupe noi.
+     * Optional pentru compatibilitate: cand lipseste, comportamentul e identic cu inainte (fallback pe currentUser.club_id). */
+    activeClubId?: string | null;
+}> = ({ isOpen, onClose, onSave, grupaToEdit, currentUser, clubs, locatii, onLocatieAdded, activeClubId }) => {
     const [formState, setFormState] = useState({ denumire: '', sala: '', club_id: '', locatie_id: '' });
     const [program, setProgram] = useState<ProgramItem[]>([]);
     const [loading, setLoading] = useState(false);
@@ -97,20 +100,20 @@ export const GrupaFormModal: React.FC<{
             setFormState({
                 denumire: grupaToEdit?.denumire || '',
                 sala: grupaToEdit?.sala || '',
-                club_id: grupaToEdit?.club_id || (isFederationAdmin ? '' : currentUser.club_id || ''),
+                club_id: grupaToEdit?.club_id || (isFederationAdmin ? '' : (activeClubId ?? currentUser.club_id ?? '')),
                 locatie_id: (grupaToEdit as any)?.locatie_id || ''
             });
             setProgram(grupaToEdit?.program || []);
             setShowAddLocatie(false);
         }
-    }, [isOpen, grupaToEdit, currentUser, isFederationAdmin]);
+    }, [isOpen, grupaToEdit, currentUser, isFederationAdmin, activeClubId]);
 
     // Filtrăm locațiile pe baza club_id-ului selectat curent
     const locatiiFiltrate = useMemo(() => {
-        const clubId = formState.club_id || currentUser.club_id;
+        const clubId = formState.club_id || activeClubId || currentUser.club_id;
         if (!clubId) return localLocatii; // federation admin fără club selectat — arată toate
         return localLocatii.filter(l => !l.club_id || l.club_id === clubId);
-    }, [localLocatii, formState.club_id, currentUser.club_id]);
+    }, [localLocatii, formState.club_id, activeClubId, currentUser.club_id]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -177,7 +180,7 @@ export const GrupaFormModal: React.FC<{
                     )}
                     {showAddLocatie && (
                         <AddLocatieInline
-                            clubId={formState.club_id || currentUser.club_id || null}
+                            clubId={formState.club_id || activeClubId || currentUser.club_id || null}
                             onAdded={handleLocatieAdded}
                             onCancel={() => setShowAddLocatie(false)}
                         />

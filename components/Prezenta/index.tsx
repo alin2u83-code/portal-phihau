@@ -201,16 +201,19 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
         return () => document.removeEventListener('mousedown', handler);
     }, [showAddMenu]);
 
+    // Sursa unica pentru clubul activ, refolosita la fetch grupe + prop-urile clubId ale copiilor
+    const activeClubId = useMemo(() => {
+        const activeRole = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
+        const isFederationLevel = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'ADMIN';
+        return isFederationLevel ? null : (activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
+    }, [activeRoleContext, currentUser?.club_id]);
+
     useEffect(() => {
         const fetchGrupe = async () => {
             setLoading(true);
-            const activeRole = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
-            const isFederationLevel = activeRole === 'SUPER_ADMIN_FEDERATIE' || activeRole === 'ADMIN';
-            const clubId = isFederationLevel ? null : (activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
-
             let query = supabase.from('grupe').select('*, program:orar_saptamanal(*), sportivi_count:sportivi!grupa_id(count)');
-            if (clubId) {
-                query = query.eq('club_id', clubId);
+            if (activeClubId) {
+                query = query.eq('club_id', activeClubId);
             }
             const { data, error } = await query;
             if (error) showError("Eroare la încărcarea grupelor", error.message);
@@ -218,7 +221,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
             setLoading(false);
         };
         fetchGrupe();
-    }, [showError, activeRoleContext, currentUser?.club_id]);
+    }, [showError, activeClubId]);
 
     const switchTab = (tab: Tab) => {
         setActiveTab(tab);
@@ -285,7 +288,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
             case 'azi':
                 return (
                     <DashboardPrezentaAzi
-                        clubId={currentUser.club_id}
+                        clubId={activeClubId}
                         onSelectAntrenament={handleSelectAntrenament}
                         onMassGenerator={() => navigateTo('generator', null)}
                     />
@@ -356,7 +359,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                     </div>
                 );
             case 'generator':
-                return <GeneratorProgramMasiv onBack={navigateBack} clubId={currentUser.club_id} onNavigateToGrupe={() => switchTab('grupe')} />;
+                return <GeneratorProgramMasiv onBack={navigateBack} clubId={activeClubId} onNavigateToGrupe={() => switchTab('grupe')} />;
             default:
                 return null;
         }

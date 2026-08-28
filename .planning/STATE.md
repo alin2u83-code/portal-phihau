@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: completed
-stopped_at: Phase 17 context gathered
-last_updated: "2026-07-17T08:22:28.945Z"
+stopped_at: Phase 25 context gathered
+last_updated: "2026-08-28T13:31:33.824Z"
 last_activity: "2026-07-17 - Completed quick task 260717-f99: Creare in masa abonament vacanta + revert automat"
 progress:
-  total_phases: 16
+  total_phases: 18
   completed_phases: 6
   total_plans: 24
   completed_plans: 20
-  percent: 38
+  percent: 33
 ---
 
 # Project State
@@ -143,6 +143,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-07-17T08:21:50.343Z
-Stopped at: Phase 17 context gathered
-Resume file: .planning/phases/17-verifica-aplicare-live-migratie-deduplicare-sportivi-si-deci/17-CONTEXT.md
+Last session: 2026-08-28T13:31:33.815Z
+Stopped at: Phase 25 context gathered
+Resume file: .planning/phases/25-audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha/25-CONTEXT.md

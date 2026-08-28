@@ -35,6 +35,17 @@
 - [ ] **SEC-04**: `public.knowledge_base` — SELECT ramane deschis tuturor utilizatorilor autentificati (continut de ajutor partajat, sensibilitate mica), dar INSERT/UPDATE/DELETE sunt restrictionate la `public.is_super_admin()` (previne vandalizarea/alterarea bazei de cunostinte AI de catre orice utilizator autentificat)
 - [ ] **SEC-05**: `public.fisa_inscriere` — izolare cross-club pe date GDPR medicale/familiale; politica `Club_Admin_Examen_Access` (anterior doar verificare de rol ADMIN_CLUB, fara scoping de club) restrictioneaza randurile la sportivii propriului club activ (`practicant_id -> sportivi.club_id = public.get_active_club_id()`); exceptia super-admin ramane prin politica `Bypass_Super_Admin`
 
+### Multi-club (Faza 25 — hardening RLS Grupe/Prezenta/Abonamente)
+
+- [x] **MCLB-01**: `perioade_vacanta`, `participare_vacanta`, `tipuri_abonament` — elimina `USING (true)` pe SELECT si adauga scoping de club pe WRITE
+- [x] **MCLB-02**: `grupe` + `evenimente` — migrate de pe `get_my_club_ids()` (non context-aware) pe helperele context-aware (`has_access_to_club`)
+- [x] **MCLB-03**: `program_antrenamente` — fail-closed pe randurile orfane + backfill din `grupa_id` daca e recuperabil
+- [x] **MCLB-04**: `plati` / `rbv_plati_*` + `orar_exceptii` — predicat verificat live, reparat (gap real gasit pe WRITE, fara scoping de club)
+- [x] **MCLB-05**: `sesiune_activitate` — coloana `club_id` reala + backfill + RLS scopat
+- [x] **MCLB-06**: Zero derivari de club din profil in locul contextului activ, in Grupe / Prezenta / Abonamente
+- [x] **MCLB-07**: Empty-state cu mesaj + CTA pe ecranele principale Grupe / Prezenta / TipuriAbonament pentru club fara date
+- [x] **MCLB-08**: Aplicare live + dovada de izolare cross-club (SQL + test automat + UI) pe date reale din 2 cluburi
+
 ## Future Requirements (deferred)
 
 - Dashboard federație cu agregate multi-club (SUPER_ADMIN) — v2.0
@@ -71,3 +82,11 @@
 | SEC-03 | Phase 16 | 16-01-PLAN.md |
 | SEC-04 | Phase 16 | 16-01-PLAN.md |
 | SEC-05 | Phase 16 | 16-01-PLAN.md |
+| MCLB-01 | Phase 25 | 25-01-PLAN.md, 25-04-PLAN.md |
+| MCLB-02 | Phase 25 | 25-01-PLAN.md, 25-04-PLAN.md |
+| MCLB-03 | Phase 25 | 25-01-PLAN.md, 25-04-PLAN.md |
+| MCLB-04 | Phase 25 | 25-01-PLAN.md, 25-04-PLAN.md |
+| MCLB-05 | Phase 25 | 25-01-PLAN.md, 25-04-PLAN.md |
+| MCLB-06 | Phase 25 | 25-03-PLAN.md |
+| MCLB-07 | Phase 25 | 25-02-PLAN.md |
+| MCLB-08 | Phase 25 | 25-04-PLAN.md |

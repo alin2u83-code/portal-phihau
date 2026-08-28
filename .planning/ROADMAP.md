@@ -302,7 +302,7 @@ Plans:
 **Goal:** Grupe, Prezenta si Abonamente sunt izolate real per club (RLS scopat pe contextul activ, fail-closed pe randuri orfane), codul deriva clubul din contextul activ, iar un club nou fara date primeste empty-state cu CTA in loc de ecran gol.
 **Requirements**: MCLB-01, MCLB-02, MCLB-03, MCLB-04, MCLB-05, MCLB-06, MCLB-07, MCLB-08
 **Depends on:** Nothing (PRIORITATE URGENTA — se executa inaintea fazelor 18-24, vezi STATE.md)
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans executed — COMPLETE
 Plans:
 **Wave 1**
 
@@ -312,7 +312,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 25-04-PLAN.md — [BLOCKING] Aplicare live via MCP apply_migration + test automat izolare cross-club + verificare UI (wave 2)
+- [x] 25-04-PLAN.md — [BLOCKING] Aplicare live via MCP apply_migration + test automat izolare cross-club + verificare UI (wave 2)
 
 ### Phase 26: Wizard onboarding club nou ghidat de SUPER_ADMIN (club + prim admin + rol intr-un singur flux)
 

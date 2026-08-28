@@ -4,7 +4,7 @@ milestone: v1.1
 milestone_name: milestone
 status: executing
 stopped_at: Completed 25-02-PLAN.md
-last_updated: "2026-08-28T16:41:50.924Z"
+last_updated: "2026-08-28T21:11:46.879Z"
 last_activity: 2026-08-28 -- Phase 25 execution started
 progress:
   total_phases: 18
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 25 (audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute
+Plan: 1 of 4
+Status: Executing Phase 25
 Last activity: 2026-08-28 -- Phase 25 execution started
 
 ```
@@ -82,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Faza 25: gap real de tampering gasit pe rbv_plati_insert/update/delete (WRITE fara scoping de club) - reparat in migratia scrisa in 25-01
 - [Phase ?]: Faza 25: risc rezidual loggat NEATINS - posibile politici RLS duplicate pe prezenta_antrenament (rbv_prezenta_* vs politici vechi 20260305), necesita audit separat
 - [Phase ?]: [Phase 25-02]: EmptyState (componenta noua in ui.tsx) inlocuieste fallback-urile text italic din Grupe/Prezenta-GrupeList/TipuriAbonament — buton actiune randat doar cand actionLabel+onAction sunt ambele definite
+- [Phase 25-04]: get_my_club_ids() si get_my_clubs() sunt deprecate de facto — zero call-site-uri ramase in pg_policies dupa migratia 20260828_fix_rls_izolare_cross_club_grupe_prezenta_abonamente_v2 (ultimul, "Staff - Full Access Grupe", inlocuit in Sectiunea 4); functiile raman definite in DB fara DROP FUNCTION (in afara scope-ului unei migratii de politici)
+- [Phase 25-04]: semantica tipuri_abonament.club_id IS NULL = fail-closed by default (D-02) — 0 din 5 randuri reale au club_id NULL azi; nu s-a inventat o ramura "nomenclator federal partajat" pentru date care nu exista; daca apare vreodata un rand orfan, va fi vizibil doar prin is_super_admin()
+- [Phase 25-04]: bug conex descoperit si fixat de orchestrator in timpul rularii testului automat 25-04 (in afara scope-ului planului) — trigger tr_automatizeaza_roluri pe utilizator_roluri_multicont NU avea SECURITY DEFINER (spre deosebire de celelalte trigger-uri de pe acelasi tabel), functia face JOIN pe auth.users si rula cu privilegiile apelantului -> "permission denied for table users" la orice INSERT in utilizator_roluri_multicont; fix aplicat live (CREATE OR REPLACE FUNCTION cu SECURITY DEFINER adaugat); acelasi cod path e folosit de services/authService.ts la inregistrare reala sportivi — risc real pentru inregistrarea self-service, prins inainte de sezonul nou
 
 ### Pending Todos
 

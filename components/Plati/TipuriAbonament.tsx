@@ -1,6 +1,6 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { TipAbonament, User, Club, Permissions } from '../../types';
-import { Button, Input, Card, Select, ConfirmModal } from '../ui';
+import { Button, Input, Card, Select, ConfirmModal, EmptyState } from '../ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -28,6 +28,12 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const { showError, showSuccess } = useError();
     const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
     const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
+
+    const denumireInputRef = useRef<HTMLInputElement>(null);
+    const focusNewAbonamentForm = () => {
+        denumireInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        denumireInputRef.current?.focus();
+    };
 
     const isMobile = useIsMobile();
     const isFederationAdmin = permissions?.isFederationAdmin ?? currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
@@ -130,7 +136,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                         </Select>
                     )}
                     <div className="md:col-span-2">
-                        <Input label="Denumire (ex: Individual, Familie 2)" value={newDenumire} onChange={e => setNewDenumire(e.target.value)} placeholder="Introduceți numele..."/>
+                        <Input ref={denumireInputRef} label="Denumire (ex: Individual, Familie 2)" value={newDenumire} onChange={e => setNewDenumire(e.target.value)} placeholder="Introduceți numele..."/>
                     </div>
                     <Input label="Preț (RON)" type="number" step="0.01" value={newPret} onChange={e => setNewPret(e.target.value)} />
                     <Input label="Nr. Membri" type="number" min="1" value={newNrMembri} onChange={e => setNewNrMembri(e.target.value)} />
@@ -186,7 +192,13 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                             </div>
                         ))}
                         {tipuriAbonament.length === 0 && (
-                            <div className="p-8 text-center text-slate-500 italic">Nu există tipuri de abonament definite.</div>
+                            <EmptyState
+                                icon={<PlusIcon className="w-10 h-10 text-[var(--t-text-muted)]" />}
+                                title="Niciun tip de abonament definit"
+                                description="Tipurile de abonament stabilesc tarifele lunare folosite la generarea automată a plăților."
+                                actionLabel="Adaugă Tip Abonament"
+                                onAction={focusNewAbonamentForm}
+                            />
                         )}
                     </div>
                 ) : (
@@ -231,7 +243,18 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                 ))}
                             </tbody>
                         </table>
-                        {tipuriAbonament.length === 0 && <div className="p-12 text-center text-[var(--t-text-muted)] italic bg-[var(--t-surface-2)]">Nu există tipuri de abonament definite. Folosiți formularul de mai sus pentru a începe.</div>}
+                        {tipuriAbonament.length === 0 && (
+                            <div className="bg-[var(--t-surface-2)]">
+                                <EmptyState
+                                    icon={<PlusIcon className="w-10 h-10 text-[var(--t-text-muted)]" />}
+                                    title="Niciun tip de abonament definit"
+                                    description="Tipurile de abonament stabilesc tarifele lunare folosite la generarea automată a plăților."
+                                    actionLabel="Adaugă Tip Abonament"
+                                    onAction={focusNewAbonamentForm}
+                                    className="border-none"
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
             </Card>

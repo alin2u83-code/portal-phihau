@@ -114,8 +114,12 @@ Recent decisions affecting current work:
 - Phase 22 added: Decizie React Query vs useDataProvider si unifica calcul sold financiar intr-un hook canonic
 - Phase 23 added: Sparge ManagementInscrieri.tsx (1694L) in module separate pe responsabilitate
 - Phase 24 added: Unifica cele 3 fisiere import Excel examene si migreaza type=date la DateInputDMY
+- Phase 25 added: Audit izolare cross-club Prezenta, Grupe si Abonamente (RLS, hardcodari, empty states club nou) — sezon nou, alte cluburi vor folosi sistemul
+- Phase 26 added: Wizard onboarding club nou ghidat de SUPER_ADMIN (club + prim admin + rol intr-un singur flux) — depinde de Phase 25
 
 Sursa: audit complet 2026-07-06 (vezi memory project_audit_complet_20260706.md). Ordine executie: 15→16→17 (securitate, urgent) apoi 18→19→20 (integritate date) apoi 21 (race conditions) apoi 22→23→24 (arhitectura, fara urgenta).
+
+**PRIORITATE URGENTA (cerinta 2026-08-28, sezon nou in cateva saptamani):** Phase 25 si 26 trebuie executate INAINTEA fazelor 18-24 (backlog arhitectural fara deadline). Ordine recomandata reala: 15→16→17 (deja complete/in curs) → **25→26** → 18→19→20→21→22→23→24.
 
 ### Blockers/Concerns
 

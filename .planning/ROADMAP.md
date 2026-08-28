@@ -297,6 +297,28 @@ Plans:
 
 - [ ] TBD (run /gsd-plan-phase 24 to break down)
 
+### Phase 25: Audit izolare cross-club Prezenta, Grupe si Abonamente (RLS, hardcodari, empty states club nou)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Nothing (PRIORITATE URGENTA — se executa inaintea fazelor 18-24, vezi STATE.md)
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 25 to break down)
+
+### Phase 26: Wizard onboarding club nou ghidat de SUPER_ADMIN (club + prim admin + rol intr-un singur flux)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 25
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 26 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

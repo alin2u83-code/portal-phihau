@@ -25,6 +25,7 @@ import {
     ClockIcon,
     TrendingUpIcon,
     MinusCircleIcon,
+    ExclamationTriangleIcon,
 } from './icons';
 import { useState } from 'react';
 // SparklesIcon kept for Prezență Rapidă hero card
@@ -96,6 +97,7 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
         'competitii': 'Competiții', 'stagii': 'Stagii Naționale',
         'activitati-nationale': 'Activități Naționale', 'financial-dashboard': 'Dashboard Financiar',
         'plati-scadente': 'Facturi & Plăți', 'gestiune-facturi': 'Gestiune Facturi',
+        'facturi-fara-prezenta': 'Facturi fără Prezență',
         'jurnal-incasari': 'Jurnal Încasări', 'raport-financiar': 'Raport Financiar',
         'taxe-anuale': 'Taxe Anuale', 'reduceri': 'Reduceri',
         'tipuri-abonament': 'Config. Abonamente', 'configurare-preturi': 'Configurare Prețuri',
@@ -204,6 +206,7 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
                         <ItemCard title="Dashboard Financiar" view="financial-dashboard" icon={TrendingUpIcon} onNavigate={nav} isFavorite={favorites.includes('financial-dashboard')} onToggleFavorite={toggleFavorite} />
                         <ItemCard title="Facturi & Plăți" view="plati-scadente" icon={WalletIcon} onNavigate={nav} isFavorite={favorites.includes('plati-scadente')} onToggleFavorite={toggleFavorite} />
                         <ItemCard title="Gestiune Facturi" view="gestiune-facturi" icon={FileTextIcon} onNavigate={nav} isFavorite={favorites.includes('gestiune-facturi')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Facturi fără Prezență" view="facturi-fara-prezenta" icon={ExclamationTriangleIcon} onNavigate={nav} isFavorite={favorites.includes('facturi-fara-prezenta')} onToggleFavorite={toggleFavorite} />
                         <ItemCard title="Jurnal Încasări" view="jurnal-incasari" icon={BanknotesIcon} onNavigate={nav} isFavorite={favorites.includes('jurnal-incasari')} onToggleFavorite={toggleFavorite} />
                         <ItemCard title="Raport Financiar" view="raport-financiar" icon={ChartBarIcon} onNavigate={nav} isFavorite={favorites.includes('raport-financiar')} onToggleFavorite={toggleFavorite} />
                         <ItemCard title="Taxe Anuale" view="taxe-anuale" icon={BanknotesIcon} onNavigate={nav} isFavorite={favorites.includes('taxe-anuale')} onToggleFavorite={toggleFavorite} />

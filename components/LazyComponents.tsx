@@ -32,6 +32,7 @@ export const PerioadaVacantaView = lazy(() =>
 export const GestionareNomenclatoare = lazy(() => import('./Grade/GestionareNomenclatoare').then(m => ({ default: m.GestionareNomenclatoare })));
 export const FinancialDashboard = lazy(() => import('./Plati/FinancialDashboard').then(m => ({ default: m.FinancialDashboard })));
 export const GestiuneFacturi = lazy(() => import('./Plati/GestiuneFacturi').then(m => ({ default: m.GestiuneFacturi })));
+export const FacturiFaraPrezenta = lazy(() => import('./Plati/FacturiFaraPrezenta').then(m => ({ default: m.FacturiFaraPrezenta })));
 export const IstoricPlati = lazy(() => import('./Plati/FacturiPersonale').then(m => ({ default: m.IstoricPlati })));
 export const CalendarView = lazy(() => import('./CalendarView').then(m => ({ default: m.CalendarView })));
 export const RapoarteExamen = lazy(() => import('./GestiuneExamene/RapoarteExamen').then(m => ({ default: m.RapoarteExamen })));

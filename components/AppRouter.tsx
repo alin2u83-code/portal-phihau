@@ -220,6 +220,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.FinancialDashboard onBack={handleBackToDashboard} plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} />, isAtLeastClubAdmin);
                             case 'gestiune-facturi':
                                 return renderProtected(<Lazy.GestiuneFacturi onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} setTranzactii={setTranzactii} tipuriPlati={tipuriPlati} familii={filteredData.familii} onViewSportiv={onViewSportiv} />, canManageFinances);
+                            case 'facturi-fara-prezenta':
+                                return renderProtected(<Lazy.FacturiFaraPrezenta onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, canManageFinances);
                             case 'deconturi-federatie':
                                 return renderProtected(<Lazy.FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} decontSportivi={decontSportivi} setDecontSportivi={setDecontSportivi} sportivi={filteredData.sportivi} currentUser={currentUser!} permissions={permissions} />, isAtLeastClubAdmin);
                             case 'plati-scadente':

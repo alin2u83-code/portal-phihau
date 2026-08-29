@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Sportiv, TipAbonament, Familie, VizualizarePlata, Plata, Tranzactie } from '../../types';
 import { Card, Button, Skeleton, Modal } from '../ui';
-import { UsersIcon, ExclamationTriangleIcon, CalendarDaysIcon, EditIcon, TrashIcon, BanknotesIcon, CheckCircleIcon, WalletIcon, ChevronDownIcon, ChevronUpIcon } from '../icons';
+import { UsersIcon, ExclamationTriangleIcon, CalendarDaysIcon, EditIcon, TrashIcon, BanknotesIcon, CheckCircleIcon, WalletIcon, ChevronDownIcon, ChevronUpIcon, XCircleIcon } from '../icons';
 import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
+import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare';
 import { formatLuna } from '../../utils/luniLipsa';
-import { esteDeIncasat } from '../../utils/paymentStatus';
+import { esteDeIncasat, esteAnulata } from '../../utils/paymentStatus';
 
 interface Incasare {
     data_plata: string;
@@ -31,6 +32,8 @@ interface FinanciarTabProps {
     plati: Plata[];
     setPlataToDelete: (plata: Plata | null) => void;
     tranzactii: Tranzactie[];
+    setPlataToAnula: (plata: Plata | null) => void;
+    onReactivare: (plata: Plata) => void;
 }
 
 /** PLF-01: Sub-component afișare prezențe în modalul de detalii factură.
@@ -88,6 +91,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const cfg =
         status === 'Achitat' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
         status === 'Achitat Parțial' ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' :
+        status === 'Anulat' ? 'bg-slate-700/20 text-slate-500 border-slate-600/50 line-through' :
         'bg-red-500/15 text-red-400 border-red-500/30';
     return (
         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg}`}>
@@ -100,6 +104,7 @@ const ProgressBar: React.FC<{ procent: number; status: string }> = ({ procent, s
     const color =
         status === 'Achitat' ? 'bg-emerald-500' :
         status === 'Achitat Parțial' ? 'bg-amber-500' :
+        status === 'Anulat' ? 'bg-slate-600' :
         'bg-red-500/40';
     return (
         <div className="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
@@ -115,9 +120,31 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
     totalRestante, tipuriAbonament, sportiv, sportivi, familii,
     vizualizarePlati, possibleViewError, istoricFacturi,
     setPlataToEdit, plati, setPlataToDelete, tranzactii,
+    setPlataToAnula, onReactivare,
 }) => {
     const [selectedFactura, setSelectedFactura] = useState<FacturaEntry | null>(null);
     const [filter, setFilter] = useState<'toate' | 'neachitate' | 'achitate'>('toate');
+
+    // Lunile facturilor de Abonament individuale din istoricFacturi — un singur
+    // usePrezenteLunare la nivelul componentei (nu per card, ar produce N interogări).
+    // VizualizarePlata nu poartă coloanele luna/an, deci căutăm plata originală în
+    // `plati` după plata_id și preferăm plata.luna/plata.an când există.
+    const luniAbonamenteFacturi = useMemo(() => {
+        const perechi = new Map<string, { luna: number; an: number }>();
+        istoricFacturi.forEach(({ detalii }) => {
+            if (detalii.familie_id) return; // doar facturi individuale
+            const plataOriginala = plati.find(pl => pl.id === detalii.plata_id);
+            if (!plataOriginala || plataOriginala.tip !== 'Abonament') return;
+            const dataStr = (detalii.data_emitere || '').toString().slice(0, 10);
+            const luna = plataOriginala.luna ?? (dataStr ? new Date(dataStr).getMonth() + 1 : null);
+            const an = plataOriginala.an ?? (dataStr ? new Date(dataStr).getFullYear() : null);
+            if (!luna || !an) return;
+            perechi.set(`${an}-${luna}`, { luna, an });
+        });
+        return Array.from(perechi.values());
+    }, [istoricFacturi, plati]);
+
+    const prezenteQuery = usePrezenteLunare(luniAbonamenteFacturi);
 
     const getTranzactie = (id: string | null) =>
         id ? tranzactii.find(t => t.id === id) ?? null : null;
@@ -248,6 +275,15 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                             const isFamilie = !!p.familie_id;
                             const familieName = getFamilieName(p.familie_id ?? null);
 
+                            const plataOriginala = plati.find(pl => pl.id === p.plata_id) || null;
+                            const esteAbonamentIndividual = !isFamilie && plataOriginala?.tip === 'Abonament';
+                            const dataStr = (p.data_emitere || '').toString().slice(0, 10);
+                            const lunaFactura = plataOriginala?.luna ?? (dataStr ? new Date(dataStr).getMonth() + 1 : null);
+                            const anFactura = plataOriginala?.an ?? (dataStr ? new Date(dataStr).getFullYear() : null);
+                            const faraPrezenta = esteAbonamentIndividual && !prezenteQuery.isLoading
+                                && !!lunaFactura && !!anFactura && !!p.sportiv_id
+                                && !prezenteQuery.data?.has(cheiePrezenta(p.sportiv_id, lunaFactura, anFactura));
+
                             return (
                                 <div
                                     key={p.plata_id}
@@ -276,6 +312,14 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                                                     <p className="text-sm font-bold text-white truncate leading-tight">
                                                         {p.descriere}
                                                     </p>
+                                                    {faraPrezenta && (
+                                                        <span
+                                                            className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-900/30 text-amber-400 border border-amber-700/40"
+                                                            title="Sportivul nu are nicio prezență înregistrată în luna facturii"
+                                                        >
+                                                            <ExclamationTriangleIcon className="w-3 h-3" /> 0 prezențe
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                             <StatusBadge status={p.status} />
@@ -316,6 +360,18 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                                             onClick={() => setPlataToEdit(plati.find(pl => pl.id === p.plata_id) || null)}>
                                             <EditIcon className="w-3.5 h-3.5 mr-1" /> Editează
                                         </Button>
+                                        {esteAbonamentIndividual && esteDeIncasat(p) && (
+                                            <Button size="sm" variant="secondary"
+                                                onClick={() => setPlataToAnula(plataOriginala)}>
+                                                <XCircleIcon className="w-3.5 h-3.5 mr-1" /> Anulează
+                                            </Button>
+                                        )}
+                                        {esteAbonamentIndividual && esteAnulata(p) && plataOriginala && (
+                                            <Button size="sm" variant="secondary"
+                                                onClick={() => onReactivare(plataOriginala)}>
+                                                <CheckCircleIcon className="w-3.5 h-3.5 mr-1" /> Reactivează
+                                            </Button>
+                                        )}
                                         {/* PLF-04: buton Șterge dezactivat pentru facturi Achitat */}
                                         {p.status === 'Achitat' ? (
                                             <span title="Facturile achitate nu pot fi șterse" className="cursor-not-allowed">

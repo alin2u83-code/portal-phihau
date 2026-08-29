@@ -6,6 +6,8 @@ import { calculeazaLuniLipsa } from '../utils/luniLipsa';
 import { useDataStartFacturare } from '../hooks/useDataStartFacturare';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { esteAnulata } from '../utils/paymentStatus';
+import { anuleazaFacturaAbonament, reactiveazaFacturaAbonament } from '../services/facturaService';
 import { SportivFormModal } from './Sportivi/SportivFormModal';
 import { SportivWallet } from './Sportivi/SportivWallet';
 import { DeleteAuditModal } from './Sportivi/DeleteAuditModal';
@@ -139,6 +141,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
 
     const [plataToEdit, setPlataToEdit] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
+    const [plataToAnula, setPlataToAnula] = useState<Plata | null>(null);
+    const [isAnuland, setIsAnuland] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isTogglingStatus, setIsTogglingStatus] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -245,6 +249,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         const facturiProcesate = Array.from(facturiMap.values());
         
         const restante = facturiProcesate.reduce((sum, f) => {
+            // O factură anulată nu mai reprezintă o datorie — nu intră în „Total de achitat”.
+            if (esteAnulata(f.detalii)) return sum;
             const ramasDePlata = (f.detalii.suma_datorata || 0) - f.totalIncasat;
             return sum + Math.max(0, ramasDePlata);
         }, 0);
@@ -542,6 +548,36 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             setVizualizarePlati(prev => prev.filter(v => v.plata_id !== id));
             setPlataToDelete(null);
             showSuccess("Succes", "Factura a fost ștearsă.");
+        }
+    };
+
+    const handleAnuleazaPlata = async (plataId: string) => {
+        setIsAnuland(true);
+        const { data, error } = await anuleazaFacturaAbonament(plataId);
+        setIsAnuland(false);
+        if (error) {
+            showError('Anulare eșuată', error.message);
+        } else if (data) {
+            setPlati(prev => prev.map(p => p.id === plataId ? data : p));
+            // istoricFacturi (folosit de FinanciarTab) e derivat din vizualizarePlati, nu din plati —
+            // fără actualizarea asta badge-ul/statusul nu s-ar reflecta imediat în UI (mismatch cu
+            // handleSavePlataEdit, care actualizează ambele state-uri identic).
+            setVizualizarePlati(prev => prev.map(v => v.plata_id === plataId ? { ...v, status: data.status } : v));
+            showSuccess('Succes', 'Factura a fost anulată.');
+        }
+        setPlataToAnula(null);
+    };
+
+    const handleReactiveazaPlata = async (plata: Plata) => {
+        setIsAnuland(true);
+        const { data, error } = await reactiveazaFacturaAbonament(plata.id);
+        setIsAnuland(false);
+        if (error) {
+            showError('Reactivare eșuată', error.message);
+        } else if (data) {
+            setPlati(prev => prev.map(p => p.id === plata.id ? data : p));
+            setVizualizarePlati(prev => prev.map(v => v.plata_id === plata.id ? { ...v, status: data.status } : v));
+            showSuccess('Succes', 'Factura a fost reactivată.');
         }
     };
 
@@ -862,6 +898,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         plati={plati}
                         setPlataToDelete={setPlataToDelete}
                         tranzactii={tranzactii}
+                        setPlataToAnula={setPlataToAnula}
+                        onReactivare={handleReactiveazaPlata}
                     />
                 )}
 
@@ -893,7 +931,28 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             {gradeEntryToEdit && <AddGradeModal isOpen={!!gradeEntryToEdit} onClose={() => setGradeEntryToEdit(null)} onSave={handleEditGrade} sportiv={sportiv} grades={grade} initialData={gradeEntryToEdit} />}
             {isCreateAccountModalOpen && <CreateAccountModal sportiv={sportiv} onClose={() => setIsCreateAccountModalOpen(false)} onAccountCreated={handleAccountCreated} currentUser={currentUser} allRoles={allRoles} />}
             <PlataEditModal plata={plataToEdit} onClose={() => setPlataToEdit(null)} onSave={handleSavePlataEdit} onSaveTranzactie={handleSaveTranzactieEdit} onMutaPlata={handleMutaPlata} isLoading={isSaving} tranzactii={tranzactii.filter(t => t.plata_ids?.includes(plataToEdit?.id ?? ''))} platiFamilie={plati.filter(p => (p.sportiv_id === sportiv.id || (sportiv.familie_id && p.familie_id === sportiv.familie_id)) && p.id !== plataToEdit?.id)} />
-            <ConfirmDeleteModal isOpen={!!plataToDelete} onClose={() => setPlataToDelete(null)} onConfirm={() => { if(plataToDelete) confirmDeletePlata(plataToDelete.id) }} tableName="Factură" isLoading={isDeleting} />
+            <ConfirmDeleteModal
+                isOpen={!!plataToDelete}
+                onClose={() => setPlataToDelete(null)}
+                onConfirm={() => { if(plataToDelete) confirmDeletePlata(plataToDelete.id) }}
+                tableName="Factură"
+                isLoading={isDeleting}
+                title="Ștergere definitivă"
+                confirmButtonText="Șterge definitiv"
+                confirmButtonVariant="danger"
+                customMessage="Rândul dispare complet din baza de date — această acțiune este ireversibilă. Alternativa recomandată este anularea (reversibilă)."
+            />
+            <ConfirmDeleteModal
+                isOpen={!!plataToAnula}
+                onClose={() => setPlataToAnula(null)}
+                onConfirm={() => { if (plataToAnula) handleAnuleazaPlata(plataToAnula.id); }}
+                tableName="Factură"
+                isLoading={isAnuland}
+                title="Anulează factura"
+                confirmButtonText="Anulează factura"
+                confirmButtonVariant="secondary"
+                customMessage="Factura rămâne în evidență (pentru audit), iese din toate sumele de încasat și poate fi reactivată oricând — acțiunea este reversibilă."
+            />
         </div>
     );
 };

@@ -9,7 +9,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../../constants';
 import { useData } from '../../contexts/DataContext';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat, esteAnulata } from '../../utils/paymentStatus';
 import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
 import { formatLuna } from '../../utils/luniLipsa';
 
@@ -111,6 +111,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
         });
 
         (plati || []).forEach(p => {
+            // O factură anulată nu mai reprezintă o datorie — nu are voie să reducă soldul.
+            if (esteAnulata(p)) return;
             if (p.familie_id) {
                 famBalances.set(p.familie_id, (famBalances.get(p.familie_id) || 0) - p.suma);
             } else if (p.sportiv_id) {
@@ -559,13 +561,16 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
-            setSelectedIds(new Set(platiCuDetalii.map(p => p.id)));
+            // Facturile anulate nu pot fi selectate pentru încasare.
+            setSelectedIds(new Set(platiCuDetalii.filter(p => !esteAnulata(p)).map(p => p.id)));
         } else {
             setSelectedIds(new Set());
         }
     };
 
     const handleSelectRow = (id: string) => {
+        const plata = platiCuDetalii.find(p => p.id === id);
+        if (plata && esteAnulata(plata)) return; // facturile anulate nu pot fi selectate pentru încasare
         const newSelection = new Set(selectedIds);
         if (newSelection.has(id)) {
             newSelection.delete(id);
@@ -710,7 +715,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                 return (
                                     <React.Fragment key={p.id}>
                                         <tr className={`${selectedIds.has(p.id) ? 'bg-brand-primary/20' : ''}`}>
-                                            <td className="p-3"><input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleSelectRow(p.id)} className="h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary" /></td>
+                                            <td className="p-3"><input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleSelectRow(p.id)} disabled={esteAnulata(p)} title={esteAnulata(p) ? 'Factură anulată — nu poate fi selectată pentru încasare' : undefined} className="h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary disabled:opacity-30 disabled:cursor-not-allowed" /></td>
                                             <td className="p-3">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
                                             <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" style={{ touchAction: 'manipulation' }} onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!) }}>{getEntityName(p)}</td>
                                             <td className="p-3">
@@ -743,7 +748,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                             <td className="p-3 text-center">{(() => { const ds = getDisplayStatus(p); const cfg = STATUS_DISPLAY_CONFIG[ds]; return <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.cls}`}>{cfg.label}</span>; })()}</td>
                                             <td className="p-3 text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    {p.status !== 'Achitat' && (
+                                                    {esteDeIncasat(p) && (
                                                         <Button size="sm" variant="success" onClick={() => {
                                                             setPlataForPayment(p);
                                                             setPaymentAmount(p.suma.toString());
@@ -808,7 +813,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                         type="checkbox"
                                         checked={selectedIds.has(p.id)}
                                         onChange={() => handleSelectRow(p.id)}
-                                        className="mt-1 h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary shrink-0"
+                                        disabled={esteAnulata(p)}
+                                        className="mt-1 h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
                                         onClick={e => e.stopPropagation()}
                                     />
                                     <div className="flex-1 min-w-0">
@@ -853,7 +859,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                 )}
                                             </div>
                                             <div className="flex gap-1.5">
-                                                {p.status !== 'Achitat' && (
+                                                {esteDeIncasat(p) && (
                                                     <Button size="sm" variant="success" onClick={() => { setPlataForPayment(p); setPaymentAmount(p.suma.toString()); }} title="Încasează">
                                                         <WalletIcon className="w-3.5 h-3.5" />
                                                     </Button>

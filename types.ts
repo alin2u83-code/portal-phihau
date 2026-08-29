@@ -160,7 +160,7 @@ export interface Plata {
   reducere_detalii?: string | null;
   suma: number;
   data: string;
-  status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
+  status: 'Achitat' | 'Neachitat' | 'Achitat Parțial' | 'Anulat';
   descriere: string;
   tip: string;
   observatii: string;
@@ -183,7 +183,7 @@ export interface VizualizarePlata {
   data_emitere: string;
   descriere: string;
   suma_datorata: number;
-  status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
+  status: 'Achitat' | 'Neachitat' | 'Achitat Parțial' | 'Anulat';
   tranzactie_id?: string | null;
   data_plata: string | null;
   suma_incasata: number | null;
@@ -196,7 +196,7 @@ export interface IstoricPlataDetaliat {
   nume_complet_sportiv: string | null;
   descriere: string;
   suma_datorata: number;
-  status: 'Achitat' | 'Neachitat' | 'Achitat Parțial';
+  status: 'Achitat' | 'Neachitat' | 'Achitat Parțial' | 'Anulat';
   data_emitere: string;
   total_incasat: number;
   rest_de_plata: number;
@@ -577,7 +577,7 @@ export interface TraficProfil {
   timp_total_secunde: number;
 }
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'istoric-plati' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi' | 'structura-federatie' | 'deconturi-federatie' | 'istoric-prezenta' | 'account-settings' | 'federation-dashboard' | 'gestiune-facturi' | 'fisa-digitala' | 'fisa-competitie' | 'prezenta-instructor' | 'arhiva-prezente' | 'raport-activitate' | 'admin-console' | 'raport-lunar-prezenta' | 'raport-interval-examen' | 'portal-sportiv-admin' | 'admin-dashboard' | 'rapoarte' | 'program-antrenamente' | 'legitimatii' | 'import-sportivi' | 'istoric-activitate' | 'jurnal-audit' | 'deduplicare-sportivi' | 'cereri-inscriere' | 'activitati-nationale' | 'inlantuiri-admin' | 'admin-sms' | 'template-probe' | 'setup-mfa' | 'button-catalog' | 'produse' | 'vanzari-produse' | 'perioade-vacanta' | 'audit-grade';
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'istoric-plati' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi' | 'structura-federatie' | 'deconturi-federatie' | 'istoric-prezenta' | 'account-settings' | 'federation-dashboard' | 'gestiune-facturi' | 'fisa-digitala' | 'fisa-competitie' | 'prezenta-instructor' | 'arhiva-prezente' | 'raport-activitate' | 'admin-console' | 'raport-lunar-prezenta' | 'raport-interval-examen' | 'portal-sportiv-admin' | 'admin-dashboard' | 'rapoarte' | 'program-antrenamente' | 'legitimatii' | 'import-sportivi' | 'istoric-activitate' | 'jurnal-audit' | 'deduplicare-sportivi' | 'cereri-inscriere' | 'activitati-nationale' | 'inlantuiri-admin' | 'admin-sms' | 'template-probe' | 'setup-mfa' | 'button-catalog' | 'produse' | 'vanzari-produse' | 'perioade-vacanta' | 'audit-grade' | 'facturi-fara-prezenta';
 
 export interface VederePrezentaSportiv {
   id: string;

@@ -7,7 +7,7 @@
  */
 import React from 'react';
 import { Familie, Sportiv, Plata } from '../../types';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat } from '../../utils/paymentStatus';
 import { UsersIcon, CheckCircleIcon, ExclamationTriangleIcon } from '../icons';
 
 interface Props {
@@ -35,8 +35,8 @@ export const FamilyPaymentCard: React.FC<Props> = ({
 
     const totalDatorat  = familyPlati.reduce((s, p) => s + p.suma, 0);
     const totalAchitat  = familyPlati.filter(p => p.status === 'Achitat').reduce((s, p) => s + p.suma, 0);
-    const totalRestant  = familyPlati.filter(p => p.status !== 'Achitat').reduce((s, p) => s + p.suma, 0);
-    const restante      = familyPlati.filter(p => p.status !== 'Achitat');
+    const totalRestant  = familyPlati.filter(p => esteDeIncasat(p)).reduce((s, p) => s + p.suma, 0);
+    const restante      = familyPlati.filter(p => esteDeIncasat(p));
     const nrRestante    = restante.length;
     const isLaZi        = nrRestante === 0;
 
@@ -66,7 +66,7 @@ export const FamilyPaymentCard: React.FC<Props> = ({
                 <div className="px-4 py-2.5 border-b border-slate-800/40 flex flex-wrap gap-1.5">
                     {membrii.map(s => {
                         const hasRestanta = familyPlati.some(
-                            p => p.sportiv_id === s.id && p.status !== 'Achitat'
+                            p => p.sportiv_id === s.id && esteDeIncasat(p)
                         );
                         return (
                             <button

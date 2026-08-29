@@ -6,6 +6,7 @@
 import React, { useMemo } from 'react';
 import { Plata, Sportiv, Familie } from '../../types';
 import { formatNume } from '../../utils/formatareSportiv';
+import { esteDeIncasat } from '../../utils/paymentStatus';
 
 interface Props {
     plati: Plata[];
@@ -83,7 +84,7 @@ const fmt = (n: number) =>
 
 export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
     const { buckets, detailRows, grandTotal, grandCount } = useMemo(() => {
-        const neachitate = (plati || []).filter(p => p.status !== 'Achitat');
+        const neachitate = (plati || []).filter(p => esteDeIncasat(p));
 
         const buckets = BUCKETS.map(b => {
             const items = neachitate.filter(p => {

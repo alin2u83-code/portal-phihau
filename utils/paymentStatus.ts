@@ -5,6 +5,7 @@ import { Plata } from '../types';
 export type PaymentDisplayStatus =
   | 'Achitat'
   | 'Achitat Parțial'
+  | 'Anulat'            // factură anulată (soft) — nu mai e de încasat
   | 'Scadent Critic'   // restant 30+ zile
   | 'Scadent'          // restant 1-29 zile
   | 'Neachitat';       // viitor sau scadent azi
@@ -24,6 +25,11 @@ export const STATUS_DISPLAY_CONFIG: Record<
     cls: 'bg-amber-600/20 text-amber-400 border-amber-600/50',
     dotCls: 'bg-amber-400',
     label: 'Parțial',
+  },
+  'Anulat': {
+    cls: 'bg-slate-700/20 text-slate-500 border-slate-600/50 line-through',
+    dotCls: 'bg-slate-600',
+    label: 'Anulat',
   },
   'Neachitat': {
     cls: 'bg-slate-600/20 text-slate-300 border-slate-600/50',
@@ -57,6 +63,9 @@ export function getDisplayStatus(
 ): PaymentDisplayStatus {
   if (plata.status === 'Achitat') return 'Achitat';
   if (plata.status === 'Achitat Parțial') return 'Achitat Parțial';
+  // Anulat trebuie verificat înaintea oricărui calcul de scadență — altfel o
+  // factură anulată ar fi afișată greșit ca "Scadent"/"Restant!".
+  if (plata.status === 'Anulat') return 'Anulat';
 
   const dataScadenta = new Date(plata.data.toString().slice(0, 10));
   if (isNaN(dataScadenta.getTime())) return 'Neachitat';
@@ -76,11 +85,27 @@ export function getDisplayStatus(
 
 /** Returnează numărul de zile de întârziere (0 dacă nu e restantă) */
 export function getDaysOverdue(plata: Pick<Plata, 'status' | 'data'>): number {
-  if (plata.status === 'Achitat') return 0;
+  if (plata.status === 'Achitat' || plata.status === 'Anulat') return 0;
   const dataScadenta = new Date(plata.data.toString().slice(0, 10));
   if (isNaN(dataScadenta.getTime())) return 0;
   const azi = new Date();
   azi.setHours(0, 0, 0, 0);
   dataScadenta.setHours(0, 0, 0, 0);
   return Math.max(0, Math.floor((azi.getTime() - dataScadenta.getTime()) / 86_400_000));
+}
+
+/** Adevărat dacă factura a fost anulată (soft). */
+export function esteAnulata(p: Pick<Plata, 'status'>): boolean {
+  return p.status === 'Anulat';
+}
+
+/**
+ * Adevărat dacă factura este încă de încasat (apare în totaluri de restanțe/de încasat).
+ *
+ * Predicatul vechi `status !== 'Achitat'` include din greșeală facturile anulate
+ * în sumele de încasat — o factură 'Anulat' nu mai reprezintă o datorie.
+ * Folosește acest helper peste tot unde se agregă bani sau se contorizează restanțe.
+ */
+export function esteDeIncasat(p: Pick<Plata, 'status'>): boolean {
+  return p.status !== 'Achitat' && p.status !== 'Anulat';
 }

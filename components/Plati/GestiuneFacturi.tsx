@@ -12,7 +12,7 @@ import { getPretValabil, getPretProdus } from '../../utils/pricing';
 import { formatNume } from '../../utils/formatareSportiv';
 import { genereazaFacturaAbonament } from '../../services/facturaService';
 import { formatLuna } from '../../utils/luniLipsa';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat } from '../../utils/paymentStatus';
 import { PeriodFilterBar } from './PeriodFilterBar';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
 
@@ -510,7 +510,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             cellClassName: 'text-right',
             render: (p) => (
                 <div className="flex justify-end gap-2">
-                    {p.status !== 'Achitat' && (
+                    {esteDeIncasat(p) && (
                         <Button size="sm" variant="success" onClick={() => {
                             setPlataForPayment(p);
                             setPaymentAmount(p.suma.toString());
@@ -558,7 +558,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             </div>
 
             <div className="flex flex-wrap justify-end gap-2 mt-4 pt-2 border-t border-slate-700">
-                {p.status !== 'Achitat' && (
+                {esteDeIncasat(p) && (
                     <Button size="sm" variant="success" onClick={() => {
                         setPlataForPayment(p);
                         setPaymentAmount(p.suma.toString());
@@ -792,6 +792,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                             <option value="Neachitat">Neachitat</option>
                             <option value="Achitat Parțial">Achitat Parțial</option>
                             <option value="Achitat">Achitat</option>
+                            <option value="Anulat">Anulat</option>
                         </Select>
 
                         <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">

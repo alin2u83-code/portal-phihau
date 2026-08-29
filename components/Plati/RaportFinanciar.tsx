@@ -12,7 +12,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
 import { useError } from '../ErrorProvider';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG } from '../../utils/paymentStatus';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat } from '../../utils/paymentStatus';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
 import { formatNume } from '../../utils/formatareSportiv';
 import { calculeazaLuniLipsa, formatLuna } from '../../utils/luniLipsa';
@@ -176,7 +176,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             .filter(t => t.data_plata_string?.toString().startsWith(luna))
             .reduce((s, t) => s + (t.suma_incasata || 0), 0);
         const restante = (istoricPlatiDetaliat || []).filter(p =>
-            p.data_emitere?.toString().startsWith(luna) && p.status !== 'Achitat'
+            p.data_emitere?.toString().startsWith(luna) && esteDeIncasat(p)
         );
         return { incasari, restante, luna };
     }, [selectedMonth, luniDisponibile, istoricPlatiDetaliat, lunaCurenta]);
@@ -196,7 +196,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         tipuri.forEach(tip => {
             raport[tip] = {
                 achitat: (istoricPlatiDetaliat || []).filter(p => p.descriere === tip && p.status === 'Achitat'),
-                neachitat: (istoricPlatiDetaliat || []).filter(p => p.descriere === tip && p.status !== 'Achitat'),
+                neachitat: (istoricPlatiDetaliat || []).filter(p => p.descriere === tip && esteDeIncasat(p)),
             };
         });
         return raport;
@@ -216,12 +216,12 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             .reduce((s, t) => s + t.suma_datorata, 0);
 
         const totalRestante = (istoricPlatiDetaliat || [])
-            .filter(t => t.status !== 'Achitat')
+            .filter(t => esteDeIncasat(t))
             .reduce((s, t) => s + (t.rest_de_plata ?? 0), 0);
 
         const azi = new Date(); azi.setHours(0, 0, 0, 0);
         const nrScadente = (plati || []).filter(p => {
-            if (p.status === 'Achitat') return false;
+            if (!esteDeIncasat(p)) return false;
             const d = new Date(p.data.toString().slice(0, 10));
             return !isNaN(d.getTime()) && d < azi;
         }).length;
@@ -265,7 +265,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             p.data.toString().startsWith(luna)
         );
         const achitate = lunares.filter(p => p.status === 'Achitat');
-        const neachitate = lunares.filter(p => p.status !== 'Achitat');
+        const neachitate = lunares.filter(p => esteDeIncasat(p));
         const totalSuma = lunares.reduce((s, p) => s + p.suma, 0);
         const incasatSuma = achitate.reduce((s, p) => s + p.suma, 0);
         return { luna, total: lunares.length, achitate: achitate.length, neachitate: neachitate.length, listaNeachitate: neachitate, totalSuma, incasatSuma };
@@ -280,7 +280,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     // WR-04: cheie unică per factură orfană în loc de __necunoscut__ comun
     const restanteRows = useMemo((): RestantaRow[] => {
         const neachitate = (istoricPlatiDetaliat || []).filter(p => {
-            if (p.status === 'Achitat') return false;
+            if (!esteDeIncasat(p)) return false;
             if (!restanteStart && !restanteEnd) return true;
             const d = new Date(p.data_emitere.toString().slice(0, 10));
             if (isNaN(d.getTime())) return false; // CR-02: exclude rânduri cu dată invalidă când filtrul e activ
@@ -907,7 +907,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     const memberIds = new Set(sportivi.filter(s => s.familie_id === f.id).map(s => s.id));
                     return (plati || []).some(p =>
                         (p.familie_id === f.id || (p.sportiv_id !== null && memberIds.has(p.sportiv_id))) &&
-                        p.status !== 'Achitat'
+                        esteDeIncasat(p)
                     );
                 }).length;
 
@@ -939,10 +939,10 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                     const aIds = new Set(sportivi.filter(s => s.familie_id === a.id).map(s => s.id));
                                     const bIds = new Set(sportivi.filter(s => s.familie_id === b.id).map(s => s.id));
                                     const aRest = (plati || []).some(p =>
-                                        (p.familie_id === a.id || (p.sportiv_id !== null && aIds.has(p.sportiv_id))) && p.status !== 'Achitat'
+                                        (p.familie_id === a.id || (p.sportiv_id !== null && aIds.has(p.sportiv_id))) && esteDeIncasat(p)
                                     );
                                     const bRest = (plati || []).some(p =>
-                                        (p.familie_id === b.id || (p.sportiv_id !== null && bIds.has(p.sportiv_id))) && p.status !== 'Achitat'
+                                        (p.familie_id === b.id || (p.sportiv_id !== null && bIds.has(p.sportiv_id))) && esteDeIncasat(p)
                                     );
                                     if (aRest && !bRest) return -1;
                                     if (!aRest && bRest) return 1;

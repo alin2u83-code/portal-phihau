@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Sportiv } from '../../types';
+import { Sportiv, Plata } from '../../types';
 import { Modal, Button, Input, Select } from '../ui';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { formatNume } from '../../utils/formatareSportiv';
+import { esteDeIncasat } from '../../utils/paymentStatus';
 import toast from 'react-hot-toast';
 
 type PerioadaTip = 'luna-curenta' | 'an-curent' | 'custom';
@@ -13,7 +14,7 @@ interface PlataRaport {
     data: string;
     descriere: string;
     suma: number;
-    status: string;
+    status: Plata['status'];
 }
 
 interface PrezentaLuna {
@@ -119,7 +120,7 @@ export const RaportCompletSportiv: React.FC<{
 
             setRaport({
                 platiAchitate: plati.filter(p => p.status === 'Achitat'),
-                restante: plati.filter(p => p.status !== 'Achitat'),
+                restante: plati.filter(p => esteDeIncasat(p)),
                 prezentePerLuna: Object.entries(prezLunaMap)
                     .sort(([a], [b]) => a.localeCompare(b))
                     .map(([luna, count]) => ({ luna, count })),

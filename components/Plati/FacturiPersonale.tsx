@@ -2,6 +2,7 @@
 import { User, Plata, Tranzactie, IstoricPlataDetaliat } from '../../types';
 import { Button, Card } from '../ui';
 import { ArrowLeftIcon, DownloadIcon } from '../icons';
+import { esteDeIncasat } from '../../utils/paymentStatus';
 
 interface IstoricPlatiProps {
     viewedUser: User;
@@ -130,7 +131,7 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, t
             p.sportiv_id === viewedUser.id || 
             (p.familie_id && p.familie_id === viewedUser.familie_id)
         ).forEach(p => {
-            if (p.status !== 'Achitat') {
+            if (esteDeIncasat(p)) {
                 // If partial, we need to know how much is left.
                 // We don't have a 'rest_de_plata' field on Plata.
                 // We have to rely on status.

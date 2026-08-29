@@ -4,6 +4,7 @@ import { Card, Button, Skeleton, Modal } from '../ui';
 import { UsersIcon, ExclamationTriangleIcon, CalendarDaysIcon, EditIcon, TrashIcon, BanknotesIcon, CheckCircleIcon, WalletIcon, ChevronDownIcon, ChevronUpIcon } from '../icons';
 import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
 import { formatLuna } from '../../utils/luniLipsa';
+import { esteDeIncasat } from '../../utils/paymentStatus';
 
 interface Incasare {
     data_plata: string;
@@ -131,12 +132,12 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
         id ? familii.find(f => f.id === id)?.nume ?? null : null;
 
     const facturiFiltrate = istoricFacturi.filter(({ detalii }) => {
-        if (filter === 'neachitate') return detalii.status !== 'Achitat';
+        if (filter === 'neachitate') return esteDeIncasat(detalii);
         if (filter === 'achitate') return detalii.status === 'Achitat';
         return true;
     });
 
-    const nrNeachitate = istoricFacturi.filter(f => f.detalii.status !== 'Achitat').length;
+    const nrNeachitate = istoricFacturi.filter(f => esteDeIncasat(f.detalii)).length;
 
     return (
         <>

@@ -34,6 +34,7 @@ import { useDataProvider } from '../hooks/useDataProvider';
 import { useQuickAccess } from '../hooks/useQuickAccess';
 import { QuickAccess } from './QuickAccess';
 import { StarIcon } from './icons';
+import { esteDeIncasat } from '../utils/paymentStatus';
 
 // --- Item card compact ---
 const ItemCard: React.FC<{
@@ -118,7 +119,7 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
         (inscrieriExamene || []).filter(i => {
             if (!i.plata_id) return false;
             const p = (plati || []).find(pl => pl.id === i.plata_id);
-            return p && p.status !== 'Achitat';
+            return !!p && esteDeIncasat(p);
         }).length,
     [inscrieriExamene, plati]);
 

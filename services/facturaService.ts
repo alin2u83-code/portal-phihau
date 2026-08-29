@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Plata, Sportiv } from '../types';
 import { formatLuna } from '../utils/luniLipsa';
 
@@ -119,4 +120,204 @@ export async function genereazaFacturaAbonament(
     }
 
     return { data: data as Plata | null, error: null };
+}
+
+// ─── Anulare / Reactivare / Ștergere definitivă (quick 260829-erg) ─────────────
+//
+// Toate trei funcțiile primesc un al doilea parametru opțional `client`
+// (implicit clientul aplicației `supabase`) — permite injectarea unui client
+// alternativ (ex. service-role) în scripturi de test fără sesiune de autentificare.
+// Nu schimbă comportamentul din UI: toate apelurile existente/noi din componente
+// folosesc un singur argument (`plataId`), deci primesc implicit clientul aplicației.
+
+/**
+ * Anulează (soft) o factură de Abonament — statusul devine 'Anulat'.
+ *
+ * Reguli:
+ * - Re-citește statusul real din DB înainte de UPDATE (același guard server-side ca la
+ *   ștergere, PLF-04 / Threat T-14-04 din PlatiScadente.tsx:409-421) — statusul din
+ *   state-ul clientului poate fi învechit dacă alt admin a încasat între timp.
+ * - Refuză dacă factura este 'Achitat' sau 'Achitat Parțial'.
+ * - Idempotent dacă factura este deja 'Anulat' — evită eroare la dublu-click.
+ * - NU modifică `suma`, `suma_initiala` sau `observatii` — anularea trebuie să fie
+ *   perfect reversibilă.
+ *
+ * @param plataId - UUID plată
+ * @param client - client Supabase opțional (implicit clientul aplicației)
+ * @returns { data: Plata | null, error: any }
+ */
+export async function anuleazaFacturaAbonament(
+    plataId: string,
+    client: SupabaseClient = supabase
+): Promise<{ data: Plata | null; error: any }> {
+    if (!plataId || typeof plataId !== 'string') {
+        return { data: null, error: { message: 'plataId lipsă sau invalid.' } };
+    }
+
+    const { data: plataCurenta, error: fetchError } = await client
+        .from('plati')
+        .select('*')
+        .eq('id', plataId)
+        .maybeSingle();
+
+    if (fetchError) {
+        console.error('[anuleazaFacturaAbonament] eroare la citire:', fetchError);
+        return { data: null, error: fetchError };
+    }
+    if (!plataCurenta) {
+        return { data: null, error: { message: 'Factura nu a fost găsită.' } };
+    }
+    if (plataCurenta.status === 'Achitat') {
+        return { data: null, error: { message: 'Factura este achitată. Storneaz-o sau mută încasarea înainte de anulare.' } };
+    }
+    if (plataCurenta.status === 'Achitat Parțial') {
+        return { data: null, error: { message: 'Factura are încasări parțiale. Anulează întâi încasările.' } };
+    }
+    if (plataCurenta.status === 'Anulat') {
+        // Idempotent — evită eroare la dublu-click pe buton.
+        return { data: plataCurenta as Plata, error: null };
+    }
+
+    const { data, error } = await client
+        .from('plati')
+        .update({ status: 'Anulat' })
+        .eq('id', plataId)
+        .select()
+        .maybeSingle();
+
+    if (error) {
+        console.error('[anuleazaFacturaAbonament] eroare update:', error);
+        return { data: null, error };
+    }
+    return { data: data as Plata | null, error: null };
+}
+
+/**
+ * Reactivează o factură anulată — statusul revine la 'Neachitat'.
+ *
+ * Simetric cu {@link anuleazaFacturaAbonament}: re-citește statusul real din DB
+ * înainte de UPDATE. Revenim la 'Neachitat' (nu la statusul anterior anulării,
+ * necunoscut) pentru că anularea e permisă doar pornind din 'Neachitat' — deci
+ * nu se pierde informație.
+ *
+ * @param plataId - UUID plată
+ * @param client - client Supabase opțional (implicit clientul aplicației)
+ * @returns { data: Plata | null, error: any }
+ */
+export async function reactiveazaFacturaAbonament(
+    plataId: string,
+    client: SupabaseClient = supabase
+): Promise<{ data: Plata | null; error: any }> {
+    if (!plataId || typeof plataId !== 'string') {
+        return { data: null, error: { message: 'plataId lipsă sau invalid.' } };
+    }
+
+    const { data: plataCurenta, error: fetchError } = await client
+        .from('plati')
+        .select('*')
+        .eq('id', plataId)
+        .maybeSingle();
+
+    if (fetchError) {
+        console.error('[reactiveazaFacturaAbonament] eroare la citire:', fetchError);
+        return { data: null, error: fetchError };
+    }
+    if (!plataCurenta) {
+        return { data: null, error: { message: 'Factura nu a fost găsită.' } };
+    }
+    if (plataCurenta.status !== 'Anulat') {
+        return { data: null, error: { message: 'Doar facturile anulate pot fi reactivate.' } };
+    }
+
+    const { data, error } = await client
+        .from('plati')
+        .update({ status: 'Neachitat' })
+        .eq('id', plataId)
+        .select()
+        .maybeSingle();
+
+    if (error) {
+        console.error('[reactiveazaFacturaAbonament] eroare update:', error);
+        return { data: null, error };
+    }
+    return { data: data as Plata | null, error: null };
+}
+
+/**
+ * Șterge definitiv (hard delete) o factură de Abonament.
+ *
+ * Replică lanțul de guard-uri din `components/Plati/GestiuneFacturi.tsx` (handleDelete)
+ * și adaugă un guard nou, absent azi acolo: verificarea `tranzactii.plata_ids` (Threat
+ * T-ERG-06) — o factură cu încasări înregistrate în tranzacții nu poate fi ștearsă
+ * fără să lase bani „orfani" în tranzacție.
+ *
+ * Ordine guard-uri:
+ * 1. re-citește statusul din DB — refuză dacă 'Achitat'
+ * 2. verifică `inscrieri_examene.plata_id` — refuză dacă există înscrieri
+ * 3. verifică `tranzactii.plata_ids` (contains) — refuză dacă există încasări
+ * 4. abia apoi DELETE
+ *
+ * @param plataId - UUID plată
+ * @param client - client Supabase opțional (implicit clientul aplicației)
+ * @returns { data: null, error: any }
+ */
+export async function stergeFacturaAbonament(
+    plataId: string,
+    client: SupabaseClient = supabase
+): Promise<{ data: null; error: any }> {
+    if (!plataId || typeof plataId !== 'string') {
+        return { data: null, error: { message: 'plataId lipsă sau invalid.' } };
+    }
+
+    const { data: plataCurenta, error: fetchError } = await client
+        .from('plati')
+        .select('status')
+        .eq('id', plataId)
+        .maybeSingle();
+    if (fetchError) {
+        console.error('[stergeFacturaAbonament] eroare la citire:', fetchError);
+        return { data: null, error: fetchError };
+    }
+    if (plataCurenta?.status === 'Achitat') {
+        return { data: null, error: { message: 'Facturile achitate nu pot fi șterse.' } };
+    }
+
+    const { data: inscrieri, error: inscrieriError } = await client
+        .from('inscrieri_examene')
+        .select('id')
+        .eq('plata_id', plataId)
+        .limit(1);
+    if (inscrieriError) {
+        console.error('[stergeFacturaAbonament] eroare verificare înscrieri:', inscrieriError);
+        return { data: null, error: inscrieriError };
+    }
+    if (inscrieri && inscrieri.length > 0) {
+        return {
+            data: null,
+            error: { message: 'Plata nu poate fi ștearsă — este asociată cu înscrieri la examene. Modificați sau retrageți înscrierea înainte de a șterge factura.' },
+        };
+    }
+
+    const { data: tranzactiiAsociate, error: tranzactiiError } = await client
+        .from('tranzactii')
+        .select('id')
+        .contains('plata_ids', [plataId])
+        .limit(1);
+    if (tranzactiiError) {
+        console.error('[stergeFacturaAbonament] eroare verificare tranzacții:', tranzactiiError);
+        return { data: null, error: tranzactiiError };
+    }
+    if (tranzactiiAsociate && tranzactiiAsociate.length > 0) {
+        return {
+            data: null,
+            error: { message: 'Factura are încasări înregistrate în tranzacții. Nu poate fi ștearsă definitiv.' },
+        };
+    }
+
+    const { error } = await client.from('plati').delete().eq('id', plataId);
+    if (error) {
+        console.error('[stergeFacturaAbonament] eroare delete:', error);
+        return { data: null, error };
+    }
+    return { data: null, error: null };
 }

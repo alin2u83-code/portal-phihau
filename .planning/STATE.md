@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 25 (audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha) — COMPLETE
 Plan: 4 of 4
 Status: Phase 25 complete — ready to plan Phase 26
-Last activity: 2026-08-29 -- Completed 25-04-PLAN.md (migratie RLS aplicata live, test automat + verificare UI)
+Last activity: 2026-08-29 - Completed quick task 260829-erg: anulare/stergere factura abonament pt sportivi fara prezenta in luna respectiva (Task 2-6; Task 7 checkpoint uman ramas pentru user)
 
 ```
 Progress: [█████████░] 86% (6/7 phases)
@@ -102,6 +102,7 @@ Recent decisions affecting current work:
 | 260626-buf | Sistem perioade vacanță antrenamente — CRUD + selecție sportivi participanți | 2026-06-26 | 3c548b1 | Needs Review | [260626-buf-task-3-perioade-vacanta-antrenamente](./quick/260626-buf-task-3-perioade-vacanta-antrenamente/) |
 | 260704-nbx | Fix status stale hub Înscriere club după retragere echipă — re-fetch echipeFormate | 2026-07-04 | a700a79 | Verified | [260704-nbx-fix-status-stale-hub-inscriere-club-dupa](./quick/260704-nbx-fix-status-stale-hub-inscriere-club-dupa/) |
 | 260704-x9p | Sistem istoric activitate SUPER_ADMIN_FEDERATIE — audit_log extins, triggere CRUD, logare login/logout/rol, pagina Jurnal Audit | 2026-07-05 | 6a6abe8 | Verified | [260704-x9p-sistem-istoric-activitate-super-admin-fe](./quick/260704-x9p-sistem-istoric-activitate-super-admin-fe/) |
+| 260829-erg | Anulare/ștergere factură Abonament pt sportivi fără prezență în lună — status 'Anulat' + raport nou + 3 suprafețe UI | 2026-08-29 | (vezi commituri Task 2-6 în SUMMARY) | Needs Review (checkpoint uman Task 7 pending) | [260829-erg-anulare-stergere-factura-abonament-pt-sp](./quick/260829-erg-anulare-stergere-factura-abonament-pt-sp/) |
 | 260705-1js | Consolidare endpoint-uri Vercel API 14->9 — fix deploy blocat de limita Hobby (12 functii) | 2026-07-05 | bcfd0a4 | Verified | [260705-1js-consolideaza-endpoint-uri-vercel-api-sub](./quick/260705-1js-consolideaza-endpoint-uri-vercel-api-sub/) |
 | 260705-irg | Fix RLS cross-club leak (is_super_admin/este_staff_club/has_access_to_club + Select_Sportivi_Unified ignorau contextul activ) + afiseaza club per sportiv in Deduplicare pentru super admin | 2026-07-05 | d9e0ec8 | Verified | [260705-irg-fix-rls-context-aware-role-check-si-afis](./quick/260705-irg-fix-rls-context-aware-role-check-si-afis/) |
 | 260705-pgg | Refactor Deduplicare Sportivi: include inactivi in detectie, merge_sportivi sterge duplicatul (delete efectiv, FK dinamic), guard acces club — migratie SQL scrisa, NEaplicata live | 2026-07-05 | 70db87e | Needs SQL apply | [260705-pgg-refactor-deduplicare-sportivi-include-in](./quick/260705-pgg-refactor-deduplicare-sportivi-include-in/) |

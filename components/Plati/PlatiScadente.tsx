@@ -1,7 +1,8 @@
 ﻿import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Plata, Sportiv, Permissions, Club } from '../../types';
 import { Button, Input, Select, Card, Modal, SearchInput, ClubSelect, SearchableSelect } from '../ui';
-import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon, CalendarDaysIcon, ChevronDownIcon, ChevronUpIcon } from '../icons';
+import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon, CalendarDaysIcon, ChevronDownIcon, ChevronUpIcon, ExclamationTriangleIcon, XCircleIcon, CheckCircleIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { sendBulkNotifications } from '../../utils/notifications';
@@ -11,6 +12,8 @@ import { FEDERATIE_ID, FEDERATIE_NAME } from '../../constants';
 import { useData } from '../../contexts/DataContext';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat, esteAnulata } from '../../utils/paymentStatus';
 import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
+import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare';
+import { anuleazaFacturaAbonament, reactiveazaFacturaAbonament } from '../../services/facturaService';
 import { formatLuna } from '../../utils/luniLipsa';
 
 interface PlatiScadenteProps {
@@ -80,12 +83,15 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const reduceri = filteredData.reduceri;
     const inscrieriExamene = filteredData.inscrieriExamene;
     const grupe = filteredData.grupe;
+    const queryClient = useQueryClient();
 
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [editingPlata, setEditingPlata] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [plataToAnula, setPlataToAnula] = useState<Plata | null>(null);
+    const [idInLucru, setIdInLucru] = useState<string | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const { showError, showSuccess } = useError();
     const [isGenerating, setIsGenerating] = useState(false);
@@ -559,6 +565,57 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
         });
     }, [filteredPlati, inscrieriExamene, grade, reduceri]);
 
+    // Set-ul de prezențe pentru lunile vizibile — o singură interogare pentru toată
+    // lista, nu una per rând (ar produce N interogări). Fallback-ul luna/an e identic
+    // cu cel folosit inline la afișarea rândurilor (showPrezente).
+    const luniVizibile = useMemo(() => {
+        const perechi = new Map<string, { luna: number; an: number }>();
+        platiCuDetalii.forEach(p => {
+            if (p.tip !== 'Abonament' || !p.sportiv_id || p.familie_id) return;
+            const luna = p.luna ?? (p.data ? new Date(p.data.toString().slice(0, 10)).getMonth() + 1 : null);
+            const an = p.an ?? (p.data ? new Date(p.data.toString().slice(0, 10)).getFullYear() : null);
+            if (!luna || !an) return;
+            perechi.set(`${an}-${luna}`, { luna, an });
+        });
+        return Array.from(perechi.values());
+    }, [platiCuDetalii]);
+
+    const prezenteSet = usePrezenteLunare(luniVizibile);
+
+    const invalidateAllPlati = () => {
+        queryClient.invalidateQueries({ queryKey: ['facturi-abonament-luna'] });
+        queryClient.invalidateQueries({ queryKey: ['plati'] });
+    };
+
+    const handleAnuleaza = async () => {
+        if (!plataToAnula) return;
+        const id = plataToAnula.id;
+        setIdInLucru(id);
+        const { data, error } = await anuleazaFacturaAbonament(id);
+        setIdInLucru(null);
+        if (error) {
+            showError('Anulare eșuată', error.message);
+        } else if (data) {
+            setPlati(prev => prev.map(p => p.id === id ? data : p));
+            showSuccess('Succes', 'Factura a fost anulată.');
+            invalidateAllPlati();
+        }
+        setPlataToAnula(null);
+    };
+
+    const handleReactiveaza = async (plata: Plata) => {
+        setIdInLucru(plata.id);
+        const { data, error } = await reactiveazaFacturaAbonament(plata.id);
+        setIdInLucru(null);
+        if (error) {
+            showError('Reactivare eșuată', error.message);
+        } else if (data) {
+            setPlati(prev => prev.map(p => p.id === plata.id ? data : p));
+            showSuccess('Succes', 'Factura a fost reactivată.');
+            invalidateAllPlati();
+        }
+    };
+
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
             // Facturile anulate nu pot fi selectate pentru încasare.
@@ -712,6 +769,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                 const showPrezente = !!p.sportiv_id && !p.familie_id && p.tip === 'Abonament';
                                 const luna = p.luna ?? (p.data ? new Date(p.data.toString().slice(0, 10)).getMonth() + 1 : null);
                                 const an = p.an ?? (p.data ? new Date(p.data.toString().slice(0, 10)).getFullYear() : null);
+                                // Cât timp prezenteSet e în isLoading, tratăm faraPrezenta ca false — nu afișăm
+                                // un indicator fals-pozitiv pe date neîncărcate.
+                                const faraPrezenta = !prezenteSet.isLoading && showPrezente && !!luna && !!an
+                                    && !prezenteSet.data?.has(cheiePrezenta(p.sportiv_id as string, luna, an));
+                                const inLucru = idInLucru === p.id;
                                 return (
                                     <React.Fragment key={p.id}>
                                         <tr className={`${selectedIds.has(p.id) ? 'bg-brand-primary/20' : ''}`}>
@@ -733,6 +795,14 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                             <CalendarDaysIcon className="w-3 h-3" />
                                                             {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}
                                                         </button>
+                                                    )}
+                                                    {faraPrezenta && (
+                                                        <span
+                                                            className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-900/30 text-amber-400 border border-amber-700/40 shrink-0"
+                                                            title="Sportivul nu are nicio prezență înregistrată în luna facturii"
+                                                        >
+                                                            <ExclamationTriangleIcon className="w-3 h-3" /> 0 prezențe
+                                                        </span>
                                                     )}
                                                 </div>
                                             </td>
@@ -757,6 +827,17 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                         </Button>
                                                     )}
                                                     <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)}><EditIcon className="w-4 h-4"/></Button>
+                                                    {/* ERG: Anulează/Reactivează — doar pentru Abonament, acțiuni separate de ștergere */}
+                                                    {p.tip === 'Abonament' && esteDeIncasat(p) && (
+                                                        <Button size="sm" variant="secondary" disabled={inLucru} onClick={() => setPlataToAnula(p)} title="Anulează factura (reversibil)">
+                                                            <XCircleIcon className="w-4 h-4"/>
+                                                        </Button>
+                                                    )}
+                                                    {esteAnulata(p) && (
+                                                        <Button size="sm" variant="secondary" isLoading={inLucru} disabled={inLucru} onClick={() => handleReactiveaza(p)} title="Reactivează factura">
+                                                            <CheckCircleIcon className="w-4 h-4"/>
+                                                        </Button>
+                                                    )}
                                                     {/* PLF-04: buton Șterge dezactivat pentru facturi Achitat */}
                                                     {p.status === 'Achitat' ? (
                                                         <span title="Facturile achitate nu pot fi șterse" className="cursor-not-allowed">
@@ -805,6 +886,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     const showPrezente = !!p.sportiv_id && !p.familie_id && p.tip === 'Abonament';
                     const luna = p.luna ?? (p.data ? new Date(p.data.toString().slice(0, 10)).getMonth() + 1 : null);
                     const an = p.an ?? (p.data ? new Date(p.data.toString().slice(0, 10)).getFullYear() : null);
+                    const faraPrezenta = !prezenteSet.isLoading && showPrezente && !!luna && !!an
+                        && !prezenteSet.data?.has(cheiePrezenta(p.sportiv_id as string, luna, an));
+                    const inLucru = idInLucru === p.id;
                     return (
                         <div key={p.id} className={`bg-[var(--t-bg)] border rounded-xl overflow-hidden ${selectedIds.has(p.id) ? 'border-indigo-500/60' : 'border-[var(--t-border)]'}`}>
                             <div className="px-4 py-3">
@@ -857,6 +941,14 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                         {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}
                                                     </button>
                                                 )}
+                                                {faraPrezenta && (
+                                                    <span
+                                                        className="flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-900/30 text-amber-400 border border-amber-700/40"
+                                                        title="Sportivul nu are nicio prezență înregistrată în luna facturii"
+                                                    >
+                                                        <ExclamationTriangleIcon className="w-3 h-3" /> 0 prezențe
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="flex gap-1.5">
                                                 {esteDeIncasat(p) && (
@@ -867,6 +959,16 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                 <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)} title="Editează">
                                                     <EditIcon className="w-3.5 h-3.5" />
                                                 </Button>
+                                                {p.tip === 'Abonament' && esteDeIncasat(p) && (
+                                                    <Button size="sm" variant="secondary" disabled={inLucru} onClick={() => setPlataToAnula(p)} title="Anulează (reversibil)">
+                                                        <XCircleIcon className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                )}
+                                                {esteAnulata(p) && (
+                                                    <Button size="sm" variant="secondary" isLoading={inLucru} disabled={inLucru} onClick={() => handleReactiveaza(p)} title="Reactivează">
+                                                        <CheckCircleIcon className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                )}
                                                 {/* PLF-04: buton Șterge dezactivat pentru facturi Achitat */}
                                                 {p.status === 'Achitat' ? (
                                                     <span title="Facturile achitate nu pot fi șterse" className="cursor-not-allowed">
@@ -961,7 +1063,29 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     </div>
                 </Modal>
             )}
-            <ConfirmDeleteModal isOpen={!!plataToDelete} onClose={() => setPlataToDelete(null)} onConfirm={() => { if(plataToDelete) confirmDelete(plataToDelete.id) }} tableName="Plată" isLoading={isDeleting} />
+            <ConfirmDeleteModal
+                isOpen={!!plataToDelete}
+                onClose={() => setPlataToDelete(null)}
+                onConfirm={() => { if(plataToDelete) confirmDelete(plataToDelete.id) }}
+                tableName="Plată"
+                isLoading={isDeleting}
+                title="Ștergere definitivă"
+                confirmButtonText="Șterge definitiv"
+                confirmButtonVariant="danger"
+                customMessage="Rândul dispare complet din baza de date — această acțiune este ireversibilă. Alternativa recomandată este anularea (reversibilă)."
+            />
+            <ConfirmDeleteModal
+                isOpen={!!plataToAnula}
+                onClose={() => setPlataToAnula(null)}
+                onConfirm={handleAnuleaza}
+                tableName="Plată"
+                isLoading={idInLucru === plataToAnula?.id}
+                title="Anulează factura"
+                confirmButtonText="Anulează factura"
+                confirmButtonVariant="secondary"
+                icon={XCircleIcon}
+                customMessage="Factura rămâne în evidență (pentru audit), iese din toate sumele de încasat și poate fi reactivată oricând — acțiunea este reversibilă."
+            />
         </div>
     );
 };

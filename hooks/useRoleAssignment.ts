@@ -3,7 +3,6 @@ import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
 import { Rol, Sportiv, User } from '../types';
 import { getAuthErrorMessage } from '../utils/error';
-import { PHI_HAU_IASI_CLUB_ID } from '../constants';
 
 export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
     const { showError, showSuccess } = useError();
@@ -30,11 +29,26 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
     const createAccountAndAssignRole = async (email: string, parola: string, sportivData: Partial<Sportiv>, rolesToAssign: Rol[]): Promise<{ success: boolean; sportiv?: Sportiv; error?: string; generatedPassword?: string }> => {
         setLoading(true);
         try {
-            // 1. Apelăm API-ul nostru securizat din backend
+            // 0. Validare club_id — fail-fast, fără fallback hardcodat (CLAUDE.md
+            // Anti-Pattern: Hardcoded Club IDs).
+            if (!sportivData.club_id) {
+                return { success: false, error: 'Clubul destinație lipsește. Selectați un club înainte de a crea contul.' };
+            }
+
+            // 1. Token de sesiune — endpoint-ul /api/creare-cont respinge acum
+            // cererile fără Authorization: Bearer (gardă server-side).
+            const { data: sessionData } = await supabase.auth.getSession();
+            const accessToken = sessionData?.session?.access_token;
+            if (!accessToken) {
+                return { success: false, error: 'Sesiune expirată. Reautentificați-vă și încercați din nou.' };
+            }
+
+            // 2. Apelăm API-ul nostru securizat din backend
             const response = await fetch('/api/creare-cont', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({
                     email,
@@ -43,7 +57,7 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
                         nume: sportivData.nume,
                         prenume: sportivData.prenume,
                         username: sportivData.username || email.split('@')[0],
-                        club_id: sportivData.club_id || PHI_HAU_IASI_CLUB_ID,
+                        club_id: sportivData.club_id,
                         data_nasterii: sportivData.data_nasterii || '1900-01-01',
                         status: sportivData.status || 'Activ',
                         data_inscrierii: sportivData.data_inscrierii || new Date().toISOString().split('T')[0],

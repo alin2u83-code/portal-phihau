@@ -152,11 +152,95 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
     const { navigateRoot } = useNavigation();
+    const { createAccountAndAssignRole } = useRoleAssignment(currentUser, allRoles);
+    const rolAdminClub = allRoles.find(r => r.nume === 'ADMIN_CLUB');
+
+    // Date necesare pentru (re)crearea contului de admin al clubului nou creat.
+    // Parola e generată o singură dată la insertul clubului și reutilizată identic
+    // la fiecare retry (T-26-13) — nu se re-generează niciodată.
+    const [pendingAdmin, setPendingAdmin] = useState<{ clubId: string; clubNume: string; nume: string; prenume: string; email: string; parola: string } | null>(null);
+    const [adminError, setAdminError] = useState<string | null>(null);
+    const [retryLoading, setRetryLoading] = useState(false);
+    const [credentiale, setCredentiale] = useState<{ email: string; parola: string; numeSportiv: string } | null>(null);
+
+    // Creează contul ADMIN_CLUB pentru clubul deja inserat. Reutilizată atât de
+    // primul apel (după insert club) cât și de handleRetryAdmin (D-07) — nu
+    // atinge niciodată tabela `cluburi`.
+    const creeazaAdminClub = async (pending: { clubId: string; clubNume: string; nume: string; prenume: string; email: string; parola: string }): Promise<boolean> => {
+        if (!rolAdminClub) {
+            setAdminError("Rolul 'ADMIN_CLUB' nu a fost găsit. Reîncărcați pagina.");
+            return false;
+        }
+
+        const result = await createAccountAndAssignRole(
+            pending.email,
+            pending.parola,
+            { nume: pending.nume, prenume: pending.prenume, email: pending.email, club_id: pending.clubId, status: 'Activ' },
+            [rolAdminClub]
+        );
+
+        if (!result.success) {
+            setAdminError(result.error || "A apărut o eroare neașteptată la crearea contului de admin.");
+            return false;
+        }
+
+        // Gardă is_primary: RPC-ul refactor_create_user_account setează is_primary
+        // doar pentru rolul SPORTIV — un cont creat exclusiv cu ADMIN_CLUB ar rămâne
+        // fără rol primar la login (vezi useUserRoles.ts / utils/auth.ts).
+        if (result.sportiv?.id && supabase) {
+            const { error: primaryError } = await supabase
+                .from('utilizator_roluri_multicont')
+                .update({ is_primary: true })
+                .eq('sportiv_id', result.sportiv.id)
+                .eq('rol_denumire', 'ADMIN_CLUB');
+            if (primaryError) {
+                console.warn('Nu s-a putut seta is_primary pentru contul ADMIN_CLUB nou creat:', primaryError.message);
+            }
+        }
+
+        setCredentiale({
+            email: pending.email,
+            parola: result.generatedPassword ?? pending.parola,
+            numeSportiv: `${pending.prenume} ${pending.nume} — Admin ${pending.clubNume}`,
+        });
+        setAdminError(null);
+        setPendingAdmin(null);
+        showSuccess("Succes", "Clubul și contul de administrator au fost create.");
+        return true;
+    };
+
+    const handleRetryAdmin = async () => {
+        if (!pendingAdmin) return;
+        setRetryLoading(true);
+        setAdminError(null);
+        const reusit = await creeazaAdminClub(pendingAdmin);
+        setRetryLoading(false);
+        // Pe succes, modalul se închide singur (banner-ul de retry dispare și
+        // CredentialeContModal preia ecranul) — fără acest pas ar rămâne
+        // deschis pe formularul gol, deasupra ecranului de credențiale.
+        if (reusit) setIsModalOpen(false);
+    };
+
+    // Închiderea modalului cât timp banner-ul de eroare D-07 e afișat: clubul
+    // rămâne creat (fără rollback), doar golim starea de retry și ghidăm
+    // SUPER_ADMIN spre calea alternativă (User Management).
+    const handleCloseModal = () => {
+        if (adminError) {
+            setPendingAdmin(null);
+            setAdminError(null);
+            showError("Club fără administrator", "Clubul a fost creat dar nu are încă administrator. Îi puteți crea contul din User Management.");
+        }
+        setIsModalOpen(false);
+    };
 
     const handleSave = async (clubData: ClubSaveData): Promise<boolean> => {
         if (!supabase) return false;
         if (!clubToEdit && !permissions.isSuperAdmin) {
             showError("Acces Interzis", "Doar un SUPER_ADMIN_FEDERATIE poate adăuga cluburi noi.");
+            return false;
+        }
+        if (!clubToEdit && !rolAdminClub) {
+            showError("Eroare", "Rolul 'ADMIN_CLUB' nu a fost găsit. Reîncărcați pagina.");
             return false;
         }
 
@@ -204,12 +288,24 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                 }
                 const { data, error } = await supabase.from('cluburi').insert([insertData]).select().single();
                 if (error) throw error;
-                if (data) {
-                    clearCache('cache_clubs'); // Invalidează cache-ul local — clubul nou trebuie să apară la re-fetch
-                    setClubs(prev => [...prev, data]);
-                    showSuccess("Succes", "Club adăugat.");
-                }
-                return true;
+                if (!data) return true;
+
+                clearCache('cache_clubs'); // Invalidează cache-ul local — clubul nou trebuie să apară la re-fetch
+                setClubs(prev => [...prev, data]);
+
+                // Clubul e creat — de aici încolo NU mai facem rollback pe `cluburi`
+                // (D-07). Generăm parola o singură dată și pornim pasul 2 (cont admin).
+                const parola = genereazaParolaTemporara();
+                const pending = {
+                    clubId: data.id,
+                    clubNume: data.nume,
+                    nume: (numeAdmin || '').trim(),
+                    prenume: (prenumeAdmin || '').trim(),
+                    email: (emailAdmin || '').trim(),
+                    parola,
+                };
+                setPendingAdmin(pending);
+                return await creeazaAdminClub(pending);
             }
         } catch (err: any) {
             if (err.message.includes('violates row-level security policy') || err.code === '42501') {
@@ -378,14 +474,23 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
             )}
             <ClubFormModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={handleCloseModal}
                 onSave={handleSave}
                 clubToEdit={clubToEdit}
-                adminError={null}
-                clubCreatNume={null}
-                onRetryAdmin={() => {}}
-                retryLoading={false}
+                adminError={adminError}
+                clubCreatNume={pendingAdmin?.clubNume ?? null}
+                onRetryAdmin={handleRetryAdmin}
+                retryLoading={retryLoading}
             />
+            {credentiale && (
+                <CredentialeContModal
+                    isOpen={true}
+                    onClose={() => setCredentiale(null)}
+                    email={credentiale.email}
+                    parola={credentiale.parola}
+                    numeSportiv={credentiale.numeSportiv}
+                />
+            )}
             <ConfirmDeleteModal isOpen={!!clubToDelete} onClose={() => setClubToDelete(null)} onConfirm={() => { if (clubToDelete) confirmDelete(clubToDelete.id); }} tableName="Club" isLoading={isDeleting} />
         </div>
     );

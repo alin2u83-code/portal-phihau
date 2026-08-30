@@ -319,7 +319,7 @@ Plans:
 **Goal:** SUPER_ADMIN_FEDERATIE creeaza un club nou impreuna cu primul lui administrator (cont + rol ADMIN_CLUB legat de clubul nou) intr-un singur submit, cu parola temporara generata automat si afisata pe ecran pentru transmitere manuala.
 **Requirements**: TBD (faza derivata din decizii D-01..D-07 in 26-CONTEXT.md, fara REQ-ID-uri formale)
 **Depends on:** Phase 25
-**Plans:** 2/2 plans complete
+**Plans:** 2/3 plans complete
 
 Plans:
 
@@ -327,6 +327,10 @@ Plans:
 
 - [x] 26-01-PLAN.md — Generator parola temporara criptografic aleatoare + garda de autentificare/anti-escaladare rol/scoping club pe api/creare-cont.ts + trebuie_schimbata_parola
 - [x] 26-02-PLAN.md — ClubFormModal cu secțiune "Date Prim Administrator", orchestrare secventiala club->cont ADMIN_CLUB, afisare credentiale si retry fara duplicare (wave 2)
+
+**Wave 3 (gap closure)**
+
+- [ ] 26-03-PLAN.md — Inchide CR-01 (escaladare privilegii cross-club, garda per club testata automat) + CR-02 (rollback auth.users la esec RPC, retry D-07 poate reusi) + CR-03 (Rules-of-Hooks in AppRouter) si consolideaza verificarea umana amanata in 26-UAT.md
 
 ---
 

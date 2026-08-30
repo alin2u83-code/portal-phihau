@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: planning
-stopped_at: Phase 26 context gathered
-last_updated: "2026-08-30T22:06:36.514Z"
-last_activity: "2026-08-29 - Completed quick task 260829-erg: anulare/stergere factura abonament pt sportivi fara prezenta in luna respectiva (Task 2-6; Task 7 checkpoint uman ramas pentru user)"
+status: executing
+stopped_at: Completed 26-01-PLAN.md
+last_updated: "2026-08-30T22:49:21.215Z"
+last_activity: 2026-08-30 -- Phase 26 execution started
 progress:
   total_phases: 18
   completed_phases: 7
-  total_plans: 28
-  completed_plans: 24
+  total_plans: 30
+  completed_plans: 25
   percent: 39
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 25 — audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha
+**Current focus:** Phase 26 — wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a
 
 ## Current Position
 
-Phase: 25 (audit-izolare-cross-club-prezenta-grupe-si-abonamente-rls-ha) — COMPLETE
-Plan: 4 of 4
-Status: Phase 25 complete — ready to plan Phase 26
-Last activity: 2026-08-29 - Completed quick task 260829-erg: anulare/stergere factura abonament pt sportivi fara prezenta in luna respectiva (Task 2-6; Task 7 checkpoint uman ramas pentru user)
+Phase: 26 (wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-08-30 -- Phase 26 execution started
 
 ```
 Progress: [█████████░] 86% (6/7 phases)
@@ -57,6 +57,7 @@ Progress: [█████████░] 86% (6/7 phases)
 | Phase 25 P01 | 70min | 3 tasks | 3 files |
 | Phase 25 P02 | 7min | 3 tasks | 4 files |
 | Phase 25 P04 | ~150min | 3 tasks | 4 files |
+| Phase 26 P01 | 15min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 25-04]: get_my_club_ids() si get_my_clubs() sunt deprecate de facto — zero call-site-uri ramase in pg_policies dupa migratia 20260828_fix_rls_izolare_cross_club_grupe_prezenta_abonamente_v2 (ultimul, "Staff - Full Access Grupe", inlocuit in Sectiunea 4); functiile raman definite in DB fara DROP FUNCTION (in afara scope-ului unei migratii de politici)
 - [Phase 25-04]: semantica tipuri_abonament.club_id IS NULL = fail-closed by default (D-02) — 0 din 5 randuri reale au club_id NULL azi; nu s-a inventat o ramura "nomenclator federal partajat" pentru date care nu exista; daca apare vreodata un rand orfan, va fi vizibil doar prin is_super_admin()
 - [Phase 25-04]: bug conex descoperit si fixat de orchestrator in timpul rularii testului automat 25-04 (in afara scope-ului planului) — trigger tr_automatizeaza_roluri pe utilizator_roluri_multicont NU avea SECURITY DEFINER (spre deosebire de celelalte trigger-uri de pe acelasi tabel), functia face JOIN pe auth.users si rula cu privilegiile apelantului -> "permission denied for table users" la orice INSERT in utilizator_roluri_multicont; fix aplicat live (CREATE OR REPLACE FUNCTION cu SECURITY DEFINER adaugat); acelasi cod path e folosit de services/authService.ts la inregistrare reala sportivi — risc real pentru inregistrarea self-service, prins inainte de sezonul nou
+- [Phase 26]: [26-01] api/creare-cont.ts securizat: Authorization Bearer + auth.getUser + ROLE_WEIGHTS anti-escaladare + scoping club, oglindit intre client (hooks/useRoleAssignment.ts) si server — endpoint-ul rula anterior neautentificat cu SUPABASE_SERVICE_ROLE_KEY, orice client anonim putea emite cont SUPER_ADMIN_FEDERATIE
+- [Phase 26]: [26-01] utils/parola.ts genereazaParolaTemporara() foloseste crypto.getRandomValues + rejection sampling + Fisher-Yates, zero Math.random, ~97 biti entropie la 16 caractere — D-05 cere parola temporara generata automat, imposibil de ghicit din date publice admin - pattern anterior era ${nume}.1234!
 
 ### Pending Todos
 
@@ -155,6 +158,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-08-30T22:06:36.498Z
-Stopped at: Phase 26 context gathered
-Resume file: .planning/phases/26-wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a/26-CONTEXT.md
+Last session: 2026-08-30T22:49:21.186Z
+Stopped at: Completed 26-01-PLAN.md
+Resume file: None

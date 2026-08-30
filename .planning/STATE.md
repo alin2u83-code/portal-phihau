@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Completed 25-04-PLAN.md
-last_updated: "2026-08-29T00:00:00.000Z"
-last_activity: 2026-08-29 -- Phase 25 complete (4/4 plans)
+status: planning
+stopped_at: Phase 26 context gathered
+last_updated: "2026-08-30T22:06:36.514Z"
+last_activity: "2026-08-29 - Completed quick task 260829-erg: anulare/stergere factura abonament pt sportivi fara prezenta in luna respectiva (Task 2-6; Task 7 checkpoint uman ramas pentru user)"
 progress:
   total_phases: 18
   completed_phases: 7
   total_plans: 28
-  completed_plans: 23
-  percent: 82
+  completed_plans: 24
+  percent: 39
 ---
 
 # Project State
@@ -155,6 +155,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-08-29T00:00:00.000Z
-Stopped at: Completed 25-04-PLAN.md
-Resume file: None
+Last session: 2026-08-30T22:06:36.498Z
+Stopped at: Phase 26 context gathered
+Resume file: .planning/phases/26-wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a/26-CONTEXT.md

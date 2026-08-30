@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Completed 26-01-PLAN.md
-last_updated: "2026-08-30T22:49:21.215Z"
+status: verifying
+stopped_at: Completed 26-02-PLAN.md
+last_updated: "2026-08-30T23:00:02.649Z"
 last_activity: 2026-08-30 -- Phase 26 execution started
 progress:
   total_phases: 18
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 30
-  completed_plans: 25
-  percent: 39
+  completed_plans: 26
+  percent: 44
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 
 Phase: 26 (wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-30 -- Phase 26 execution started
 
 ```
@@ -58,6 +58,7 @@ Progress: [█████████░] 86% (6/7 phases)
 | Phase 25 P02 | 7min | 3 tasks | 4 files |
 | Phase 25 P04 | ~150min | 3 tasks | 4 files |
 | Phase 26 P01 | 15min | 3 tasks | 4 files |
+| Phase 26 P02 | 25min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,10 @@ Recent decisions affecting current work:
 - [Phase 25-04]: bug conex descoperit si fixat de orchestrator in timpul rularii testului automat 25-04 (in afara scope-ului planului) — trigger tr_automatizeaza_roluri pe utilizator_roluri_multicont NU avea SECURITY DEFINER (spre deosebire de celelalte trigger-uri de pe acelasi tabel), functia face JOIN pe auth.users si rula cu privilegiile apelantului -> "permission denied for table users" la orice INSERT in utilizator_roluri_multicont; fix aplicat live (CREATE OR REPLACE FUNCTION cu SECURITY DEFINER adaugat); acelasi cod path e folosit de services/authService.ts la inregistrare reala sportivi — risc real pentru inregistrarea self-service, prins inainte de sezonul nou
 - [Phase 26]: [26-01] api/creare-cont.ts securizat: Authorization Bearer + auth.getUser + ROLE_WEIGHTS anti-escaladare + scoping club, oglindit intre client (hooks/useRoleAssignment.ts) si server — endpoint-ul rula anterior neautentificat cu SUPABASE_SERVICE_ROLE_KEY, orice client anonim putea emite cont SUPER_ADMIN_FEDERATIE
 - [Phase 26]: [26-01] utils/parola.ts genereazaParolaTemporara() foloseste crypto.getRandomValues + rejection sampling + Fisher-Yates, zero Math.random, ~97 biti entropie la 16 caractere — D-05 cere parola temporara generata automat, imposibil de ghicit din date publice admin - pattern anterior era ${nume}.1234!
+- [Phase 26]: [26-02] handleSave returneaza Promise<boolean> (true=inchide modalul) pe toate ramurile — modalul ramane deschis cu datele introduse pe orice esec
+- [Phase 26]: [26-02] Parola generata o singura data la insertul clubului, reutilizata identic la retry — evita mismatch cu parola reala din auth.users daca user-ul fusese deja creat la prima incercare
+- [Phase 26]: [26-02] Fara rollback pe cluburi la esecul crearii contului admin (D-07) — clubul orfan ramane vizibil/editabil, recuperare ghidata catre User Management
+- [Phase 26]: [26-02] Garda is_primary aplicata explicit dupa succes pe utilizator_roluri_multicont — RPC-ul refactor_create_user_account seteaza is_primary doar pentru rolul SPORTIV
 
 ### Pending Todos
 
@@ -158,6 +163,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-08-30T22:49:21.186Z
-Stopped at: Completed 26-01-PLAN.md
+Last session: 2026-08-30T23:00:02.622Z
+Stopped at: Completed 26-02-PLAN.md
 Resume file: None

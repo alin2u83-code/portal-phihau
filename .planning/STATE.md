@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 26-02-PLAN.md
-last_updated: "2026-08-30T23:00:02.649Z"
+stopped_at: Completed 26-03-PLAN.md
+last_updated: "2026-08-31T09:04:44.797Z"
 last_activity: 2026-08-30 -- Phase 26 execution started
 progress:
   total_phases: 18
   completed_phases: 8
-  total_plans: 30
-  completed_plans: 26
+  total_plans: 31
+  completed_plans: 27
   percent: 44
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 26 (wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-08-30 -- Phase 26 execution started
+Plan: 03 (gap closure) of 2 base + 1 gap-closure
+Status: Phase complete — gap-closure plan 26-03 executed, ready for re-verification
+Last activity: 2026-08-31 -- Phase 26 gap-closure plan 03 executed (CR-01, CR-02, CR-03 closed)
 
 ```
 Progress: [█████████░] 86% (6/7 phases)
@@ -59,6 +59,7 @@ Progress: [█████████░] 86% (6/7 phases)
 | Phase 25 P04 | ~150min | 3 tasks | 4 files |
 | Phase 26 P01 | 15min | 3 tasks | 4 files |
 | Phase 26 P02 | 25min | 2 tasks | 2 files |
+| Phase 26 P03 | 35min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ Recent decisions affecting current work:
 - [Phase 26]: [26-02] Parola generata o singura data la insertul clubului, reutilizata identic la retry — evita mismatch cu parola reala din auth.users daca user-ul fusese deja creat la prima incercare
 - [Phase 26]: [26-02] Fara rollback pe cluburi la esecul crearii contului admin (D-07) — clubul orfan ramane vizibil/editabil, recuperare ghidata catre User Management
 - [Phase 26]: [26-02] Garda is_primary aplicata explicit dupa succes pe utilizator_roluri_multicont — RPC-ul refactor_create_user_account seteaza is_primary doar pentru rolul SPORTIV
+- [Phase ?]: [Phase 26] [26-03] Garda de autorizare per club extrasa in api/_permisiuniCont.ts, testabila fara server — fixeaza CR-01 comparand greutatea apelantului IN CLUBUL TINTA (Map per club), nu maximul global
+- [Phase ?]: [Phase 26] [26-03] Rollback auth.users gardat de flag userNouCreat, aplicat doar pe ramura rpcError cand user-ul a fost creat in cererea curenta — repara retry-ul D-07 (CR-02), oglindeste api/genereaza-magic-link.ts
+- [Phase ?]: [Phase 26] [26-03] AppRouter.tsx: cele doua useState mutate deasupra return-urilor timpurii — fixeaza violarea Rules of Hooks (CR-03), zero schimbare de comportament vizibil
 
 ### Pending Todos
 
@@ -163,6 +167,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-08-30T23:00:02.622Z
-Stopped at: Completed 26-02-PLAN.md
+Last session: 2026-08-31T09:04:44.780Z
+Stopped at: Completed 26-03-PLAN.md
 Resume file: None

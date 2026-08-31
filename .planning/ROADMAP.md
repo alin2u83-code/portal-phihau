@@ -319,7 +319,7 @@ Plans:
 **Goal:** SUPER_ADMIN_FEDERATIE creeaza un club nou impreuna cu primul lui administrator (cont + rol ADMIN_CLUB legat de clubul nou) intr-un singur submit, cu parola temporara generata automat si afisata pe ecran pentru transmitere manuala.
 **Requirements**: TBD (faza derivata din decizii D-01..D-07 in 26-CONTEXT.md, fara REQ-ID-uri formale)
 **Depends on:** Phase 25
-**Plans:** 2/3 plans complete
+**Plans:** 3/3 plans complete
 
 Plans:
 
@@ -330,7 +330,7 @@ Plans:
 
 **Wave 3 (gap closure)**
 
-- [ ] 26-03-PLAN.md — Inchide CR-01 (escaladare privilegii cross-club, garda per club testata automat) + CR-02 (rollback auth.users la esec RPC, retry D-07 poate reusi) + CR-03 (Rules-of-Hooks in AppRouter) si consolideaza verificarea umana amanata in 26-UAT.md
+- [x] 26-03-PLAN.md — Inchide CR-01 (escaladare privilegii cross-club, garda per club testata automat) + CR-02 (rollback auth.users la esec RPC, retry D-07 poate reusi) + CR-03 (Rules-of-Hooks in AppRouter) si consolideaza verificarea umana amanata in 26-UAT.md
 
 ---
 

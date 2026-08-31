@@ -1,16 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from "@supabase/supabase-js";
 import { checkRateLimit, getClientIp } from './_rateLimit';
-
-// Oglindește exact roleWeights din hooks/useRoleAssignment.ts — gardă server-side
-// împotriva escaladării de privilegii (T-26-01, T-26-02).
-const ROLE_WEIGHTS: Record<string, number> = {
-  'SUPER_ADMIN_FEDERATIE': 5,
-  'ADMIN': 4,
-  'ADMIN_CLUB': 3,
-  'INSTRUCTOR': 2,
-  'SPORTIV': 1,
-};
+import { verificaPermisiuneCreareCont } from './_permisiuniCont';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -50,7 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   const callerId = callerAuthData.user.id;
 
-  // 3. Rolurile apelantului — determină greutatea maximă de privilegii.
+  // 3. Rolurile apelantului — folosite de garda de autorizare de mai jos.
   const { data: callerRoleRows, error: callerRolesError } = await supabaseAdmin
     .from('utilizator_roluri_multicont')
     .select('rol_denumire, club_id')
@@ -60,34 +51,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Nu s-au putut verifica permisiunile apelantului.' });
   }
 
-  const callerRoles = callerRoleRows || [];
-  const callerMaxWeight = Math.max(0, ...callerRoles.map((r: any) => ROLE_WEIGHTS[r.rol_denumire] || 0));
-
-  if (callerMaxWeight < 2) {
-    return res.status(403).json({ error: 'Nu aveți permisiunea de a crea conturi.' });
-  }
-
+  const callerRoles = (callerRoleRows || []) as any[];
   const { email, password, userData, roles } = req.body;
 
-  // 4. Anti-escaladare de privilegii (T-26-01).
-  if (!Array.isArray(roles) || roles.length === 0) {
-    return res.status(400).json({ error: 'Lista de roluri este invalidă.' });
-  }
-  for (const roleName of roles) {
-    if (!(roleName in ROLE_WEIGHTS)) {
-      return res.status(400).json({ error: `Rol necunoscut: ${roleName}.` });
-    }
-    if (ROLE_WEIGHTS[roleName] > callerMaxWeight) {
-      return res.status(403).json({ error: 'Nu puteți acorda un rol cu privilegii mai mari decât rolul dumneavoastră.' });
-    }
+  // 4. Validare payload — respinge cereri malformate înainte de orice scriere (WR-02).
+  if (!email || typeof email !== 'string' || !userData?.nume || !userData?.prenume) {
+    return res.status(400).json({ error: 'Date lipsă sau invalide pentru crearea contului.' });
   }
 
-  // 5. Scoping pe club (T-26-02) — apelanții non-federație doar în clubul propriu.
-  if (callerMaxWeight < 5) {
-    const cluburiApelant = new Set(callerRoles.map((r: any) => r.club_id).filter(Boolean));
-    if (!userData?.club_id || !cluburiApelant.has(userData.club_id)) {
-      return res.status(403).json({ error: 'Nu puteți crea conturi în alt club.' });
-    }
+  // 5. Autorizare per club (T-26-01, T-26-02) — gardă unică: greutatea comparată
+  // e cea a apelantului ÎN CLUBUL ȚINTĂ, nu maximul global (închide CR-01).
+  const permisiune = verificaPermisiuneCreareCont({ callerRoles, roles, clubTinta: userData?.club_id ?? null });
+  if (!permisiune.permis) {
+    return res.status(permisiune.status).json({ error: permisiune.error });
   }
 
   try {

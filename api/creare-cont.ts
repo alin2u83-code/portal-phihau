@@ -69,6 +69,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // 1. Create user in auth.users (sau preia user-ul existent dacă emailul e deja înregistrat)
     let userId: string;
+    // Distinge user-ul creat ÎN ACEASTĂ CERERE de cel preluat din ramura „email
+    // deja înregistrat" — folosit mai jos pentru rollback-ul de la CR-02.
+    let userNouCreat = false;
 
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
@@ -98,9 +101,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         throw new Error(`Emailul ${email} există în autentificare dar nu are un profil sportiv asociat. Contactați administratorul.`);
       }
 
+      // NU se marchează userNouCreat aici — user-ul aparținea deja sistemului,
+      // ștergerea lui la un eșec ulterior de RPC ar distruge un cont legitim.
       userId = existingSportiv.user_id;
     } else {
       userId = authData.user.id;
+      userNouCreat = true;
     }
 
     // 2. Assign roles via RPC
@@ -123,7 +129,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     });
 
-    if (rpcError) throw rpcError;
+    // Fără acest cleanup, un eșec de RPC după crearea user-ului lasă un rând
+    // orfan în auth.users (fără rând corespunzător în sportivi). Orice
+    // reîncercare pentru același email ar cădea apoi pe ramura
+    // isAlreadyRegistered → căutare în sportivi → eroarea „există în
+    // autentificare dar nu are un profil sportiv asociat", ceea ce face
+    // butonul „Reîncearcă Crearea Contului Admin" (D-07) permanent
+    // inutilizabil. Pattern identic cu api/genereaza-magic-link.ts:97-100.
+    if (rpcError) {
+      if (userNouCreat) {
+        await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => {});
+      }
+      throw rpcError;
+    }
 
     if (!userId) {
       return res.status(500).json({ error: "Contul a fost procesat dar userId-ul nu a putut fi determinat." });

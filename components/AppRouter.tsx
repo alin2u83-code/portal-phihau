@@ -88,6 +88,13 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         setPlatiPentruIncasare([]);
     };
 
+    // Hook-urile trebuie declarate necondiționat, înaintea oricărui return
+    // timpuriu (Rules of Hooks) — altfel o schimbare a trebuie_schimbata_parola
+    // fără remount produce „Rendered fewer hooks than during the previous
+    // render" (CR-03, 26-REVIEW.md).
+    const [sportivIdPentruRaport, setSportivIdPentruRaport] = useState<string | null>(null);
+    const [sportivProfilTab, setSportivProfilTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric' | undefined>(undefined);
+
     if (currentUser && currentUser.email?.endsWith('@frqkd.ro')) {
         return <OnboardingCompletare currentUser={currentUser} onCompleted={() => window.location.reload()} />;
     }
@@ -95,13 +102,10 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     if (currentUser && currentUser.trebuie_schimbata_parola) {
         return <MandatoryPasswordChange currentUser={currentUser} onPasswordChanged={() => window.location.reload()} />;
     }
-    
+
     const renderProtected = (view: React.ReactNode, hasAccess: boolean) => {
         return hasAccess ? view : <AccessDenied onBack={() => setActiveView('dashboard')} />;
     };
-
-    const [sportivIdPentruRaport, setSportivIdPentruRaport] = useState<string | null>(null);
-    const [sportivProfilTab, setSportivProfilTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric' | undefined>(undefined);
 
     const isAtLeastInstructor = permissions.isFederationAdmin || permissions.isAdminClub || permissions.isInstructor;
     const isAtLeastClubAdmin = permissions.isAdminClub || permissions.isFederationAdmin;

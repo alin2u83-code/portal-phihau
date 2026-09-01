@@ -19,15 +19,18 @@ export interface TemplateCategorieInput {
   max_echipe_per_club: number;
   min_participanti_start: number;
   tip_proba: TipProba;
+  doua_quyenuri?: boolean;
 }
 
 /**
  * Generează denumirea automată a unei categorii
  */
 export function buildCategorieDenumire(cat: Omit<TemplateCategorieInput, 'tip_proba'>): string {
-  const varstaStr = cat.varsta_max
-    ? `${cat.varsta_min}-${cat.varsta_max} ani`
-    : `Peste ${cat.varsta_min} ani`;
+  const varstaStr = !cat.varsta_max
+    ? `Peste ${cat.varsta_min} ani`
+    : cat.varsta_max === cat.varsta_min
+      ? `${cat.varsta_min} ani`
+      : `${cat.varsta_min}-${cat.varsta_max} ani`;
 
   const gradStr = buildGradStr(cat.grad_min_ordine, cat.grad_max_ordine);
   const armaStr = cat.arma ? ` / ${cat.arma}` : '';
@@ -320,6 +323,188 @@ export function generateTemplateGiaoDau(): TemplateCategorieInput[] {
   add(13, 15, 'Masculin', 1, 1); // R
   add(13, 15, 'Feminin', 2, 4);  // S
   add(13, 15, 'Masculin', 2, 4); // T
+
+  return categories;
+}
+
+// -----------------------------------------------
+// TEMPLATE: Campionatul Național de Qwan Ki Do
+// Juniori 1, Seniori, Veterani — Tehnica
+// 58 categorii (Thao Quyen Individual + Sincron + Song Luyen, grade + centuri negre)
+// Conform circulară oficială FRAM/QwanKiDo, 31.10-01.11.2026
+// Grade ordine conform DB: 15=1CâpAlbastru 16=2CâpAlbastru 17=3CâpAlbastru
+// 18=4CâpAlbastru 19=CenturaNeagră(C.N.) 20=C.N.1Dang 21=C.N.2Dang
+// 22=C.N.3Dang 23=C.N.4Dang 24=C.N.5Dang
+// -----------------------------------------------
+export function generateTemplateTehnnicaJ1SV(): TemplateCategorieInput[] {
+  const categories: TemplateCategorieInput[] = [];
+  let nr = 1;
+
+  // Thao Quyen Individual (grade și centuri negre)
+  const tq = (
+    varsta_min: number, varsta_max: number | null,
+    gen: 'Feminin' | 'Masculin',
+    grad_min: number, grad_max: number,
+    doua_quyenuri = false
+  ) => {
+    categories.push({
+      numar_categorie: nr++,
+      varsta_min, varsta_max, gen,
+      grad_min_ordine: grad_min, grad_max_ordine: grad_max,
+      arma: null, tip_participare: 'individual',
+      sportivi_per_echipa_min: 1, sportivi_per_echipa_max: 1,
+      rezerve_max: 0, max_echipe_per_club: 99, min_participanti_start: 3,
+      tip_proba: 'thao_quyen_individual',
+      doua_quyenuri,
+    });
+  };
+
+  // Echipă (Sincron 3 sportivi / Song Luyen 2 sportivi)
+  const echipa = (
+    varsta_min: number, varsta_max: number | null,
+    gen: 'Feminin' | 'Masculin' | 'Mixt',
+    grad_min: number, grad_max: number,
+    tip_proba: TipProba, sportivi: number
+  ) => {
+    categories.push({
+      numar_categorie: nr++,
+      varsta_min, varsta_max, gen,
+      grad_min_ordine: grad_min, grad_max_ordine: grad_max,
+      arma: null, tip_participare: 'echipa',
+      sportivi_per_echipa_min: sportivi, sportivi_per_echipa_max: sportivi,
+      rezerve_max: 0, max_echipe_per_club: 1, min_participanti_start: 3,
+      tip_proba,
+    });
+  };
+
+  // === THAO QUYEN INDIVIDUAL — grade (cat. 1-24) ===
+  // 16 ani
+  tq(16, 16, 'Feminin',  15, 15);  // 1
+  tq(16, 16, 'Masculin', 15, 15);  // 2
+  tq(16, 16, 'Feminin',  16, 16);  // 3
+  tq(16, 16, 'Masculin', 16, 16);  // 4
+  tq(16, 16, 'Feminin',  17, 17);  // 5
+  tq(16, 16, 'Masculin', 17, 17);  // 6
+  tq(16, 16, 'Feminin',  18, 18);  // 7
+  tq(16, 16, 'Masculin', 18, 18);  // 8
+  // 17 ani
+  tq(17, 17, 'Feminin',  15, 15);  // 9
+  tq(17, 17, 'Masculin', 15, 15);  // 10
+  tq(17, 17, 'Feminin',  16, 16);  // 11
+  tq(17, 17, 'Masculin', 16, 16);  // 12
+  tq(17, 17, 'Feminin',  17, 17);  // 13
+  tq(17, 17, 'Masculin', 17, 17);  // 14
+  tq(17, 17, 'Feminin',  18, 18);  // 15
+  tq(17, 17, 'Masculin', 18, 18);  // 16
+  // 18-39 ani
+  tq(18, 39, 'Feminin',  15, 16);  // 17
+  tq(18, 39, 'Masculin', 15, 16);  // 18
+  tq(18, 39, 'Feminin',  17, 18);  // 19
+  tq(18, 39, 'Masculin', 17, 18);  // 20
+  // 40+ ani
+  tq(40, null, 'Feminin',  15, 16); // 21
+  tq(40, null, 'Masculin', 15, 16); // 22
+  tq(40, null, 'Feminin',  17, 18); // 23
+  tq(40, null, 'Masculin', 17, 18); // 24
+
+  // === THAO QUYEN SINCRON — grade (cat. 25-29), echipă de 3 ===
+  echipa(16, 17, 'Feminin', 15, 18, 'sincron', 3); // 25
+  echipa(16, 17, 'Masculin', 15, 18, 'sincron', 3); // 26
+  echipa(16, 17, 'Mixt', 15, 18, 'sincron', 3); // 27
+  echipa(18, 39, 'Mixt', 15, 18, 'sincron', 3); // 28
+  echipa(40, null, 'Mixt', 15, 18, 'sincron', 3); // 29
+
+  // === SONG LUYEN — grade (cat. 30-34), echipă de 2 ===
+  echipa(16, 17, 'Feminin', 15, 18, 'song_luyen', 2); // 30
+  echipa(16, 17, 'Masculin', 15, 18, 'song_luyen', 2); // 31
+  echipa(16, 17, 'Mixt', 15, 18, 'song_luyen', 2); // 32
+  echipa(18, 39, 'Mixt', 15, 18, 'song_luyen', 2); // 33
+  echipa(40, null, 'Mixt', 15, 18, 'song_luyen', 2); // 34
+
+  // === THAO QUYEN INDIVIDUAL — centuri negre (cat. 35-44) ===
+  tq(18, 39, 'Feminin',  19, 19);          // 35 C.N.
+  tq(18, 39, 'Masculin', 19, 19);          // 36 C.N.
+  tq(18, 39, 'Feminin',  20, 20);          // 37 C.N. 1 Dang
+  tq(18, 39, 'Masculin', 20, 20);          // 38 C.N. 1 Dang
+  tq(18, 39, 'Feminin',  21, 23, true);    // 39 C.N. 2-4 Dang (2 quyen-uri)
+  tq(18, 39, 'Masculin', 21, 23, true);    // 40 C.N. 2-4 Dang (2 quyen-uri)
+  tq(40, 49, 'Feminin',  19, 23);          // 41 C.N. - 4 Dang
+  tq(40, 49, 'Masculin', 19, 24);          // 42 C.N. - 5 Dang
+  tq(50, null, 'Feminin',  19, 23);        // 43 C.N. - 4 Dang
+  tq(50, null, 'Masculin', 19, 24);        // 44 C.N. - 5 Dang
+
+  // === THAO QUYEN SINCRON — centuri negre (cat. 45-51), echipă de 3 ===
+  echipa(18, 39, 'Feminin', 19, 20, 'sincron', 3);  // 45
+  echipa(18, 39, 'Masculin', 19, 20, 'sincron', 3); // 46
+  echipa(18, 39, 'Mixt', 19, 20, 'sincron', 3);     // 47
+  echipa(18, 39, 'Feminin', 20, 23, 'sincron', 3);  // 48
+  echipa(18, 39, 'Masculin', 20, 23, 'sincron', 3); // 49
+  echipa(18, 39, 'Mixt', 20, 23, 'sincron', 3);     // 50
+  echipa(40, null, 'Mixt', 19, 24, 'sincron', 3);   // 51
+
+  // === SONG LUYEN — centuri negre (cat. 52-58), echipă de 2 ===
+  echipa(18, 39, 'Feminin', 19, 20, 'song_luyen', 2);  // 52
+  echipa(18, 39, 'Masculin', 19, 20, 'song_luyen', 2); // 53
+  echipa(18, 39, 'Mixt', 19, 20, 'song_luyen', 2);     // 54
+  echipa(18, 39, 'Feminin', 20, 23, 'song_luyen', 2);  // 55
+  echipa(18, 39, 'Masculin', 20, 23, 'song_luyen', 2); // 56
+  echipa(18, 39, 'Mixt', 20, 23, 'song_luyen', 2);     // 57
+  echipa(40, null, 'Mixt', 19, 24, 'song_luyen', 2);   // 58
+
+  return categories;
+}
+
+// -----------------------------------------------
+// TEMPLATE: Campionatul Național de Qwan Ki Do
+// Juniori 1, Seniori, Veterani — Giao Dau
+// 16 categorii (A-P), perechi (2 sportivi/echipă)
+// Conform circulară oficială FRAM/QwanKiDo, 31.10-01.11.2026
+// -----------------------------------------------
+export function generateTemplateGiaoDauJ1SV(): TemplateCategorieInput[] {
+  const categories: TemplateCategorieInput[] = [];
+  let nr = 1;
+
+  const add = (
+    varsta_min: number, varsta_max: number | null,
+    gen: 'Feminin' | 'Masculin',
+    grad_min: number, grad_max: number
+  ) => {
+    categories.push({
+      numar_categorie: nr++,
+      varsta_min, varsta_max, gen,
+      grad_min_ordine: grad_min, grad_max_ordine: grad_max,
+      arma: null,
+      tip_participare: 'pereche',
+      sportivi_per_echipa_min: 2,
+      sportivi_per_echipa_max: 2,
+      rezerve_max: 2,
+      max_echipe_per_club: 1,
+      min_participanti_start: 3,
+      tip_proba: 'giao_dau',
+    });
+  };
+
+  // 16-17 ani
+  add(16, 17, 'Feminin',  15, 16); // A: 1CAP-2CAP
+  add(16, 17, 'Masculin', 15, 16); // B
+  add(16, 17, 'Feminin',  17, 18); // C: 3CAP-4CAP
+  add(16, 17, 'Masculin', 17, 18); // D
+
+  // 18-24 ani, 25-39 ani, 40-49 ani — grade 1-4 CAP
+  add(18, 24, 'Feminin',  15, 18); // E
+  add(18, 24, 'Masculin', 15, 18); // F
+  add(25, 39, 'Feminin',  15, 18); // G
+  add(25, 39, 'Masculin', 15, 18); // H
+  add(40, 49, 'Feminin',  15, 18); // I
+  add(40, 49, 'Masculin', 15, 18); // J
+
+  // Centuri negre
+  add(18, 24, 'Feminin',  19, 21); // K: C.N. - 2 Dang
+  add(18, 24, 'Masculin', 19, 21); // L
+  add(25, 39, 'Feminin',  19, 23); // M: C.N. - 4 Dang
+  add(25, 39, 'Masculin', 19, 23); // N
+  add(40, 49, 'Feminin',  19, 24); // O: C.N. - 5 Dang
+  add(40, 49, 'Masculin', 19, 24); // P
 
   return categories;
 }

@@ -4,8 +4,13 @@ import { supabase } from '../../supabaseClient';
 import { Button, Modal } from '../ui';
 import {
   generateTemplateTehnnica, generateTemplateGiaoDau, generateTemplateCVD,
+  generateTemplateTehnnicaJ1SV, generateTemplateGiaoDauJ1SV,
   buildCategorieDenumire, TemplateCategorieInput, TIP_PROBA_LABELS
 } from '../../utils/competitiiTemplates';
+
+// Marker de discriminare pentru Campionatul Național Juniori 1, Seniori, Veterani
+// (competiție distinctă de "CN Copii și Juniori", ambele folosesc tip='tehnica'/'giao_dau')
+const MARKER_J1SV = 'Juniori 1, Seniori, Veterani';
 import { useError } from '../ErrorProvider';
 
 export interface GenerareSabloaneModalProps {
@@ -33,11 +38,19 @@ export const GenerareSabloaneModal: React.FC<GenerareSabloaneModalProps> = ({
   const [filterGradMax, setFilterGradMax] = useState('');
 
   const templates = useMemo<TemplateCategorieInput[]>(() => {
+    const isJ1SV = (competitie.denumire || '').includes(MARKER_J1SV);
+    // J1SV e o singură competiție unificată (tehnica + giao_dau sub același
+    // rând, tip='tehnica' e doar cosmetic aici) — ignorăm competitie.tip și
+    // oferim ambele seturi de șabloane, renumerotate secvențial.
+    if (isJ1SV) {
+      return [...generateTemplateTehnnicaJ1SV(), ...generateTemplateGiaoDauJ1SV()]
+        .map((cat, i) => ({ ...cat, numar_categorie: i + 1 }));
+    }
     if (competitie.tip === 'tehnica') return generateTemplateTehnnica();
     if (competitie.tip === 'giao_dau') return generateTemplateGiaoDau();
     if (competitie.tip === 'cvd') return generateTemplateCVD();
     return [];
-  }, [competitie.tip]);
+  }, [competitie.tip, competitie.denumire]);
 
   // Tipuri de probă unice din template-uri (pentru checkbox-urile de filtru)
   const tipProbaDisponibile = useMemo(() => {
@@ -130,6 +143,7 @@ export const GenerareSabloaneModal: React.FC<GenerareSabloaneModalProps> = ({
         max_echipe_per_club: cat.max_echipe_per_club ?? 1,
         min_participanti_start: cat.min_participanti_start ?? 3,
         ordine_afisare: cat.numar_categorie ?? (nextNr + i + 1),
+        doua_quyenuri: cat.doua_quyenuri ?? false,
       }));
       const { data, error } = await supabase.from('categorii_competitie').insert(payload).select();
       if (error) throw error;

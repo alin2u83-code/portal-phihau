@@ -37,6 +37,7 @@ export const IstoricPlati = lazy(() => import('./Plati/FacturiPersonale').then(m
 export const CalendarView = lazy(() => import('./CalendarView').then(m => ({ default: m.CalendarView })));
 export const RapoarteExamen = lazy(() => import('./GestiuneExamene/RapoarteExamen').then(m => ({ default: m.RapoarteExamen })));
 export const CluburiManagement = lazy(() => import('./CluburiManagement').then(m => ({ default: m.CluburiManagement })));
+export const AnunturiFederatie = lazy(() => import('./AnunturiFederatie').then(m => ({ default: m.AnunturiFederatie })));
 export const FederationStructure = lazy(() => import('./FederationStructure').then(m => ({ default: m.FederationStructure })));
 export const FederationInvoices = lazy(() => import('./FederationInvoices').then(m => ({ default: m.FederationInvoices })));
 export const MartialAttendance = lazy(() => import('./Prezenta/MartialAttendance').then(m => ({ default: m.MartialAttendance })));

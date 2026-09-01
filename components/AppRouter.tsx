@@ -238,6 +238,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.UserManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser!} allRoles={allRoles} setAllRoles={setAllRoles} clubs={clubs} permissions={permissions} />, isAtLeastClubAdmin);
                             case 'cluburi':
                                 return renderProtected(<Lazy.CluburiManagement onBack={handleBackToDashboard} clubs={clubs} setClubs={setClubs} currentUser={currentUser!} permissions={permissions} allRoles={allRoles} />, isFederationAdmin);
+                            case 'anunturi-federatie':
+                                return renderProtected(<Lazy.AnunturiFederatie onBack={handleBackToDashboard} clubs={clubs} currentUser={currentUser!} />, isFederationAdmin);
                             case 'data-maintenance':
                                 return renderProtected(<Lazy.BackupManager onBack={handleBackToDashboard} onDataRestored={() => window.location.reload()} sportivi={sportivi} setSportivi={setSportivi} grade={grade} preturiConfig={preturiConfig} participari={inscrieriExamene} examene={sesiuniExamene} plati={plati} setPlati={setPlati} familii={familii} onNavigate={(view) => setActiveView(view)} currentUser={currentUser!} />, isFederationAdmin);
                             case 'rapoarte-examen':

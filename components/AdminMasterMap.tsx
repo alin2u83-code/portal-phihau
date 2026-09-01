@@ -26,6 +26,7 @@ import {
     TrendingUpIcon,
     MinusCircleIcon,
     ExclamationTriangleIcon,
+    BellIcon,
 } from './icons';
 import { useState } from 'react';
 // SparklesIcon kept for Prezență Rapidă hero card
@@ -108,6 +109,7 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
         'account-settings': 'Setări Cont', 'cluburi': 'Gestiune Cluburi',
         'structura-federatie': 'Structură Federație', 'template-probe': 'Template Probe',
         'data-maintenance': 'Mentenanță Date', 'inlantuiri-admin': 'Înlănțuiri Grade',
+        'anunturi-federatie': 'Anunțuri Federație',
     };
 
     const nav = (view: View) => { trackView(view); onNavigate(view); };
@@ -240,6 +242,7 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
                             <ItemCard title="Template Probe" view="template-probe" icon={FileTextIcon} onNavigate={nav} isFavorite={favorites.includes('template-probe')} onToggleFavorite={toggleFavorite} />
                             <ItemCard title="Mentenanță Date" view="data-maintenance" icon={ArchiveBoxIcon} onNavigate={nav} isFavorite={favorites.includes('data-maintenance')} onToggleFavorite={toggleFavorite} />
                             <ItemCard title="Înlănțuiri Grade" view="inlantuiri-admin" icon={BookMarkedIcon} onNavigate={nav} isFavorite={favorites.includes('inlantuiri-admin')} onToggleFavorite={toggleFavorite} />
+                            <ItemCard title="Anunțuri Federație" view="anunturi-federatie" icon={BellIcon} onNavigate={nav} isFavorite={favorites.includes('anunturi-federatie')} onToggleFavorite={toggleFavorite} />
                         </div>
                     </AccordionItem>
                 )}

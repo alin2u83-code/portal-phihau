@@ -702,7 +702,7 @@ export const TIP_PROBA_LABELS: Record<TipProba, string> = {
 };
 
 export const TIP_COMPETITIE_LABELS = {
-  tehnica: 'CN Tehnica (Quyen / Kata)',
+  tehnica: 'CN Tehnica (Quyen)',
   giao_dau: 'CN Giao Dau (Lupte)',
   cvd: 'CN Co Vo Dao (Arme)',
 };

@@ -26,6 +26,7 @@ import { getAge } from '../../utils/date';
 import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';
 import { Wand2, Copy, Check, Download, AlertTriangle } from 'lucide-react';
 import { mutaInGrupa, scoateDinGrupa } from '../../services/grupeIstoricService';
+import { useRegisterRefresh } from '../../contexts/RefreshContext';
 
 
 
@@ -286,7 +287,7 @@ export const Sportivi: React.FC<{
         ? (filters.clubFilter || undefined)
         : (activeRoleContext?.club_id || currentUser?.club_id || undefined);
 
-    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError, count: totalSportivi } = useSportivi({
+    const { data: sportiviData, isLoading: sportiviLoading, error: sportiviError, count: totalSportivi, refetch: refetchSportivi } = useSportivi({
         status: filters.statusFilter,
         gradId: filters.gradFilter !== 'null' ? filters.gradFilter : undefined,
         rolId: filters.rolFilter,
@@ -299,7 +300,9 @@ export const Sportivi: React.FC<{
         ? [...sportiviData].sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO'))
         : [];
     const totalPages = Math.ceil(totalSportivi / pageSize);
-    
+
+    useRegisterRefresh(refetchSportivi);
+
     const {
         loading: familyLoading,
         familyBalances,

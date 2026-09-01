@@ -11,6 +11,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { DataProvider } from './contexts/DataContext';
 import { NavigationProvider } from './contexts/NavigationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { RefreshProvider } from './contexts/RefreshContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -44,15 +45,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
     <React.StrictMode>
       <ErrorProvider>
         <QueryClientProvider client={queryClient}>
-          <DataProvider>
-            <NavigationProvider>
-              <ThemeProvider>
-                <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                  <App />
-                </BrowserRouter>
-              </ThemeProvider>
-            </NavigationProvider>
-          </DataProvider>
+          <RefreshProvider>
+            <DataProvider>
+              <NavigationProvider>
+                <ThemeProvider>
+                  <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                    <App />
+                  </BrowserRouter>
+                </ThemeProvider>
+              </NavigationProvider>
+            </DataProvider>
+          </RefreshProvider>
         </QueryClientProvider>
       </ErrorProvider>
     </React.StrictMode>

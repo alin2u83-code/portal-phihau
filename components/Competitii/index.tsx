@@ -28,6 +28,7 @@ import { InscrieriView } from './InscrieriView';
 import { MigrareModal, EvenimentLegacy } from './MigrareModal';
 import { useCompetitieFilters, aplicaFiltreCategorie } from '../../hooks/useCompetitieFilters';
 import { CompetitieFilterBar } from './CompetitieFilterBar';
+import { useRegisterRefresh } from '../../contexts/RefreshContext';
 
 interface CompetitiiProps {
   permissions: Permissions;
@@ -117,6 +118,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   }, [competitie.id]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+  useRegisterRefresh(fetchData);
 
   useEffect(() => {
     if (!competitie.legacy_eveniment_id) return;
@@ -168,19 +170,6 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             {competitie.locatie && <span className="text-xs text-slate-400">{competitie.locatie}</span>}
           </div>
         </div>
-        {/* Cerința 2 — buton Refresh */}
-        <button
-          onClick={fetchData}
-          disabled={loading}
-          title="Reîncarcă datele competiției"
-          style={{ touchAction: 'manipulation' }}
-          className="h-10 w-10 flex items-center justify-center rounded-lg border border-slate-600 bg-slate-800 text-slate-400 hover:text-white hover:border-slate-400 transition-colors disabled:opacity-40 shrink-0"
-          aria-label="Refresh"
-        >
-          <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
         {isAdmin && (
           <Button
             size="sm" variant="secondary"
@@ -262,18 +251,6 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             Rezultate Vechi
           </button>
         )}
-        <button
-          onClick={fetchData}
-          disabled={loading}
-          title="Reîncarcă datele competiției"
-          style={{ touchAction: 'manipulation' }}
-          className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-600 bg-slate-800 text-slate-400 hover:text-white hover:border-slate-400 transition-colors disabled:opacity-40 shrink-0 ml-auto"
-          aria-label="Refresh"
-        >
-          <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
         </div>
       </div>
 

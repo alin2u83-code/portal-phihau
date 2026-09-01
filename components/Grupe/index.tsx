@@ -21,6 +21,7 @@ import { GrupeSecundareModal } from './GrupeSecundareModal';
 import { GenerareAntrenamenteModal } from './GenerareAntrenamenteModal';
 import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';
 import { mutaInGrupa, scoateDinGrupa } from '../../services/grupeIstoricService';
+import { useRegisterRefresh } from '../../contexts/RefreshContext';
 
 // Interfață extinsă pentru datele aduse din Supabase
 interface GrupaWithDetails extends GrupaType {
@@ -42,6 +43,8 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
     const { data: grupeData, isLoading: grupeLoading, refetch: refetchGrupe } = useGrupe(activeRoleContext?.id, grupeClubId);
     // Filtrare client-side ca plasă de siguranță — protejează dacă cache-ul conține date neexpirate fără filtru
     const grupe = (grupeData || []).filter(g => !grupeClubId || g.club_id === grupeClubId);
+
+    useRegisterRefresh(refetchGrupe);
 
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);

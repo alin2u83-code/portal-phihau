@@ -7,6 +7,7 @@ import { NotificationBell } from './NotificationBell';
 import { UserMenu } from './UserMenu';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ThemeDropdown } from './ThemeDropdown';
+import { useRefresh } from '../contexts/RefreshContext';
 
 interface HeaderProps {
     onBack: () => void;
@@ -75,6 +76,7 @@ export const Header: React.FC<HeaderProps> = ({
     const { activeView, setActiveView, canGoBack, history, goBack, jumpToHistory } = useNavigation();
     const isRootView = ROOT_VIEWS.includes(activeView);
     const isMobile = useIsMobile();
+    const { refresh, isRefreshing } = useRefresh();
 
     const pageTitle = VIEW_TITLES[activeView] || activeView;
 
@@ -157,6 +159,19 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Right: Notifications & User Menu */}
             <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                <button
+                    onClick={refresh}
+                    disabled={isRefreshing}
+                    title="Reîncarcă datele"
+                    aria-label="Refresh"
+                    style={{ touchAction: 'manipulation' }}
+                    className="h-9 w-9 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-40 shrink-0"
+                >
+                    <svg className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+
                 <ThemeDropdown onOpenAdvanced={onOpenThemeEditor} />
 
                 {currentUser && <NotificationBell currentUser={currentUser} />}

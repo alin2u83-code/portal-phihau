@@ -2,7 +2,8 @@
 import { Plata, Sportiv, PretConfig, TipAbonament, Tranzactie, Familie, Reducere, TipPlata, User, Permissions } from '../../types';
 import { Button, Input, Select, Card, Modal } from '../ui';
 import { getPretValabil, getPretProdus } from '../../utils/pricing';
-import { ArrowLeftIcon, PlusIcon, TrashIcon, ChevronDownIcon } from '../icons';
+import { ArrowLeftIcon, PlusIcon, TrashIcon, ChevronDownIcon, EditIcon } from '../icons';
+import { EditIncasareModal } from './EditIncasareModal';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
@@ -176,6 +177,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const { showError, showSuccess } = useError();
     const [tranzactieToDelete, setTranzactieToDelete] = useState<Tranzactie | null>(null);
+    const [tranzactieToEdit, setTranzactieToEdit] = useState<Tranzactie | null>(null);
     const [avansExpanded, setAvansExpanded] = useState(false);
     const [periodFilter, setPeriodFilter] = useState({ startDate: '', endDate: '' });
 
@@ -603,9 +605,16 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (t) => (
-                <Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)}>
-                    <TrashIcon className="w-4 h-4"/>
-                </Button>
+                <div className="flex justify-end gap-2">
+                    {t.plata_ids?.length > 0 && (
+                        <Button size="sm" variant="secondary" onClick={() => setTranzactieToEdit(t)} title="Editează">
+                            <EditIcon className="w-4 h-4"/>
+                        </Button>
+                    )}
+                    <Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)} title="Șterge">
+                        <TrashIcon className="w-4 h-4"/>
+                    </Button>
+                </div>
             )
         }
     ];
@@ -628,9 +637,14 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 <p className="text-sm text-slate-300"><span className="text-slate-500">Descriere:</span> {getDescriereTranzactie(t)}</p>
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-slate-700">
-                <Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)} className="w-full justify-center">
-                    <TrashIcon className="w-4 h-4 mr-2" /> Șterge Tranzacția
+            <div className="flex gap-2 pt-2 border-t border-slate-700">
+                {t.plata_ids?.length > 0 && (
+                    <Button size="sm" variant="secondary" onClick={() => setTranzactieToEdit(t)} className="flex-1 justify-center">
+                        <EditIcon className="w-4 h-4 mr-2" /> Editează
+                    </Button>
+                )}
+                <Button size="sm" variant="danger" onClick={() => setTranzactieToDelete(t)} className="flex-1 justify-center">
+                    <TrashIcon className="w-4 h-4 mr-2" /> Șterge
                 </Button>
             </div>
         </Card>
@@ -763,6 +777,21 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
             <QuickAddTipPlataModal isOpen={isQuickAddOpen} onClose={() => setIsQuickAddOpen(false)} onSave={handleQuickAddTipPlata} />
             <ConfirmDeleteModal isOpen={!!tranzactieToDelete} onClose={() => setTranzactieToDelete(null)} onConfirm={handleDeleteTranzactie} tableName="Tranzacție" isLoading={loading} customMessage="Sunteți sigur că doriți să ștergeți această încasare? Statusul facturilor asociate va fi resetat." />
+            <EditIncasareModal
+                target={tranzactieToEdit ? {
+                    tranzactieId: tranzactieToEdit.id,
+                    plataId: tranzactieToEdit.plata_ids[0],
+                    suma: tranzactieToEdit.suma,
+                    data_platii: tranzactieToEdit.data_platii,
+                    metoda_plata: tranzactieToEdit.metoda_plata,
+                    sumaEditabila: tranzactieToEdit.plata_ids.length === 1,
+                } : null}
+                onClose={() => setTranzactieToEdit(null)}
+                onSaved={({ tranzactie, plata }) => {
+                    setTranzactii(prev => prev.map(t => t.id === tranzactie.id ? tranzactie : t));
+                    setPlati(prev => prev.map(p => p.id === plata.id ? plata : p));
+                }}
+            />
         </div>
     );
 };

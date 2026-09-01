@@ -1,8 +1,9 @@
 ﻿import React, { useMemo, useState } from 'react';
 import { IstoricPlataDetaliat, Sportiv, Familie, Plata, Tranzactie } from '../../types';
-import { Card, Input, Select, Button, SearchableSelect } from '../ui';
+import { Card, Input, Select, Button, SearchableSelect, Modal } from '../ui';
 import { PeriodFilterBar } from './PeriodFilterBar';
-import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon, ExclamationTriangleIcon, CheckCircleIcon, WalletIcon, XIcon, TrendingUpIcon, UsersIcon, DownloadIcon, DocumentArrowDownIcon } from '../icons';
+import { ChartBarIcon, BanknotesIcon, FileTextIcon, ChevronDownIcon, ExclamationTriangleIcon, CheckCircleIcon, WalletIcon, XIcon, TrendingUpIcon, UsersIcon, DownloadIcon, DocumentArrowDownIcon, EditIcon } from '../icons';
+import { EditIncasareModal } from './EditIncasareModal';
 import { RevenueBarChart } from './RevenueBarChart';
 import { PaymentTypePieChart } from './PaymentTypePieChart';
 import { AgingReport } from './AgingReport';
@@ -54,7 +55,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     const { currentUser, activeRoleContext, clubs } = useData();
     const { showError, showSuccess } = useError();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
-    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii' | 'restante' | 'luni_lipsa'>('incasari');
+    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii' | 'restante' | 'luni_lipsa' | 'plati_incasari'>('incasari');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [restanteStart, setRestanteStart] = useState('');
@@ -68,6 +69,15 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
     const [isSaving, setIsSaving] = useState(false);
+
+    // Tab "Plăți & Încasări" — vizualizare unificată facturi + încasări per club
+    const [unifStatusFilter, setUnifStatusFilter] = useState('');
+    const [unifSearch, setUnifSearch] = useState('');
+    const [incasareToEdit, setIncasareToEdit] = useState<IstoricPlataDetaliat | null>(null);
+    const [facturaToEdit, setFacturaToEdit] = useState<IstoricPlataDetaliat | null>(null);
+    const [editFacturaStatus, setEditFacturaStatus] = useState<Plata['status']>('Neachitat');
+    const [editFacturaSumaRamasa, setEditFacturaSumaRamasa] = useState('');
+    const [isEditFacturaLoading, setIsEditFacturaLoading] = useState(false);
 
     const openIncasareModal = (p: IstoricPlataDetaliat) => {
         const rest = p.rest_de_plata ?? p.suma_datorata;
@@ -203,6 +213,71 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     }, [istoricPlatiDetaliat]);
 
     const activeFiltersCount = Object.values(filters).filter(Boolean).length;
+
+    // ─── Tab "Plăți & Încasări" — toate facturile + încasările la un loc ──────
+    // Numărul de rânduri per tranzactie_id — o încasare ce acoperă mai multe
+    // facturi apare pe mai multe rânduri; suma nu e sigur editabilă în acel caz.
+    const tranzactieRowCount = useMemo(() => {
+        const counts: Record<string, number> = {};
+        (istoricPlatiDetaliat || []).forEach(t => {
+            if (t.tranzactie_id) counts[t.tranzactie_id] = (counts[t.tranzactie_id] || 0) + 1;
+        });
+        return counts;
+    }, [istoricPlatiDetaliat]);
+
+    const unifRows = useMemo(() => {
+        if (!istoricPlatiDetaliat) return [];
+        const seen = new Set<string>();
+        return istoricPlatiDetaliat
+            .filter(t => {
+                const key = t.tranzactie_id ? `trz:${t.tranzactie_id}:${t.plata_id}` : `plt:${t.plata_id}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            })
+            .filter(t => {
+                if (unifStatusFilter && t.status !== unifStatusFilter) return false;
+                if (unifSearch) {
+                    const q = unifSearch.toLowerCase();
+                    if (!(t.nume_complet_sportiv || '').toLowerCase().includes(q) && !(t.descriere || '').toLowerCase().includes(q)) return false;
+                }
+                const d = new Date((t.data_emitere || '').toString().slice(0, 10));
+                if (filters.startDate && (isNaN(d.getTime()) || d < new Date(filters.startDate))) return false;
+                if (filters.endDate) {
+                    const eEnd = new Date(filters.endDate); eEnd.setHours(23, 59, 59, 999);
+                    if (isNaN(d.getTime()) || d > eEnd) return false;
+                }
+                return true;
+            })
+            .sort((a, b) => (b.data_emitere || '').toString().localeCompare((a.data_emitere || '').toString()));
+    }, [istoricPlatiDetaliat, unifStatusFilter, unifSearch, filters.startDate, filters.endDate]);
+
+    const openEditIncasare = (row: IstoricPlataDetaliat) => setIncasareToEdit(row);
+
+    const openEditFactura = (row: IstoricPlataDetaliat) => {
+        setFacturaToEdit(row);
+        setEditFacturaStatus(row.status);
+        setEditFacturaSumaRamasa((row.rest_de_plata ?? row.suma_datorata).toFixed(2));
+    };
+
+    const handleSaveEditFactura = async () => {
+        if (!facturaToEdit) return;
+        const sumaRamasa = parseFloat(editFacturaSumaRamasa.replace(',', '.'));
+        if (isNaN(sumaRamasa) || sumaRamasa < 0) { showError('Sumă invalidă', 'Introduceți o valoare numerică pozitivă.'); return; }
+        setIsEditFacturaLoading(true);
+        const { data, error } = await supabase.from('plati').update({
+            status: editFacturaStatus,
+            suma: sumaRamasa,
+        }).eq('id', facturaToEdit.plata_id).select().maybeSingle();
+        setIsEditFacturaLoading(false);
+        if (error) {
+            showError('Eroare la modificare', error.message);
+        } else if (data) {
+            setPlati(prev => prev.map(p => p.id === data.id ? data as Plata : p));
+            setFacturaToEdit(null);
+            showSuccess('Succes', 'Factura a fost actualizată.');
+        }
+    };
 
     // ─── KPI cards ───────────────────────────────────────────────────────────
     const kpi = useMemo(() => {
@@ -361,6 +436,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     };
 
     const tabs = [
+        { id: 'plati_incasari' as const, label: 'Plăți & Încasări', icon: <EditIcon className="w-4 h-4" /> },
         { id: 'incasari' as const,    label: 'Încasări',     icon: <FileTextIcon className="w-4 h-4" /> },
         { id: 'abonamente' as const,  label: 'Abonamente',   icon: <WalletIcon className="w-4 h-4" /> },
         { id: 'lunar' as const,       label: 'Lunar',        icon: <ChartBarIcon className="w-4 h-4" /> },
@@ -440,6 +516,120 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                             <p className="text-xl font-black text-slate-500">—</p>
                         )}
                     </div>
+                </div>
+            )}
+
+            {/* ─── TAB: PLĂȚI & ÎNCASĂRI (vizualizare unificată + editare) ─── */}
+            {activeTab === 'plati_incasari' && (
+                <div className="space-y-4">
+                    <PeriodFilterBar
+                        startDate={filters.startDate}
+                        endDate={filters.endDate}
+                        onChange={(startDate, endDate) => setFilters((prev: typeof filters) => ({ ...prev, startDate, endDate }))}
+                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <Input label="Caută (sportiv / descriere)" value={unifSearch} onChange={e => setUnifSearch(e.target.value)} />
+                        <Select label="Status" value={unifStatusFilter} onChange={e => setUnifStatusFilter(e.target.value)}>
+                            <option value="">Toate</option>
+                            <option value="Achitat">Achitat</option>
+                            <option value="Achitat Parțial">Achitat Parțial</option>
+                            <option value="Neachitat">Neachitat</option>
+                            <option value="Anulat">Anulat</option>
+                        </Select>
+                        <div className="flex items-end">
+                            <p className="text-xs text-slate-400">{unifRows.length} înregistrări</p>
+                        </div>
+                    </div>
+
+                    {unifRows.length === 0 ? (
+                        <Card><p className="text-center text-slate-400 py-8 italic">Nicio plată/încasare conform filtrelor.</p></Card>
+                    ) : (
+                        <>
+                            {/* Desktop */}
+                            <div className="hidden md:block bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl overflow-hidden">
+                                <table className="w-full text-left text-sm">
+                                    <thead>
+                                        <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Emitere</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Sportiv</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Descriere</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Status</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Datorat</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Încasat</th>
+                                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Rest</th>
+                                            <th className="px-4 py-3 w-24"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[var(--t-border)]">
+                                        {unifRows.map(t => {
+                                            const ds = getDisplayStatus({ status: t.status, data: t.data_emitere });
+                                            const cfg = STATUS_DISPLAY_CONFIG[ds];
+                                            return (
+                                                <tr key={`${t.tranzactie_id || 'no-tx'}:${t.plata_id}`} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
+                                                    <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{formatDate(t.data_emitere)}</td>
+                                                    <td className="px-4 py-3 text-white"><SportivLink row={t} /></td>
+                                                    <td className="px-4 py-3 text-slate-300 max-w-xs truncate">{t.descriere || '—'}</td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg?.cls || ''}`}>{cfg?.label || t.status}</span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right text-slate-300 whitespace-nowrap">{formatSum(t.suma_datorata)}</td>
+                                                    <td className="px-4 py-3 text-right text-emerald-400 font-semibold whitespace-nowrap">{formatSum(t.suma_incasata)}</td>
+                                                    <td className={`px-4 py-3 text-right font-bold whitespace-nowrap ${(t.rest_de_plata ?? 0) > 0 ? 'text-rose-400' : 'text-slate-500'}`}>{formatSum(t.rest_de_plata)}</td>
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                        <div className="flex justify-end gap-1">
+                                                            {t.tranzactie_id && (
+                                                                <button onClick={() => openEditIncasare(t)} title="Editează încasarea" className="text-slate-500 hover:text-indigo-400 transition-colors p-1 rounded">
+                                                                    <EditIcon className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                            <button onClick={() => openEditFactura(t)} title="Editează factura" className="text-slate-500 hover:text-amber-400 transition-colors p-1 rounded">
+                                                                <FileTextIcon className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile */}
+                            <div className="md:hidden space-y-2">
+                                {unifRows.map(t => {
+                                    const ds = getDisplayStatus({ status: t.status, data: t.data_emitere });
+                                    const cfg = STATUS_DISPLAY_CONFIG[ds];
+                                    return (
+                                        <div key={`${t.tranzactie_id || 'no-tx'}:${t.plata_id}`} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="min-w-0">
+                                                    <p className="text-white font-semibold text-sm truncate"><SportivLink row={t} /></p>
+                                                    <p className="text-slate-400 text-xs mt-0.5 truncate">{t.descriere || '—'}</p>
+                                                </div>
+                                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${cfg?.cls || ''}`}>{cfg?.label || t.status}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between mt-2">
+                                                <span className="text-xs text-slate-500">{formatDate(t.data_emitere)}</span>
+                                                <span className={`text-sm font-bold ${(t.rest_de_plata ?? 0) > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                                    {(t.rest_de_plata ?? 0) > 0 ? `Rest: ${formatSum(t.rest_de_plata)}` : formatSum(t.suma_datorata)}
+                                                </span>
+                                            </div>
+                                            <div className="flex gap-2 mt-3 pt-2 border-t border-[var(--t-border)]">
+                                                {t.tranzactie_id && (
+                                                    <Button size="sm" variant="secondary" onClick={() => openEditIncasare(t)} className="flex-1 justify-center">
+                                                        <EditIcon className="w-4 h-4 mr-1.5" /> Încasare
+                                                    </Button>
+                                                )}
+                                                <Button size="sm" variant="secondary" onClick={() => openEditFactura(t)} className="flex-1 justify-center">
+                                                    <FileTextIcon className="w-4 h-4 mr-1.5" /> Factură
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
 
@@ -1243,6 +1433,49 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     familie={familii.find(f => f.id === documentModal.plata.familie_id) ?? null}
                     onClose={() => setDocumentModal(null)}
                 />
+            )}
+
+            {/* ─── MODAL EDITARE ÎNCASARE (tab Plăți & Încasări) ─── */}
+            <EditIncasareModal
+                target={incasareToEdit && incasareToEdit.tranzactie_id ? {
+                    tranzactieId: incasareToEdit.tranzactie_id,
+                    plataId: incasareToEdit.plata_id,
+                    suma: incasareToEdit.suma_incasata ?? 0,
+                    data_platii: incasareToEdit.data_plata_string || incasareToEdit.data_emitere,
+                    metoda_plata: incasareToEdit.metoda_plata || 'Cash',
+                    sumaEditabila: (tranzactieRowCount[incasareToEdit.tranzactie_id] ?? 1) === 1,
+                } : null}
+                onClose={() => setIncasareToEdit(null)}
+                onSaved={({ plata }) => {
+                    setPlati(prev => prev.map(p => p.id === plata.id ? plata : p));
+                }}
+            />
+
+            {/* ─── MODAL EDITARE FACTURĂ (tab Plăți & Încasări) ─── */}
+            {facturaToEdit && (
+                <Modal isOpen={!!facturaToEdit} onClose={() => setFacturaToEdit(null)} title="Editează Factură">
+                    <div className="space-y-4">
+                        <p className="text-slate-300 text-sm">Factură: <strong className="text-white">{facturaToEdit.descriere}</strong></p>
+                        <Select label="Status" value={editFacturaStatus} onChange={e => setEditFacturaStatus(e.target.value as Plata['status'])} disabled={isEditFacturaLoading}>
+                            <option value="Neachitat">Neachitat</option>
+                            <option value="Achitat Parțial">Achitat Parțial</option>
+                            <option value="Achitat">Achitat</option>
+                            <option value="Anulat">Anulat</option>
+                        </Select>
+                        <Input
+                            label="Sumă rămasă de achitat (RON)"
+                            type="number"
+                            step="0.01"
+                            value={editFacturaSumaRamasa}
+                            onChange={e => setEditFacturaSumaRamasa(e.target.value)}
+                            disabled={isEditFacturaLoading}
+                        />
+                        <div className="flex justify-end gap-2 pt-2">
+                            <Button variant="secondary" onClick={() => setFacturaToEdit(null)} disabled={isEditFacturaLoading}>Anulează</Button>
+                            <Button variant="primary" onClick={handleSaveEditFactura} isLoading={isEditFacturaLoading}>Salvează</Button>
+                        </div>
+                    </div>
+                </Modal>
             )}
 
             {/* ─── MODAL ÎNCASARE ─── */}

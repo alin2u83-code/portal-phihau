@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 26 (wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a) — EXECUTING
 Plan: 03 (gap closure) of 2 base + 1 gap-closure
 Status: Phase complete — gap-closure plan 26-03 executed, ready for re-verification
-Last activity: 2026-09-01 - Completed quick task 260901-nvc: Raport plata competitii club - suma cumulativa in tab Raport
+Last activity: 2026-09-01 - Finalizat 260901-nvc (verificat, fara date reale) + fix Kata eliminat din CN Tehnica (6f28d61)
 
 ```
 Progress: [█████████░] 86% (6/7 phases)
@@ -127,7 +127,8 @@ Recent decisions affecting current work:
 | 260710-07l | Jurnal Audit: coloană nume utilizator (nu UUID) + filtru SearchableSelect pe nume + tab Sesiuni/Trafic derivat din LOGIN/LOGOUT existent (durată sesiune, "în curs" pt sesiuni neînchise) | 2026-07-09 | 50e8a57 | Verified (human checkpoint) | [260710-07l-audit-log-afiseaza-nume-utilizator-nu-uu](./quick/260710-07l-audit-log-afiseaza-nume-utilizator-nu-uu/) |
 | 260717-f99 | Creare în masă abonament pentru participanții unei perioade de vacanță + revert automat la încheiere perioadă — migrație SQL scrisă (NEaplicată live) | 2026-07-17 | 61bd09d | Needs SQL apply | [260717-f99-adauga-logica-creare-abonament-pentru-sp](./quick/260717-f99-adauga-logica-creare-abonament-pentru-sp/) |
 | 260901-l8j | Campionatul Național QKD Juniori1/Seniori/Veterani — competiție unică (nu 2 separate) cu 74 categorii pe 4 probe (tehnica+giao_dau), o singură înscriere de club, taxe 100/150 lei; fix bonus denumire categorii vârstă unică | 2026-09-01 | 3757574 | Verified (vizual browser) | [260901-l8j-unifica-cele-2-competitii-j1sv-intr-o-si](./quick/260901-l8j-unifica-cele-2-competitii-j1sv-intr-o-si/) |
-| 260901-nvc | Raport plata competitii club — suma cumulativă (nu doar delta ultimei editări) în tab Raport din Competiții, cu nume sportiv/echipă, categorie, probă, status plată, sumă per linie și total general | 2026-09-01 | 8b97c36 | Needs Review (verificare vizuală browser în așteptare) | [260901-nvc-raport-plata-competitii-club-suma-cumula](./quick/260901-nvc-raport-plata-competitii-club-suma-cumula/) |
+| 260901-nvc | Raport plata competitii club — suma cumulativă (nu doar delta ultimei editări) în tab Raport din Competiții, cu nume sportiv/echipă, categorie, probă, status plată, sumă per linie și total general | 2026-09-01 | 8b97c36 | Verified (empty-state + zero erori consolă; date reale de test lipsesc în DB dev) | [260901-nvc-raport-plata-competitii-club-suma-cumula](./quick/260901-nvc-raport-plata-competitii-club-suma-cumula/) |
+| 260901-kata | Elimină "Kata" din eticheta CN Tehnica (fallback constant utils/competitiiTemplates.ts flash înainte de load DB) | 2026-09-01 | 6f28d61 | Verified (vizual browser) | — |
 
 ### Roadmap Evolution
 

@@ -1,0 +1,1 @@
+lista de transmis catre secretatiat cu sportivii la care am achitat taxa fram, federatia aproba ca a primit banii pentru lista respectiva

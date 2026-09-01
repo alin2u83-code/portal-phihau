@@ -36,6 +36,7 @@ import { useQuickAccess } from '../hooks/useQuickAccess';
 import { QuickAccess } from './QuickAccess';
 import { StarIcon } from './icons';
 import { esteDeIncasat } from '../utils/paymentStatus';
+import { NewsfeedWidget } from './NewsfeedWidget';
 
 // --- Item card compact ---
 const ItemCard: React.FC<{
@@ -164,6 +165,8 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
                     </div>
                 )}
             </div>
+
+            <NewsfeedWidget clubId={activeRoleContext?.club_id ?? currentUser?.club_id ?? null} onNavigate={onNavigate} />
 
             {/* Acordeon module */}
             <Accordion>

@@ -9,7 +9,7 @@ interface NewsfeedData {
 
 export function useNewsfeed(clubId: string | null | undefined) {
   return useQuery<NewsfeedData>({
-    queryKey: ['newsfeed', clubId],
+    queryKey: ['newsfeed', clubId ?? 'federatie'],
     queryFn: async () => {
       const [examene, stagii, competitii, anunturi] = await Promise.allSettled([
         clubId ? fetchUpcomingExamene(clubId) : Promise.resolve({ data: [], error: null }),
@@ -28,7 +28,6 @@ export function useNewsfeed(clubId: string | null | undefined) {
 
       return { items, anunturi: anunturiData };
     },
-    enabled: !!clubId,
     staleTime: 5 * 60 * 1000,
   });
 }

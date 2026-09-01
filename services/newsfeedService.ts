@@ -25,6 +25,7 @@ export async function fetchUpcomingExamene(clubId: string): Promise<{ data: News
   return { data: items, error: null };
 }
 
+// Interogare directă (nu useData().filteredData.evenimente) — fetch-ul central e strict club-scoped și ar pierde stagiile cu vizibilitate_globala=true.
 export async function fetchUpcomingStagii(clubId: string): Promise<{ data: NewsfeedItem[]; error: Error | null }> {
   const { data, error } = await supabase
     .from('evenimente')

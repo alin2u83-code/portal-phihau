@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AnuntFederatie, Club, User } from '../types';
 import { Card, Modal, Input, Select, Button } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, BellIcon } from './icons';
@@ -85,6 +86,7 @@ export const AnunturiFederatie: React.FC<AnunturiFederatieProps> = ({ clubs, cur
   const [anuntToDelete, setAnuntToDelete] = useState<AnuntFederatie | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { showError, showSuccess } = useError();
+  const queryClient = useQueryClient();
 
   const fetchAnunturi = async () => {
     setLoading(true);
@@ -102,10 +104,12 @@ export const AnunturiFederatie: React.FC<AnunturiFederatieProps> = ({ clubs, cur
         const { data, error } = await supabase.from('anunturi_federatie').update(formData).eq('id', anuntToEdit.id).select().single();
         if (error) throw error;
         if (data) setAnunturi(prev => prev.map(a => a.id === anuntToEdit.id ? data as AnuntFederatie : a));
+        queryClient.invalidateQueries({ queryKey: ['newsfeed'] });
       } else {
-        const { data, error } = await supabase.from('anunturi_federatie').insert([{ ...formData, creat_de: currentUser.id }]).select().single();
+        const { data, error } = await supabase.from('anunturi_federatie').insert([{ ...formData, creat_de: currentUser.user_id }]).select().single();
         if (error) throw error;
         if (data) setAnunturi(prev => [data as AnuntFederatie, ...prev]);
+        queryClient.invalidateQueries({ queryKey: ['newsfeed'] });
       }
       showSuccess('Succes', 'Anunțul a fost salvat.');
       return true;
@@ -121,6 +125,7 @@ export const AnunturiFederatie: React.FC<AnunturiFederatieProps> = ({ clubs, cur
     if (error) showError('Eroare la ștergere', error.message);
     else {
       setAnunturi(prev => prev.filter(a => a.id !== id));
+      queryClient.invalidateQueries({ queryKey: ['newsfeed'] });
       showSuccess('Succes', 'Anunțul a fost șters.');
     }
     setIsDeleting(false);

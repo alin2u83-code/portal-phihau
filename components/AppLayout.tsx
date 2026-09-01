@@ -111,26 +111,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                     Realizat cu <span className="text-amber-800">AI</span> de <span className="text-slate-600 font-semibold">Alin Lungu</span>
                 </p>
 
-                {/* Buton AI integrat în footer */}
-                <button
-                    data-tutorial="ai-widget"
-                    onClick={() => setIsAIOpen(!isAIOpen)}
-                    className={`flex items-center gap-2 px-3 h-8 rounded-xl text-sm font-semibold transition-all border ${
-                        isAIOpen
-                            ? 'bg-slate-700 border-slate-600 text-white'
-                            : 'bg-indigo-600/20 border-indigo-500/40 text-indigo-300 hover:bg-indigo-600/30 hover:border-indigo-400/60'
-                    }`}
-                    title="Asistent AI"
-                >
-                    {isAIOpen ? <XIcon className="w-4 h-4" /> : <BotIcon className="w-4 h-4" />}
-                    <span className="hidden lg:inline text-xs">{isAIOpen ? 'Închide' : 'Asistent AI'}</span>
-                    {!isAIOpen && (
-                        <span className="flex h-1.5 w-1.5 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                        </span>
-                    )}
-                </button>
+                {/* Buton AI dezactivat temporar — vezi task GSD "reactivare-asistent-ai" */}
             </footer>
 
             {/* Theme Editor modal */}
@@ -139,8 +120,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 onClose={() => setIsThemeEditorOpen(false)}
             />
 
-            {/* AI Assistant - floating widget */}
-            <AIAssistantWidget activeRole={activeRole} />
+            {/* AI Assistant dezactivat temporar — vezi task GSD "reactivare-asistent-ai" */}
+            {/* <AIAssistantWidget activeRole={activeRole} /> */}
 
             {/* Tutorial overlay - shown on first login for admin roles */}
             <TutorialOverlay />

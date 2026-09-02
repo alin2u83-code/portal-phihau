@@ -36,7 +36,7 @@ function App() {
     handleLogout, handleSwitchRole, handleSelectRole, initializeAndFetchData
   } = useAppLogic();
 
-  useMFAGuard(activeRoleContext);
+  const { mfaChecked } = useMFAGuard(activeRoleContext);
 
   const permissions = usePermissions(activeRoleContext);
 
@@ -117,6 +117,12 @@ function App() {
       return <MartialArtsSkeleton />;
   }
 
+  // Render-gate MFA: rolurile privilegiate nu monteaza AppLayout (deci nu vad continut protejat)
+  // cat timp mfaChecked e false — vezi hooks/useMFAGuard.ts si D-02 (17-CONTEXT.md).
+  const activeRoleName = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
+  const isPrivilegedRole = ['ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'].includes(activeRoleName);
+  const blockedByMfa = isPrivilegedRole && !mfaChecked && activeView !== 'setup-mfa';
+
   return (
     <SystemGuardian 
         isLoading={loading} 
@@ -173,6 +179,9 @@ function App() {
         ) : effectiveNeedsRoleSelection ? (
             <RoleSelectionPage user={session.user} onSelect={handleSelectRole} loading={isSwitchingRole} onLogout={handleLogout} />
         ) : currentUser ? (
+            blockedByMfa ? (
+                <MartialArtsSkeleton />
+            ) : (
             <AIAssistantProvider
                 currentUser={currentUser}
                 activeRole={activeRole || ''}
@@ -202,6 +211,7 @@ function App() {
                     activeRoleContext={activeRoleContext}
                 />
             </AIAssistantProvider>
+            )
         ) : null}
       </NotificationProvider>
     </SystemGuardian>

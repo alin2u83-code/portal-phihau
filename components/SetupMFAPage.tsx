@@ -3,13 +3,15 @@ import { supabase } from '../supabaseClient';
 import { useNavigation } from '../contexts/NavigationContext';
 import { Button, Card } from './ui';
 
-type Step = 'loading' | 'send-code' | 'enter-code';
+type Step = 'loading' | 'scan-qr' | 'enter-code';
 
 export function SetupMFAPage() {
     const { navigateTo } = useNavigation();
     const [step, setStep] = useState<Step>('loading');
     const [factorId, setFactorId] = useState<string | null>(null);
     const [challengeId, setChallengeId] = useState<string | null>(null);
+    const [qrCode, setQrCode] = useState<string | null>(null);
+    const [secret, setSecret] = useState<string | null>(null);
     const [code, setCode] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -25,34 +27,46 @@ export function SetupMFAPage() {
             if (!mounted) return;
             if (listErr) { setError(listErr.message); return; }
 
-            // Caută factor verificat (orice tip)
-            const allFactors = [
+            // Caută factor verificat (totp sau phone) — `.totp`/`.phone` conțin doar factori 'verified' per tipul SDK-ului
+            const verifiedFactors = [
                 ...(factors?.totp ?? []),
-                ...((factors as any)?.email ?? []),
                 ...(factors?.phone ?? []),
             ];
-            const verified = allFactors.find(f => f.status === 'verified');
+            const verified = verifiedFactors[0];
             if (verified) {
                 setFactorId(verified.id);
-                setStep('send-code');
+                await startChallenge(verified.id);
                 return;
             }
 
-            // Unenroll factori neverificați (curăță starea)
-            const unverified = allFactors.filter(f => f.status === 'unverified');
+            // Unenroll factori neverificați (curăță starea) — `.all` conține atât verified cât și unverified
+            const unverified = (factors?.all ?? []).filter(f => f.status === 'unverified');
             for (const f of unverified) {
                 await supabase!.auth.mfa.unenroll({ factorId: f.id });
             }
 
-            // Enrollează factor email
+            // Enrollează factor TOTP
             const { data, error: enrollErr } = await supabase!.auth.mfa.enroll({
-                factorType: 'email' as any,
+                factorType: 'totp',
+                issuer: 'PhiHau',
             });
             if (!mounted) return;
             if (enrollErr) { setError(enrollErr.message); return; }
 
             setFactorId(data.id);
-            setStep('send-code');
+            const rawQrCode = data.totp.qr_code;
+            setQrCode(rawQrCode.startsWith('data:') ? rawQrCode : `data:image/svg+xml;utf-8,${rawQrCode}`);
+            setSecret(data.totp.secret);
+            setStep('scan-qr');
+        }
+
+        async function startChallenge(id: string) {
+            const { data, error: challengeErr } = await supabase!.auth.mfa.challenge({ factorId: id });
+            if (!mounted) return;
+            if (challengeErr) { setError(challengeErr.message); return; }
+            setChallengeId(data.id);
+            setCode('');
+            setStep('enter-code');
         }
 
         init();
@@ -65,7 +79,7 @@ export function SetupMFAPage() {
         }
     }, [step]);
 
-    async function sendCode() {
+    async function continueToVerify() {
         if (!factorId) return;
         setLoading(true);
         setError(null);
@@ -93,7 +107,7 @@ export function SetupMFAPage() {
         });
 
         if (verifyErr) {
-            setError('Cod incorect sau expirat. Solicită un cod nou.');
+            setError('Cod incorect sau expirat. Reintrodu codul din aplicația de autentificare.');
         } else {
             navigateTo('dashboard');
         }
@@ -133,19 +147,30 @@ export function SetupMFAPage() {
                     </div>
                 )}
 
-                {/* Pasul 1: trimite cod */}
-                {step === 'send-code' && (
+                {/* Pasul 1: scanează codul QR */}
+                {step === 'scan-qr' && (
                     <div className="space-y-4">
-                        <div className="bg-slate-700/40 border border-slate-600/50 rounded-xl px-4 py-3 text-sm text-slate-300">
-                            Îți trimitem un cod de verificare pe adresa de email. Introdu codul în pasul următor.
+                        <div className="bg-slate-700/40 border border-slate-600/50 rounded-xl px-4 py-3 text-sm text-slate-300 space-y-3">
+                            <p>Scanează codul QR cu o aplicație de autentificare (Google Authenticator, Authy) și introdu codul de 6 cifre generat.</p>
+                            {qrCode && (
+                                <div className="flex justify-center bg-white rounded-lg p-3">
+                                    <img src={qrCode} alt="Cod QR pentru configurare autentificare în doi pași" className="w-40 h-40" />
+                                </div>
+                            )}
+                            {secret && (
+                                <div className="space-y-1">
+                                    <p className="text-xs text-slate-400">Nu poți scana codul? Introdu manual cheia:</p>
+                                    <p className="font-mono text-xs text-slate-200 break-all bg-slate-800/60 rounded px-2 py-1">{secret}</p>
+                                </div>
+                            )}
                         </div>
                         <Button
-                            onClick={sendCode}
+                            onClick={continueToVerify}
                             disabled={loading}
                             isLoading={loading}
                             className="w-full"
                         >
-                            Trimite cod pe email
+                            Am scanat codul, continuă
                         </Button>
                     </div>
                 )}
@@ -154,7 +179,7 @@ export function SetupMFAPage() {
                 {step === 'enter-code' && (
                     <div className="space-y-4">
                         <p className="text-sm text-slate-300 text-center">
-                            Cod trimis pe email. Verifică inbox-ul (și folderul Spam).
+                            Introdu codul de 6 cifre din aplicația de autentificare.
                         </p>
                         <input
                             ref={inputRef}
@@ -177,13 +202,15 @@ export function SetupMFAPage() {
                         >
                             Verifică și intră în cont
                         </Button>
-                        <button
-                            onClick={sendCode}
-                            disabled={loading}
-                            className="w-full text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                        >
-                            Nu ai primit codul? Trimite din nou
-                        </button>
+                        {qrCode && (
+                            <button
+                                onClick={() => setStep('scan-qr')}
+                                disabled={loading}
+                                className="w-full text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                            >
+                                Înapoi la codul QR
+                            </button>
+                        )}
                     </div>
                 )}
 

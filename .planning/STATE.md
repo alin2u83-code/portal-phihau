@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 26-03-PLAN.md
-last_updated: "2026-08-31T09:04:44.797Z"
-last_activity: 2026-08-30 -- Phase 26 execution started
+status: planning
+stopped_at: Completed 26-UAT.md (12/12 pass)
+last_updated: "2026-09-02T00:00:00.000Z"
+last_activity: 2026-09-02 -- Phase 26 UAT complete (verificat prin cod), gata pentru Faza 17
 progress:
   total_phases: 18
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 31
   completed_plans: 27
-  percent: 44
+  percent: 47
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 26 — wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a
+**Current focus:** Phase 17 — verifica-aplicare-live-migratie-deduplicare-sportivi-si-decide-mfa
 
 ## Current Position
 
-Phase: 26 (wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a) — EXECUTING
-Plan: 03 (gap closure) of 2 base + 1 gap-closure
-Status: Phase complete — gap-closure plan 26-03 executed, ready for re-verification
+Phase: 26 (wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a) — COMPLETE
+Plan: 03 (gap closure) of 2 base + 1 gap-closure — toate 3 executate
+Status: Faza 26 complet închisă — UAT 12/12 pass (verificat prin cod, nu click-through live). Următoarea fază neîncepută: 17 (planificată, neexecutată).
 Last activity: 2026-09-01 - Finalizat 260901-nvc (verificat, fara date reale) + fix Kata eliminat din CN Tehnica (6f28d61)
 
 ```

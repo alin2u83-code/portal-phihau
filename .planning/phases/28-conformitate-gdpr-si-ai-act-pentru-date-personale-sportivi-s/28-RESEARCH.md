@@ -379,22 +379,25 @@ const misSportivId = currentUser?.roluri.some(r => r.nume === 'SPORTIV')
 
 **If this table is empty:** N/A — see above.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does `get_active_club_id()` read from the `active-role-context-id` header at the DB session level, or from `auth.uid()`-derived state?**
    - What we know: CLAUDE.md documents the header is injected by `supabaseClient.ts` on every request, and RLS policies are documented to use `club_id = get_active_club_id()`.
    - What's unclear: The exact function body/mechanism (session variable set via header vs. a join through `utilizator_roluri_multicont`) was not re-read this session.
    - Recommendation: Before writing the final `cereri_gdpr` RLS migration, the planner/implementer should query the function definition live via Supabase MCP (`SELECT pg_get_functiondef('public.get_active_club_id()'::regprocedure)`) to confirm it composes correctly with the new `cerere_gdpr_sportiv_club_id()` join function proposed above.
+   - **RESOLVED:** Plan 28-01 Task 1 runs this exact live query via Supabase MCP before writing the migration.
 
 2. **Should `services/claudeService.ts` be deleted as part of this phase, or left as documented dead code?**
    - What we know: It is unused (zero call sites). SPEC.md's Requirement 6 target and acceptance criterion reference it directly, suggesting the SPEC author believed it was live.
    - What's unclear: CONTEXT.md's Claude's Discretion section doesn't address this file's fate; it's not called out as in/out of scope anywhere in CONTEXT.md or SPEC.md.
    - Recommendation: Treat deletion as optional cleanup (Claude's Discretion), not a requirement — the compliance-relevant fix is in `services/agents/*`, not this file. If left in place, the DPIA doc (REQ-2) should note it explicitly as "dead code, not part of the live data flow" to avoid future confusion.
+   - **RESOLVED:** Plan 28-02 Task 1 keeps the file (Claude's Discretion) but strips `userName` from it too and documents it in the DPIA as dead code, not part of the live data flow.
 
 3. **Is there an actual GROQ_API_KEY / CLAUDE_API_KEY / GEMINI_API_KEY currently configured in the production Vercel environment, or are some of these theoretical/unused?**
    - What we know: `api/llm-proxy.ts` supports all 3 providers; the app only calls `provider=groq` from the live UI code paths found. `GEMINI_API_KEY` is used for RAG embeddings per CLAUDE.md's dependency list (not re-verified line-by-line this session).
    - What's unclear: Whether `CLAUDE_API_KEY` is actually set in Vercel (if unset, `handleClaude` in `api/llm-proxy.ts` 500s, meaning Claude is fully inert in this deployment, not just unused-by-the-UI).
    - Recommendation: DPIA/SUBPROCESATORI authors (human or Claude during implementation) should ask the user directly whether `CLAUDE_API_KEY` is configured live, rather than assuming — this affects whether Anthropic belongs in `SUBPROCESATORI.md` at all.
+   - **RESOLVED:** Plan 28-02 Task 3 does not assert either way — it writes "cod prezent, neinvocat de UI; a se confirma daca CLAUDE_API_KEY este setata" in SUBPROCESATORI.md, deferring the factual confirmation to the operator.
 
 ## Environment Availability
 

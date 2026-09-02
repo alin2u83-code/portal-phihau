@@ -332,6 +332,17 @@ Plans:
 
 - [x] 26-03-PLAN.md — Inchide CR-01 (escaladare privilegii cross-club, garda per club testata automat) + CR-02 (rollback auth.users la esec RPC, retry D-07 poate reusi) + CR-03 (Rules-of-Hooks in AppRouter) si consolideaza verificarea umana amanata in 26-UAT.md
 
+### Phase 27: Sezoane Abonamente si Grupe - sistem sezoane cu interval date liber per club, grupe permanente sau per-sezon la alegerea instructorului, taxe legate de sezon
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 26
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 27 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

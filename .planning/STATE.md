@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: planning
-stopped_at: Completed 26-UAT.md (12/12 pass)
-last_updated: "2026-09-02T00:00:00.000Z"
-last_activity: 2026-09-02 -- Phase 26 UAT complete (verificat prin cod), gata pentru Faza 17
+status: executing
+stopped_at: Phase 27 context gathered
+last_updated: "2026-09-02T13:09:09.590Z"
+last_activity: 2026-09-02 -- Phase 17 execution started
 progress:
-  total_phases: 18
+  total_phases: 19
   completed_phases: 9
   total_plans: 31
-  completed_plans: 27
+  completed_plans: 30
   percent: 47
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 17 — verifica-aplicare-live-migratie-deduplicare-sportivi-si-decide-mfa
+**Current focus:** Phase 17 — verifica-aplicare-live-migratie-deduplicare-sportivi-si-deci
 
 ## Current Position
 
-Phase: 26 (wizard-onboarding-club-nou-ghidat-de-super-admin-club-prim-a) — COMPLETE
-Plan: 03 (gap closure) of 2 base + 1 gap-closure — toate 3 executate
-Status: Faza 26 complet închisă — UAT 12/12 pass (verificat prin cod, nu click-through live). Următoarea fază neîncepută: 17 (planificată, neexecutată).
-Last activity: 2026-09-01 - Finalizat 260901-nvc (verificat, fara date reale) + fix Kata eliminat din CN Tehnica (6f28d61)
+Phase: 17 (verifica-aplicare-live-migratie-deduplicare-sportivi-si-deci) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 17
+Last activity: 2026-09-02 -- Phase 17 execution started
 
 ```
 Progress: [█████████░] 86% (6/7 phases)
@@ -171,6 +171,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-08-31T09:04:44.780Z
-Stopped at: Completed 26-03-PLAN.md
-Resume file: None
+Last session: 2026-09-02T13:09:09.577Z
+Stopped at: Phase 27 context gathered
+Resume file: .planning/phases/27-sezoane-abonamente-si-grupe-sistem-sezoane-cu-interval-date-/27-CONTEXT.md

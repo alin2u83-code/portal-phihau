@@ -46,6 +46,20 @@
 - [x] **MCLB-07**: Empty-state cu mesaj + CTA pe ecranele principale Grupe / Prezenta / TipuriAbonament pentru club fara date
 - [x] **MCLB-08**: Aplicare live + dovada de izolare cross-club (SQL + test automat + UI) pe date reale din 2 cluburi
 
+### Sezoane (Faza 27 — sezoane per club, grupe permanente/per-sezon, taxe pe sezon)
+
+> ID-uri derivate 1:1 din deciziile D-01..D-09 din `.planning/phases/27-sezoane-abonamente-si-grupe-sistem-sezoane-cu-interval-date-/27-CONTEXT.md`, propuse in 27-RESEARCH.md si confirmate la planificare (2026-09-02).
+
+- [ ] **SEZ-01**: ADMIN_CLUB poate crea un sezon cu interval de date liber (`data_start`, `data_final`) per club (D-01)
+- [ ] **SEZ-02**: Sezoanele sunt izolate per club prin RLS; doar ADMIN_CLUB / ADMIN / SUPER_ADMIN_FEDERATIE pot crea sau modifica sezoane (INSTRUCTOR nu) (D-02)
+- [ ] **SEZ-03**: Maxim un sezon activ per club, impus la nivel de date printr-un index unic partial, nu doar in UI (D-03)
+- [ ] **SEZ-04**: Fiecare grupa are flag `tip_grupa` permanent/per-sezon, editabil de instructor sau admin la creare si ulterior (D-04)
+- [ ] **SEZ-05**: Grupa permanenta ramane neafectata de schimbarea sezonului, iar sportivii ei raman asignati automat (D-05)
+- [ ] **SEZ-06**: Grupa per-sezon se arhiveaza automat la activarea unui sezon nou, fara stergere — ramane vizibila in istoric (D-06)
+- [ ] **SEZ-07**: Adminul poate clona manual o grupa per-sezon arhivata in sezonul nou, fara copierea automata a sportivilor (D-07, D-08)
+- [ ] **SEZ-08**: `tipuri_abonament` sunt legate de sezon; tipurile din sezoane arhivate raman ca istoric si nu mai sunt folosite ca fallback la generarea facturilor (D-09)
+- [ ] **SEZ-09**: Facturile deja emise raman neschimbate, iar tipurile de abonament inca referite de sportivi/familii/participari la vacanta nu pot fi sterse (D-09)
+
 ## Future Requirements (deferred)
 
 - Dashboard federație cu agregate multi-club (SUPER_ADMIN) — v2.0
@@ -59,6 +73,8 @@
 - Filtrare server-side nouă — React Query cache suficient
 - Rapoarte pentru INSTRUCTOR — ADMIN_CLUB și SUPER_ADMIN only în v1.1
 - Sold pozitiv / avansuri — raportul se focusează pe restanțe (status='Neachitat')
+
+**Notă (Faza 27):** excepția "Migrații DB" de mai sus se aplică milestone-ului v1.1 original (Fazele 9-14). Faza 27 introduce deliberat o migrație nouă (tabelul `sezoane` + coloane pe `grupe`/`tipuri_abonament`), aprobată prin deciziile D-01..D-09 din 27-CONTEXT.md.
 
 ## Traceability
 
@@ -90,3 +106,12 @@
 | MCLB-06 | Phase 25 | 25-03-PLAN.md |
 | MCLB-07 | Phase 25 | 25-02-PLAN.md |
 | MCLB-08 | Phase 25 | 25-04-PLAN.md |
+| SEZ-01 | Phase 27 | 27-01-PLAN.md, 27-02-PLAN.md |
+| SEZ-02 | Phase 27 | 27-01-PLAN.md, 27-02-PLAN.md |
+| SEZ-03 | Phase 27 | 27-01-PLAN.md, 27-02-PLAN.md |
+| SEZ-04 | Phase 27 | 27-01-PLAN.md, 27-03-PLAN.md |
+| SEZ-05 | Phase 27 | 27-03-PLAN.md |
+| SEZ-06 | Phase 27 | 27-01-PLAN.md, 27-02-PLAN.md |
+| SEZ-07 | Phase 27 | 27-03-PLAN.md |
+| SEZ-08 | Phase 27 | 27-01-PLAN.md, 27-04-PLAN.md, 27-05-PLAN.md |
+| SEZ-09 | Phase 27 | 27-01-PLAN.md, 27-04-PLAN.md, 27-05-PLAN.md |

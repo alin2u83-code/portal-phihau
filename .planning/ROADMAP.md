@@ -334,14 +334,25 @@ Plans:
 
 ### Phase 27: Sezoane Abonamente si Grupe - sistem sezoane cu interval date liber per club, grupe permanente sau per-sezon la alegerea instructorului, taxe legate de sezon
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** ADMIN_CLUB defineste sezoane proprii cu interval de date liber (maxim unul activ, impus de DB), fiecare grupa este marcata explicit ca permanenta sau per-sezon, grupele per-sezon se arhiveaza automat la activarea sezonului nou si pot fi dublate manual in el fara sportivi, iar tipurile de abonament se leaga de sezon astfel incat generarea facturilor sa nu mai poata cadea silentios pe pretul unui sezon arhivat.
+**Requirements**: SEZ-01, SEZ-02, SEZ-03, SEZ-04, SEZ-05, SEZ-06, SEZ-07, SEZ-08, SEZ-09
 **Depends on:** Phase 26
-**Plans:** 0 plans
+**Plans:** 5 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 27 to break down)
+**Wave 1**
+
+- [ ] 27-01-PLAN.md — [BLOCKING] Migratie sezoane (tabel + RLS + index unic activ/club) + ALTER grupe/tipuri_abonament + aplicare live + test izolare + contracte TS (types, useSezoane, CopyIcon) — SEZ-01..04, SEZ-06, SEZ-08
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 27-02-PLAN.md — Ecran Sezoane (CRUD + activare cu dezactivarea sezonului anterior + arhivare automata grupe per-sezon) + cablare meniu/router — SEZ-01, SEZ-02, SEZ-03, SEZ-06
+- [ ] 27-03-PLAN.md — Grupe: selector permanent/per-sezon, badge-uri tip/arhivare, dublare manuala in sezonul activ fara sportivi — SEZ-04, SEZ-05, SEZ-07
+- [ ] 27-04-PLAN.md — utils/abonamente.ts (+ test) si aplicarea regulii de sezon in PlatiScadente, GestiuneFacturi, LuniLipsaWizard, JurnalIncasari — SEZ-08, SEZ-09
+- [ ] 27-05-PLAN.md — TipuriAbonament: legare automata la sezonul activ, eticheta de sezon, blocarea stergerii tipurilor referite — SEZ-08, SEZ-09
+
+**UI hint**: yes (27-UI-SPEC.md aprobat)
 
 ---
 

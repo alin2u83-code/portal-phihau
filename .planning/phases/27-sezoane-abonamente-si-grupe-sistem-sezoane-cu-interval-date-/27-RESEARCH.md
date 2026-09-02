@@ -338,19 +338,22 @@ const tipuriAbonamentActive = tipuriAbonament.filter(
 | A2 | Recomandarea `tip_grupa DEFAULT 'permanent'` pentru toate grupele existente e comportamentul dorit (nu li se cere adminilor să reclasifice manual grupele existente la deploy) | Common Pitfalls, Pitfall 4 | Dacă un club dorește ca toate grupele lui existente să fie reclasificate ca "per_sezon" la activare, defaultul greșit ar necesita un pas manual suplimentar — CONTEXT.md nu specifică explicit acest caz, decizie rezonabilă dar neconfirmată de user |
 | A3 | Sportivii cu `tip_abonament_id` pointing la un tip arhivat (sezon vechi) rămân neschimbați până la reasignare manuală (opțiunea (a) din Pitfall 2), nu se auto-migrează | Common Pitfalls, Pitfall 2 | Dacă planner-ul alege opțiunea (b) fără să documenteze explicit regula de matching (denumire/numar_membri), generarea facturilor poate deveni imprevizibilă — necesită decizie explicită la planificare, marcat ca Open Question |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Ce se întâmplă cu `sportivi.tip_abonament_id` la trecerea la sezon nou?**
+1. **RESOLVED — Ce se întâmplă cu `sportivi.tip_abonament_id` la trecerea la sezon nou?**
    - What we know: D-09 rezolvă doar soarta facturilor deja emise (rămân neschimbate). CONTEXT.md nu menționează reasignarea sportivilor la noul catalog de tipuri.
    - What's unclear: Rămâne sportivul "orfan" (tip vechi arhivat) până la reasignare manuală de admin, sau trebuie un flux de migrare/mapare automată?
    - Recommendation: Tratează la fel ca D-08 (reasignare manuală, fără automatizare) — consistent cu filozofia explicit-manual a deciziilor D-07/D-08. Planner-ul trebuie să decidă explicit și să documenteze în PLAN.md, pentru că afectează direct generarea facturilor (`PlatiScadente.tsx`).
+   - Resolution (27-04): opțiunea (a) — reasignare manuală, fără auto-migrare; `PlatiScadente.tsx` afișează explicit lista sportivilor cu tip arhivat (`sportiviCuTipArhivat`).
 
-2. **Arhivarea automată a grupelor per-sezon: trigger SQL sau acțiune UI explicită?**
+2. **RESOLVED — Arhivarea automată a grupelor per-sezon: trigger SQL sau acțiune UI explicită?**
    - What we know: D-06 cere "arhivare automată" la crearea sezonului nou. D-07 cere clonarea "manuală" (buton dedicat).
    - What's unclear: "Automată" înseamnă declanșată de un trigger DB la INSERT în `sezoane` (activare sezon nou), sau declanșată de UI ca parte a aceleiași acțiuni de admin ("creează sezon nou" → apel client care face și UPDATE arhivare + oferă opțiunea de clonare)?
    - Recommendation: UI-driven (nu trigger SQL) — mai ușor de testat, de aliniat cu restul codebase-ului (niciun trigger complex nu există azi pentru `grupe`; toate mutațiile trec prin `services/`/componente React), și evită riscul de comportament surprinzător dacă cineva creează un sezon direct din SQL Editor (posibil, dat fiind istoricul de politici/migrări aplicate manual documentat la Faza 25).
+   - Resolution (27-02 Task 2): UI-driven, implementat ca parte a fluxului de activare sezon.
 
-3. **UI exact pentru selectarea sezonului activ** — marcat explicit ca "Claude's Discretion" în CONTEXT.md (selector în header Grupe? tab dedicat?). Nu necesită research suplimentar, decizie de UI-phase.
+3. **RESOLVED — UI exact pentru selectarea sezonului activ** — marcat explicit ca "Claude's Discretion" în CONTEXT.md (selector în header Grupe? tab dedicat?). Nu necesită research suplimentar, decizie de UI-phase.
+   - Resolution: definit în 27-UI-SPEC.md (ecran dedicat `components/Sezoane/`).
 
 ## Environment Availability
 

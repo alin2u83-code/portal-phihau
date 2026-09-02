@@ -354,6 +354,17 @@ Plans:
 
 **UI hint**: yes (27-UI-SPEC.md aprobat)
 
+### Phase 28: Conformitate GDPR si AI Act pentru date personale sportivi si modul AI Assistant
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 27
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 28 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

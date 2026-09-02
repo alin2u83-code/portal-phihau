@@ -144,6 +144,7 @@ Recent decisions affecting current work:
 - Phase 24 added: Unifica cele 3 fisiere import Excel examene si migreaza type=date la DateInputDMY
 - Phase 25 added: Audit izolare cross-club Prezenta, Grupe si Abonamente (RLS, hardcodari, empty states club nou) — sezon nou, alte cluburi vor folosi sistemul
 - Phase 26 added: Wizard onboarding club nou ghidat de SUPER_ADMIN (club + prim admin + rol intr-un singur flux) — depinde de Phase 25
+- Phase 28 added: Conformitate GDPR si AI Act pentru date personale sportivi si modul AI Assistant — registru evidenta prelucrari, DPIA AI, DPA procesatori, nota informare UI, consimtamant parinte minori, minimizare date AI, retentie, drepturi persoana vizata, pagina "Protectia datelor". Vezi memory project_gdpr_ai_act_conformitate.md.
 
 Sursa: audit complet 2026-07-06 (vezi memory project_audit_complet_20260706.md). Ordine executie: 15→16→17 (securitate, urgent) apoi 18→19→20 (integritate date) apoi 21 (race conditions) apoi 22→23→24 (arhitectura, fara urgenta).
 

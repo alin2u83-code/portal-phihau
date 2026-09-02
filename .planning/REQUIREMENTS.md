@@ -60,6 +60,20 @@
 - [ ] **SEZ-08**: `tipuri_abonament` sunt legate de sezon; tipurile din sezoane arhivate raman ca istoric si nu mai sunt folosite ca fallback la generarea facturilor (D-09)
 - [ ] **SEZ-09**: Facturile deja emise raman neschimbate, iar tipurile de abonament inca referite de sportivi/familii/participari la vacanta nu pot fi sterse (D-09)
 
+### Conformitate GDPR & AI Act (Faza 28)
+
+> ID-uri preluate 1:1 din `.planning/phases/28-conformitate-gdpr-si-ai-act-pentru-date-personale-sportivi-s/28-SPEC.md` (9 requirements locked, ambiguity 0.16). Deciziile de implementare D-01..D-19 sunt in 28-CONTEXT.md.
+
+- [ ] **REQ-1**: Registru evidenta prelucrari (`docs/gdpr/REGISTRU-EVIDENTA-PRELUCRARI.md`) — categorie date, scop, baza legala, destinatar, retentie, tabel DB, fara "TBD"
+- [ ] **REQ-2**: DPIA modul AI Assistant (`docs/gdpr/DPIA-AI-ASSISTANT.md`) — citeaza fluxul real `services/agents/*` + `api/llm-proxy.ts`, nu fisierul mort `services/claudeService.ts`
+- [ ] **REQ-3**: Lista subprocesatori (`docs/gdpr/SUBPROCESATORI.md`) — Supabase, Groq, Google/Gemini, Anthropic, furnizor SMS, Vercel, cu status DPA si transfer extra-UE
+- [ ] **REQ-4**: Nota de informare GDPR in `SportivFormModal` la creare sportiv nou — accordion inchis implicit, sus in tabul General, cu link catre pagina "Protectia datelor"
+- [ ] **REQ-5**: Consimtamant parinte digital pentru minori sub 16 ani — coloane `consimtamant_parinte_nume`/`consimtamant_parinte_data` pe `sportivi`, camp obligatoriu conditional, blocant si la editarea sportivilor existenti
+- [ ] **REQ-6**: Minimizare date la furnizorul LLM — `userName` eliminat din `AgentContext`, din toate cele 9 `buildSystemPrompt()` si din `contexts/AIAssistantContext.tsx`
+- [ ] **REQ-7**: Politica de retentie (`docs/gdpr/POLITICA-RETENTIE.md`) — termene numerice per categorie, 3 ani inactivitate pentru date operationale sportiv
+- [ ] **REQ-8**: View nou `protectia-datelor` accesibil tuturor rolurilor autentificate, cu rezumat drepturi si formular de cerere
+- [ ] **REQ-9**: Flux cerere export/stergere — tabel `cereri_gdpr` cu RLS scopat pe club, coada de aprobare ADMIN_CLUB (`cereri-gdpr`), aprobarea schimba doar statusul
+
 ## Future Requirements (deferred)
 
 - Dashboard federație cu agregate multi-club (SUPER_ADMIN) — v2.0
@@ -115,3 +129,12 @@
 | SEZ-07 | Phase 27 | 27-03-PLAN.md |
 | SEZ-08 | Phase 27 | 27-01-PLAN.md, 27-04-PLAN.md, 27-05-PLAN.md |
 | SEZ-09 | Phase 27 | 27-01-PLAN.md, 27-04-PLAN.md, 27-05-PLAN.md |
+| REQ-1 | Phase 28 | 28-03-PLAN.md |
+| REQ-2 | Phase 28 | 28-02-PLAN.md |
+| REQ-3 | Phase 28 | 28-02-PLAN.md |
+| REQ-4 | Phase 28 | 28-04-PLAN.md |
+| REQ-5 | Phase 28 | 28-01-PLAN.md, 28-04-PLAN.md |
+| REQ-6 | Phase 28 | 28-02-PLAN.md |
+| REQ-7 | Phase 28 | 28-03-PLAN.md |
+| REQ-8 | Phase 28 | 28-05-PLAN.md |
+| REQ-9 | Phase 28 | 28-01-PLAN.md, 28-05-PLAN.md |

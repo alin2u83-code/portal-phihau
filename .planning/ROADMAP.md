@@ -356,14 +356,18 @@ Plans:
 
 ### Phase 28: Conformitate GDPR si AI Act pentru date personale sportivi si modul AI Assistant
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Portalul are documentatia de conformitate GDPR/AI Act (registru prelucrari, DPIA, subprocesatori, retentie), consimtamant digital al parintelui pentru minorii sub 16 ani, zero date de identificare trimise catre furnizorul LLM extern, si un mecanism digital prin care persoana vizata isi exercita drepturile (cerere export/stergere cu coada de aprobare ADMIN_CLUB).
+**Requirements**: REQ-1, REQ-2, REQ-3, REQ-4, REQ-5, REQ-6, REQ-7, REQ-8, REQ-9 (definite in 28-SPEC.md)
 **Depends on:** Phase 27
-**Plans:** 0 plans
+**Plans:** 5 plans (3 valuri)
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 28 to break down)
+- [ ] 28-01-PLAN.md — Migratie live: coloane consimtamant parinte pe sportivi + tabel cereri_gdpr cu RLS scopat pe club, trigger de audit si functii SECURITY DEFINER — REQ-5, REQ-9
+- [ ] 28-02-PLAN.md — Minimizare userName in tot lantul services/agents (9 agenti + AgentContext + AIAssistantContext) + DPIA AI Assistant + lista subprocesatori (inclusiv Groq) — REQ-2, REQ-3, REQ-6
+- [ ] 28-03-PLAN.md — Registru evidenta prelucrari (art. 30) + politica de retentie cu termene numerice — REQ-1, REQ-7
+- [ ] 28-04-PLAN.md — Consimtamant parinte minori sub 16 (tipuri, gate de validare, camp conditional, persistenta pe calea de creare) + nota de informare GDPR la sportiv nou — REQ-4, REQ-5
+- [ ] 28-05-PLAN.md — Pagina Protectia datelor (toate rolurile) + coada admin Cereri GDPR + cablare view-uri in LazyComponents/AppRouter/menuConfig — REQ-8, REQ-9
 
 ---
 

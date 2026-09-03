@@ -5,6 +5,7 @@ import {
     ClipboardCheckIcon, CogIcon, SitemapIcon, ArchiveBoxIcon, FileTextIcon,
     ChartBarIcon, UserPlusIcon, BookOpenIcon, BookMarkedIcon, WalletIcon,
     ClockIcon, ClipboardListIcon, MessageSquareIcon, CalendarIcon, PackageIcon,
+    ShieldCheckIcon,
 } from './icons';
 
 export interface MenuItem {
@@ -89,6 +90,7 @@ export const adminMenu: MenuItem[] = [
             { label: 'Nomenclatoare', view: 'nomenclatoare' },
             { label: 'Înlănțuiri', view: 'inlantuiri-admin' },
             { label: 'Setări Cont', view: 'account-settings' },
+            { label: 'Protecția datelor', view: 'protectia-datelor' },
             { label: 'Jurnal Audit', view: 'jurnal-audit' },
         ]
     },
@@ -96,6 +98,7 @@ export const adminMenu: MenuItem[] = [
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
     { label: 'SMS', icon: MessageSquareIcon, view: 'admin-sms' },
     { label: 'Cereri Înscriere', icon: UserPlusIcon, view: 'cereri-inscriere' },
+    { label: 'Cereri GDPR', icon: ClipboardListIcon, view: 'cereri-gdpr' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
 ];
 
@@ -173,11 +176,13 @@ export const adminClubMenu: MenuItem[] = [
             { label: 'Setări Club', view: 'setari-club' },
             { label: 'Nomenclatoare', view: 'nomenclatoare' },
             { label: 'Setări Cont', view: 'account-settings' },
+            { label: 'Protecția datelor', view: 'protectia-datelor' },
         ]
     },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
     { label: 'SMS', icon: MessageSquareIcon, view: 'admin-sms' },
     { label: 'Cereri Înscriere', icon: UserPlusIcon, view: 'cereri-inscriere' },
+    { label: 'Cereri GDPR', icon: ClipboardListIcon, view: 'cereri-gdpr' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
 ];
 
@@ -215,6 +220,7 @@ export const instructorMenu: MenuItem[] = [
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
     { label: 'Setări Cont', icon: CogIcon, view: 'account-settings' },
+    { label: 'Protecția datelor', icon: ShieldCheckIcon, view: 'protectia-datelor' },
 ];
 
 // Meniu pentru Sportivi
@@ -225,4 +231,5 @@ export const sportivMenu: MenuItem[] = [
     { label: 'Fișa Digitală', icon: FileTextIcon, view: 'fisa-digitala' },
     { label: 'Fișa de Competiție', icon: TrophyIcon, view: 'fisa-competitie' },
     { label: 'Setări Cont', icon: CogIcon, view: 'account-settings' },
+    { label: 'Protecția datelor', icon: ShieldCheckIcon, view: 'protectia-datelor' },
 ];

@@ -614,7 +614,38 @@ export const Sportivi: React.FC<{
                     throw new Error(result.error || "A apărut o eroare la crearea contului.");
                 }
 
-                setSportivi(prev => [...prev, result.sportiv!]);
+                let sportivCreat = result.sportiv;
+
+                // Whitelist-ul din createAccountAndAssignRole (hooks/useRoleAssignment.ts) + RPC-ul SQL de creare
+                // cont NU cunosc coloanele de consimtamant parinte - se completeaza printr-un update separat,
+                // dupa creare, ca sa nu fie aruncate tacit (vezi Gotcha 1, 28-04-PLAN.md).
+                if (profileData.consimtamant_parinte_nume) {
+                    const { data: updatedConsimtamant, error: consimtamantError } = await supabase
+                        .from('sportivi')
+                        .update({
+                            consimtamant_parinte_nume: profileData.consimtamant_parinte_nume,
+                            consimtamant_parinte_data: profileData.consimtamant_parinte_data,
+                        })
+                        .eq('id', result.sportiv.id)
+                        .select()
+                        .maybeSingle();
+
+                    if (consimtamantError) {
+                        showError(
+                            "Consimțământul nu a fost salvat",
+                            "Sportivul a fost creat, dar consimțământul părintelui/tutorelui NU a fost salvat. Redeschideți sportivul la editare și completați din nou câmpul de consimțământ."
+                        );
+                    } else {
+                        sportivCreat = {
+                            ...sportivCreat,
+                            consimtamant_parinte_nume: profileData.consimtamant_parinte_nume,
+                            consimtamant_parinte_data: profileData.consimtamant_parinte_data,
+                            ...(updatedConsimtamant || {}),
+                        };
+                    }
+                }
+
+                setSportivi(prev => [...prev, sportivCreat]);
                 queryClient.invalidateQueries({ queryKey: ['sportivi'] });
                 handleCloseFormModal();
                 setCredentialeModal({
@@ -622,7 +653,7 @@ export const Sportivi: React.FC<{
                     parola: result.generatedPassword ?? parola,
                     numeSportiv: `${profileData.prenume || ''} ${profileData.nume || ''}`.trim(),
                 });
-                return { success: true, data: result.sportiv! };
+                return { success: true, data: sportivCreat };
             }
         } catch (err: any) {
             // ErrorProvider handles the error message formatting, but we can pass it here

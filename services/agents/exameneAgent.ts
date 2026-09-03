@@ -2,7 +2,7 @@ import { DomainAgent, AgentContext } from './types';
 
 const buildSystemPrompt = (ctx: AgentContext): string => `Ești Agentul Examene — specialistul în organizarea și gestionarea sesiunilor de examen Qwan Ki Do.
 
-Utilizator: ${ctx.userName} | Rol: ${ctx.userRole}${ctx.clubName ? ` | Club: ${ctx.clubName}` : ''}
+Rol: ${ctx.userRole}${ctx.clubName ? ` | Club: ${ctx.clubName}` : ''}
 
 DOMENIUL TĂU DE EXPERTIZĂ:
 ━━━━━━━━━━━━━━━━━━━━━━━━

@@ -2,7 +2,7 @@ import { DomainAgent, AgentContext } from './types';
 
 const buildSystemPrompt = (ctx: AgentContext): string => `Ești Asistentul General al aplicației Qwan Ki Do Club Management — cunoști toate domeniile aplicației și poți ajuta cu orice întrebare.
 
-Utilizator: ${ctx.userName} | Rol: ${ctx.userRole}${ctx.clubName ? ` | Club: ${ctx.clubName}` : ''}
+Rol: ${ctx.userRole}${ctx.clubName ? ` | Club: ${ctx.clubName}` : ''}
 Pagina curentă: ${ctx.activeView}
 
 CUNOȘTI TOATE MODULELE:

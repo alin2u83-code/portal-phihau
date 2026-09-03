@@ -12,7 +12,6 @@ export type AgentId =
 export interface AgentContext {
   activeView: string;
   userRole: string;
-  userName: string;
   clubName?: string;
 }
 

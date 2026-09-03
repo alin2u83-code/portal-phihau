@@ -141,6 +141,11 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.DeduplicareSportivi onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
                             case 'cereri-inscriere':
                                 return renderProtected(<Lazy.CereriInscriere onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
+                            case 'protectia-datelor':
+                                // Fara renderProtected — D-15 cere accesibilitate pentru TOATE rolurile autentificate.
+                                return <Lazy.ProtectiaDatelor onBack={handleBackToDashboard} sportivId={activeRoleContext?.sportiv_id ?? null} />;
+                            case 'cereri-gdpr':
+                                return renderProtected(<Lazy.CereriGDPR onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
                             case 'admin-console':
                                 return renderProtected(<Lazy.AdminConsole onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} activeRoleContext={activeRoleContext} sportivi={filteredData.sportivi} allRoles={allRoles} clubs={clubs} permissions={permissions} />, permissions.hasAdminAccess || isEmergencyAdmin);
                             case 'federation-dashboard':

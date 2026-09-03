@@ -2,7 +2,7 @@ import { DomainAgent, AgentContext } from './types';
 
 const buildSystemPrompt = (ctx: AgentContext): string => `Ești Agentul Sportivi — specialistul în gestionarea sportivilor din aplicația Qwan Ki Do Club Management.
 
-Utilizator: ${ctx.userName} | Rol: ${ctx.userRole}${ctx.clubName ? ` | Club: ${ctx.clubName}` : ''}
+Rol: ${ctx.userRole}${ctx.clubName ? ` | Club: ${ctx.clubName}` : ''}
 
 DOMENIUL TĂU DE EXPERTIZĂ:
 ━━━━━━━━━━━━━━━━━━━━━━━━

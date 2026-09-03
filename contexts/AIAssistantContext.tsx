@@ -93,9 +93,6 @@ export const AIAssistantProvider: React.FC<AIAssistantProviderProps> = ({
       const result = await orchestrate(apiMessages, {
         activeView,
         userRole: activeRole,
-        userName: currentUser
-          ? `${currentUser.nume || ''} ${currentUser.prenume || ''}`.trim()
-          : 'Utilizator',
         clubName,
       });
 

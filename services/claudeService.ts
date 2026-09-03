@@ -6,7 +6,6 @@ export interface ClaudeMessage {
 export interface ClaudeRequestContext {
   activeView: string;
   userRole: string;
-  userName: string;
   clubName?: string;
 }
 
@@ -53,7 +52,6 @@ function buildSystemPrompt(ctx: ClaudeRequestContext): string {
 
   return `Ești un asistent virtual inteligent pentru aplicația de management club Qwan Ki Do (arte marțiale).
 
-Utilizator: ${ctx.userName}
 Rol: ${roleLabel}
 Pagina curentă: ${viewDesc}
 ${ctx.clubName ? `Club: ${ctx.clubName}` : ''}

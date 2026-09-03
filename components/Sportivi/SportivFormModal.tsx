@@ -109,7 +109,12 @@ export const SportivFormModal: React.FC<{
 
         setLoading(true);
         try {
-            const result = await onSave(formData);
+            let payload: Partial<Sportiv> = formData;
+            const numeParinte = formData.consimtamant_parinte_nume?.trim();
+            if (numeParinte && numeParinte !== sportivToEdit?.consimtamant_parinte_nume) {
+                payload = { ...formData, consimtamant_parinte_data: new Date().toISOString() };
+            }
+            const result = await onSave(payload);
             if (result.success) {
                 setIsDirty(false);
                 onClose(result.data);

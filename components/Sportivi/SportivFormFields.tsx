@@ -4,6 +4,7 @@ import { Button, Input, Select, FormSection, Switch, DateInputDMY } from '../ui'
 import { PlusIcon } from '../icons';
 import { FEDERATIE_ID } from '../../constants';
 import { validateSportiv } from '../../utils/validation';
+import { calculeazaVarstaLaData } from '../../utils/eligibilitateCompetitie';
 
 interface SportivFormFieldsProps {
     initialData: Partial<Sportiv>;
@@ -150,7 +151,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         }`;
 
     // Numar erori per tab pentru badge
-    const generalFields = ['nume', 'prenume', 'data_nasterii'];
+    const generalFields = ['nume', 'prenume', 'data_nasterii', 'consimtamant_parinte_nume'];
     const contactFields = ['email', 'parola'];
     const errorsInTab = (fields: string[]) => fields.filter(f => errors[f]).length;
 
@@ -215,6 +216,24 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                                 error={visibleErrors.data_nasterii}
                             />
                         </div>
+                        {formData.data_nasterii && calculeazaVarstaLaData(formData.data_nasterii, new Date().toISOString().split('T')[0]) < 16 && (
+                            <div className="col-span-full">
+                                <Input
+                                    label="Nume complet părinte/tutore (consimțământ) *"
+                                    name="consimtamant_parinte_nume"
+                                    value={formData.consimtamant_parinte_nume || ''}
+                                    onChange={handleChange}
+                                    onBlur={() => markTouched('consimtamant_parinte_nume')}
+                                    required
+                                    disabled={loading}
+                                    error={visibleErrors.consimtamant_parinte_nume}
+                                    placeholder="ex: Popescu Ion"
+                                />
+                                <p className="text-xs text-slate-400 mt-1">
+                                    Numele părintelui/tutorelui se înregistrează ca dovadă a consimțământului pentru prelucrarea datelor minorului, conform art. 8 GDPR. Data consimțământului se completează automat la salvare.
+                                </p>
+                            </div>
+                        )}
                         <Select
                             label="Gen"
                             name="gen"

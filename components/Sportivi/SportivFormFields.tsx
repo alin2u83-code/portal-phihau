@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Sportiv, Grupa, Familie, TipAbonament, Club, User, Grad, Rol } from '../../types';
-import { Button, Input, Select, FormSection, Switch, DateInputDMY } from '../ui';
-import { PlusIcon } from '../icons';
+import { Button, Input, Select, FormSection, Switch, DateInputDMY, Accordion, AccordionItem } from '../ui';
+import { PlusIcon, ShieldCheckIcon } from '../icons';
 import { FEDERATIE_ID } from '../../constants';
 import { validateSportiv } from '../../utils/validation';
 import { calculeazaVarstaLaData } from '../../utils/eligibilitateCompetitie';
+import { useNavigation } from '../../contexts/NavigationContext';
 
 interface SportivFormFieldsProps {
     initialData: Partial<Sportiv>;
@@ -39,6 +40,8 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     // Erori afisate doar dupa prima interactiune cu campul respectiv (touched)
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [isGdprInfoOpen, setIsGdprInfoOpen] = useState(false);
+    const { setActiveView } = useNavigation();
 
     const validate = useCallback((data: Partial<Sportiv>) => {
         return validateSportiv(data);
@@ -183,6 +186,44 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
             {/* Tab: Date Personale */}
             {activeTab === 'general' && (
                 <div className="space-y-4 animate-fade-in">
+                    {!initialData.id && (
+                        <Accordion>
+                            <AccordionItem
+                                id="gdpr-info"
+                                title="Notă de informare privind protecția datelor (GDPR)"
+                                icon={ShieldCheckIcon}
+                                isOpen={isGdprInfoOpen}
+                                onToggle={() => setIsGdprInfoOpen(prev => !prev)}
+                            >
+                                <div className="space-y-3 text-sm text-slate-300">
+                                    <div>
+                                        <p className="font-semibold text-slate-200">Ce date colectăm</p>
+                                        <p>Date de identificare (nume, prenume, data nașterii, CNP dacă e furnizat), date de contact, apartenența la club și grupă, grad și istoric de examene, prezența la antrenamente, situația financiară.</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-slate-200">De ce le colectăm</p>
+                                        <p>Gestiunea calității de membru, organizarea antrenamentelor, examenelor și competițiilor, emiterea și urmărirea plăților, raportarea către federație.</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-slate-200">Cui le transmitem</p>
+                                        <p>Federația QwanKiDo România și furnizorii tehnici ai portalului. Pentru lista completă și actualizată, consultă <code className="text-xs bg-slate-800 px-1 py-0.5 rounded">docs/gdpr/SUBPROCESATORI.md</code>.</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-slate-200">Ce drepturi ai și cum ceri ștergerea</p>
+                                        <p>Acces, rectificare, ștergere, opoziție. Cererile se fac din pagina „Protecția datelor" din aplicație.</p>
+                                    </div>
+                                    <p className="text-slate-400">Pentru sportivii sub 16 ani, prelucrarea datelor necesită consimțământul explicit al părintelui/tutorelui, înregistrat mai jos.</p>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveView('protectia-datelor')}
+                                        className="text-blue-400 hover:text-blue-300 underline text-sm"
+                                    >
+                                        Vezi pagina „Protecția datelor"
+                                    </button>
+                                </div>
+                            </AccordionItem>
+                        </Accordion>
+                    )}
                     <FormSection title="Date Personale">
                         <Input
                             label="Nume *"

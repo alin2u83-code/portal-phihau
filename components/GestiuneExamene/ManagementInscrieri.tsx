@@ -1272,14 +1272,19 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
         return participantiInscrisi.filter(i => {
             const rezultat = rezultateLocale[i.id] || i.rezultat;
             if (rezultat !== 'Admis') return false;
-            
+
             const sportiv = sportivi.find(s => s.id === i.sportiv_id);
             if (!sportiv) return false;
-            
-            const expectedGradId = i.grad_sustinut_id;
-            return sportiv.grad_actual_id !== expectedGradId;
+
+            // Sub regula MAX(ordine) (D-01), un sportiv cu grad deja superior gradului
+            // sustinut e corect sincronizat — comparatia stricta pe id (!==) l-ar marca
+            // permanent desincronizat, generand un fals-pozitiv permanent (badge care
+            // nu ajunge niciodata la 0).
+            const gradCurent = grade.find(g => g.id === sportiv.grad_actual_id);
+            const gradSustinut = grade.find(g => g.id === i.grad_sustinut_id);
+            return (gradCurent?.ordine ?? -1) < (gradSustinut?.ordine ?? 0);
         });
-    }, [participantiInscrisi, sportivi, rezultateLocale]);
+    }, [participantiInscrisi, sportivi, rezultateLocale, grade]);
 
     const handleForceSync = async () => {
         if (!supabase) return;
@@ -1300,16 +1305,9 @@ export const ManagementInscrieri: React.FC<ManagementInscrieriProps> = ({ sesiun
                     { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true }
                 )
             );
-            // Actualizează grad_actual_id în DB (sincronizare forțată)
-            const newGrade = grade.find(g => g.id === newGradId);
-            const currentGrade = grade.find(g => g.id === inscriere.grad_actual_id);
-            if ((newGrade?.ordine ?? 0) > (currentGrade?.ordine ?? -1)) {
-                syncPromises.push(
-                    supabase.from('sportivi')
-                        .update({ grad_actual_id: newGradId })
-                        .eq('id', inscriere.sportiv_id)
-                );
-            }
+            // Reparatia consta exclusiv in inserarea randului lipsa din istoric_grade;
+            // grad_actual_id este recalculat server-side de trg_sync_grad_actual_canonical
+            // (D-04) — nu se mai scrie direct pe sportivi aici.
             sportiviUpdatesLocal.push({ id: inscriere.sportiv_id, grad_actual_id: newGradId });
         }
 

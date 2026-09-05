@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Phase 28 context gathered
-last_updated: "2026-09-05T21:13:44.809Z"
-last_activity: "2026-09-06 -- Faza 27 completa (5/5 planuri: sezoane, grupe permanent/per-sezon, facturare pe sezon, tipuri abonament legate de sezon)"
+status: completed
+stopped_at: Phase 18 context gathered
+last_updated: "2026-09-05T21:53:14.298Z"
+last_activity: "2026-09-06 -- Faza 28 completa: migratie GDPR verificata live (coloane consimtamant + tabel cereri_gdpr + 5 politici RLS confirmate prin Supabase MCP execute_sql), tot codul merged pe main, UAT 8/8 pass"
 progress:
   total_phases: 20
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 41
-  completed_plans: 35
-  percent: 50
+  completed_plans: 40
+  percent: 55
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 27 — sezoane-abonamente-si-grupe-sistem-sezoane-cu-interval-date-
+**Current focus:** Milestone v1.1 complet (Faza 28 a fost ultima) — de decis urmatorii pasi / milestone nou
 
 ## Current Position
 
-Phase: 27 (sezoane-abonamente-si-grupe-sistem-sezoane-cu-interval-date-) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 27
-Last activity: 2026-09-06 -- Faza 27 completa (5/5 planuri: sezoane, grupe permanent/per-sezon, facturare pe sezon, tipuri abonament legate de sezon)
+Phase: 28 (conformitate-gdpr-si-ai-act-...) — COMPLETE
+Plan: 5 of 5
+Status: Toate fazele milestone v1.1 complete
+Last activity: 2026-09-06 -- Faza 28 completa: migratie GDPR verificata live (coloane consimtamant + tabel cereri_gdpr + 5 politici RLS confirmate prin Supabase MCP execute_sql), tot codul merged pe main, UAT 8/8 pass
 
 ```
-Progress: [█████████░] 86% (6/7 phases)
+Progress: [██████████] 100% (7/7 phases milestone v1.1)
 ```
 
 ## Performance Metrics
@@ -172,6 +172,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-09-02T21:59:05.931Z
-Stopped at: Phase 28 context gathered
-Resume file: .planning/phases/28-conformitate-gdpr-si-ai-act-pentru-date-personale-sportivi-s/28-CONTEXT.md
+Last session: 2026-09-05T21:53:14.288Z
+Stopped at: Phase 18 context gathered
+Resume file: .planning/phases/18-fix-suprascriere-silentioasa-grad-in-istoric-grade-sportivse/18-CONTEXT.md

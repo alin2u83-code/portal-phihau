@@ -596,19 +596,10 @@ export const ImportExamenModal: React.FC<ImportExamenModalProps> = ({ isOpen, on
                             if (insertError) throw insertError;
                         }
 
-                        // 4. Dacă Admis: actualizează gradul și istoricul de grade
+                        // 4. Dacă Admis: înregistrează în istoricul de grade
+                        // grad_actual_id este derivat de trigger-ul canonic trg_sync_grad_actual_canonical
+                        // din upsert-ul de mai jos (D-04) — fără SELECT/UPDATE prealabil pe sportivi.
                         if (row.Rezultat === 'Admis') {
-                            const { data: sportivCurent } = await supabase
-                                .from('sportivi')
-                                .select('grad_actual_id, grade(ordine)')
-                                .eq('id', finalSportivId)
-                                .single();
-                            const currentOrdine = (sportivCurent?.grade as any)?.ordine ?? -1;
-                            if (gradOrdine > currentOrdine) {
-                                await supabase.from('sportivi')
-                                    .update({ grad_actual_id: gradId })
-                                    .eq('id', finalSportivId);
-                            }
                             await supabase.from('istoric_grade')
                                 .upsert({
                                     sportiv_id: finalSportivId,

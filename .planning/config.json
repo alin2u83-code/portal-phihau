@@ -26,6 +26,7 @@
     "ai_integration_phase": true,
     "tdd_mode": false,
     "human_verify_mode": "end-of-phase",
+    "use_worktrees": false,
     "text_mode": false,
     "research_before_questions": false,
     "discuss_mode": "discuss",

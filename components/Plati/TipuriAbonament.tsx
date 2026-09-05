@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { TipAbonament, User, Club, Permissions } from '../../types';
 import { Button, Input, Card, Select, ConfirmModal, EmptyState } from '../ui';
 import { PlusIcon, TrashIcon, ArrowLeftIcon } from '../icons';
@@ -6,6 +6,7 @@ import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useSezonActiv } from '../../hooks/useSezoane';
 
 interface TipuriAbonamentManagementProps {
     tipuriAbonament: TipAbonament[];
@@ -39,12 +40,50 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const isFederationAdmin = permissions?.isFederationAdmin ?? currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
     // Club ID for club admins: from activeRoleContext or currentUser
     const effectiveClubId = activeRoleContext?.club_id || activeRoleContext?.club?.id || currentUser?.club_id;
+    const { sezoane, sezonActiv, sezonActivId } = useSezonActiv(effectiveClubId ?? null);
+
+    const [tipuriReferite, setTipuriReferite] = useState<Set<string>>(new Set());
+    useEffect(() => {
+        const ids = tipuriAbonament.map(t => t.id);
+        if (ids.length === 0) { setTipuriReferite(new Set()); return; }
+        let cancelled = false;
+        (async () => {
+            try {
+                const [{ data: dataSportivi, error: eSportivi }, { data: dataFamilii, error: eFamilii }, { data: dataParticipare, error: eParticipare }] = await Promise.all([
+                    supabase.from('sportivi').select('tip_abonament_id').in('tip_abonament_id', ids),
+                    supabase.from('familii').select('tip_abonament_id').in('tip_abonament_id', ids),
+                    supabase.from('participare_vacanta').select('tip_abonament_anterior_id').in('tip_abonament_anterior_id', ids),
+                ]);
+                if (eSportivi || eFamilii || eParticipare) throw (eSportivi || eFamilii || eParticipare);
+                if (cancelled) return;
+                const referite = new Set<string>();
+                (dataSportivi || []).forEach((r: any) => { if (r.tip_abonament_id) referite.add(r.tip_abonament_id); });
+                (dataFamilii || []).forEach((r: any) => { if (r.tip_abonament_id) referite.add(r.tip_abonament_id); });
+                (dataParticipare || []).forEach((r: any) => { if (r.tip_abonament_anterior_id) referite.add(r.tip_abonament_anterior_id); });
+                setTipuriReferite(referite);
+            } catch (error: any) {
+                if (cancelled) return;
+                showError('Eroare la verificarea referințelor', error);
+                setTipuriReferite(new Set(ids));
+            }
+        })();
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tipuriAbonament.map(t => t.id).join(',')]);
+
+    const etichetaSezon = (ab: TipAbonament): string => {
+        if (!ab.sezon_id) return '— fără sezon (istoric)';
+        const s = sezoane.find(s => s.id === ab.sezon_id);
+        return s ? s.denumire : 'Sezon necunoscut';
+    };
 
     const doAdd = async (pretNum: number, nrMembriNum: number) => {
-        const newAbonament: Omit<TipAbonament, 'id'> & { club_id?: string | null } = {
+        const clubTinta = isFederationAdmin ? (newClubId || null) : (effectiveClubId ?? null);
+        const newAbonament: Omit<TipAbonament, 'id'> & { club_id?: string | null; sezon_id?: string | null } = {
             denumire: newDenumire.trim(),
             pret: pretNum,
-            numar_membri: nrMembriNum
+            numar_membri: nrMembriNum,
+            sezon_id: (clubTinta && clubTinta === effectiveClubId) ? sezonActivId : null,
         };
 
         if (isFederationAdmin) {
@@ -99,6 +138,11 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
 
     const confirmDelete = async (id: string) => {
         if(!supabase) return;
+        if (tipuriReferite.has(id)) {
+            showError('Ștergere blocată', 'Tipul este folosit de sportivi, familii sau perioade de vacanță. Reasignează-i mai întâi pe aceștia.');
+            setToDelete(null);
+            return;
+        }
         setIsDeleting(true);
         try {
             const { error } = await supabase.from('tipuri_abonament').delete().eq('id', id);
@@ -152,6 +196,9 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
             <Card className="overflow-hidden p-0">
                 <div className="bg-[var(--t-surface-2)] p-4 border-b border-[var(--t-border)]">
                     <h3 className="font-bold text-white">Nomenclator Abonamente Active</h3>
+                    <p className="text-xs text-[var(--t-text-muted)] mt-1">
+                        {sezonActiv ? `Sezon activ: ${sezonActiv.denumire}` : 'Niciun sezon activ — tipurile noi se creează fără sezon.'}
+                    </p>
                 </div>
 
                 {/* Mobile/Tablet: Cards */}
@@ -166,7 +213,14 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                             onChange={e => setTipuriAbonament(prev => prev.map(a => a.id === ab.id ? {...a, denumire: e.target.value} : a))}
                                             className="bg-transparent border-slate-700 focus:bg-slate-700 font-semibold"/>
                                     </div>
-                                    <Button onClick={() => setToDelete(ab)} variant="danger" size="sm" className="mt-5 flex-shrink-0">
+                                    <Button
+                                        onClick={tipuriReferite.has(ab.id) ? undefined : () => setToDelete(ab)}
+                                        variant="danger"
+                                        size="sm"
+                                        className="mt-5 flex-shrink-0"
+                                        disabled={tipuriReferite.has(ab.id)}
+                                        title={tipuriReferite.has(ab.id) ? 'Tip folosit de sportivi/familii — nu poate fi șters' : undefined}
+                                    >
                                         <TrashIcon className="w-4 h-4" />
                                     </Button>
                                 </div>
@@ -189,6 +243,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                         Club: <span className="text-white font-medium">{clubs.find(c => c.id === ab.club_id)?.nume || 'Federație'}</span>
                                     </p>
                                 )}
+                                <p className="text-xs text-[var(--t-text-muted)]">{etichetaSezon(ab)}</p>
                             </div>
                         ))}
                         {tipuriAbonament.length === 0 && (
@@ -204,13 +259,14 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                 ) : (
                     /* Desktop: Table */
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left min-w-[700px]">
+                        <table className="w-full text-left min-w-[850px]">
                             <thead className="bg-slate-700/30 text-slate-400 text-xs uppercase tracking-wider">
                                 <tr>
                                     <th className="p-4 font-semibold">Denumire</th>
                                     {isFederationAdmin && <th className="p-4 font-semibold">Club</th>}
                                     <th className="p-4 font-semibold text-center">Membri Alocați</th>
                                     <th className="p-4 font-semibold">Tarif Lunar</th>
+                                    <th className="p-4 font-semibold">Sezon</th>
                                     <th className="p-4 font-semibold text-right">Acțiuni</th>
                                 </tr>
                             </thead>
@@ -234,8 +290,16 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                                 <span className="text-slate-500 text-xs">RON</span>
                                             </div>
                                         </td>
+                                        <td className="p-3 text-xs text-[var(--t-text-muted)]">{etichetaSezon(ab)}</td>
                                         <td className="p-3 text-right w-32">
-                                            <Button onClick={() => setToDelete(ab)} variant="danger" size="sm" className="opacity-60 hover:opacity-100 transition-opacity" title="Șterge acest tip">
+                                            <Button
+                                                onClick={tipuriReferite.has(ab.id) ? undefined : () => setToDelete(ab)}
+                                                variant="danger"
+                                                size="sm"
+                                                className="opacity-60 hover:opacity-100 transition-opacity"
+                                                disabled={tipuriReferite.has(ab.id)}
+                                                title={tipuriReferite.has(ab.id) ? 'Tip folosit de sportivi/familii — nu poate fi șters' : 'Șterge acest tip'}
+                                            >
                                                 <TrashIcon className="w-4 h-4" />
                                             </Button>
                                         </td>
@@ -265,6 +329,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                     <li>Abonamentele <strong>Individuale</strong> trebuie să aibă Nr. Membri setat la <strong>1</strong>.</li>
                     <li>Abonamentele de <strong>Familie</strong> trebuie să aibă Nr. Membri setat la <strong>2 sau mai mult</strong>.</li>
                     <li>Sistemul de generare automată a plăților folosește aceste configurații pentru a calcula restanțele lunare.</li>
+                    <li>Tipurile create cât timp un sezon este activ se leagă automat de acel sezon. Tipurile din sezoanele arhivate rămân ca istoric și nu mai sunt folosite la generarea automată a facturilor.</li>
                 </ul>
             </div>
             <ConfirmDeleteModal isOpen={!!toDelete} onClose={() => setToDelete(null)} onConfirm={() => { if(toDelete) confirmDelete(toDelete.id) }} tableName="Tipuri Abonament" isLoading={isDeleting} />

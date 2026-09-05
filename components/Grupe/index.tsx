@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Grupa as GrupaType, ProgramItem, User, Club, Sportiv, Locatie } from '../../types';
-import { Button, Modal, Input, Select, CalendarQuickLink, EmptyState } from '../ui';
+import { Button, Modal, Input, Select, CalendarQuickLink, EmptyState, ConfirmModal } from '../ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon, UsersIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -10,6 +10,7 @@ import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useData } from '../../contexts/DataContext';
 import { useGrupe } from '../../hooks/useGrupe';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useSezonActiv } from '../../hooks/useSezoane';
 
 import { GrupaFormModal } from './GrupaFormModal';
 import { GrupaCard } from './GrupaCard';
@@ -43,6 +44,13 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
     const { data: grupeData, isLoading: grupeLoading, refetch: refetchGrupe } = useGrupe(activeRoleContext?.id, grupeClubId);
     // Filtrare client-side ca plasă de siguranță — protejează dacă cache-ul conține date neexpirate fără filtru
     const grupe = (grupeData || []).filter(g => !grupeClubId || g.club_id === grupeClubId);
+    // Grupele arhivate apar ultimele, păstrând ordinea relativă existentă
+    const grupeAfisate = [...grupe].sort((a, b) => Number((a as any).arhivat ?? false) - Number((b as any).arhivat ?? false));
+
+    const sezonClubId = grupeClubId ?? activeRoleContext?.club_id ?? null;
+    const { sezonActiv } = useSezonActiv(sezonClubId);
+    const [grupaToClone, setGrupaToClone] = useState<GrupaWithDetails | null>(null);
+    const [isCloning, setIsCloning] = useState(false);
 
     useRegisterRefresh(refetchGrupe);
 
@@ -132,6 +140,51 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                 queryClient.invalidateQueries({ queryKey: ['grupe'] });
                 showSuccess("Succes", "Grupa a fost creată.");
             }
+        }
+    };
+
+    const handleDubleaza = async () => {
+        if (isCloning || !grupaToClone || !sezonActiv) return;
+        setIsCloning(true);
+        try {
+            const { data: newGrupa, error: grupaError } = await supabase
+                .from('grupe')
+                .insert({
+                    denumire: grupaToClone.denumire,
+                    sala: grupaToClone.sala,
+                    club_id: grupaToClone.club_id,
+                    locatie_id: (grupaToClone as any).locatie_id ?? null,
+                    tip_grupa: 'per_sezon',
+                    sezon_id: sezonActiv.id,
+                    arhivat: false,
+                })
+                .select()
+                .single();
+            if (grupaError) { showError("Eroare la dublarea grupei", grupaError); return; }
+
+            if (newGrupa && grupaToClone.program.length > 0) {
+                const programToInsert = grupaToClone.program.map(p => ({
+                    ziua: p.ziua,
+                    ora_start: p.ora_start,
+                    ora_sfarsit: p.ora_sfarsit,
+                    is_activ: p.is_activ ?? true,
+                    grupa_id: newGrupa.id,
+                    club_id: newGrupa.club_id,
+                }));
+                const { error: programError } = await supabase.from('orar_saptamanal').insert(programToInsert);
+                if (programError) showError("Eroare la copierea programului", programError);
+            }
+
+            Object.keys(localStorage)
+                .filter(k => k.startsWith('cache_grupe_'))
+                .forEach(k => clearCache(k));
+            queryClient.invalidateQueries({ queryKey: ['grupe'] });
+            await refetchGrupe();
+
+            showSuccess("Grupă dublată", `Grupa '${grupaToClone.denumire}' a fost creată în sezonul '${sezonActiv.denumire}'. Adaugă sportivii manual din Detalii → Adaugă Sportivi.`);
+        } finally {
+            setIsCloning(false);
+            setGrupaToClone(null);
         }
     };
 
@@ -274,8 +327,8 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                     </div>
                     {grupe.length > 0 ? (
                         <div data-tour="grupe-lista" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {(grupe as GrupaWithDetails[]).map(grupa => (
-                                <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onDetalii={setGrupaSelectedForDetail} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} onGenerareAntrenamente={setGrupaForGenerare} />
+                            {(grupeAfisate as GrupaWithDetails[]).map(grupa => (
+                                <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onDetalii={setGrupaSelectedForDetail} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} onGenerareAntrenamente={setGrupaForGenerare} sezonActivId={sezonActiv?.id ?? null} onDubleaza={setGrupaToClone} />
                             ))}
                         </div>
                     ) : (
@@ -294,6 +347,17 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
             <TourButton steps={TOURS.grupe} pageKey="grupe" />
             <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} locatii={locatii} onLocatieAdded={handleLocatieAdded} />
             <ConfirmDeleteModal isOpen={!!grupaToDelete} onClose={() => setGrupaToDelete(null)} onConfirm={() => { if(grupaToDelete) confirmDelete(grupaToDelete.id) }} tableName="Grupe" isLoading={isDeleting} />
+            {grupaToClone && (
+                <ConfirmModal
+                    isOpen={true}
+                    onClose={() => setGrupaToClone(null)}
+                    onConfirm={handleDubleaza}
+                    variant="info"
+                    title="Dublează în sezon nou"
+                    confirmLabel="Dublează"
+                    message={`Se va crea o grupă nouă '${grupaToClone.denumire}' legată de sezonul '${sezonActiv?.denumire ?? '—'}', fără sportivi asignați — sportivii se re-asignează manual după clonare.`}
+                />
+            )}
             {grupaForOrar && (
                 <OrarEditorModal
                     isOpen={!!grupaForOrar}

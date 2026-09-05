@@ -155,28 +155,24 @@ export const useExamManager = (
                         if (newIstoricData) newIstoricEntries.push(newIstoricData as IstoricGrade);
                     }
 
-                    // Actualizează grad_actual_id direct în DB.
-                    // Trigger-ul SQL sync_grad_actual_on_exam_result protejează contra downgrade,
-                    // dar dacă triggerul nu e activ, actualizăm oricum (cel mai mare grad obținut
-                    // este garantat de ordinea for-loop și de validarea de mai jos).
+                    // grad_actual_id este derivat exclusiv de trigger-ul canonic
+                    // trg_sync_grad_actual_canonical de pe istoric_grade (regula MAX(ordine),
+                    // D-01/D-04) — nu se mai scrie direct pe sportivi aici. Garda de mai jos
+                    // guvernează doar starea locală optimistă de UI.
                     const targetGrade = grade.find(g => g.id === targetGradId);
                     const currentGrade = grade.find(g => g.id === inscriere.grad_actual_id);
                     const targetOrdine = targetGrade?.ordine ?? 0;
                     const currentOrdine = currentGrade?.ordine ?? -1;
                     if (targetOrdine > currentOrdine) {
-                        const { error: gradUpdateError } = await supabase
-                            .from('sportivi')
-                            .update({ grad_actual_id: targetGradId })
-                            .eq('id', inscriere.sportiv_id);
-                        if (gradUpdateError) throw gradUpdateError;
                         appliedGradeBySportiv.set(inscriere.sportiv_id, targetGradId);
                     }
                 }
                 totalSportivi++;
             }
 
-            // Update local state for sportivi - the trigger will handle the DB update,
-            // but we update local state for immediate feedback.
+            // Update local state for sportivi - trigger-ul canonic este SINGURA sursă
+            // de adevăr pentru grad_actual_id în DB; aici doar actualizăm starea locală
+            // pentru feedback imediat în UI.
             // Bug fix (260709-m7m): folosim appliedGradeBySportiv (populat DOAR când
             // targetOrdine > currentOrdine, aceeași gardă ca update-ul DB de mai sus) în
             // loc de a suprascrie necondiționat cu grad_sustinut_id — altfel un sportiv cu

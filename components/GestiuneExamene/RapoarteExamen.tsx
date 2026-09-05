@@ -258,17 +258,12 @@ const DetaliiSesiune: React.FC<{
                         updatedSportiviIds.add(inscriere.sportiv_id);
                     }
 
-                    // Actualizează grad_actual_id în DB dacă noul grad e superior celui curent
-                    // Aceasta este pasul care lipsea și cauza bug-ul: sportivi.grad_actual_id
-                    // rămânea la valoarea veche în baza de date după finalizarea examenului.
+                    // grad_actual_id este derivat de trigger-ul canonic trg_sync_grad_actual_canonical
+                    // de pe istoric_grade (regula MAX(ordine)); aici se păstrează doar starea
+                    // locală optimistă pentru feedback imediat în UI.
                     const newGrade = props.grade?.find(g => g.id === targetGradId);
                     const currentGrade = props.grade?.find(g => g.id === inscriere.grad_actual_id);
                     if ((newGrade?.ordine ?? 0) > (currentGrade?.ordine ?? -1)) {
-                        const { error: gradUpdateError } = await supabase
-                            .from('sportivi')
-                            .update({ grad_actual_id: targetGradId })
-                            .eq('id', inscriere.sportiv_id);
-                        if (gradUpdateError) throw gradUpdateError;
                         sportiviGradMap.set(inscriere.sportiv_id, targetGradId);
                     }
                 }

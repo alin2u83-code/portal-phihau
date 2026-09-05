@@ -348,8 +348,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         else { setSportivi(prev => prev.filter(s => s.id !== sportiv.id)); onBack(); showSuccess("Succes", "Sportivul a fost șters definitiv."); }
     };
     
-    // Dupa orice modificare in istoric_grade, re-fetch grad_actual_id
-    // din DB (triggerul a recalculat deja pe baza data_obtinere DESC)
+    // Dupa orice INSERT/UPDATE/DELETE in istoric_grade, trigger-ul
+    // trg_sync_grad_actual_canonical recalculeaza grad_actual_id ca MAX(grade.ordine)
+    // din tot istoricul sportivului (D-01), iar metoda_selectie_grad e setat pe
+    // 'automat' — de aceea re-citim ambele campuri din DB dupa fiecare modificare.
     const refetchGradActual = async () => {
         if (!supabase) return;
         const { data } = await supabase
@@ -405,6 +407,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         }
     };
 
+    // Stergerea unei intrari din istoric declanseaza acum recalculul server-side
+    // (trg_sync_grad_actual_canonical) si poate retrograda legitim sportivul (D-02) —
+    // aceasta e calea oficiala de corectie a unui grad acordat gresit; pana la faza 18
+    // nu functiona (niciunul dintre trigger-ele vechi nu asculta DELETE).
     const handleDeleteGrade = async (entryId: string) => {
         if (!supabase) return;
         if (!confirm('Ești sigur că vrei să ștergi această intrare din istoricul de grade?')) return;

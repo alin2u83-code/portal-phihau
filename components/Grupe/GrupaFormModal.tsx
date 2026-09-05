@@ -5,6 +5,7 @@ import { useError } from '../ErrorProvider';
 import { ProgramEditor } from './ProgramEditor';
 import { supabase } from '../../supabaseClient';
 import { PlusIcon } from '../icons';
+import { useSezonActiv } from '../../hooks/useSezoane';
 
 interface GrupaWithDetails extends GrupaType {
     sportivi: { count: number }[];
@@ -82,13 +83,15 @@ export const GrupaFormModal: React.FC<{
      * Optional pentru compatibilitate: cand lipseste, comportamentul e identic cu inainte (fallback pe currentUser.club_id). */
     activeClubId?: string | null;
 }> = ({ isOpen, onClose, onSave, grupaToEdit, currentUser, clubs, locatii, onLocatieAdded, activeClubId }) => {
-    const [formState, setFormState] = useState({ denumire: '', sala: '', club_id: '', locatie_id: '' });
+    const [formState, setFormState] = useState({ denumire: '', sala: '', club_id: '', locatie_id: '', tip_grupa: 'permanent', sezon_id: '' });
     const [program, setProgram] = useState<ProgramItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [showAddLocatie, setShowAddLocatie] = useState(false);
     const [localLocatii, setLocalLocatii] = useState<Locatie[]>([]);
     const { showError } = useError();
     const isFederationAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
+    const clubSelectat = formState.club_id || activeClubId || currentUser.club_id || null;
+    const { sezoane, sezonActiv } = useSezonActiv(clubSelectat);
 
     // Sincronizăm locatii din props în starea locală
     useEffect(() => {
@@ -101,7 +104,9 @@ export const GrupaFormModal: React.FC<{
                 denumire: grupaToEdit?.denumire || '',
                 sala: grupaToEdit?.sala || '',
                 club_id: grupaToEdit?.club_id || (isFederationAdmin ? '' : (activeClubId ?? currentUser.club_id ?? '')),
-                locatie_id: (grupaToEdit as any)?.locatie_id || ''
+                locatie_id: (grupaToEdit as any)?.locatie_id || '',
+                tip_grupa: (grupaToEdit?.tip_grupa as 'permanent' | 'per_sezon') || 'permanent',
+                sezon_id: grupaToEdit?.sezon_id || ''
             });
             setProgram(grupaToEdit?.program || []);
             setShowAddLocatie(false);
@@ -122,6 +127,14 @@ export const GrupaFormModal: React.FC<{
             // Când se schimbă clubul, resetăm locația dacă nu mai e valabilă
             if (name === 'club_id') {
                 next.locatie_id = '';
+                next.sezon_id = '';
+            }
+            if (name === 'tip_grupa') {
+                if (value === 'per_sezon' && !next.sezon_id) {
+                    next.sezon_id = sezonActiv?.id ?? '';
+                } else if (value === 'permanent') {
+                    next.sezon_id = '';
+                }
             }
             return next;
         });
@@ -138,6 +151,14 @@ export const GrupaFormModal: React.FC<{
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isFederationAdmin && !formState.club_id) { showError("Validare eșuată", "Super Adminii trebuie să selecteze un club."); return; }
+        if (formState.tip_grupa === 'per_sezon' && sezoane.length === 0) {
+            showError("Niciun sezon definit", "Clubul nu are niciun sezon. Creează un sezon din meniul Sezoane înainte de a marca grupa ca per-sezon.");
+            return;
+        }
+        if (formState.tip_grupa === 'per_sezon' && !formState.sezon_id) {
+            showError("Validare eșuată", "Selectează sezonul căruia îi aparține grupa.");
+            return;
+        }
         setLoading(true);
         const finalGrupa: GrupaWithDetails = {
             id: grupaToEdit?.id || '',
@@ -146,7 +167,9 @@ export const GrupaFormModal: React.FC<{
             program: program,
             club_id: formState.club_id || null,
             sportivi: grupaToEdit?.sportivi || [{ count: 0 }],
-            locatie_id: formState.locatie_id || null
+            locatie_id: formState.locatie_id || null,
+            tip_grupa: formState.tip_grupa as 'permanent' | 'per_sezon',
+            sezon_id: formState.tip_grupa === 'per_sezon' ? (formState.sezon_id || null) : null
         } as any;
         await onSave(finalGrupa);
         setLoading(false);
@@ -185,6 +208,23 @@ export const GrupaFormModal: React.FC<{
                             onCancel={() => setShowAddLocatie(false)}
                         />
                     )}
+                </div>
+                <div className="space-y-1">
+                    <Select label="Tip Grupă" name="tip_grupa" value={formState.tip_grupa} onChange={handleChange}>
+                        <option value="permanent">Permanentă</option>
+                        <option value="per_sezon">Per Sezon</option>
+                    </Select>
+                    {formState.tip_grupa === 'per_sezon' && (
+                        <Select label="Sezon" name="sezon_id" value={formState.sezon_id} onChange={handleChange} required>
+                            <option value="">Selectează sezon...</option>
+                            {sezoane.map(s => (
+                                <option key={s.id} value={s.id}>{s.denumire}{s.activ ? ' (activ)' : ''}</option>
+                            ))}
+                        </Select>
+                    )}
+                    <p className="text-xs text-[var(--t-text-muted)] mt-1">
+                        Grupele permanente rămân active indiferent de sezon. Grupele per sezon se arhivează automat la trecerea la sezonul următor.
+                    </p>
                 </div>
                 <ProgramEditor program={program} setProgram={setProgram} />
                 <div className="flex justify-end pt-4 space-x-2">

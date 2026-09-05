@@ -49,7 +49,17 @@ completed: 2026-09-06
 - `doAdd` inserează `sezon_id` = sezonul activ doar când clubul țintă coincide cu clubul contextului activ, altfel `null`
 - Etichetă de sezon pe fiecare rând (mobil + coloană nouă `Sezon` desktop) cu cele 3 ramuri: denumire / `Sezon necunoscut` / `— fără sezon (istoric)`
 - Subtitlu `Sezon activ: {denumire}` / `Niciun sezon activ — tipurile noi se creează fără sezon.`
-- Set de referințe (`sportivi.tip_abonament_id`, `familii.tip_abonament_id`, `participare_vacanta.tip_abonament_anterior_id`) calculat prin `Promise.all`, fail-closed pe eroare; buton de ștergere dezactivat + gardă în `confirmDelete`
+- Set de referințe (`sportivi.tip_abonament_id`, `participare_vacanta.tip_abonament_anterior_id`) calculat prin `Promise.all`, fail-closed pe eroare; buton de ștergere dezactivat + gardă în `confirmDelete`
+
+## POST-VERIFICARE (2026-09-06, verificare vizuală browser)
+
+Verificarea vizuală a prins un bug real: ecranul se bloca cu eroarea live `column familii.tip_abonament_id does not exist`. Asumpția `familii.tip_abonament_id` (moștenită din 27-RESEARCH.md, necorectată de auditul din 27-01 care a verificat doar `plati`/`sportivi`) era greșită — `familii` nu are și nu a avut niciodată această coloană; abonamentul de familie se calculează dinamic din numărul de membri, nu e stocat pe rând. Fix aplicat: eliminată interogarea pe `familii` din verificarea de referințe (commit `b1ac9de`); rămân `sportivi.tip_abonament_id` și `participare_vacanta.tip_abonament_anterior_id`, ambele confirmate live. Textele UI ("Tipul este folosit de sportivi...") au fost corectate să nu mai menționeze familii.
+
+După fix, verificat integral în browser (ADMIN_CLUB @ C.S. Phi Hau, sezon "Sezon 2026-2027" activ creat live):
+- Ecranul Sezoane: creare + activare funcționează, badge Activ, format dată RO corect.
+- Ecranul Grupe: toate cele 15 grupe existente arată badge "Permanentă" (zero regresie); modalul de adăugare comută corect Tip Grupă -> Per Sezon -> selector Sezon presetat pe sezonul activ.
+- Ecranul TipuriAbonament: tip nou creat s-a legat automat de "Sezon 2026-2027"; toate cele 5 tipuri istorice arată "— fără sezon (istoric)"; butonul de ștergere e dezactivat (tooltip corect) pentru tipul "Individual" (referit de sportivi), activ pentru tipurile nefolosite ("Familie 5" ștearsă cu succes ca test).
+- Plăți Scadente se încarcă fără erori cu sezonul activ prezent.
 
 ## Task Commits
 

@@ -230,8 +230,8 @@ Plans:
 Plans:
 
 - [x] 18-01-PLAN.md - Consolidare trigger-e DB intr-unul canonic (`sync_grad_actual_canonical`) + migratie versionata + audit D-10 - D-01, D-02, D-05..D-10 [val 1, necesita Supabase MCP inline]
-- [ ] 18-02-PLAN.md - ManagementInscrieri.tsx: elimina 3 scrieri directe + corecteaza `desyncedInscrieri`/`handleForceSync` - D-03, D-04, D-09 [val 2]
-- [ ] 18-03-PLAN.md - useExamManager.ts, RapoarteExamen.tsx, ImportExamenModal.tsx (ordine inversata) + comentarii UserProfile.tsx - D-03, D-04, D-09 [val 2]
+- [x] 18-02-PLAN.md - ManagementInscrieri.tsx: elimina 3 scrieri directe + corecteaza `desyncedInscrieri`/`handleForceSync` - D-03, D-04, D-09 [val 2]
+- [x] 18-03-PLAN.md - useExamManager.ts, RapoarteExamen.tsx, ImportExamenModal.tsx (ordine inversata) + comentarii UserProfile.tsx - D-03, D-04, D-09 [val 2]
 - [ ] 18-04-PLAN.md - Poarta de iesire: gate repo-wide zero dual-write + verificare live end-to-end pe flux real - D-01..D-04, D-07, D-10 [val 3, necesita Supabase MCP inline]
 
 ### Phase 19: Elimina ignoreDuplicates silentios pe upsert istoric_grade (8 locuri) si adauga rollback plati/tranzactii in GestiuneFacturi

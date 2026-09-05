@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: completed
+status: executing
 stopped_at: Phase 18 planned (4 plans, plan-checker blocker fixed)
-last_updated: "2026-09-05T22:27:48.058Z"
-last_activity: "2026-09-06 -- Faza 28 completa: migratie GDPR verificata live (coloane consimtamant + tabel cereri_gdpr + 5 politici RLS confirmate prin Supabase MCP execute_sql), tot codul merged pe main, UAT 8/8 pass"
+last_updated: "2026-09-05T22:29:26.665Z"
+last_activity: 2026-09-05 -- Phase 18 execution started
 progress:
   total_phases: 20
   completed_phases: 11
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Milestone v1.1 complet (Faza 28 a fost ultima) — de decis urmatorii pasi / milestone nou
+**Current focus:** Phase 18 — fix-suprascriere-silentioasa-grad-in-istoric-grade-sportivse
 
 ## Current Position
 
-Phase: 28 (conformitate-gdpr-si-ai-act-...) — COMPLETE
-Plan: 5 of 5
-Status: Toate fazele milestone v1.1 complete
-Last activity: 2026-09-06 -- Faza 28 completa: migratie GDPR verificata live (coloane consimtamant + tabel cereri_gdpr + 5 politici RLS confirmate prin Supabase MCP execute_sql), tot codul merged pe main, UAT 8/8 pass
+Phase: 18 (fix-suprascriere-silentioasa-grad-in-istoric-grade-sportivse) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 18
+Last activity: 2026-09-05 -- Phase 18 execution started
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)

@@ -222,14 +222,17 @@ Plans:
 
 ### Phase 18: Fix suprascriere silentioasa grad in istoric_grade (sportivService) si unifica sursa de adevar grad_actual_id (elimina dual-write manual vs trigger)
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** `sportivi.grad_actual_id` devine strict derivat din `istoric_grade` printr-un singur trigger canonic (MAX(ordine), recalcul si pe DELETE), iar frontend-ul nu mai scrie niciodata direct acest camp - data reala a examenului nu mai poate fi inlocuita cu data rularii.
+**Requirements**: D-01..D-10 (decizii CONTEXT.md; faza de backlog din auditul 2026-07-06, fara ID-uri REQ formale)
 **Depends on:** Phase 17
-**Plans:** 0 plans
+**Plans:** 4 plans (3 valuri)
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 18 to break down)
+- [ ] 18-01-PLAN.md - Consolidare trigger-e DB intr-unul canonic (`sync_grad_actual_canonical`) + migratie versionata + audit D-10 - D-01, D-02, D-05..D-10 [val 1, necesita Supabase MCP inline]
+- [ ] 18-02-PLAN.md - ManagementInscrieri.tsx: elimina 3 scrieri directe + corecteaza `desyncedInscrieri`/`handleForceSync` - D-03, D-04, D-09 [val 2]
+- [ ] 18-03-PLAN.md - useExamManager.ts, RapoarteExamen.tsx, ImportExamenModal.tsx (ordine inversata) + comentarii UserProfile.tsx - D-03, D-04, D-09 [val 2]
+- [ ] 18-04-PLAN.md - Poarta de iesire: gate repo-wide zero dual-write + verificare live end-to-end pe flux real - D-01..D-04, D-07, D-10 [val 3, necesita Supabase MCP inline]
 
 ### Phase 19: Elimina ignoreDuplicates silentios pe upsert istoric_grade (8 locuri) si adauga rollback plati/tranzactii in GestiuneFacturi
 

@@ -4,8 +4,8 @@ milestone: v1.1
 milestone_name: milestone
 status: executing
 stopped_at: Phase 28 context gathered
-last_updated: "2026-09-05T20:53:19.779Z"
-last_activity: 2026-09-05 -- Plan 27-01 complete (migratie sezoane live + contracte TS)
+last_updated: "2026-09-05T21:13:44.809Z"
+last_activity: "2026-09-06 -- Faza 27 completa (5/5 planuri: sezoane, grupe permanent/per-sezon, facturare pe sezon, tipuri abonament legate de sezon)"
 progress:
   total_phases: 20
   completed_phases: 10
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 27 (sezoane-abonamente-si-grupe-sistem-sezoane-cu-interval-date-) — EXECUTING
 Plan: 1 of 5
 Status: Executing Phase 27
-Last activity: 2026-09-05 -- Plan 27-01 complete (migratie sezoane live + contracte TS)
+Last activity: 2026-09-06 -- Faza 27 completa (5/5 planuri: sezoane, grupe permanent/per-sezon, facturare pe sezon, tipuri abonament legate de sezon)
 
 ```
 Progress: [█████████░] 86% (6/7 phases)

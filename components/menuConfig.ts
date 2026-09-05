@@ -38,6 +38,7 @@ export const adminMenu: MenuItem[] = [
     {
         label: 'Activitate Sală', icon: CalendarDaysIcon,
         submenu: [
+            { label: 'Sezoane', view: 'sezoane' },
             { label: 'Grupe & Orar', view: 'grupe' },
             { label: 'Program Antrenamente', view: 'program-antrenamente' },
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
@@ -120,6 +121,7 @@ export const adminClubMenu: MenuItem[] = [
     {
         label: 'Activitate Sală', icon: CalendarDaysIcon,
         submenu: [
+            { label: 'Sezoane', view: 'sezoane' },
             { label: 'Grupe & Orar', view: 'grupe' },
             { label: 'Program Antrenamente', view: 'program-antrenamente' },
             { label: 'Înregistrare Prezențe', view: 'prezenta' },

@@ -274,6 +274,11 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                     <Lazy.PerioadaVacantaView onBack={handleBackToDashboard} />,
                                     isAtLeastClubAdmin
                                 );
+                            case 'sezoane':
+                                return renderProtected(
+                                    <Lazy.SezoaneView onBack={handleBackToDashboard} />,
+                                    isAtLeastClubAdmin
+                                );
                             case 'istoric-prezenta':
                                 return <Lazy.MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} />;
                             case 'istoric-plati':

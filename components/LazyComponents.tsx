@@ -29,6 +29,7 @@ export const TaxeAnuale = lazy(() => import('./Plati/TaxeAnuale').then(m => ({ d
 export const PerioadaVacantaView = lazy(() =>
   import('./Plati/PerioadaVacanta').then(m => ({ default: m.PerioadaVacantaView }))
 );
+export const SezoaneView = lazy(() => import('./Sezoane').then(m => ({ default: m.SezoaneView })));
 export const GestionareNomenclatoare = lazy(() => import('./Grade/GestionareNomenclatoare').then(m => ({ default: m.GestionareNomenclatoare })));
 export const FinancialDashboard = lazy(() => import('./Plati/FinancialDashboard').then(m => ({ default: m.FinancialDashboard })));
 export const GestiuneFacturi = lazy(() => import('./Plati/GestiuneFacturi').then(m => ({ default: m.GestiuneFacturi })));

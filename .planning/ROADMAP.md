@@ -337,13 +337,13 @@ Plans:
 **Goal:** ADMIN_CLUB defineste sezoane proprii cu interval de date liber (maxim unul activ, impus de DB), fiecare grupa este marcata explicit ca permanenta sau per-sezon, grupele per-sezon se arhiveaza automat la activarea sezonului nou si pot fi dublate manual in el fara sportivi, iar tipurile de abonament se leaga de sezon astfel incat generarea facturilor sa nu mai poata cadea silentios pe pretul unui sezon arhivat.
 **Requirements**: SEZ-01, SEZ-02, SEZ-03, SEZ-04, SEZ-05, SEZ-06, SEZ-07, SEZ-08, SEZ-09
 **Depends on:** Phase 26
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
 
 **Wave 1**
 
-- [ ] 27-01-PLAN.md — [BLOCKING] Migratie sezoane (tabel + RLS + index unic activ/club) + ALTER grupe/tipuri_abonament + aplicare live + test izolare + contracte TS (types, useSezoane, CopyIcon) — SEZ-01..04, SEZ-06, SEZ-08
+- [x] 27-01-PLAN.md — [BLOCKING] Migratie sezoane (tabel + RLS + index unic activ/club) + ALTER grupe/tipuri_abonament + aplicare live + test izolare + contracte TS (types, useSezoane, CopyIcon) — SEZ-01..04, SEZ-06, SEZ-08
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -359,15 +359,15 @@ Plans:
 **Goal:** Portalul are documentatia de conformitate GDPR/AI Act (registru prelucrari, DPIA, subprocesatori, retentie), consimtamant digital al parintelui pentru minorii sub 16 ani, zero date de identificare trimise catre furnizorul LLM extern, si un mecanism digital prin care persoana vizata isi exercita drepturile (cerere export/stergere cu coada de aprobare ADMIN_CLUB).
 **Requirements**: REQ-1, REQ-2, REQ-3, REQ-4, REQ-5, REQ-6, REQ-7, REQ-8, REQ-9 (definite in 28-SPEC.md)
 **Depends on:** Phase 27
-**Plans:** 5 plans (3 valuri)
+**Plans:** 5/5 plans complete
 
 Plans:
 
-- [ ] 28-01-PLAN.md — Migratie live: coloane consimtamant parinte pe sportivi + tabel cereri_gdpr cu RLS scopat pe club, trigger de audit si functii SECURITY DEFINER — REQ-5, REQ-9
-- [ ] 28-02-PLAN.md — Minimizare userName in tot lantul services/agents (9 agenti + AgentContext + AIAssistantContext) + DPIA AI Assistant + lista subprocesatori (inclusiv Groq) — REQ-2, REQ-3, REQ-6
-- [ ] 28-03-PLAN.md — Registru evidenta prelucrari (art. 30) + politica de retentie cu termene numerice — REQ-1, REQ-7
-- [ ] 28-04-PLAN.md — Consimtamant parinte minori sub 16 (tipuri, gate de validare, camp conditional, persistenta pe calea de creare) + nota de informare GDPR la sportiv nou — REQ-4, REQ-5
-- [ ] 28-05-PLAN.md — Pagina Protectia datelor (toate rolurile) + coada admin Cereri GDPR + cablare view-uri in LazyComponents/AppRouter/menuConfig — REQ-8, REQ-9
+- [x] 28-01-PLAN.md — Migratie live: coloane consimtamant parinte pe sportivi + tabel cereri_gdpr cu RLS scopat pe club, trigger de audit si functii SECURITY DEFINER — REQ-5, REQ-9
+- [x] 28-02-PLAN.md — Minimizare userName in tot lantul services/agents (9 agenti + AgentContext + AIAssistantContext) + DPIA AI Assistant + lista subprocesatori (inclusiv Groq) — REQ-2, REQ-3, REQ-6
+- [x] 28-03-PLAN.md — Registru evidenta prelucrari (art. 30) + politica de retentie cu termene numerice — REQ-1, REQ-7
+- [x] 28-04-PLAN.md — Consimtamant parinte minori sub 16 (tipuri, gate de validare, camp conditional, persistenta pe calea de creare) + nota de informare GDPR la sportiv nou — REQ-4, REQ-5
+- [x] 28-05-PLAN.md — Pagina Protectia datelor (toate rolurile) + coada admin Cereri GDPR + cablare view-uri in LazyComponents/AppRouter/menuConfig — REQ-8, REQ-9
 
 ---
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Grupa as GrupaType, ProgramItem } from '../../types';
-import { Button, Card } from '../ui';
-import { TrashIcon, UsersIcon, CalendarIcon, ExclamationTriangleIcon, SparklesIcon } from '../icons';
+import { Button, Card, Badge } from '../ui';
+import { TrashIcon, UsersIcon, CalendarIcon, ExclamationTriangleIcon, SparklesIcon, CopyIcon } from '../icons';
 import { sortProgram } from './ProgramEditor';
 import { formatTime } from '../../utils/date';
 import { supabase } from '../../supabaseClient';
@@ -49,6 +49,8 @@ export const GrupaCard: React.FC<{
     onGestionareSecundari?: (g: GrupaWithDetails) => void;
     onGenerareAntrenamente?: (g: GrupaWithDetails) => void;
     nrSecundari?: number;
+    sezonActivId?: string | null;
+    onDubleaza?: (g: GrupaWithDetails) => void;
 }> = ({
     grupa,
     onEdit,
@@ -58,8 +60,13 @@ export const GrupaCard: React.FC<{
     onGestionareSecundari,
     onGenerareAntrenamente,
     nrSecundari,
+    sezonActivId,
+    onDubleaza,
 }) => {
     const sportiviCount = grupa.sportivi?.[0]?.count ?? 0;
+    const tipGrupa = grupa.tip_grupa ?? 'permanent';
+    const esteArhivata = grupa.arhivat === true;
+    const poateFiDublata = esteArhivata && !!onDubleaza && !!sezonActivId && sezonActivId !== grupa.sezon_id;
     const [exceptii, setExceptii] = useState<ExceptieActiva[]>([]);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -93,10 +100,14 @@ export const GrupaCard: React.FC<{
     const { programModificat, anulatAzi } = calculeazaBadge(exceptii);
 
     return (
-        <Card className="flex flex-col h-full group">
+        <Card className={`flex flex-col h-full group${esteArhivata ? ' opacity-60' : ''}`}>
             <div className="flex-grow">
                 <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="text-xl font-bold text-white">{grupa.denumire}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-xl font-bold text-white">{grupa.denumire}</h3>
+                        {tipGrupa === 'permanent' ? <Badge variant="blue">Permanentă</Badge> : <Badge variant="amber">Per Sezon</Badge>}
+                        {esteArhivata && <Badge variant="slate">Arhivată</Badge>}
+                    </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
                         {anulatAzi && (
                             <span className="inline-flex items-center gap-1 bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs px-2 py-0.5 rounded-full font-medium">
@@ -139,70 +150,82 @@ export const GrupaCard: React.FC<{
             <div className="mt-6 pt-4 border-t border-slate-700 flex items-center justify-end flex-wrap gap-2">
                 {/* Butoane principale — mereu vizibile */}
                 <Button size="sm" variant="primary" onClick={() => onDetalii(grupa)} className="min-h-[40px] touch-manipulation">Detalii</Button>
-                <Button size="sm" variant="secondary" onClick={() => onEdit(grupa)} className="min-h-[40px] touch-manipulation">Gestionează</Button>
 
-                {/* Buton "..." — acțiuni secundare */}
-                <div className="relative" ref={menuRef}>
-                    <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => setIsMenuOpen(prev => !prev)}
-                        title="Mai multe acțiuni"
-                        className="px-2 min-h-[40px] min-w-[40px] touch-manipulation"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                            <circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" />
-                        </svg>
-                    </Button>
+                {!esteArhivata && (
+                    <>
+                        <Button size="sm" variant="secondary" onClick={() => onEdit(grupa)} className="min-h-[40px] touch-manipulation">Gestionează</Button>
 
-                    {isMenuOpen && (
-                        <div className="absolute right-0 bottom-full mb-1 z-50 min-w-[200px] max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
-                            {onModificareOrar && (
-                                <button
-                                    onClick={() => { setIsMenuOpen(false); onModificareOrar(grupa); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-amber-400 hover:bg-slate-700 transition-colors text-left min-h-[44px] touch-manipulation"
-                                    title="Înregistrează o excepție sau schimbare permanentă de orar"
-                                >
-                                    <CalendarIcon className="w-4 h-4 shrink-0" />
-                                    Modifică Program
-                                </button>
-                            )}
-                            {onGenerareAntrenamente && (
-                                <button
-                                    onClick={() => { setIsMenuOpen(false); onGenerareAntrenamente(grupa); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-emerald-400 hover:bg-slate-700 transition-colors text-left min-h-[44px] touch-manipulation"
-                                    title="Generează antrenamente pe o perioadă din orarul săptămânal"
-                                >
-                                    <SparklesIcon className="w-4 h-4 shrink-0" />
-                                    Generează Antrenamente
-                                </button>
-                            )}
-                            {onGestionareSecundari && (
-                                <button
-                                    onClick={() => { setIsMenuOpen(false); onGestionareSecundari(grupa); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-purple-400 hover:bg-slate-700 transition-colors text-left min-h-[44px] touch-manipulation"
-                                    title="Gestionează sportivii secundari"
-                                >
-                                    <UsersIcon className="w-4 h-4 shrink-0" />
-                                    Secundari
-                                    {nrSecundari !== undefined && nrSecundari > 0 && (
-                                        <span className="ml-auto bg-purple-500/30 text-purple-300 text-xs px-1.5 py-0.5 rounded-full font-bold">
-                                            {nrSecundari}
-                                        </span>
-                                    )}
-                                </button>
-                            )}
-                            <div className="border-t border-slate-700 my-0.5" />
-                            <button
-                                onClick={() => { setIsMenuOpen(false); onDelete(grupa); }}
-                                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors text-left min-h-[44px] touch-manipulation"
+                        {/* Buton "..." — acțiuni secundare */}
+                        <div className="relative" ref={menuRef}>
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => setIsMenuOpen(prev => !prev)}
+                                title="Mai multe acțiuni"
+                                className="px-2 min-h-[40px] min-w-[40px] touch-manipulation"
                             >
-                                <TrashIcon className="w-4 h-4 shrink-0" />
-                                Șterge Grupa
-                            </button>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                    <circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" />
+                                </svg>
+                            </Button>
+
+                            {isMenuOpen && (
+                                <div className="absolute right-0 bottom-full mb-1 z-50 min-w-[200px] max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
+                                    {onModificareOrar && (
+                                        <button
+                                            onClick={() => { setIsMenuOpen(false); onModificareOrar(grupa); }}
+                                            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-amber-400 hover:bg-slate-700 transition-colors text-left min-h-[44px] touch-manipulation"
+                                            title="Înregistrează o excepție sau schimbare permanentă de orar"
+                                        >
+                                            <CalendarIcon className="w-4 h-4 shrink-0" />
+                                            Modifică Program
+                                        </button>
+                                    )}
+                                    {onGenerareAntrenamente && (
+                                        <button
+                                            onClick={() => { setIsMenuOpen(false); onGenerareAntrenamente(grupa); }}
+                                            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-emerald-400 hover:bg-slate-700 transition-colors text-left min-h-[44px] touch-manipulation"
+                                            title="Generează antrenamente pe o perioadă din orarul săptămânal"
+                                        >
+                                            <SparklesIcon className="w-4 h-4 shrink-0" />
+                                            Generează Antrenamente
+                                        </button>
+                                    )}
+                                    {onGestionareSecundari && (
+                                        <button
+                                            onClick={() => { setIsMenuOpen(false); onGestionareSecundari(grupa); }}
+                                            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-purple-400 hover:bg-slate-700 transition-colors text-left min-h-[44px] touch-manipulation"
+                                            title="Gestionează sportivii secundari"
+                                        >
+                                            <UsersIcon className="w-4 h-4 shrink-0" />
+                                            Secundari
+                                            {nrSecundari !== undefined && nrSecundari > 0 && (
+                                                <span className="ml-auto bg-purple-500/30 text-purple-300 text-xs px-1.5 py-0.5 rounded-full font-bold">
+                                                    {nrSecundari}
+                                                </span>
+                                            )}
+                                        </button>
+                                    )}
+                                    <div className="border-t border-slate-700 my-0.5" />
+                                    <button
+                                        onClick={() => { setIsMenuOpen(false); onDelete(grupa); }}
+                                        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors text-left min-h-[44px] touch-manipulation"
+                                    >
+                                        <TrashIcon className="w-4 h-4 shrink-0" />
+                                        Șterge Grupa
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
+                    </>
+                )}
+
+                {poateFiDublata && (
+                    <Button size="sm" variant="primary" onClick={() => onDubleaza!(grupa)} className="min-h-[40px] touch-manipulation">
+                        <CopyIcon className="w-4 h-4 mr-2" />
+                        Dublează în sezon nou
+                    </Button>
+                )}
             </div>
         </Card>
     );

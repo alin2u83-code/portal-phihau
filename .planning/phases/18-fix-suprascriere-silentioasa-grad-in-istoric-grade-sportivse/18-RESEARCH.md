@@ -293,6 +293,60 @@ ORDER BY ig.data_obtinere DESC;
 
 Nu aplică direct (nu e o schimbare de librărie/framework) — dar tiparul arhitectural relevant e "single writer, single source of truth via DB trigger" în locul "multiple frontend call sites reimplementând aceeași regulă de business". Acest tipar a mai fost aplicat cu succes în acest proiect: Faza 25-04 a consolidat/eliminat funcții RLS duplicate (`get_my_club_ids`/`get_my_clubs` → helpere context-aware unice) folosind exact același pattern (funcțiile vechi lăsate definite fără DROP, doar trigger-ele/politicile de apel eliminate).
 
+## Live Verification (orchestrator session, MCP Supabase access confirmed — 2026-09-06)
+
+**Re-ran the exact queries from Open Questions #1, live, on project `wuhidifzsutwgdfkwhmd`. Results:**
+
+1. **Trigger→function mapping confirmed IDENTICAL to CONTEXT.md** — zero drift since CONTEXT.md was captured. All 5 trigger names, function names, and table attachments match exactly (`trg_after_history_change`→`fn_sync_sportiv_grad_from_history`, `trg_sync_grad_actual_from_istoric`→`sync_grad_actual_from_istoric_grade`, `trg_sync_grad_actual_manual`→`sync_grad_actual_on_manual_grade`, `trg_sync_grade_on_history_change`→`fn_refresh_sportiv_grade`, `tr_sync_grad_history`→`fn_sync_grad_to_history` on `sportivi`). **A1 resolved: confirmed correct, no drift.**
+
+2. **A3 CORRECTED — `fn_sync_grad_to_history` uses `ON CONFLICT ... DO NOTHING`, NOT `DO UPDATE`:**
+   ```sql
+   -- Exact live body of fn_sync_grad_to_history (tr_sync_grad_history on sportivi, AFTER UPDATE):
+   IF (OLD.grad_actual_id IS DISTINCT FROM NEW.grad_actual_id) AND (NEW.grad_actual_id IS NOT NULL) THEN
+       INSERT INTO public.istoric_grade (sportiv_id, grad_id, data_obtinere, club_id, observatii)
+       VALUES (NEW.id, NEW.grad_actual_id, CURRENT_DATE, NEW.club_id, 'Schimbare automată grad (Update Profil)')
+       ON CONFLICT ON CONSTRAINT istoric_grade_sportiv_grad_unique DO NOTHING;
+   END IF;
+   ```
+   **Revised root-cause mechanism (more precise than the Summary above):** Since it's `DO NOTHING`, this trigger does NOT overwrite an existing correct row. The actual corruption is a **race condition**: in all 5 frontend call sites, the `istoric_grade` upsert (real date) and the `sportivi.grad_actual_id` update are both pushed into an `allPromises`/similar array and likely resolved concurrently (not awaited sequentially). If the `sportivi` UPDATE's trigger (`tr_sync_grad_history`, wrong `CURRENT_DATE`) lands on the DB and commits its `INSERT ... ON CONFLICT DO NOTHING` for `(sportiv_id, grad_id)` **before** the frontend's own explicit `istoric_grade` upsert (which ALSO uses `ignoreDuplicates: true` → `ON CONFLICT DO NOTHING`) — the wrong-dated row wins the unique-constraint slot, and the frontend's correct-dated upsert is silently a no-op. Whichever write reaches Postgres first for that `(sportiv_id, grad_id)` pair keeps the row; the other is dropped without error. This still fully validates D-03/D-04/D-07 (eliminate the direct `sportivi.grad_actual_id` write entirely — removes the race by removing one of the two racing writers) — the recommended fix in this RESEARCH.md is unchanged.
+   **Plan implication:** The planner should describe this as a **race condition between two concurrent unique-keyed writes with `DO NOTHING` conflict handling**, not a literal "overwrite," when documenting the bug in PLAN.md/commit messages — for accuracy.
+
+3. **A2 CORRECTED — exam sessions table is named `sesiuni_examene`** (plural, with final -e), not `sesiuni_examen`. Confirmed via live `information_schema.tables` query. The D-10 audit query below is corrected accordingly.
+
+4. **Confirmed:** `istoric_grade_sportiv_grad_unique` constraint is `UNIQUE (sportiv_id, grad_id)` exactly as assumed — no additional columns in the constraint.
+
+**Corrected D-10 audit query** (replaces the one in Code Examples above — use this version, table name fixed):
+```sql
+SELECT
+    ig.id AS istoric_id,
+    s.nume, s.prenume, s.id AS sportiv_id,
+    g.nume AS grad_nume, g.ordine,
+    ig.data_obtinere,
+    ig.observatii,
+    ig.sesiune_examen_id,
+    se.data AS data_sesiune_examen
+FROM public.istoric_grade ig
+JOIN public.sportivi s ON s.id = ig.sportiv_id
+JOIN public.grade g ON g.id = ig.grad_id
+LEFT JOIN public.sesiuni_examene se ON se.id = ig.sesiune_examen_id
+WHERE
+    ig.observatii ILIKE '%Schimbare automată grad%'
+    OR ig.observatii ILIKE '%Update Profil%'
+    OR (
+        ig.sesiune_examen_id IS NOT NULL
+        AND se.data IS NOT NULL
+        AND ig.data_obtinere <> se.data
+    )
+ORDER BY ig.data_obtinere DESC;
+```
+
+**Execution pattern per call site (confirmed via grep, affects whether the race actually manifests):**
+- `ManagementInscrieri.tsx` (3 call sites): confirmed `Promise.all(allPromises)` — the `istoric_grade` upsert and the `sportivi.grad_actual_id` update are pushed into the same array and resolved **concurrently**. Race condition applies here.
+- `useExamManager.ts`: confirmed **sequential** `await` — `istoric_grade` insert happens first, `sportivi.grad_actual_id` update happens after, so by the time the trigger's `INSERT ... ON CONFLICT DO NOTHING` fires, the correct row already exists and the trigger is a no-op. No data corruption at this specific site today, but the direct write is still architecturally redundant/wrong (D-03/D-04 applies for consistency and to remove dead-weight code, not because this site is actively corrupting data).
+- `RapoarteExamen.tsx` / `ImportExamenModal.tsx`: not re-verified for Promise.all vs sequential in this pass — planner/executor should check before writing the fix, but the outcome (remove the direct write) is the same regardless.
+
+**Blocker from Open Questions #1 is now RESOLVED** — this live verification satisfies the planner's prerequisite. The planner can proceed directly to writing the final migration without an additional "re-verify live" task, though the executing session will still need Supabase MCP access to run `apply_migration` (per the established project pattern — orchestrator/inline session, not a worktree subagent).
+
 ## Assumptions Log
 
 | # | Claim | Section | Risk if Wrong |

@@ -49,6 +49,10 @@ CREATE POLICY "sezoane_select" ON public.sezoane
 -- NU folosim este_staff_club(club_id) ca predicat de scoping aici — acea functie
 -- include INSTRUCTOR, ceea ce ar contrazice D-02 (doar ADMIN_CLUB/ADMIN/SUPER_ADMIN_FEDERATIE
 -- pot crea/edita/sterge sezoane). Gate-ul de rol e explicit mai jos.
+-- Rolul de gate trebuie evaluat STRICT pe randul de context activ
+-- (active-role-context-id), la fel ca is_super_admin()/has_access_to_club() —
+-- altfel un user cu roluri multiple (ex. ADMIN_CLUB + INSTRUCTOR la acelasi club)
+-- ar trece gate-ul prin randul ADMIN_CLUB chiar si cand contextul activ e INSTRUCTOR.
 DROP POLICY IF EXISTS "sezoane_write" ON public.sezoane;
 CREATE POLICY "sezoane_write" ON public.sezoane
   FOR ALL TO authenticated
@@ -56,6 +60,7 @@ CREATE POLICY "sezoane_write" ON public.sezoane
     EXISTS (
       SELECT 1 FROM public.utilizator_roluri_multicont
       WHERE user_id = auth.uid()
+        AND id = (NULLIF((current_setting('request.headers', true))::json ->> 'active-role-context-id', ''))::uuid
         AND rol_denumire IN ('SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB')
     )
     AND (public.has_access_to_club(club_id) OR public.is_super_admin())
@@ -64,6 +69,7 @@ CREATE POLICY "sezoane_write" ON public.sezoane
     EXISTS (
       SELECT 1 FROM public.utilizator_roluri_multicont
       WHERE user_id = auth.uid()
+        AND id = (NULLIF((current_setting('request.headers', true))::json ->> 'active-role-context-id', ''))::uuid
         AND rol_denumire IN ('SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB')
     )
     AND (public.has_access_to_club(club_id) OR public.is_super_admin())

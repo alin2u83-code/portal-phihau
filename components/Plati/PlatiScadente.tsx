@@ -15,6 +15,8 @@ import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
 import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare';
 import { anuleazaFacturaAbonament, reactiveazaFacturaAbonament } from '../../services/facturaService';
 import { formatLuna } from '../../utils/luniLipsa';
+import { filtreazaTipuriSezon, gasesteTipDupaId, esteTipDinSezonArhivat } from '../../utils/abonamente';
+import { useSezonActiv } from '../../hooks/useSezoane';
 
 interface PlatiScadenteProps {
     onIncaseazaMultiple: (plati: Plata[]) => void;
@@ -84,6 +86,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const inscrieriExamene = filteredData.inscrieriExamene;
     const grupe = filteredData.grupe;
     const queryClient = useQueryClient();
+    const { sezonActivId } = useSezonActiv(activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
 
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
     const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -206,6 +209,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             const sportiviProcesati = new Set<string>();
             // Bug 2 Fix: colectăm sportivii ignorați pentru warning la final
             const sportiviIgnorati: string[] = [];
+            const tipuriSezon = filtreazaTipuriSezon(tipuriAbonament || [], sezonActivId);
+            const sportiviCuTipArhivat: string[] = [];
 
             const familyIdsInClub = new Set(sportiviActivi.map(s => s.familie_id).filter(Boolean));
             const relevantFamilies = familii.filter(f => familyIdsInClub.has(f.id));
@@ -219,9 +224,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
                 // Nu mai verificăm client-side — upsert cu onConflict garantează unicitatea
                 const nrMembri = membriActiviInFamilie.length;
-                let abonamentConfig = (tipuriAbonament || []).find(ab => ab.numar_membri === nrMembri);
+                let abonamentConfig = tipuriSezon.find(ab => ab.numar_membri === nrMembri);
                 if (!abonamentConfig && nrMembri > 1) {
-                    abonamentConfig = [...(tipuriAbonament || [])].filter(ab => ab.numar_membri > 1).sort((a, b) => b.numar_membri - a.numar_membri)[0];
+                    abonamentConfig = [...tipuriSezon].filter(ab => ab.numar_membri > 1).sort((a, b) => b.numar_membri - a.numar_membri)[0];
                 }
 
                 if (abonamentConfig) {
@@ -249,8 +254,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
             sportiviActivi.forEach(sportiv => {
                 if (sportiviProcesati.has(sportiv.id) || sportiv.familie_id) return;
-                const abonamentConfig = (tipuriAbonament || []).find(ab => ab.id === sportiv.tip_abonament_id)
-                    || (tipuriAbonament || []).find(ab => ab.numar_membri === 1);
+                const abonamentConfig = gasesteTipDupaId(tipuriAbonament || [], sportiv.tip_abonament_id)
+                    || tipuriSezon.find(ab => ab.numar_membri === 1);
+                if (esteTipDinSezonArhivat(abonamentConfig, sezonActivId)) {
+                    sportiviCuTipArhivat.push(`${sportiv.nume} ${sportiv.prenume}`);
+                }
                 if (abonamentConfig) {
                     // Bug 5 Fix: folosim soldurile proaspete din DB
                     const creditSportiv = indivBalancesFresh.get(sportiv.id) || 0;
@@ -333,6 +341,14 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 showError(
                     "Sportivi ignorați",
                     `${sportiviIgnorati.length} sportivi ignorați (fără abonament configurat): ${sportiviIgnorati.join(', ')}`
+                );
+            }
+
+            // Faza 27: avertizare pentru sportivii facturați cu un tip dintr-un sezon arhivat
+            if (sportiviCuTipArhivat.length > 0) {
+                showError(
+                    "Tip abonament din sezon arhivat",
+                    `${sportiviCuTipArhivat.length} sportivi facturați cu un tip de abonament dintr-un sezon arhivat (reasignare manuală necesară): ${sportiviCuTipArhivat.join(', ')}`
                 );
             }
 

@@ -15,6 +15,8 @@ import { formatLuna } from '../../utils/luniLipsa';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat } from '../../utils/paymentStatus';
 import { PeriodFilterBar } from './PeriodFilterBar';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
+import { filtreazaTipuriSezon, gasesteTipDupaId } from '../../utils/abonamente';
+import { useSezonActiv } from '../../hooks/useSezoane';
 
 interface GestiuneFacturiProps {
     onBack: () => void;
@@ -44,6 +46,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const { showError, showSuccess } = useError();
     const { preturiConfig, tipuriAbonament, reduceri, activeRoleContext } = useData();
     const permissions = usePermissions(activeRoleContext);
+    const { sezonActivId } = useSezonActiv(activeRoleContext?.club_id ?? null);
     const [formState, setFormState] = useState(initialFormState);
 
     // PLF-02: state pentru generare abonament per lună
@@ -96,11 +99,12 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
 
         if (formState.tip === 'Abonament') {
             let config;
+            const tipuriSezon = filtreazaTipuriSezon(tipuriAbonament, sezonActivId);
             if (sportiv.familie_id) {
                 const nr = sportivi.filter(s => s.familie_id === sportiv.familie_id && s.status === 'Activ').length;
-                config = tipuriAbonament.find(ab => ab.numar_membri === nr) || tipuriAbonament.find(ab => ab.numar_membri === 1);
+                config = tipuriSezon.find(ab => ab.numar_membri === nr) || tipuriSezon.find(ab => ab.numar_membri === 1);
             } else {
-                config = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id);
+                config = gasesteTipDupaId(tipuriAbonament, sportiv.tip_abonament_id);
             }
             calculatedPrice = config?.pret || 0;
             description = config ? `Abonament ${config.denumire} ${lunaText}` : '';
@@ -139,7 +143,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             descriere: prev.descriere || description
         }));
 
-    }, [formState.sportiv_id, formState.tip, formState.data, selectedMarimeId, sportivi, preturiConfig, tipuriAbonament, reduceri]);
+    }, [formState.sportiv_id, formState.tip, formState.data, selectedMarimeId, sportivi, preturiConfig, tipuriAbonament, reduceri, sezonActivId]);
 
     const getEntityName = (plata: Plata) => {
         if (plata.familie_id) {
@@ -271,12 +275,13 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
 
         // Calculează suma abonamentului identic cu logica useEffect (liniile 87-95)
         let suma = 0;
+        const tipuriSezon = filtreazaTipuriSezon(tipuriAbonament, sezonActivId);
         if (sportiv.familie_id) {
             const nr = sportivi.filter(s => s.familie_id === sportiv.familie_id && s.status === 'Activ').length;
-            const config = tipuriAbonament.find(ab => ab.numar_membri === nr) || tipuriAbonament.find(ab => ab.numar_membri === 1);
+            const config = tipuriSezon.find(ab => ab.numar_membri === nr) || tipuriSezon.find(ab => ab.numar_membri === 1);
             suma = config?.pret || 0;
         } else {
-            const config = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id);
+            const config = gasesteTipDupaId(tipuriAbonament, sportiv.tip_abonament_id);
             suma = config?.pret || 0;
         }
 

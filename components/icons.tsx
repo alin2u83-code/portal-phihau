@@ -8,7 +8,7 @@ import {
   UploadCloud, Mail, Lock, UserPlus, BookOpen, BookMarked, FileText, UserX, UserCheck, XCircle, Clock,
   Camera, Upload, Building2, Paintbrush, MapPin, CreditCard, Calendar, AlertCircle,
   Bot, Send, Sparkles, ChevronUp, HelpCircle, MessageSquare, GraduationCap, Minimize2,
-  TrendingUp, Palette, MinusCircle, Eye, Star, Package
+  TrendingUp, Palette, MinusCircle, Eye, Star, Package, Copy
 } from 'lucide-react';
 
 export const PlusIcon = Plus;
@@ -80,3 +80,4 @@ export const MinusCircleIcon = MinusCircle;
 export const EyeIcon = Eye;
 export const StarIcon = Star;
 export const PackageIcon = Package;
+export const CopyIcon = Copy;

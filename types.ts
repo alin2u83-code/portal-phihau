@@ -355,6 +355,9 @@ export interface Grupa {
   sala: string | null;
   club_id?: string | null;
   locatie_id?: string | null;
+  tip_grupa?: 'permanent' | 'per_sezon';
+  sezon_id?: string | null;
+  arhivat?: boolean;
 }
 
 export interface Antrenament {
@@ -542,6 +545,7 @@ export interface TipAbonament {
   pret: number;
   numar_membri: number;
   club_id?: string | null;
+  sezon_id?: string | null;
 }
 
 // --- Domain: Suport & Utilități ---
@@ -599,7 +603,7 @@ export interface TraficProfil {
   timp_total_secunde: number;
 }
 
-export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'istoric-plati' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi' | 'structura-federatie' | 'deconturi-federatie' | 'istoric-prezenta' | 'account-settings' | 'federation-dashboard' | 'gestiune-facturi' | 'fisa-digitala' | 'fisa-competitie' | 'prezenta-instructor' | 'arhiva-prezente' | 'raport-activitate' | 'admin-console' | 'raport-lunar-prezenta' | 'raport-interval-examen' | 'portal-sportiv-admin' | 'admin-dashboard' | 'rapoarte' | 'program-antrenamente' | 'legitimatii' | 'import-sportivi' | 'istoric-activitate' | 'jurnal-audit' | 'deduplicare-sportivi' | 'cereri-inscriere' | 'activitati-nationale' | 'inlantuiri-admin' | 'admin-sms' | 'template-probe' | 'setup-mfa' | 'button-catalog' | 'produse' | 'vanzari-produse' | 'perioade-vacanta' | 'audit-grade' | 'anunturi-federatie' | 'facturi-fara-prezenta' | 'protectia-datelor' | 'cereri-gdpr';
+export type View = 'dashboard' | 'sportivi' | 'examene' | 'grade' | 'prezenta' | 'grupe' | 'raport-prezenta' | 'stagii' | 'competitii' | 'plati-scadente' | 'jurnal-incasari' | 'raport-financiar' | 'configurare-preturi' | 'tipuri-abonament' | 'familii' | 'user-management' | 'editare-profil-personal' | 'evenimentele-mele' | 'data-maintenance' | 'activitati' | 'my-portal' | 'setari-club' | 'data-inspector' | 'profil-sportiv' | 'reduceri' | 'notificari' | 'taxe-anuale' | 'nomenclatoare' | 'financial-dashboard' | 'istoric-examene' | 'istoric-plati' | 'finalizare-examen' | 'calendar' | 'rapoarte-examen' | 'cluburi' | 'structura-federatie' | 'deconturi-federatie' | 'istoric-prezenta' | 'account-settings' | 'federation-dashboard' | 'gestiune-facturi' | 'fisa-digitala' | 'fisa-competitie' | 'prezenta-instructor' | 'arhiva-prezente' | 'raport-activitate' | 'admin-console' | 'raport-lunar-prezenta' | 'raport-interval-examen' | 'portal-sportiv-admin' | 'admin-dashboard' | 'rapoarte' | 'program-antrenamente' | 'legitimatii' | 'import-sportivi' | 'istoric-activitate' | 'jurnal-audit' | 'deduplicare-sportivi' | 'cereri-inscriere' | 'activitati-nationale' | 'inlantuiri-admin' | 'admin-sms' | 'template-probe' | 'setup-mfa' | 'button-catalog' | 'produse' | 'vanzari-produse' | 'perioade-vacanta' | 'audit-grade' | 'anunturi-federatie' | 'facturi-fara-prezenta' | 'protectia-datelor' | 'cereri-gdpr' | 'sezoane';
 
 export interface VederePrezentaSportiv {
   id: string;
@@ -1059,6 +1063,16 @@ export interface PerioadaVacanta {
   denumire: string;
   data_start: string;  // 'YYYY-MM-DD' (DATE din Postgres)
   data_end: string;    // 'YYYY-MM-DD'
+}
+
+export interface Sezon {
+  id: string;
+  created_at: string;
+  club_id: string;
+  denumire: string;
+  data_start: string;  // 'YYYY-MM-DD' (DATE din Postgres)
+  data_final: string;  // 'YYYY-MM-DD'
+  activ: boolean;
 }
 
 export interface ParticipareVacanta {

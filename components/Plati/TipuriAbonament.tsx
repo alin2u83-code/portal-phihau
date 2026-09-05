@@ -49,16 +49,17 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         let cancelled = false;
         (async () => {
             try {
-                const [{ data: dataSportivi, error: eSportivi }, { data: dataFamilii, error: eFamilii }, { data: dataParticipare, error: eParticipare }] = await Promise.all([
+                // NOTA: `familii` NU are coloana tip_abonament_id pe DB live (verificat 2026-09-06,
+                // corectie fata de presupunerea din 27-05-PLAN.md/RESEARCH.md) — abonamentul de
+                // familie se calculeaza dinamic dupa numarul de membri, nu e stocat pe randul familiei.
+                const [{ data: dataSportivi, error: eSportivi }, { data: dataParticipare, error: eParticipare }] = await Promise.all([
                     supabase.from('sportivi').select('tip_abonament_id').in('tip_abonament_id', ids),
-                    supabase.from('familii').select('tip_abonament_id').in('tip_abonament_id', ids),
                     supabase.from('participare_vacanta').select('tip_abonament_anterior_id').in('tip_abonament_anterior_id', ids),
                 ]);
-                if (eSportivi || eFamilii || eParticipare) throw (eSportivi || eFamilii || eParticipare);
+                if (eSportivi || eParticipare) throw (eSportivi || eParticipare);
                 if (cancelled) return;
                 const referite = new Set<string>();
                 (dataSportivi || []).forEach((r: any) => { if (r.tip_abonament_id) referite.add(r.tip_abonament_id); });
-                (dataFamilii || []).forEach((r: any) => { if (r.tip_abonament_id) referite.add(r.tip_abonament_id); });
                 (dataParticipare || []).forEach((r: any) => { if (r.tip_abonament_anterior_id) referite.add(r.tip_abonament_anterior_id); });
                 setTipuriReferite(referite);
             } catch (error: any) {
@@ -139,7 +140,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const confirmDelete = async (id: string) => {
         if(!supabase) return;
         if (tipuriReferite.has(id)) {
-            showError('Ștergere blocată', 'Tipul este folosit de sportivi, familii sau perioade de vacanță. Reasignează-i mai întâi pe aceștia.');
+            showError('Ștergere blocată', 'Tipul este folosit de sportivi sau de perioade de vacanță. Reasignează-i mai întâi pe aceștia.');
             setToDelete(null);
             return;
         }
@@ -219,7 +220,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                         size="sm"
                                         className="mt-5 flex-shrink-0"
                                         disabled={tipuriReferite.has(ab.id)}
-                                        title={tipuriReferite.has(ab.id) ? 'Tip folosit de sportivi/familii — nu poate fi șters' : undefined}
+                                        title={tipuriReferite.has(ab.id) ? 'Tip folosit de sportivi — nu poate fi șters' : undefined}
                                     >
                                         <TrashIcon className="w-4 h-4" />
                                     </Button>
@@ -298,7 +299,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                                 size="sm"
                                                 className="opacity-60 hover:opacity-100 transition-opacity"
                                                 disabled={tipuriReferite.has(ab.id)}
-                                                title={tipuriReferite.has(ab.id) ? 'Tip folosit de sportivi/familii — nu poate fi șters' : 'Șterge acest tip'}
+                                                title={tipuriReferite.has(ab.id) ? 'Tip folosit de sportivi — nu poate fi șters' : 'Șterge acest tip'}
                                             >
                                                 <TrashIcon className="w-4 h-4" />
                                             </Button>

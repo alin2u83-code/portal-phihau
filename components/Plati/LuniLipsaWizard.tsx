@@ -6,6 +6,8 @@ import { calculeazaLuniLipsa, formatLuna } from '../../utils/luniLipsa';
 import { genereazaFacturaAbonament } from '../../services/facturaService';
 import { useDataStartFacturare } from '../../hooks/useDataStartFacturare';
 import { useError } from '../ErrorProvider';
+import { filtreazaTipuriSezon, gasesteTipDupaId } from '../../utils/abonamente';
+import { useSezonActiv } from '../../hooks/useSezoane';
 
 interface LuniLipsaWizardProps {
     sportiv: Sportiv;
@@ -38,6 +40,7 @@ export const LuniLipsaWizard: React.FC<LuniLipsaWizardProps> = ({
 }) => {
     const { showSuccess, showError } = useError();
     const { dataStartFacturare, isLoading: isLoadingData, setDataStartFacturare, isSaving } = useDataStartFacturare(sportiv.id);
+    const { sezonActivId } = useSezonActiv(sportiv.club_id ?? null);
 
     // Câmp local pentru setare data_start_facturare (dacă lipsește)
     const [dataStartLocal, setDataStartLocal] = useState('');
@@ -77,16 +80,17 @@ export const LuniLipsaWizard: React.FC<LuniLipsaWizardProps> = ({
 
     // Calculul sumei abonament per sportiv (refolosit din GestiuneFacturi liniile 97-106)
     const calculeazaSuma = (): number => {
+        const tipuriSezon = filtreazaTipuriSezon(tipuriAbonament, sezonActivId);
         if (sportiv.familie_id) {
             // Familie: preț bazat pe numărul de membri activi din familie
             // Nu avem acces la sportivi din acest context, deci folosim tip_abonament_id
             // ca fallback (același pattern ca GestiuneFacturi)
-            const config = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id)
-                ?? tipuriAbonament.find(ab => ab.numar_membri === 1);
+            const config = gasesteTipDupaId(tipuriAbonament, sportiv.tip_abonament_id)
+                ?? tipuriSezon.find(ab => ab.numar_membri === 1);
             return config?.pret ?? 0;
         }
-        const config = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id)
-            ?? tipuriAbonament.find(ab => ab.numar_membri === 1);
+        const config = gasesteTipDupaId(tipuriAbonament, sportiv.tip_abonament_id)
+            ?? tipuriSezon.find(ab => ab.numar_membri === 1);
         return config?.pret ?? 0;
     };
 

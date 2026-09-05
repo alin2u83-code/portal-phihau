@@ -11,6 +11,8 @@ import { useData } from '../../contexts/DataContext';
 import { sendNotification } from '../../utils/notifications';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { PeriodFilterBar } from './PeriodFilterBar';
+import { filtreazaTipuriSezon, gasesteTipDupaId } from '../../utils/abonamente';
+import { useSezonActiv } from '../../hooks/useSezoane';
 
 const QuickAddTipPlataModal: React.FC<{ 
   isOpen: boolean; 
@@ -180,6 +182,8 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     const [tranzactieToEdit, setTranzactieToEdit] = useState<Tranzactie | null>(null);
     const [avansExpanded, setAvansExpanded] = useState(false);
     const [periodFilter, setPeriodFilter] = useState({ startDate: '', endDate: '' });
+    const { activeRoleContext } = useData();
+    const { sezonActivId } = useSezonActiv(activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
 
     const isMultiple = platiInitiale.length > 1;
 
@@ -248,11 +252,12 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
         if (formState.tip === 'Abonament') {
             let config;
+            const tipuriSezon = filtreazaTipuriSezon(tipuriAbonament, sezonActivId);
             if (sportiv.familie_id) {
                 const nr = sportivi.filter(s => s.familie_id === sportiv.familie_id && s.status === 'Activ').length;
-                config = tipuriAbonament.find(ab => ab.numar_membri === nr) || tipuriAbonament.find(ab => ab.numar_membri === 1);
+                config = tipuriSezon.find(ab => ab.numar_membri === nr) || tipuriSezon.find(ab => ab.numar_membri === 1);
             } else {
-                config = tipuriAbonament.find(ab => ab.id === sportiv.tip_abonament_id);
+                config = gasesteTipDupaId(tipuriAbonament, sportiv.tip_abonament_id);
             }
             calculatedPrice = config?.pret || 0;
             description = config ? `Abonament ${config.denumire} ${lunaText}` : '';
@@ -289,7 +294,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
             descriere: description,
         }));
 
-    }, [formState.sportiv_id, formState.tip, selectedMarimeId, formState.data_platii, sportivi, preturiConfig, tipuriAbonament, platiInitiale, reduceri]);
+    }, [formState.sportiv_id, formState.tip, selectedMarimeId, formState.data_platii, sportivi, preturiConfig, tipuriAbonament, platiInitiale, reduceri, sezonActivId]);
 
     const handleSaveIncasare = async (e: React.FormEvent) => {
         e.preventDefault();

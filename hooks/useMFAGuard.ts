@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigation } from '../contexts/NavigationContext';
+import { esteMfaEmailValid } from '../services/emailMfaService';
 
 // MFA obligatoriu doar pentru rolurile cu acces la date sensibile (financiar/medical).
 // Per D-02 (17-CONTEXT.md): blocare imediata, fara perioada de gratie, fara toggle.
@@ -27,20 +28,20 @@ export function useMFAGuard(activeRoleContext: any | null) {
             return;
         }
 
-        supabase?.auth.mfa.getAuthenticatorAssuranceLevel().then(({ data, error }) => {
-            if (error) {
+        supabase?.auth.getUser().then(({ data, error }) => {
+            if (error || !data.user) {
                 // Fail-open documentat: eroare de retea nu blocheaza accesul (tradeoff deliberat).
-                console.error('[useMFAGuard] MFA level check failed:', error.message);
+                console.error('[useMFAGuard] getUser failed:', error?.message);
                 setMfaChecked(true);
                 return;
             }
-            const currentLevel = data?.currentLevel;
-            const nextLevel = data?.nextLevel;
-            if (!nextLevel || nextLevel === 'aal1' || (nextLevel === 'aal2' && currentLevel !== 'aal2')) {
-                navigateTo('setup-mfa');
-                return; // NU seta mfaChecked=true aici — App.tsx randeaza gate cat timp e false
-            }
-            setMfaChecked(true);
+            esteMfaEmailValid(data.user.id).then(valid => {
+                if (!valid) {
+                    navigateTo('setup-mfa');
+                    return; // NU seta mfaChecked=true aici — App.tsx randeaza gate cat timp e false
+                }
+                setMfaChecked(true);
+            });
         });
     }, [activeRoleContext, activeView]);
 

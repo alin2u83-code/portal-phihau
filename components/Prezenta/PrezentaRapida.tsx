@@ -8,6 +8,7 @@ import { useError } from '../ErrorProvider';
 import { useData } from '../../contexts/DataContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { formatTime } from '../../utils/date';
+import { GestioneazaGrupaModal } from './GestioneazaGrupaModal';
 
 interface AthletePill {
     id: string;
@@ -285,6 +286,12 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
     }, [today, showError, gradeById, clubId, sportivById]);
 
     useEffect(() => { fetchTrainings(); }, [fetchTrainings, refreshKey]);
+
+    // Reimprospateaza sectiunea dupa salvarea componentei grupei si o re-expandeaza
+    const handleGrupaSalvata = useCallback(async (sectionId: string) => {
+        await fetchTrainings();
+        setExpandedIds(prev => new Set(prev).add(sectionId));
+    }, [fetchTrainings]);
 
     // Verifica daca o sectiune are modificari fata de starea initiala
     const hasUnsavedChanges = useCallback((section: TrainingSection): boolean => {
@@ -689,6 +696,16 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
                     existingIds={new Set(sections.find(s => s.id === addingToTrainingId)?.athletes.map(a => a.id) || [])}
                     onAdd={(athlete) => addExternalAthlete(addingToTrainingId, athlete)}
                     onClose={() => setAddingToTrainingId(null)}
+                />
+            )}
+
+            {managingSection?.grupaId && (
+                <GestioneazaGrupaModal
+                    grupaId={managingSection.grupaId}
+                    grupaDenumire={managingSection.grup}
+                    clubId={clubId}
+                    onClose={() => setManagingSection(null)}
+                    onSaved={() => handleGrupaSalvata(managingSection.id)}
                 />
             )}
 

@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 18 (fix-suprascriere-silentioasa-grad-in-istoric-grade-sportivse) — EXECUTING
 Plan: 1 of 4
 Status: Executing Phase 18
-Last activity: 2026-09-05 -- Phase 18 execution started
+Last activity: 2026-09-08 - Completed quick task 260908-tgu: Prezenta Rapida buton 3 puncte -> gestiune grupa sportivi
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -129,6 +129,7 @@ Recent decisions affecting current work:
 | 260901-l8j | Campionatul Național QKD Juniori1/Seniori/Veterani — competiție unică (nu 2 separate) cu 74 categorii pe 4 probe (tehnica+giao_dau), o singură înscriere de club, taxe 100/150 lei; fix bonus denumire categorii vârstă unică | 2026-09-01 | 3757574 | Verified (vizual browser) | [260901-l8j-unifica-cele-2-competitii-j1sv-intr-o-si](./quick/260901-l8j-unifica-cele-2-competitii-j1sv-intr-o-si/) |
 | 260901-nvc | Raport plata competitii club — suma cumulativă (nu doar delta ultimei editări) în tab Raport din Competiții, cu nume sportiv/echipă, categorie, probă, status plată, sumă per linie și total general | 2026-09-01 | 8b97c36 | Verified (empty-state + zero erori consolă; date reale de test lipsesc în DB dev) | [260901-nvc-raport-plata-competitii-club-suma-cumula](./quick/260901-nvc-raport-plata-competitii-club-suma-cumula/) |
 | 260901-kata | Elimină "Kata" din eticheta CN Tehnica (fallback constant utils/competitiiTemplates.ts flash înainte de load DB) | 2026-09-01 | 6f28d61 | Verified (vizual browser) | — |
+| 260908-tgu | Prezenta Rapida: buton meniu 3 puncte langa grupa deschide GestioneazaGrupaModal (add/remove sportivi din grupa, UPDATE grupa_id + istoric) | 2026-09-08 | 0638130,729a945 | Verified (vizual browser, fluxul principal) | [260908-tgu-prezenta-rapida-buton-meniu-3-puncte-lan](./quick/260908-tgu-prezenta-rapida-buton-meniu-3-puncte-lan/) |
 
 ### Roadmap Evolution
 

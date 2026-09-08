@@ -114,7 +114,19 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
             }
             const { data: newProgramItems } = await supabase.from('orar_saptamanal').select('*').eq('grupa_id', grupaToEdit.id);
             if (updatedGrupa) setGrupe(prev => (prev as GrupaWithDetails[]).map(g => g.id === grupaToEdit.id ? { ...g, ...updatedGrupa, program: newProgramItems || [] } : g));
+            // BUG-4 fix (vezi ramura CREATE mai jos): queryFn din useGrupe.ts citeste
+            // intai cache-ul localStorage (cache_grupe_*, TTL 10 min) INAINTE sa
+            // interogheze Supabase — invalidateQueries marcheaza query-ul stale si
+            // declanseaza refetch, dar queryFn tot serveste datele vechi din
+            // localStorage daca TTL-ul nu a expirat, asa ca grupa editata apare
+            // neschimbata in UI desi update-ul a reusit in DB (esec "silentios").
+            // Golim cache-ul local, la fel ca la CREATE si handleRefresh, apoi
+            // refetch explicit ca editarea sa apara imediat.
+            Object.keys(localStorage)
+                .filter(k => k.startsWith('cache_grupe_'))
+                .forEach(k => clearCache(k));
             queryClient.invalidateQueries({ queryKey: ['grupe'] });
+            await refetchGrupe();
             showSuccess("Succes", "Grupa a fost actualizată.");
         } else { // CREATE
             const { data: newGrupa, error: grupaError } = await supabase.from('grupe').insert(grupaDbPayload).select().single();
@@ -264,10 +276,17 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
             console.error('DETALII EROARE:', JSON.stringify(grupaError, null, 2));
             showError("Eroare la ștergerea grupei", grupaError); 
         }
-        else { 
-            setGrupe(prev => (prev as GrupaWithDetails[]).filter(g => g.id !== grupaId)); 
+        else {
+            setGrupe(prev => (prev as GrupaWithDetails[]).filter(g => g.id !== grupaId));
+            // BUG-4 fix (vezi ramura UPDATE din handleSave): fara golirea cache-ului
+            // localStorage cache_grupe_*, grupa stearsa reapare vizual la refetch
+            // pentru ca queryFn din useGrupe.ts serveste datele vechi din cache (TTL 10 min).
+            Object.keys(localStorage)
+                .filter(k => k.startsWith('cache_grupe_'))
+                .forEach(k => clearCache(k));
             queryClient.invalidateQueries({ queryKey: ['grupe'] });
-            showSuccess("Succes", "Grupa a fost ștearsă."); 
+            await refetchGrupe();
+            showSuccess("Succes", "Grupa a fost ștearsă.");
         }
         setIsDeleting(false);
         setGrupaToDelete(null);

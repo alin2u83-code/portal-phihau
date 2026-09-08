@@ -1,11 +1,12 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../../supabaseClient';
 import { Card, Button } from '../ui';
-import { CheckCircleIcon, CalendarDaysIcon, SparklesIcon, PlusIcon, SearchIcon, XIcon, ChevronDownIcon } from '../icons';
+import { CheckCircleIcon, CalendarDaysIcon, SparklesIcon, PlusIcon, SearchIcon, XIcon, ChevronDownIcon, EllipsisVerticalIcon } from '../icons';
 import { useStatusePrezenta } from '../../hooks/useStatusePrezenta';
 import { useAttendance } from '../../hooks/useAttendance';
 import { useError } from '../ErrorProvider';
 import { useData } from '../../contexts/DataContext';
+import { usePermissions } from '../../hooks/usePermissions';
 import { formatTime } from '../../utils/date';
 
 interface AthletePill {
@@ -23,6 +24,7 @@ interface TrainingSection {
     ora_start: string;
     ora_sfarsit: string;
     grup: string;
+    grupaId: string | null;
     athletes: AthletePill[];
     initialPresent: Set<string>;
     hasSavedData: boolean;
@@ -167,6 +169,8 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
     const { saveAttendance } = useAttendance();
     const { showError } = useError();
     const { grade, activeRoleContext, currentUser, filteredData } = useData();
+    const permissions = usePermissions(activeRoleContext);
+    const poateGestionaGrupa = permissions.isAdminClub || permissions.isInstructor;
     const clubId: string | null = (activeRoleContext?.club_id ?? currentUser?.club_id) || null;
     const [sections, setSections] = useState<TrainingSection[]>([]);
     const [loading, setLoading] = useState(true);
@@ -186,6 +190,8 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
     const saveButtonRefs = useRef<Record<string, HTMLDivElement | null>>({});
     // Sectiune cu buton highlight activ
     const [highlightedSaveId, setHighlightedSaveId] = useState<string | null>(null);
+    // Sectiunea pentru care se gestioneaza componenta grupei (modal 3 puncte)
+    const [managingSection, setManagingSection] = useState<TrainingSection | null>(null);
 
     const gradeById = useMemo(() => Object.fromEntries((grade || []).map(g => [g.id, g])), [grade]);
     const sportivById = useMemo(() => Object.fromEntries((filteredData.sportivi || []).map(s => [s.id, s])), [filteredData.sportivi]);
@@ -196,7 +202,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
         setLoading(true);
         let trainingQuery = supabase
             .from('program_antrenamente')
-            .select('id, ora_start, ora_sfarsit, grupe(denumire, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+            .select('id, ora_start, ora_sfarsit, grupe(id, denumire, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
             .eq('data', today)
             .order('ora_start');
         if (clubId) trainingQuery = trainingQuery.eq('club_id', clubId);
@@ -246,6 +252,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
                 ora_start: t.ora_start,
                 ora_sfarsit: t.ora_sfarsit,
                 grup: (t.grupe as any)?.denumire || 'Antrenament',
+                grupaId: (t.grupe as any)?.id ?? null,
                 athletes: [
                     ...sportivi.map((s: any) => {
                         const grad = s.grad_actual_id ? gradeById[s.grad_actual_id] : null;
@@ -327,6 +334,22 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
             next.add(targetSectionId);
             return next;
         });
+    };
+
+    // Deschide modalul de gestionare a componentei grupei (buton 3 puncte)
+    const handleOpenGestionare = (section: TrainingSection) => {
+        if (unsavedSectionIds.has(section.id)) {
+            setWarningDialog({
+                sectionId: section.id,
+                sectionName: section.grup,
+                onContinue: () => {
+                    setWarningDialog(null);
+                    setManagingSection(section);
+                },
+            });
+            return;
+        }
+        setManagingSection(section);
     };
 
     const scrollToSaveButton = (sectionId: string) => {
@@ -509,14 +532,16 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
                         } ${isUnsaved ? 'ring-1 ring-amber-500/30' : ''}`}
                     >
                         {/* Header colapsabil */}
-                        <button
-                            onClick={() => handleToggleExpand(section.id)}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
+                        <div
+                            className={`w-full flex items-center justify-between px-4 py-3 transition-colors ${
                                 isExpanded ? 'bg-slate-800/20' : 'hover:bg-slate-800/30'
                             }`}
                         >
-                            <div className="flex items-center gap-3 min-w-0">
-                                <div className="min-w-0">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <button
+                                    onClick={() => handleToggleExpand(section.id)}
+                                    className="min-w-0 text-left"
+                                >
                                     <div className="flex items-center gap-2">
                                         <h3 className="text-sm font-bold text-white truncate">{section.grup}</h3>
                                         {isUnsaved && (
@@ -527,9 +552,22 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
                                         )}
                                     </div>
                                     <p className="text-xs text-slate-500">{formatTime(section.ora_start)} – {formatTime(section.ora_sfarsit)}</p>
-                                </div>
+                                </button>
+                                {poateGestionaGrupa && section.grupaId && (
+                                    <button
+                                        onClick={() => handleOpenGestionare(section)}
+                                        title="Gestioneaza sportivii din grupa"
+                                        aria-label="Gestioneaza sportivii din grupa"
+                                        className="shrink-0 p-1.5 rounded-lg text-slate-500 hover:text-amber-300 hover:bg-slate-800/60 transition-colors"
+                                    >
+                                        <EllipsisVerticalIcon className="w-4 h-4" />
+                                    </button>
+                                )}
                             </div>
-                            <div className="flex items-center gap-3 shrink-0 ml-3">
+                            <button
+                                onClick={() => handleToggleExpand(section.id)}
+                                className="flex items-center gap-3 shrink-0 ml-3"
+                            >
                                 {/* Counter prezenti/total */}
                                 <div className="text-right">
                                     <div className="flex items-baseline gap-0.5">
@@ -548,8 +586,8 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
                                 <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
                                     <ChevronDownIcon className="w-4 h-4 text-slate-500" />
                                 </div>
-                            </div>
-                        </button>
+                            </button>
+                        </div>
 
                         {/* Continut colapsabil */}
                         <div className={`transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>

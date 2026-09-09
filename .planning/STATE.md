@@ -104,6 +104,8 @@ Recent decisions affecting current work:
 
 - [2026-07-11-investigheaza-hang-loading-fetchallpages-istoric-grade.md](todos/pending/2026-07-11-investigheaza-hang-loading-fetchallpages-istoric-grade.md) — hang loading app, query fetchAllPages vedere_istoric_grade_sportiv pending indefinit prin PostgREST (rapid direct pe DB)
 - [2026-08-28-audit-politici-rls-fantoma-pe-tabele-in-afara-fazei-25.md](todos/pending/2026-08-28-audit-politici-rls-fantoma-pe-tabele-in-afara-fazei-25.md) — politici RLS fantoma (aplicate direct pe DB, niciodata comise) gasite si pe tranzactii/grade/istoric_grade/eveniment/reduceri/cluburi, in afara scope-ului Fazei 25 — audit + fix urmator
+- [2026-09-09-leaga-prezenta-de-istoricul-de-grupe-pe-profil-sportiv.md](todos/pending/2026-09-09-leaga-prezenta-de-istoricul-de-grupe-pe-profil-sportiv.md) — extinde GrupeIstoricTab.tsx sa arate nr. prezente per interval grupa (join cu prezenta pe data_intrare/data_iesire)
+- [2026-09-09-raport-statistici-evolutie-sportivi-intre-sezoane.md](todos/pending/2026-09-09-raport-statistici-evolutie-sportivi-intre-sezoane.md) — raport "ramasi/plecati/noi" comparand doua sezoane in modulul Sezoane
 
 ### Quick Tasks Completed
 

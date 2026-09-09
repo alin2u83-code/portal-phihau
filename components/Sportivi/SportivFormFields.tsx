@@ -110,20 +110,6 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
             }
         }
 
-        if (!formData.id && (name === 'nume' || name === 'prenume')) {
-            const sanitize = (str: string) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
-            const nume = sanitize(name === 'nume' ? value : updatedData.nume || '');
-            const prenume = sanitize(name === 'prenume' ? value : updatedData.prenume || '');
-
-            if (nume && prenume) {
-                const targetClubId = updatedData.club_id || currentUser?.club_id;
-                const club = clubs.find(c => c.id === targetClubId);
-                const domain = club ? club.nume.toLowerCase().replace(/[^a-z0-9]/g, '') + '.ro' : 'phihau.ro';
-                updatedData.email = `${nume}.${prenume}@${domain}`;
-                updatedData.parola = `${nume}.1234!`;
-            }
-        }
-
         markTouched(name);
         const newErrors = validate(updatedData);
         setErrors(newErrors);
@@ -331,21 +317,20 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                     </FormSection>
 
                     {!initialData.id ? (
-                        <FormSection title="Cont de Acces">
+                        <FormSection title="Cont de Acces (opțional)">
                             <p className="text-xs text-slate-400 col-span-full -mt-1">
-                                Emailul și parola sunt pre-generate din nume și prenume. Dacă sportivul are o adresă personală reală, înlocuiți emailul generat cu aceea — va fi folosit la autentificare.
+                                Sportivul poate fi creat fără email — prezența, abonamentele și examenele funcționează normal fără cont de login. Completați emailul doar dacă vreți să activați acum un cont de autentificare.
                             </p>
                             <Input
-                                label="Email (Login) *"
+                                label="Email (Login)"
                                 name="email"
                                 type="email"
                                 value={formData.email || ''}
                                 onChange={handleChange}
                                 onBlur={() => markTouched('email')}
                                 disabled={loading}
-                                required
                                 error={visibleErrors.email}
-                                placeholder="nume.prenume@club.ro"
+                                placeholder="opțional — ex: nume.prenume@club.ro"
                             />
                             <Input
                                 label="Username"
@@ -356,15 +341,14 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                                 className="opacity-60 cursor-not-allowed"
                             />
                             <Input
-                                label="Parolă *"
+                                label="Parolă"
                                 name="parola"
                                 value={formData.parola || ''}
                                 onChange={handleChange}
                                 onBlur={() => markTouched('parola')}
                                 disabled={loading}
-                                required
                                 error={visibleErrors.parola}
-                                placeholder="minim 6 caractere"
+                                placeholder="opțional — minim 6 caractere dacă e completată"
                             />
                         </FormSection>
                     ) : (

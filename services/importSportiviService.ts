@@ -1,6 +1,5 @@
 import { supabase } from '../supabaseClient';
 import { Grad } from '../types';
-import { generateEmail } from '../utils/csv';
 
 export interface ImportReport {
   succes: number;
@@ -85,7 +84,7 @@ export const importSportivi = async (
 
       const numeClean = row.nume.trim().replace(/[?]/g, '');
       const prenumeClean = row.prenume.trim().replace(/[?]/g, '');
-      const emailResolved = row.email?.toLowerCase().trim() || generateEmail(prenumeClean, numeClean);
+      const emailResolved = row.email?.toLowerCase().trim() || null;
 
       const sportivDataRaw: Record<string, any> = {
         nume: numeClean,

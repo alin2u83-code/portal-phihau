@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { parseCSVWithEncoding, generateEmail, isSimilar } from '../../../utils/csv';
+import { parseCSVWithEncoding, isSimilar } from '../../../utils/csv';
 import { normalizeDate } from '../../../utils/date';
 import { supabase } from '../../../supabaseClient';
 import * as XLSX from 'xlsx';
@@ -286,7 +286,7 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                 const sportivData: any = {
                     nume: numeCSV,
                     prenume: prenumeCSV,
-                    email: emailCSV || generateEmail(prenumeCSV, numeCSV),
+                    email: emailCSV || null,
                     data_nasterii: dataNasteriiCSV || null,
                     status: 'Activ',
                     data_inscrierii: new Date().toISOString().split('T')[0],

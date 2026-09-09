@@ -26,7 +26,6 @@ import {
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
-import { generateEmail } from '../../utils/csv';
 import { Sportiv, Grad, SesiuneExamen, InscriereExamen, IstoricGrade, User } from '../../types';
 import { getPretProdus } from '../../utils/pricing';
 import { sendBulkNotifications } from '../../utils/notifications';
@@ -283,7 +282,6 @@ export const ImportSportiviExamen: React.FC<ImportSportiviExamenProps> = ({
                     prenume: prenume.trim(),
                     data_nasterii: dataParsed,
                     data_inscrierii: new Date().toISOString().slice(0, 10),
-                    email: generateEmail(prenume, nume),
                     telefon: telefon || undefined,
                     // Bug fix (260709-m7m): currentUser.club_id e undefined pentru staff
                     // fără profil sportiv propriu (INSTRUCTOR/ADMIN_CLUB fără cont de

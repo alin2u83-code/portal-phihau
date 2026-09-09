@@ -400,7 +400,8 @@
       "Bash(echo \"exit=$?\")",
       "Bash(xargs -n1 dirname)",
       "mcp__playwright__browser_find",
-      "Agent"
+      "Agent",
+      "Bash(echo \"TSC_EXIT=$?\")"
     ],
     "additionalDirectories": [
       "C:\\nvm4w\\nodejs"

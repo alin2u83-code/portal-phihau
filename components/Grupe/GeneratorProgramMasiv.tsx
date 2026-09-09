@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../../supabaseClient';
 import { Grupa, ProgramItem } from '../../types';
 import { Button, Card, Input, ConfirmModal } from '../ui';
@@ -45,6 +45,12 @@ export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ on
     const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
     const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
     const { showError, showSuccess } = useError();
+    // Gardă anti dublu-submit: previne rularea concurentă a insert-ului dacă
+    // butonul de confirmare din ConfirmModal e apăsat de 2+ ori rapid
+    // (dublu-click/dublu-tap) înainte ca modalul să se închidă. Folosim un
+    // ref (nu state) pentru că trebuie citit/setat sincron, fără să aștepte
+    // un re-render.
+    const isSavingRef = useRef(false);
 
     // 1. Fetch Groups and Schedules
     useEffect(() => {
@@ -171,20 +177,68 @@ export const GeneratorProgramMasiv: React.FC<GeneratorProgramMasivProps> = ({ on
         if (previewData.length === 0) return;
 
         openConfirm(`Confirmați generarea a ${previewData.length} antrenamente?`, async () => {
+            // Gardă anti dublu-submit (vezi isSavingRef mai sus).
+            if (isSavingRef.current) return;
+            isSavingRef.current = true;
             setLoading(true);
             try {
-                // Remove display property before insert
-                const toInsert = previewData.map(({ grupaNume, ...rest }) => rest);
+                // Verificare pre-insert (idempotență): interogăm ce sloturi există
+                // deja în program_antrenamente pentru grupele/perioada selectate și
+                // le excludem din insert. Fără acest pas, re-rularea generatorului
+                // pentru aceeași perioadă (ex. utilizatorul nu e sigur dacă a mers
+                // prima dată și încearcă din nou) crea seturi întregi de duplicate —
+                // aceasta a fost cauza rândurilor duplicate găsite în audit.
+                const grupaIds = Array.from(new Set(previewData.map(i => i.grupa_id)));
+                const dates = previewData.map(i => i.data);
+                const minData = dates.reduce((a, b) => (a < b ? a : b));
+                const maxData = dates.reduce((a, b) => (a > b ? a : b));
+
+                const { data: existente, error: existentaError } = await supabase
+                    .from('program_antrenamente')
+                    .select('grupa_id, data, ora_start')
+                    .in('grupa_id', grupaIds)
+                    .gte('data', minData)
+                    .lte('data', maxData);
+                if (existentaError) throw existentaError;
+
+                const existenteSet = new Set(
+                    (existente || []).map(e => `${e.grupa_id}-${(e.data || '').toString().slice(0, 10)}-${e.ora_start}`)
+                );
+
+                // Remove display property before insert + excludem duplicatele
+                const toInsert = previewData
+                    .filter(inst => !existenteSet.has(`${inst.grupa_id}-${inst.data}-${inst.ora_start}`))
+                    .map(({ grupaNume, ...rest }) => rest);
+
+                const nrExistente = previewData.length - toInsert.length;
+
+                if (toInsert.length === 0) {
+                    showError("Nimic de generat", "Toate antrenamentele din selecție există deja în program.");
+                    return;
+                }
 
                 const { error } = await supabase.from('program_antrenamente').insert(toInsert);
-                if (error) throw error;
+                if (error) {
+                    // Plasă de siguranță: constrângerea UNIQUE (club_id, grupa_id, data,
+                    // ora_start) poate respinge inserția chiar dacă verificarea de mai
+                    // sus a ratat ceva (ex. rând inserat concurent din alt tab).
+                    if (error.code === '23505') {
+                        showError("Antrenament existent", "Cel puțin un antrenament din selecție există deja și nu a fost duplicat.");
+                        return;
+                    }
+                    throw error;
+                }
 
-                showSuccess("Generare reușită", `${previewData.length} antrenamente au fost create.`);
+                showSuccess(
+                    "Generare reușită",
+                    `${toInsert.length} antrenamente au fost create.${nrExistente > 0 ? ` (${nrExistente} existau deja și au fost ignorate)` : ''}`
+                );
                 onBack();
             } catch (err: any) {
                 showError("Eroare salvare", err.message);
             } finally {
                 setLoading(false);
+                isSavingRef.current = false;
             }
         }, { title: 'Confirmare generare', confirmLabel: 'Generează', variant: 'info' });
     };

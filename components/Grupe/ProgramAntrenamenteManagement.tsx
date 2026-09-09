@@ -33,6 +33,7 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingAntrenament, setEditingAntrenament] = useState<Antrenament | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState<'curent' | 'viitor' | 'arhiva'>('curent');
 
     const zileSaptamana = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
@@ -66,13 +67,68 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
             const matchesGroup = !groupFilter || a.nume_grupa === groupFilter;
             const matchesClub = !clubFilter || a.club_id === clubFilter;
             return matchesDay && matchesGroup && matchesClub;
-        }).sort((a, b) => {
-            // Sort by date then by start time
-            const dateCompare = new Date((b.data || '').toString().slice(0, 10)).getTime() - new Date((a.data || '').toString().slice(0, 10)).getTime();
-            if (dateCompare !== 0) return dateCompare;
-            return (a.ora_start || '').localeCompare(b.ora_start || '');
         });
     }, [antrenamente, dayFilter, groupFilter, clubFilter]);
+
+    const { curent: antrenamenteCurent, viitor: antrenamenteViitor, arhiva: antrenamenteArhiva } = useMemo(() => {
+        const azi = new Date();
+        azi.setHours(0, 0, 0, 0);
+        const aziTime = azi.getTime();
+        const lunaCurenta = azi.getMonth();
+        const anCurent = azi.getFullYear();
+
+        const curent: Antrenament[] = [];
+        const viitor: Antrenament[] = [];
+        const arhiva: Antrenament[] = [];
+
+        filteredAntrenamente.forEach(a => {
+            const d = new Date((a.data || '').toString().slice(0, 10) + 'T00:00:00');
+            const dTime = d.getTime();
+            if (dTime < aziTime) {
+                arhiva.push(a);
+            } else if (d.getMonth() === lunaCurenta && d.getFullYear() === anCurent) {
+                curent.push(a);
+            } else {
+                viitor.push(a);
+            }
+        });
+
+        const byDateAsc = (a: Antrenament, b: Antrenament) => {
+            const dateCompare = new Date((a.data || '').toString().slice(0, 10)).getTime() - new Date((b.data || '').toString().slice(0, 10)).getTime();
+            if (dateCompare !== 0) return dateCompare;
+            return (a.ora_start || '').localeCompare(b.ora_start || '');
+        };
+        const byDateDesc = (a: Antrenament, b: Antrenament) => -byDateAsc(a, b);
+
+        curent.sort(byDateAsc);
+        viitor.sort(byDateAsc);
+        arhiva.sort(byDateDesc);
+
+        return { curent, viitor, arhiva };
+    }, [filteredAntrenamente]);
+
+    const antrenamenteTabActiv = activeTab === 'curent' ? antrenamenteCurent : activeTab === 'viitor' ? antrenamenteViitor : antrenamenteArhiva;
+
+    const grupePeZi = useMemo(() => {
+        const grupuri: { data: string; antrenamente: Antrenament[] }[] = [];
+        const indexPeData = new Map<string, number>();
+        antrenamenteTabActiv.forEach(a => {
+            const data = (a.data || '').toString().slice(0, 10);
+            if (!indexPeData.has(data)) {
+                indexPeData.set(data, grupuri.length);
+                grupuri.push({ data, antrenamente: [] });
+            }
+            grupuri[indexPeData.get(data)!].antrenamente.push(a);
+        });
+        return grupuri;
+    }, [antrenamenteTabActiv]);
+
+    const formatDataHeader = (dataStr: string) => {
+        const d = new Date(dataStr + 'T12:00:00');
+        const zi = getDayOfWeek(dataStr);
+        const dataFormatata = d.toLocaleDateString('ro-RO', { day: '2-digit', month: 'long' });
+        return `${zi}, ${dataFormatata}`;
+    };
 
     const handleEdit = (a: Antrenament) => {
         setEditingAntrenament({ ...a });
@@ -155,50 +211,74 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                 </div>
             </Card>
 
+            <div className="flex gap-2 border-b border-slate-800">
+                {([
+                    { key: 'curent', label: 'Luna curentă', count: antrenamenteCurent.length },
+                    { key: 'viitor', label: 'Viitor', count: antrenamenteViitor.length },
+                    { key: 'arhiva', label: 'Arhivă', count: antrenamenteArhiva.length },
+                ] as const).map(tab => (
+                    <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => setActiveTab(tab.key)}
+                        className={`px-4 py-2.5 text-sm font-bold uppercase tracking-wide border-b-2 transition-colors ${
+                            activeTab === tab.key
+                                ? 'border-indigo-500 text-white'
+                                : 'border-transparent text-slate-500 hover:text-slate-300'
+                        }`}
+                    >
+                        {tab.label} <span className="ml-1 text-xs font-normal text-slate-500">({tab.count})</span>
+                    </button>
+                ))}
+            </div>
+
             {loading ? (
                 <MartialArtsSkeleton count={6} />
-            ) : filteredAntrenamente.length === 0 ? (
+            ) : antrenamenteTabActiv.length === 0 ? (
                 <div className="text-center py-20 bg-slate-900/20 rounded-3xl border border-dashed border-slate-800">
                     <CalendarDaysIcon className="w-16 h-16 text-slate-700 mx-auto mb-4 opacity-20" />
                     <p className="text-slate-500 text-lg">Nu am găsit antrenamente care să corespundă filtrelor.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredAntrenamente.map(a => (
-                        <Card key={a.id} className="group relative overflow-hidden border-none shadow-xl bg-slate-900/40 backdrop-blur-sm hover:shadow-indigo-500/10 transition-all duration-300">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-30 group-hover:opacity-100 transition-opacity"></div>
-                            
-                            <div className="p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getBadgeColor(a.tip_antrenament)}`}>
-                                        {a.tip_antrenament || 'regular'}
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{getDayOfWeek((a.data || '').toString())}</p>
-                                        <p className="text-sm font-black text-white">{new Date((a.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</p>
-                                    </div>
+                <div className="space-y-6">
+                    {grupePeZi.map(grup => (
+                        <div key={grup.data}>
+                            <h3 className="text-sm font-black text-indigo-300 uppercase tracking-wide mb-2 pb-1 border-b border-slate-800/70">
+                                {formatDataHeader(grup.data)}
+                            </h3>
+                            <Card className="border-none bg-slate-900/40 backdrop-blur-sm overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <tbody>
+                                            {grup.antrenamente.map((a, idx) => (
+                                                <tr key={a.id} className={idx !== 0 ? 'border-t border-slate-800/50' : ''}>
+                                                    <td className="px-4 py-3 font-semibold text-white whitespace-nowrap">
+                                                        {a.nume_grupa || 'Grupă nespecificată'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-slate-300 whitespace-nowrap">
+                                                        {formatTime(a.ora_start)} - {formatTime(a.ora_sfarsit)}
+                                                        <span className="text-xs text-slate-500 ml-1">({a.durata_minute} min)</span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-slate-400 whitespace-nowrap">
+                                                        {a.sala || 'Sală nespecificată'}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getBadgeColor(a.tip_antrenament)}`}>
+                                                            {a.tip_antrenament || 'regular'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right w-10">
+                                                        <Button size="sm" variant="secondary" onClick={() => handleEdit(a)}>
+                                                            <EditIcon className="w-4 h-4" />
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
-
-                                <h3 className="text-xl font-bold text-white mb-1 group-hover:text-indigo-300 transition-colors">{a.nume_grupa || 'Grupă nespecificată'}</h3>
-                                <p className="text-sm text-slate-400 mb-4 flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                                    {a.sala || 'Sală nespecificată'}
-                                </p>
-
-                                <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-800/50">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Interval Orar</span>
-                                        <span className="text-lg font-black text-white">
-                                            {formatTime(a.ora_start)} - {formatTime(a.ora_sfarsit)}
-                                            <span className="text-xs font-normal text-slate-500 ml-2">({a.durata_minute} min)</span>
-                                        </span>
-                                    </div>
-                                    <Button size="sm" variant="secondary" onClick={() => handleEdit(a)}>
-                                        <EditIcon className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
+                            </Card>
+                        </div>
                     ))}
                 </div>
             )}

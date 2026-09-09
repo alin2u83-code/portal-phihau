@@ -58,7 +58,17 @@ export const generateTrainingsFromSchedule = async (daysInAdvance: number, grupa
 
         if (toInsert.length > 0) {
             const { error: insertError } = await supabase.from('program_antrenamente').insert(toInsert);
-            if (insertError) throw insertError;
+            if (insertError) {
+                // Plasă de siguranță: existingSet de mai sus acoperă cazul normal,
+                // dar constrângerea UNIQUE (club_id, grupa_id, data, ora_start) poate
+                // respinge inserția dacă a apărut un rând concurent între citirea
+                // existentSet și insert. Transformăm eroarea brută Postgres 23505
+                // într-un mesaj clar pentru utilizator (apelanții afișează err.message).
+                if (insertError.code === '23505') {
+                    throw new Error('Cel puțin un antrenament din interval există deja și nu a fost duplicat.');
+                }
+                throw insertError;
+            }
         }
         return { count: toInsert.length };
     }

@@ -91,7 +91,11 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
                 .single();
 
             if (error) {
-                showError("Eroare", error.message);
+                if (error.code === '23505') {
+                    showError("Antrenament existent", "Acest antrenament există deja (aceeași grupă, dată și oră).");
+                } else {
+                    showError("Eroare", error.message);
+                }
                 return false;
             }
             if (newAntrenament) {

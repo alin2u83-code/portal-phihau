@@ -192,7 +192,17 @@ export const GenerareAntrenamenteModal: React.FC<GenerareAntrenamenteModalProps>
             }));
 
             const { error } = await supabase.from('program_antrenamente').insert(rows);
-            if (error) throw error;
+            if (error) {
+                // Plasă de siguranță: verificarea de existență de mai sus (existenteSet)
+                // acoperă cazul normal, dar constrângerea UNIQUE poate respinge
+                // inserția dacă a apărut un rând concurent (alt tab/utilizator) între
+                // preview și salvare.
+                if (error.code === '23505') {
+                    showError('Antrenament existent', 'Cel puțin un antrenament din selecție există deja și nu a fost creat din nou.');
+                    return;
+                }
+                throw error;
+            }
 
             // Invalidează cache-ul de antrenamente
             await queryClient.invalidateQueries({ queryKey: ['program_antrenamente'] });

@@ -834,8 +834,13 @@ export const ListaPrezentaAntrenament: React.FC<ListaPrezentaAntrenamentProps> =
             }
         } else {
             const { error } = await supabase.from('program_antrenamente').insert(data);
-            if (error) showError("Eroare", error.message);
-            else {
+            if (error) {
+                if (error.code === '23505') {
+                    showError("Antrenament existent", "Acest antrenament există deja (aceeași grupă, dată și oră).");
+                } else {
+                    showError("Eroare", error.message);
+                }
+            } else {
                 showSuccess("Succes", "Antrenamentul personalizat a fost adăugat.");
                 await refetch();
             }

@@ -54,8 +54,13 @@ const SediintaAziModal: React.FC<{
             tip_antrenament: tip,
             is_recurent: false,
         });
-        if (error) showError('Eroare la salvare', error.message);
-        else { onSaved(); onClose(); }
+        if (error) {
+            if (error.code === '23505') {
+                showError('Ședință existentă', 'Acest antrenament există deja (aceeași grupă, dată și oră).');
+            } else {
+                showError('Eroare la salvare', error.message);
+            }
+        } else { onSaved(); onClose(); }
         setSaving(false);
     };
 

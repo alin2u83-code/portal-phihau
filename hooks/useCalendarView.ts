@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
 import { Antrenament, Grupa } from '../types';
 import { generateTrainingsFromSchedule } from '../utils/trainingGenerator';
+import { attachPrezenta } from '../utils/prezentaJoin';
 
 export const useCalendarView = (grupaId: string, initialDate?: string) => {
    // Calculăm data curentă folosind ora locală, nu UTC, pentru a evita decalajul de o zi
@@ -26,7 +27,7 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
             const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).toLocaleDateString('sv-SE');
 
             const { data, error } = await supabase.from('program_antrenamente')
-                .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+                .select('*, grupe(*)')
                 .eq('grupa_id', grupaId)
                 .gte('data', startOfMonth)
                 .lte('data', endOfMonth)
@@ -36,7 +37,7 @@ export const useCalendarView = (grupaId: string, initialDate?: string) => {
             if (error) {
                 showError("Eroare la încărcarea calendarului", error.message);
             } else {
-                setAntrenamente((data || []).map(a => ({ ...a, prezenta: a.prezenta || [] })));
+                setAntrenamente(await attachPrezenta(data || []));
             }
         } finally {
             setLoading(false);

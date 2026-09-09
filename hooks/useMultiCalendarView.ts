@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
 import { Antrenament } from '../types';
+import { attachPrezenta } from '../utils/prezentaJoin';
 
 // Caller MUST memoize grupeIds (e.g. useMemo(() => grupe.map(g => g.id), [grupe]))
 // to avoid infinite re-fetch: array identity changes on every render if not memoized.
@@ -26,7 +27,7 @@ export const useMultiCalendarView = (grupeIds: string[], initialDate?: string) =
             const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).toLocaleDateString('sv-SE');
 
             const { data, error } = await supabase.from('program_antrenamente')
-                .select('*, grupe(*), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+                .select('*, grupe(*)')
                 .in('grupa_id', grupeIds)
                 .gte('data', startOfMonth)
                 .lte('data', endOfMonth)
@@ -36,7 +37,7 @@ export const useMultiCalendarView = (grupeIds: string[], initialDate?: string) =
             if (error) {
                 showError('Eroare la încărcarea calendarului', error.message);
             } else {
-                setAntrenamente((data || []).map(a => ({ ...a, prezenta: a.prezenta || [] })));
+                setAntrenamente(await attachPrezenta(data || []));
             }
         } finally {
             setLoading(false);

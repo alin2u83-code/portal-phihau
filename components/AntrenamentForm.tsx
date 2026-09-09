@@ -25,8 +25,17 @@ export const AntrenamentForm: React.FC<{
     const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
     const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 
-    // We need to fetch existing trainings to check for conflicts
-    const { allTrainings } = useAttendanceData(grupe.length > 0 ? grupe[0].club_id : null, !isOpen);
+    // We need to fetch existing trainings to check for conflicts.
+    // Limităm fereastra la ±90 zile față de data selectată — verificarea de conflicte
+    // nu are nevoie de tot istoricul clubului, iar un club vechi cu mii de antrenamente
+    // trimitea un .in() supradimensionat către prezenta_antrenament și dădea statement timeout.
+    const conflictWindow = React.useMemo(() => {
+        const base = formState.data ? new Date(formState.data) : new Date();
+        const from = new Date(base); from.setDate(from.getDate() - 90);
+        const to = new Date(base); to.setDate(to.getDate() + 90);
+        return { from: from.toISOString().split('T')[0], to: to.toISOString().split('T')[0] };
+    }, [formState.data]);
+    const { allTrainings } = useAttendanceData(grupe.length > 0 ? grupe[0].club_id : null, !isOpen, conflictWindow);
     const { showError } = useError();
 
     useEffect(() => { 

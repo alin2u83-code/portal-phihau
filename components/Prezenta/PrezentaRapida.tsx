@@ -8,6 +8,7 @@ import { useError } from '../ErrorProvider';
 import { useData } from '../../contexts/DataContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { formatTime } from '../../utils/date';
+import { attachPrezenta } from '../../utils/prezentaJoin';
 import { GestioneazaGrupaModal } from './GestioneazaGrupaModal';
 
 interface AthletePill {
@@ -203,7 +204,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
         setLoading(true);
         let trainingQuery = supabase
             .from('program_antrenamente')
-            .select('id, ora_start, ora_sfarsit, grupe(id, denumire, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+            .select('id, ora_start, ora_sfarsit, grupe(id, denumire, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id))')
             .eq('data', today)
             .order('ora_start');
         if (clubId) trainingQuery = trainingQuery.eq('club_id', clubId);
@@ -211,12 +212,13 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
             trainingQuery,
             supabase.from('statuse_prezenta').select('id, este_prezent, denumire'),
         ]);
-        const { data, error } = trainingRes;
+        const { error } = trainingRes;
         const statusById: Record<string, { este_prezent: boolean }> = Object.fromEntries(
             (statusRes.data || []).map(s => [s.id, { este_prezent: s.este_prezent }])
         );
 
         if (error) { showError("Eroare", error.message); setLoading(false); return; }
+        const data = await attachPrezenta(trainingRes.data || []);
 
         const seen = new Set<string>();
         const deduped = (data || []).filter(t => {

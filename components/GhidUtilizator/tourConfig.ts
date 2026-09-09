@@ -14,6 +14,7 @@ export const TOURS: Record<string, TourStep[]> = {
   grupe: [
     { target: '[data-tour="grupe-adauga"]', title: 'Crează o grupă nouă', description: 'Apasă butonul verde pentru a crea o grupă de antrenament.' },
     { target: '[data-tour="grupe-lista"]', title: 'Lista grupelor', description: 'Fiecare card reprezintă o grupă. Apasă pe icoane pentru a edita, vedea programul sau adăuga sportivi.' },
+    { target: '[data-tour="grupe-gestioneaza"]', title: 'Configurează orarul', description: 'Apasă "Gestionează" pe o grupă pentru a seta orarul săptămânal (zile, ore) și celelalte detalii ale grupei.' },
   ],
   prezenta: [
     { target: '[data-tour="prezenta-grupa"]', title: 'Selectează grupa', description: 'Primul pas: alege grupa pentru care înregistrezi prezența.' },

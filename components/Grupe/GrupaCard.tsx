@@ -164,7 +164,7 @@ export const GrupaCard: React.FC<{
 
                 {!esteArhivata && (
                     <>
-                        <Button size="sm" variant="secondary" onClick={() => onEdit(grupa)} className="min-h-[40px] touch-manipulation">Gestionează</Button>
+                        <Button size="sm" variant="secondary" onClick={() => onEdit(grupa)} className="min-h-[40px] touch-manipulation" data-tour="grupe-gestioneaza">Gestionează</Button>
 
                         {/* Buton "..." — acțiuni secundare */}
                         <div className="relative" ref={menuRef}>

@@ -12,6 +12,7 @@ import { GeneratorProgramMasiv } from '../Grupe/GeneratorProgramMasiv';
 import { useData } from '../../contexts/DataContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { usePermissions } from '../../hooks/usePermissions';
+import { attachPrezenta } from '../../utils/prezentaJoin';
 
 import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';
 import { DashboardPrezentaAzi } from './DashboardPrezentaAzi';
@@ -262,11 +263,12 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
         if (ids.length === 1) { handleSelectAntrenament(ids[0]); return; }
         setLoading(true);
         const { data, error } = await supabase.from('program_antrenamente')
-            .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id, grupa_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+            .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id, grupa_id))')
             .in('id', ids);
         if (error) { showError("Eroare", error.message); }
         else if (data) {
-            const enriched = data.map((row: any) => ({
+            const withPrezenta = await attachPrezenta(data);
+            const enriched = withPrezenta.map((row: any) => ({
                 ...row,
                 prezenta: (row.prezenta || []).map((p: any) => ({
                     ...p,

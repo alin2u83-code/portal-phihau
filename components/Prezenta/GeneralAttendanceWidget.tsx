@@ -4,6 +4,7 @@ import { Card } from '../ui';
 import { UsersIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
+import { attachPrezenta } from '../../utils/prezentaJoin';
 
 const LoadingSpinner: React.FC = () => (
     <div className="flex-grow flex flex-col items-center justify-center">
@@ -42,12 +43,13 @@ export const GeneralAttendanceWidget: React.FC<GeneralAttendanceWidgetProps> = (
                 // RLS va filtra automat antrenamentele pentru clubul curent.
                 const { data: antrenamenteData, error: antrenamenteError } = await supabase
                     .from('program_antrenamente')
-                    .select('id, grupa_id, sportivi_prezenti_ids:prezenta_antrenament(sportiv_id)')
+                    .select('id, grupa_id')
                     .eq('data', todayString);
-                
+
                 if (antrenamenteError) throw antrenamenteError;
 
-                const antrenamente = (antrenamenteData || []).map(a => ({...a, sportivi_prezenti_ids: a.sportivi_prezenti_ids.map((p: any) => p.sportiv_id)}));
+                const withPrezenta = await attachPrezenta(antrenamenteData || []);
+                const antrenamente = withPrezenta.map(a => ({ ...a, sportivi_prezenti_ids: a.prezenta.map(p => p.sportiv_id) }));
 
                 if (antrenamente.length === 0) {
                     setStats({ present: 0, expected: 0, percentage: 0, trainingsCount: 0 });

@@ -9,6 +9,7 @@ import { FormularPrezenta, SportivCuTip, TipMembru } from './ListaPrezentaAntren
 import { PrezentaRapida } from './PrezentaRapida';
 import { useStatusePrezenta } from '../../hooks/useStatusePrezenta';
 import { formatTime } from '../../utils/date';
+import { attachPrezenta } from '../../utils/prezentaJoin';
 
 // Utilitar: combină sportivii principali cu cei secundari, elimină duplicate
 const combinaSportivi = (principali: Sportiv[], secundari: SportivCuTip[]): SportivCuTip[] => {
@@ -76,12 +77,13 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 setLoading(true);
                 const { data, error } = await supabase
                     .from('program_antrenamente')
-                    .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id)), prezenta:prezenta_antrenament(sportiv_id, status_id)')
+                    .select('*, grupe(*, sportivi!grupa_id(id, nume, prenume, status, grad_actual_id))')
                     .eq('data', selectedDateString);
                 if (error) { showError("Eroare la încărcarea antrenamentelor", error.message); setLoading(false); return; }
+                const withPrezenta = await attachPrezenta(data || []);
 
                 // Pentru fiecare antrenament, fetch sportivii secundari ai grupei
-                const processed = await Promise.all((data || []).map(async t => {
+                const processed = await Promise.all(withPrezenta.map(async t => {
                     const principali = t.grupe
                         ? (t.grupe.sportivi || []).filter((s: Sportiv) => s.status === 'Activ')
                         : [];

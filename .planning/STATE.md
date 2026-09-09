@@ -132,6 +132,7 @@ Recent decisions affecting current work:
 | 260901-nvc | Raport plata competitii club — suma cumulativă (nu doar delta ultimei editări) în tab Raport din Competiții, cu nume sportiv/echipă, categorie, probă, status plată, sumă per linie și total general | 2026-09-01 | 8b97c36 | Verified (empty-state + zero erori consolă; date reale de test lipsesc în DB dev) | [260901-nvc-raport-plata-competitii-club-suma-cumula](./quick/260901-nvc-raport-plata-competitii-club-suma-cumula/) |
 | 260901-kata | Elimină "Kata" din eticheta CN Tehnica (fallback constant utils/competitiiTemplates.ts flash înainte de load DB) | 2026-09-01 | 6f28d61 | Verified (vizual browser) | — |
 | 260908-tgu | Prezenta Rapida: buton meniu 3 puncte langa grupa deschide GestioneazaGrupaModal (add/remove sportivi din grupa, UPDATE grupa_id + istoric) | 2026-09-08 | 0638130,729a945 | Verified (vizual browser, fluxul principal) | [260908-tgu-prezenta-rapida-buton-meniu-3-puncte-lan](./quick/260908-tgu-prezenta-rapida-buton-meniu-3-puncte-lan/) |
+| 260909-p31 | Filtru sezon in TabIstoricMembri (GrupaDetailView) + contor/tooltip vizibilitate pe tab-urile Istoric Membri si Istoric Grupe (profil sportiv) | 2026-09-09 | 24b21a0,b0e8c72,9f62418 | tsc OK, verificare vizuala neefectuata (executie non-interactiva) | [260909-p31-filtru-sezon-in-tab-istoric-membri-grupa](./quick/260909-p31-filtru-sezon-in-tab-istoric-membri-grupa/) |
 
 ### Roadmap Evolution
 

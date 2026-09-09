@@ -4,6 +4,7 @@ import { Button, Card, Select, Modal, Input, RoleBadge, Skeleton } from './ui';
 import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon, UserCircleIcon, ClipboardListIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, UsersIcon, CheckIcon, XIcon } from './icons';
 import { calculeazaLuniLipsa } from '../utils/luniLipsa';
 import { useDataStartFacturare } from '../hooks/useDataStartFacturare';
+import { useIstoricGrupeSportiv } from '../hooks/useGrupeIstoric';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { esteAnulata } from '../utils/paymentStatus';
@@ -92,6 +93,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
 
     // ─── PLF-05: data_start_facturare + badge luni lipsă ────────────────────
     const { dataStartFacturare, setDataStartFacturare, isSaving: isSavingDataStart } = useDataStartFacturare(sportiv.id);
+
+    // Contor pentru eticheta tab-ului "Istoric Grupe" — aceeasi queryKey ca in
+    // GrupeIstoricTab, deci React Query deduplica (fara request suplimentar).
+    const { data: istoricGrupeSportiv = [] } = useIstoricGrupeSportiv(sportiv.id);
+    const istoricGrupeCount = istoricGrupeSportiv.length;
     const [isEditingDataStart, setIsEditingDataStart] = useState(false);
     const [dataStartInput, setDataStartInput] = useState('');
 
@@ -824,20 +830,26 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                     { id: 'grade', label: 'Evoluție & Grade', icon: TrophyIcon, hidden: !canViewSensitiveInfo },
                     { id: 'financiar', label: 'Istoric Financiar', icon: BanknotesIcon },
                     { id: 'familie', label: 'Familie', icon: UsersIcon, hidden: !sportiv.familie_id },
-                    { id: 'grupe-istoric', label: 'Istoric Grupe', icon: CalendarDaysIcon, hidden: !canViewSensitiveInfo },
+                    { id: 'grupe-istoric', label: 'Istoric Grupe', icon: CalendarDaysIcon, hidden: !canViewSensitiveInfo, hint: 'Toate grupele prin care a trecut sportivul, cu date de intrare/ieșire și durată, exportabil CSV.' },
                 ].filter(tab => !tab.hidden).map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
+                        title={(tab as any).hint}
                         className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all rounded-t-lg border-b-2 ${
-                            activeTab === tab.id 
-                                ? `border-[${primaryColor}] text-white bg-slate-800/50` 
+                            activeTab === tab.id
+                                ? `border-[${primaryColor}] text-white bg-slate-800/50`
                                 : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
                         }`}
                         style={{ borderColor: activeTab === tab.id ? primaryColor : 'transparent' }}
                     >
                         <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-slate-500'}`} />
                         {tab.label}
+                        {tab.id === 'grupe-istoric' && istoricGrupeCount > 0 && (
+                            <span className="ml-1 text-xs font-normal px-1.5 py-0.5 rounded-full bg-slate-700 text-slate-300">
+                                {istoricGrupeCount}
+                            </span>
+                        )}
                     </button>
                 ))}
             </div>

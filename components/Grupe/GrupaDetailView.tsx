@@ -803,9 +803,25 @@ const TabIstoricMembri: React.FC<{ grupaId: string; clubId?: string | null }> = 
     );
 };
 
+const TAB_LABELS: Record<TabId, string> = {
+    antrenamente: 'Antrenamente',
+    orar: 'Orar',
+    sportivi: 'Sportivi',
+    istoric: 'Istoric Membri',
+};
+
+const TAB_HINTS: Record<TabId, string> = {
+    antrenamente: 'Calendarul antrenamentelor grupei, cu adăugare și anulare.',
+    orar: 'Șablonul recurent săptămânal al antrenamentelor grupei.',
+    sportivi: 'Lista sportivilor activi (și inactivi) din această grupă.',
+    istoric: 'Evidența din arhivă a intrărilor și ieșirilor din grupă, filtrabilă pe sezon.',
+};
+
 export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack, onOpenAdaugaSportivi }) => {
     const [activeTab, setActiveTab] = useState<TabId>('antrenamente');
     const [isModalAdaugareOpen, setIsModalAdaugareOpen] = useState(false);
+    const { data: istoricMembri = [] } = useIstoricMembriGrupa(grupa.id);
+    const istoricCount = istoricMembri.length;
 
     const sportiviCount = grupa.sportivi?.[0]?.count ?? 0;
 
@@ -841,13 +857,19 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
+                        title={TAB_HINTS[tab]}
                         className={`h-10 px-4 text-sm font-semibold transition-colors border-b-2 -mb-px ${
                             activeTab === tab
                                 ? 'border-indigo-500 text-white'
                                 : 'border-transparent text-slate-400 hover:text-slate-200'
                         }`}
                     >
-                        {tab === 'antrenamente' ? 'Antrenamente' : tab === 'orar' ? 'Orar' : tab === 'sportivi' ? 'Sportivi' : 'Istoric Membri'}
+                        {TAB_LABELS[tab]}
+                        {tab === 'istoric' && istoricCount > 0 && (
+                            <span className="ml-2 text-xs font-normal px-1.5 py-0.5 rounded-full bg-slate-700 text-slate-300">
+                                {istoricCount}
+                            </span>
+                        )}
                     </button>
                 ))}
             </div>

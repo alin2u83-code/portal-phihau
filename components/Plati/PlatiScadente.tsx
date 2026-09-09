@@ -98,6 +98,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const { showError, showSuccess } = useError();
     const [isGenerating, setIsGenerating] = useState(false);
+    const [sportiviFaraAbonamentValid, setSportiviFaraAbonamentValid] = useState<{ ignorati: Sportiv[]; tipArhivat: Sportiv[] } | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [plataForPayment, setPlataForPayment] = useState<Plata | null>(null);
     const [paymentAmount, setPaymentAmount] = useState('');
@@ -137,6 +138,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
         // Bug 3 Fix: setIsGenerating ÎNAINTE de orice await pentru a bloca apăsări duble
         setIsGenerating(true);
+        setSportiviFaraAbonamentValid(null);
         try {
             if (permissions.isFederationAdmin) {
                 throw new Error("Adminii de federație nu pot genera abonamente la nivel de club. Această acțiune aparține adminului de club.");
@@ -209,8 +211,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             const sportiviProcesati = new Set<string>();
             // Bug 2 Fix: colectăm sportivii ignorați pentru warning la final
             const sportiviIgnorati: string[] = [];
+            const sportiviIgnoratiObj: Sportiv[] = [];
             const tipuriSezon = filtreazaTipuriSezon(tipuriAbonament || [], sezonActivId);
             const sportiviCuTipArhivat: string[] = [];
+            const sportiviCuTipArhivatObj: Sportiv[] = [];
 
             const familyIdsInClub = new Set(sportiviActivi.map(s => s.familie_id).filter(Boolean));
             const relevantFamilies = familii.filter(f => familyIdsInClub.has(f.id));
@@ -258,6 +262,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     || tipuriSezon.find(ab => ab.numar_membri === 1);
                 if (esteTipDinSezonArhivat(abonamentConfig, sezonActivId)) {
                     sportiviCuTipArhivat.push(`${sportiv.nume} ${sportiv.prenume}`);
+                    sportiviCuTipArhivatObj.push(sportiv);
                 }
                 if (abonamentConfig) {
                     // Bug 5 Fix: folosim soldurile proaspete din DB
@@ -279,6 +284,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 } else {
                     // Bug 2 Fix: sportivul nu are abonament configurat — îl colectăm pentru warning
                     sportiviIgnorati.push(`${sportiv.nume} ${sportiv.prenume}`);
+                    sportiviIgnoratiObj.push(sportiv);
                 }
             });
 
@@ -350,6 +356,12 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     "Tip abonament din sezon arhivat",
                     `${sportiviCuTipArhivat.length} sportivi facturați cu un tip de abonament dintr-un sezon arhivat (reasignare manuală necesară): ${sportiviCuTipArhivat.join(', ')}`
                 );
+            }
+
+            // Listă persistentă (nu doar toast tranzitoriu) — rămâne vizibilă până la următoarea
+            // generare sau până e închisă manual, ca adminul să poată reasigna tip_abonament_id.
+            if (sportiviIgnoratiObj.length > 0 || sportiviCuTipArhivatObj.length > 0) {
+                setSportiviFaraAbonamentValid({ ignorati: sportiviIgnoratiObj, tipArhivat: sportiviCuTipArhivatObj });
             }
 
         } catch (err: any) {
@@ -767,6 +779,62 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     </Button>
                 )}
             </div>
+
+            {sportiviFaraAbonamentValid && (sportiviFaraAbonamentValid.ignorati.length > 0 || sportiviFaraAbonamentValid.tipArhivat.length > 0) && (
+                <Card className="p-4 border border-amber-600/40 bg-amber-950/20 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
+                            <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0" />
+                            Sportivi fără factură generată — necesită reasignare manuală
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setSportiviFaraAbonamentValid(null)}
+                            className="text-slate-400 hover:text-slate-200 text-xs flex-shrink-0"
+                        >
+                            Închide
+                        </button>
+                    </div>
+                    {sportiviFaraAbonamentValid.tipArhivat.length > 0 && (
+                        <div>
+                            <p className="text-xs text-amber-300 mb-1.5">
+                                {sportiviFaraAbonamentValid.tipArhivat.length} facturați cu un tip de abonament dintr-un sezon arhivat:
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {sportiviFaraAbonamentValid.tipArhivat.map(s => (
+                                    <button
+                                        key={s.id}
+                                        type="button"
+                                        onClick={() => onViewSportiv(s)}
+                                        className="text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-200 hover:border-amber-500 hover:text-amber-300 transition-colors"
+                                    >
+                                        {s.nume} {s.prenume}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {sportiviFaraAbonamentValid.ignorati.length > 0 && (
+                        <div>
+                            <p className="text-xs text-amber-300 mb-1.5">
+                                {sportiviFaraAbonamentValid.ignorati.length} fără niciun tip de abonament configurat:
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {sportiviFaraAbonamentValid.ignorati.map(s => (
+                                    <button
+                                        key={s.id}
+                                        type="button"
+                                        onClick={() => onViewSportiv(s)}
+                                        className="text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-200 hover:border-amber-500 hover:text-amber-300 transition-colors"
+                                    >
+                                        {s.nume} {s.prenume}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </Card>
+            )}
 
             {/* Desktop table */}
             <Card className="p-0 overflow-hidden hidden md:block">

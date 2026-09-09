@@ -7,6 +7,7 @@ import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useData } from '../../contexts/DataContext';
+import { useNavigation } from '../../contexts/NavigationContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useSezonActiv } from '../../hooks/useSezoane';
 import { clearCache } from '../../utils/cache';
@@ -30,6 +31,7 @@ export const SezoaneView: React.FC<SezoaneViewProps> = ({ onBack }) => {
     const isAdmin = permissions.isAdminClub || permissions.isFederationAdmin;
     const clubId = activeRoleContext?.club_id ?? null;
     const { sezoane, sezonActiv, isLoading } = useSezonActiv(clubId);
+    const { navigateTo } = useNavigation();
     const queryClient = useQueryClient();
     const { showError, showSuccess } = useError();
 
@@ -227,7 +229,12 @@ export const SezoaneView: React.FC<SezoaneViewProps> = ({ onBack }) => {
                 <div className="space-y-3">
                     {sezoane.map(s => (
                         <Card key={s.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                            <div className="flex-1 min-w-0">
+                            <button
+                                type="button"
+                                onClick={() => navigateTo('grupe', { sezonId: s.id, sezonDenumire: s.denumire })}
+                                className="flex-1 min-w-0 text-left rounded-lg -m-1 p-1 hover:bg-[var(--t-content-bg,rgba(255,255,255,0.04))] transition-colors"
+                                title="Vezi grupele acestui sezon"
+                            >
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <p className="font-semibold text-white truncate">{s.denumire}</p>
                                     {s.activ ? <Badge variant="green">Activ</Badge> : <Badge variant="slate">Arhivat</Badge>}
@@ -235,7 +242,7 @@ export const SezoaneView: React.FC<SezoaneViewProps> = ({ onBack }) => {
                                 <p className="text-sm text-[var(--t-text-muted)] mt-0.5">
                                     {formatDataRo(s.data_start)} — {formatDataRo(s.data_final)}
                                 </p>
-                            </div>
+                            </button>
                             <div className="flex items-center gap-1 flex-shrink-0">
                                 {!s.activ && (
                                     <Button variant="secondary" size="sm" onClick={() => setSezonToActivate(s)}>

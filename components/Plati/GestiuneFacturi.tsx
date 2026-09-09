@@ -77,7 +77,8 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const [plataForView, setPlataForView] = useState<Plata | null>(null);
     const [periodFilter, setPeriodFilter] = useState({ startDate: '', endDate: '' });
 
-    const clubSportivi = useMemo(() => [...sportivi].sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO')), [sportivi]);
+    // Doar sportivi Activi pot primi factură nouă din formular manual — consistent cu generarea automată (PlatiScadente).
+    const clubSportivi = useMemo(() => sportivi.filter(s => s.status === 'Activ').sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO')), [sportivi]);
     
     const clubPlati = useMemo(() => {
         return [...plati].sort((a, b) => new Date((b.data || '').toString().slice(0, 10)).getTime() - new Date((a.data || '').toString().slice(0, 10)).getTime());

@@ -8,6 +8,7 @@ import { useError } from '../ErrorProvider';
 import { clearCache } from '../../utils/cache';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useData } from '../../contexts/DataContext';
+import { useNavigation } from '../../contexts/NavigationContext';
 import { useGrupe } from '../../hooks/useGrupe';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useSezonActiv } from '../../hooks/useSezoane';
@@ -37,13 +38,23 @@ interface GrupeManagementProps {
 }
 export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) => {
     const { currentUser, clubs, setGrupe, locatii, setLocatii, activeRoleContext, sportivi, setSportivi } = useData();
+    const { viewParams } = useNavigation();
 
     // Fetch grupe direct — nu prin context (evită probleme de timing/cache la nivel de provider)
     const permissions = usePermissions(activeRoleContext);
     const grupeClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
     const { data: grupeData, isLoading: grupeLoading, refetch: refetchGrupe } = useGrupe(activeRoleContext?.id, grupeClubId);
     // Filtrare client-side ca plasă de siguranță — protejează dacă cache-ul conține date neexpirate fără filtru
-    const grupe = (grupeData || []).filter(g => !grupeClubId || g.club_id === grupeClubId);
+    const grupeClub = (grupeData || []).filter(g => !grupeClubId || g.club_id === grupeClubId);
+
+    // Filtru sezon: activ doar când se ajunge din Sezoane cu un sezonId în viewParams
+    const sezonFiltruId: string | null = viewParams?.sezonId ?? null;
+    const sezonFiltruDenumire: string | undefined = viewParams?.sezonDenumire;
+    const [filtruSezonDezactivat, setFiltruSezonDezactivat] = useState(false);
+    const filtruSezonActiv = !!sezonFiltruId && !filtruSezonDezactivat;
+    const grupe = filtruSezonActiv
+        ? grupeClub.filter(g => (g as any).tip_grupa === 'permanent' || (g as any).sezon_id === sezonFiltruId)
+        : grupeClub;
     // Grupele arhivate apar ultimele, păstrând ordinea relativă existentă
     const grupeAfisate = [...grupe].sort((a, b) => Number((a as any).arhivat ?? false) - Number((b as any).arhivat ?? false));
 
@@ -344,6 +355,20 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                             <Button onClick={handleOpenAdd} variant="info" className="flex-1 sm:flex-none" data-tour="grupe-adauga"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
                         </div>
                     </div>
+                    {filtruSezonActiv && (
+                        <div className="flex flex-wrap items-center gap-2 text-sm bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2">
+                            <span className="text-slate-300">
+                                Filtrat după sezon: <strong className="text-white">{sezonFiltruDenumire || '—'}</strong> (+ grupe permanente)
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setFiltruSezonDezactivat(true)}
+                                className="text-blue-400 hover:text-blue-300 underline ml-auto"
+                            >
+                                Vezi toate grupele
+                            </button>
+                        </div>
+                    )}
                     {grupe.length > 0 ? (
                         <div data-tour="grupe-lista" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {(grupeAfisate as GrupaWithDetails[]).map(grupa => (
@@ -411,7 +436,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                     onClose={() => setGrupaForSecundari(null)}
                     grupa={grupaForSecundari}
                     totiSportivii={sportivi as Sportiv[]}
-                    toateGrupele={grupe as GrupaWithDetails[]}
+                    toateGrupele={grupeClub as GrupaWithDetails[]}
                     onChanged={handleRefresh}
                 />
             )}

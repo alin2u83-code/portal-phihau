@@ -28,6 +28,7 @@ interface GestiuneFacturiProps {
     tipuriPlati: TipPlata[];
     familii: Familie[];
     onViewSportiv?: (sportiv: Sportiv) => void;
+    initialSportivId?: string;
 }
 
 const initialFormState = {
@@ -42,12 +43,22 @@ const initialFormState = {
     metoda_plata: 'Cash' as 'Cash' | 'Transfer Bancar',
 };
 
-export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, currentUser, sportivi, plati, setPlati, setTranzactii, tipuriPlati, familii, onViewSportiv }) => {
+export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, currentUser, sportivi, plati, setPlati, setTranzactii, tipuriPlati, familii, onViewSportiv, initialSportivId }) => {
     const { showError, showSuccess } = useError();
     const { preturiConfig, tipuriAbonament, reduceri, activeRoleContext } = useData();
     const permissions = usePermissions(activeRoleContext);
     const { sezonActivId } = useSezonActiv(activeRoleContext?.club_id ?? null);
-    const [formState, setFormState] = useState(initialFormState);
+    const [formState, setFormState] = useState(() =>
+        initialSportivId ? { ...initialFormState, sportiv_id: initialSportivId } : initialFormState
+    );
+
+    // Sportivul venit din alt modul (ex: buton "Activează abonament" din Grupe) poate avea
+    // status Inactiv — clubSportivi (mai jos) e filtrat doar pe Activi, deci fără asta
+    // dropdown-ul nu l-ar arăta preselectat.
+    const sportivInitial = useMemo(
+        () => (initialSportivId ? sportivi.find(s => s.id === initialSportivId) : undefined),
+        [initialSportivId, sportivi]
+    );
 
     // PLF-02: state pentru generare abonament per lună
     const [lunaGen, setLunaGen] = useState<number>(new Date().getMonth() + 1);
@@ -78,7 +89,12 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const [periodFilter, setPeriodFilter] = useState({ startDate: '', endDate: '' });
 
     // Doar sportivi Activi pot primi factură nouă din formular manual — consistent cu generarea automată (PlatiScadente).
-    const clubSportivi = useMemo(() => sportivi.filter(s => s.status === 'Activ').sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO')), [sportivi]);
+    // Excepție: sportivul venit explicit din alt modul (initialSportivId) rămâne selectabil chiar dacă e Inactiv.
+    const clubSportivi = useMemo(() => {
+        const activi = sportivi.filter(s => s.status === 'Activ');
+        const lista = sportivInitial && sportivInitial.status !== 'Activ' ? [...activi, sportivInitial] : activi;
+        return lista.sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO'));
+    }, [sportivi, sportivInitial]);
     
     const clubPlati = useMemo(() => {
         return [...plati].sort((a, b) => new Date((b.data || '').toString().slice(0, 10)).getTime() - new Date((a.data || '').toString().slice(0, 10)).getTime());

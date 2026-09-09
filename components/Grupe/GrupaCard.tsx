@@ -51,6 +51,7 @@ export const GrupaCard: React.FC<{
     nrSecundari?: number;
     sezonActivId?: string | null;
     onDubleaza?: (g: GrupaWithDetails) => void;
+    nrFaraAbonamentValid?: number;
 }> = ({
     grupa,
     onEdit,
@@ -62,6 +63,7 @@ export const GrupaCard: React.FC<{
     nrSecundari,
     sezonActivId,
     onDubleaza,
+    nrFaraAbonamentValid,
 }) => {
     const sportiviCount = grupa.sportivi?.[0]?.count ?? 0;
     const tipGrupa = grupa.tip_grupa ?? 'permanent';
@@ -135,6 +137,15 @@ export const GrupaCard: React.FC<{
                                 {nrSecundari} SECUNDAR{nrSecundari !== 1 ? 'I' : ''}
                             </span>
                         </div>
+                    )}
+                    {!!nrFaraAbonamentValid && nrFaraAbonamentValid > 0 && (
+                        <span
+                            className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs px-2 py-0.5 rounded-full font-medium"
+                            title="Sportivi fără tip de abonament valid pentru sezonul activ — necesită reasignare din Financiar & Plăți"
+                        >
+                            <ExclamationTriangleIcon className="w-3 h-3" />
+                            {nrFaraAbonamentValid} fără abonament
+                        </span>
                     )}
                 </div>
                 <h4 className="text-xs font-bold uppercase text-slate-500 mb-2">Orar</h4>

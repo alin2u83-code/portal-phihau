@@ -24,6 +24,7 @@ import { GenerareAntrenamenteModal } from './GenerareAntrenamenteModal';
 import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';
 import { mutaInGrupa, scoateDinGrupa } from '../../services/grupeIstoricService';
 import { useRegisterRefresh } from '../../contexts/RefreshContext';
+import { filtreazaTipuriSezon, gasesteTipDupaId, esteTipDinSezonArhivat } from '../../utils/abonamente';
 
 // Interfață extinsă pentru datele aduse din Supabase
 interface GrupaWithDetails extends GrupaType {
@@ -37,8 +38,8 @@ interface GrupeManagementProps {
     onNavigate?: (view: any) => void;
 }
 export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) => {
-    const { currentUser, clubs, setGrupe, locatii, setLocatii, activeRoleContext, sportivi, setSportivi } = useData();
-    const { viewParams } = useNavigation();
+    const { currentUser, clubs, setGrupe, locatii, setLocatii, activeRoleContext, sportivi, setSportivi, tipuriAbonament } = useData();
+    const { viewParams, setViewParams } = useNavigation();
 
     // Fetch grupe direct — nu prin context (evită probleme de timing/cache la nivel de provider)
     const permissions = usePermissions(activeRoleContext);
@@ -60,6 +61,24 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
 
     const sezonClubId = grupeClubId ?? activeRoleContext?.club_id ?? null;
     const { sezonActiv } = useSezonActiv(sezonClubId);
+
+    // Nr. sportivi individuali (fără familie) al căror tip de abonament lipsește sau
+    // aparține unui sezon arhivat — semnal rapid pe cardul grupei, aceeași regulă ca
+    // în PlatiScadente. Simplificare: nu recalculăm cazul de familie aici (necesită
+    // gruparea pe familie_id, făcută deja corect în modulul Plăți).
+    const nrFaraAbonamentValidPerGrupa = useMemo(() => {
+        const map = new Map<string, number>();
+        const sezonId = sezonActiv?.id ?? null;
+        (sportivi || []).forEach((s: any) => {
+            if (s.status !== 'Activ' || !s.grupa_id || s.familie_id) return;
+            const tipuriClub = (tipuriAbonament || []).filter((t: any) => t.club_id === s.club_id);
+            const tipuriSezonClub = filtreazaTipuriSezon(tipuriClub, sezonId);
+            const tip = gasesteTipDupaId(tipuriAbonament || [], s.tip_abonament_id) || tipuriSezonClub.find((t: any) => t.numar_membri === 1);
+            const invalid = !tip || esteTipDinSezonArhivat(tip, sezonId);
+            if (invalid) map.set(s.grupa_id, (map.get(s.grupa_id) || 0) + 1);
+        });
+        return map;
+    }, [sportivi, tipuriAbonament, sezonActiv?.id]);
     const [grupaToClone, setGrupaToClone] = useState<GrupaWithDetails | null>(null);
     const [isCloning, setIsCloning] = useState(false);
 
@@ -79,6 +98,30 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
     const [isRefreshing, setIsRefreshing] = useState(false);
     const { showError, showSuccess } = useError();
     const queryClient = useQueryClient();
+
+    // Redeschide aceeași grupă la revenire (ex: din "Activează abonament" via goBack) —
+    // grupaId e păstrat în viewParams, nu în state local care se pierde la demontare.
+    useEffect(() => {
+        if (!grupaSelectedForDetail && viewParams?.grupaId && grupeAfisate.length > 0) {
+            const g = grupeAfisate.find(gr => gr.id === viewParams.grupaId);
+            if (g) setGrupaSelectedForDetail(g as GrupaWithDetails);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [viewParams?.grupaId, grupeAfisate.length]);
+
+    const handleOpenGrupaDetail = (g: GrupaWithDetails) => {
+        setGrupaSelectedForDetail(g);
+        setViewParams((prev: any) => ({ ...(prev || {}), grupaId: g.id }));
+    };
+
+    const handleCloseGrupaDetail = () => {
+        setGrupaSelectedForDetail(null);
+        setViewParams((prev: any) => {
+            if (!prev) return prev;
+            const { grupaId, ...rest } = prev;
+            return rest;
+        });
+    };
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
@@ -330,7 +373,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
             {grupaSelectedForDetail ? (
                 <GrupaDetailView
                     grupa={grupaSelectedForDetail}
-                    onBack={() => setGrupaSelectedForDetail(null)}
+                    onBack={handleCloseGrupaDetail}
                     onOpenAdaugaSportivi={(g) => setGrupaForAdaugaSportivi(g)}
                 />
             ) : (
@@ -372,7 +415,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                     {grupe.length > 0 ? (
                         <div data-tour="grupe-lista" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {(grupeAfisate as GrupaWithDetails[]).map(grupa => (
-                                <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onDetalii={setGrupaSelectedForDetail} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} onGenerareAntrenamente={setGrupaForGenerare} sezonActivId={sezonActiv?.id ?? null} onDubleaza={setGrupaToClone} />
+                                <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onDetalii={handleOpenGrupaDetail} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} onGenerareAntrenamente={setGrupaForGenerare} sezonActivId={sezonActiv?.id ?? null} onDubleaza={setGrupaToClone} nrFaraAbonamentValid={nrFaraAbonamentValidPerGrupa.get(grupa.id) || 0} />
                             ))}
                         </div>
                     ) : (

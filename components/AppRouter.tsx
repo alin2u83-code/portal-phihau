@@ -74,7 +74,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         setActiveView('jurnal-incasari');
     };
 
-    const { goBack, canGoBack } = useNavigation();
+    const { goBack, canGoBack, viewParams } = useNavigation();
     const handleJurnalBack = () => {
         setPlatiPentruIncasare([]);
         if (canGoBack) {
@@ -228,7 +228,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'financial-dashboard':
                                 return renderProtected(<Lazy.FinancialDashboard onBack={handleBackToDashboard} plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} />, isAtLeastClubAdmin);
                             case 'gestiune-facturi':
-                                return renderProtected(<Lazy.GestiuneFacturi onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} setTranzactii={setTranzactii} tipuriPlati={tipuriPlati} familii={filteredData.familii} onViewSportiv={onViewSportiv} />, canManageFinances);
+                                return renderProtected(<Lazy.GestiuneFacturi onBack={canGoBack ? goBack : handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} setTranzactii={setTranzactii} tipuriPlati={tipuriPlati} familii={filteredData.familii} onViewSportiv={onViewSportiv} initialSportivId={viewParams?.sportivId} />, canManageFinances);
                             case 'facturi-fara-prezenta':
                                 return renderProtected(<Lazy.FacturiFaraPrezenta onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, canManageFinances);
                             case 'deconturi-federatie':

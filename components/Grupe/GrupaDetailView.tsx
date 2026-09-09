@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Grupa as GrupaType, ProgramItem, Antrenament } from '../../types';
-import { Button, Card, Input, Modal, ConfirmButton, Badge } from '../ui';
+import { Grupa as GrupaType, ProgramItem, Antrenament, type Sezon } from '../../types';
+import { Button, Card, Input, Modal, ConfirmButton, Badge, Select } from '../ui';
 import { ArrowLeftIcon, PlusIcon, TrashIcon, CheckCircleIcon, CogIcon, XCircleIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -9,6 +9,9 @@ import { clearCache } from '../../utils/cache';
 import { useCalendarView } from '../../hooks/useCalendarView';
 import { formatTime } from '../../utils/date';
 import { useIstoricMembriGrupa } from '../../hooks/useGrupeIstoric';
+import { useSezoane } from '../../hooks/useSezoane';
+import { useNavigation } from '../../contexts/NavigationContext';
+import { WalletIcon } from '../icons';
 
 interface GrupaWithDetails extends GrupaType {
     sportivi: { count: number }[];
@@ -568,28 +571,57 @@ const TabOrar: React.FC<{ grupa: GrupaWithDetails }> = ({ grupa }) => {
 
 // Tab Sportivi — query read-only per grupă + buton Adaugă Sportivi (D-05, D-06)
 const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g: GrupaWithDetails) => void }> = ({ grupa, onOpenAdaugaSportivi }) => {
-    const { data: sportivi = [], isLoading, error } = useQuery({
+    const { showError } = useError();
+    const queryClient = useQueryClient();
+    const { setViewParams, navigateTo } = useNavigation();
+    const [showInactivi, setShowInactivi] = useState(false);
+    const [idInLucru, setIdInLucru] = useState<string | null>(null);
+
+    const { data: sportiviToti = [], isLoading, error } = useQuery({
         queryKey: ['sportivi-grupa', grupa.id],
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('rbv_sportivi_complet')
-                .select('id, nume, prenume, grad_actual_id, grad_nume')
-                .eq('grupa_id', grupa.id)
-                .eq('status', 'Activ');
+                .select('id, nume, prenume, grad_actual_id, grad_nume, status')
+                .eq('grupa_id', grupa.id);
             if (error) throw error;
             return data ?? [];
         },
         staleTime: 5 * 60 * 1000,
     });
 
+    const nrActivi = sportiviToti.filter((s: any) => s.status === 'Activ').length;
+    const sportivi = showInactivi ? sportiviToti : sportiviToti.filter((s: any) => s.status === 'Activ');
+
+    const toggleStatus = async (sportivId: string, statusCurent: string) => {
+        const statusNou = statusCurent === 'Activ' ? 'Inactiv' : 'Activ';
+        setIdInLucru(sportivId);
+        try {
+            const { error } = await supabase.from('sportivi').update({ status: statusNou }).eq('id', sportivId);
+            if (error) throw error;
+            queryClient.setQueryData(['sportivi-grupa', grupa.id], (prev: any) =>
+                (prev ?? []).map((s: any) => (s.id === sportivId ? { ...s, status: statusNou } : s))
+            );
+        } catch (err: any) {
+            showError('Eroare la schimbarea statusului', err);
+        } finally {
+            setIdInLucru(null);
+        }
+    };
+
+    const activeazaAbonament = (sportivId: string) => {
+        setViewParams((prev: any) => ({ ...(prev || {}), grupaId: grupa.id }));
+        navigateTo('gestiune-facturi', { sportivId });
+    };
+
     if (isLoading) return <div className="text-center py-8 text-slate-400">Se încarcă...</div>;
     if (error) return <div className="text-center py-8 text-rose-400">Nu s-au putut încărca datele. Verifică conexiunea și încearcă din nou.</div>;
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
                 <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    {sportivi.length} sportivi activi
+                    {nrActivi} sportivi activi
                 </h3>
                 <Button
                     variant="info"
@@ -601,6 +633,18 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
                 </Button>
             </div>
 
+            {sportiviToti.length > nrActivi && (
+                <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={showInactivi}
+                        onChange={e => setShowInactivi(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-500 bg-slate-800 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    Arată și sportivii inactivi ({sportiviToti.length - nrActivi})
+                </label>
+            )}
+
             {sportivi.length === 0 ? (
                 <Card className="text-center py-8">
                     <p className="text-sm font-semibold text-slate-300">Niciun sportiv în această grupă</p>
@@ -611,14 +655,33 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
                     {sportivi.map((s: any) => (
                         <div
                             key={s.id}
-                            className="flex items-center gap-3 py-2 px-3 rounded-lg bg-slate-800/30 border border-slate-700/50"
+                            className={`flex items-center gap-3 py-2 px-3 rounded-lg border ${s.status === 'Activ' ? 'bg-slate-800/30 border-slate-700/50' : 'bg-slate-900/40 border-slate-800 opacity-70'}`}
                         >
                             <span className="text-sm text-slate-300">
                                 {(s.nume || '')} {(s.prenume || '')}
                             </span>
                             {s.grad_nume && (
-                                <span className="text-xs text-slate-500 ml-auto">{s.grad_nume}</span>
+                                <span className="text-xs text-slate-500">{s.grad_nume}</span>
                             )}
+                            <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
+                                <button
+                                    type="button"
+                                    onClick={() => activeazaAbonament(s.id)}
+                                    title="Activează abonament"
+                                    className="p-1.5 rounded text-slate-400 hover:text-emerald-400 hover:bg-slate-700/60 transition-colors touch-manipulation"
+                                >
+                                    <WalletIcon className="w-4 h-4" />
+                                </button>
+                                <Button
+                                    variant={s.status === 'Activ' ? 'secondary' : 'success'}
+                                    size="xs"
+                                    isLoading={idInLucru === s.id}
+                                    onClick={() => toggleStatus(s.id, s.status)}
+                                    className="min-h-[32px]"
+                                >
+                                    {s.status === 'Activ' ? 'Dezactivează' : 'Activează'}
+                                </Button>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -632,8 +695,27 @@ function formatData(dateStr: string | null | undefined): string {
     return new Date(dateStr).toLocaleDateString('ro-RO');
 }
 
-const TabIstoricMembri: React.FC<{ grupaId: string }> = ({ grupaId }) => {
+// Verifica daca intervalul de apartenenta la grupa al unei intrari din istoric
+// se suprapune cu intervalul unui sezon. Comparatie lexicografica pe stringuri
+// 'YYYY-MM-DD' (coloane DATE Postgres) — evita capcanele de fus orar ale new Date().
+function seSuprapuneCuSezon(entry: { data_intrare?: string | null; data_iesire?: string | null }, sezon: Sezon): boolean {
+    if (!entry.data_intrare) return false;
+    const intrare = String(entry.data_intrare).slice(0, 10);
+    const dataAzi = new Date().toISOString().slice(0, 10);
+    const iesire = entry.data_iesire ? String(entry.data_iesire).slice(0, 10) : dataAzi;
+    return intrare <= sezon.data_final && iesire >= sezon.data_start;
+}
+
+const TabIstoricMembri: React.FC<{ grupaId: string; clubId?: string | null }> = ({ grupaId, clubId }) => {
     const { data: istoric = [], isLoading, error } = useIstoricMembriGrupa(grupaId);
+    const { data: sezoane = [] } = useSezoane(clubId);
+    const [sezonFiltruId, setSezonFiltruId] = useState<string>('');
+    const sezonSelectat = sezoane.find(s => s.id === sezonFiltruId) ?? null;
+
+    const istoricFiltrat = useMemo(() => {
+        if (!sezonSelectat) return istoric;
+        return istoric.filter((e: any) => seSuprapuneCuSezon(e, sezonSelectat));
+    }, [istoric, sezonSelectat]);
 
     if (isLoading) return <p className="text-slate-400 italic p-4 text-center">Se încarcă...</p>;
     if (error) return <p className="text-red-400 p-4 text-center">Eroare la încărcarea istoricului.</p>;
@@ -649,43 +731,74 @@ const TabIstoricMembri: React.FC<{ grupaId: string }> = ({ grupaId }) => {
 
     return (
         <div className="space-y-4">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                {istoric.length} înregistrări
-            </h3>
-            <Card className="overflow-hidden p-0">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-700/50">
-                            <tr>
-                                <th className="px-4 py-3 font-semibold text-slate-300">Sportiv</th>
-                                <th className="px-4 py-3 font-semibold text-slate-300">Intrare</th>
-                                <th className="px-4 py-3 font-semibold text-slate-300">Ieșire</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700/50">
-                            {(istoric as any[]).map((entry: any) => {
-                                const activ = !entry.data_iesire;
-                                const sportiv = entry.sportivi;
-                                const numeSportiv = sportiv ? `${sportiv.nume} ${sportiv.prenume}` : '—';
-                                return (
-                                    <tr key={entry.id} className={activ ? 'bg-emerald-900/10' : ''}>
-                                        <td className="px-4 py-3 font-medium text-white flex items-center gap-2">
-                                            {activ && <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 shrink-0" />}
-                                            {numeSportiv}
-                                        </td>
-                                        <td className="px-4 py-3 text-slate-300">{formatData(entry.data_intrare)}</td>
-                                        <td className="px-4 py-3 text-slate-300">
-                                            {activ
-                                                ? <span className="text-emerald-400 font-medium">prezent</span>
-                                                : formatData(entry.data_iesire)}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+            {sezoane.length > 0 && (
+                <div className="w-full sm:max-w-xs">
+                    <Select
+                        label="Filtrează după sezon"
+                        value={sezonFiltruId}
+                        onChange={e => setSezonFiltruId(e.target.value)}
+                    >
+                        <option value="">Toate sezoanele</option>
+                        {sezoane.map(s => (
+                            <option key={s.id} value={s.id}>
+                                {s.denumire}{s.activ ? ' (activ)' : ''}
+                            </option>
+                        ))}
+                    </Select>
                 </div>
-            </Card>
+            )}
+
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                {sezonSelectat
+                    ? `${istoricFiltrat.length} din ${istoric.length} înregistrări · ${sezonSelectat.denumire}`
+                    : `${istoric.length} înregistrări`}
+            </h3>
+
+            {istoricFiltrat.length === 0 ? (
+                <Card className="text-center py-8">
+                    <p className="text-slate-400 italic mb-4">
+                        Niciun membru nu a fost în această grupă în sezonul selectat.
+                    </p>
+                    <Button variant="secondary" size="sm" onClick={() => setSezonFiltruId('')}>
+                        Resetează filtrul de sezon
+                    </Button>
+                </Card>
+            ) : (
+                <Card className="overflow-hidden p-0">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-700/50">
+                                <tr>
+                                    <th className="px-4 py-3 font-semibold text-slate-300">Sportiv</th>
+                                    <th className="px-4 py-3 font-semibold text-slate-300">Intrare</th>
+                                    <th className="px-4 py-3 font-semibold text-slate-300">Ieșire</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700/50">
+                                {(istoricFiltrat as any[]).map((entry: any) => {
+                                    const activ = !entry.data_iesire;
+                                    const sportiv = entry.sportivi;
+                                    const numeSportiv = sportiv ? `${sportiv.nume} ${sportiv.prenume}` : '—';
+                                    return (
+                                        <tr key={entry.id} className={activ ? 'bg-emerald-900/10' : ''}>
+                                            <td className="px-4 py-3 font-medium text-white flex items-center gap-2">
+                                                {activ && <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 shrink-0" />}
+                                                {numeSportiv}
+                                            </td>
+                                            <td className="px-4 py-3 text-slate-300">{formatData(entry.data_intrare)}</td>
+                                            <td className="px-4 py-3 text-slate-300">
+                                                {activ
+                                                    ? <span className="text-emerald-400 font-medium">prezent</span>
+                                                    : formatData(entry.data_iesire)}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            )}
         </div>
     );
 };
@@ -750,7 +863,7 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
                 )}
                 {activeTab === 'orar' && <TabOrar grupa={grupa} />}
                 {activeTab === 'sportivi' && <TabSportivi grupa={grupa} onOpenAdaugaSportivi={onOpenAdaugaSportivi} />}
-                {activeTab === 'istoric' && <TabIstoricMembri grupaId={grupa.id} />}
+                {activeTab === 'istoric' && <TabIstoricMembri grupaId={grupa.id} clubId={grupa.club_id} />}
             </div>
         </div>
     );

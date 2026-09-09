@@ -23,6 +23,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const [newPret, setNewPret] = useState<number | string>('');
     const [newNrMembri, setNewNrMembri] = useState<number | string>(1);
     const [newClubId, setNewClubId] = useState('');
+    const [newSezonId, setNewSezonId] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [toDelete, setToDelete] = useState<TipAbonament | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -41,6 +42,11 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     // Club ID for club admins: from activeRoleContext or currentUser
     const effectiveClubId = activeRoleContext?.club_id || activeRoleContext?.club?.id || currentUser?.club_id;
     const { sezoane, sezonActiv, sezonActivId } = useSezonActiv(effectiveClubId ?? null);
+
+    // Implicit: sezonul activ al clubului propriu, la prima încărcare
+    useEffect(() => {
+        setNewSezonId(prev => prev || sezonActivId || '');
+    }, [sezonActivId]);
 
     const [tipuriReferite, setTipuriReferite] = useState<Set<string>>(new Set());
     useEffect(() => {
@@ -73,10 +79,13 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     }, [tipuriAbonament.map(t => t.id).join(',')]);
 
     const etichetaSezon = (ab: TipAbonament): string => {
-        if (!ab.sezon_id) return '— fără sezon (istoric)';
+        if (!ab.sezon_id) return 'Valabil în orice sezon';
         const s = sezoane.find(s => s.id === ab.sezon_id);
         return s ? s.denumire : 'Sezon necunoscut';
     };
+    // Sezoanele afișate în dropdown-ul de editare sunt cele ale clubului propriu —
+    // pentru tipuri ale altui club (admin federație), afișăm doar eticheta needitabilă.
+    const poateEditaSezon = (ab: TipAbonament): boolean => !isFederationAdmin || ab.club_id === effectiveClubId;
 
     const doAdd = async (pretNum: number, nrMembriNum: number) => {
         const clubTinta = isFederationAdmin ? (newClubId || null) : (effectiveClubId ?? null);
@@ -84,7 +93,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
             denumire: newDenumire.trim(),
             pret: pretNum,
             numar_membri: nrMembriNum,
-            sezon_id: (clubTinta && clubTinta === effectiveClubId) ? sezonActivId : null,
+            sezon_id: (clubTinta && clubTinta === effectiveClubId) ? (newSezonId || null) : null,
         };
 
         if (isFederationAdmin) {
@@ -101,6 +110,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         else if (data) {
             setTipuriAbonament(prev => [...prev, data as TipAbonament]);
             setNewDenumire(''); setNewPret(''); setNewNrMembri(1); setNewClubId('');
+            setNewSezonId(sezonActivId || '');
             showSuccess("Succes", "Tipul de abonament a fost adăugat.");
         }
     };
@@ -126,10 +136,12 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const handleEdit = async (id: string, field: keyof TipAbonament, value: string | number) => {
         if(!supabase) return;
         
-        let finalValue = value;
+        let finalValue: string | number | null = value;
         if (field === 'pret' || field === 'numar_membri') {
             const num = typeof value === 'string' ? (field === 'pret' ? parseFloat(value) : parseInt(value, 10)) : value as number;
             finalValue = isNaN(num) || num < 0 ? 0 : num;
+        } else if (field === 'sezon_id' && value === '') {
+            finalValue = null;
         }
 
         const { error } = await supabase.from('tipuri_abonament').update({ [field]: finalValue }).eq('id', id);
@@ -173,7 +185,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                     <PlusIcon className="w-5 h-5 text-brand-secondary" /> Definește Abonament Nou
                 </h3>
                 
-                <div className={`grid grid-cols-1 md:grid-cols-${isFederationAdmin ? 5 : 4} gap-4 items-end`}>
+                <div className={`grid grid-cols-1 md:grid-cols-${isFederationAdmin ? 6 : 5} gap-4 items-end`}>
                     {isFederationAdmin && (
                          <Select label="Club" value={newClubId} onChange={e => setNewClubId(e.target.value)}>
                             <option value="">Federație (General)</option>
@@ -185,6 +197,15 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                     </div>
                     <Input label="Preț (RON)" type="number" step="0.01" value={newPret} onChange={e => setNewPret(e.target.value)} />
                     <Input label="Nr. Membri" type="number" min="1" value={newNrMembri} onChange={e => setNewNrMembri(e.target.value)} />
+                    <Select
+                        label="Sezon"
+                        value={newSezonId}
+                        onChange={e => setNewSezonId(e.target.value)}
+                        disabled={isFederationAdmin && newClubId !== '' && newClubId !== effectiveClubId}
+                    >
+                        <option value="">Valabil în orice sezon</option>
+                        {sezoane.map(s => <option key={s.id} value={s.id}>{s.denumire}{s.activ ? ' (activ)' : ''}</option>)}
+                    </Select>
                 </div>
 
                 <div className="flex justify-end mt-6">
@@ -244,7 +265,14 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                         Club: <span className="text-white font-medium">{clubs.find(c => c.id === ab.club_id)?.nume || 'Federație'}</span>
                                     </p>
                                 )}
-                                <p className="text-xs text-[var(--t-text-muted)]">{etichetaSezon(ab)}</p>
+                                {poateEditaSezon(ab) ? (
+                                    <Select label="Sezon" value={ab.sezon_id || ''} onChange={e => handleEdit(ab.id, 'sezon_id', e.target.value)} className="bg-transparent border-slate-700">
+                                        <option value="">Valabil în orice sezon</option>
+                                        {sezoane.map(s => <option key={s.id} value={s.id}>{s.denumire}{s.activ ? ' (activ)' : ''}</option>)}
+                                    </Select>
+                                ) : (
+                                    <p className="text-xs text-[var(--t-text-muted)]">{etichetaSezon(ab)}</p>
+                                )}
                             </div>
                         ))}
                         {tipuriAbonament.length === 0 && (
@@ -291,7 +319,16 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                                                 <span className="text-slate-500 text-xs">RON</span>
                                             </div>
                                         </td>
-                                        <td className="p-3 text-xs text-[var(--t-text-muted)]">{etichetaSezon(ab)}</td>
+                                        <td className="p-3 text-xs">
+                                            {poateEditaSezon(ab) ? (
+                                                <Select label="" value={ab.sezon_id || ''} onChange={e => handleEdit(ab.id, 'sezon_id', e.target.value)} className="bg-transparent border-slate-700 min-w-[160px]">
+                                                    <option value="">Valabil în orice sezon</option>
+                                                    {sezoane.map(s => <option key={s.id} value={s.id}>{s.denumire}{s.activ ? ' (activ)' : ''}</option>)}
+                                                </Select>
+                                            ) : (
+                                                <span className="text-[var(--t-text-muted)]">{etichetaSezon(ab)}</span>
+                                            )}
+                                        </td>
                                         <td className="p-3 text-right w-32">
                                             <Button
                                                 onClick={tipuriReferite.has(ab.id) ? undefined : () => setToDelete(ab)}
@@ -330,7 +367,7 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                     <li>Abonamentele <strong>Individuale</strong> trebuie să aibă Nr. Membri setat la <strong>1</strong>.</li>
                     <li>Abonamentele de <strong>Familie</strong> trebuie să aibă Nr. Membri setat la <strong>2 sau mai mult</strong>.</li>
                     <li>Sistemul de generare automată a plăților folosește aceste configurații pentru a calcula restanțele lunare.</li>
-                    <li>Tipurile create cât timp un sezon este activ se leagă automat de acel sezon. Tipurile din sezoanele arhivate rămân ca istoric și nu mai sunt folosite la generarea automată a facturilor.</li>
+                    <li>Sezonul unui tip se poate alege sau schimba oricând din coloana „Sezon”. Un tip „Valabil în orice sezon” rămâne mereu disponibil la generare; un tip legat de un sezon arhivat nu mai e folosit automat — sportivii care încă îl au asignat sunt semnalați pentru reasignare manuală.</li>
                 </ul>
             </div>
             <ConfirmDeleteModal isOpen={!!toDelete} onClose={() => setToDelete(null)} onConfirm={() => { if(toDelete) confirmDelete(toDelete.id) }} tableName="Tipuri Abonament" isLoading={isDeleting} />

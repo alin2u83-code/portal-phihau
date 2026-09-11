@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Grupa as GrupaType, ProgramItem } from '../../types';
 import { Button, Card, Badge } from '../ui';
-import { TrashIcon, UsersIcon, CalendarIcon, ExclamationTriangleIcon, SparklesIcon, CopyIcon } from '../icons';
+import { TrashIcon, UsersIcon, CalendarIcon, ExclamationTriangleIcon, SparklesIcon, CopyIcon, CogIcon } from '../icons';
 import { sortProgram } from './ProgramEditor';
 import { formatTime } from '../../utils/date';
 import { supabase } from '../../supabaseClient';
@@ -164,7 +164,9 @@ export const GrupaCard: React.FC<{
 
                 {!esteArhivata && (
                     <>
-                        <Button size="sm" variant="secondary" onClick={() => onEdit(grupa)} className="min-h-[40px] touch-manipulation" data-tour="grupe-gestioneaza">Gestionează</Button>
+                        <Button size="sm" variant="secondary" onClick={() => onEdit(grupa)} className="min-h-[40px] touch-manipulation" data-tour="grupe-gestioneaza" title="Editează denumire, sală, instructori">
+                            <CogIcon className="w-4 h-4 mr-1.5" /> Setări Grupă
+                        </Button>
 
                         {/* Buton "..." — acțiuni secundare */}
                         <div className="relative" ref={menuRef}>

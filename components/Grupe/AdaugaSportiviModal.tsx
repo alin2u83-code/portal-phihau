@@ -3,6 +3,39 @@ import ReactDOM from 'react-dom';
 import { Sportiv, Grupa as GrupaType, ProgramItem } from '../../types';
 import { Button } from '../ui';
 import { XIcon, SearchIcon, UserPlusIcon, CheckIcon } from '../icons';
+import { useData } from '../../contexts/DataContext';
+import { useSortAthletes, type SortBy } from '../../hooks/useSortAthletes';
+
+const SortToggle: React.FC<{
+    sortBy: SortBy;
+    setSortBy: (v: SortBy) => void;
+    sortDir: 'asc' | 'desc';
+    setSortDir: (fn: (d: 'asc' | 'desc') => 'asc' | 'desc') => void;
+}> = ({ sortBy, setSortBy, sortDir, setSortDir }) => (
+    <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5 border border-slate-700/50">
+            {(['nume', 'prenume', 'grade'] as SortBy[]).map(opt => (
+                <button
+                    key={opt}
+                    onClick={() => setSortBy(opt)}
+                    className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${sortBy === opt ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
+                >
+                    {opt === 'nume' ? 'Nume' : opt === 'prenume' ? 'Prenume' : 'Grad'}
+                </button>
+            ))}
+        </div>
+        <button
+            onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+            className="p-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-amber-300 transition-colors"
+            title={sortDir === 'asc' ? 'A - Z  (apasa pentru Z - A)' : 'Z - A  (apasa pentru A - Z)'}
+        >
+            {sortDir === 'asc'
+                ? <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/></svg>
+                : <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd"/></svg>
+            }
+        </button>
+    </div>
+);
 
 // Normalizează un string din DB (poate fi ALL CAPS) la Title Case
 function numeAfisat(sportiv: Sportiv): string {
@@ -33,6 +66,9 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
     onSave,
     onRemove,
 }) => {
+    const { grade } = useData();
+    const gradeById = useMemo(() => Object.fromEntries((grade || []).map(g => [g.id, g])), [grade]);
+    const { sortBy, setSortBy, sortDir, setSortDir, sortAthletes } = useSortAthletes<Sportiv & { gradOrdine?: number }>();
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
@@ -53,15 +89,23 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
             return esteDinClub && nuEInGrupa && esteActiv;
         });
 
+        const cuGrad = filtered.map(s => ({ ...s, gradOrdine: s.grad_actual_id ? gradeById[s.grad_actual_id]?.ordine : undefined }));
+        const sortati = sortAthletes(cuGrad);
+
         if (filtrFaraGrupa) {
-            // Cei fără grupă apar primii, restul după
-            const faraGrupa = filtered.filter(s => !s.grupa_id);
-            const cuGrupa = filtered.filter(s => s.grupa_id);
+            // Cei fără grupă apar primii, restul după (sort stabil păstrează sub-ordinea)
+            const faraGrupa = sortati.filter(s => !s.grupa_id);
+            const cuGrupa = sortati.filter(s => s.grupa_id);
             return [...faraGrupa, ...cuGrupa];
         }
 
-        return filtered;
-    }, [totiSportivii, sportiviInGrupaIds, grupa.club_id, filtrFaraGrupa]);
+        return sortati;
+    }, [totiSportivii, sportiviInGrupaIds, grupa.club_id, filtrFaraGrupa, gradeById, sortAthletes]);
+
+    const sportiviInGrupaSortati = useMemo(() => {
+        const cuGrad = sportiviInGrupa.map(s => ({ ...s, gradOrdine: s.grad_actual_id ? gradeById[s.grad_actual_id]?.ordine : undefined }));
+        return sortAthletes(cuGrad);
+    }, [sportiviInGrupa, gradeById, sortAthletes]);
 
     const rezultateCautare = useMemo(() => {
         if (!search.trim()) return sportiviDisponibili;
@@ -177,7 +221,7 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
                                 </p>
                             ) : (
                                 <ul className="divide-y divide-slate-700/40">
-                                    {sportiviInGrupa.map(sportiv => (
+                                    {sportiviInGrupaSortati.map(sportiv => (
                                         <li key={sportiv.id}>
                                             <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-slate-700/50 transition-colors">
                                                 {/* Avatar */}
@@ -188,6 +232,9 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
                                                 {/* Nume */}
                                                 <span className="text-sm text-white flex-1 min-w-0 leading-tight">
                                                     {numeAfisat(sportiv)}
+                                                    {sportiv.grad_actual_id && gradeById[sportiv.grad_actual_id] && (
+                                                        <span className="ml-1.5 text-xs text-slate-500">{gradeById[sportiv.grad_actual_id]?.nume}</span>
+                                                    )}
                                                 </span>
                                                 {/* Buton scoatere */}
                                                 <button
@@ -218,10 +265,11 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
 
                     {/* Panoul stâng — "Disponibili" */}
                     <div className="flex flex-col flex-1 min-h-0 order-last md:order-first min-w-0">
-                        <div className="flex items-center gap-2 mb-3">
+                        <div className="flex items-center justify-between gap-2 mb-3">
                             <span className="text-sm font-semibold text-slate-300">
                                 Disponibili
                             </span>
+                            <SortToggle sortBy={sortBy} setSortBy={setSortBy} sortDir={sortDir} setSortDir={setSortDir} />
                         </div>
 
                         {/* Search */}
@@ -268,7 +316,7 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
                                     {rezultateCautare.length > 0 && (
                                         <button
                                             onClick={toggleAll}
-                                            className="text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors"
+                                            className="text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
                                         >
                                             {toateSuntSelectate ? 'Deselectează tot' : 'Selectează tot'}
                                         </button>
@@ -307,15 +355,15 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
                                                     onClick={() => toggleSportiv(sportiv.id)}
                                                     className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors touch-manipulation ${
                                                         esteSelectat
-                                                            ? 'bg-sky-500/10 hover:bg-sky-500/15'
+                                                            ? 'bg-emerald-500/10 hover:bg-emerald-500/15'
                                                             : 'hover:bg-slate-800/60'
                                                     }`}
                                                 >
                                                     {/* Checkbox vizual */}
                                                     <div
-                                                        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
+                                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                                                             esteSelectat
-                                                                ? 'bg-sky-500 border-sky-500'
+                                                                ? 'bg-emerald-500 border-emerald-500'
                                                                 : 'border-slate-600 bg-transparent'
                                                         }`}
                                                     >
@@ -332,8 +380,11 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
 
                                                     {/* Nume */}
                                                     <div className="min-w-0 flex-1">
-                                                        <p className={`text-sm font-semibold truncate ${esteSelectat ? 'text-sky-300' : 'text-white'}`}>
+                                                        <p className={`text-sm font-semibold truncate ${esteSelectat ? 'text-emerald-300' : 'text-white'}`}>
                                                             {numeAfisat(sportiv)}
+                                                            {sportiv.grad_actual_id && gradeById[sportiv.grad_actual_id] && (
+                                                                <span className="ml-1.5 text-xs font-normal text-slate-500">{gradeById[sportiv.grad_actual_id]?.nume}</span>
+                                                            )}
                                                         </p>
                                                         {sportiv.grupa_id && (
                                                             <p className="text-xs text-amber-400/80 truncate">

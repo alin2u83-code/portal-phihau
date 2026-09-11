@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useTransition, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../supabaseClient';
+import { invalidateGrupeCache } from '../../hooks/useGrupe';
 import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata, ProgramItem } from '../../types';
 import { Button, Modal, Input, CredentialeContModal, ConfirmModal } from '../ui';
 import { PlusIcon, UploadCloudIcon, ArrowLeftIcon } from '../icons';
@@ -387,6 +388,7 @@ export const Sportivi: React.FC<{
                 await scoateDinGrupa(ids, currentUser?.user_id || null);
             }
             queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+            await invalidateGrupeCache(queryClient);
             showSuccess('Succes', `${ids.length} sportivi mutați în ${grupaName}.`);
             setSelectedSportivIds(new Set());
             setBulkGrupaId('');

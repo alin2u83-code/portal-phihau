@@ -10,6 +10,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { formatTime } from '../../utils/date';
 import { attachPrezenta } from '../../utils/prezentaJoin';
 import { GestioneazaGrupaModal } from './GestioneazaGrupaModal';
+import { useSortAthletes, type SortBy } from '../../hooks/useSortAthletes';
 
 interface AthletePill {
     id: string;
@@ -31,8 +32,6 @@ interface TrainingSection {
     initialPresent: Set<string>;
     hasSavedData: boolean;
 }
-
-type SortBy = 'nume' | 'prenume' | 'grade';
 
 interface UnsavedWarning {
     sectionId: string;
@@ -179,8 +178,7 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
     const [savingId, setSavingId] = useState<string | null>(null);
     const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
     const [addingToTrainingId, setAddingToTrainingId] = useState<string | null>(null);
-    const [sortBy, setSortBy] = useState<SortBy>('nume');
-    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+    const { sortBy, setSortBy, sortDir, setSortDir, sortAthletes } = useSortAthletes<AthletePill>();
 
     // Stare collapse/expand per sectiune: cheia = id sectiune, valoarea = true (expandat)
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -436,23 +434,6 @@ export const PrezentaRapida: React.FC<{ onSelectFull?: (id: string) => void; onA
         }
         setSavingId(null);
     };
-
-    const sortAthletes = useCallback((athletes: AthletePill[]) => {
-        const dir = sortDir === 'asc' ? 1 : -1;
-        return [...athletes].sort((a, b) => {
-            let cmp = 0;
-            if (sortBy === 'grade') {
-                const oa = a.gradOrdine ?? 9999;
-                const ob = b.gradOrdine ?? 9999;
-                cmp = oa !== ob ? oa - ob : a.nume.localeCompare(b.nume);
-            } else if (sortBy === 'prenume') {
-                cmp = a.prenume.localeCompare(b.prenume) || a.nume.localeCompare(b.nume);
-            } else {
-                cmp = a.nume.localeCompare(b.nume) || a.prenume.localeCompare(b.prenume);
-            }
-            return cmp * dir;
-        });
-    }, [sortBy, sortDir]);
 
     if (loading) return (
         <div className="flex justify-center py-16">

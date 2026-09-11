@@ -5,11 +5,10 @@ import { Button, Modal, Input, Select, CalendarQuickLink, EmptyState, ConfirmMod
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon, UsersIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
-import { clearCache } from '../../utils/cache';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useData } from '../../contexts/DataContext';
 import { useNavigation } from '../../contexts/NavigationContext';
-import { useGrupe } from '../../hooks/useGrupe';
+import { useGrupe, invalidateGrupeCache } from '../../hooks/useGrupe';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useSezonActiv } from '../../hooks/useSezoane';
 
@@ -126,12 +125,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            // Șterge cache localStorage + invalidează React Query + re-fetch direct
-            Object.keys(localStorage)
-                .filter(k => k.startsWith('cache_grupe_'))
-                .forEach(k => clearCache(k));
-            await queryClient.invalidateQueries({ queryKey: ['grupe'] });
-            await refetchGrupe();
+            await invalidateGrupeCache(queryClient, refetchGrupe);
         } finally {
             setIsRefreshing(false);
         }
@@ -168,19 +162,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
             }
             const { data: newProgramItems } = await supabase.from('orar_saptamanal').select('*').eq('grupa_id', grupaToEdit.id);
             if (updatedGrupa) setGrupe(prev => (prev as GrupaWithDetails[]).map(g => g.id === grupaToEdit.id ? { ...g, ...updatedGrupa, program: newProgramItems || [] } : g));
-            // BUG-4 fix (vezi ramura CREATE mai jos): queryFn din useGrupe.ts citeste
-            // intai cache-ul localStorage (cache_grupe_*, TTL 10 min) INAINTE sa
-            // interogheze Supabase — invalidateQueries marcheaza query-ul stale si
-            // declanseaza refetch, dar queryFn tot serveste datele vechi din
-            // localStorage daca TTL-ul nu a expirat, asa ca grupa editata apare
-            // neschimbata in UI desi update-ul a reusit in DB (esec "silentios").
-            // Golim cache-ul local, la fel ca la CREATE si handleRefresh, apoi
-            // refetch explicit ca editarea sa apara imediat.
-            Object.keys(localStorage)
-                .filter(k => k.startsWith('cache_grupe_'))
-                .forEach(k => clearCache(k));
-            queryClient.invalidateQueries({ queryKey: ['grupe'] });
-            await refetchGrupe();
+            await invalidateGrupeCache(queryClient, refetchGrupe);
             showSuccess("Succes", "Grupa a fost actualizată.");
         } else { // CREATE
             const { data: newGrupa, error: grupaError } = await supabase.from('grupe').insert(grupaDbPayload).select().single();
@@ -196,14 +178,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
             if (newGrupa) {
                 const { data: finalGrupa } = await supabase.from('grupe').select('*, sportivi!grupa_id(count), program:orar_saptamanal!grupa_id(*)').eq('id', newGrupa.id).single();
                 setGrupe(prev => [...(prev as GrupaWithDetails[]), finalGrupa as GrupaWithDetails]);
-                // BUG-4 fix: invalidateQueries nu forțează un refetch real dacă cache-ul
-                // localStorage (cache_grupe_*, TTL 10 min în hooks/useGrupe.ts) e încă valid —
-                // queryFn îl întoarce direct, fără să mai interogheze Supabase. Golim cache-ul
-                // local, la fel ca în handleRefresh, ca grupa nou creată să apară imediat în listă.
-                Object.keys(localStorage)
-                    .filter(k => k.startsWith('cache_grupe_'))
-                    .forEach(k => clearCache(k));
-                queryClient.invalidateQueries({ queryKey: ['grupe'] });
+                await invalidateGrupeCache(queryClient, refetchGrupe);
                 showSuccess("Succes", "Grupa a fost creată.");
             }
         }
@@ -241,11 +216,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                 if (programError) showError("Eroare la copierea programului", programError);
             }
 
-            Object.keys(localStorage)
-                .filter(k => k.startsWith('cache_grupe_'))
-                .forEach(k => clearCache(k));
-            queryClient.invalidateQueries({ queryKey: ['grupe'] });
-            await refetchGrupe();
+            await invalidateGrupeCache(queryClient, refetchGrupe);
 
             showSuccess("Grupă dublată", `Grupa '${grupaToClone.denumire}' a fost creată în sezonul '${sezonActiv.denumire}'. Adaugă sportivii manual din Membri & Antrenamente → Adaugă Sportivi.`);
         } finally {
@@ -295,10 +266,10 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
             )
         );
         queryClient.invalidateQueries({ queryKey: ['sportivi'] });
-        queryClient.invalidateQueries({ queryKey: ['grupe'] });
         // WR-02: invalidăm și cache-ul per-grupă folosit de TabSportivi din GrupaDetailView
         // fără acest apel, lista de sportivi din tab rămâne stale până la 5 minute
         queryClient.invalidateQueries({ queryKey: ['sportivi-grupa', grupaForAdaugaSportivi.id] });
+        await invalidateGrupeCache(queryClient, refetchGrupe);
         showSuccess(
             "Succes",
             `${sportiviIds.length} sportiv${sportiviIds.length !== 1 ? 'i adăugați' : ' adăugat'} în ${grupaForAdaugaSportivi.denumire}.`
@@ -311,9 +282,8 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
         // Tracking istoric grupe
         await scoateDinGrupa([sportiviId], currentUser?.user_id || null);
         setSportivi(prev => (prev as Sportiv[]).map(s => s.id === sportiviId ? { ...s, grupa_id: null } : s));
-        queryClient.invalidateQueries({ queryKey: ['grupe'] });
         queryClient.invalidateQueries({ queryKey: ['grupe-istoric-sportiv', sportiviId] });
-        await refetchGrupe();
+        await invalidateGrupeCache(queryClient, refetchGrupe);
     };
 
     const confirmDelete = async (grupaId: string) => {
@@ -332,14 +302,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
         }
         else {
             setGrupe(prev => (prev as GrupaWithDetails[]).filter(g => g.id !== grupaId));
-            // BUG-4 fix (vezi ramura UPDATE din handleSave): fara golirea cache-ului
-            // localStorage cache_grupe_*, grupa stearsa reapare vizual la refetch
-            // pentru ca queryFn din useGrupe.ts serveste datele vechi din cache (TTL 10 min).
-            Object.keys(localStorage)
-                .filter(k => k.startsWith('cache_grupe_'))
-                .forEach(k => clearCache(k));
-            queryClient.invalidateQueries({ queryKey: ['grupe'] });
-            await refetchGrupe();
+            await invalidateGrupeCache(queryClient, refetchGrupe);
             showSuccess("Succes", "Grupa a fost ștearsă.");
         }
         setIsDeleting(false);

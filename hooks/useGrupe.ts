@@ -1,7 +1,18 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type QueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
 import { Grupa } from '../types';
-import { getCachedData, setCachedData } from '../utils/cache';
+import { getCachedData, setCachedData, clearCache } from '../utils/cache';
+
+// Golește cache-ul localStorage al grupelor (TTL 10 min, altfel ignoră orice invalidateQueries)
+// + invalidează query-ul React Query + refetch opțional. Centralizează secvența folosită
+// la orice mutație care schimbă componenta unei grupe (adaugă/scoate sportiv, editare, etc).
+export async function invalidateGrupeCache(queryClient: QueryClient, refetchGrupe?: () => Promise<unknown>) {
+    Object.keys(localStorage)
+        .filter(k => k.startsWith('cache_grupe_'))
+        .forEach(k => clearCache(k));
+    await queryClient.invalidateQueries({ queryKey: ['grupe'] });
+    if (refetchGrupe) await refetchGrupe();
+}
 
 export const useGrupe = (contextId: string | null | undefined, clubId?: string | null) => {
     const cacheKey = `cache_grupe_${contextId || 'all'}_${clubId || 'all'}`;

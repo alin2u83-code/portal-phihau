@@ -12,6 +12,45 @@ import { useIstoricMembriGrupa } from '../../hooks/useGrupeIstoric';
 import { useSezoane } from '../../hooks/useSezoane';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { WalletIcon } from '../icons';
+import { useData } from '../../contexts/DataContext';
+import { useSortAthletes, type SortBy } from '../../hooks/useSortAthletes';
+
+const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
+        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+    </svg>
+);
+
+const SortToggle: React.FC<{
+    sortBy: SortBy;
+    setSortBy: (v: SortBy) => void;
+    sortDir: 'asc' | 'desc';
+    setSortDir: (fn: (d: 'asc' | 'desc') => 'asc' | 'desc') => void;
+}> = ({ sortBy, setSortBy, sortDir, setSortDir }) => (
+    <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5 border border-slate-700/50">
+            {(['nume', 'prenume', 'grade'] as SortBy[]).map(opt => (
+                <button
+                    key={opt}
+                    onClick={() => setSortBy(opt)}
+                    className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${sortBy === opt ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
+                >
+                    {opt === 'nume' ? 'Nume' : opt === 'prenume' ? 'Prenume' : 'Grad'}
+                </button>
+            ))}
+        </div>
+        <button
+            onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+            className="p-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-amber-300 transition-colors"
+            title={sortDir === 'asc' ? 'A - Z  (apasa pentru Z - A)' : 'Z - A  (apasa pentru A - Z)'}
+        >
+            {sortDir === 'asc'
+                ? <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/></svg>
+                : <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd"/></svg>
+            }
+        </button>
+    </div>
+);
 
 interface GrupaWithDetails extends GrupaType {
     sportivi: { count: number }[];
@@ -574,6 +613,9 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
     const { showError } = useError();
     const queryClient = useQueryClient();
     const { setViewParams, navigateTo } = useNavigation();
+    const { grade } = useData();
+    const gradeById = useMemo(() => Object.fromEntries((grade || []).map(g => [g.id, g])), [grade]);
+    const { sortBy, setSortBy, sortDir, setSortDir, sortAthletes } = useSortAthletes();
     const [showInactivi, setShowInactivi] = useState(false);
     const [idInLucru, setIdInLucru] = useState<string | null>(null);
 
@@ -591,7 +633,8 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
     });
 
     const nrActivi = sportiviToti.filter((s: any) => s.status === 'Activ').length;
-    const sportivi = showInactivi ? sportiviToti : sportiviToti.filter((s: any) => s.status === 'Activ');
+    const sportiviFiltrati = showInactivi ? sportiviToti : sportiviToti.filter((s: any) => s.status === 'Activ');
+    const sportivi = sortAthletes(sportiviFiltrati.map((s: any) => ({ ...s, gradOrdine: s.grad_actual_id ? gradeById[s.grad_actual_id]?.ordine : undefined })));
 
     const toggleStatus = async (sportivId: string, statusCurent: string) => {
         const statusNou = statusCurent === 'Activ' ? 'Inactiv' : 'Activ';
@@ -623,14 +666,17 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
                 <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                     {nrActivi} sportivi activi
                 </h3>
-                <Button
-                    variant="info"
-                    size="sm"
-                    onClick={() => onOpenAdaugaSportivi(grupa)}
-                    className="min-h-[40px] touch-manipulation"
-                >
-                    Adaugă Sportivi
-                </Button>
+                <div className="flex items-center gap-2">
+                    <SortToggle sortBy={sortBy} setSortBy={setSortBy} sortDir={sortDir} setSortDir={setSortDir} />
+                    <Button
+                        variant="info"
+                        size="sm"
+                        onClick={() => onOpenAdaugaSportivi(grupa)}
+                        className="min-h-[40px] touch-manipulation"
+                    >
+                        Adaugă Sportivi
+                    </Button>
+                </div>
             </div>
 
             {sportiviToti.length > nrActivi && (
@@ -672,15 +718,17 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
                                 >
                                     <WalletIcon className="w-4 h-4" />
                                 </button>
-                                <Button
-                                    variant={s.status === 'Activ' ? 'secondary' : 'success'}
-                                    size="xs"
-                                    isLoading={idInLucru === s.id}
+                                <button
+                                    type="button"
                                     onClick={() => toggleStatus(s.id, s.status)}
-                                    className="min-h-[32px]"
+                                    disabled={idInLucru === s.id}
+                                    title={s.status === 'Activ' ? 'Activ — click pentru a dezactiva' : 'Inactiv — click pentru a activa'}
+                                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 disabled:opacity-50 ${s.status === 'Activ' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600 hover:border-slate-500'}`}
                                 >
-                                    {s.status === 'Activ' ? 'Dezactivează' : 'Activează'}
-                                </Button>
+                                    {idInLucru === s.id
+                                        ? <span className="w-3 h-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                                        : (s.status === 'Activ' && <CheckIcon className="w-4 h-4 text-white" />)}
+                                </button>
                             </div>
                         </div>
                     ))}

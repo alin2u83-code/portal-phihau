@@ -1,5 +1,4 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
-import { motion } from 'motion/react';
 import { Antrenament, Sportiv, Grupa } from '../../types';
 import { Card, Button, Modal, Input, Select, SearchableSelect } from '../ui';
 import { ArrowLeftIcon, CheckCircleIcon, CalendarDaysIcon, UsersIcon, SearchIcon, PlusIcon } from '../icons';
@@ -11,6 +10,44 @@ import { supabase } from '../../supabaseClient';
 import { formatTime } from '../../utils/date';
 import { generateTrainingsFromSchedule } from '../../utils/trainingGenerator';
 import { useStatusePrezenta } from '../../hooks/useStatusePrezenta';
+import { useSortAthletes, type SortBy } from '../../hooks/useSortAthletes';
+
+const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
+        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+    </svg>
+);
+
+const SortToggle: React.FC<{
+    sortBy: SortBy;
+    setSortBy: (v: SortBy) => void;
+    sortDir: 'asc' | 'desc';
+    setSortDir: (fn: (d: 'asc' | 'desc') => 'asc' | 'desc') => void;
+}> = ({ sortBy, setSortBy, sortDir, setSortDir }) => (
+    <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5 border border-slate-700/50">
+            {(['nume', 'prenume', 'grade'] as SortBy[]).map(opt => (
+                <button
+                    key={opt}
+                    onClick={() => setSortBy(opt)}
+                    className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${sortBy === opt ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
+                >
+                    {opt === 'nume' ? 'Nume' : opt === 'prenume' ? 'Prenume' : 'Grad'}
+                </button>
+            ))}
+        </div>
+        <button
+            onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+            className="p-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-amber-300 transition-colors"
+            title={sortDir === 'asc' ? 'A - Z  (apasa pentru Z - A)' : 'Z - A  (apasa pentru A - Z)'}
+        >
+            {sortDir === 'asc'
+                ? <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/></svg>
+                : <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd"/></svg>
+            }
+        </button>
+    </div>
+);
 
 // Tip extins pentru sportiv cu informație de apartenența la grupă
 export type TipMembru = 'principal' | 'secundar' | 'vacanta';
@@ -115,7 +152,9 @@ export const FormularPrezenta: React.FC<{
     saveAttendance: (id: string, records: { sportiv_id: string; status_id: string; is_invitat?: boolean; grupa_origine_id?: string }[], allSportivIds?: string[], clubId?: string | null) => Promise<boolean>;
 }> = ({ antrenament, onBack, onViewSportiv, saveAttendance }) => {
     const { prezentId, absentId } = useStatusePrezenta();
-    const { sportivi: totiSportivii } = useData();
+    const { sportivi: totiSportivii, grade } = useData();
+    const gradeById = useMemo(() => Object.fromEntries((grade || []).map(g => [g.id, g])), [grade]);
+    const { sortBy, setSortBy, sortDir, setSortDir, sortAthletes } = useSortAthletes<SportivCuTip>();
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -232,9 +271,10 @@ export const FormularPrezenta: React.FC<{
         const idExcluse = new Set([...idPrincipali, ...secundariFiltrati.map(s => s.id)]);
         const vacantaFiltrati = sportiviVacanta.filter(s => !idExcluse.has(s.id));
 
-        return [...principali, ...secundariFiltrati, ...vacantaFiltrati]
-            .sort((a, b) => a.nume.localeCompare(b.nume));
-    }, [antrenament.grupe, sportiviSecundari, sportiviVacanta]);
+        const combinati = [...principali, ...secundariFiltrati, ...vacantaFiltrati]
+            .map(s => ({ ...s, gradOrdine: s.grad_actual_id ? gradeById[s.grad_actual_id]?.ordine : undefined }));
+        return sortAthletes(combinati);
+    }, [antrenament.grupe, sportiviSecundari, sportiviVacanta, gradeById, sortAthletes]);
 
     // 2. Checkbox State Management
     const toggleSportiv = (sportivId: string) => {
@@ -270,15 +310,16 @@ export const FormularPrezenta: React.FC<{
         const idInGrupa = new Set(sportiviInGrupa.map(s => s.id));
         const idInvitati = new Set(invitati.map(s => s.id));
         const clubId = antrenament.grupe?.club_id ?? (antrenament as any).club_id;
-        return totiSportivii
+        const filtrati = totiSportivii
             .filter(s => s.status === 'Activ' && !idInGrupa.has(s.id) && !idInvitati.has(s.id) && (!clubId || s.club_id === clubId))
             .filter(s => {
                 if (!searchInvitat.trim()) return true;
                 const q = searchInvitat.toLowerCase();
                 return s.nume.toLowerCase().includes(q) || s.prenume.toLowerCase().includes(q);
             })
-            .sort((a, b) => a.nume.localeCompare(b.nume));
-    }, [sportiviInGrupa, invitati, totiSportivii, searchInvitat, antrenament]);
+            .map(s => ({ ...s, gradOrdine: s.grad_actual_id ? gradeById[s.grad_actual_id]?.ordine : undefined }));
+        return sortAthletes(filtrati);
+    }, [sportiviInGrupa, invitati, totiSportivii, searchInvitat, antrenament, gradeById, sortAthletes]);
 
     const addInvitat = (s: Sportiv) => {
         setInvitati(prev => [...prev, { ...s, tip: 'secundar' as TipMembru }]);
@@ -355,28 +396,30 @@ export const FormularPrezenta: React.FC<{
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                         Status: <span className="text-indigo-400">{presentIds.size}</span> / {sportiviInGrupa.length} prezenți
                     </span>
-                    
+
                     {/* Filter Controls */}
                     <div className="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700/50">
-                        <button 
+                        <button
                             onClick={() => setFilterStatus('all')}
                             className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${filterStatus === 'all' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-300'}`}
                         >
                             Toți
                         </button>
-                        <button 
+                        <button
                             onClick={() => setFilterStatus('present')}
                             className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${filterStatus === 'present' ? 'bg-emerald-500/20 text-emerald-400 shadow-sm' : 'text-slate-400 hover:text-emerald-400'}`}
                         >
                             Prezenți
                         </button>
-                        <button 
+                        <button
                             onClick={() => setFilterStatus('absent')}
                             className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${filterStatus === 'absent' ? 'bg-rose-500/20 text-rose-400 shadow-sm' : 'text-slate-400 hover:text-rose-400'}`}
                         >
                             Absenți
                         </button>
                     </div>
+
+                    <SortToggle sortBy={sortBy} setSortBy={setSortBy} sortDir={sortDir} setSortDir={setSortDir} />
                 </div>
             </div>
 
@@ -395,14 +438,8 @@ export const FormularPrezenta: React.FC<{
                                     className={`group flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${isPresent ? 'bg-emerald-500/10 border-emerald-500/30 shadow-sm' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'}`}
                                     onClick={() => toggleSportiv(s.id)}
                                 >
-                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-slate-600 group-hover:border-slate-500'}`}>
-                                        <motion.div
-                                            initial={false}
-                                            animate={{ scale: isPresent ? 1 : 0 }}
-                                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                        >
-                                            <CheckCircleIcon className="w-4 h-4 text-white" />
-                                        </motion.div>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${isPresent ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600 group-hover:border-slate-500'}`}>
+                                        {isPresent && <CheckIcon className="w-3.5 h-3.5 text-white" />}
                                     </div>
                                     <div className="flex-grow min-w-0 select-none">
                                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -444,14 +481,8 @@ export const FormularPrezenta: React.FC<{
                                     className={`group flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${isPresent ? 'bg-amber-500/10 border-amber-500/30 shadow-sm' : 'bg-slate-800/30 border-amber-700/30 hover:bg-slate-800/50'}`}
                                     onClick={() => toggleSportiv(s.id)}
                                 >
-                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-amber-500 border-amber-500 scale-110' : 'border-amber-600 group-hover:border-amber-500'}`}>
-                                        <motion.div
-                                            initial={false}
-                                            animate={{ scale: isPresent ? 1 : 0 }}
-                                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                        >
-                                            <CheckCircleIcon className="w-4 h-4 text-white" />
-                                        </motion.div>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${isPresent ? 'bg-amber-500 border-amber-500' : 'border-amber-600 group-hover:border-amber-500'}`}>
+                                        {isPresent && <CheckIcon className="w-3.5 h-3.5 text-white" />}
                                     </div>
                                     <div className="flex-grow min-w-0 select-none">
                                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -532,6 +563,9 @@ export const FormularPrezentaMultiGrupa: React.FC<{
     saveAttendance: (id: string, records: { sportiv_id: string; status_id: string; is_invitat?: boolean; grupa_origine_id?: string }[], allSportivIds?: string[], clubId?: string | null) => Promise<boolean>;
 }> = ({ antrenamente, onBack, onViewSportiv, saveAttendance }) => {
     const { prezentId } = useStatusePrezenta();
+    const { grade } = useData();
+    const gradeById = useMemo(() => Object.fromEntries((grade || []).map(g => [g.id, g])), [grade]);
+    const { sortBy, setSortBy, sortDir, setSortDir, sortAthletes } = useSortAthletes<Sportiv & { gradOrdine?: number }>();
     const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -569,12 +603,14 @@ export const FormularPrezentaMultiGrupa: React.FC<{
             }
         }
 
+        const cuGrad = [...sportiviMap.values()].map(s => ({ ...s, gradOrdine: s.grad_actual_id ? gradeById[s.grad_actual_id]?.ordine : undefined }));
+
         return {
-            sportiviAfisati: [...sportiviMap.values()].sort((a, b) => a.nume.localeCompare(b.nume)),
+            sportiviAfisati: sortAthletes(cuGrad),
             grupePerSportiv,
             antrenamentPerSportiv,
         };
-    }, [antrenamente]);
+    }, [antrenamente, gradeById, sortAthletes]);
 
     useEffect(() => {
         const initialPresent = new Set<string>(
@@ -655,10 +691,11 @@ export const FormularPrezentaMultiGrupa: React.FC<{
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 bg-slate-800/20 rounded-2xl border border-slate-700/30">
                 <Button size="sm" variant="secondary" onClick={() => setAllAttendance(true)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Prezenți</Button>
                 <Button size="sm" variant="secondary" onClick={() => setAllAttendance(false)} className="w-full bg-slate-800 hover:bg-slate-700">Toți Absenți</Button>
-                <div className="sm:col-span-2 flex justify-center pt-2">
+                <div className="sm:col-span-2 flex flex-col items-center pt-2 gap-2">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                         Status: <span className="text-indigo-400">{presentIds.size}</span> / {sportiviAfisati.length} prezenți
                     </span>
+                    <SortToggle sortBy={sortBy} setSortBy={setSortBy} sortDir={sortDir} setSortDir={setSortDir} />
                 </div>
             </div>
 
@@ -676,14 +713,8 @@ export const FormularPrezentaMultiGrupa: React.FC<{
                             className={`group flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${isPresent ? 'bg-emerald-500/10 border-emerald-500/30 shadow-sm' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'}`}
                             onClick={() => toggleSportiv(s.id)}
                         >
-                            <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPresent ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-slate-600 group-hover:border-slate-500'}`}>
-                                <motion.div
-                                    initial={false}
-                                    animate={{ scale: isPresent ? 1 : 0 }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                >
-                                    <CheckCircleIcon className="w-4 h-4 text-white" />
-                                </motion.div>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${isPresent ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600 group-hover:border-slate-500'}`}>
+                                {isPresent && <CheckIcon className="w-3.5 h-3.5 text-white" />}
                             </div>
                             <div className="flex-grow min-w-0 select-none">
                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">

@@ -818,7 +818,7 @@ const TAB_HINTS: Record<TabId, string> = {
 };
 
 export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack, onOpenAdaugaSportivi }) => {
-    const [activeTab, setActiveTab] = useState<TabId>('antrenamente');
+    const [activeTab, setActiveTab] = useState<TabId>('sportivi');
     const [isModalAdaugareOpen, setIsModalAdaugareOpen] = useState(false);
     const { data: istoricMembri = [] } = useIstoricMembriGrupa(grupa.id);
     const istoricCount = istoricMembri.length;
@@ -853,7 +853,7 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
 
             {/* Tab bar */}
             <div className="flex border-b border-slate-700 gap-1">
-                {(['antrenamente', 'orar', 'sportivi', 'istoric'] as TabId[]).map(tab => (
+                {(['sportivi', 'antrenamente', 'orar', 'istoric'] as TabId[]).map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}

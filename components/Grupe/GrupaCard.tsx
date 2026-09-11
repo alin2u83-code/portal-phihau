@@ -160,7 +160,7 @@ export const GrupaCard: React.FC<{
             </div>
             <div className="mt-6 pt-4 border-t border-slate-700 flex items-center justify-end flex-wrap gap-2">
                 {/* Butoane principale — mereu vizibile */}
-                <Button size="sm" variant="primary" onClick={() => onDetalii(grupa)} className="min-h-[40px] touch-manipulation">Detalii</Button>
+                <Button size="sm" variant="primary" onClick={() => onDetalii(grupa)} className="min-h-[40px] touch-manipulation">Membri & Antrenamente</Button>
 
                 {!esteArhivata && (
                     <>

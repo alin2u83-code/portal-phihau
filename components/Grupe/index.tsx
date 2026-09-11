@@ -247,7 +247,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
             queryClient.invalidateQueries({ queryKey: ['grupe'] });
             await refetchGrupe();
 
-            showSuccess("Grupă dublată", `Grupa '${grupaToClone.denumire}' a fost creată în sezonul '${sezonActiv.denumire}'. Adaugă sportivii manual din Detalii → Adaugă Sportivi.`);
+            showSuccess("Grupă dublată", `Grupa '${grupaToClone.denumire}' a fost creată în sezonul '${sezonActiv.denumire}'. Adaugă sportivii manual din Membri & Antrenamente → Adaugă Sportivi.`);
         } finally {
             setIsCloning(false);
             setGrupaToClone(null);

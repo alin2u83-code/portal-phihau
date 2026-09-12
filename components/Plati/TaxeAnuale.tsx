@@ -911,6 +911,25 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                 </div>
             </div>
 
+            {!taxaAnualaFederatieConfig.some(c => c.an_fiscal === anFiscalCurent) && (
+                canManage ? (
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-3">
+                        <p className="text-sm text-rose-300">
+                            ⚠️ Sezonul <strong>{formatSezon(anFiscalCurent)}</strong> nu are preț configurat pentru Taxa Federație (FRQKD). Până la configurare, ORICE înscriere la examen de grad, stagiu sau competiție din tot portalul va eșua pentru sportivii fără viză pe sezonul curent.
+                        </p>
+                        <Button variant="danger" size="sm" onClick={() => setActiveTab('taxa-federatie')} className="flex-shrink-0">
+                            Configurează prețul
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="bg-amber-400/10 border border-amber-400/20 rounded-lg px-4 py-3">
+                        <p className="text-sm text-amber-300">
+                            ⚠️ Sezonul <strong>{formatSezon(anFiscalCurent)}</strong> nu are încă prețul taxei federale configurat — înscrierile la examen, stagiu sau competiție pot eșua până la configurare. Contactați federația.
+                        </p>
+                    </div>
+                )
+            )}
+
             {/* Tab-uri */}
             <div className="flex border-b border-[var(--t-border)] overflow-x-auto">
                 {taburi.map(tab => (

@@ -377,14 +377,16 @@ Plans:
 **Goal:** Prima participare a unui sportiv la examen de grad, stagiu sau competitie intr-un sezon (an fiscal federatie, 1 sept - 31 aug) activeaza automat taxa FRQKD — factura sportiv->club plus obligatie club->federatie, exact o data per sportiv per sezon — cu pret configurabil de federatie, confirmare de plata pe metoda aleasa si istoricul 2025-2026 adus in noul model.
 **Requirements**: [TAF-01, TAF-02, TAF-03, TAF-04, TAF-05, TAF-06, TAF-07, TAF-08]
 **Depends on:** Phase 28
-**Plans:** 4 plans (3 valuri)
+**Plans:** 4/4 plans complete
 
 Plans:
 
-- [ ] 29-01-PLAN.md — Audit schema live + ALTER deconturi_federatie, constrangeri de unicitate, tabela taxa_anuala_config cu RLS, backfill 37 facturi FRQKD 2025-2026 (val 1)
-- [ ] 29-02-PLAN.md — Functia activeaza_taxa_anuala (SECURITY DEFINER) + 4 triggere AFTER INSERT + suita de test tranzactionala (val 2)
-- [ ] 29-03-PLAN.md — utils/anFiscal.ts, tipuri aliniate la schema, taxa_anuala_config in starea aplicatiei, FederationInvoices cu lista automata si metoda de plata (val 2)
-- [ ] 29-04-PLAN.md — Tab "Taxa Federatie (FRQKD)" in Taxe Anuale: CRUD pret sezon + avertisment sezon neconfigurat (val 3)
+- [x] 29-01-PLAN.md — Audit schema live + ALTER deconturi_federatie, constrangeri de unicitate, tabela taxa_anuala_config cu RLS, backfill 37 facturi FRQKD 2025-2026 (val 1)
+- [x] 29-02-PLAN.md — Functia activeaza_taxa_anuala (SECURITY DEFINER) + 4 triggere AFTER INSERT + suita de test tranzactionala (val 2)
+- [x] 29-03-PLAN.md — utils/anFiscal.ts, tipuri aliniate la schema, taxa_anuala_config in starea aplicatiei, FederationInvoices cu lista automata si metoda de plata (val 2)
+- [x] 29-04-PLAN.md — Tab "Taxa Federatie (FRQKD)" in Taxe Anuale: CRUD pret sezon + avertisment sezon neconfigurat (val 3)
+
+**Ramas de facut:** verificarile umane din browser (29-03 Task 2, 29-04 Task 2) — vezi 29-04-SUMMARY.md.
 
 ---
 

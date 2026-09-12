@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Phase 18 planned (4 plans, plan-checker blocker fixed)
-last_updated: "2026-09-05T22:29:26.665Z"
-last_activity: 2026-09-05 -- Phase 18 execution started
+stopped_at: Phase 29 executed (4/4 plans complete, browser verification pending)
+last_updated: "2026-09-12T00:00:00.000Z"
+last_activity: 2026-09-12 -- Phase 29 (Taxa Anuala Federatie FRQKD) fully executed
 progress:
-  total_phases: 20
-  completed_phases: 11
-  total_plans: 45
-  completed_plans: 40
-  percent: 55
+  total_phases: 29
+  completed_phases: 12
+  total_plans: 49
+  completed_plans: 44
+  percent: 57
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 18 — fix-suprascriere-silentioasa-grad-in-istoric-grade-sportivse
+**Current focus:** Phase 29 — taxa-anuala-federatie-frqkd-activare-automata-club-federatie (executat, verificare umana in browser ramasa)
 
 ## Current Position
 
-Phase: 18 (fix-suprascriere-silentioasa-grad-in-istoric-grade-sportivse) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 18
-Last activity: 2026-09-08 - Completed quick task 260908-tgu: Prezenta Rapida buton 3 puncte -> gestiune grupa sportivi
+Phase: 29 (taxa-anuala-federatie-frqkd-activare-automata-club-federatie) — 4/4 PLANURI EXECUTATE
+Plan: 4 of 4 (toate complete)
+Status: Faza 29 implementata complet (schema+backfill live, trigger+teste SQL live, UI FederationInvoices+TaxeAnuale). Ramase: verificari umane browser (29-03 T2, 29-04 T2). Phase 18 ramane in coada, neexecutata inca (backlog arhitectural, fara deadline — vezi Roadmap Evolution).
+Last activity: 2026-09-12 - Faza 29 (Taxa Anuala Federatie FRQKD) executata integral: 29-01..29-04
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -106,6 +106,8 @@ Recent decisions affecting current work:
 - [2026-08-28-audit-politici-rls-fantoma-pe-tabele-in-afara-fazei-25.md](todos/pending/2026-08-28-audit-politici-rls-fantoma-pe-tabele-in-afara-fazei-25.md) — politici RLS fantoma (aplicate direct pe DB, niciodata comise) gasite si pe tranzactii/grade/istoric_grade/eveniment/reduceri/cluburi, in afara scope-ului Fazei 25 — audit + fix urmator
 - [2026-09-09-leaga-prezenta-de-istoricul-de-grupe-pe-profil-sportiv.md](todos/pending/2026-09-09-leaga-prezenta-de-istoricul-de-grupe-pe-profil-sportiv.md) — extinde GrupeIstoricTab.tsx sa arate nr. prezente per interval grupa (join cu prezenta pe data_intrare/data_iesire)
 - [2026-09-09-raport-statistici-evolutie-sportivi-intre-sezoane.md](todos/pending/2026-09-09-raport-statistici-evolutie-sportivi-intre-sezoane.md) — raport "ramasi/plecati/noi" comparand doua sezoane in modulul Sezoane
+- Verificare umana browser Faza 29 (29-03 Task 2): ecran Deconturi catre Federatie — lista automata sportivi, confirmare plata cu upload real, persistenta dupa reload, buton vizibil pentru SUPER_ADMIN_FEDERATIE
+- Verificare umana browser Faza 29 (29-04 Task 2): tab Taxa Federatie (FRQKD) vizibil doar pentru SUPER_ADMIN_FEDERATIE, editare sezon persista, mesaj duplicat la 23505, banner sezon neconfigurat
 
 ### Quick Tasks Completed
 
@@ -149,6 +151,7 @@ Recent decisions affecting current work:
 - Phase 25 added: Audit izolare cross-club Prezenta, Grupe si Abonamente (RLS, hardcodari, empty states club nou) — sezon nou, alte cluburi vor folosi sistemul
 - Phase 26 added: Wizard onboarding club nou ghidat de SUPER_ADMIN (club + prim admin + rol intr-un singur flux) — depinde de Phase 25
 - Phase 28 added: Conformitate GDPR si AI Act pentru date personale sportivi si modul AI Assistant — registru evidenta prelucrari, DPIA AI, DPA procesatori, nota informare UI, consimtamant parinte minori, minimizare date AI, retentie, drepturi persoana vizata, pagina "Protectia datelor". Vezi memory project_gdpr_ai_act_conformitate.md.
+- Phase 29 added: Taxa Anuala Federatie FRQKD - activare automata club->federatie la participarea sportivului la examen/stagiu/competitie in sezonul curent (an fiscal fix 1 sept-31 aug). Repara schema orfana deconturi_federatie (fara club_id live) + reactiveaza vize_sportivi/decont_sportivi (0 randuri, nefolosite) + backfill 37 facturi FRQKD istorice 2025-2026. Spec: docs/superpowers/specs/2026-09-12-taxa-anuala-federatie-design.md.
 
 Sursa: audit complet 2026-07-06 (vezi memory project_audit_complet_20260706.md). Ordine executie: 15→16→17 (securitate, urgent) apoi 18→19→20 (integritate date) apoi 21 (race conditions) apoi 22→23→24 (arhitectura, fara urgenta).
 

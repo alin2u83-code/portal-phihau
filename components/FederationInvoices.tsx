@@ -1,90 +1,68 @@
-import React, { useState, useMemo } from 'react';
-import { DecontFederatie, DecontSportiv, Sportiv, User, Rol, Permissions } from '../types';
-import { Card, Button, Modal, Input } from './ui';
-import { ArrowLeftIcon, BanknotesIcon, UploadCloudIcon, SearchIcon, CheckCircleIcon } from './icons';
+import React, { useState, useEffect, useMemo } from 'react';
+import { DecontFederatie, DecontSportiv, User, Permissions, MetodaPlataDecont } from '../types';
+import { Card, Button, Modal, Select, EmptyState } from './ui';
+import { BanknotesIcon, UploadCloudIcon } from './icons';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { formatNume, sortBySportivNume } from '../utils/formatareSportiv';
+import { formatSezon } from '../utils/anFiscal';
 
 // --- Sub-componente ---
 
-interface SportivSelectItemProps {
-    sportiv: Sportiv;
-    selected: boolean;
-    onToggle: (id: string) => void;
+interface SportivAcoperit {
+    id: string;
+    sportiv_id: string;
+    nume?: string | null;
+    prenume?: string | null;
 }
 
-const SportivSelectItem: React.FC<SportivSelectItemProps> = ({ sportiv, selected, onToggle }) => (
-    <label className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-slate-700/50 transition-colors select-none">
-        <input
-            type="checkbox"
-            checked={selected}
-            onChange={() => onToggle(sportiv.id)}
-            className="w-4 h-4 accent-brand-primary rounded"
-        />
-        <span className={`text-sm ${selected ? 'text-white font-semibold' : 'text-slate-300'}`}>
-            {sportiv.nume} {sportiv.prenume}
-        </span>
-    </label>
-);
+const METODE_PLATA: MetodaPlataDecont[] = ['Cash', 'Transfer Bancar', 'Revolut'];
 
 interface PaymentConfirmationModalProps {
     decont: DecontFederatie;
-    sportivi: Sportiv[];
-    decontSportivi: DecontSportiv[];
-    anCurent: number;
     onClose: () => void;
-    onConfirm: (decont: DecontFederatie, file: File, sportiviSelectati: string[]) => Promise<void>;
+    onConfirm: (decont: DecontFederatie, file: File, metodaPlata: MetodaPlataDecont) => Promise<void>;
 }
 
 const PaymentConfirmationModal: React.FC<PaymentConfirmationModalProps> = ({
     decont,
-    sportivi,
-    decontSportivi,
-    anCurent,
     onClose,
     onConfirm,
 }) => {
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [search, setSearch] = useState('');
-    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [metodaPlata, setMetodaPlata] = useState<MetodaPlataDecont | ''>('');
+    const [sportiviAcoperiti, setSportiviAcoperiti] = useState<SportivAcoperit[]>([]);
+    const [loadingSportivi, setLoadingSportivi] = useState(true);
+    const [eroareSportivi, setEroareSportivi] = useState<string | null>(null);
 
-    // Sportivii deja acoperiți de un alt decont în același an
-    const sportiviDejaAcoperiti = useMemo(() => {
-        return new Set(
-            decontSportivi
-                .filter(ds => ds.an === anCurent && ds.decont_id !== decont.id)
-                .map(ds => ds.sportiv_id)
-        );
-    }, [decontSportivi, anCurent, decont.id]);
-
-    const sportiviDisponibili = useMemo(() => {
-        return sportivi
-            .filter(s => s.status === 'Activ' && !sportiviDejaAcoperiti.has(s.id))
-            .filter(s => {
-                if (!search.trim()) return true;
-                const q = search.toLowerCase();
-                return s.nume.toLowerCase().includes(q) || s.prenume.toLowerCase().includes(q);
+    useEffect(() => {
+        let active = true;
+        if (!supabase) return;
+        setLoadingSportivi(true);
+        setEroareSportivi(null);
+        supabase
+            .from('decont_sportivi')
+            .select('id, sportiv_id, an, sportivi(id, nume, prenume)')
+            .eq('decont_id', decont.id)
+            .then(({ data, error }) => {
+                if (!active) return;
+                if (error) {
+                    setEroareSportivi(error.message);
+                } else {
+                    const lista: SportivAcoperit[] = (data || []).map((row: any) => ({
+                        id: row.id,
+                        sportiv_id: row.sportiv_id,
+                        nume: row.sportivi?.nume,
+                        prenume: row.sportivi?.prenume,
+                    }));
+                    setSportiviAcoperiti(lista.sort((a, b) => sortBySportivNume(a, b)));
+                }
+                setLoadingSportivi(false);
             });
-    }, [sportivi, sportiviDejaAcoperiti, search]);
-
-    const handleToggle = (id: string) => {
-        setSelectedIds(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
-        });
-    };
-
-    const handleSelectAll = () => {
-        if (selectedIds.size === sportiviDisponibili.length) {
-            setSelectedIds(new Set());
-        } else {
-            setSelectedIds(new Set(sportiviDisponibili.map(s => s.id)));
-        }
-    };
+        return () => { active = false; };
+    }, [decont.id]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
@@ -97,88 +75,63 @@ const PaymentConfirmationModal: React.FC<PaymentConfirmationModalProps> = ({
     };
 
     const handleConfirm = async () => {
-        if (!file) return;
+        if (!file || !metodaPlata) return;
         setLoading(true);
-        await onConfirm(decont, file, Array.from(selectedIds));
+        await onConfirm(decont, file, metodaPlata);
         setLoading(false);
     };
 
-    // Suma per sportiv: dacă decont are suma și nr_participanti > 0, calculăm
-    const sumPerSportiv = decont.nr_participanti && decont.nr_participanti > 0
-        ? (decont.suma_totala || 0) / decont.nr_participanti
-        : null;
-    const totalCalculat = sumPerSportiv != null ? selectedIds.size * sumPerSportiv : null;
+    const nrDiferit = !loadingSportivi && !eroareSportivi && decont.nr_participanti != null && sportiviAcoperiti.length !== decont.nr_participanti;
 
     return (
         <Modal isOpen={true} onClose={onClose} title={`Confirmă Plata: ${decont.tip_activitate}`}>
             <div className="space-y-4">
                 <p>
                     Suma totală: <strong>{(decont.suma_totala || 0).toFixed(2)} RON</strong>.
-                    Încărcați dovada plății și selectați sportivii acoperiți de acest decont.
+                    Încărcați dovada plății și alegeți metoda folosită.
                 </p>
 
-                {/* Secțiune selecție sportivi */}
                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                        <label className="text-sm font-semibold text-slate-300">
-                            Sportivi acoperiți ({selectedIds.size} selectați)
-                        </label>
-                        <button
-                            type="button"
-                            onClick={handleSelectAll}
-                            className="text-xs text-brand-secondary hover:underline"
-                        >
-                            {selectedIds.size === sportiviDisponibili.length ? 'Deselectează tot' : 'Selectează tot'}
-                        </button>
-                    </div>
+                    <label className="text-sm font-semibold text-slate-300">
+                        Sportivi acoperiți ({decont.nr_participanti ?? sportiviAcoperiti.length})
+                    </label>
 
-                    {/* Număr actualizat */}
-                    {selectedIds.size > 0 && (
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-primary/10 border border-brand-primary/20 text-sm">
-                            <CheckCircleIcon className="w-4 h-4 text-brand-secondary flex-shrink-0" />
-                            <span className="text-slate-300">
-                                <strong className="text-white">{selectedIds.size} sportivi selectați</strong>
-                                {totalCalculat != null && (
-                                    <> — Total: {selectedIds.size} × {sumPerSportiv!.toFixed(2)} = <strong className="text-white">{totalCalculat.toFixed(2)} RON</strong></>
-                                )}
-                            </span>
+                    {nrDiferit && (
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm text-amber-300">
+                            ⚠️ Numărul de sportivi legați ({sportiviAcoperiti.length}) diferă de contorul decontului ({decont.nr_participanti}).
                         </div>
                     )}
 
-                    {/* Căutare */}
-                    <div className="relative">
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                        <input
-                            type="text"
-                            placeholder="Caută sportiv..."
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2 bg-[var(--t-surface)] border border-[var(--t-border)] rounded-lg text-sm text-[var(--t-text)] placeholder:text-slate-500 focus:outline-none focus:border-brand-primary"
-                        />
-                    </div>
-
-                    {/* Lista sportivi — mobil: full-width scroll, desktop: grid 2 col */}
-                    <div className="max-h-48 overflow-y-auto rounded-lg border border-[var(--t-border)] p-2 bg-[var(--t-surface-2)]">
-                        {sportiviDisponibili.length === 0 ? (
-                            <p className="text-center text-slate-500 text-sm py-4 italic">
-                                {search ? 'Niciun sportiv găsit.' : 'Toți sportivii activi sunt deja acoperiți de alt decont.'}
-                            </p>
-                        ) : (
+                    {loadingSportivi ? (
+                        <p className="text-center text-slate-500 text-sm py-4 italic">Se încarcă sportivii...</p>
+                    ) : eroareSportivi ? (
+                        <p className="text-center text-rose-400 text-sm py-4">{eroareSportivi}</p>
+                    ) : sportiviAcoperiti.length === 0 ? (
+                        <EmptyState title="Niciun sportiv legat" description="Decontul nu are încă sportivi legați în decont_sportivi." />
+                    ) : (
+                        <div className="max-h-48 overflow-y-auto rounded-lg border border-[var(--t-border)] p-2 bg-[var(--t-surface-2)]">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-0.5">
-                                {sportiviDisponibili.map(s => (
-                                    <SportivSelectItem
-                                        key={s.id}
-                                        sportiv={s}
-                                        selected={selectedIds.has(s.id)}
-                                        onToggle={handleToggle}
-                                    />
+                                {sportiviAcoperiti.map(s => (
+                                    <div key={s.id} className="px-2 py-1.5 text-sm text-slate-300">
+                                        {formatNume(s)}
+                                    </div>
                                 ))}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Upload dovadă plată */}
+                <Select
+                    label="Metoda Plata"
+                    value={metodaPlata}
+                    onChange={e => setMetodaPlata(e.target.value as MetodaPlataDecont | '')}
+                >
+                    <option value="">Alege metoda...</option>
+                    {METODE_PLATA.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                    ))}
+                </Select>
+
                 <label htmlFor="file-upload-decont" className="cursor-pointer block">
                     <div className={`p-6 border-2 border-dashed rounded-lg text-center transition-colors ${preview ? 'border-green-500 bg-green-900/20' : 'border-slate-600 hover:border-brand-primary hover:bg-brand-primary/10'}`}>
                         {preview ? (
@@ -198,7 +151,7 @@ const PaymentConfirmationModal: React.FC<PaymentConfirmationModalProps> = ({
 
                 <div className="flex justify-end pt-4 gap-2 border-t border-[var(--t-border)]">
                     <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button variant="success" onClick={handleConfirm} isLoading={loading} disabled={!file}>
+                    <Button variant="success" onClick={handleConfirm} isLoading={loading} disabled={!file || !metodaPlata}>
                         Confirmă și Încarcă
                     </Button>
                 </div>
@@ -213,8 +166,6 @@ interface FederationInvoicesProps {
     deconturi: DecontFederatie[];
     setDeconturi: React.Dispatch<React.SetStateAction<DecontFederatie[]>>;
     decontSportivi: DecontSportiv[];
-    setDecontSportivi: React.Dispatch<React.SetStateAction<DecontSportiv[]>>;
-    sportivi: Sportiv[];
     currentUser: User;
     onBack: () => void;
     permissions: Permissions;
@@ -224,8 +175,6 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({
     deconturi,
     setDeconturi,
     decontSportivi,
-    setDecontSportivi,
-    sportivi,
     currentUser,
     onBack,
     permissions,
@@ -233,8 +182,6 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({
     const { isFederationAdmin, isAdminClub } = permissions;
     const { showError, showSuccess } = useError();
     const [selectedDecont, setSelectedDecont] = useState<DecontFederatie | null>(null);
-
-    const anCurent = new Date().getFullYear();
 
     const filteredDeconturi = useMemo(() => {
         const sorted = [...deconturi].sort((a, b) => {
@@ -252,7 +199,7 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({
             .reduce((sum, d) => sum + (d.suma_totala || 0), 0);
     }, [filteredDeconturi]);
 
-    const handleConfirmPayment = async (decont: DecontFederatie, file: File, sportiviSelectati: string[]) => {
+    const handleConfirmPayment = async (decont: DecontFederatie, file: File, metodaPlata: MetodaPlataDecont) => {
         if (!supabase) return;
         try {
             const fileExt = file.name.split('.').pop();
@@ -264,39 +211,19 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({
 
             const { data, error } = await supabase
                 .from('deconturi_federatie')
-                .update({ status_plata: 'Platit' })
+                .update({
+                    status_plata: 'Platit',
+                    metoda_plata: metodaPlata,
+                    confirmata_federatie: true,
+                    dovada_transfer_url: filePath,
+                })
                 .eq('id', decont.id)
                 .select()
                 .single();
             if (error) throw error;
 
-            // Inserează rândurile în decont_sportivi pentru fiecare sportiv selectat
-            if (sportiviSelectati.length > 0) {
-                // Determinăm anul din data_generare a decontului, fallback la anCurent
-                const anDecont = decont.data_generare
-                    ? new Date(decont.data_generare).getFullYear()
-                    : anCurent;
-
-                const rows = sportiviSelectati.map(sportivId => ({
-                    decont_id: decont.id,
-                    sportiv_id: sportivId,
-                    an: anDecont,
-                }));
-
-                const { data: dsData, error: dsError } = await supabase
-                    .from('decont_sportivi')
-                    .upsert(rows, { onConflict: 'decont_id,sportiv_id', ignoreDuplicates: true })
-                    .select();
-
-                if (dsError) throw dsError;
-
-                if (dsData && dsData.length > 0) {
-                    setDecontSportivi(prev => [...prev, ...dsData]);
-                }
-            }
-
             setDeconturi(prev => prev.map(d => d.id === decont.id ? data : d));
-            showSuccess("Succes", `Plata a fost confirmată${sportiviSelectati.length > 0 ? ` pentru ${sportiviSelectati.length} sportivi` : ''}.`);
+            showSuccess("Succes", `Plata a fost confirmată prin ${metodaPlata}.`);
             setSelectedDecont(null);
         } catch (err: any) {
             console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
@@ -327,9 +254,11 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({
                         <thead className="bg-slate-700/30 text-slate-400 text-xs uppercase">
                             <tr>
                                 <th className="p-3">Activitate</th>
+                                <th className="p-3">Sezon</th>
                                 <th className="p-3">Data</th>
                                 <th className="p-3 text-center">Nr. Sportivi</th>
                                 <th className="p-3 text-right">Sumă</th>
+                                <th className="p-3">Metoda</th>
                                 <th className="p-3 text-center">Status</th>
                                 <th className="p-3 text-right">Acțiuni</th>
                             </tr>
@@ -338,16 +267,18 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({
                             {filteredDeconturi.map(d => (
                                 <tr key={d.id}>
                                     <td className="p-3 font-semibold">{d.tip_activitate}</td>
+                                    <td className="p-3">{d.an_fiscal != null ? formatSezon(d.an_fiscal) : '-'}</td>
                                     <td className="p-3">{d.data_generare ? new Date(d.data_generare).toLocaleDateString('ro-RO') : '-'}</td>
                                     <td className="p-3 text-center">{d.nr_participanti}</td>
                                     <td className="p-3 text-right font-bold text-white">{(d.suma_totala || 0).toFixed(2)} RON</td>
+                                    <td className="p-3">{d.metoda_plata ?? '-'}</td>
                                     <td className="p-3 text-center">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${d.status_plata === 'Platit' ? 'bg-green-600/30 text-green-300' : 'bg-red-600/30 text-red-300'}`}>
                                             {d.status_plata === 'Platit' ? 'ACHITAT' : 'NEACHITAT'}
                                         </span>
                                     </td>
                                     <td className="p-3 text-right">
-                                        {d.status_plata === 'In asteptare' && isAdminClub ? (
+                                        {d.status_plata === 'In asteptare' && (isAdminClub || isFederationAdmin) ? (
                                             <Button size="sm" variant="success" onClick={() => setSelectedDecont(d)}>Confirmă Plată</Button>
                                         ) : (
                                             <span className="text-xs text-slate-500 italic">
@@ -370,9 +301,6 @@ export const FederationInvoices: React.FC<FederationInvoicesProps> = ({
             {selectedDecont && (
                 <PaymentConfirmationModal
                     decont={selectedDecont}
-                    sportivi={sportivi}
-                    decontSportivi={decontSportivi}
-                    anCurent={anCurent}
                     onClose={() => setSelectedDecont(null)}
                     onConfirm={handleConfirmPayment}
                 />

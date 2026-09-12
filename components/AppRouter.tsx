@@ -232,7 +232,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'facturi-fara-prezenta':
                                 return renderProtected(<Lazy.FacturiFaraPrezenta onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, canManageFinances);
                             case 'deconturi-federatie':
-                                return renderProtected(<Lazy.FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} decontSportivi={decontSportivi} setDecontSportivi={setDecontSportivi} sportivi={filteredData.sportivi} currentUser={currentUser!} permissions={permissions} />, isAtLeastClubAdmin);
+                                return renderProtected(<Lazy.FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} decontSportivi={decontSportivi} currentUser={currentUser!} permissions={permissions} />, isAtLeastClubAdmin);
                             case 'plati-scadente':
                                 return renderProtected(<Lazy.PlatiScadente onIncaseazaMultiple={handleIncaseazaMultiple} onViewSportiv={onViewSportiv} permissions={permissions} onBack={handleBackToDashboard} />, canManageFinances);
                             case 'jurnal-incasari':

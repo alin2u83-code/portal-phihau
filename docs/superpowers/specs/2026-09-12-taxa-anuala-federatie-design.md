@@ -13,6 +13,13 @@ daca ar rula acum. Fluxul "Taxa Anuala" descris in memoria proiectului
 (aprilie 2026: `vize_sportivi`, `decont_sportivi`) exista ca tabele dar
 `vize_sportivi` are 0 randuri — nefolosit niciodata in productie.
 
+**Precursor manual gasit** (2026-09-12): 37 randuri reale in `plati`, `tip='FRQKD'`,
+`descriere='FRQKD Sezonul 2025-2026'`, `suma=170` (una `0`), toate pt un
+singur club (`cbb0b228-...`), generate manual pe 2026-01-20, status mixt
+Achitat/Neachitat. Fara nicio legatura la `vize_sportivi`/`decont_sportivi`/
+`deconturi_federatie` — clubul a facturat sportivii direct, fara trecere prin
+niciun mecanism de urmarire a platii catre federatie.
+
 ## Obiectiv
 
 Cand un sportiv participa prima data intr-un sezon (an fiscal federatie) la
@@ -34,7 +41,7 @@ altfel `an_fiscal = anul curent - 1`. Sezonul "2026-2027" = `an_fiscal 2026`.
 Adauga:
 - `club_id uuid references cluburi(id)` — NOT NULL pt randuri noi
 - `an_fiscal int` — NOT NULL pt randuri noi
-- `tip_activitate text default 'Taxa Anuala'`
+- `tip_activitate text default 'FRQKD'`
 - `nr_participanti int default 0`
 - `status_plata text default 'In asteptare'` — check in ('In asteptare','Platit')
 - `metoda_plata text` — check in ('Cash','Transfer Bancar','Revolut'), nullable pana la confirmare plata
@@ -90,9 +97,9 @@ Logica (idempotenta, safe la rulari concurente):
 4. Altfel:
    a. `SELECT club_id INTO v_club_id FROM sportivi WHERE id = p_sportiv_id`
    b. `SELECT suma INTO v_suma FROM taxa_anuala_config WHERE an_fiscal = v_an_fiscal` — daca `NULL`, `RAISE EXCEPTION` (rollback complet, inclusiv pasul 2 — tranzactia intreaga cade, sportivul ramane fara viza pana federatia seteaza pretul sezonului)
-   c. `INSERT INTO plati (sportiv_id, club_id, suma, descriere, data, tip, status, an) VALUES (p_sportiv_id, v_club_id, v_suma, 'Taxa Anuala Federatie ' || v_an_fiscal || '-' || (v_an_fiscal+1), CURRENT_DATE, 'Taxa Anuala', 'Neachitat', v_an_fiscal) RETURNING id INTO v_plata_id`
+   c. `INSERT INTO plati (sportiv_id, club_id, suma, descriere, data, tip, status, an) VALUES (p_sportiv_id, v_club_id, v_suma, 'FRQKD Sezonul ' || v_an_fiscal || '-' || (v_an_fiscal+1), CURRENT_DATE, 'FRQKD', 'Neachitat', v_an_fiscal) RETURNING id INTO v_plata_id` — `tip='FRQKD'`, nu `'Taxa Anuala'`: pastreaza consistenta cu cele 37 randuri istorice (aceeasi denumire, deja vazuta de sportivi/admini)
    d. `UPDATE vize_sportivi SET plata_id = v_plata_id, data_platii = CURRENT_DATE WHERE id = v_viza_id`
-   e. `INSERT INTO deconturi_federatie (club_id, an_fiscal, tip_activitate, suma_totala, nr_participanti, status_plata) VALUES (v_club_id, v_an_fiscal, 'Taxa Anuala', 0, 0, 'In asteptare') ON CONFLICT (club_id, an_fiscal) DO NOTHING`
+   e. `INSERT INTO deconturi_federatie (club_id, an_fiscal, tip_activitate, suma_totala, nr_participanti, status_plata) VALUES (v_club_id, v_an_fiscal, 'FRQKD', 0, 0, 'In asteptare') ON CONFLICT (club_id, an_fiscal) DO NOTHING`
    f. `UPDATE deconturi_federatie SET suma_totala = suma_totala + v_suma, nr_participanti = nr_participanti + 1 WHERE club_id = v_club_id AND an_fiscal = v_an_fiscal RETURNING id INTO v_decont_id`
    g. `INSERT INTO decont_sportivi (decont_id, sportiv_id, an) VALUES (v_decont_id, p_sportiv_id, v_an_fiscal)`
 
@@ -116,6 +123,18 @@ Toti pasii 4a-4g in aceeasi tranzactie ca trigger-ul (implicit — un trigger AF
 Pentru `SUPER_ADMIN_FEDERATIE`: formular simplu (an_fiscal + suma) care
 scrie in `taxa_anuala_config`. Poate fi un tab in ecranul existent de
 administrare federatie (nu un modul nou separat).
+
+## Migrare / backfill istoric
+
+Rulat o singura data, in aceeasi migratie care creeaza schema noua:
+
+1. **Seed pret sezon curent**: `INSERT INTO taxa_anuala_config (an_fiscal, suma) VALUES (2026, 170)` — valoare implicita preluata din istoric (2025-2026), editabila oricand din UI de `SUPER_ADMIN_FEDERATIE`.
+2. **Backfill cele 37 facturi FRQKD 2025-2026** (`an_fiscal=2025`, sezon deja incheiat, fara risc de coliziune cu gate-ul care porneste de la 2026):
+   - `INSERT INTO deconturi_federatie (club_id, an_fiscal, tip_activitate, suma_totala, nr_participanti, status_plata) SELECT club_id, 2025, 'FRQKD', SUM(suma), COUNT(*), 'In asteptare' FROM plati WHERE tip='FRQKD' AND descriere='FRQKD Sezonul 2025-2026' GROUP BY club_id` (status ramane `'In asteptare'` — nu exista dovada ca acest club a virat efectiv suma catre federatie, doar ca a facturat sportivii)
+   - `INSERT INTO vize_sportivi (sportiv_id, an, status_viza, plata_id, data_platii) SELECT sportiv_id, 2025, 'Activa', id, data FROM plati WHERE tip='FRQKD' AND descriere='FRQKD Sezonul 2025-2026'`
+   - `INSERT INTO decont_sportivi (decont_id, sportiv_id, an) SELECT d.id, p.sportiv_id, 2025 FROM plati p JOIN deconturi_federatie d ON d.club_id = p.club_id AND d.an_fiscal = 2025 WHERE p.tip='FRQKD' AND p.descriere='FRQKD Sezonul 2025-2026'`
+
+Rezultat: cei 37 de sportivi apar cu viza activa pe 2025-2026 (nu vor mai declansa gate-ul retroactiv daca ar exista vreun insert vechi reprocesat), iar clubul lor are un decont FRQKD 2025 vizibil in `FederationInvoices.tsx` — admin-ul federatiei poate confirma acum plata (cu metoda_plata) pentru un decont istoric.
 
 ## Testare
 

@@ -372,6 +372,20 @@ Plans:
 - [x] 28-04-PLAN.md — Consimtamant parinte minori sub 16 (tipuri, gate de validare, camp conditional, persistenta pe calea de creare) + nota de informare GDPR la sportiv nou — REQ-4, REQ-5
 - [x] 28-05-PLAN.md — Pagina Protectia datelor (toate rolurile) + coada admin Cereri GDPR + cablare view-uri in LazyComponents/AppRouter/menuConfig — REQ-8, REQ-9
 
+### Phase 29: Taxa Anuala Federatie FRQKD - activare automata club->federatie la participarea sportivului la examen/stagiu/competitie in sezonul curent. Spec: docs/superpowers/specs/2026-09-12-taxa-anuala-federatie-design.md
+
+**Goal:** Prima participare a unui sportiv la examen de grad, stagiu sau competitie intr-un sezon (an fiscal federatie, 1 sept - 31 aug) activeaza automat taxa FRQKD — factura sportiv->club plus obligatie club->federatie, exact o data per sportiv per sezon — cu pret configurabil de federatie, confirmare de plata pe metoda aleasa si istoricul 2025-2026 adus in noul model.
+**Requirements**: [TAF-01, TAF-02, TAF-03, TAF-04, TAF-05, TAF-06, TAF-07, TAF-08]
+**Depends on:** Phase 28
+**Plans:** 4 plans (3 valuri)
+
+Plans:
+
+- [ ] 29-01-PLAN.md — Audit schema live + ALTER deconturi_federatie, constrangeri de unicitate, tabela taxa_anuala_config cu RLS, backfill 37 facturi FRQKD 2025-2026 (val 1)
+- [ ] 29-02-PLAN.md — Functia activeaza_taxa_anuala (SECURITY DEFINER) + 4 triggere AFTER INSERT + suita de test tranzactionala (val 2)
+- [ ] 29-03-PLAN.md — utils/anFiscal.ts, tipuri aliniate la schema, taxa_anuala_config in starea aplicatiei, FederationInvoices cu lista automata si metoda de plata (val 2)
+- [ ] 29-04-PLAN.md — Tab "Taxa Federatie (FRQKD)" in Taxe Anuale: CRUD pret sezon + avertisment sezon neconfigurat (val 3)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

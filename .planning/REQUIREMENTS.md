@@ -74,6 +74,19 @@
 - [ ] **REQ-8**: View nou `protectia-datelor` accesibil tuturor rolurilor autentificate, cu rezumat drepturi si formular de cerere
 - [ ] **REQ-9**: Flux cerere export/stergere — tabel `cereri_gdpr` cu RLS scopat pe club, coada de aprobare ADMIN_CLUB (`cereri-gdpr`), aprobarea schimba doar statusul
 
+### Taxa Anuala Federatie FRQKD (Faza 29 - activare automata club->federatie)
+
+> ID-uri create la planificarea fazei 29 (feature nou, absent din requirements-urile v1.1). Deciziile de implementare D-01..D-11 sunt mapate in tabela din `29-01-PLAN.md`, derivate din `29-CONTEXT.md` si din `docs/superpowers/specs/2026-09-12-taxa-anuala-federatie-design.md`.
+
+- [ ] **TAF-01**: `deconturi_federatie` reparata aditiv (club_id, an_fiscal, tip_activitate, nr_participanti, status_plata, metoda_plata, data_generare) cu unicitate `(club_id, an_fiscal)` (D-02)
+- [ ] **TAF-02**: Tabela `taxa_anuala_config` cu `an_fiscal` unic si `suma >= 0`, scriabila doar de SUPER_ADMIN_FEDERATIE, citibila de orice utilizator autentificat, seed `(2026, 170)` (D-05)
+- [ ] **TAF-03**: Backfill idempotent al celor 37 facturi FRQKD sezon 2025-2026 in `deconturi_federatie` / `vize_sportivi` / `decont_sportivi`, cu `status_plata='In asteptare'` (D-11)
+- [ ] **TAF-04**: Prima participare a unui sportiv intr-un sezon la examen de grad, stagiu CVD, stagiu sau competitie activeaza automat taxa FRQKD: factura `plati` tip='FRQKD' + decont club->federatie (D-06, D-07)
+- [ ] **TAF-05**: Activarea este idempotenta (o singura data per sportiv per sezon) si esueaza zgomotos, fara randuri orfane, cand pretul sezonului nu e configurat (D-07, D-08)
+- [ ] **TAF-06**: Lista sportivilor acoperiti de un decont vine din `decont_sportivi`, fara selectie manuala in `FederationInvoices.tsx` (D-09)
+- [ ] **TAF-07**: Confirmarea platii unui decont cere metoda (Cash / Transfer Bancar / Revolut) si persista `metoda_plata`, `status_plata='Platit'`, `confirmata_federatie=true` si dovada incarcata (D-09)
+- [ ] **TAF-08**: SUPER_ADMIN_FEDERATIE seteaza si corecteaza pretul unui sezon dintr-un tab al ecranului existent Taxe Anuale, cu avertisment vizibil cand sezonul curent nu are pret (D-05, D-10)
+
 ## Future Requirements (deferred)
 
 - Dashboard federație cu agregate multi-club (SUPER_ADMIN) — v2.0
@@ -138,3 +151,11 @@
 | REQ-7 | Phase 28 | 28-03-PLAN.md |
 | REQ-8 | Phase 28 | 28-05-PLAN.md |
 | REQ-9 | Phase 28 | 28-01-PLAN.md, 28-05-PLAN.md |
+| TAF-01 | Phase 29 | 29-01-PLAN.md |
+| TAF-02 | Phase 29 | 29-01-PLAN.md |
+| TAF-03 | Phase 29 | 29-01-PLAN.md |
+| TAF-04 | Phase 29 | 29-02-PLAN.md |
+| TAF-05 | Phase 29 | 29-02-PLAN.md |
+| TAF-06 | Phase 29 | 29-03-PLAN.md |
+| TAF-07 | Phase 29 | 29-03-PLAN.md |
+| TAF-08 | Phase 29 | 29-04-PLAN.md |

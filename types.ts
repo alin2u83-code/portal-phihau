@@ -496,6 +496,12 @@ export interface DecontFederatie {
   suma_totala: number | null;
   status_plata: string | null;
   data_generare: string | null;
+  an_fiscal: number | null;
+  metoda_plata: 'Cash' | 'Transfer Bancar' | 'Revolut' | null;
+  data_decont?: string | null;
+  dovada_transfer_url?: string | null;
+  confirmata_federatie?: boolean | null;
+  created_at?: string;
 }
 
 export interface DecontSportiv {
@@ -506,6 +512,7 @@ export interface DecontSportiv {
   created_at?: string;
 }
 
+// Tabela veche public.taxe_anuale_config (an/descriere/club_id/data_inceput/data_sfarsit) — NU se confunda cu TaxaAnualaFederatieConfig
 export interface TaxaAnualeConfig {
   id: string;
   an: number;
@@ -516,6 +523,16 @@ export interface TaxaAnualeConfig {
   data_sfarsit?: string | null;
   created_at?: string;
 }
+
+// Tabela noua public.taxa_anuala_config (an_fiscal/suma) — pretul taxei federale FRQKD per sezon, vezi Faza 29
+export interface TaxaAnualaFederatieConfig {
+  id: string;
+  an_fiscal: number;
+  suma: number;
+  created_at?: string;
+}
+
+export type MetodaPlataDecont = NonNullable<DecontFederatie['metoda_plata']>;
 
 export interface VizaSportiv {
   id: string;

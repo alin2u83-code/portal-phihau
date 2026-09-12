@@ -5,7 +5,7 @@ import {
     Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata,
     Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie,
     Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat, VederePrezentaSportiv, FilteredData,
-    TaxaAnualeConfig, VizaSportiv, DecontSportiv
+    TaxaAnualeConfig, VizaSportiv, DecontSportiv, TaxaAnualaFederatieConfig
 } from '../types';
 import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { withCleanUuidFilters } from '../utils/supabaseFilters';
@@ -44,6 +44,7 @@ export interface AppData {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
     istoricPrezenta: VederePrezentaSportiv[];
     taxeAnualeConfig: TaxaAnualeConfig[];
+    taxaAnualaFederatieConfig: TaxaAnualaFederatieConfig[];
     vizeSportivi: VizaSportiv[];
     decontSportivi: DecontSportiv[];
     filteredData?: FilteredData;
@@ -56,7 +57,7 @@ const initialData: AppData = {
     rezultate: [], preturiConfig: [], tipuriAbonament: [], familii: [], 
     allRoles: [], reduceri: [], tipuriPlati: [], 
     locatii: [], clubs: [], deconturiFederatie: [], vizualizarePlati: [],
-    istoricPlatiDetaliat: [], istoricPrezenta: [], taxeAnualeConfig: [], vizeSportivi: [], decontSportivi: [], allowedClubs: []
+    istoricPlatiDetaliat: [], istoricPrezenta: [], taxeAnualeConfig: [], taxaAnualaFederatieConfig: [], vizeSportivi: [], decontSportivi: [], allowedClubs: []
 };
 
 export const useDataProvider = () => {
@@ -350,6 +351,7 @@ export const useDataProvider = () => {
                 deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
                 vizeSportivi: cleanedSupabase.from('vize_sportivi').select('*'),
                 decontSportivi: cleanedSupabase.from('decont_sportivi').select('*'),
+                taxaAnualaFederatieConfig: cleanedSupabase.from('taxa_anuala_config').select('*'),
                 preturiConfig: cleanedSupabase.from('preturi_config').select('*'),
             };
 
@@ -465,6 +467,7 @@ export const useDataProvider = () => {
                     deconturiFederatie: deferredData.deconturiFederatie || prev.deconturiFederatie,
                     vizeSportivi: deferredData.vizeSportivi || prev.vizeSportivi,
                     decontSportivi: deferredData.decontSportivi || prev.decontSportivi,
+                    taxaAnualaFederatieConfig: deferredData.taxaAnualaFederatieConfig || prev.taxaAnualaFederatieConfig,
                     preturiConfig: deferredData.preturiConfig || prev.preturiConfig,
                 }));
             });
@@ -571,6 +574,7 @@ export const useDataProvider = () => {
         setTaxeAnualeConfig: createSetter('taxeAnualeConfig'),
         setVizeSportivi: createSetter('vizeSportivi'),
         setDecontSportivi: createSetter('decontSportivi'),
+        setTaxaAnualaFederatieConfig: createSetter('taxaAnualaFederatieConfig'),
         loadingIstoric,
         fetchIstoricVedere,
         initializeAndFetchData 

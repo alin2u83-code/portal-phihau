@@ -9,7 +9,7 @@ interface EditIncasareTarget {
     plataId: string;
     suma: number;
     data_platii: string;
-    metoda_plata: 'Cash' | 'Transfer Bancar';
+    metoda_plata: 'Cash' | 'Transfer Bancar' | 'Revolut';
     // suma editabilă doar când încasarea acoperă o singură factură —
     // altfel ar trebui realocată proporțional, ceea ce nu e cazul acoperit aici
     sumaEditabila: boolean;
@@ -25,7 +25,7 @@ export const EditIncasareModal: React.FC<EditIncasareModalProps> = ({ target, on
     const { showError, showSuccess } = useError();
     const [suma, setSuma] = useState('');
     const [data, setData] = useState('');
-    const [metoda, setMetoda] = useState<'Cash' | 'Transfer Bancar'>('Cash');
+    const [metoda, setMetoda] = useState<'Cash' | 'Transfer Bancar' | 'Revolut'>('Cash');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -78,9 +78,10 @@ export const EditIncasareModal: React.FC<EditIncasareModalProps> = ({ target, on
                     </p>
                 )}
                 <Input label="Data plății" type="date" value={data} onChange={e => setData(e.target.value)} disabled={loading} />
-                <Select label="Metodă plată" value={metoda} onChange={e => setMetoda(e.target.value as 'Cash' | 'Transfer Bancar')} disabled={loading}>
+                <Select label="Metodă plată" value={metoda} onChange={e => setMetoda(e.target.value as 'Cash' | 'Transfer Bancar' | 'Revolut')} disabled={loading}>
                     <option value="Cash">Cash</option>
                     <option value="Transfer Bancar">Transfer Bancar</option>
+                    <option value="Revolut">Revolut</option>
                 </Select>
                 <div className="flex justify-end gap-2 pt-2">
                     <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>

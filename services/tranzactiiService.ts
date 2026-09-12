@@ -8,7 +8,7 @@ import { Plata, Tranzactie } from '../types';
 export async function editeazaIncasare(
   tranzactieId: string,
   plataId: string,
-  updates: { suma?: number; data_platii: string; metoda_plata: 'Cash' | 'Transfer Bancar' }
+  updates: { suma?: number; data_platii: string; metoda_plata: 'Cash' | 'Transfer Bancar' | 'Revolut' }
 ): Promise<{ tranzactie: Tranzactie; plata: Plata }> {
   if (updates.suma !== undefined) {
     const { error: allocError } = await supabase

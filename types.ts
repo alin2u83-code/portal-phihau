@@ -149,7 +149,7 @@ export interface Tranzactie {
   club_id?: string | null;
   suma: number;
   data_platii: string;
-  metoda_plata: 'Cash' | 'Transfer Bancar';
+  metoda_plata: 'Cash' | 'Transfer Bancar' | 'Revolut';
 }
 
 export interface Plata {
@@ -159,7 +159,11 @@ export interface Plata {
   club_id?: string | null;
   suma_initiala?: number | null;
   reducere_id?: string | null;
-  reducere_detalii?: string | null;
+  // Numele coloanei reale din DB e camelCase ("reducereDetalii"), nu snake_case —
+  // anomalie de schema descoperita in debug facturi-nu-se-pot-edita (2026-09-12):
+  // scrierea cu "reducere_detalii" (snake_case) produce PGRST204 "column not found"
+  // la orice INSERT, pentru ca acea coloana nu exista deloc in tabela plati.
+  reducereDetalii?: string | null;
   suma: number;
   data: string;
   status: 'Achitat' | 'Neachitat' | 'Achitat Parțial' | 'Anulat';
@@ -205,7 +209,7 @@ export interface IstoricPlataDetaliat {
   tranzactie_id: string | null;
   data_plata_string: string | null;
   suma_incasata: number | null;
-  metoda_plata: 'Cash' | 'Transfer Bancar' | null;
+  metoda_plata: 'Cash' | 'Transfer Bancar' | 'Revolut' | null;
 }
 
 export interface PretConfig {

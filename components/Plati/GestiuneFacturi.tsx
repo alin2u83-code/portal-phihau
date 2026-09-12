@@ -40,7 +40,7 @@ const initialFormState = {
     tip: 'Abonament',
     data: new Date().toISOString().split('T')[0],
     isDirectPayment: false,
-    metoda_plata: 'Cash' as 'Cash' | 'Transfer Bancar',
+    metoda_plata: 'Cash' as 'Cash' | 'Transfer Bancar' | 'Revolut',
 };
 
 export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, currentUser, sportivi, plati, setPlati, setTranzactii, tipuriPlati, familii, onViewSportiv, initialSportivId }) => {
@@ -82,7 +82,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
 
     const [plataForPayment, setPlataForPayment] = useState<Plata | null>(null);
     const [paymentAmount, setPaymentAmount] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
+    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar' | 'Revolut'>('Cash');
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
     const [plataForView, setPlataForView] = useState<Plata | null>(null);
@@ -228,7 +228,11 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 suma: sumaNum,
                 suma_initiala: sumaInitNum,
                 reducere_id: formState.reducere_id || null,
-                reducere_detalii: reducere?.nume || null,
+                // Numele real al coloanei in DB e camelCase ("reducereDetalii"), nu
+                // snake_case — vezi debug facturi-nu-se-pot-edita.md (2026-09-12).
+                // Cu "reducere_detalii" (snake_case), Supabase respinge INSERT-ul cu
+                // PGRST204 "Could not find the 'reducere_detalii' column of 'plati'".
+                reducereDetalii: reducere?.nume || null,
                 data: formState.data,
                 status: formState.isDirectPayment ? 'Achitat' : 'Neachitat',
                 descriere: formState.descriere,
@@ -243,6 +247,11 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
 
             if (formState.isDirectPayment && plataData) {
                 // Create transaction as well
+                // NOTA: tabela 'tranzactii' NU are coloana 'descriere' (verificat live,
+                // 2026-09-12) — inserarea acestui camp arunca eroare Postgres 42703
+                // "column descriere of relation tranzactii does not exist". Coloanele
+                // reale sunt: id, plata_ids, sportiv_id, familie_id, suma, data_platii,
+                // metoda_plata, created_at, club_id, suma_totala, suma_incasata.
                 const { error: txError } = await supabase.from('tranzactii').insert({
                     plata_ids: [plataData.id],
                     sportiv_id: plataData.sportiv_id,
@@ -250,7 +259,6 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     suma: sumaNum,
                     data_platii: formState.data,
                     metoda_plata: formState.metoda_plata,
-                    descriere: `Încasare directă: ${plataData.descriere}`,
                     club_id: plataData.club_id
                 });
                 if (txError) throw txError;
@@ -669,6 +677,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                                 <Select label="" name="metoda_plata" value={formState.metoda_plata} onChange={handleFormChange} className="!mt-0 min-w-[150px]">
                                     <option value="Cash">Cash</option>
                                     <option value="Transfer Bancar">Transfer Bancar</option>
+                                    <option value="Revolut">Revolut</option>
                                 </Select>
                             )}
                         </div>
@@ -770,6 +779,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                         <Select label="Metodă Plată" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as any)}>
                             <option value="Cash">Cash</option>
                             <option value="Transfer Bancar">Transfer Bancar</option>
+                            <option value="Revolut">Revolut</option>
                         </Select>
 
                         <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">

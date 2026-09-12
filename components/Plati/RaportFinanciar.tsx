@@ -67,7 +67,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     // Factură / Chitanță modal
     const [documentModal, setDocumentModal] = useState<{ plata: IstoricPlataDetaliat; mode: 'factura' | 'chitanta' } | null>(null);
     const [paymentAmount, setPaymentAmount] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
+    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar' | 'Revolut'>('Cash');
     const [isSaving, setIsSaving] = useState(false);
 
     // Tab "Plăți & Încasări" — vizualizare unificată facturi + încasări per club
@@ -683,6 +683,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                         <option value="">Toate</option>
                                         <option value="Cash">Cash</option>
                                         <option value="Transfer Bancar">Transfer Bancar</option>
+                                        <option value="Revolut">Revolut</option>
                                     </Select>
                                     <div className="flex items-end">
                                         <button onClick={resetFilters} className="w-full py-2 text-xs text-[var(--t-text-muted)] hover:text-rose-400 border border-[var(--t-border)] hover:border-rose-500/50 rounded-lg transition-colors font-medium">
@@ -1503,10 +1504,11 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                             <Select
                                 label="Metodă plată"
                                 value={paymentMethod}
-                                onChange={e => setPaymentMethod(e.target.value as 'Cash' | 'Transfer Bancar')}
+                                onChange={e => setPaymentMethod(e.target.value as 'Cash' | 'Transfer Bancar' | 'Revolut')}
                             >
                                 <option value="Cash">Cash</option>
                                 <option value="Transfer Bancar">Transfer Bancar</option>
+                                <option value="Revolut">Revolut</option>
                             </Select>
                         </div>
                         <div className="px-5 pb-5 flex gap-2">

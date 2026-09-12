@@ -79,7 +79,7 @@ const emptyIncasareState = {
     suma: '' as number | string,
     suma_initiala: 0,
     reducere_id: null as string | null,
-    metoda_plata: 'Cash' as 'Cash' | 'Transfer Bancar',
+    metoda_plata: 'Cash' as 'Cash' | 'Transfer Bancar' | 'Revolut',
     data_platii: new Date().toISOString().split('T')[0],
     tip: 'Abonament',
     descriere: '',
@@ -101,7 +101,7 @@ const AdaugaAvans: React.FC<{
 }> = ({ sportivi, familii, setTranzactii }) => {
     const [familieId, setFamilieId] = useState('');
     const [suma, setSuma] = useState<number | string>('');
-    const [metodaPlata, setMetodaPlata] = useState<'Cash' | 'Transfer Bancar'>('Cash');
+    const [metodaPlata, setMetodaPlata] = useState<'Cash' | 'Transfer Bancar' | 'Revolut'>('Cash');
     const [dataPlatii, setDataPlatii] = useState(new Date().toISOString().split('T')[0]);
     const [loading, setLoading] = useState(false);
     const { showError, showSuccess } = useError();
@@ -160,6 +160,7 @@ const AdaugaAvans: React.FC<{
                     <Select label="Metoda de Plată" value={metodaPlata} onChange={e => setMetodaPlata(e.target.value as any)}>
                          <option value="Cash">Cash</option>
                          <option value="Transfer Bancar">Transfer Bancar</option>
+                         <option value="Revolut">Revolut</option>
                     </Select>
                 </div>
                 <div className="flex justify-end pt-2">
@@ -425,7 +426,9 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     suma: sumaNum, 
                     suma_initiala: sumaNum,
                     reducere_id: formState.reducere_id,
-                    reducere_detalii: reducereAplicata?.nume || null,
+                    // Numele real al coloanei in DB e camelCase ("reducereDetalii"), nu
+                    // snake_case — vezi debug facturi-nu-se-pot-edita.md (2026-09-12).
+                    reducereDetalii: reducereAplicata?.nume || null,
                     data: formState.data_platii!, 
                     status: 'Neachitat',
                     descriere: formState.descriere, 
@@ -667,7 +670,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                             <option value="">Selectează...</option>
                             {sportivi.filter(s => s.status === 'Activ').map(s => <option key={s.id} value={s.id}>{s.nume} {s.prenume}</option>)}
                         </Select>
-                        <Select label="Metodă Plată" name="metoda_plata" value={formState.metoda_plata!} onChange={handleFormChange}><option value="Cash">Cash</option><option value="Transfer Bancar">Transfer Bancar</option></Select>
+                        <Select label="Metodă Plată" name="metoda_plata" value={formState.metoda_plata!} onChange={handleFormChange}><option value="Cash">Cash</option><option value="Transfer Bancar">Transfer Bancar</option><option value="Revolut">Revolut</option></Select>
                     </div>
                     {isMultiple && (<div className="p-3 bg-slate-700/50 rounded-md border border-[var(--border-color)]"><p className="text-sm font-semibold mb-2">Facturi selectate pentru stingere:</p><ul className="text-xs space-y-1 text-slate-300">{platiInitiale.map(p => <li key={p.id}>• {p.descriere} - <strong>{p.suma.toFixed(2)} RON</strong></li>)}</ul></div>)}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

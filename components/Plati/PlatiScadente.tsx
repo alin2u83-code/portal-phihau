@@ -102,7 +102,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const [isSaving, setIsSaving] = useState(false);
     const [plataForPayment, setPlataForPayment] = useState<Plata | null>(null);
     const [paymentAmount, setPaymentAmount] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
+    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar' | 'Revolut'>('Cash');
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
     const balances = useMemo(() => {
@@ -574,12 +574,12 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 if (reducere) {
                     const valoareReducere = plata.suma_initiala - plata.suma;
                     reducereDetalii = {
-                        nume: plata.reducere_detalii || reducere.nume,
+                        nume: plata.reducereDetalii || reducere.nume,
                         valoare: valoareReducere,
                     };
-                } else if (plata.reducere_detalii) {
+                } else if (plata.reducereDetalii) {
                      reducereDetalii = {
-                        nume: plata.reducere_detalii,
+                        nume: plata.reducereDetalii,
                         valoare: plata.suma_initiala - plata.suma,
                     };
                 }
@@ -1099,6 +1099,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                         <Select label="Metodă Plată" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as any)}>
                             <option value="Cash">Cash</option>
                             <option value="Transfer Bancar">Transfer Bancar</option>
+                            <option value="Revolut">Revolut</option>
                         </Select>
 
                         <div className="flex justify-end pt-4 gap-2 border-t border-[var(--t-border)]">

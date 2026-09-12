@@ -16,6 +16,7 @@ interface Props {
 const COLORS: Record<string, string> = {
     'Cash': '#10b981',
     'Transfer Bancar': '#38bdf8',
+    'Revolut': '#f97316',
     'Necunoscut': '#475569',
 };
 

@@ -37,7 +37,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
     const { showError, showSuccess } = useError();
     const [showPaymentForm, setShowPaymentForm] = useState(false);
     const [paymentAmount, setPaymentAmount] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar'>('Cash');
+    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar' | 'Revolut'>('Cash');
     const [isSaving, setIsSaving] = useState(false);
 
     const { sold, totalDue, invoiceHistory } = useMemo(() => {
@@ -172,7 +172,7 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                         <h3 className="text-lg font-bold text-white mb-4">Adaugă Încasare</h3>
                         <div className="space-y-4">
                             <Input label="Sumă Încasată (RON)" type="number" step="0.01" value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} placeholder={`Max ${(totalDue || 0).toFixed(2)}`} />
-                            <Select label="Metoda de Plată" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as any)}><option value="Cash">Cash</option><option value="Transfer Bancar">Transfer Bancar</option></Select>
+                            <Select label="Metoda de Plată" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as any)}><option value="Cash">Cash</option><option value="Transfer Bancar">Transfer Bancar</option><option value="Revolut">Revolut</option></Select>
                             <div className="flex justify-end gap-2 pt-2">
                                 <Button variant="secondary" onClick={() => setShowPaymentForm(false)} disabled={isSaving}>Anulează</Button>
                                 <Button variant="success" onClick={handleConfirmPayment} isLoading={isSaving} disabled={!paymentAmount}>Confirmă Plata</Button>

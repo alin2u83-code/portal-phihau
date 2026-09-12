@@ -161,6 +161,7 @@ export const PlataEditModal: React.FC<PlataEditModalProps> = ({
                             >
                                 <option value="Cash">Cash</option>
                                 <option value="Transfer Bancar">Transfer Bancar</option>
+                                <option value="Revolut">Revolut</option>
                             </Select>
 
                             {/* Sumar vizual */}

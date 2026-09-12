@@ -64,6 +64,9 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     // Payment modal state
     const [plataToIncaseze, setPlataToIncaseze] = useState<IstoricPlataDetaliat | null>(null);
 
+    // Tab "Restanțe" — detaliu facturi restante per sportiv (achitare/anulare)
+    const [restanteDetail, setRestanteDetail] = useState<RestantaRow | null>(null);
+
     // Factură / Chitanță modal
     const [documentModal, setDocumentModal] = useState<{ plata: IstoricPlataDetaliat; mode: 'factura' | 'chitanta' } | null>(null);
     const [paymentAmount, setPaymentAmount] = useState('');
@@ -114,6 +117,9 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             const { data: updatedPlata } = await supabase.from('plati').select('*').eq('id', plataToIncaseze.plata_id).maybeSingle();
             if (updatedPlata) setPlati(prev => prev.map(p => p.id === updatedPlata.id ? updatedPlata as Plata : p));
 
+            setRestanteDetail(prev => prev
+                ? { ...prev, facturi: (prev.facturi || []).filter(f => f.plata_id !== plataToIncaseze.plata_id) }
+                : prev);
             showSuccess('Succes', 'Încasarea a fost înregistrată cu succes!');
             setPlataToIncaseze(null);
         } catch (e: any) {
@@ -274,6 +280,9 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             showError('Eroare la modificare', error.message);
         } else if (data) {
             setPlati(prev => prev.map(p => p.id === data.id ? data as Plata : p));
+            setRestanteDetail(prev => prev
+                ? { ...prev, facturi: (prev.facturi || []).filter(f => f.plata_id !== facturaToEdit.plata_id) }
+                : prev);
             setFacturaToEdit(null);
             showSuccess('Succes', 'Factura a fost actualizată.');
         }
@@ -368,16 +377,17 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             return true;
         });
 
-        const byId: Record<string, { sume: number[]; date: string[] }> = {};
+        const byId: Record<string, { sume: number[]; date: string[]; facturi: IstoricPlataDetaliat[] }> = {};
         for (const p of neachitate) {
             const sid = p.sportiv_id ?? p.familie_id ?? `__orfan__${p.plata_id}`; // WR-04: cheie unică
-            if (!byId[sid]) byId[sid] = { sume: [], date: [] };
+            if (!byId[sid]) byId[sid] = { sume: [], date: [], facturi: [] };
             byId[sid].sume.push(p.rest_de_plata); // CR-01: sold real, nu suma nominală
             if (p.data_emitere) byId[sid].date.push(p.data_emitere.toString().slice(0, 10));
+            byId[sid].facturi.push(p);
         }
 
         return Object.entries(byId)
-            .map(([sid, { sume, date }]) => {
+            .map(([sid, { sume, date, facturi }]) => {
                 const sp = sportivi.find(s => s.id === sid);
                 const fam = familii.find(f => f.id === sid);
                 const numeSportiv = sp
@@ -391,6 +401,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     sumaTotala: sume.reduce((a, b) => a + b, 0),
                     nrFacturi: sume.length,
                     ceaMaiVecheScadenta: date.sort()[0] ?? '',
+                    facturi,
                 };
             })
             .sort((a, b) => {
@@ -1294,6 +1305,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                         <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Sumă Totală (RON)</th>
                                         <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Nr. Facturi</th>
                                         <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider">Cea Mai Veche Scadență</th>
+                                        <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-right">Acțiuni</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[var(--t-border)]">
@@ -1303,6 +1315,14 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                             <td className="px-4 py-3 text-right font-bold text-amber-400 whitespace-nowrap">{formatSum(r.sumaTotala)}</td>
                                             <td className="px-4 py-3 text-right text-slate-300">{r.nrFacturi}</td>
                                             <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{formatDate(r.ceaMaiVecheScadenta)}</td>
+                                            <td className="px-4 py-3 text-right">
+                                                <button
+                                                    onClick={() => setRestanteDetail(r)}
+                                                    className="text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white transition-colors whitespace-nowrap"
+                                                >
+                                                    Detalii
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -1314,7 +1334,12 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                     {restanteRows.length > 0 && (
                         <div className="md:hidden space-y-2">
                             {restanteRows.map(r => (
-                                <div key={r.sportiv_id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+                                <button
+                                    key={r.sportiv_id}
+                                    type="button"
+                                    onClick={() => setRestanteDetail(r)}
+                                    className="w-full text-left bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3 active:bg-[var(--t-table-row-hover)] transition-colors"
+                                >
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="min-w-0">
                                             <p className="text-white font-bold text-sm truncate">{r.numeSportiv}</p>
@@ -1325,7 +1350,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                     <div className="flex items-center gap-3 mt-2">
                                         <span className="text-xs text-slate-500">Scadent din {formatDate(r.ceaMaiVecheScadenta)}</span>
                                     </div>
-                                </div>
+                                </button>
                             ))}
                         </div>
                     )}
@@ -1528,6 +1553,46 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* ─── MODAL DETALII RESTANȚĂ (achitare / anulare factură) ─── */}
+            {restanteDetail && (
+                <Modal
+                    isOpen={!!restanteDetail}
+                    onClose={() => setRestanteDetail(null)}
+                    title={`Facturi restante — ${restanteDetail.numeSportiv}`}
+                >
+                    <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+                        {(restanteDetail.facturi || []).length === 0 && (
+                            <p className="text-center text-slate-400 py-6 italic">Toate facturile au fost regularizate.</p>
+                        )}
+                        {(restanteDetail.facturi || []).map(f => (
+                            <div key={f.plata_id} className="bg-[var(--t-surface-2)] border border-[var(--t-border)] rounded-xl px-4 py-3">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                        <p className="text-white font-medium text-sm truncate">{f.descriere || '—'}</p>
+                                        <p className="text-slate-500 text-xs mt-0.5">Scadentă din {formatDate(f.data_emitere)}</p>
+                                    </div>
+                                    <p className="text-rose-400 font-bold text-sm whitespace-nowrap shrink-0">{formatSum(f.rest_de_plata ?? f.suma_datorata)}</p>
+                                </div>
+                                <div className="flex items-center justify-end gap-2 mt-2">
+                                    <button
+                                        onClick={() => { openEditFactura(f); setEditFacturaStatus('Anulat'); }}
+                                        className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-700/60 text-slate-300 hover:bg-slate-700 transition-colors"
+                                    >
+                                        Anulează factura
+                                    </button>
+                                    <button
+                                        onClick={() => openIncasareModal(f)}
+                                        className="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white transition-colors"
+                                    >
+                                        Achită
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </Modal>
             )}
         </div>
     );

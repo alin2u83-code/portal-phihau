@@ -123,6 +123,7 @@ export interface RestantaRow {
     sumaTotala: number;
     nrFacturi: number;
     ceaMaiVecheScadenta: string; // ISO YYYY-MM-DD sau ''
+    facturi?: IstoricPlataDetaliat[]; // facturile individuale neachitate ale sportivului
 }
 
 export function exportRestanteCSV(

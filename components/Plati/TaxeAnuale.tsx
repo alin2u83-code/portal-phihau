@@ -1,12 +1,13 @@
 ﻿import React, { useState, useMemo } from 'react';
 import { supabase } from '../../supabaseClient';
-import { User, Sportiv, Plata, TaxaAnualeConfig, VizaSportiv, DecontSportiv, DecontFederatie } from '../../types';
-import { Button, Card, Input, Modal, Select } from '../ui';
+import { User, Sportiv, Plata, TaxaAnualeConfig, VizaSportiv, DecontSportiv, DecontFederatie, TaxaAnualaFederatieConfig } from '../../types';
+import { Button, Card, Input, Modal, Select, EmptyState } from '../ui';
 import { ArrowLeftIcon, CogIcon, BanknotesIcon, PlusIcon, CheckCircleIcon, XCircleIcon, SearchIcon, TrashIcon, CalendarIcon, DownloadIcon, PrinterIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useData } from '../../contexts/DataContext';
 import { ResponsiveTable } from '../ResponsiveTable';
+import { getAnFiscalFederatie, formatSezon } from '../../utils/anFiscal';
 
 interface TaxeAnualeProps {
     onBack: () => void;
@@ -506,13 +507,171 @@ const TabRaportFederatie: React.FC<TabRaportFederatieProps> = ({
     );
 };
 
+// ====== Sub-componentă Tab "Taxa Federație (FRQKD)" — pentru SUPER_ADMIN_FEDERATIE ======
+interface TabTaxaFederatieFRQKDProps {
+    config: TaxaAnualaFederatieConfig[];
+    setConfig: React.Dispatch<React.SetStateAction<TaxaAnualaFederatieConfig[]>>;
+    anFiscalCurent: number;
+}
+
+const TabTaxaFederatieFRQKD: React.FC<TabTaxaFederatieFRQKDProps> = ({ config, setConfig, anFiscalCurent }) => {
+    const { showError, showSuccess } = useError();
+    const [anFiscalNou, setAnFiscalNou] = useState(anFiscalCurent);
+    const [sumaNoua, setSumaNoua] = useState(170);
+    const [isSaving, setIsSaving] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editSuma, setEditSuma] = useState(0);
+    const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+    const sorted = useMemo(() => config.slice().sort((a, b) => b.an_fiscal - a.an_fiscal), [config]);
+
+    const handleAdd = async () => {
+        if (!supabase) return;
+        if (!Number.isInteger(anFiscalNou) || anFiscalNou < 2020 || anFiscalNou > 2100) {
+            showError("An fiscal invalid", "Anul fiscal trebuie să fie un număr întreg între 2020 și 2100.");
+            return;
+        }
+        if (!(sumaNoua >= 0)) {
+            showError("Sumă invalidă", "Suma trebuie să fie un număr mai mare sau egal cu 0.");
+            return;
+        }
+        setIsSaving(true);
+        const { data, error } = await supabase
+            .from('taxa_anuala_config')
+            .insert({ an_fiscal: anFiscalNou, suma: sumaNoua })
+            .select()
+            .single();
+        setIsSaving(false);
+        if (error) {
+            if ((error as any).code === '23505') {
+                showError("Sezon deja configurat", `Sezonul ${formatSezon(anFiscalNou)} are deja un preț configurat — editează-l în loc să adaugi unul nou.`);
+            } else if ((error as any).code === '42501') {
+                showError("Acces refuzat", "Doar SUPER_ADMIN_FEDERATIE poate seta prețul taxei federale.");
+            } else {
+                showError("Eroare la adăugare", error.message);
+            }
+            return;
+        }
+        setConfig(prev => [...prev, data]);
+        showSuccess("Succes", `Sezonul ${formatSezon(anFiscalNou)} a fost configurat.`);
+    };
+
+    const handleStartEdit = (c: TaxaAnualaFederatieConfig) => {
+        setEditingId(c.id);
+        setEditSuma(c.suma);
+    };
+
+    const handleSaveEdit = async (id: string) => {
+        if (!supabase) return;
+        if (!(editSuma >= 0)) {
+            showError("Sumă invalidă", "Suma trebuie să fie un număr mai mare sau egal cu 0.");
+            return;
+        }
+        setIsSavingEdit(true);
+        const { data, error } = await supabase
+            .from('taxa_anuala_config')
+            .update({ suma: editSuma })
+            .eq('id', id)
+            .select()
+            .single();
+        setIsSavingEdit(false);
+        if (error) {
+            if ((error as any).code === '42501') {
+                showError("Acces refuzat", "Doar SUPER_ADMIN_FEDERATIE poate modifica prețul taxei federale.");
+            } else {
+                showError("Eroare la salvare", error.message);
+            }
+            return;
+        }
+        setConfig(prev => prev.map(c => c.id === id ? data : c));
+        showSuccess("Succes", "Prețul a fost actualizat.");
+        setEditingId(null);
+    };
+
+    return (
+        <div className="space-y-6">
+            <Card className="bg-[var(--t-surface-2)] border-[var(--t-border)]">
+                <p className="text-sm text-slate-300">
+                    Taxa Federație (FRQKD) se activează automat la prima participare a unui sportiv la examen de grad, stagiu sau competiție într-un sezon — o singură dată per sportiv per sezon — și generează atât factura sportivului către club, cât și obligația clubului către federație.
+                </p>
+                <p className="text-sm text-slate-400 mt-2">
+                    Sezonul federației începe la 1 septembrie. Sezonul curent este <span className="font-bold text-white">{formatSezon(anFiscalCurent)}</span>.
+                </p>
+            </Card>
+
+            <Card className="bg-[var(--t-surface-2)] border-[var(--t-border)]">
+                <h3 className="text-sm font-bold uppercase text-slate-400 mb-3">Adaugă sezon</h3>
+                <div className="flex flex-col sm:flex-row gap-3 items-end">
+                    <Input
+                        label="An fiscal"
+                        type="number"
+                        value={anFiscalNou}
+                        onChange={e => setAnFiscalNou(parseInt(e.target.value, 10) || 0)}
+                    />
+                    <Input
+                        label="Sumă (RON)"
+                        type="number"
+                        value={sumaNoua}
+                        onChange={e => setSumaNoua(parseFloat(e.target.value) || 0)}
+                    />
+                    <Button variant="primary" onClick={handleAdd} isLoading={isSaving}>
+                        <PlusIcon className="w-4 h-4 mr-2" /> Adaugă sezon
+                    </Button>
+                </div>
+            </Card>
+
+            {sorted.length === 0 ? (
+                <EmptyState
+                    title="Niciun sezon configurat"
+                    description="Adaugă un preț pentru sezonul curent folosind formularul de mai sus — altfel toate înscrierile la examen, stagiu și competiție vor eșua."
+                />
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    {sorted.map(c => (
+                        <Card key={c.id} className="flex flex-col bg-[var(--t-surface-2)] border-[var(--t-border)]">
+                            <div className="flex justify-between items-start gap-2">
+                                <h3 className="text-xl font-bold text-white">{formatSezon(c.an_fiscal)}</h3>
+                                {c.an_fiscal === anFiscalCurent && (
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 uppercase">Sezon Curent</span>
+                                )}
+                            </div>
+                            <div className="mt-4">
+                                {editingId === c.id ? (
+                                    <div className="flex items-end gap-2">
+                                        <Input
+                                            label="Sumă (RON)"
+                                            type="number"
+                                            value={editSuma}
+                                            onChange={e => setEditSuma(parseFloat(e.target.value) || 0)}
+                                        />
+                                        <Button variant="secondary" size="sm" onClick={() => setEditingId(null)}>Anulează</Button>
+                                        <Button variant="success" size="sm" onClick={() => handleSaveEdit(c.id)} isLoading={isSavingEdit}>Salvează</Button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-2xl font-black text-white">{c.suma.toFixed(2)} RON</p>
+                                        <Button variant="secondary" size="sm" onClick={() => handleStartEdit(c)}>
+                                            <CogIcon className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+            )}
+            <p className="text-xs text-slate-500 italic">Prețul unui sezon se corectează, nu se șterge — nu există o operație de ștergere pentru rândurile de mai sus.</p>
+        </div>
+    );
+};
+
 // ====== Componenta principală ======
 export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, sportivi, plati, setPlati }) => {
-    const { taxeAnualeConfig, vizeSportivi, decontSportivi, deconturiFederatie, clubs, setTaxeAnualeConfig, setVizeSportivi, loading } = useData();
+    const { taxeAnualeConfig, vizeSportivi, decontSportivi, deconturiFederatie, clubs, setTaxeAnualeConfig, setVizeSportivi, loading, taxaAnualaFederatieConfig, setTaxaAnualaFederatieConfig } = useData();
 
     // Tab-uri: ADMIN_CLUB vede 'config' | 'taxe-club' | 'transmis-federatie'
-    //         SUPER_ADMIN vede 'config' | 'raport-federatie'
-    const [activeTab, setActiveTab] = useState<'config' | 'taxe-club' | 'transmis-federatie' | 'raport-federatie'>('config');
+    //         SUPER_ADMIN vede 'config' | 'taxa-federatie' | 'raport-federatie'
+    const [activeTab, setActiveTab] = useState<'config' | 'taxe-club' | 'transmis-federatie' | 'raport-federatie' | 'taxa-federatie'>('config');
     const [taxaToGenerate, setTaxaToGenerate] = useState<TaxaAnualeConfig | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [selectedTaxaForStatus, setSelectedTaxaForStatus] = useState<TaxaAnualeConfig | null>(null);
@@ -546,6 +705,7 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
     );
 
     const anCurent = new Date().getFullYear();
+    const anFiscalCurent = getAnFiscalFederatie();
 
     const sportiviActivi = useMemo(() => sportivi.filter(s => s.status === 'Activ'), [sportivi]);
 
@@ -711,11 +871,14 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
     }
 
     // Calculăm tab-urile disponibile în funcție de rol
-    type TabId = 'config' | 'taxe-club' | 'transmis-federatie' | 'raport-federatie';
+    type TabId = 'config' | 'taxe-club' | 'transmis-federatie' | 'raport-federatie' | 'taxa-federatie';
     const taburi: { id: TabId; label: string }[] = [
         { id: 'config', label: 'Configurare' },
         ...(canManage
-            ? [{ id: 'raport-federatie' as TabId, label: 'Raport Federație' }]
+            ? [
+                { id: 'taxa-federatie' as TabId, label: 'Taxa Federație (FRQKD)' },
+                { id: 'raport-federatie' as TabId, label: 'Raport Federație' },
+              ]
             : [
                 { id: 'taxe-club' as TabId, label: 'Taxe Club' },
                 { id: 'transmis-federatie' as TabId, label: 'Transmis Federație' },
@@ -829,6 +992,15 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                     taxeAnualeConfig={taxeAnualeConfig}
                     clubs={clubs}
                     anCurent={anCurent}
+                />
+            )}
+
+            {/* ===== TAB TAXA FEDERATIE FRQKD (SUPER_ADMIN_FEDERATIE) ===== */}
+            {activeTab === 'taxa-federatie' && canManage && (
+                <TabTaxaFederatieFRQKD
+                    config={taxaAnualaFederatieConfig}
+                    setConfig={setTaxaAnualaFederatieConfig}
+                    anFiscalCurent={anFiscalCurent}
                 />
             )}
 

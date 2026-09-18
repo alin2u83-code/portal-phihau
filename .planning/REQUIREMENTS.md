@@ -87,6 +87,17 @@
 - [ ] **TAF-07**: Confirmarea platii unui decont cere metoda (Cash / Transfer Bancar / Revolut) si persista `metoda_plata`, `status_plata='Platit'`, `confirmata_federatie=true` si dovada incarcata (D-09)
 - [ ] **TAF-08**: SUPER_ADMIN_FEDERATIE seteaza si corecteaza pretul unui sezon dintr-un tab al ecranului existent Taxe Anuale, cu avertisment vizibil cand sezonul curent nu are pret (D-05, D-10)
 
+### Imbunatatiri inspirate din Abonix (Faza 30 — gratie reinnoire, memento-uri, loialitate)
+
+> ID-uri create la planificarea fazei 30 (feature nou, absent din requirements-urile v1.1; faza a fost adaugata direct prin `/gsd-phase`, cu `**Requirements**: TBD`). Derivate 1:1 din cele 3 feature-uri si din deciziile operatorului consemnate in `.planning/phases/30-imbunatatiri-inspirate-din-abonix-gratie-reinnoire-abonament/30-CONTEXT.md`, coroborate cu constatarile din `30-RESEARCH.md` si din analiza sursa `abonix-raport.md`.
+
+- [ ] **ABX-01**: Memento-ul SMS de expirare abonament ajunge efectiv in coada — filtrele din `schedule_training_reminders()` folosesc `'Abonament'` / `'Achitat'` (capitalizat, ca datele reale) si programarea nu mai esueaza in context pg_cron din cauza verificarii de acces fara sesiune de utilizator
+- [ ] **ABX-02**: Pragurile de memento sunt configurabile per club dintre -7 / -3 / 0 / +3 / +7 zile fata de expirare, pastrate in DB (nu hardcodate in functia SQL), iar "expirarea" e derivata din ultima luna calendaristica facturata si achitata, nu din aproximarea "ultima factura + 30 zile"
+- [ ] **ABX-03**: Coada `sms_queue` are un consumator programat, activat prin decizie umana explicita, fara trimiterea retroactiva a backlog-ului acumulat
+- [ ] **ABX-04**: Perioada de gratie e configurabila per club (`cluburi.perioada_gratie_zile`, implicit 30) si decide la generarea abonamentelor daca `sportivi.data_start_facturare` se pastreaza (lunile lipsa raman datorate) sau se reseteaza la luna curenta (lunile vechi sunt iertate)
+- [ ] **ABX-05**: O politica din `politici_reducere` poate acorda automat un bonus dupa N reinnoiri consecutive (`reinnoiri_necesare`, `tip_bonus` in `zile_gratis` / `discount`), cu schema verificata live inainte de implementare si fara a fi confundata cu tabelul `reduceri`
+- [ ] **ABX-06**: Facturile generate automat de `handleGenerateSubscriptions` aplica efectiv gratia si bonusul de loialitate (suma redusa real, `suma_initiala` + `reducereDetalii` + rand in `aplicare_reduceri`), inchizand TODO-ul "Bug 4" din `components/Plati/PlatiScadente.tsx`
+
 ## Future Requirements (deferred)
 
 - Dashboard federație cu agregate multi-club (SUPER_ADMIN) — v2.0
@@ -102,6 +113,8 @@
 - Sold pozitiv / avansuri — raportul se focusează pe restanțe (status='Neachitat')
 
 **Notă (Faza 27):** excepția "Migrații DB" de mai sus se aplică milestone-ului v1.1 original (Fazele 9-14). Faza 27 introduce deliberat o migrație nouă (tabelul `sezoane` + coloane pe `grupe`/`tipuri_abonament`), aprobată prin deciziile D-01..D-09 din 27-CONTEXT.md.
+
+**Notă (Faza 30):** canalul email si canalul WhatsApp pentru memento-uri raman explicit in afara scope-ului (30-CONTEXT.md § Deferred Ideas) — nu exista nicio infrastructura de email in cod, iar adaugarea unui provider nou este o decizie separata. De asemenea, modelul Abonix de abonament cu interval continuu start/end NU se adopta: facturarea ramane pe luna calendaristica.
 
 ## Traceability
 
@@ -159,3 +172,9 @@
 | TAF-06 | Phase 29 | 29-03-PLAN.md |
 | TAF-07 | Phase 29 | 29-03-PLAN.md |
 | TAF-08 | Phase 29 | 29-04-PLAN.md |
+| ABX-01 | Phase 30 | 30-01-PLAN.md |
+| ABX-02 | Phase 30 | 30-03-PLAN.md |
+| ABX-03 | Phase 30 | 30-06-PLAN.md |
+| ABX-04 | Phase 30 | 30-02-PLAN.md, 30-05-PLAN.md |
+| ABX-05 | Phase 30 | 30-04-PLAN.md, 30-05-PLAN.md |
+| ABX-06 | Phase 30 | 30-05-PLAN.md |

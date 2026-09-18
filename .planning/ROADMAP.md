@@ -388,6 +388,24 @@ Plans:
 
 **Ramas de facut:** verificarile umane din browser (29-03 Task 2, 29-04 Task 2) — vezi 29-04-SUMMARY.md.
 
+### Phase 30: Imbunatatiri inspirate din Abonix: gratie reinnoire abonament, memento-uri automate praguri email/SMS, loialitate automata reinnoiri consecutive
+
+**Goal:** Cele 3 imbunatatiri inspirate din Abonix devin efecte reale in productie, ca extensii ale sistemelor existente (nu module paralele): memento-urile SMS de expirare chiar ajung la sportivi (fix al unui defect tacut + praguri configurabile per club), perioada de gratie per club decide continuitatea facturarii la reluarea platilor, iar bonusul de loialitate dupa N reinnoiri consecutive reduce efectiv suma facturata.
+**Requirements**: ABX-01, ABX-02, ABX-03, ABX-04, ABX-05, ABX-06
+**Depends on:** Phase 29
+**Plans:** 6 plans (3 valuri)
+
+Plans:
+
+- [ ] 30-01-PLAN.md — Fix memento expirare abonament: capitalizare filtre `'Abonament'`/`'Achitat'` + acces in context pg_cron (`add_sms_to_queue_intern`) (val 1)
+- [ ] 30-02-PLAN.md — Perioada de gratie: coloana `cluburi.perioada_gratie_zile`, `utils/perioadaGratie.ts` + test, card de configurare in Tipuri Abonament (val 1)
+- [ ] 30-03-PLAN.md — Praguri memento configurabile -7/-3/0/+3/+7 per club + expirare derivata din ultima luna calendaristica achitata + UI in SMS Configurare (val 2)
+- [ ] 30-04-PLAN.md — Loialitate: verificare schema live `politici_reducere`/`aplicare_reduceri`, coloane `reinnoiri_necesare`/`tip_bonus`, calcul pur + serviciu (val 2)
+- [ ] 30-05-PLAN.md — Integrare in `handleGenerateSubscriptions`: gratie aplicata pe `data_start_facturare` + bonus de loialitate pe suma facturata; inchide "Bug 4 TODO" (val 3)
+- [ ] 30-06-PLAN.md — Activare livrare SMS: anulare backlog + job pg_cron `sms-process-queue`, dupa checkpoint de decizie umana (val 3)
+
+**Structura valurilor:** val 1 = {30-01, 30-02} (independente), val 2 = {30-03 dupa 30-01, 30-04 dupa 30-02}, val 3 = {30-05 dupa 30-02+30-04, 30-06 dupa 30-03}. Singurul plan neautonom e 30-06 (trimiterea reala de SMS catre sportivi necesita decizie umana explicita).
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

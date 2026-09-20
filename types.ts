@@ -237,6 +237,24 @@ export interface Reducere {
   categorie_aplicabila: 'Abonament' | 'Echipament' | 'Toate';
 }
 
+/**
+ * Faza 30 Feature 3: politica de loialitate/reducere automata, tabelul
+ * `politici_reducere` — DISTINCT de `Reducere` de mai sus (tabelul `reduceri`,
+ * folosit de components/Plati/Reduceri.tsx). `PoliticaReducere` alimenteaza
+ * generarea automata de abonamente (bonus dupa N reinnoiri consecutive);
+ * `Reducere` e o reducere manuala aplicata direct pe o factura.
+ */
+export interface PoliticaReducere {
+  id: string;
+  club_id: string | null;
+  nume_reducere: string;
+  procentaj: number | null;
+  valoare_fixa: number | null;
+  activ: boolean;
+  reinnoiri_necesare: number | null; // Faza 30
+  tip_bonus: 'zile_gratis' | 'discount' | null; // Faza 30
+}
+
 export interface TipPlata {
   id: string;
   nume: string;

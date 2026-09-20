@@ -1,5 +1,20 @@
 # Setup Android SMS Gateway
 
+## Stare reală (verificată live, Faza 30, 2026-09-20)
+
+**pg_cron `cron.job` conține azi UN SINGUR job real:**
+- `sms-schedule-reminders` — `0 7 * * *`, comandă `SELECT public.schedule_training_reminders()` (SQL direct, NU `net.http_post` — diferă de Pasul 7 de mai jos, care descrie arhitectura *intenționată*, nu cea *live*).
+
+**`sms-process-queue` NU este programat.** Coada `sms_queue` se umple corect (după fix-urile din planurile 30-01/30-03), dar nu are niciun consumator — rândurile rămân `pending` la infinit. Activarea a fost **amânată deliberat** (Faza 30, plan 30-06, checkpoint uman 2026-09-20), din două motive:
+1. Coada era complet goală la momentul deciziei (0 rânduri) — nimic de câștigat imediat prin activare.
+2. **Blocaj tehnic real**: nici `current_setting('app.service_role_key')`, nici `current_setting('app.supabase_url')`, nici `vault.decrypted_secrets` nu conțin azi cheia `service_role` necesară pentru ca `net.http_post` din interiorul unei migrații SQL să autentifice apelul către Edge Function. Scrierea cheii literal într-o migrație (fișier comis în git) e interzisă explicit. O încercare automată de a semăna cheia în `vault` (din `.env`, fără a o scrie în niciun fișier) a fost blocată corect de clasificatorul de securitate al mediului de dezvoltare ("Credential Materialization").
+
+**Pentru a activa `sms-process-queue` pe viitor**, cineva cu acces direct la Supabase Dashboard → SQL Editor trebuie să pună manual secretul (`vault.create_secret(...)` sau `ALTER DATABASE ... SET app.service_role_key = '...'`), apoi să ruleze comanda `cron.schedule('sms-process-queue', ...)` din Pasul 7 de mai jos (adaptată să citească secretul din `vault`, nu literal).
+
+**Defect cunoscut, neremediat deliberat** (planul 30-01): `trg_plata_confirmare_sms()` compară `NEW.status = 'achitat'` (litere mici), dar `plati.status` e capitalizat (`'Achitat'`) — trigger-ul nu se declanșează niciodată, deci SMS-urile de confirmare a plății nu pleacă automat. Repararea ar genera SMS pentru fiecare factură stinsă automat din credit — decizie de business separată, nu tehnică.
+
+**`sms_config` și `sms_templates` sunt complet goale** (0 rânduri, orice club) — chiar dacă `sms-process-queue` ar fi activat azi, niciun club nu ar putea trimite nimic pentru că nu are gateway configurat și nici șablon activ.
+
 ## Prezentare generală
 
 Arhitectura SMS a portalului funcționează direct între Supabase Edge Functions și telefonul Android cu SIM Orange, fără servicii intermediare plătite.

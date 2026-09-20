@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../supabaseClient';
 import { Club } from '../../types';
-import { Button, Card, Input, Select } from '../ui';
+import { Button, Card, Input, Select, Switch } from '../ui';
 import { useError } from '../ErrorProvider';
 import { usePermissions } from '../../hooks/usePermissions';
 
@@ -22,6 +22,10 @@ interface SmsConfig {
   rate_limit_per_hour: number;
   rate_limit_per_day: number;
   activ: boolean;
+  /** Faza 30 Feature 2: decalaje in zile fata de data expirarii (-7,-3,0,3,7) — subset permis */
+  praguri_expirare_zile: number[];
+  /** Faza 30 Feature 2: comutator principal memento-uri expirare abonament */
+  memento_expirare_activ: boolean;
 }
 
 interface TestResult {
@@ -55,6 +59,8 @@ const defaultConfig = (club_id: string): SmsConfig => ({
   rate_limit_per_hour: 20,
   rate_limit_per_day: 100,
   activ: true,
+  praguri_expirare_zile: [-7, -3, 0, 3, 7],
+  memento_expirare_activ: true,
 });
 
 function formatDate(iso: string | null): string {
@@ -112,20 +118,23 @@ export const SMSConfigurare: React.FC<SMSConfigurareProps> = ({
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
 
+  // Faza 30 Feature 2: sablonul expirare_abonament activ pentru clubul curent
+  const [areSablonExpirare, setAreSablonExpirare] = useState(true);
+
   // ── Fetch config ────────────────────────────────────────────────────────────
 
   const fetchConfig = useCallback(async (club_id: string) => {
     setLoadingConfig(true);
     setTestResult(null);
     try {
-      const { data, error } = await supabase
-        .from('sms_config')
-        .select('*')
-        .eq('club_id', club_id)
-        .maybeSingle();
+      const [{ data, error }, { data: sabloane }] = await Promise.all([
+        supabase.from('sms_config').select('*').eq('club_id', club_id).maybeSingle(),
+        supabase.from('sms_templates').select('id').eq('club_id', club_id).eq('tip', 'expirare_abonament').eq('activ', true).limit(1),
+      ]);
 
       if (error) throw error;
       setConfig(data ? { ...defaultConfig(club_id), ...data } : defaultConfig(club_id));
+      setAreSablonExpirare((sabloane || []).length > 0);
     } catch (err: any) {
       showError('Eroare la încărcare', err.message);
       setConfig(defaultConfig(club_id));
@@ -174,6 +183,8 @@ export const SMSConfigurare: React.FC<SMSConfigurareProps> = ({
         rate_limit_per_hour: config.rate_limit_per_hour,
         rate_limit_per_day: config.rate_limit_per_day,
         activ: config.activ,
+        praguri_expirare_zile: config.praguri_expirare_zile,
+        memento_expirare_activ: config.memento_expirare_activ,
       };
 
       const { data: upserted, error: saveError } = await supabase
@@ -193,6 +204,17 @@ export const SMSConfigurare: React.FC<SMSConfigurareProps> = ({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleTogglePrag = (prag: number) => {
+    setConfig(prev => {
+      const are = prev.praguri_expirare_zile.includes(prag);
+      const nou = are
+        ? prev.praguri_expirare_zile.filter(p => p !== prag)
+        : [...prev.praguri_expirare_zile, prag];
+      nou.sort((a, b) => a - b);
+      return { ...prev, praguri_expirare_zile: nou };
+    });
   };
 
   const handleTest = async () => {
@@ -405,6 +427,44 @@ export const SMSConfigurare: React.FC<SMSConfigurareProps> = ({
                 />
               </div>
             </div>
+          </Card>
+
+          {/* ── Secțiunea 4: Memento expirare abonament ──────────────────── */}
+          <Card>
+            <h3 className="text-xs font-bold text-slate-300 mb-4 uppercase tracking-wider border-b border-slate-700/60 pb-2">
+              Memento expirare abonament
+            </h3>
+            <Switch
+              label="Trimite memento-uri de expirare"
+              name="memento_expirare_activ"
+              checked={config.memento_expirare_activ}
+              onChange={e => setConfig(prev => ({ ...prev, memento_expirare_activ: e.target.checked }))}
+            />
+            <div className={`mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 ${config.memento_expirare_activ ? '' : 'opacity-40 pointer-events-none'}`}>
+              {[
+                { prag: -7, label: 'Cu 7 zile înainte de expirare' },
+                { prag: -3, label: 'Cu 3 zile înainte de expirare' },
+                { prag: 0, label: 'În ziua expirării' },
+                { prag: 3, label: 'La 3 zile după expirare' },
+                { prag: 7, label: 'La 7 zile după expirare' },
+              ].map(({ prag, label }) => (
+                <Switch
+                  key={prag}
+                  label={label}
+                  name={`prag_${prag}`}
+                  checked={config.praguri_expirare_zile.includes(prag)}
+                  onChange={() => handleTogglePrag(prag)}
+                />
+              ))}
+            </div>
+            <p className="text-xs text-slate-500 mt-4">
+              Mesajele folosesc șablonul "expirare_abonament" din tab-ul Template-uri, iar variabila {'{{days}}'} primește numărul de zile (fără semn).
+            </p>
+            {!areSablonExpirare && (
+              <p className="text-xs text-amber-400 mt-2">
+                Acest club nu are un șablon "expirare_abonament" activ — memento-urile nu se vor trimite până nu configurați unul în tab-ul Template-uri.
+              </p>
+            )}
           </Card>
 
           {/* ── Testare conexiune ────────────────────────────────────────── */}

@@ -17,6 +17,9 @@ import { anuleazaFacturaAbonament, reactiveazaFacturaAbonament } from '../../ser
 import { formatLuna } from '../../utils/luniLipsa';
 import { filtreazaTipuriSezon, gasesteTipDupaId, esteTipDinSezonArhivat } from '../../utils/abonamente';
 import { useSezonActiv } from '../../hooks/useSezoane';
+import { decideGratieReinnoire, primaZiLunaCurenta } from '../../utils/perioadaGratie';
+import { numaraReinnoiriConsecutive, calculeazaBonusLoialitate } from '../../utils/loialitateReinnoiri';
+import { getPoliticiLoialitate } from '../../services/loialitateService';
 
 interface PlatiScadenteProps {
     onIncaseazaMultiple: (plati: Plata[]) => void;
@@ -158,6 +161,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             if (errTranz) throw errTranz;
             if (errPlati) throw errPlati;
 
+            // Faza 30 Feature 3: politici de loialitate ale clubului, incarcate o singura data.
+            // O eroare aici NU opreste generarea — facturarea lunara e functia critica a
+            // ecranului, un modul de loialitate stricat nu are voie sa o blocheze.
+            const { data: politiciLoialitate, error: errPolitici } = await getPoliticiLoialitate(clubId);
+            if (errPolitici) console.error('Eroare la incarcarea politicilor de loialitate:', errPolitici);
+            const politici = politiciLoialitate ?? [];
+
             // Calculează solduri proaspete folosind datele din DB, nu state-ul React
             const famBalancesFresh = new Map<string, number>();
             const indivBalancesFresh = new Map<string, number>();
@@ -222,6 +232,50 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             // luna și an numerice pentru coloanele de unicitate
             const lunaCurenta = today.getMonth() + 1; // 1–12
 
+            // Faza 30 Feature 1: perioada de gratie la reinnoire abonament.
+            const pragGratie = (clubs || []).find(c => c.id === clubId)?.perioada_gratie_zile ?? 30;
+
+            // Harta ultima luna FACTURATA (nu doar achitata) per sportiv — data_start_facturare
+            // descrie continuitatea facturarii, nu a incasarii, deci contorizam orice factura
+            // Abonament neanulata, indiferent daca a fost platita integral.
+            const ultimaLunaPerSportiv = new Map<string, { luna: number; an: number }>();
+            (platiProaspete || []).forEach(p => {
+                if (p.tip !== 'Abonament' || p.status === 'Anulat' || !p.sportiv_id || p.luna == null || p.an == null) return;
+                const existent = ultimaLunaPerSportiv.get(p.sportiv_id);
+                if (!existent || p.an > existent.an || (p.an === existent.an && p.luna > existent.luna)) {
+                    ultimaLunaPerSportiv.set(p.sportiv_id, { luna: p.luna, an: p.an });
+                }
+            });
+
+            const idsDeResetat: string[] = [];
+            const sportiviCuGratie = new Set<string>();
+            const primaZiCurenta = primaZiLunaCurenta(today);
+            sportiviActivi.forEach(sportiv => {
+                const dataStartCurenta = (sportiv as any).data_start_facturare;
+                if (!dataStartCurenta) return;
+                const decizie = decideGratieReinnoire(ultimaLunaPerSportiv.get(sportiv.id) ?? null, today, pragGratie);
+                if (decizie === 'reseteaza' && dataStartCurenta < primaZiCurenta) {
+                    idsDeResetat.push(sportiv.id);
+                    sportiviCuGratie.add(sportiv.id);
+                }
+            });
+
+            if (idsDeResetat.length > 0) {
+                const { error: errGratie } = await supabase
+                    .from('sportivi')
+                    .update({ data_start_facturare: primaZiCurenta } as any)
+                    .in('id', idsDeResetat);
+                if (errGratie) throw errGratie;
+                queryClient.invalidateQueries({ queryKey: ['data-start-facturare'] });
+                queryClient.invalidateQueries({ queryKey: ['data-start-facturare-all'] });
+            }
+
+            // Faza 30 Feature 3: bonus de loialitate aplicat, retinut per familie/sportiv
+            // pentru scrierea jurnalului aplicare_reduceri DUPA insertul facturilor
+            // (avem nevoie de id-ul real al facturii inserate).
+            const bonusuriPeFamilie = new Map<string, { politicaId: string; sumaBonus: number }>();
+            const bonusuriPeSportiv = new Map<string, { politicaId: string; sumaBonus: number }>();
+
             relevantFamilies.forEach(familie => {
                 const membriActiviInFamilie = sportiviActivi.filter(s => s.familie_id === familie.id);
                 if (membriActiviInFamilie.length === 0) return;
@@ -236,12 +290,16 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 if (abonamentConfig) {
                     // Bug 5 Fix: folosim soldurile proaspete din DB, nu cele din useMemo/state
                     const creditFamilie = famBalancesFresh.get(familie.id) || 0;
-                    // Bug 4 TODO: aplică reduceri din politici_reducere când schema de mapare
-                    // sportiv→reducere (aplicare_reduceri) e definită în DB.
-                    // Momentan tabelul reduceri conține doar politici globale fără mapare per entitate.
-                    let sumaDeFacturat = abonamentConfig.pret;
+
+                    // Faza 30 Feature 3: bonus de loialitate pe baza reinnoirilor consecutive ale familiei.
+                    const platiFamilie = (platiProaspete || []).filter(p => p.familie_id === familie.id);
+                    const reinnoiriFamilie = numaraReinnoiriConsecutive(platiFamilie as Plata[], today);
+                    const bonusFamilie = calculeazaBonusLoialitate(politici, reinnoiriFamilie, abonamentConfig.pret);
+
+                    let sumaDeFacturat = abonamentConfig.pret - bonusFamilie.sumaBonus;
                     let status: Plata['status'] = 'Neachitat';
                     let observatii = `Abonament pt: ${membriActiviInFamilie.map(m => m.prenume).join(', ')}.`;
+                    if (bonusFamilie.sumaBonus > 0) observatii += ` ${bonusFamilie.detalii}.`;
                     if (creditFamilie >= sumaDeFacturat) { status = 'Achitat'; observatii += ` Stins automat din credit.`; }
                     else if (creditFamilie > 0) { sumaDeFacturat -= creditFamilie; observatii += ` Parțial stins din credit.`; }
 
@@ -250,8 +308,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                         luna: lunaCurenta, an: anulCurent,
                         suma: sumaDeFacturat, data: dataCurenta, status,
                         descriere: `Abonament Familie ${lunaText}`, tip: 'Abonament',
-                        observatii, club_id: membriActiviInFamilie[0]?.club_id
-                    });
+                        observatii, club_id: membriActiviInFamilie[0]?.club_id,
+                        suma_initiala: abonamentConfig.pret,
+                        ...(bonusFamilie.sumaBonus > 0 ? { reducereDetalii: bonusFamilie.detalii } : {}),
+                    } as any);
+                    if (bonusFamilie.sumaBonus > 0 && bonusFamilie.politica) {
+                        bonusuriPeFamilie.set(familie.id, { politicaId: bonusFamilie.politica.id, sumaBonus: bonusFamilie.sumaBonus });
+                    }
                     membriActiviInFamilie.forEach(m => sportiviProcesati.add(m.id));
                 }
             });
@@ -267,11 +330,17 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 if (abonamentConfig) {
                     // Bug 5 Fix: folosim soldurile proaspete din DB
                     const creditSportiv = indivBalancesFresh.get(sportiv.id) || 0;
-                    // Bug 4 TODO: aplică reduceri din politici_reducere când schema de mapare
-                    // sportiv→reducere (aplicare_reduceri) e definită în DB.
-                    let sumaDeFacturat = abonamentConfig.pret;
+
+                    // Faza 30 Feature 3: bonus de loialitate pe baza reinnoirilor consecutive ale sportivului.
+                    const platiSportivIstoric = (platiProaspete || []).filter(p => p.sportiv_id === sportiv.id);
+                    const reinnoiriSportiv = numaraReinnoiriConsecutive(platiSportivIstoric as Plata[], today);
+                    const bonusSportiv = calculeazaBonusLoialitate(politici, reinnoiriSportiv, abonamentConfig.pret);
+
+                    let sumaDeFacturat = abonamentConfig.pret - bonusSportiv.sumaBonus;
                     let status: Plata['status'] = 'Neachitat';
                     let observatii = 'Generat automat.';
+                    if (bonusSportiv.sumaBonus > 0) observatii += ` ${bonusSportiv.detalii}.`;
+                    if (sportiviCuGratie.has(sportiv.id)) observatii += ` Perioadă de grație aplicată (pauză peste ${pragGratie} zile) — lunile anterioare nu mai sunt datorate.`;
                     if (creditSportiv >= sumaDeFacturat) { status = 'Achitat'; observatii += ' Stins automat din credit.'; }
                     else if (creditSportiv > 0) { sumaDeFacturat -= creditSportiv; observatii += ' Parțial stins din credit.'; }
                     platiToInsert.push({
@@ -279,8 +348,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                         luna: lunaCurenta, an: anulCurent,
                         suma: sumaDeFacturat, data: dataCurenta, status,
                         descriere: `Abonament ${lunaText}`, tip: 'Abonament',
-                        observatii, club_id: sportiv.club_id
-                    });
+                        observatii, club_id: sportiv.club_id,
+                        suma_initiala: abonamentConfig.pret,
+                        ...(bonusSportiv.sumaBonus > 0 ? { reducereDetalii: bonusSportiv.detalii } : {}),
+                    } as any);
+                    if (bonusSportiv.sumaBonus > 0 && bonusSportiv.politica) {
+                        bonusuriPeSportiv.set(sportiv.id, { politicaId: bonusSportiv.politica.id, sumaBonus: bonusSportiv.sumaBonus });
+                    }
                 } else {
                     // Bug 2 Fix: sportivul nu are abonament configurat — îl colectăm pentru warning
                     sportiviIgnorati.push(`${sportiv.nume} ${sportiv.prenume}`);
@@ -332,9 +406,38 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     if (df) { allNew.push(...(df as Plata[])); totalGenerate += df.length; }
                 }
 
+                // Faza 30 Feature 3: jurnal aplicare_reduceri pentru facturile cu bonus de loialitate.
+                // Coloanele reale (confirmate 30-04-SUMMARY) sunt obligatie_id/reducere_id/valoare_calculata/plata_id —
+                // FĂRĂ politica_id. reducere_id are FK spre `reduceri`, NU spre `politici_reducere`, deci NU
+                // populăm reducere_id cu id-ul politicii (ar viola FK) — jurnalul reține doar plata_id + suma redusă.
+                let nrFacturiCuLoialitate = 0;
+                let sumaTotalaRedusa = 0;
+                const randuriJurnal: { plata_id: string; valoare_calculata: number }[] = [];
+                allNew.forEach(p => {
+                    const bonus = p.sportiv_id ? bonusuriPeSportiv.get(p.sportiv_id) : (p.familie_id ? bonusuriPeFamilie.get(p.familie_id) : undefined);
+                    if (bonus) {
+                        randuriJurnal.push({ plata_id: p.id, valoare_calculata: bonus.sumaBonus });
+                        nrFacturiCuLoialitate++;
+                        sumaTotalaRedusa += bonus.sumaBonus;
+                    }
+                });
+                if (randuriJurnal.length > 0) {
+                    const { error: errJurnal } = await supabase.from('aplicare_reduceri').insert(randuriJurnal);
+                    if (errJurnal) {
+                        console.error('Eroare la scrierea jurnalului de reduceri:', errJurnal);
+                        showError("Facturi generate, jurnal reduceri incomplet", "Facturile au fost emise corect, dar jurnalul de reduceri nu a putut fi salvat complet. Verifică manual sumele reduse.");
+                    }
+                }
+
                 if (totalGenerate > 0) {
                     setPlati(prev => [...prev, ...allNew]);
-                    showSuccess("Generare Finalizată", `${totalGenerate} facturi noi au fost generate.`);
+                    const mesajLoialitate = nrFacturiCuLoialitate > 0
+                        ? ` ${nrFacturiCuLoialitate} facturi au primit bonus de loialitate (total ${sumaTotalaRedusa.toFixed(2)} RON redus).`
+                        : '';
+                    const mesajGratie = idsDeResetat.length > 0
+                        ? ` ${idsDeResetat.length} sportivi au primit resetarea perioadei de grație.`
+                        : '';
+                    showSuccess("Generare Finalizată", `${totalGenerate} facturi noi au fost generate.${mesajGratie}${mesajLoialitate}`);
                 } else {
                     showSuccess("Info", "Toți sportivii activi au deja abonament generat pentru luna curentă.");
                 }

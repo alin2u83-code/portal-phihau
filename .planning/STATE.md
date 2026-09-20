@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Phase 29 executed (4/4 plans complete, browser verification pending)
-last_updated: "2026-09-12T00:00:00.000Z"
-last_activity: 2026-09-12 -- Phase 29 (Taxa Anuala Federatie FRQKD) fully executed
+status: completed
+stopped_at: Phase 18 planned (4 plans, plan-checker blocker fixed)
+last_updated: "2026-09-20T06:04:58.535Z"
+last_activity: 2026-09-20 -- Phase 30 marked complete
 progress:
-  total_phases: 29
-  completed_phases: 12
-  total_plans: 49
-  completed_plans: 44
-  percent: 57
+  total_phases: 22
+  completed_phases: 13
+  total_plans: 55
+  completed_plans: 53
+  percent: 59
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 29 — taxa-anuala-federatie-frqkd-activare-automata-club-federatie (executat, verificare umana in browser ramasa)
+**Current focus:** Phase 30 — imbunatatiri-inspirate-din-abonix-gratie-reinnoire-abonament
 
 ## Current Position
 
-Phase: 29 (taxa-anuala-federatie-frqkd-activare-automata-club-federatie) — 4/4 PLANURI EXECUTATE
-Plan: 4 of 4 (toate complete)
-Status: Faza 29 implementata complet (schema+backfill live, trigger+teste SQL live, UI FederationInvoices+TaxeAnuale). Ramase: verificari umane browser (29-03 T2, 29-04 T2). Phase 18 ramane in coada, neexecutata inca (backlog arhitectural, fara deadline — vezi Roadmap Evolution).
-Last activity: 2026-09-12 - Faza 29 (Taxa Anuala Federatie FRQKD) executata integral: 29-01..29-04
+Phase: 30 — COMPLETE
+Plan: 1 of 6
+Status: Phase 30 complete
+Last activity: 2026-09-20 -- Phase 30 marked complete
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -107,7 +107,7 @@ Recent decisions affecting current work:
 - [2026-09-09-leaga-prezenta-de-istoricul-de-grupe-pe-profil-sportiv.md](todos/pending/2026-09-09-leaga-prezenta-de-istoricul-de-grupe-pe-profil-sportiv.md) — extinde GrupeIstoricTab.tsx sa arate nr. prezente per interval grupa (join cu prezenta pe data_intrare/data_iesire)
 - [2026-09-09-raport-statistici-evolutie-sportivi-intre-sezoane.md](todos/pending/2026-09-09-raport-statistici-evolutie-sportivi-intre-sezoane.md) — raport "ramasi/plecati/noi" comparand doua sezoane in modulul Sezoane
 - [2026-09-12-bug-canmanage-taxeanuale-nu-respecta-rol-activ.md] BUG preexistent (nu introdus in faza 29): `canManage` in components/Plati/TaxeAnuale.tsx verifica `currentUser.roluri.some(...)` (toate rolurile detinute), nu rolul/contextul activ — tab-urile "Taxa Federatie (FRQKD)" si "Raport Federatie" raman vizibile chiar dupa ce userul comuta explicit pe ADMIN_CLUB, daca acelasi cont are si SUPER_ADMIN_FEDERATIE printre roluri. Confirmat vizual in browser 2026-09-12. Necesita decizie separata (fix ar insemna schimbat canManage sa citeasca rolul activ, nu lista de roluri — posibil impact pe alte ecrane cu acelasi pattern).
-- Verificare umana ramasa Faza 29: banner "sezon neconfigurat" (29-04) NEVERIFICAT vizual — testul (DELETE temporar pe taxa_anuala_config) a fost intrerupt de clasificatorul auto-mode ("Modify Shared Resources") dupa navigate; randul (2026,170) a fost reinserat imediat, productia neschimbata. Confirmarea reala a platii unui decont (upload+status Platit) NU a fost testata deliberat — risc financiar pe date reale, necesita aprobare explicita a utilizatorului inainte de a o rula.
+- Verificare umana ramasa Faza 29 (2026-09-20): banner "sezon neconfigurat" verificat PARTIAL — logat vizual in live (SUPER_ADMIN_FEDERATIE, tab Taxa Federatie FRQKD): sezon 2026-2027 configurat (170 RON), zero erori consola, niciun banner afisat — comportament corect pt ramura "configurat" (linia 914 TaxeAnuale.tsx, `!taxaAnualaFederatieConfig.some(c => c.an_fiscal === anFiscalCurent)`). Ramura "neconfigurat" NU a fost fortata live (fara DELETE pe date reale, per instructiune explicita) — incercare de simulare client-side (monkeypatch fetch, fara scriere DB) a esuat sa retrigger re-render (React Query cache/staleTime), abandonata ca prea riscanta sa continue. Verificata doar static: JSX simetric (rosu canManage / amber non-canManage), aceeasi conditie booleana ca ramura confirmata. Confirmarea reala a platii unui decont (upload+status Platit) NU a fost testata deliberat — risc financiar pe date reale, necesita aprobare explicita a utilizatorului inainte de a o rula.
 
 ### Quick Tasks Completed
 
@@ -151,6 +151,7 @@ Recent decisions affecting current work:
 - Phase 25 added: Audit izolare cross-club Prezenta, Grupe si Abonamente (RLS, hardcodari, empty states club nou) — sezon nou, alte cluburi vor folosi sistemul
 - Phase 26 added: Wizard onboarding club nou ghidat de SUPER_ADMIN (club + prim admin + rol intr-un singur flux) — depinde de Phase 25
 - Phase 28 added: Conformitate GDPR si AI Act pentru date personale sportivi si modul AI Assistant — registru evidenta prelucrari, DPIA AI, DPA procesatori, nota informare UI, consimtamant parinte minori, minimizare date AI, retentie, drepturi persoana vizata, pagina "Protectia datelor". Vezi memory project_gdpr_ai_act_conformitate.md.
+- Phase 30 added: Imbunatatiri inspirate din analiza Abonix (abonix-raport.md) — (1) perioada de gratie configurabila la reinnoire abonament/taxa, (2) memento-uri automate pe praguri de zile (-7/-3/0/+3/+7) cu canal email/SMS si sabloane editabile din UI, (3) loialitate automata pe politici_reducere (bonus dupa N reinnoiri consecutive)
 - Phase 29 added: Taxa Anuala Federatie FRQKD - activare automata club->federatie la participarea sportivului la examen/stagiu/competitie in sezonul curent (an fiscal fix 1 sept-31 aug). Repara schema orfana deconturi_federatie (fara club_id live) + reactiveaza vize_sportivi/decont_sportivi (0 randuri, nefolosite) + backfill 37 facturi FRQKD istorice 2025-2026. Spec: docs/superpowers/specs/2026-09-12-taxa-anuala-federatie-design.md.
 
 Sursa: audit complet 2026-07-06 (vezi memory project_audit_complet_20260706.md). Ordine executie: 15→16→17 (securitate, urgent) apoi 18→19→20 (integritate date) apoi 21 (race conditions) apoi 22→23→24 (arhitectura, fara urgenta).

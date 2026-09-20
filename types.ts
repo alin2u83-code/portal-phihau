@@ -56,6 +56,8 @@ export interface Club {
   federatie_id?: string | null;
   theme_config?: Record<string, string> | null;
   tema_config?: ThemeConfig | null;
+  /** Faza 30: prag in zile pentru perioada de gratie la reinnoire abonament (vezi utils/perioadaGratie.ts). */
+  perioada_gratie_zile?: number | null;
 }
 
 export interface ClubStats {

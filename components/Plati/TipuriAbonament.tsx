@@ -43,6 +43,42 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const effectiveClubId = activeRoleContext?.club_id || activeRoleContext?.club?.id || currentUser?.club_id;
     const { sezoane, sezonActiv, sezonActivId } = useSezonActiv(effectiveClubId ?? null);
 
+    // Faza 30 Feature 1: perioadă de grație la reînnoire abonament (cluburi.perioada_gratie_zile)
+    const clubTintaGratie = isFederationAdmin ? (newClubId || clubs[0]?.id || '') : (effectiveClubId ?? '');
+    const [pragGratie, setPragGratie] = useState<number | string>(30);
+    const [savingGratie, setSavingGratie] = useState(false);
+    useEffect(() => {
+        if (!clubTintaGratie) return;
+        const clubLocal = clubs.find(c => c.id === clubTintaGratie);
+        if (clubLocal && clubLocal.perioada_gratie_zile != null) {
+            setPragGratie(clubLocal.perioada_gratie_zile);
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            const { data } = await supabase.from('cluburi').select('perioada_gratie_zile').eq('id', clubTintaGratie).maybeSingle();
+            if (!cancelled) setPragGratie(data?.perioada_gratie_zile ?? 30);
+        })();
+        return () => { cancelled = true; };
+    }, [clubTintaGratie, clubs]);
+
+    const handleSaveGratie = async () => {
+        const valoare = Number(pragGratie);
+        if (!Number.isInteger(valoare) || valoare < 0 || valoare > 365) {
+            showError('Valoare invalidă', 'Perioada de grație trebuie să fie un număr întreg între 0 și 365 de zile.');
+            return;
+        }
+        if (!clubTintaGratie) return;
+        setSavingGratie(true);
+        const { error } = await supabase.from('cluburi').update({ perioada_gratie_zile: valoare }).eq('id', clubTintaGratie);
+        setSavingGratie(false);
+        if (error) {
+            showError('Eroare la salvare', error.message);
+        } else {
+            showSuccess('Salvat', 'Perioada de grație a fost actualizată.');
+        }
+    };
+
     // Implicit: sezonul activ al clubului propriu, la prima încărcare
     useEffect(() => {
         setNewSezonId(prev => prev || sezonActivId || '');
@@ -179,7 +215,34 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
              </Button>
             
             <h1 className="text-3xl font-bold text-white mb-6">Management Tipuri Abonament</h1>
-            
+
+            {(permissions?.isAdminClub || isFederationAdmin) && (
+                <Card className="mb-8 border-l-4 border-amber-400">
+                    <h3 className="text-xl font-bold text-white mb-2">Perioadă de grație la reînnoire</h3>
+                    <p className="text-sm text-slate-400 mb-4">
+                        Dacă au trecut mai mult de N zile de la ultima lună facturată, lunile neplătite dinainte nu mai sunt datorate — facturarea repornește din luna curentă. Sub prag, lunile lipsă rămân de plată. Pragul se aplică la generarea automată a abonamentelor (butonul "Generează Abonamente" din Plăți Scadente).
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-end gap-4">
+                        {isFederationAdmin && (
+                            <Select label="Club" value={newClubId} onChange={e => setNewClubId(e.target.value)}>
+                                {clubs.map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                            </Select>
+                        )}
+                        <Input
+                            label="Perioadă de grație (zile)"
+                            type="number"
+                            min={0}
+                            max={365}
+                            value={pragGratie}
+                            onChange={e => setPragGratie(e.target.value)}
+                        />
+                        <Button onClick={handleSaveGratie} variant="primary" isLoading={savingGratie}>
+                            Salvează
+                        </Button>
+                    </div>
+                </Card>
+            )}
+
             <Card className="mb-8 border-l-4 border-brand-secondary">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                     <PlusIcon className="w-5 h-5 text-brand-secondary" /> Definește Abonament Nou

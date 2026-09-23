@@ -50,6 +50,7 @@ export const GrupaCard: React.FC<{
     onGenerareAntrenamente?: (g: GrupaWithDetails) => void;
     nrSecundari?: number;
     sezonActivId?: string | null;
+    sezonDenumire?: string | null;
     onDubleaza?: (g: GrupaWithDetails) => void;
     nrFaraAbonamentValid?: number;
 }> = ({
@@ -62,6 +63,7 @@ export const GrupaCard: React.FC<{
     onGenerareAntrenamente,
     nrSecundari,
     sezonActivId,
+    sezonDenumire,
     onDubleaza,
     nrFaraAbonamentValid,
 }) => {
@@ -107,7 +109,7 @@ export const GrupaCard: React.FC<{
                 <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-xl font-bold text-white">{grupa.denumire}</h3>
-                        {tipGrupa === 'permanent' ? <Badge variant="blue">Permanentă</Badge> : <Badge variant="amber">Per Sezon</Badge>}
+                        {tipGrupa === 'permanent' ? <Badge variant="blue">Permanentă</Badge> : <Badge variant="amber">{sezonDenumire ? `Sezon: ${sezonDenumire}` : 'Per Sezon'}</Badge>}
                         {esteArhivata && <Badge variant="slate">Arhivată</Badge>}
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">

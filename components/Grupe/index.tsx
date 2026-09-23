@@ -47,19 +47,27 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
     // Filtrare client-side ca plasă de siguranță — protejează dacă cache-ul conține date neexpirate fără filtru
     const grupeClub = (grupeData || []).filter(g => !grupeClubId || g.club_id === grupeClubId);
 
-    // Filtru sezon: activ doar când se ajunge din Sezoane cu un sezonId în viewParams
-    const sezonFiltruId: string | null = viewParams?.sezonId ?? null;
-    const sezonFiltruDenumire: string | undefined = viewParams?.sezonDenumire;
-    const [filtruSezonDezactivat, setFiltruSezonDezactivat] = useState(false);
-    const filtruSezonActiv = !!sezonFiltruId && !filtruSezonDezactivat;
+    const sezonClubId = grupeClubId ?? activeRoleContext?.club_id ?? null;
+    const { sezoane, sezonActiv } = useSezonActiv(sezonClubId);
+
+    // Filtru sezon: dropdown persistent, implicit sezonul activ. Navigarea din
+    // Sezoane (viewParams.sezonId) suprascrie o singură dată selecția implicită.
+    const [sezonFiltruManual, setSezonFiltruManual] = useState<string | null>(viewParams?.sezonId ?? null);
+    const [sezonFiltruInitializat, setSezonFiltruInitializat] = useState(!!viewParams?.sezonId);
+    useEffect(() => {
+        if (!sezonFiltruInitializat && sezonActiv?.id) {
+            setSezonFiltruManual(sezonActiv.id);
+            setSezonFiltruInitializat(true);
+        }
+    }, [sezonActiv?.id, sezonFiltruInitializat]);
+    const sezonFiltruId: string | null = sezonFiltruManual;
+    const sezonFiltruDenumire: string | undefined = sezoane.find(s => s.id === sezonFiltruId)?.denumire ?? viewParams?.sezonDenumire;
+    const filtruSezonActiv = !!sezonFiltruId;
     const grupe = filtruSezonActiv
         ? grupeClub.filter(g => (g as any).tip_grupa === 'permanent' || (g as any).sezon_id === sezonFiltruId)
         : grupeClub;
     // Grupele arhivate apar ultimele, păstrând ordinea relativă existentă
     const grupeAfisate = [...grupe].sort((a, b) => Number((a as any).arhivat ?? false) - Number((b as any).arhivat ?? false));
-
-    const sezonClubId = grupeClubId ?? activeRoleContext?.club_id ?? null;
-    const { sezonActiv } = useSezonActiv(sezonClubId);
 
     // Nr. sportivi individuali (fără familie) al căror tip de abonament lipsește sau
     // aparține unui sezon arhivat — semnal rapid pe cardul grupei, aceeași regulă ca
@@ -361,24 +369,28 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                             <Button onClick={handleOpenAdd} variant="info" className="flex-1 sm:flex-none" data-tour="grupe-adauga"><PlusIcon className="w-5 h-5 mr-2" />Adaugă Grupă</Button>
                         </div>
                     </div>
-                    {filtruSezonActiv && (
+                    {sezoane.length > 0 && (
                         <div className="flex flex-wrap items-center gap-2 text-sm bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2">
-                            <span className="text-slate-300">
-                                Filtrat după sezon: <strong className="text-white">{sezonFiltruDenumire || '—'}</strong> (+ grupe permanente)
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => setFiltruSezonDezactivat(true)}
-                                className="text-blue-400 hover:text-blue-300 underline ml-auto"
+                            <label className="text-slate-300 shrink-0">Sezon:</label>
+                            <Select
+                                value={sezonFiltruId ?? ''}
+                                onChange={(e) => { setSezonFiltruManual(e.target.value || null); setSezonFiltruInitializat(true); }}
+                                className="!py-1.5 min-w-[200px] max-w-[260px]"
                             >
-                                Vezi toate grupele
-                            </button>
+                                <option value="">Toate sezoanele</option>
+                                {sezoane.map(s => (
+                                    <option key={s.id} value={s.id}>{s.denumire}{s.activ ? ' (activ)' : ''}</option>
+                                ))}
+                            </Select>
+                            {filtruSezonActiv && (
+                                <span className="text-slate-400 text-xs">+ grupe permanente</span>
+                            )}
                         </div>
                     )}
                     {grupe.length > 0 ? (
                         <div data-tour="grupe-lista" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {(grupeAfisate as GrupaWithDetails[]).map(grupa => (
-                                <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onDetalii={handleOpenGrupaDetail} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} onGenerareAntrenamente={setGrupaForGenerare} sezonActivId={sezonActiv?.id ?? null} onDubleaza={setGrupaToClone} nrFaraAbonamentValid={nrFaraAbonamentValidPerGrupa.get(grupa.id) || 0} />
+                                <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onDetalii={handleOpenGrupaDetail} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} onGenerareAntrenamente={setGrupaForGenerare} sezonActivId={sezonActiv?.id ?? null} sezonDenumire={sezoane.find(s => s.id === (grupa as any).sezon_id)?.denumire ?? null} onDubleaza={setGrupaToClone} nrFaraAbonamentValid={nrFaraAbonamentValidPerGrupa.get(grupa.id) || 0} />
                             ))}
                         </div>
                     ) : (

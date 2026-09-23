@@ -6,6 +6,7 @@ import { FEDERATIE_ID } from '../../constants';
 import { validateSportiv } from '../../utils/validation';
 import { calculeazaVarstaLaData } from '../../utils/eligibilitateCompetitie';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { useSezonActiv } from '../../hooks/useSezoane';
 
 interface SportivFormFieldsProps {
     initialData: Partial<Sportiv>;
@@ -53,6 +54,9 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         const activeRoleName = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
         return activeRoleName === 'SUPER_ADMIN_FEDERATIE' || activeRoleName === 'ADMIN';
     }, [activeRoleContext]);
+
+    const clubIdPentruSezon = formData.club_id || activeRoleContext?.club_id || currentUser?.club_id || null;
+    const { sezonActiv } = useSezonActiv(clubIdPentruSezon);
 
     useEffect(() => {
         const currentErrors = validate(formData);
@@ -474,6 +478,11 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                                 <option value="">Fără grupă</option>
                                 {grupe
                                     .filter(g => !formData.club_id || g.club_id === formData.club_id)
+                                    .filter(g =>
+                                        (g as any).tip_grupa !== 'per_sezon'
+                                        || (g as any).sezon_id === sezonActiv?.id
+                                        || g.id === formData.grupa_id // grupa deja asignată rămâne vizibilă, chiar dacă e din sezon vechi
+                                    )
                                     .map(g => (
                                         <option key={g.id} value={g.id}>{g.denumire}</option>
                                     ))

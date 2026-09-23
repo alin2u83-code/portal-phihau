@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Antrenament } from '../../types';
 import { Button, Card, Input, Select, Modal, CalendarQuickLink } from '../ui';
@@ -7,6 +7,7 @@ import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { MartialArtsSkeleton } from '../MartialArtsSkeleton';
 import { formatTime } from '../../utils/date';
+import { useSezonActiv } from '../../hooks/useSezoane';
 
 interface ProgramAntrenamenteManagementProps {
     onBack: () => void;
@@ -15,6 +16,8 @@ interface ProgramAntrenamenteManagementProps {
 
 export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManagementProps> = ({ onBack, onNavigate }) => {
     const { filteredData, setAntrenamente, loading, refetch, clubs, activeRoleContext } = useData();
+    const grupe = filteredData.grupe || [];
+    const grupaMap = useMemo(() => new Map(grupe.map(g => [g.id, g])), [grupe]);
     const { showError, showSuccess } = useError();
     const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -48,6 +51,19 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
     const activeRoleName = (activeRoleContext as any)?.roluri?.nume || (activeRoleContext as any)?.rol_denumire || '';
     const isFederationLevel = activeRoleName === 'SUPER_ADMIN_FEDERATIE' || activeRoleName === 'ADMIN';
 
+    // Sezon disponibil doar când avem un club concret (context fix sau filtru club ales la nivel de federație)
+    const sezonClubId = isFederationLevel ? (clubFilter || null) : (activeRoleContext?.club_id ?? null);
+    const { sezoane, sezonActiv } = useSezonActiv(sezonClubId);
+    const [sezonFiltruManual, setSezonFiltruManual] = useState<string | null>(null);
+    const [sezonFiltruInitializat, setSezonFiltruInitializat] = useState(false);
+    useEffect(() => {
+        if (!sezonFiltruInitializat && sezonActiv?.id) {
+            setSezonFiltruManual(sezonActiv.id);
+            setSezonFiltruInitializat(true);
+        }
+    }, [sezonActiv?.id, sezonFiltruInitializat]);
+    const sezonFiltru = sezonFiltruManual;
+
     const cluburiDisponibile = useMemo(() => {
         if (!isFederationLevel) return [];
         // Obținem cluburile unice din antrenamentele existente, mapate la numele din clubs
@@ -66,9 +82,14 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
             const matchesDay = !dayFilter || getDayOfWeek((a.data || '').toString()) === dayFilter;
             const matchesGroup = !groupFilter || a.nume_grupa === groupFilter;
             const matchesClub = !clubFilter || a.club_id === clubFilter;
-            return matchesDay && matchesGroup && matchesClub;
+            const grupaAntrenament = a.grupa_id ? grupaMap.get(a.grupa_id) : null;
+            const matchesSezon = !sezonFiltru
+                || !grupaAntrenament
+                || (grupaAntrenament as any).tip_grupa === 'permanent'
+                || (grupaAntrenament as any).sezon_id === sezonFiltru;
+            return matchesDay && matchesGroup && matchesClub && matchesSezon;
         });
-    }, [antrenamente, dayFilter, groupFilter, clubFilter]);
+    }, [antrenamente, dayFilter, groupFilter, clubFilter, sezonFiltru, grupaMap]);
 
     const { curent: antrenamenteCurent, viitor: antrenamenteViitor, arhiva: antrenamenteArhiva } = useMemo(() => {
         const azi = new Date();
@@ -189,7 +210,11 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
             </div>
 
             <Card className="p-4 bg-slate-900/40 backdrop-blur-sm border-slate-800">
-                <div className={`grid grid-cols-1 gap-4 ${isFederationLevel ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
+                <div className={`grid grid-cols-1 gap-4 ${
+                    isFederationLevel
+                        ? (sezoane.length > 0 ? 'md:grid-cols-4' : 'md:grid-cols-3')
+                        : (sezoane.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-2')
+                }`}>
                     {isFederationLevel && (
                         <Select
                             label="Filtrează după club"
@@ -208,6 +233,16 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                         <option value="">Toate grupele</option>
                         {grupeDisponibile.map(g => <option key={g} value={g}>{g}</option>)}
                     </Select>
+                    {sezoane.length > 0 && (
+                        <Select
+                            label="Filtrează după sezon"
+                            value={sezonFiltru ?? ''}
+                            onChange={e => { setSezonFiltruManual(e.target.value || null); setSezonFiltruInitializat(true); }}
+                        >
+                            <option value="">Toate sezoanele</option>
+                            {sezoane.map(s => <option key={s.id} value={s.id}>{s.denumire}{s.activ ? ' (activ)' : ''}</option>)}
+                        </Select>
+                    )}
                 </div>
             </Card>
 

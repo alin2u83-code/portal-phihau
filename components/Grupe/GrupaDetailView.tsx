@@ -870,6 +870,9 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
     const [isModalAdaugareOpen, setIsModalAdaugareOpen] = useState(false);
     const { data: istoricMembri = [] } = useIstoricMembriGrupa(grupa.id);
     const istoricCount = istoricMembri.length;
+    // Aceeași queryKey ca în TabIstoricMembri (useSezoane(clubId)) — React Query dedupe, fără request suplimentar
+    const { data: sezoaneGrupa = [] } = useSezoane(grupa.club_id);
+    const sezonGrupa = (grupa as any).tip_grupa === 'per_sezon' ? sezoaneGrupa.find(s => s.id === (grupa as any).sezon_id) : null;
 
     const sportiviCount = grupa.sportivi?.[0]?.count ?? 0;
 
@@ -893,7 +896,10 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
                         </Button>
                     )}
                     <div className="text-right">
-                        <h1 className="text-xl font-bold text-white">{grupa.denumire}</h1>
+                        <div className="flex items-center justify-end gap-2">
+                            <h1 className="text-xl font-bold text-white">{grupa.denumire}</h1>
+                            {sezonGrupa && <Badge variant="amber">Sezon: {sezonGrupa.denumire}</Badge>}
+                        </div>
                         <p className="text-sm text-slate-400">Sala: {grupa.sala || 'Nespecificată'} · {sportiviCount} sportivi activi</p>
                     </div>
                 </div>

@@ -52,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const callerRoles = (callerRoleRows || []) as any[];
-  const { email, password, userData, roles } = req.body;
+  const { email, password, userData, roles, sportiv_id } = req.body;
 
   // 4. Validare payload — respinge cereri malformate înainte de orice scriere (WR-02).
   if (!email || typeof email !== 'string' || !userData?.nume || !userData?.prenume) {
@@ -118,6 +118,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       p_club_id: userData.club_id || null,
       p_roles: roles,
       p_user_id: userId,
+      p_sportiv_id: sportiv_id || null,
       p_additional_data: {
         data_nasterii: userData.data_nasterii,
         cnp: userData.cnp,

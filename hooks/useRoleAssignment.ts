@@ -53,6 +53,7 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
                 body: JSON.stringify({
                     email,
                     password: parola,
+                    sportiv_id: sportivData.id || null,
                     userData: {
                         nume: sportivData.nume,
                         prenume: sportivData.prenume,

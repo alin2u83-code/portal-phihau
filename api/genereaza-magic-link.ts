@@ -87,6 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             p_club_id: sportiv.club_id,
             p_roles: rolesToAssign,
             p_user_id: userId,
+            p_sportiv_id: sportiv_id,
             p_additional_data: {
                 data_nasterii: '1900-01-01',
                 status: 'Activ',
@@ -100,10 +101,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // Actualizează sportivul cu user_id și email provizoriu
-        await supabaseAdmin
+        const { error: updateError } = await supabaseAdmin
             .from('sportivi')
             .update({ user_id: userId, trebuie_schimbata_parola: true, email: tempEmail })
             .eq('id', sportiv_id);
+
+        if (updateError) {
+            console.warn('Nu s-a putut actualiza sportivul cu user_id/email:', updateError.message);
+        }
 
         // Generează magic link
         const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({

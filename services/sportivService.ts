@@ -1,6 +1,7 @@
 import { supabase } from '../supabaseClient';
 import { Sportiv } from '../types';
 import { DEBUTANT_GRAD_ID } from '../constants';
+import { mapeazaEroareUnicitateSportiv } from '../utils/error';
 
 export const adaugaSportiv = async (formData: Partial<Sportiv>): Promise<{ success: boolean; data?: Sportiv; error?: any }> => {
     try {
@@ -26,10 +27,10 @@ export const adaugaSportiv = async (formData: Partial<Sportiv>): Promise<{ succe
         
         const { data, error } = await supabase.from('vedere_cluburi_sportivi').select('*, cluburi(id, nume)').eq('id', inserted.id).single();
         if (error) throw error;
-        
+
         return { success: true, data: data as Sportiv };
     } catch (error) {
-        return { success: false, error };
+        return { success: false, error: mapeazaEroareUnicitateSportiv(error) };
     }
 };
 

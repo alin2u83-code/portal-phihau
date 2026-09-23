@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { useError } from '../components/ErrorProvider';
 import { Rol, Sportiv, User } from '../types';
-import { getAuthErrorMessage } from '../utils/error';
+import { getAuthErrorMessage, mapeazaEroareUnicitateSportiv } from '../utils/error';
 
 export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
     const { showError, showSuccess } = useError();
@@ -91,7 +91,7 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
             return { success: true, sportiv: { ...result.sportiv, roluri: rolesToAssign }, generatedPassword: parola };
         } catch (err: any) {
             console.error('Account Creation Error:', err);
-            return { success: false, error: err.message || "A apărut o eroare neașteptată." };
+            return { success: false, error: mapeazaEroareUnicitateSportiv(err)?.message || "A apărut o eroare neașteptată." };
         } finally {
             setLoading(false);
         }

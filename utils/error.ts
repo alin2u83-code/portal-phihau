@@ -14,3 +14,39 @@ export const formatErrorMessage = (error: any): string => {
 };
 
 export const getAuthErrorMessage = formatErrorMessage;
+
+const MESAJ_FALLBACK_UNICITATE = 'Există deja un sportiv cu aceste date. Verificați CNP-ul, emailul și numele introduse.';
+
+export const mapeazaEroareUnicitateSportiv = (error: any): any => {
+    if (!error) return error;
+
+    const mesajOriginal: string | undefined = typeof error.message === 'string' ? error.message : undefined;
+    const esteUnicitate = error.code === '23505'
+        || (mesajOriginal && mesajOriginal.includes('duplicate key value violates unique constraint'));
+
+    if (!esteUnicitate) return error;
+
+    const numeConstrangere = mesajOriginal?.match(/constraint "([^"]+)"/)?.[1] ?? null;
+    const coloane = typeof error.details === 'string'
+        ? (error.details.match(/Key \((.+?)\)=\(/)?.[1] ?? '')
+        : '';
+
+    const semnal = `${numeConstrangere ?? ''} ${coloane}`.toLowerCase();
+
+    let mesaj: string;
+    if (semnal.includes('username')) {
+        mesaj = 'Există deja un sportiv cu acest nume de utilizator.';
+    } else if (semnal.includes('cnp')) {
+        mesaj = 'Există deja un sportiv cu acest CNP.';
+    } else if (semnal.includes('email')) {
+        mesaj = 'Există deja un sportiv cu această adresă de email.';
+    } else if (semnal.includes('legitimatie')) {
+        mesaj = 'Există deja un sportiv cu acest număr de legitimație.';
+    } else if (semnal.includes('unique_sportiv_phi_hau') || (semnal.includes('nume') && semnal.includes('prenume'))) {
+        mesaj = 'Există deja în acest club un sportiv cu același nume, prenume și aceeași dată de naștere.';
+    } else {
+        mesaj = MESAJ_FALLBACK_UNICITATE;
+    }
+
+    return Object.assign(new Error(mesaj), { code: '23505', constraint: numeConstrangere });
+};

@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { checkRateLimit, getClientIp } from './_rateLimit';
+import { checkRateLimit, getClientIp } from './_rateLimit.js';
 
 async function generateEmbedding(text: string, apiKey: string): Promise<number[]> {
   const resp = await fetch(

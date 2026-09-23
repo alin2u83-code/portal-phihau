@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from "@supabase/supabase-js";
-import { checkRateLimit, getClientIp } from './_rateLimit';
-import { verificaPermisiuneCreareCont } from './_permisiuniCont';
+import { checkRateLimit, getClientIp } from './_rateLimit.js';
+import { verificaPermisiuneCreareCont } from './_permisiuniCont.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {

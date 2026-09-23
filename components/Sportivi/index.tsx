@@ -550,8 +550,22 @@ export const Sportivi: React.FC<{
                 return { success: true, data: updatedSportiv };
             } else {
                 const { email, parola, roluri, cluburi, ...profileData } = formData;
-                if (!email || !parola) throw new Error("Emailul și parola sunt obligatorii pentru crearea unui cont nou.");
-                
+
+                if (!email || !parola) {
+                    // Sportiv fără cont — insert direct, activare mai târziu (lacăt / Link-uri Magic)
+                    const targetClubIdFaraCont = profileData.club_id || filters.clubFilter || activeRoleContext?.club_id || currentUser?.club_id;
+                    if (!targetClubIdFaraCont) throw new Error("Clubul este obligatoriu la adăugarea unui sportiv nou.");
+
+                    const resultFaraCont = await adaugaSportiv({ ...profileData, club_id: targetClubIdFaraCont });
+                    if (!resultFaraCont.success || !resultFaraCont.data) throw resultFaraCont.error || new Error("Eroare la adăugarea sportivului.");
+
+                    setSportivi(prev => [...prev, resultFaraCont.data!]);
+                    queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+                    handleCloseFormModal();
+                    showSuccess('Succes', 'Sportiv adăugat! Poți activa un cont de login oricând mai târziu.');
+                    return { success: true, data: resultFaraCont.data };
+                }
+
                 // 1. Verificare prealabilă: Caută după email
                 const { data: existingSportiv, error: checkError } = await supabase
                     .from('sportivi')
@@ -970,6 +984,7 @@ export const Sportivi: React.FC<{
                 tipuriAbonament={tipuriAbonament}
                 clubs={clubs}
                 currentUser={currentUser}
+                activeRoleContext={activeRoleContext}
                 clubFilter={filters.clubFilter}
                 accountSettingsSportiv={accountSettingsSportiv}
                 onCloseAccountSettings={() => setAccountSettingsSportiv(null)}

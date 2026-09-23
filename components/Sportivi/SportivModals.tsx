@@ -22,6 +22,7 @@ interface SportivModalsProps {
     clubs: Club[];
     currentUser: User;
     clubFilter?: string;
+    activeRoleContext?: any;
 
     // Account Settings Modal
     accountSettingsSportiv: Sportiv | null;
@@ -73,6 +74,7 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
     clubs,
     currentUser,
     clubFilter,
+    activeRoleContext,
     accountSettingsSportiv,
     onCloseAccountSettings,
     allRoles,
@@ -147,6 +149,7 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
                     tipuriAbonament={tipuriAbonament}
                     clubs={clubs}
                     currentUser={currentUser}
+                    activeRoleContext={activeRoleContext}
                     clubFilter={clubFilter}
                     allRoles={allRoles}
                 />

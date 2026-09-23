@@ -17,6 +17,7 @@ interface SportivFormFieldsProps {
     tipuriAbonament: TipAbonament[];
     clubs: Club[];
     currentUser: User | null;
+    activeRoleContext?: any;
     onQuickAddGrupa: () => void;
     onQuickAddFamilie: () => void;
     allRoles: Rol[];
@@ -32,6 +33,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
     tipuriAbonament,
     clubs,
     currentUser,
+    activeRoleContext,
     onQuickAddGrupa,
     onQuickAddFamilie,
     allRoles,
@@ -47,10 +49,10 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         return validateSportiv(data);
     }, []);
 
-    const isSuperAdmin = useMemo(() =>
-        currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'),
-        [currentUser]
-    );
+    const isSuperAdmin = useMemo(() => {
+        const activeRoleName = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
+        return activeRoleName === 'SUPER_ADMIN_FEDERATIE' || activeRoleName === 'ADMIN';
+    }, [activeRoleContext]);
 
     useEffect(() => {
         const currentErrors = validate(formData);
@@ -442,7 +444,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                                 </label>
                                 <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-800/60 border border-slate-700 text-slate-300">
                                     <span className="font-medium">
-                                        {clubs.find(c => c.id === (formData.club_id || currentUser?.club_id))?.nume || 'Clubul curent'}
+                                        {clubs.find(c => c.id === (formData.club_id || activeRoleContext?.club_id || currentUser?.club_id))?.nume || 'Clubul curent'}
                                     </span>
                                     <span className="ml-auto text-xs text-slate-500 select-none">Read-only</span>
                                 </div>

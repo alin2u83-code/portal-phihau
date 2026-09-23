@@ -30,10 +30,11 @@ export const SportivFormModal: React.FC<{
     tipuriAbonament: TipAbonament[];
     clubs: Club[];
     currentUser: User | null;
+    activeRoleContext?: any;
     clubFilter?: string;
     allRoles: Rol[];
-}> = ({ 
-  isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, grade, familii, setFamilii, tipuriAbonament, clubs, currentUser, clubFilter, allRoles
+}> = ({
+  isOpen, onClose, onSave, sportivToEdit, grupe, setGrupe, grade, familii, setFamilii, tipuriAbonament, clubs, currentUser, activeRoleContext, clubFilter, allRoles
 }) => {
     const { showError } = useError();
     const [loading, setLoading] = useState(false);
@@ -54,8 +55,9 @@ export const SportivFormModal: React.FC<{
                 setIsFormValid(true);
                 setIsDirty(false);
             } else {
-                const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
-                const defaultClubId = !isSuperAdmin && currentUser?.club_id ? currentUser.club_id : (clubFilter || null);
+                const activeRoleName = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
+                const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE' || activeRoleName === 'ADMIN';
+                const defaultClubId = !isSuperAdmin && (activeRoleContext?.club_id || currentUser?.club_id) ? (activeRoleContext?.club_id || currentUser?.club_id) : (clubFilter || null);
                 
                 let defaultGradeId = null;
                 if (grade.length > 0) {
@@ -95,9 +97,10 @@ export const SportivFormModal: React.FC<{
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
-        
-        if (!isSuperAdmin && formData.club_id && formData.club_id !== currentUser?.club_id) {
+        const activeRoleName = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
+        const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE' || activeRoleName === 'ADMIN';
+
+        if (!isSuperAdmin && formData.club_id && formData.club_id !== (activeRoleContext?.club_id || currentUser?.club_id)) {
             showError("Eroare de Securitate", "Tentativă de modificare neautorizată! Nu aveți drepturi de administrare pentru clubul selectat.");
             return;
         }
@@ -129,11 +132,12 @@ export const SportivFormModal: React.FC<{
     };
 
     const handleQuickAddGrupa = async (nume: string) => {
-        const isSuperAdmin = currentUser?.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
-        const { data, error } = await supabase.from('grupe').insert({ 
-            denumire: nume, 
-            sala: 'N/A', 
-            club_id: isSuperAdmin ? null : currentUser?.club_id 
+        const activeRoleName = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
+        const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE' || activeRoleName === 'ADMIN';
+        const { data, error } = await supabase.from('grupe').insert({
+            denumire: nume,
+            sala: 'N/A',
+            club_id: isSuperAdmin ? null : (activeRoleContext?.club_id || currentUser?.club_id)
         }).select().maybeSingle();
         if (error) throw error;
         if (!data) throw new Error("Grupa a fost creată, dar nu a putut fi recuperată. Verificați permisiunile.");
@@ -154,6 +158,7 @@ export const SportivFormModal: React.FC<{
                         tipuriAbonament={tipuriAbonament}
                         clubs={clubs}
                         currentUser={currentUser}
+                        activeRoleContext={activeRoleContext}
                         onQuickAddGrupa={() => setIsGrupaModalOpen(true)}
                         onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
                         allRoles={allRoles}

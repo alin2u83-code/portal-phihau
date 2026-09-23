@@ -61,7 +61,7 @@ export const useRoleAssignment = (currentUser: User, allRoles: Rol[]) => {
                         data_nasterii: sportivData.data_nasterii || '1900-01-01',
                         status: sportivData.status || 'Activ',
                         data_inscrierii: sportivData.data_inscrierii || new Date().toISOString().split('T')[0],
-                        gen: sportivData.gen || 'Masculin',
+                        gen: sportivData.gen || null,
                         cnp: sportivData.cnp,
                         telefon: sportivData.telefon,
                         adresa: sportivData.adresa,

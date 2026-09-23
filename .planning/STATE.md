@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 30 — COMPLETE
 Plan: 1 of 6
 Status: Phase 30 complete
-Last activity: 2026-09-20 -- Phase 30 marked complete
+Last activity: 2026-09-23 - Completed quick task 260923-upx: fix audit inregistrare sportivi/conturi
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -140,6 +140,7 @@ Recent decisions affecting current work:
 | 260901-kata | Elimină "Kata" din eticheta CN Tehnica (fallback constant utils/competitiiTemplates.ts flash înainte de load DB) | 2026-09-01 | 6f28d61 | Verified (vizual browser) | — |
 | 260908-tgu | Prezenta Rapida: buton meniu 3 puncte langa grupa deschide GestioneazaGrupaModal (add/remove sportivi din grupa, UPDATE grupa_id + istoric) | 2026-09-08 | 0638130,729a945 | Verified (vizual browser, fluxul principal) | [260908-tgu-prezenta-rapida-buton-meniu-3-puncte-lan](./quick/260908-tgu-prezenta-rapida-buton-meniu-3-puncte-lan/) |
 | 260909-p31 | Filtru sezon in TabIstoricMembri (GrupaDetailView) + contor/tooltip vizibilitate pe tab-urile Istoric Membri si Istoric Grupe (profil sportiv) | 2026-09-09 | 24b21a0,b0e8c72,9f62418 | tsc OK, verificare vizuala neefectuata (executie non-interactiva) | [260909-p31-filtru-sezon-in-tab-istoric-membri-grupa](./quick/260909-p31-filtru-sezon-in-tab-istoric-membri-grupa/) |
+| 260923-upx | Fix audit inregistrare sportivi/conturi: RPC refactor_create_user_account (ramura UPDATE scrie date personale, DROP overload vechi 8 param, EXECUTE restrictionat la service_role), mesaje clare la conflict unicitate 23505 | 2026-09-23 | e63ec38,595a78d,fa6f8da | tsc OK, smoke test SQL cu rollback (SMOKE_OK, RESOLVE_OK), teste unitare mapper 9/9 PASS | [260923-upx-fix-audit-inregistrare-sportivi-conturi-](./quick/260923-upx-fix-audit-inregistrare-sportivi-conturi-/) |
 
 ### Roadmap Evolution
 

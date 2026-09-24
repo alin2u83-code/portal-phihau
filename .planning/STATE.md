@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 30 — COMPLETE
 Plan: 1 of 6
 Status: Phase 30 complete
-Last activity: 2026-09-25 - Completed quick task 260925-rls: fix RLS cross-club leak pe orar_saptamanal
+Last activity: 2026-09-25 - Completed quick task 260925-grp: UX modal Adauga Grupa + ascuns Activitate Sala pt Super Admin
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -145,6 +145,7 @@ Recent decisions affecting current work:
 | 260924-04t | Filtru sezon persistent in Grupe si Orar (Program Antrenamente), dropdown Grupa din profil sportiv nu mai arata sezoane vechi, badge denumire sezon pe GrupaCard/GrupaDetailView | 2026-09-24 | 4c1f7db | tsc OK, verificare vizuala neefectuata (executie non-interactiva) | [260924-04t-filtru-sezon-grupe-orar-profil-sportiv](./quick/260924-04t-filtru-sezon-grupe-orar-profil-sportiv/) |
 | 260924-wr1 | Validare complexitate parola server-side in api/creare-cont.ts (WR-01, gap din audit flux "adauga club nou + admin") — min 12 caractere, majuscula/minuscula/cifra | 2026-09-24 | e5de885 | tsc OK, verificat singurul apelant (genereazaParolaTemporara, 16 caractere) compatibil | [260924-wr1-valideaza-parola-server-side-creare-cont](./quick/260924-wr1-valideaza-parola-server-side-creare-cont/) |
 | 260925-rls | Fix RLS cross-club leak pe orar_saptamanal — DROP politica fantoma "Acces Club Orar" (ignora active-role-context-id, aplicata direct pe DB fara migrare in cod); ramase Bypass_Super_Admin + Staff_Manage_Orar | 2026-09-25 | N/A (migratie DB Supabase live, fara commit cod) | Verificat vizual Playwright (ADMIN_CLUB vede doar club propriu, Super Admin vede tot), zero erori consola | [260925-rls-fix-rls-orar-cross-club](./quick/260925-rls-fix-rls-orar-cross-club/) |
+| 260925-grp | UX modal Adauga Grupa: club auto-atribuit (fix isFederationAdmin context-aware), locatie implicita cand club are 1 singura, tip grupa default Per Sezon cu sezon activ preselectat, Program Saptamanal cu chip-uri multi-zi + avertisment program gol; ascuns "Activitate Sala" din sidebar Super Admin Federatie | 2026-09-25 | - | tsc OK, verificat vizual Playwright (ADMIN_CLUB + Super Admin Federatie) | [260925-grp-adauga-grupa-ux-club-locatie-tip-orar](./quick/260925-grp-adauga-grupa-ux-club-locatie-tip-orar/) |
 
 ### Roadmap Evolution
 

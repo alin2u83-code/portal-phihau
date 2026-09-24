@@ -82,14 +82,17 @@ export const GrupaFormModal: React.FC<{
     /** Clubul contextului activ (activeRoleContext.club_id) — sursa primara pentru clubul implicit al unei grupe noi.
      * Optional pentru compatibilitate: cand lipseste, comportamentul e identic cu inainte (fallback pe currentUser.club_id). */
     activeClubId?: string | null;
-}> = ({ isOpen, onClose, onSave, grupaToEdit, currentUser, clubs, locatii, onLocatieAdded, activeClubId }) => {
-    const [formState, setFormState] = useState({ denumire: '', sala: '', club_id: '', locatie_id: '', tip_grupa: 'permanent', sezon_id: '' });
+    /** permissions.isFederationLevel din contextul de rol ACTIV (nu rolurile globale ale userului).
+     * Optional pentru compatibilitate: cand lipseste, cade pe verificarea veche (roluri globale). */
+    isFederationLevel?: boolean;
+}> = ({ isOpen, onClose, onSave, grupaToEdit, currentUser, clubs, locatii, onLocatieAdded, activeClubId, isFederationLevel }) => {
+    const [formState, setFormState] = useState({ denumire: '', sala: '', club_id: '', locatie_id: '', tip_grupa: 'per_sezon', sezon_id: '' });
     const [program, setProgram] = useState<ProgramItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [showAddLocatie, setShowAddLocatie] = useState(false);
     const [localLocatii, setLocalLocatii] = useState<Locatie[]>([]);
     const { showError } = useError();
-    const isFederationAdmin = currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
+    const isFederationAdmin = isFederationLevel ?? currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN');
     const clubSelectat = formState.club_id || activeClubId || currentUser.club_id || null;
     const { sezoane, sezonActiv } = useSezonActiv(clubSelectat);
 
@@ -105,7 +108,7 @@ export const GrupaFormModal: React.FC<{
                 sala: grupaToEdit?.sala || '',
                 club_id: grupaToEdit?.club_id || (isFederationAdmin ? '' : (activeClubId ?? currentUser.club_id ?? '')),
                 locatie_id: (grupaToEdit as any)?.locatie_id || '',
-                tip_grupa: (grupaToEdit?.tip_grupa as 'permanent' | 'per_sezon') || 'permanent',
+                tip_grupa: (grupaToEdit?.tip_grupa as 'permanent' | 'per_sezon') || 'per_sezon',
                 sezon_id: grupaToEdit?.sezon_id || ''
             });
             setProgram(grupaToEdit?.program || []);
@@ -119,6 +122,20 @@ export const GrupaFormModal: React.FC<{
         if (!clubId) return localLocatii; // federation admin fără club selectat — arată toate
         return localLocatii.filter(l => !l.club_id || l.club_id === clubId);
     }, [localLocatii, formState.club_id, activeClubId, currentUser.club_id]);
+
+    // Preselectează sezonul activ pentru grupe noi "per sezon" (inclusiv la deschidere, nu doar la comutare manuală a tipului)
+    useEffect(() => {
+        if (isOpen && !grupaToEdit && formState.tip_grupa === 'per_sezon' && !formState.sezon_id && sezonActiv?.id) {
+            setFormState(p => ({ ...p, sezon_id: sezonActiv.id }));
+        }
+    }, [isOpen, grupaToEdit, formState.tip_grupa, formState.sezon_id, sezonActiv]);
+
+    // Preselectează locația implicit doar dacă clubul are o singură locație disponibilă
+    useEffect(() => {
+        if (isOpen && !grupaToEdit && !formState.locatie_id && locatiiFiltrate.length === 1) {
+            setFormState(p => ({ ...p, locatie_id: locatiiFiltrate[0].id }));
+        }
+    }, [isOpen, grupaToEdit, formState.locatie_id, locatiiFiltrate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -157,6 +174,9 @@ export const GrupaFormModal: React.FC<{
         }
         if (formState.tip_grupa === 'per_sezon' && !formState.sezon_id) {
             showError("Validare eșuată", "Selectează sezonul căruia îi aparține grupa.");
+            return;
+        }
+        if (program.length === 0 && !window.confirm("Nu ai adăugat niciun interval în Program Săptămânal (ai completat ziua/orele dar ai uitat să apeși \"Adaugă în program\"?). Salvezi grupa fără orar?")) {
             return;
         }
         setLoading(true);

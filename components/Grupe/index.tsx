@@ -407,7 +407,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
 
             <TourOverlay steps={TOURS.grupe} pageKey="grupe" />
             <TourButton steps={TOURS.grupe} pageKey="grupe" />
-            <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} locatii={locatii} onLocatieAdded={handleLocatieAdded} />
+            <GrupaFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} grupaToEdit={grupaToEdit} currentUser={currentUser} clubs={clubs} locatii={locatii} onLocatieAdded={handleLocatieAdded} activeClubId={activeRoleContext?.club_id ?? null} isFederationLevel={permissions.isFederationLevel} />
             <ConfirmDeleteModal isOpen={!!grupaToDelete} onClose={() => setGrupaToDelete(null)} onConfirm={() => { if(grupaToDelete) confirmDelete(grupaToDelete.id) }} tableName="Grupe" isLoading={isDeleting} />
             {grupaToClone && (
                 <ConfirmModal

@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 30 — COMPLETE
 Plan: 1 of 6
 Status: Phase 30 complete
-Last activity: 2026-09-23 - Completed quick task 260923-upx: fix audit inregistrare sportivi/conturi
+Last activity: 2026-09-24 - Completed quick task 260924-wr1: valideaza parola server-side la creare cont
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -143,6 +143,7 @@ Recent decisions affecting current work:
 | 260923-upx | Fix audit inregistrare sportivi/conturi: RPC refactor_create_user_account (ramura UPDATE scrie date personale, DROP overload vechi 8 param, EXECUTE restrictionat la service_role), mesaje clare la conflict unicitate 23505 | 2026-09-23 | e63ec38,595a78d,fa6f8da | tsc OK, smoke test SQL cu rollback (SMOKE_OK, RESOLVE_OK), teste unitare mapper 9/9 PASS | [260923-upx-fix-audit-inregistrare-sportivi-conturi-](./quick/260923-upx-fix-audit-inregistrare-sportivi-conturi-/) |
 | 260923-wkc | Follow-up 260923-upx: api/genereaza-magic-link.ts lipsea p_sportiv_id in apelul RPC refactor_create_user_account (ramura INSERT mereu in loc de UPDATE -> duplicat/conflict unique_sportiv_phi_hau); update ulterior verifica acum eroarea | 2026-09-23 | 96cbe79 | tsc OK pe fisierul modificat, Pas2Raport.tsx verificat (body neschimbat) | [260923-wkc-fix-magic-link-p-sportiv-id](./quick/260923-wkc-fix-magic-link-p-sportiv-id/) |
 | 260924-04t | Filtru sezon persistent in Grupe si Orar (Program Antrenamente), dropdown Grupa din profil sportiv nu mai arata sezoane vechi, badge denumire sezon pe GrupaCard/GrupaDetailView | 2026-09-24 | 4c1f7db | tsc OK, verificare vizuala neefectuata (executie non-interactiva) | [260924-04t-filtru-sezon-grupe-orar-profil-sportiv](./quick/260924-04t-filtru-sezon-grupe-orar-profil-sportiv/) |
+| 260924-wr1 | Validare complexitate parola server-side in api/creare-cont.ts (WR-01, gap din audit flux "adauga club nou + admin") — min 12 caractere, majuscula/minuscula/cifra | 2026-09-24 | e5de885 | tsc OK, verificat singurul apelant (genereazaParolaTemporara, 16 caractere) compatibil | [260924-wr1-valideaza-parola-server-side-creare-cont](./quick/260924-wr1-valideaza-parola-server-side-creare-cont/) |
 
 ### Roadmap Evolution
 

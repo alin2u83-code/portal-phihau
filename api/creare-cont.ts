@@ -59,6 +59,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Date lipsă sau invalide pentru crearea contului.' });
   }
 
+  // 4b. Validare complexitate parolă (WR-01) — UI-ul generează parole de minim
+  // 12 caractere cu majusculă/minusculă/cifră/simbol (utils/parola.ts), dar
+  // endpoint-ul e apelabil direct cu orice payload; fără gardă server-side,
+  // un apel manual poate crea conturi cu parole triviale.
+  const PAROLA_LUNGIME_MINIMA = 12;
+  if (
+    typeof password !== 'string' ||
+    password.length < PAROLA_LUNGIME_MINIMA ||
+    !/[A-Z]/.test(password) ||
+    !/[a-z]/.test(password) ||
+    !/[0-9]/.test(password)
+  ) {
+    return res.status(400).json({
+      error: `Parola trebuie să aibă cel puțin ${PAROLA_LUNGIME_MINIMA} caractere și să conțină majusculă, minusculă și cifră.`,
+    });
+  }
+
   // 5. Autorizare per club (T-26-01, T-26-02) — gardă unică: greutatea comparată
   // e cea a apelantului ÎN CLUBUL ȚINTĂ, nu maximul global (închide CR-01).
   const permisiune = verificaPermisiuneCreareCont({ callerRoles, roles, clubTinta: userData?.club_id ?? null });

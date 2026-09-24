@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 30 — COMPLETE
 Plan: 1 of 6
 Status: Phase 30 complete
-Last activity: 2026-09-24 - Completed quick task 260924-wr1: valideaza parola server-side la creare cont
+Last activity: 2026-09-25 - Completed quick task 260925-rls: fix RLS cross-club leak pe orar_saptamanal
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -144,6 +144,7 @@ Recent decisions affecting current work:
 | 260923-wkc | Follow-up 260923-upx: api/genereaza-magic-link.ts lipsea p_sportiv_id in apelul RPC refactor_create_user_account (ramura INSERT mereu in loc de UPDATE -> duplicat/conflict unique_sportiv_phi_hau); update ulterior verifica acum eroarea | 2026-09-23 | 96cbe79 | tsc OK pe fisierul modificat, Pas2Raport.tsx verificat (body neschimbat) | [260923-wkc-fix-magic-link-p-sportiv-id](./quick/260923-wkc-fix-magic-link-p-sportiv-id/) |
 | 260924-04t | Filtru sezon persistent in Grupe si Orar (Program Antrenamente), dropdown Grupa din profil sportiv nu mai arata sezoane vechi, badge denumire sezon pe GrupaCard/GrupaDetailView | 2026-09-24 | 4c1f7db | tsc OK, verificare vizuala neefectuata (executie non-interactiva) | [260924-04t-filtru-sezon-grupe-orar-profil-sportiv](./quick/260924-04t-filtru-sezon-grupe-orar-profil-sportiv/) |
 | 260924-wr1 | Validare complexitate parola server-side in api/creare-cont.ts (WR-01, gap din audit flux "adauga club nou + admin") — min 12 caractere, majuscula/minuscula/cifra | 2026-09-24 | e5de885 | tsc OK, verificat singurul apelant (genereazaParolaTemporara, 16 caractere) compatibil | [260924-wr1-valideaza-parola-server-side-creare-cont](./quick/260924-wr1-valideaza-parola-server-side-creare-cont/) |
+| 260925-rls | Fix RLS cross-club leak pe orar_saptamanal — DROP politica fantoma "Acces Club Orar" (ignora active-role-context-id, aplicata direct pe DB fara migrare in cod); ramase Bypass_Super_Admin + Staff_Manage_Orar | 2026-09-25 | N/A (migratie DB Supabase live, fara commit cod) | Verificat vizual Playwright (ADMIN_CLUB vede doar club propriu, Super Admin vede tot), zero erori consola | [260925-rls-fix-rls-orar-cross-club](./quick/260925-rls-fix-rls-orar-cross-club/) |
 
 ### Roadmap Evolution
 

@@ -71,6 +71,8 @@ interface JurnalIncasariProps {
     onBack: () => void;
     reduceri: Reducere[];
     onViewSportiv?: (sportiv: Sportiv) => void;
+    /** Faza 31 — hub-ul ascunde butonul; onBack ramane apelat automat dupa incasare */
+    hideBackButton?: boolean;
 }
 
 const emptyIncasareState = {
@@ -172,7 +174,7 @@ const AdaugaAvans: React.FC<{
 };
 
 
-export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, permissions, plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tipuriPlati, setTipuriPlati, tranzactii, setTranzactii, reduceri, platiInitiale = [], onIncasareProcesata, onBack, onViewSportiv }) => {
+export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, permissions, plati, setPlati, sportivi, familii, preturiConfig, tipuriAbonament, tipuriPlati, setTipuriPlati, tranzactii, setTranzactii, reduceri, platiInitiale = [], onIncasareProcesata, onBack, onViewSportiv, hideBackButton }) => {
     const [formState, setFormState] = useState(emptyIncasareState);
     const [selectedEchipament, setSelectedEchipament] = useState('');
     const [selectedMarimeId, setSelectedMarimeId] = useState('');
@@ -660,7 +662,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>
+            {!hideBackButton && (<Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi</Button>)}
             <Card>
                 <h3 className="text-xl font-bold text-white mb-4">{platiInitiale.length > 0 ? (isMultiple ? `Încasare Colectivă (${platiInitiale.length} facturi)` : "Încasare Datorie") : "Încasare Directă Nouă (Generează Factură & Încasare)"}</h3>
                 <form onSubmit={handleSaveIncasare} className="space-y-4">

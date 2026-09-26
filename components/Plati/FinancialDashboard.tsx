@@ -10,6 +10,8 @@ interface FinancialDashboardProps {
     sportivi: Sportiv[];
     familii: Familie[];
     onBack: () => void;
+    /** Faza 31 — hub-ul ascunde butonul */
+    hideBackButton?: boolean;
 }
 
 const COLORS = ['#4DBCE9', '#3D3D99', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#ec4899', '#64748b'];
@@ -40,7 +42,7 @@ const generatePeriodOptions = () => {
     ];
 };
 
-export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, tranzactii, sportivi, familii, onBack }) => {
+export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, tranzactii, sportivi, familii, onBack, hideBackButton }) => {
     const [period, setPeriod] = useState(generatePeriodOptions()[0].value);
     const [showUnpaidOnly, setShowUnpaidOnly] = useState(true);
 
@@ -129,7 +131,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+            {!hideBackButton && (<Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>)}
             <h1 className="text-xl md:text-3xl font-bold text-white">Dashboard Financiar</h1>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">

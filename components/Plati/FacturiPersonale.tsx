@@ -9,9 +9,11 @@ interface IstoricPlatiProps {
     plati: Plata[];
     tranzactii: Tranzactie[];
     onBack: () => void;
+    /** Faza 31 — hub-ul ascunde butonul; montarea standalone (rol SPORTIV) ramane neschimbata */
+    hideBackButton?: boolean;
 }
 
-export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, tranzactii, onBack }) => {
+export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, tranzactii, onBack, hideBackButton }) => {
     const userPlati = useMemo(() => {
         // 1. Filter payments relevant to the user
         const relevantPlati = plati.filter(p => 
@@ -194,7 +196,7 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, t
 
     return (
         <div className="space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Portal</Button>
+            {!hideBackButton && (<Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Portal</Button>)}
             
             <header className="text-left">
                  <h1 className="text-3xl font-bold text-white">Istoric Plăți & Tranzacții</h1>

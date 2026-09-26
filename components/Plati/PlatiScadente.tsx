@@ -484,15 +484,25 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
     const handleSaveEdit = async () => {
         if (!editingPlata || !supabase) return;
+        // Fix: editingPlata provine din view-ul rbv_plati_club (JOIN club) + câmpuri
+        // calculate client-side (descriereDetaliata, reducereDetalii ca obiect) — un
+        // spread direct în update() trimitea și "club_nume", coloană inexistentă în
+        // tabela reală "plati" (PGRST204). Whitelist explicit, ca în GestiuneFacturi.tsx.
+        const payload = {
+            descriere: editingPlata.descriere,
+            suma_initiala: editingPlata.suma_initiala ?? editingPlata.suma,
+            suma: editingPlata.suma,
+            status: editingPlata.status,
+            data: editingPlata.data,
+        };
         setIsSaving(true);
-        const { id, ...updates } = editingPlata;
-        const { error } = await supabase.from('plati').update(updates).eq('id', id);
+        const { data, error } = await supabase.from('plati').update(payload).eq('id', editingPlata.id).select().maybeSingle();
         setIsSaving(false);
-        if(error) { 
+        if(error) {
             console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
-            showError("Eroare la Salvare", error.message); 
+            showError("Eroare la Salvare", error.message);
         }
-        else { setPlati(prev => prev.map(p => p.id === id ? editingPlata : p)); setEditingPlata(null); }
+        else if (data) { setPlati(prev => prev.map(p => p.id === data.id ? { ...p, ...data } : p)); setEditingPlata(null); }
     };
     
     const handleProcessPayment = async () => {
@@ -1230,7 +1240,15 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                             onChange={e => setEditingPlata({...editingPlata, descriere: e.target.value})}
                         />
                         <Input
-                            label="Sumă (RON)"
+                            label="Sumă facturată (RON)"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={editingPlata.suma_initiala ?? editingPlata.suma}
+                            onChange={e => setEditingPlata({...editingPlata, suma_initiala: parseFloat(e.target.value) || 0})}
+                        />
+                        <Input
+                            label="Sumă încasată / rămasă (RON)"
                             type="number"
                             step="0.01"
                             min="0"

@@ -406,6 +406,17 @@ Plans:
 
 **Structura valurilor:** val 1 = {30-01, 30-02} (independente), val 2 = {30-03 dupa 30-01, 30-04 dupa 30-02}, val 3 = {30-05 dupa 30-02+30-04, 30-06 dupa 30-03}. Singurul plan neautonom e 30-06 (trimiterea reala de SMS catre sportivi necesita decizie umana explicita).
 
+### Phase 31: Hub Plati si Facturi: consolidare 14 view-uri in 4 tab-uri (Facturi/Incasari/Rapoarte/Configurare)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 30
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 31 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

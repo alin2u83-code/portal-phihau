@@ -411,7 +411,7 @@ Plans:
 **Goal:** Modulul Plati devine un singur hub "Plati & Facturi" (vederea `plati-hub`) cu 4 tab-uri interne — Facturi / Incasari / Rapoarte / Configurare — care inlocuieste 12 vederi top-level si e accesibil dintr-un singur punct de intrare pe dashboard si in meniu; Familii si Deconturi Federatie raman separate; plus ecran de detaliu factura cu suma facturata vs incasata separate, istoric tranzactii, context complet si actiune rapida "Marcheaza Achitat cu X RON" (ADMIN_CLUB + INSTRUCTOR); anti-pattern-ul spread-in-update pe `plati` eliminat.
 **Requirements**: TBD (faza fara ID-uri REQUIREMENTS.md — acoperire pe deciziile D-01..D-09 din 31-CONTEXT.md)
 **Depends on:** Phase 30
-**Plans:** 6/9 plans executed
+**Plans:** 7/9 plans executed
 
 Plans:
 
@@ -421,7 +421,7 @@ Plans:
 - [x] 31-04-PLAN.md — Tab Facturi + butoane Detalii in PlatiScadente/GestiuneFacturi (val 2)
 - [x] 31-05-PLAN.md — Tab Incasari (flux incasare multipla) + Tab Rapoarte (val 2)
 - [x] 31-06-PLAN.md — Tab Configurare (cu guard Taxe Anuale) (val 2)
-- [ ] 31-07-PLAN.md — Intrare INSTRUCTOR in detaliu factura din profil sportiv + verificare live read-only RLS/trigger (val 2)
+- [x] 31-07-PLAN.md — Intrare INSTRUCTOR in detaliu factura din profil sportiv + verificare live read-only RLS/trigger (val 2)
 - [ ] 31-08-PLAN.md — Shell PlatiHub + comutarea rutarii in AppRouter (alias-uri legacy, ramura SPORTIV istoric-plati) (val 3)
 - [ ] 31-09-PLAN.md — Puncte de intrare unice (AdminMasterMap, meniu, Rapoarte, Header, AI) + verificare finala end-of-phase (val 4)
 

@@ -69,24 +69,11 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         prevViewRef.current = activeView;
     }, [activeView]);
 
-    const handleIncaseazaMultiple = (platiSelectate: Plata[]) => {
-        setPlatiPentruIncasare(platiSelectate);
-        setActiveView('jurnal-incasari');
-    };
-
-    const { goBack, canGoBack, viewParams } = useNavigation();
-    const handleJurnalBack = () => {
-        setPlatiPentruIncasare([]);
-        if (canGoBack) {
-            goBack();
-        } else {
-            setActiveView('plati-scadente');
-        }
-    };
-
-    const handleIncasareProcesata = () => {
-        setPlatiPentruIncasare([]);
-    };
+    // Faza 31 (31-08): logica fluxului de încasare multiplă (F1-F4) și a
+    // navigării hub-ului "Plăți & Facturi" a fost mutată în
+    // components/Plati/hub/PlatiHub.tsx. `goBack`/`canGoBack` rămân folosite
+    // aici de vederea 'profil-sportiv'.
+    const { goBack, canGoBack } = useNavigation();
 
     // Hook-urile trebuie declarate necondiționat, înaintea oricărui return
     // timpuriu (Rules of Hooks) — altfel o schimbare a trebuie_schimbata_parola
@@ -116,6 +103,24 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         setSportivProfilTab(tab);
         setActiveView('profil-sportiv');
     };
+
+    // Faza 31 (31-08): un singur element pentru hub-ul "Plăți & Facturi",
+    // construit o singură dată. Crearea unui element JSX nu îl randează —
+    // e returnat doar din ramurile de mai jos (vederea hub + alias-urile
+    // legacy, și din ramura canManageFinances a lui 'istoric-plati'). Definit
+    // DUPĂ return-urile timpurii (OnboardingCompletare/MandatoryPasswordChange)
+    // și nu introduce niciun hook nou (Rules of Hooks — vezi CR-03 mai sus).
+    const platiHubElement = (
+        <Lazy.PlatiHub
+            currentUser={currentUser!}
+            permissions={permissions}
+            activeRoleContext={activeRoleContext}
+            onViewSportiv={onViewSportiv}
+            onBack={handleBackToDashboard}
+            platiPentruIncasare={platiPentruIncasare}
+            setPlatiPentruIncasare={setPlatiPentruIncasare}
+        />
+    );
 
     return (
         <AnimatePresence mode="wait">
@@ -225,20 +230,27 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.RaportIntervalExamen onViewSportiv={onViewSportiv} onBack={handleBackToDashboard} />, isAtLeastInstructor);
                             case 'calendar':
                                 return <Lazy.CalendarView onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} permissions={permissions} onViewSportiv={onViewSportiv} />;
-                            case 'financial-dashboard':
-                                return renderProtected(<Lazy.FinancialDashboard onBack={handleBackToDashboard} plati={filteredData.plati} tranzactii={filteredData.tranzactii} sportivi={filteredData.sportivi} familii={filteredData.familii} />, isAtLeastClubAdmin);
+                            // Faza 31 (D-01..D-04): un singur hub înlocuiește cele 12 vederi
+                            // financiare de mai jos; literalele vechi rămân alias-uri (localStorage
+                            // `phi-hau-active-view`, favorite, link-uri adânci) — toate deschid
+                            // același `PlatiHub`, care citește tab-ul/secțiunea din viewParams.
+                            // Guard `canManageFinances` ≡ vechiul `isAtLeastClubAdmin`; guard-ul
+                            // special pentru 'taxe-anuale' e aplicat în interiorul hub-ului (TabConfigurare).
+                            case 'plati-hub':
+                            case 'plati-scadente':
                             case 'gestiune-facturi':
-                                return renderProtected(<Lazy.GestiuneFacturi onBack={canGoBack ? goBack : handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} setTranzactii={setTranzactii} tipuriPlati={tipuriPlati} familii={filteredData.familii} onViewSportiv={onViewSportiv} initialSportivId={viewParams?.sportivId} />, canManageFinances);
                             case 'facturi-fara-prezenta':
-                                return renderProtected(<Lazy.FacturiFaraPrezenta onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, canManageFinances);
+                            case 'jurnal-incasari':
+                            case 'raport-financiar':
+                            case 'financial-dashboard':
+                            case 'tipuri-abonament':
+                            case 'configurare-preturi':
+                            case 'reduceri':
+                            case 'taxe-anuale':
+                            case 'nomenclatoare':
+                                return renderProtected(platiHubElement, canManageFinances);
                             case 'deconturi-federatie':
                                 return renderProtected(<Lazy.FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} decontSportivi={decontSportivi} currentUser={currentUser!} permissions={permissions} />, isAtLeastClubAdmin);
-                            case 'plati-scadente':
-                                return renderProtected(<Lazy.PlatiScadente onIncaseazaMultiple={handleIncaseazaMultiple} onViewSportiv={onViewSportiv} permissions={permissions} onBack={handleBackToDashboard} />, canManageFinances);
-                            case 'jurnal-incasari':
-                                return renderProtected(<Lazy.JurnalIncasari currentUser={currentUser!} permissions={permissions} plati={filteredData.plati} setPlati={setPlati} sportivi={filteredData.sportivi} familii={filteredData.familii} preturiConfig={preturiConfig} tipuriAbonament={filteredData.tipuriAbonament} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} tranzactii={filteredData.tranzactii} setTranzactii={setTranzactii} platiInitiale={platiPentruIncasare} onIncasareProcesata={handleIncasareProcesata} onBack={handleJurnalBack} reduceri={reduceri} onViewSportiv={onViewSportiv} />, canManageFinances);
-                            case 'raport-financiar':
-                                return renderProtected(<Lazy.RaportFinanciar onBack={handleBackToDashboard} istoricPlatiDetaliat={filteredData.istoricPlatiDetaliat} sportivi={filteredData.sportivi} familii={filteredData.familii} plati={filteredData.plati} setPlati={setPlati} setTranzactii={setTranzactii} onViewSportiv={onViewSportiv} />, isAtLeastClubAdmin);
                             case 'user-management':
                                 return renderProtected(<Lazy.UserManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser!} allRoles={allRoles} setAllRoles={setAllRoles} clubs={clubs} permissions={permissions} />, isAtLeastClubAdmin);
                             case 'cluburi':
@@ -251,24 +263,14 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.RapoarteExamen onBack={() => { setSportivIdPentruRaport(null); setActiveView('rapoarte'); }} currentUser={currentUser!} clubs={clubs} sesiuni={filteredData.sesiuniExamene} setSesiuni={setSesiuniExamene} inscrieri={filteredData.inscrieriExamene} setInscrieri={setInscrieriExamene} sportivi={filteredData.sportivi} setSportivi={setSportivi} grade={grade} locatii={locatii} setLocatii={setLocatii} plati={filteredData.plati} setPlati={setPlati} preturiConfig={preturiConfig} deconturiFederatie={filteredData.deconturiFederatie} setDeconturiFederatie={setDeconturiFederatie} istoricGrade={filteredData.istoricGrade} setIstoricGrade={setIstoricGrade} onViewSportiv={onViewSportiv} initialSportivId={sportivIdPentruRaport} />, isAtLeastInstructor);
                             case 'setari-club':
                                 return renderProtected(<Lazy.ClubSettings onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} setClubs={setClubs} />, isAtLeastClubAdmin);
-                            case 'tipuri-abonament':
-                                return renderProtected(<Lazy.TipuriAbonamentManagement onBack={handleBackToDashboard} tipuriAbonament={filteredData.tipuriAbonament} setTipuriAbonament={setTipuriAbonament} currentUser={currentUser!} clubs={clubs} activeRoleContext={activeRoleContext} permissions={permissions}/>, isAtLeastClubAdmin);
-                            case 'configurare-preturi':
-                                return renderProtected(<Lazy.ConfigurarePreturi grade={grade} onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
                             case 'grade':
                                 return renderProtected(<Lazy.GradeManagement grade={grade} setGrade={setGrade} onBack={handleBackToDashboard} canEdit={permissions.isSuperAdmin} />, isAtLeastClubAdmin);
                             case 'audit-grade':
                                 return renderProtected(<Lazy.AuditGrade onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} />, isAtLeastClubAdmin);
-                            case 'reduceri':
-                                return renderProtected(<Lazy.ReduceriManagement onBack={handleBackToDashboard} reduceri={reduceri} setReduceri={setReduceri} />, isAtLeastClubAdmin);
-                            case 'nomenclatoare':
-                                return renderProtected(<Lazy.GestionareNomenclatoare onBack={handleBackToDashboard} tipuriPlati={tipuriPlati} setTipuriPlati={setTipuriPlati} plati={plati} />, isAtLeastClubAdmin);
                             case 'familii':
                                 return renderProtected(<Lazy.FamiliiManagement onBack={handleBackToDashboard} familii={filteredData.familii} setFamilii={setFamilii} sportivi={filteredData.sportivi} setSportivi={setSportivi} tipuriAbonament={filteredData.tipuriAbonament} grupe={filteredData.grupe} currentUser={currentUser!} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
                             case 'notificari':
                                 return renderProtected(<Lazy.Notificari onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} grupe={filteredData.grupe} permissions={permissions} />, isAtLeastInstructor);
-                            case 'taxe-anuale':
-                                return renderProtected(<Lazy.TaxeAnuale onBack={handleBackToDashboard} currentUser={currentUser!} sportivi={filteredData.sportivi} plati={filteredData.plati} setPlati={setPlati} />, permissions.isSuperAdmin || permissions.isAdminClub);
                             case 'perioade-vacanta':
                                 return renderProtected(
                                     <Lazy.PerioadaVacantaView onBack={handleBackToDashboard} />,
@@ -282,7 +284,10 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'istoric-prezenta':
                                 return <Lazy.MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} />;
                             case 'istoric-plati':
-                                return <Lazy.IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} plati={filteredData.plati} tranzactii={filteredData.tranzactii} />;
+                                // Faza 31: canManageFinances → hub (tab Încasări, secțiune Istoric
+                                // Plăți Personale); altfel ramură IDENTICĂ cu cea veche (rolul
+                                // SPORTIV își vede propriul istoric, fără acces la hub).
+                                return canManageFinances ? platiHubElement : <Lazy.IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} plati={filteredData.plati} tranzactii={filteredData.tranzactii} />;
                             case 'account-settings':
                                 return <Lazy.AccountSettings onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} setCurrentUser={setCurrentUser} setSportivi={setSportivi} />;
                             case 'fisa-digitala':

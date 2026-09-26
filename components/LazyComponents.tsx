@@ -35,6 +35,7 @@ export const FinancialDashboard = lazy(() => import('./Plati/FinancialDashboard'
 export const GestiuneFacturi = lazy(() => import('./Plati/GestiuneFacturi').then(m => ({ default: m.GestiuneFacturi })));
 export const FacturiFaraPrezenta = lazy(() => import('./Plati/FacturiFaraPrezenta').then(m => ({ default: m.FacturiFaraPrezenta })));
 export const IstoricPlati = lazy(() => import('./Plati/FacturiPersonale').then(m => ({ default: m.IstoricPlati })));
+export const PlatiHub = lazy(() => import('./Plati/hub/PlatiHub').then(m => ({ default: m.PlatiHub })));
 export const CalendarView = lazy(() => import('./CalendarView').then(m => ({ default: m.CalendarView })));
 export const RapoarteExamen = lazy(() => import('./GestiuneExamene/RapoarteExamen').then(m => ({ default: m.RapoarteExamen })));
 export const CluburiManagement = lazy(() => import('./CluburiManagement').then(m => ({ default: m.CluburiManagement })));

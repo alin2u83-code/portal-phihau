@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 30 — COMPLETE
 Plan: 1 of 6
 Status: Phase 30 complete
-Last activity: 2026-09-26 - Completed quick task 260926-b7z: Varianta 1 notificari restantieri taxa lunara (buton + modal PlatiScadente)
+Last activity: 2026-09-26 - Fix bug NotificariRestantieriModal: confirmare vizuala "Copiat!" lipsa (await inainte de setState)
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -147,6 +147,7 @@ Recent decisions affecting current work:
 | 260925-rls | Fix RLS cross-club leak pe orar_saptamanal — DROP politica fantoma "Acces Club Orar" (ignora active-role-context-id, aplicata direct pe DB fara migrare in cod); ramase Bypass_Super_Admin + Staff_Manage_Orar | 2026-09-25 | N/A (migratie DB Supabase live, fara commit cod) | Verificat vizual Playwright (ADMIN_CLUB vede doar club propriu, Super Admin vede tot), zero erori consola | [260925-rls-fix-rls-orar-cross-club](./quick/260925-rls-fix-rls-orar-cross-club/) |
 | 260925-grp | UX modal Adauga Grupa: club auto-atribuit (fix isFederationAdmin context-aware), locatie implicita cand club are 1 singura, tip grupa default Per Sezon cu sezon activ preselectat, Program Saptamanal cu chip-uri multi-zi + avertisment program gol; ascuns "Activitate Sala" din sidebar Super Admin Federatie | 2026-09-25 | - | tsc OK, verificat vizual Playwright (ADMIN_CLUB + Super Admin Federatie) | [260925-grp-adauga-grupa-ux-club-locatie-tip-orar](./quick/260925-grp-adauga-grupa-ux-club-locatie-tip-orar/) |
 | 260926-b7z | Varianta 1 (semi-auto) notificari restantieri taxa lunara: buton "Trimite notificari restantieri" in PlatiScadente, modal cu lista mesaje personalizate per parinte (wa.me + copiaza mesaj), fara WhatsApp Business API | 2026-09-26 | 370e3aa,69b2dc3 | tsc OK, 21/21 teste unitare PASS, verificare vizuala browser neefectuata (executie non-interactiva) | [260926-b7z-implementeaza-varianta-1-notificari-rest](./quick/260926-b7z-implementeaza-varianta-1-notificari-rest/) |
+| - | Fix bug NotificariRestantieriModal: butoanele "Copiaza mesaj"/"Copiaza toate" nu arata confirmarea "Copiat!" — copiazaText astepta clipboard.writeText() inainte de setState (muta update-ul in microtask dupa await); aliniat la pattern fire-and-forget deja folosit in CreateAccountModal.tsx | 2026-09-26 | 4270166 | Playwright: root cauza confirmata prin inspectie React fiber, fix verificat functional (200ms dupa click, "Copiat!" apare corect) | - |
 
 ### Roadmap Evolution
 

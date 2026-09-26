@@ -182,6 +182,27 @@ export interface Plata {
   sportiv_prenume?: string | null;
 }
 
+/**
+ * Quick 260926-b7z: notificare restanțieri (Varianta 1, semi-auto, client-side).
+ * Reprezintă un destinatar (sportiv sau familie grupată pe telefon) cu mesaj
+ * pre-generat pentru trimitere manuală prin WhatsApp/clipboard. Vezi
+ * utils/notificariRestantieri.ts pentru logica de generare.
+ */
+export interface NotificareRestanta {
+  cheie: string; // telefonWa sau 'fara-telefon:' + id plata
+  telefonAfisat: string | null; // valoarea bruta din DB, pentru afisare
+  telefonWa: string | null; // doar cifre, format international, null daca lipsa/invalid
+  sursaTelefon: 'sportiv' | 'reprezentant_familie' | 'membru_familie' | null;
+  numeSportivi: string[];
+  sportivIds: string[];
+  plataIds: string[];
+  suma: number;
+  areAchitariPartiale: boolean;
+  luna: number;
+  an: number;
+  mesaj: string;
+}
+
 export interface VizualizarePlata {
   plata_id: string;
   sportiv_id: string;

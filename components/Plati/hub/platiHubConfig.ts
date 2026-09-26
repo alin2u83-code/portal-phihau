@@ -99,3 +99,116 @@ export interface PlatiHubTabProps {
   onViewSportiv: (sportiv: Sportiv, tab?: TabProfilSportiv) => void;
   onBack: () => void;
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// Gruparea D-01..D-05 (LOCKED — confirmata de utilizator in 31-CONTEXT.md)
+// ─────────────────────────────────────────────────────────────────────────
+
+/** Ordinea tab-urilor in UI (pastilele hub-ului). */
+export const TABURI_HUB: readonly TabHub[] = ['facturi', 'incasari', 'rapoarte', 'configurare'];
+
+export const ETICHETE_TABURI: Record<TabHub, string> = {
+  facturi: 'Facturi',
+  incasari: 'Încasări',
+  rapoarte: 'Rapoarte',
+  configurare: 'Configurare',
+};
+
+/** Gruparea LOCKED D-01..D-04. Ordinea din fiecare lista e ordinea pastilelor in UI. */
+export const SECTIUNI_PE_TAB: Record<TabHub, readonly SectiuneHub[]> = {
+  facturi: ['plati-scadente', 'gestiune-facturi', 'facturi-fara-prezenta'], // D-01
+  incasari: ['jurnal-incasari', 'istoric-plati'], // D-02
+  rapoarte: ['raport-financiar', 'financial-dashboard'], // D-03
+  configurare: ['tipuri-abonament', 'configurare-preturi', 'reduceri', 'taxe-anuale', 'nomenclatoare'], // D-04
+};
+
+export const ETICHETE_SECTIUNI: Record<SectiuneHub, string> = {
+  'plati-scadente': 'Facturi & Plăți',
+  'gestiune-facturi': 'Gestiune Facturi',
+  'facturi-fara-prezenta': 'Facturi fără Prezență',
+  'jurnal-incasari': 'Jurnal Încasări',
+  // IstoricPlati afiseaza platile utilizatorului logat — comportament neschimbat
+  // fata de vederea veche, eticheta reflecta asta ("Personale").
+  'istoric-plati': 'Istoric Plăți Personale',
+  'raport-financiar': 'Raport Financiar',
+  'financial-dashboard': 'Dashboard Financiar',
+  'tipuri-abonament': 'Config. Abonamente',
+  'configurare-preturi': 'Configurare Prețuri',
+  'reduceri': 'Reduceri',
+  'taxe-anuale': 'Taxe Anuale',
+  'nomenclatoare': 'Nomenclatoare (Tipuri Plăți)',
+};
+
+/** Prima sectiune din lista fiecarui tab — folosita ca implicita cand doar tab-ul e cunoscut. */
+export const SECTIUNE_IMPLICITA: Record<TabHub, SectiuneHub> = TABURI_HUB.reduce((acc, tab) => {
+  acc[tab] = SECTIUNI_PE_TAB[tab][0];
+  return acc;
+}, {} as Record<TabHub, SectiuneHub>);
+
+/** Derivat programatic din SECTIUNI_PE_TAB — nu scris de mana, ca sa nu poata diverge. */
+export const TAB_PENTRU_SECTIUNE: Record<SectiuneHub, TabHub> = TABURI_HUB.reduce((acc, tab) => {
+  for (const sectiune of SECTIUNI_PE_TAB[tab]) {
+    acc[sectiune] = tab;
+  }
+  return acc;
+}, {} as Record<SectiuneHub, TabHub>);
+
+const TOATE_SECTIUNILE_HUB: readonly SectiuneHub[] = TABURI_HUB.flatMap(tab => SECTIUNI_PE_TAB[tab]);
+
+/** Vederile (literale View) care intra in hub: 'plati-hub' + cele 12 sectiuni (13 total).
+ * NU include 'familii' si 'deconturi-federatie' (D-05 — raman ecrane separate). */
+export const VEDERI_HUB: readonly View[] = ['plati-hub' as View, ...TOATE_SECTIUNILE_HUB];
+
+export function esteTabHub(x: unknown): x is TabHub {
+  return typeof x === 'string' && (TABURI_HUB as readonly string[]).includes(x);
+}
+
+export function esteSectiuneHub(x: unknown): x is SectiuneHub {
+  return typeof x === 'string' && Object.prototype.hasOwnProperty.call(TAB_PENTRU_SECTIUNE, x);
+}
+
+/** True daca `view` e una dintre cele 13 vederi ale hub-ului (D-05: familii si
+ * deconturi-federatie raman in afara hub-ului, deci returneaza false pentru ele). */
+export function esteVedereHub(view: string): boolean {
+  return (VEDERI_HUB as readonly string[]).includes(view);
+}
+
+/**
+ * Rezolvitor pur de pozitie in hub — fara React, fara Supabase, fara acces la
+ * window/localStorage. Citeste defensiv `viewParams` (poate fi null, non-obiect
+ * sau poate avea alte chei ca `sportivId`).
+ *
+ * Precedenta:
+ * 1. `viewParams.sectiune` e o SectiuneHub valida → tab derivat din sectiune (sectiunea
+ *    castiga peste orice `viewParams.tab` sau peste literalul vechi din activeView).
+ * 2. altfel `viewParams.tab` e un TabHub valid → sectiunea implicita a acelui tab.
+ * 3. altfel `activeView` e o SectiuneHub (literal vechi, ex. deep-link/reload direct)
+ *    → tab derivat din acel literal.
+ * 4. altfel → pozitia implicita (facturi / plati-scadente).
+ *
+ * La final: daca sectiunea rezultata e 'taxe-anuale' si `poateVedeaTaxeAnuale` e false,
+ * cade pe 'tipuri-abonament' — pastreaza guard-ul vechi al vederii taxe-anuale
+ * (`permissions.isSuperAdmin || permissions.isAdminClub`, AppRouter.tsx:271).
+ */
+export function rezolvaPozitieHub(activeView: View, viewParams: unknown, poateVedeaTaxeAnuale: boolean): PozitieHub {
+  const vp = (viewParams && typeof viewParams === 'object') ? (viewParams as Record<string, unknown>) : null;
+  const sectiuneDinParams = vp ? vp.sectiune : undefined;
+  const tabDinParams = vp ? vp.tab : undefined;
+
+  let rezultat: PozitieHub;
+  if (esteSectiuneHub(sectiuneDinParams)) {
+    rezultat = { tab: TAB_PENTRU_SECTIUNE[sectiuneDinParams], sectiune: sectiuneDinParams };
+  } else if (esteTabHub(tabDinParams)) {
+    rezultat = { tab: tabDinParams, sectiune: SECTIUNE_IMPLICITA[tabDinParams] };
+  } else if (esteSectiuneHub(activeView)) {
+    rezultat = { tab: TAB_PENTRU_SECTIUNE[activeView], sectiune: activeView };
+  } else {
+    rezultat = { tab: 'facturi', sectiune: 'plati-scadente' };
+  }
+
+  if (rezultat.sectiune === 'taxe-anuale' && !poateVedeaTaxeAnuale) {
+    return { tab: 'configurare', sectiune: 'tipuri-abonament' };
+  }
+
+  return rezultat;
+}

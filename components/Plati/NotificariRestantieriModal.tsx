@@ -79,15 +79,13 @@ export const NotificariRestantieriModal: React.FC<NotificariRestantieriModalProp
         setMesajeEditate({});
     };
 
-    const copiazaText = async (text: string, cheie: string) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            setCopiatCheie(cheie);
-            setDeschise(prev => new Set(prev).add(cheie));
-            setTimeout(() => setCopiatCheie(prev => (prev === cheie ? null : prev)), 2000);
-        } catch {
+    const copiazaText = (text: string, cheie: string) => {
+        navigator.clipboard.writeText(text).catch(() => {
             showError('Copiere eșuată', 'Browserul nu a permis accesul la clipboard — selectează textul manual din căsuță.');
-        }
+        });
+        setCopiatCheie(cheie);
+        setDeschise(prev => new Set(prev).add(cheie));
+        setTimeout(() => setCopiatCheie(prev => (prev === cheie ? null : prev)), 2000);
     };
 
     const totalDeIncasat = notificari.reduce((sum, n) => sum + n.suma, 0);

@@ -361,7 +361,10 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Eroare la modificare", error.message);
         } else if (data) {
-            setPlati(prev => prev.map(p => p.id === data.id ? data : p));
+            // D-07: merge cu {...p, ...data} (nu inlocuire) — pastreaza campurile
+            // JOIN ale view-ului rbv_plati_club (club_nume, sportiv_nume,
+            // sportiv_prenume) pe care tabela reala "plati" nu le intoarce.
+            setPlati(prev => prev.map(p => p.id === data.id ? { ...p, ...data } : p));
             setPlataToEdit(null);
             showSuccess("Succes", "Factura a fost actualizată.");
         }
@@ -436,10 +439,21 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             const result = data as any;
             if (result && result.success) {
                 showSuccess("Plată Procesată", "Plata a fost înregistrată cu succes.");
-                
-                // Update local plati state
-                setPlati(prev => prev.map(p => p.id === plataForPayment.id ? { ...p, status: result.status_nou } : p));
-                
+
+                // Bug Fix (D-07/31-02): RPC proceseaza_plata_factura returnează doar
+                // { success, tranzactie_id } (sql/refactor/REFACTOR_FINANCIAL.sql:118-121) —
+                // campul de status din raspunsul RPC nu exista, era mereu undefined.
+                // Refetch plata din DB si merge in stare (pastreaza campurile JOIN ale view-ului).
+                const plataId = plataForPayment.id;
+                const { data: plataActualizata } = await supabase
+                    .from('plati')
+                    .select('*')
+                    .eq('id', plataId)
+                    .maybeSingle();
+                if (plataActualizata) {
+                    setPlati(prev => prev.map(p => p.id === plataId ? { ...p, ...plataActualizata } : p));
+                }
+
                 // Update local tranzactii state if setter is provided
                 if (setTranzactii && result.tranzactie_id) {
                     // We need to fetch the full transaction or construct it

@@ -279,7 +279,10 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         if (error) {
             showError('Eroare la modificare', error.message);
         } else if (data) {
-            setPlati(prev => prev.map(p => p.id === data.id ? data as Plata : p));
+            // D-07: merge cu {...p, ...(data as Plata)} — pastreaza campurile JOIN
+            // ale view-ului rbv_plati_club (club_nume, sportiv_nume,
+            // sportiv_prenume), pe care tabela reala "plati" nu le intoarce.
+            setPlati(prev => prev.map(p => p.id === data.id ? { ...p, ...(data as Plata) } : p));
             setRestanteDetail(prev => prev
                 ? { ...prev, facturi: (prev.facturi || []).filter(f => f.plata_id !== facturaToEdit.plata_id) }
                 : prev);

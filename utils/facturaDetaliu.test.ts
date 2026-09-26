@@ -286,7 +286,7 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
 
   run('T32: data cu timestamp trunchiata la YYYY-MM-DD', () => {
     const { payload, eroare } = construiestePayloadEditareFactura({
-      descriere: 'Test', data: '2026-09-26T10:00:00', suma_initiala: 50, suma: 50, status: 'Achitat',
+      descriere: 'Test', data: '2026-09-26T10:00:00', suma_initiala: 50, suma: 0, status: 'Achitat',
     });
     assert(eroare === null, `eroare asteptata null, primit ${eroare}`);
     assert(payload!.data === '2026-09-26', `data asteptata 2026-09-26, primit ${payload!.data}`);

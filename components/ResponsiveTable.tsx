@@ -14,6 +14,7 @@ export interface Column<T> {
     cellClassName?: string;
     className?: string; // For responsive utilities
     tooltip?: string;
+    stopRowClick?: boolean; // Blochează navigarea rândului la click oriunde în celulă (ex: coloana checkbox)
 }
 
 export interface ResponsiveTableProps<T> {
@@ -163,9 +164,10 @@ export function ResponsiveTable<T>({
                                     onClick={() => onRowClick?.(item)}
                                 >
                                     {columns.map(col => (
-                                        <td 
-                                            key={`${String(item[idKey] || index)}-${String(col.key)}`} 
+                                        <td
+                                            key={`${String(item[idKey] || index)}-${String(col.key)}`}
                                             className={`p-3 align-top text-white ${col.cellClassName || ''} ${col.className || ''}`}
+                                            onClick={col.stopRowClick ? (e) => e.stopPropagation() : undefined}
                                         >
                                             {col.render ? col.render(item) : (item[col.key as keyof T] as React.ReactNode) || '-'}
                                         </td>

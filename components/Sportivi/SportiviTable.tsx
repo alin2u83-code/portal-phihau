@@ -54,6 +54,7 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
         label: '',
         headerClassName: 'w-10',
         cellClassName: 'w-10',
+        stopRowClick: true,
         renderHeader: () => (
             <input type="checkbox" checked={allSelected} onChange={toggleAll}
                 className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-brand-primary cursor-pointer" />

@@ -16,9 +16,11 @@ interface TipuriAbonamentManagementProps {
     clubs: Club[];
     activeRoleContext?: any;
     permissions?: Permissions;
+    /** Faza 31 — ascuns cand e montat in hub-ul Plăți & Facturi */
+    hideBackButton?: boolean;
 }
 
-export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps> = ({ tipuriAbonament, setTipuriAbonament, onBack, currentUser, clubs, activeRoleContext, permissions }) => {
+export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps> = ({ tipuriAbonament, setTipuriAbonament, onBack, currentUser, clubs, activeRoleContext, permissions, hideBackButton }) => {
     const [newDenumire, setNewDenumire] = useState('');
     const [newPret, setNewPret] = useState<number | string>('');
     const [newNrMembri, setNewNrMembri] = useState<number | string>(1);
@@ -210,9 +212,11 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
 
     return (
         <div className="max-w-5xl mx-auto">
-             <Button onClick={onBack} variant="secondary" className="mb-6">
-                <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu
-             </Button>
+             {!hideBackButton && (
+                <Button onClick={onBack} variant="secondary" className="mb-6">
+                    <ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu
+                </Button>
+             )}
             
             <h1 className="text-3xl font-bold text-white mb-6">Management Tipuri Abonament</h1>
 

@@ -10,6 +10,8 @@ interface ReduceriManagementProps {
     reduceri: Reducere[];
     setReduceri: React.Dispatch<React.SetStateAction<Reducere[]>>;
     onBack: () => void;
+    /** Faza 31 — ascuns cand e montat in hub-ul Plăți & Facturi */
+    hideBackButton?: boolean;
 }
 
 const initialFormState: Omit<Reducere, 'id'> = {
@@ -20,7 +22,7 @@ const initialFormState: Omit<Reducere, 'id'> = {
     categorie_aplicabila: 'Toate'
 };
 
-export const ReduceriManagement: React.FC<ReduceriManagementProps> = ({ reduceri, setReduceri, onBack }) => {
+export const ReduceriManagement: React.FC<ReduceriManagementProps> = ({ reduceri, setReduceri, onBack, hideBackButton }) => {
     const [formState, setFormState] = useState(initialFormState);
     const [editingReducere, setEditingReducere] = useState<Reducere | null>(null);
     const [toDelete, setToDelete] = useState<Reducere | null>(null);
@@ -92,7 +94,9 @@ export const ReduceriManagement: React.FC<ReduceriManagementProps> = ({ reduceri
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
-             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+             {!hideBackButton && (
+                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+             )}
             <h1 className="text-3xl font-bold text-white">Management Reduceri</h1>
 
             <Card className="border-l-4 border-brand-secondary">

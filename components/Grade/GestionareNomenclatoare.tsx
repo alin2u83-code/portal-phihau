@@ -11,9 +11,11 @@ interface GestionareNomenclatoareProps {
     setTipuriPlati: React.Dispatch<React.SetStateAction<TipPlata[]>>;
     plati: Plata[];
     onBack: () => void;
+    /** Faza 31 — ascuns cand e montat in hub-ul Plăți & Facturi */
+    hideBackButton?: boolean;
 }
 
-export const GestionareNomenclatoare: React.FC<GestionareNomenclatoareProps> = ({ tipuriPlati, setTipuriPlati, plati, onBack }) => {
+export const GestionareNomenclatoare: React.FC<GestionareNomenclatoareProps> = ({ tipuriPlati, setTipuriPlati, plati, onBack, hideBackButton }) => {
     const [newNume, setNewNume] = useState('');
     const [toDelete, setToDelete] = useState<TipPlata | null>(null);
     const { showError } = useError();
@@ -63,7 +65,9 @@ export const GestionareNomenclatoare: React.FC<GestionareNomenclatoareProps> = (
     
     return (
         <div className="max-w-3xl mx-auto space-y-6">
-             <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+             {!hideBackButton && (
+                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
+             )}
             <h1 className="text-3xl font-bold text-white">Gestiune Nomenclatoare</h1>
 
             <Card className="border-l-4 border-brand-secondary">

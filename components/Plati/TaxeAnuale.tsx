@@ -15,6 +15,8 @@ interface TaxeAnualeProps {
     sportivi: Sportiv[];
     plati: Plata[];
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
+    /** Faza 31 — ascuns cand e montat in hub-ul Plăți & Facturi */
+    hideBackButton?: boolean;
 }
 
 // Formatare dată în format românesc: "01 Ian 2026"
@@ -666,7 +668,7 @@ const TabTaxaFederatieFRQKD: React.FC<TabTaxaFederatieFRQKDProps> = ({ config, s
 };
 
 // ====== Componenta principală ======
-export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, sportivi, plati, setPlati }) => {
+export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, sportivi, plati, setPlati, hideBackButton }) => {
     const { taxeAnualeConfig, vizeSportivi, decontSportivi, deconturiFederatie, clubs, setTaxeAnualeConfig, setVizeSportivi, loading, taxaAnualaFederatieConfig, setTaxaAnualaFederatieConfig } = useData();
 
     // Tab-uri: ADMIN_CLUB vede 'config' | 'taxe-club' | 'transmis-federatie'
@@ -890,9 +892,11 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
         <div className="space-y-8 animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <Button onClick={onBack} variant="secondary" size="sm" className="mb-2">
-                        <ArrowLeftIcon className="w-4 h-4 mr-2" /> Înapoi
-                    </Button>
+                    {!hideBackButton && (
+                        <Button onClick={onBack} variant="secondary" size="sm" className="mb-2">
+                            <ArrowLeftIcon className="w-4 h-4 mr-2" /> Înapoi
+                        </Button>
+                    )}
                     <h1 className="text-4xl font-black text-white tracking-tighter">TAXE ANUALE & VIZE</h1>
                     <p className="text-slate-400 text-sm">Gestionarea taxelor de federație și club pentru eligibilitatea la examene.</p>
                 </div>

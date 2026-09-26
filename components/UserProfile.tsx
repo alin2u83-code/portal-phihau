@@ -448,16 +448,26 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const handleSavePlataEdit = async (editedPlata: Plata) => {
         if (!supabase) return;
         setIsSaving(true);
-        const { id, ...updates } = editedPlata;
-        const { data, error } = await supabase.from('plati').update(updates).eq('id', id).select().maybeSingle();
+        // D-07: editedPlata provine din filteredData.plati (view rbv_plati_club,
+        // are club_nume in plus fata de coloanele reale ale tabelei plati) — un
+        // spread direct in update() trimitea acel camp inexistent -> PGRST204.
+        // Whitelist explicit cu exact cele 4 campuri editate de PlataEditModal,
+        // ca in PlatiScadente.handleSaveEdit si GestiuneFacturi.handleSaveEdit.
+        const payload = {
+            descriere: editedPlata.descriere,
+            suma: editedPlata.suma,
+            data: editedPlata.data,
+            status: editedPlata.status,
+        };
+        const { data, error } = await supabase.from('plati').update(payload).eq('id', editedPlata.id).select().maybeSingle();
         setIsSaving(false);
         if (error) {
             showError("Eroare la Salvare", error.message || error);
         } else if (!data) {
             showError("Eroare la Salvare", "Nu s-a putut actualiza factura. Verificați permisiunile.");
         } else {
-            setPlati(prev => prev.map(p => p.id === id ? data : p));
-            setVizualizarePlati(prev => prev.map(v => v.plata_id === id
+            setPlati(prev => prev.map(p => p.id === editedPlata.id ? { ...p, ...data } : p));
+            setVizualizarePlati(prev => prev.map(v => v.plata_id === editedPlata.id
                 ? { ...v, status: data.status, suma_datorata: data.suma, descriere: data.descriere, data_emitere: data.data }
                 : v
             ));

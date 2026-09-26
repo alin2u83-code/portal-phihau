@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: milestone
 status: executing
 stopped_at: Completed 31-04-PLAN.md
-last_updated: "2026-09-26T14:29:33.243Z"
+last_updated: "2026-09-26T14:35:53.617Z"
 last_activity: 2026-09-26 -- Phase 31 execution started
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 64
-  completed_plans: 58
+  completed_plans: 59
   percent: 57
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 31 (hub-plati-si-facturi-consolidare-14-view-uri-in-4-tab-uri-fa) — EXECUTING
-Plan: 6 of 9
+Plan: 7 of 9
 Status: Ready to execute
 Last activity: 2026-09-26 -- Phase 31 execution started
 
@@ -65,6 +65,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 31 P03 | 40min | 2 tasks | 3 files |
 | Phase 31 P04 | 15min | 2 tasks | 4 files |
 | Phase 31 P05 | 10min | 2 tasks | 5 files |
+| Phase 31 P06 | ~15min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,7 @@ Recent decisions affecting current work:
 - [Phase 31]: [31-04] TabFacturi retine doar plataId (nu obiectul Plata) pentru FacturaDetaliu - un singur modal comun pentru toate 3 sectiuni
 - [Phase ?]: [Phase 31]: [31-05] TabIncasari transmite onJurnalBack dedicat (nu onBack generic) catre JurnalIncasari - pastreaza fluxul de incasare multipla F1-F4 cand onBack e apelat automat la 1500ms dupa incasare
 - [Phase ?]: [Phase 31]: [31-05] RaportFinanciar exclus de la hideBackButton - nu randeaza niciun buton de intoarcere, verificat pe cod real
+- [Phase ?]: [Phase 31]: [31-06] hideBackButton invelit exclusiv in jurul Button-ului de intoarcere (la TaxeAnuale, h1/p raman afisate in acelasi div); plati/reduceri transmise NEFILTRAT catre GestionareNomenclatoare/ReduceriManagement, paritate cu AppRouter
 
 ### Pending Todos
 
@@ -207,6 +209,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-09-26T14:28:38.943Z
+Last session: 2026-09-26T14:35:37.202Z
 Stopped at: Completed 31-04-PLAN.md
 Resume file: None

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 31-04-PLAN.md
-last_updated: "2026-09-26T14:42:01.378Z"
+stopped_at: Completed 31-08-PLAN.md
+last_updated: "2026-09-26T14:54:11.998Z"
 last_activity: 2026-09-26 -- Phase 31 execution started
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 64
-  completed_plans: 60
+  completed_plans: 61
   percent: 57
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 31 (hub-plati-si-facturi-consolidare-14-view-uri-in-4-tab-uri-fa) — EXECUTING
-Plan: 8 of 9
+Plan: 9 of 9
 Status: Ready to execute
 Last activity: 2026-09-26 -- Phase 31 execution started
 
@@ -67,6 +67,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 31 P05 | 10min | 2 tasks | 5 files |
 | Phase 31 P06 | ~15min | 2 tasks | 6 files |
 | Phase 31 P07 | 20min | 2 tasks | 2 files |
+| Phase 31 P08 | ~20min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 31]: [31-05] RaportFinanciar exclus de la hideBackButton - nu randeaza niciun buton de intoarcere, verificat pe cod real
 - [Phase ?]: [Phase 31]: [31-06] hideBackButton invelit exclusiv in jurul Button-ului de intoarcere (la TaxeAnuale, h1/p raman afisate in acelasi div); plati/reduceri transmise NEFILTRAT catre GestionareNomenclatoare/ReduceriManagement, paritate cu AppRouter
 - [Phase ?]: [Phase 31]: [31-07] Task 2 (verificare live RLS/trigger D-09) marcat NEVERIFICAT - fara acces Supabase MCP execute_sql; 4 interogari SELECT documentate in 31-07-SUMMARY.md pentru 31-09
+- [Phase 31]: [31-08] handleJurnalBack/handleIncaseazaMultiple/handleIncasareProcesata mutate 1:1 din AppRouter in PlatiHub - flux F1-F4 identic
+- [Phase 31]: [31-08] istoric-plati exclus din grupul de 12 case-uri aliasate - ramura ternara canManageFinances ? platiHubElement : IstoricPlati standalone, singura vedere financiara fara guard folosita de SPORTIV
 
 ### Pending Todos
 
@@ -211,6 +214,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-09-26T14:41:27.250Z
-Stopped at: Completed 31-04-PLAN.md
+Last session: 2026-09-26T14:54:11.979Z
+Stopped at: Completed 31-08-PLAN.md
 Resume file: None

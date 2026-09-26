@@ -23,9 +23,6 @@ import {
     ClipboardListIcon,
     MessageSquareIcon,
     ClockIcon,
-    TrendingUpIcon,
-    MinusCircleIcon,
-    ExclamationTriangleIcon,
     BellIcon,
 } from './icons';
 import { useState } from 'react';
@@ -103,7 +100,8 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
         'jurnal-incasari': 'Jurnal Încasări', 'raport-financiar': 'Raport Financiar',
         'taxe-anuale': 'Taxe Anuale', 'reduceri': 'Reduceri',
         'tipuri-abonament': 'Config. Abonamente', 'configurare-preturi': 'Configurare Prețuri',
-        'nomenclatoare': 'Nomenclatoare', 'deconturi-federatie': 'Deconturi Federație',
+        'nomenclatoare': 'Nomenclatoare', 'plati-hub': 'Plăți & Facturi',
+        'deconturi-federatie': 'Deconturi Federație',
         'setari-club': 'Setări Club', 'notificari': 'Notificări', 'admin-sms': 'SMS',
         'cereri-inscriere': 'Cereri Înscriere', 'istoric-activitate': 'Istoric Activitate',
         'account-settings': 'Setări Cont', 'cluburi': 'Gestiune Cluburi',
@@ -208,17 +206,7 @@ export const AdminMasterMap: React.FC<AdminMasterMapProps> = ({ onNavigate, deco
 
                 <AccordionItem id="financiar" title="Financiar & Plăți" icon={WalletIcon} isOpen={openSection === 'financiar'} onToggle={handleToggle}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <ItemCard title="Dashboard Financiar" view="financial-dashboard" icon={TrendingUpIcon} onNavigate={nav} isFavorite={favorites.includes('financial-dashboard')} onToggleFavorite={toggleFavorite} />
-                        <ItemCard title="Facturi & Plăți" view="plati-scadente" icon={WalletIcon} onNavigate={nav} isFavorite={favorites.includes('plati-scadente')} onToggleFavorite={toggleFavorite} />
-                        <ItemCard title="Gestiune Facturi" view="gestiune-facturi" icon={FileTextIcon} onNavigate={nav} isFavorite={favorites.includes('gestiune-facturi')} onToggleFavorite={toggleFavorite} />
-                        <ItemCard title="Facturi fără Prezență" view="facturi-fara-prezenta" icon={ExclamationTriangleIcon} onNavigate={nav} isFavorite={favorites.includes('facturi-fara-prezenta')} onToggleFavorite={toggleFavorite} />
-                        <ItemCard title="Jurnal Încasări" view="jurnal-incasari" icon={BanknotesIcon} onNavigate={nav} isFavorite={favorites.includes('jurnal-incasari')} onToggleFavorite={toggleFavorite} />
-                        <ItemCard title="Raport Financiar" view="raport-financiar" icon={ChartBarIcon} onNavigate={nav} isFavorite={favorites.includes('raport-financiar')} onToggleFavorite={toggleFavorite} />
-                        <ItemCard title="Taxe Anuale" view="taxe-anuale" icon={BanknotesIcon} onNavigate={nav} isFavorite={favorites.includes('taxe-anuale')} onToggleFavorite={toggleFavorite} />
-                        <ItemCard title="Reduceri" view="reduceri" icon={MinusCircleIcon} onNavigate={nav} isFavorite={favorites.includes('reduceri')} onToggleFavorite={toggleFavorite} />
-                        <ItemCard title="Config. Abonamente" view="tipuri-abonament" icon={CogIcon} onNavigate={nav} isFavorite={favorites.includes('tipuri-abonament')} onToggleFavorite={toggleFavorite} />
-                        <ItemCard title="Configurare Prețuri" view="configurare-preturi" icon={CogIcon} onNavigate={nav} isFavorite={favorites.includes('configurare-preturi')} onToggleFavorite={toggleFavorite} />
-                        <ItemCard title="Nomenclatoare" view="nomenclatoare" icon={BookOpenIcon} onNavigate={nav} isFavorite={favorites.includes('nomenclatoare')} onToggleFavorite={toggleFavorite} />
+                        <ItemCard title="Plăți & Facturi" view="plati-hub" icon={WalletIcon} onNavigate={nav} isFavorite={favorites.includes('plati-hub')} onToggleFavorite={toggleFavorite} />
                         <ItemCard title="Deconturi Federație" view="deconturi-federatie" icon={BanknotesIcon} onNavigate={nav} badge={pendingDeconturi} isFavorite={favorites.includes('deconturi-federatie')} onToggleFavorite={toggleFavorite} />
                     </div>
                 </AccordionItem>

@@ -55,17 +55,8 @@ export const adminMenu: MenuItem[] = [
     {
         label: 'Financiar & Plăți', icon: BanknotesIcon,
         submenu: [
-            { label: 'Dashboard Financiar', view: 'financial-dashboard' },
-            { label: 'Facturi & Plăți', view: 'plati-scadente' },
-            { label: 'Gestiune Facturi', view: 'gestiune-facturi' },
-            { label: 'Facturi fără Prezență', view: 'facturi-fara-prezenta' },
-            { label: 'Jurnal Încasări', view: 'jurnal-incasari' },
-            { label: 'Raport Financiar', view: 'raport-financiar' },
-            { label: 'Taxe Anuale', view: 'taxe-anuale' },
+            { label: 'Plăți & Facturi', view: 'plati-hub' },
             { label: 'Vacanțe Antrenamente', view: 'perioade-vacanta' },
-            { label: 'Config. Abonamente', view: 'tipuri-abonament' },
-            { label: 'Configurare Prețuri', view: 'configurare-preturi' },
-            { label: 'Reduceri', view: 'reduceri' },
             { label: 'Deconturi Federație', view: 'deconturi-federatie' },
         ]
     },
@@ -76,7 +67,6 @@ export const adminMenu: MenuItem[] = [
             { label: 'Structură Federație', view: 'structura-federatie' },
             { label: 'Setări Club', view: 'setari-club' },
             { label: 'Mentenanță Date', view: 'data-maintenance' },
-            { label: 'Nomenclatoare', view: 'nomenclatoare' },
             { label: 'Înlănțuiri', view: 'inlantuiri-admin' },
             { label: 'Setări Cont', view: 'account-settings' },
             { label: 'Protecția datelor', view: 'protectia-datelor' },
@@ -146,17 +136,8 @@ export const adminClubMenu: MenuItem[] = [
     {
         label: 'Financiar & Plăți', icon: BanknotesIcon,
         submenu: [
-            { label: 'Dashboard Financiar', view: 'financial-dashboard' },
-            { label: 'Facturi & Plăți', view: 'plati-scadente' },
-            { label: 'Gestiune Facturi', view: 'gestiune-facturi' },
-            { label: 'Facturi fără Prezență', view: 'facturi-fara-prezenta' },
-            { label: 'Jurnal Încasări', view: 'jurnal-incasari' },
-            { label: 'Raport Financiar', view: 'raport-financiar' },
-            { label: 'Taxe Anuale', view: 'taxe-anuale' },
+            { label: 'Plăți & Facturi', view: 'plati-hub' },
             { label: 'Vacanțe Antrenamente', view: 'perioade-vacanta' },
-            { label: 'Config. Abonamente', view: 'tipuri-abonament' },
-            { label: 'Configurare Prețuri', view: 'configurare-preturi' },
-            { label: 'Reduceri', view: 'reduceri' },
             { label: 'Deconturi Federație', view: 'deconturi-federatie' },
         ]
     },
@@ -164,7 +145,6 @@ export const adminClubMenu: MenuItem[] = [
         label: 'Setări & Admin', icon: CogIcon,
         submenu: [
             { label: 'Setări Club', view: 'setari-club' },
-            { label: 'Nomenclatoare', view: 'nomenclatoare' },
             { label: 'Setări Cont', view: 'account-settings' },
             { label: 'Protecția datelor', view: 'protectia-datelor' },
         ]

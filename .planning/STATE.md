@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Completed 31-08-PLAN.md
-last_updated: "2026-09-26T14:54:11.998Z"
+status: verifying
+stopped_at: Completed 31-09-PLAN.md - Phase 31 finished
+last_updated: "2026-09-26T15:04:37.836Z"
 last_activity: 2026-09-26 -- Phase 31 execution started
 progress:
   total_phases: 23
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 64
-  completed_plans: 61
-  percent: 57
+  completed_plans: 62
+  percent: 61
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 
 Phase: 31 (hub-plati-si-facturi-consolidare-14-view-uri-in-4-tab-uri-fa) — EXECUTING
 Plan: 9 of 9
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-26 -- Phase 31 execution started
 
 ```
@@ -68,6 +68,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 31 P06 | ~15min | 2 tasks | 6 files |
 | Phase 31 P07 | 20min | 2 tasks | 2 files |
 | Phase 31 P08 | ~20min | 2 tasks | 3 files |
+| Phase 31 P09 | 35min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 31]: [31-07] Task 2 (verificare live RLS/trigger D-09) marcat NEVERIFICAT - fara acces Supabase MCP execute_sql; 4 interogari SELECT documentate in 31-07-SUMMARY.md pentru 31-09
 - [Phase 31]: [31-08] handleJurnalBack/handleIncaseazaMultiple/handleIncasareProcesata mutate 1:1 din AppRouter in PlatiHub - flux F1-F4 identic
 - [Phase 31]: [31-08] istoric-plati exclus din grupul de 12 case-uri aliasate - ramura ternara canManageFinances ? platiHubElement : IstoricPlati standalone, singura vedere financiara fara guard folosita de SPORTIV
+- [Phase 31]: [31-09] Punct unic de intrare 'Plati & Facturi' livrat pe AdminMasterMap/menuConfig/UnifiedDashboard/ReportsDashboard; icons neutilizate (TrendingUpIcon/MinusCircleIcon/ExclamationTriangleIcon) eliminate din AdminMasterMap dupa consolidare
+- [Phase 31]: [31-09] Verificare live D-09: politici SELECT pe plati confirmate ca includ INSTRUCTOR via has_access_to_club (citire factura OK); politica UPDATE ramane neconfirmata, ramasa in lista de verificare umana end-of-phase pas 10
 
 ### Pending Todos
 
@@ -214,6 +217,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-09-26T14:54:11.979Z
-Stopped at: Completed 31-08-PLAN.md
+Last session: 2026-09-26T15:04:37.818Z
+Stopped at: Completed 31-09-PLAN.md - Phase 31 finished
 Resume file: None

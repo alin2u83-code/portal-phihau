@@ -60,6 +60,7 @@ const VIEW_TITLES: Partial<Record<View, string>> = {
     'rapoarte-examen': 'Rapoarte Examene',
     'perioade-vacanta': 'Vacanțe Antrenamente',
     'audit-grade': 'Audit Grade',
+    'plati-hub': 'Plăți & Facturi',
 };
 
 export const Header: React.FC<HeaderProps> = ({

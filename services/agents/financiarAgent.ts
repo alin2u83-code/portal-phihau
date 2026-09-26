@@ -69,6 +69,6 @@ export const financiarAgent: DomainAgent = {
     'venituri', 'cheltuieli', 'bilant',
     'legitimatie taxa', 'taxa examen',
   ],
-  views: ['plati-scadente', 'taxe-anuale', 'raport-financiar', 'jurnal-incasari', 'historic-plati', 'istoric-plati'],
+  views: ['plati-scadente', 'taxe-anuale', 'raport-financiar', 'jurnal-incasari', 'historic-plati', 'istoric-plati', 'plati-hub'],
   buildSystemPrompt,
 };

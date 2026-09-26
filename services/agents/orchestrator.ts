@@ -44,6 +44,7 @@ const VIEW_TO_AGENT_ID: Record<string, AgentId> = {
   'raport-financiar': 'financiar',
   'jurnal-incasari': 'financiar',
   'istoric-plati': 'financiar',
+  'plati-hub': 'financiar',
   'user-management': 'admin',
   'setari-club': 'admin',
   'structura-federatie': 'admin',

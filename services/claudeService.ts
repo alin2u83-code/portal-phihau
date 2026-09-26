@@ -38,6 +38,7 @@ const VIEW_DESCRIPTIONS: Record<string, string> = {
   'fisa-competitie': 'Fișa de competiție',
   'istoric-prezenta': 'Istoric prezență personal',
   'istoric-plati': 'Istoric plăți personal',
+  'plati-hub': 'Hub Plăți & Facturi (facturi, încasări, rapoarte, configurare financiară)',
 };
 
 function buildSystemPrompt(ctx: ClaudeRequestContext): string {

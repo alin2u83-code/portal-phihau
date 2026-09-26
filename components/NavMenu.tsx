@@ -16,6 +16,7 @@ const VIEW_TO_NOTIF_TYPE: Record<string, string> = {
     'examene': 'examen',
     'plati-scadente': 'plata',
     'istoric-plati': 'plata',
+    'plati-hub': 'plata',
     'prezenta': 'antrenament',
     'prezenta-instructor': 'antrenament',
     'notificari': 'system'
@@ -89,7 +90,7 @@ const NavItem: React.FC<{
     const tutorialAttr = item.view === 'sportivi' ? 'nav-sportivi'
       : item.view === 'examene' ? 'nav-examene'
       : item.view === 'prezenta' || item.view === 'prezenta-instructor' ? 'nav-prezenta'
-      : item.view === 'plati-scadente' ? 'nav-plati'
+      : item.view === 'plati-scadente' || item.view === 'plati-hub' ? 'nav-plati'
       : undefined;
 
     return (

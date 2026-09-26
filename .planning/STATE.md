@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 31-01-PLAN.md
-last_updated: "2026-09-26T13:55:11.257Z"
+stopped_at: Completed 31-02-PLAN.md
+last_updated: "2026-09-26T14:02:09.849Z"
 last_activity: 2026-09-26 -- Phase 31 execution started
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 64
-  completed_plans: 54
+  completed_plans: 55
   percent: 57
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 31 (hub-plati-si-facturi-consolidare-14-view-uri-in-4-tab-uri-fa) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 Status: Ready to execute
 Last activity: 2026-09-26 -- Phase 31 execution started
 
@@ -61,6 +61,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 26 P02 | 25min | 2 tasks | 2 files |
 | Phase 26 P03 | 35min | 3 tasks | 5 files |
 | Phase 31 P01 | 15min | 2 tasks | 3 files |
+| Phase 31 P02 | 20min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,7 @@ Recent decisions affecting current work:
 - [260901-l8j]: competitie.tip (schema Competitie) nu e folosit nicaieri in fluxul de inscriere (InscriereClubWizard/InscriereModal), doar la badge display si generare sabloane — discriminare intre competitii cu acelasi tip se face prin marker pe denumire, fara a extinde schema
 - [Phase 31]: Literal View nou 'plati-hub' (nu reutilizare 'plati-scadente') - toate cele 12 literale vechi raman ca alias-uri (localStorage phi-hau-active-view + favorite AdminMasterMap)
 - [Phase 31]: TAB_PENTRU_SECTIUNE si SECTIUNE_IMPLICITA derivate programatic din SECTIUNI_PE_TAB (nu scrise de mana) - elimina riscul de divergenta intre cele 3 structuri
+- [Phase 31]: Fix D-07: payload whitelist + merge de stare {...p, ...data} pe update-uri plati in GestiuneFacturi.tsx, RaportFinanciar.tsx, UserProfile.tsx
 
 ### Pending Todos
 
@@ -196,6 +198,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-09-26T13:55:11.238Z
-Stopped at: Completed 31-01-PLAN.md
+Last session: 2026-09-26T14:02:09.835Z
+Stopped at: Completed 31-02-PLAN.md
 Resume file: None

@@ -27,6 +27,7 @@ import { getAge } from '../../utils/date';
 import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';
 import { Wand2, Copy, Check, Download, AlertTriangle } from 'lucide-react';
 import { mutaInGrupa, scoateDinGrupa } from '../../services/grupeIstoricService';
+import { anuleazaAbonamenteNeachitateSportiv } from '../../services/facturaService';
 import { useRegisterRefresh } from '../../contexts/RefreshContext';
 
 
@@ -459,6 +460,7 @@ export const Sportivi: React.FC<{
         } else {
             setSportivi(prev => prev.map(s => s.id === sportivToDeactivate.id ? { ...s, status: 'Inactiv'} : s));
             queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+            await anuleazaAbonamenteNeachitateSportiv(sportivToDeactivate.id);
             showSuccess("Succes", "Sportivul a fost marcat ca inactiv.");
         }
     };
@@ -471,6 +473,9 @@ export const Sportivi: React.FC<{
         } else {
             setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, status: newStatus } : s));
             queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+            if (newStatus === 'Inactiv') {
+                await anuleazaAbonamenteNeachitateSportiv(sportiv.id);
+            }
             showSuccess("Succes", `${sportiv.nume} ${sportiv.prenume} → ${newStatus}`);
         }
     };
@@ -485,6 +490,9 @@ export const Sportivi: React.FC<{
         } else {
             setSportivi(prev => prev.map(s => ids.includes(s.id) ? { ...s, status: newStatus } : s));
             queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+            if (newStatus === 'Inactiv') {
+                await Promise.all(ids.map(id => anuleazaAbonamenteNeachitateSportiv(id)));
+            }
             showSuccess("Succes", `${ids.length} sportivi marcați ca ${newStatus}.`);
             setSelectedSportivIds(new Set());
         }

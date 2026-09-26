@@ -244,6 +244,44 @@ export async function reactiveazaFacturaAbonament(
 }
 
 /**
+ * Anulează (soft) toate facturile de Abonament 'Neachitat' ale unui sportiv.
+ *
+ * Folosit la dezactivarea unui sportiv (Sportivi/index.tsx: handleDeactivate,
+ * handleToggleStatus, handleBulkStatusUpdate) — fără asta, facturile generate
+ * automat cât sportivul era Activ rămân 'Neachitat' la nesfârșit după dezactivare,
+ * poluând rapoartele de restanțe cu sportivi care nu mai antrenează.
+ *
+ * NU atinge facturile 'Achitat' sau 'Achitat Parțial' — sunt încasări reale,
+ * nu erori. NU atinge facturile deja 'Anulat'.
+ *
+ * @param sportivId - UUID sportiv
+ * @param client - client Supabase opțional (implicit clientul aplicației)
+ * @returns { count: number, error: any } — count = nr. facturi anulate
+ */
+export async function anuleazaAbonamenteNeachitateSportiv(
+    sportivId: string,
+    client: SupabaseClient = supabase
+): Promise<{ count: number; error: any }> {
+    if (!sportivId || typeof sportivId !== 'string') {
+        return { count: 0, error: { message: 'sportivId lipsă sau invalid.' } };
+    }
+
+    const { data, error } = await client
+        .from('plati')
+        .update({ status: 'Anulat' })
+        .eq('sportiv_id', sportivId)
+        .eq('tip', 'Abonament')
+        .eq('status', 'Neachitat')
+        .select('id');
+
+    if (error) {
+        console.error('[anuleazaAbonamenteNeachitateSportiv] eroare update:', error);
+        return { count: 0, error };
+    }
+    return { count: data?.length ?? 0, error: null };
+}
+
+/**
  * Șterge definitiv (hard delete) o factură de Abonament.
  *
  * Replică lanțul de guard-uri din `components/Plati/GestiuneFacturi.tsx` (handleDelete)

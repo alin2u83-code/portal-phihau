@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 31-09-PLAN.md - Phase 31 finished
-last_updated: "2026-09-26T15:04:37.836Z"
+stopped_at: Phase 32 context gathered
+last_updated: "2026-09-26T19:51:11.566Z"
 last_activity: 2026-09-26 -- Phase 31 execution started
 progress:
-  total_phases: 23
+  total_phases: 24
   completed_phases: 14
   total_plans: 64
   completed_plans: 62
-  percent: 61
+  percent: 58
 ---
 
 # Project State
@@ -190,6 +190,7 @@ Recent decisions affecting current work:
 - Phase 28 added: Conformitate GDPR si AI Act pentru date personale sportivi si modul AI Assistant — registru evidenta prelucrari, DPIA AI, DPA procesatori, nota informare UI, consimtamant parinte minori, minimizare date AI, retentie, drepturi persoana vizata, pagina "Protectia datelor". Vezi memory project_gdpr_ai_act_conformitate.md.
 - Phase 30 added: Imbunatatiri inspirate din analiza Abonix (abonix-raport.md) — (1) perioada de gratie configurabila la reinnoire abonament/taxa, (2) memento-uri automate pe praguri de zile (-7/-3/0/+3/+7) cu canal email/SMS si sabloane editabile din UI, (3) loialitate automata pe politici_reducere (bonus dupa N reinnoiri consecutive)
 - Phase 29 added: Taxa Anuala Federatie FRQKD - activare automata club->federatie la participarea sportivului la examen/stagiu/competitie in sezonul curent (an fiscal fix 1 sept-31 aug). Repara schema orfana deconturi_federatie (fara club_id live) + reactiveaza vize_sportivi/decont_sportivi (0 randuri, nefolosite) + backfill 37 facturi FRQKD istorice 2025-2026. Spec: docs/superpowers/specs/2026-09-12-taxa-anuala-federatie-design.md.
+- Phase 32 added (2026-09-26): Audit complet Auth — SMTP custom pt emailuri (default Supabase = 2-4 emailuri/ora/proiect, insuficient la scale 35 cluburi/3500+ sportivi), reziliienta import bulk sportivi la rate limits signup/OTP per IP (retry/backoff), monitorizare praguri + alerta. Provider SMTP nedecis inca (cercetare in faza de discutie). Prioritate: backlog, dupa Phase 31.
 
 Sursa: audit complet 2026-07-06 (vezi memory project_audit_complet_20260706.md). Ordine executie: 15→16→17 (securitate, urgent) apoi 18→19→20 (integritate date) apoi 21 (race conditions) apoi 22→23→24 (arhitectura, fara urgenta).
 
@@ -217,6 +218,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-09-26T15:04:37.818Z
-Stopped at: Completed 31-09-PLAN.md - Phase 31 finished
-Resume file: None
+Last session: 2026-09-26T19:51:11.553Z
+Stopped at: Phase 32 context gathered
+Resume file: .planning/phases/32-audit-complet-auth-smtp-custom-pt-emailuri-reset-parola-conf/32-CONTEXT.md

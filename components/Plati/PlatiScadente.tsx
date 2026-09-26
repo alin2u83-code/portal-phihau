@@ -2,7 +2,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Plata, Sportiv, Permissions, Club } from '../../types';
 import { Button, Input, Select, Card, Modal, SearchInput, ClubSelect, SearchableSelect } from '../ui';
-import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon, CalendarDaysIcon, ChevronDownIcon, ChevronUpIcon, ExclamationTriangleIcon, XCircleIcon, CheckCircleIcon, ChatBubbleLeftEllipsisIcon } from '../icons';
+import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon, CalendarDaysIcon, ChevronDownIcon, ChevronUpIcon, ExclamationTriangleIcon, XCircleIcon, CheckCircleIcon, ChatBubbleLeftEllipsisIcon, ClipboardListIcon } from '../icons';
 import { NotificariRestantieriModal } from './NotificariRestantieriModal';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -27,6 +27,9 @@ interface PlatiScadenteProps {
     onBack: () => void;
     onViewSportiv: (sportiv: Sportiv) => void;
     permissions: Permissions;
+    // Faza 31 — setate de hub-ul Plăți & Facturi
+    hideBackButton?: boolean;
+    onDeschideDetalii?: (plata: Plata) => void;
 }
 
 /** PLF-01: Sub-component pentru afișarea prezențelor unui sportiv într-o lună.
@@ -79,7 +82,7 @@ const PrezenteFacturaRow: React.FC<{
 
 const initialFilters = { sportiv: '', tip: '', status: '', clubId: '' };
 
-export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultiple, onBack, onViewSportiv, permissions }) => {
+export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultiple, onBack, onViewSportiv, permissions, hideBackButton, onDeschideDetalii }) => {
     const { filteredData, setPlati, currentUser, clubs, grade, activeRoleContext } = useData();
     const plati = filteredData.plati;
     const sportivi = filteredData.sportivi;
@@ -836,7 +839,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
     return (
         <div className="space-y-4 md:space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+            {!hideBackButton && (
+                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+            )}
             <h1 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Management Facturi & Plăți</h1>
 
              <Card className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1031,6 +1036,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                             <WalletIcon className="w-4 h-4" />
                                                         </Button>
                                                     )}
+                                                    {onDeschideDetalii && (
+                                                        <Button size="sm" variant="secondary" onClick={() => onDeschideDetalii(p)} title="Detalii & corecție">
+                                                            <ClipboardListIcon className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
                                                     <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)}><EditIcon className="w-4 h-4"/></Button>
                                                     {/* ERG: Anulează/Reactivează — doar pentru Abonament, acțiuni separate de ștergere */}
                                                     {p.tip === 'Abonament' && esteDeIncasat(p) && (
@@ -1159,6 +1169,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                 {esteDeIncasat(p) && (
                                                     <Button size="sm" variant="success" onClick={() => { setPlataForPayment(p); setPaymentAmount(p.suma.toString()); }} title="Încasează">
                                                         <WalletIcon className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                )}
+                                                {onDeschideDetalii && (
+                                                    <Button size="sm" variant="secondary" onClick={() => onDeschideDetalii(p)} title="Detalii">
+                                                        <ClipboardListIcon className="w-3.5 h-3.5" />
                                                     </Button>
                                                 )}
                                                 <Button size="sm" variant="secondary" onClick={() => setEditingPlata(p)} title="Editează">

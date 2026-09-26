@@ -1,7 +1,7 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
 import { Plata, IstoricPlataDetaliat, Sportiv, User, TipPlata, Familie, Tranzactie, Reducere, PretConfig, TipAbonament } from '../../types';
 import { Button, Card, Input, Select, Modal, SearchInput } from '../ui';
-import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, WalletIcon, CheckCircleIcon, EyeIcon } from '../icons';
+import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, WalletIcon, CheckCircleIcon, EyeIcon, ClipboardListIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
@@ -29,6 +29,9 @@ interface GestiuneFacturiProps {
     familii: Familie[];
     onViewSportiv?: (sportiv: Sportiv) => void;
     initialSportivId?: string;
+    // Faza 31 — setate de hub-ul Plăți & Facturi
+    hideBackButton?: boolean;
+    onDeschideDetalii?: (plata: Plata) => void;
 }
 
 const initialFormState = {
@@ -43,7 +46,7 @@ const initialFormState = {
     metoda_plata: 'Cash' as 'Cash' | 'Transfer Bancar' | 'Revolut',
 };
 
-export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, currentUser, sportivi, plati, setPlati, setTranzactii, tipuriPlati, familii, onViewSportiv, initialSportivId }) => {
+export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, currentUser, sportivi, plati, setPlati, setTranzactii, tipuriPlati, familii, onViewSportiv, initialSportivId, hideBackButton, onDeschideDetalii }) => {
     const { showError, showSuccess } = useError();
     const { preturiConfig, tipuriAbonament, reduceri, activeRoleContext } = useData();
     const permissions = usePermissions(activeRoleContext);
@@ -564,6 +567,11 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     )}
                     <Button size="sm" variant="secondary" onClick={() => setPlataForView(p)} title="Vizualizează factura"><EyeIcon className="w-4 h-4" /></Button>
                     <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(p)} title="Editează"><EditIcon className="w-4 h-4" /></Button>
+                    {onDeschideDetalii && (
+                        <Button size="sm" variant="secondary" onClick={() => onDeschideDetalii(p)} title="Detalii & corecție">
+                            <ClipboardListIcon className="w-4 h-4" />
+                        </Button>
+                    )}
                     {p.status === 'Achitat' ? (
                         <span title="Facturile achitate nu pot fi șterse" className="cursor-not-allowed">
                             <Button size="sm" variant="danger" disabled className="pointer-events-none opacity-40"><TrashIcon className="w-4 h-4" /></Button>
@@ -612,6 +620,11 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 )}
                 <Button size="sm" variant="secondary" onClick={() => setPlataForView(p)} className="flex-1 justify-center"><EyeIcon className="w-4 h-4 mr-2" /> Vizualizează</Button>
                 <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(p)} className="flex-1 justify-center"><EditIcon className="w-4 h-4 mr-2" /> Editează</Button>
+                {onDeschideDetalii && (
+                    <Button size="sm" variant="secondary" onClick={() => onDeschideDetalii(p)} className="flex-1 justify-center">
+                        <ClipboardListIcon className="w-4 h-4 mr-2" /> Detalii
+                    </Button>
+                )}
                 {p.status === 'Achitat' ? (
                     <span title="Facturile achitate nu pot fi șterse" className="cursor-not-allowed flex-1">
                         <Button size="sm" variant="danger" disabled className="pointer-events-none opacity-40 w-full justify-center"><TrashIcon className="w-4 h-4 mr-2" /> Șterge</Button>
@@ -625,7 +638,9 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
 
     return (
         <div className="space-y-4 md:space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+            {!hideBackButton && (
+                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+            )}
             <h1 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Gestiune Facturi Manuale</h1>
 
             <Card className="p-6 border-brand-primary/20 bg-slate-800/50">

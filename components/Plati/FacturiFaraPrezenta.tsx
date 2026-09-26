@@ -15,6 +15,8 @@ import { formatNume } from '../../utils/formatareSportiv';
 interface FacturiFaraPrezentaProps {
     onBack: () => void;
     onViewSportiv?: (sportiv: Sportiv) => void;
+    // Faza 31 — setat de hub-ul Plăți & Facturi
+    hideBackButton?: boolean;
 }
 
 const LUNI = [
@@ -33,7 +35,7 @@ const LUNI = [
  * interoghează direct `rbv_plati_club`, filtrat server-side pe lună+an — o singură
  * interogare, câteva sute de rânduri maxim, corectă pentru orice lună istorică.
  */
-export const FacturiFaraPrezenta: React.FC<FacturiFaraPrezentaProps> = ({ onBack, onViewSportiv }) => {
+export const FacturiFaraPrezenta: React.FC<FacturiFaraPrezentaProps> = ({ onBack, onViewSportiv, hideBackButton }) => {
     const { filteredData, activeRoleContext } = useData();
     const { showError, showSuccess } = useError();
     const queryClient = useQueryClient();
@@ -157,7 +159,9 @@ export const FacturiFaraPrezenta: React.FC<FacturiFaraPrezentaProps> = ({ onBack
 
     return (
         <div className="space-y-4 md:space-y-6">
-            <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+            {!hideBackButton && (
+                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
+            )}
             <h1 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Facturi fără Prezență</h1>
 
             <Card className="grid grid-cols-1 sm:grid-cols-2 gap-4">

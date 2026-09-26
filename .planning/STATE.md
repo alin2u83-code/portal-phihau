@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 31-03-PLAN.md
-last_updated: "2026-09-26T14:13:39.763Z"
+stopped_at: Completed 31-04-PLAN.md
+last_updated: "2026-09-26T14:21:08.312Z"
 last_activity: 2026-09-26 -- Phase 31 execution started
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 64
-  completed_plans: 56
+  completed_plans: 57
   percent: 57
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 31 (hub-plati-si-facturi-consolidare-14-view-uri-in-4-tab-uri-fa) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 Status: Ready to execute
 Last activity: 2026-09-26 -- Phase 31 execution started
 
@@ -63,6 +63,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 31 P01 | 15min | 2 tasks | 3 files |
 | Phase 31 P02 | 20min | 2 tasks | 3 files |
 | Phase 31 P03 | 40min | 2 tasks | 3 files |
+| Phase 31 P04 | 15min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,8 @@ Recent decisions affecting current work:
 - [Phase 31]: Fix D-07: payload whitelist + merge de stare {...p, ...data} pe update-uri plati in GestiuneFacturi.tsx, RaportFinanciar.tsx, UserProfile.tsx
 - [Phase 31]: [31-03] round2() aplicat si pe diferenta (nu doar pe operanzi) in planificaAchitareRapida — evita artefacte de precizie float la comparatia cu toleranta 0.01 — Descoperit in GREEN: 100.01-100 = 0.010000000000005116 in JS, nu 0.01 exact
 - [Phase 31]: [31-03] Actiunea rapida cu_corectie scrie intai update literal {suma_initiala, suma} (whitelist 2 chei), apoi RPC proceseaza_plata_factura — mesaj explicit daca RPC esueaza dupa corectie deja scrisa
+- [Phase 31]: [31-04] onDeschideDetalii NU e adaugat pe FacturiFaraPrezenta - doar hideBackButton, consecvent cu interfaces din plan
+- [Phase 31]: [31-04] TabFacturi retine doar plataId (nu obiectul Plata) pentru FacturaDetaliu - un singur modal comun pentru toate 3 sectiuni
 
 ### Pending Todos
 
@@ -201,6 +204,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-09-26T14:13:39.712Z
-Stopped at: Completed 31-03-PLAN.md
+Last session: 2026-09-26T14:21:08.293Z
+Stopped at: Completed 31-04-PLAN.md
 Resume file: None

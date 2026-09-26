@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: completed
-stopped_at: Phase 31 context gathered
-last_updated: "2026-09-26T13:05:05.950Z"
-last_activity: "2026-09-26 - Fix bug NotificariRestantieriModal: confirmare vizuala "Copiat!" lipsa (await inainte de setState)"
+status: executing
+stopped_at: Completed 31-01-PLAN.md
+last_updated: "2026-09-26T13:55:11.257Z"
+last_activity: 2026-09-26 -- Phase 31 execution started
 progress:
   total_phases: 23
   completed_phases: 13
-  total_plans: 55
-  completed_plans: 53
+  total_plans: 64
+  completed_plans: 54
   percent: 57
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 30 — imbunatatiri-inspirate-din-abonix-gratie-reinnoire-abonament
+**Current focus:** Phase 31 — hub-plati-si-facturi-consolidare-14-view-uri-in-4-tab-uri-fa
 
 ## Current Position
 
-Phase: 30 — COMPLETE
-Plan: 1 of 6
-Status: Phase 30 complete
-Last activity: 2026-09-26 - Fix bug NotificariRestantieriModal: confirmare vizuala "Copiat!" lipsa (await inainte de setState)
+Phase: 31 (hub-plati-si-facturi-consolidare-14-view-uri-in-4-tab-uri-fa) — EXECUTING
+Plan: 2 of 9
+Status: Ready to execute
+Last activity: 2026-09-26 -- Phase 31 execution started
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -60,6 +60,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 26 P01 | 15min | 3 tasks | 4 files |
 | Phase 26 P02 | 25min | 2 tasks | 2 files |
 | Phase 26 P03 | 35min | 3 tasks | 5 files |
+| Phase 31 P01 | 15min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 26] [26-03] Rollback auth.users gardat de flag userNouCreat, aplicat doar pe ramura rpcError cand user-ul a fost creat in cererea curenta — repara retry-ul D-07 (CR-02), oglindeste api/genereaza-magic-link.ts
 - [Phase ?]: [Phase 26] [26-03] AppRouter.tsx: cele doua useState mutate deasupra return-urilor timpurii — fixeaza violarea Rules of Hooks (CR-03), zero schimbare de comportament vizibil
 - [260901-l8j]: competitie.tip (schema Competitie) nu e folosit nicaieri in fluxul de inscriere (InscriereClubWizard/InscriereModal), doar la badge display si generare sabloane — discriminare intre competitii cu acelasi tip se face prin marker pe denumire, fara a extinde schema
+- [Phase 31]: Literal View nou 'plati-hub' (nu reutilizare 'plati-scadente') - toate cele 12 literale vechi raman ca alias-uri (localStorage phi-hau-active-view + favorite AdminMasterMap)
+- [Phase 31]: TAB_PENTRU_SECTIUNE si SECTIUNE_IMPLICITA derivate programatic din SECTIUNI_PE_TAB (nu scrise de mana) - elimina riscul de divergenta intre cele 3 structuri
 
 ### Pending Todos
 
@@ -193,6 +196,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-09-26T13:05:05.932Z
-Stopped at: Phase 31 context gathered
-Resume file: .planning/phases/31-hub-plati-si-facturi-consolidare-14-view-uri-in-4-tab-uri-fa/31-CONTEXT.md
+Last session: 2026-09-26T13:55:11.238Z
+Stopped at: Completed 31-01-PLAN.md
+Resume file: None

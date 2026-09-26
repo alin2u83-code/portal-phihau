@@ -411,11 +411,11 @@ Plans:
 **Goal:** Modulul Plati devine un singur hub "Plati & Facturi" (vederea `plati-hub`) cu 4 tab-uri interne — Facturi / Incasari / Rapoarte / Configurare — care inlocuieste 12 vederi top-level si e accesibil dintr-un singur punct de intrare pe dashboard si in meniu; Familii si Deconturi Federatie raman separate; plus ecran de detaliu factura cu suma facturata vs incasata separate, istoric tranzactii, context complet si actiune rapida "Marcheaza Achitat cu X RON" (ADMIN_CLUB + INSTRUCTOR); anti-pattern-ul spread-in-update pe `plati` eliminat.
 **Requirements**: TBD (faza fara ID-uri REQUIREMENTS.md — acoperire pe deciziile D-01..D-09 din 31-CONTEXT.md)
 **Depends on:** Phase 30
-**Plans:** 9 plans
+**Plans:** 1/9 plans executed
 
 Plans:
 
-- [ ] 31-01-PLAN.md — Audit harta props/fluxuri + contract hub (platiHubConfig, rezolvaPozitieHub, literal View `plati-hub`) (val 1)
+- [x] 31-01-PLAN.md — Audit harta props/fluxuri + contract hub (platiHubConfig, rezolvaPozitieHub, literal View `plati-hub`) (val 1)
 - [ ] 31-02-PLAN.md — Audit + fix anti-pattern spread in .update(plati) (GestiuneFacturi, RaportFinanciar, JurnalIncasari, SMSIncasari, UserProfile) (val 1)
 - [ ] 31-03-PLAN.md — Ecran detaliu factura: logica pura testata + modal FacturaDetaliu cu actiune rapida si corectie whitelist (val 1)
 - [ ] 31-04-PLAN.md — Tab Facturi + butoane Detalii in PlatiScadente/GestiuneFacturi (val 2)

@@ -25,6 +25,7 @@ import { useData } from '../contexts/DataContext';
 import { AttendanceIndicator } from './UserProfile/AttendanceIndicator';
 import { TransferModal } from './UserProfile/TransferModal';
 import { PlataEditModal } from './UserProfile/PlataEditModal';
+import { FacturaDetaliu } from './Plati/FacturaDetaliu';
 import { CreateAccountModal } from './UserProfile/CreateAccountModal';
 import { TrainingHistory } from './UserProfile/TrainingHistory';
 import { DataField } from './UserProfile/DataField';
@@ -148,6 +149,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const [plataToEdit, setPlataToEdit] = useState<Plata | null>(null);
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
     const [plataToAnula, setPlataToAnula] = useState<Plata | null>(null);
+    const [plataDetaliuId, setPlataDetaliuId] = useState<string | null>(null);
     const [isAnuland, setIsAnuland] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isTogglingStatus, setIsTogglingStatus] = useState(false);
@@ -928,6 +930,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         tranzactii={tranzactii}
                         setPlataToAnula={setPlataToAnula}
                         onReactivare={handleReactiveazaPlata}
+                        onDeschideDetalii={setPlataDetaliuId}
                     />
                 )}
 
@@ -959,6 +962,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             {gradeEntryToEdit && <AddGradeModal isOpen={!!gradeEntryToEdit} onClose={() => setGradeEntryToEdit(null)} onSave={handleEditGrade} sportiv={sportiv} grades={grade} initialData={gradeEntryToEdit} />}
             {isCreateAccountModalOpen && <CreateAccountModal sportiv={sportiv} onClose={() => setIsCreateAccountModalOpen(false)} onAccountCreated={handleAccountCreated} currentUser={currentUser} allRoles={allRoles} />}
             <PlataEditModal plata={plataToEdit} onClose={() => setPlataToEdit(null)} onSave={handleSavePlataEdit} onSaveTranzactie={handleSaveTranzactieEdit} onMutaPlata={handleMutaPlata} isLoading={isSaving} tranzactii={tranzactii.filter(t => t.plata_ids?.includes(plataToEdit?.id ?? ''))} platiFamilie={plati.filter(p => (p.sportiv_id === sportiv.id || (sportiv.familie_id && p.familie_id === sportiv.familie_id)) && p.id !== plataToEdit?.id)} />
+            <FacturaDetaliu plataId={plataDetaliuId} onClose={() => setPlataDetaliuId(null)} />
             <ConfirmDeleteModal
                 isOpen={!!plataToDelete}
                 onClose={() => setPlataToDelete(null)}

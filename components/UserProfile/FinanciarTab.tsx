@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Sportiv, TipAbonament, Familie, VizualizarePlata, Plata, Tranzactie } from '../../types';
 import { Card, Button, Skeleton, Modal } from '../ui';
-import { UsersIcon, ExclamationTriangleIcon, CalendarDaysIcon, EditIcon, TrashIcon, BanknotesIcon, CheckCircleIcon, WalletIcon, ChevronDownIcon, ChevronUpIcon, XCircleIcon } from '../icons';
+import { UsersIcon, ExclamationTriangleIcon, CalendarDaysIcon, EditIcon, TrashIcon, BanknotesIcon, CheckCircleIcon, WalletIcon, ChevronDownIcon, ChevronUpIcon, XCircleIcon, ClipboardListIcon } from '../icons';
 import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
 import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare';
 import { formatLuna } from '../../utils/luniLipsa';
@@ -34,6 +34,8 @@ interface FinanciarTabProps {
     tranzactii: Tranzactie[];
     setPlataToAnula: (plata: Plata | null) => void;
     onReactivare: (plata: Plata) => void;
+    /** Faza 31 — deschide ecranul de detaliu factura; disponibil si pentru INSTRUCTOR (D-09) */
+    onDeschideDetalii?: (plataId: string) => void;
 }
 
 /** PLF-01: Sub-component afișare prezențe în modalul de detalii factură.
@@ -120,7 +122,7 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
     totalRestante, tipuriAbonament, sportiv, sportivi, familii,
     vizualizarePlati, possibleViewError, istoricFacturi,
     setPlataToEdit, plati, setPlataToDelete, tranzactii,
-    setPlataToAnula, onReactivare,
+    setPlataToAnula, onReactivare, onDeschideDetalii,
 }) => {
     const [selectedFactura, setSelectedFactura] = useState<FacturaEntry | null>(null);
     const [filter, setFilter] = useState<'toate' | 'neachitate' | 'achitate'>('toate');
@@ -356,6 +358,12 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
 
                                     {/* Acțiuni */}
                                     <div className="flex items-center gap-2 px-4 py-2.5 border-t border-slate-700/40 bg-slate-900/20">
+                                        {onDeschideDetalii && (
+                                            <Button size="sm" variant="secondary"
+                                                onClick={() => onDeschideDetalii(p.plata_id)}>
+                                                <ClipboardListIcon className="w-3.5 h-3.5 mr-1" /> Detalii
+                                            </Button>
+                                        )}
                                         <Button size="sm" variant="secondary"
                                             onClick={() => setPlataToEdit(plati.find(pl => pl.id === p.plata_id) || null)}>
                                             <EditIcon className="w-3.5 h-3.5 mr-1" /> Editează

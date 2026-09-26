@@ -2,7 +2,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Plata, Sportiv, Permissions, Club } from '../../types';
 import { Button, Input, Select, Card, Modal, SearchInput, ClubSelect, SearchableSelect } from '../ui';
-import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon, CalendarDaysIcon, ChevronDownIcon, ChevronUpIcon, ExclamationTriangleIcon, XCircleIcon, CheckCircleIcon } from '../icons';
+import { EditIcon, ArrowLeftIcon, TrashIcon, BanknotesIcon, BellIcon, WalletIcon, CalendarDaysIcon, ChevronDownIcon, ChevronUpIcon, ExclamationTriangleIcon, XCircleIcon, CheckCircleIcon, ChatBubbleLeftEllipsisIcon } from '../icons';
+import { NotificariRestantieriModal } from './NotificariRestantieriModal';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { sendBulkNotifications } from '../../utils/notifications';
@@ -107,6 +108,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar' | 'Revolut'>('Cash');
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+    const [isNotificariRestantieriOpen, setIsNotificariRestantieriOpen] = useState(false);
 
     const balances = useMemo(() => {
         const famBalances = new Map<string, number>();
@@ -868,6 +870,12 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap gap-2">
                     {permissions.isAdminClub && <Button onClick={handleGenerateSubscriptions} variant="info" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">Generează Abonamente</Button>}
+                    {permissions.canManageFinances && (
+                        <Button onClick={() => setIsNotificariRestantieriOpen(true)} variant="primary" size="sm" className="flex-1 sm:flex-none justify-center">
+                            <ChatBubbleLeftEllipsisIcon className="w-4 h-4 mr-1" />
+                            Trimite notificări restanțieri
+                        </Button>
+                    )}
                     {permissions.canManageFinances && selectedIds.size > 0 && (
                         <Button onClick={handleNotifyOverdue} variant="warning" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">
                             <BellIcon className="w-4 h-4 mr-1"/>
@@ -1250,6 +1258,16 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                         </div>
                     </div>
                 </Modal>
+            )}
+            {isNotificariRestantieriOpen && (
+                <NotificariRestantieriModal
+                    isOpen
+                    onClose={() => setIsNotificariRestantieriOpen(false)}
+                    plati={plati || []}
+                    sportivi={sportivi || []}
+                    familii={familii || []}
+                    clubId={permissions.isSuperAdmin ? (filter.clubId || null) : null}
+                />
             )}
             <ConfirmDeleteModal
                 isOpen={!!plataToDelete}

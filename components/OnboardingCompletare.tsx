@@ -6,6 +6,7 @@ import { useError } from './ErrorProvider';
 import { getAuthErrorMessage } from '../utils/error';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
+import { inregistreazaEmailAuth } from '../services/authEmailAuditService';
 import { QwanKiDoLogo } from './Logo';
 import { Mail, KeyRound, ShieldCheck, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 
@@ -38,6 +39,7 @@ export const OnboardingCompletare: React.FC<OnboardingCompletareProps> = ({ curr
         setLoading(true);
         try {
             const { error } = await supabase.auth.updateUser({ email: emailReal.trim() });
+            inregistreazaEmailAuth('schimbare_email', !error);
             if (error) throw error;
             setStep('cod');
         } catch (err: any) {

@@ -8,6 +8,7 @@ import { getRoleDisplayName, getRoleDescription, getRoleIcon } from '../hooks/us
 import { getAuthErrorMessage } from '../utils/error';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
+import { inregistreazaEmailAuth } from '../services/authEmailAuditService';
 
 interface AccountSettingsProps {
     currentUser: User;
@@ -64,6 +65,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
 
             if (Object.keys(authUpdates).length > 0) {
                 const { error: authError } = await supabase.auth.updateUser(authUpdates);
+                if (authUpdates.email) inregistreazaEmailAuth('schimbare_email', !authError);
                 if (authError) throw authError;
             }
 

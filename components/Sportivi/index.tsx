@@ -30,6 +30,7 @@ import { mutaInGrupa, scoateDinGrupa } from '../../services/grupeIstoricService'
 import { anuleazaAbonamenteNeachitateSportiv } from '../../services/facturaService';
 import { genereazaMagicLinkSportiv } from '../../services/magicLinkService';
 import { asteapta, DELAY_PREVENTIV_MS } from '../../utils/retryBackoff';
+import { genereazaParolaTemporara } from '../../utils/parola';
 import { useRegisterRefresh } from '../../contexts/RefreshContext';
 
 
@@ -708,7 +709,7 @@ export const Sportivi: React.FC<{
         setCreateAccountForm({
             email: initialEmail,
             username: user.username || emailPrefix,
-            parola: 'Parola123!'
+            parola: genereazaParolaTemporara()
         });
         setCreateAccountError('');
         setIsFormModalOpen(true);
@@ -1014,7 +1015,7 @@ export const Sportivi: React.FC<{
                     const emailPrefix = `${sanitize(user.nume)}.${sanitize(user.prenume)}`;
                     const isPlaceholderEmail = !user.email || user.email.endsWith('@phihau.ro') || user.email.includes('placeholder');
                     const initialEmail = isPlaceholderEmail ? '' : user.email;
-                    setCreateAccountForm({ email: initialEmail, username: user.username || emailPrefix, parola: 'Parola123!' });
+                    setCreateAccountForm({ email: initialEmail, username: user.username || emailPrefix, parola: genereazaParolaTemporara() });
                     setCreateAccountError('');
                 }}
                 sportivForAccountCreation={sportivForAccountCreation}

@@ -5,6 +5,7 @@ import { useError } from '../ErrorProvider';
 import { useRoleAssignment } from '../../hooks/useRoleAssignment';
 import { Link, Copy, Check, Wand2, KeyRound } from 'lucide-react';
 import { genereazaMagicLinkSportiv } from '../../services/magicLinkService';
+import { genereazaParolaTemporara } from '../../utils/parola';
 
 type Metoda = 'parola' | 'magic-link';
 
@@ -29,7 +30,7 @@ export const CreateAccountModal: React.FC<{
         const nume = sanitize(sportiv.nume);
         const prenume = sanitize(sportiv.prenume);
         const defaultEmail = sportiv.email || `${nume}.${prenume}@phihau.ro`;
-        const defaultPassword = `${nume}.1234!`;
+        const defaultPassword = genereazaParolaTemporara();
         setForm({ email: defaultEmail, parola: defaultPassword });
     }, [sportiv]);
 

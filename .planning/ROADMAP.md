@@ -427,6 +427,26 @@ Plans:
 
 **Structura valurilor:** val 1 = {31-01, 31-02, 31-03} (independente); val 2 = {31-04 dupa 01+02+03, 31-05 dupa 01+02, 31-06 dupa 01, 31-07 dupa 02+03}; val 3 = {31-08 dupa 04+05+06}; val 4 = {31-09 dupa 08}. AppRouter e atins o singura data (31-08), dupa auditul de props (31-01) si dupa ce toate tab-urile exista.
 
+### Phase 32: Audit complet Auth: SMTP custom pt emailuri (reset parola, confirmare cont), reziliienta import bulk sportivi la rate limits Auth (retry/backoff), monitorizare praguri si alerta cand te apropii de limita
+
+**Goal:** Fluxul de autentificare existent devine rezistent si auditat: emailurile Auth (reset parola, confirmare cont, cod MFA, schimbare email) pleaca prin SMTP-ul Hostinger de la noreply@phihau.ro (trecerea pe frqkd.ro = doar reconfigurare de credentiale), generarea bulk de conturi sportivi reincearca automat la 429 cu backoff, SUPER_ADMIN_FEDERATIE vede consumul de emailuri Auth fata de prag, parola respecta aceeasi regula (min 12 + litera mare/mica/cifra) in toate fluxurile si la nivel de proiect Supabase, sesiunile privilegiate inactive se inchid, endpoint-urile service_role din fluxul Auth nu mai pot fi apelate anonim, iar acoperirea MFA e re-auditata.
+**Requirements**: TBD (faza fara ID-uri REQUIREMENTS.md — acoperire pe deciziile D-01..D-09 din 32-CONTEXT.md)
+**Depends on:** Phase 31
+**Plans:** 8 plans
+
+Plans:
+
+- [ ] 32-01-PLAN.md — Validator unic valideazaParola (D-07) + aliniere 10 formulare client; login fara regula de lungime (val 1)
+- [ ] 32-02-PLAN.md — Retry/backoff D-04 (delay 500ms + 1s/3s/9s doar pe 429) + serviciu magic link cu Bearer, aplicat in Sportivi, import sportivi si CreateAccountModal (val 1)
+- [ ] 32-03-PLAN.md — Monitorizare emailuri Auth D-06: tabel auth_email_events + praguri configurabile + RPC super admin + banner/card Jurnal Audit (val 1)
+- [ ] 32-04-PLAN.md — Delogare la 60 min inactivitate pentru ADMIN_CLUB/SUPER_ADMIN_FEDERATIE (D-08 per rol) (val 1)
+- [ ] 32-05-PLAN.md — Securizare endpoint-uri service_role neautentificate (reset-parola-sportiv, account, genereaza-magic-link) + D-07 server + contract 429 (val 2)
+- [ ] 32-06-PLAN.md — Apelanti admin cu Bearer + parole temporare generate criptografic (fara 'Parola123!' / '<nume>.1234!') (val 2)
+- [ ] 32-07-PLAN.md — Instrumentare contor: reset parola, confirmare cont, cod MFA, schimbare email (val 2)
+- [ ] 32-08-PLAN.md — Runbook + configurare Dashboard (SMTP Hostinger, rate limit, politica parola, JWT/sesiuni) [checkpoint] + audit MFA D-09 + porti finale (val 3)
+
+**Structura valurilor:** val 1 = {32-01, 32-02, 32-03, 32-04} (independente); val 2 = {32-05 dupa 01, 32-06 dupa 01+02, 32-07 dupa 01+03}; val 3 = {32-08 dupa toate, neautonom — checkpoint de configurare externa}. 32-05 (endpoint-uri cu Bearer) si 32-02/32-06 (apelanti cu Bearer) trebuie sa ajunga in productie in acelasi deploy.
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

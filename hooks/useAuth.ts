@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient';
 import { createAccount, CreateAccountParams } from '../services/authService';
 import { logAuditEvent } from '../services/auditLogService';
 import { getAuthErrorMessage } from '../utils/error';
+import { notificaIncercareLogin } from '../services/alertaSecuritateService';
 
 export function useAuth() {
     const [loading, setLoading] = useState(false);
@@ -24,6 +25,8 @@ export function useAuth() {
                 email,
                 password,
             });
+
+            notificaIncercareLogin(email, !authError, data?.user?.id);
 
             if (authError) {
                 throw new Error(getAuthErrorMessage(authError));

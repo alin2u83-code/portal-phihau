@@ -1168,3 +1168,15 @@ export interface StatisticiEmailuriAuth {
   praguri_actualizate_la: string | null;
   pe_tip_24h: Partial<Record<TipEmailAuth, number>>;
 }
+
+// Alerte securitate admin (login brute-force + dispozitiv necunoscut)
+export type TipAlertaSecuritate = 'login_esuat_burst' | 'dispozitiv_necunoscut';
+
+export interface StatisticiAlerteSecuritate {
+  tentative_esuate_ultima_ora: number;
+  tentative_esuate_ultimele_24h: number;
+  dispozitive_noi_ultimele_24h: number;
+  alerte_trimise_24h: number;
+  alerte_esuate_trimitere_24h: number;
+  pe_tip_24h: Partial<Record<TipAlertaSecuritate, number>>;
+}

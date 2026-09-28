@@ -1155,3 +1155,16 @@ export interface ParticipareVacanta {
     tip_abonament_id?: string | null;
   };
 }
+
+// Faza 32 — monitorizare emailuri Auth (D-06)
+export type TipEmailAuth = 'reset_parola' | 'confirmare_cont' | 'cod_mfa' | 'schimbare_email';
+
+export interface StatisticiEmailuriAuth {
+  trimise_ultima_ora: number;
+  trimise_ultimele_24h: number;
+  esuate_ultimele_24h: number;
+  prag_ora: number;
+  prag_zi: number;
+  praguri_actualizate_la: string | null;
+  pe_tip_24h: Partial<Record<TipEmailAuth, number>>;
+}

@@ -1,5 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from "@supabase/supabase-js";
+import { checkRateLimit, getClientIp } from './_rateLimit.js';
+import { autentificaApelant } from './_autentificareApelant.js';
+import { verificaPermisiuneCreareCont } from './_permisiuniCont.js';
 
 function sanitize(str: string): string {
     return (str || '')
@@ -14,6 +17,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // Rate limit — endpoint-ul rula anterior neautentificat, cu SERVICE_ROLE_KEY.
+    // Prag peste ritmul real al buclei bulk din 32-02 (~40/min).
+    const rateLimitResult = checkRateLimit(`genereaza-magic-link:${getClientIp(req)}`, { windowMs: 60000, maxRequests: 120 });
+    if (!rateLimitResult.allowed) {
+        const retryAfter = Math.max(1, Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000));
+        res.setHeader('Retry-After', String(retryAfter));
+        return res.status(429).json({ error: 'Prea multe cereri. Reîncercați în câteva secunde.', reincercabil: true });
+    }
+
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -25,11 +37,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         auth: { autoRefreshToken: false, persistSession: false }
     });
 
+    // Autentificare apelant — oricine cunoștea un sportiv_id putea obține un
+    // link de autentificare ca acel sportiv, înainte de acest fix.
+    const { data: apelant, status: authStatus, error: authError } = await autentificaApelant(supabaseAdmin, req.headers.authorization);
+    if (!apelant) {
+        return res.status(authStatus!).json({ error: authError });
+    }
+
     const { sportiv_id, roles } = req.body;
 
     if (!sportiv_id) {
         return res.status(400).json({ error: 'sportiv_id este obligatoriu.' });
     }
+
+    const rolesToAssign = Array.isArray(roles) && roles.length > 0 ? roles : ['SPORTIV'];
 
     try {
         const { data: sportiv, error: sportivError } = await supabaseAdmin
@@ -44,6 +65,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (sportiv.user_id) {
             return res.status(400).json({ error: 'Sportivul are deja un cont activ.' });
+        }
+
+        const permisiune = verificaPermisiuneCreareCont({ callerRoles: apelant.callerRoles, roles: rolesToAssign, clubTinta: sportiv.club_id });
+        if (permisiune.permis === false) {
+            return res.status(permisiune.status).json({ error: permisiune.error });
         }
 
         const prenume = sanitize(sportiv.prenume);
@@ -63,7 +89,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // Creează user în Supabase Auth
-        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        // Contract 429 (D-04, utils/retryBackoff.ts): 429 = nimic nu a fost
+        // modificat, sigur de reîncercat. Orice eroare DUPĂ createUser rămâne
+        // 500 și NU se reîncearcă (ar duplica sau ar pierde link-ul).
+        const { data: authData, error: authCreateError } = await supabaseAdmin.auth.admin.createUser({
             email: tempEmail,
             email_confirm: true,
             user_metadata: {
@@ -74,11 +103,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         });
 
-        if (authError) throw authError;
+        if (authCreateError) {
+            const status = (authCreateError as any)?.status;
+            const code = (authCreateError as any)?.code;
+            if (status === 429 || code === 'over_request_rate_limit') {
+                res.setHeader('Retry-After', '5');
+                return res.status(429).json({ error: 'Limită temporară Supabase Auth atinsă. Reîncercați.', reincercabil: true });
+            }
+            throw authCreateError;
+        }
         const userId = authData.user.id;
 
         // Asociază roluri și profil sportiv via RPC
-        const rolesToAssign = roles || ['SPORTIV'];
         const { error: rpcError } = await supabaseAdmin.rpc('refactor_create_user_account', {
             p_nume: sportiv.nume,
             p_prenume: sportiv.prenume,

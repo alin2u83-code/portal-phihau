@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useEffect, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import { supabase } from './supabaseClient';
 import { View, Rol, Plata, Sportiv } from './types';
 import { Sidebar } from './components/Sidebar';
@@ -24,6 +24,8 @@ import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { InscrierePublicPage } from './components/InscrierePublicPage';
 import { useAppLogic } from './hooks/useAppLogic';
 import { useMFAGuard } from './hooks/useMFAGuard';
+import { useExpirareInactivitate } from './hooks/useExpirareInactivitate';
+import { CHEIE_MOTIV_DELOGARE } from './utils/inactivitate';
 import { AppLayout } from './components/AppLayout';
 import { AIAssistantProvider } from './contexts/AIAssistantContext';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -37,6 +39,14 @@ function App() {
   } = useAppLogic();
 
   const { mfaChecked } = useMFAGuard(activeRoleContext);
+  useExpirareInactivitate(activeRoleContext, handleLogout);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(CHEIE_MOTIV_DELOGARE) === 'inactivitate') {
+      sessionStorage.removeItem(CHEIE_MOTIV_DELOGARE);
+      toast('Ai fost delogat automat după 60 de minute de inactivitate.', { duration: 8000 });
+    }
+  }, []);
 
   const permissions = usePermissions(activeRoleContext);
 

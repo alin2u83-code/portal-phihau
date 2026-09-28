@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 import { Button, Card, Input } from './ui';
 import { useError } from './ErrorProvider';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
+import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 import { Eye, EyeOff } from 'lucide-react';
 
 export const ResetPasswordPage: React.FC = () => {
@@ -15,8 +16,9 @@ export const ResetPasswordPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password.length < 8) {
-            showError("Parolă Invalidă", "Parola trebuie să conțină cel puțin 8 caractere.");
+        const validare = valideazaParola(password);
+        if (!validare.valid) {
+            showError("Parolă Invalidă", validare.mesaj!);
             return;
         }
         setLoading(true);
@@ -65,6 +67,7 @@ export const ResetPasswordPage: React.FC = () => {
                             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                     </div>
+                    <p className="text-xs text-slate-500 pl-1">{MESAJ_CERINTE_PAROLA}</p>
                     <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-500" isLoading={loading}>
                         Salvează parola
                     </Button>

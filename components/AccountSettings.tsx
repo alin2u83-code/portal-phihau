@@ -7,6 +7,7 @@ import { ArrowLeftIcon, MailIcon, LockIcon, CheckCircleIcon } from './icons';
 import { getRoleDisplayName, getRoleDescription, getRoleIcon } from '../hooks/useUserRoles';
 import { getAuthErrorMessage } from '../utils/error';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
+import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 
 interface AccountSettingsProps {
     currentUser: User;
@@ -39,7 +40,10 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
         e.preventDefault();
         if (!supabase) { showError("Eroare", "Client Supabase neinițializat."); return; }
         if (formData.parola && formData.parola !== formData.confirmParola) { showError("Eroare", "Parolele nu se potrivesc."); return; }
-        if (formData.parola && formData.parola.length < 8) { showError("Eroare", "Parola trebuie să aibă cel puțin 8 caractere."); return; }
+        if (formData.parola) {
+            const validare = valideazaParola(formData.parola);
+            if (!validare.valid) { showError("Eroare", validare.mesaj!); return; }
+        }
 
         setLoading(true);
 
@@ -133,6 +137,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
                         <Input label="Parolă Nouă (lasă gol pentru a o păstra)" name="parola" type="password" value={formData.parola} onChange={handleFormChange} className="bg-black border-zinc-700"/>
                         <Input label="Confirmare Parolă Nouă" name="confirmParola" type="password" value={formData.confirmParola} onChange={handleFormChange} className="bg-black border-zinc-700"/>
                     </div>
+                    <p className="text-xs text-slate-500 pl-1">{MESAJ_CERINTE_PAROLA}</p>
                     <div className="flex justify-end pt-4">
                         <Button type="submit" variant="success" isLoading={loading}>Salvează Modificările</Button>
                     </div>

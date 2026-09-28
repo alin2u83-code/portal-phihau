@@ -5,6 +5,7 @@ import { User } from '../types';
 import { useError } from './ErrorProvider';
 import { getAuthErrorMessage } from '../utils/error';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
+import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 import { QwanKiDoLogo } from './Logo';
 import { Mail, KeyRound, ShieldCheck, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 
@@ -72,12 +73,9 @@ export const OnboardingCompletare: React.FC<OnboardingCompletareProps> = ({ curr
 
     const handleSalveazaParola = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (parola.length < 8) {
-            showError("Parolă invalidă", "Parola trebuie să conțină cel puțin 8 caractere.");
-            return;
-        }
-        if (!/\d/.test(parola)) {
-            showError("Parolă invalidă", "Parola trebuie să conțină cel puțin o cifră.");
+        const validare = valideazaParola(parola);
+        if (!validare.valid) {
+            showError("Parolă invalidă", validare.mesaj!);
             return;
         }
         if (parola !== confirmaParola) {
@@ -276,7 +274,7 @@ export const OnboardingCompletare: React.FC<OnboardingCompletareProps> = ({ curr
                                     {showConfirma ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
                             </div>
-                            <p className="text-xs text-slate-500 pl-1">* Minim 8 caractere, cel puțin o cifră.</p>
+                            <p className="text-xs text-slate-500 pl-1">* {MESAJ_CERINTE_PAROLA}</p>
                             <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-500 text-white !mt-6" isLoading={loading}>
                                 Activează contul
                             </Button>

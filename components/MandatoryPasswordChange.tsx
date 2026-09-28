@@ -6,6 +6,7 @@ import { useError } from './ErrorProvider';
 import { ShieldCheckIcon } from './icons';
 import { getAuthErrorMessage } from '../utils/error';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
+import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 import { Eye, EyeOff } from 'lucide-react';
 
 interface MandatoryPasswordChangeProps {
@@ -22,12 +23,9 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
     const { showError, showSuccess } = useError();
 
     const validatePassword = () => {
-        if (newPassword.length < 8) {
-            showError("Parolă Invalidă", "Parola trebuie să conțină cel puțin 8 caractere.");
-            return false;
-        }
-        if (!/\d/.test(newPassword)) {
-            showError("Parolă Invalidă", "Parola trebuie să conțină cel puțin o cifră.");
+        const validare = valideazaParola(newPassword);
+        if (!validare.valid) {
+            showError("Parolă Invalidă", validare.mesaj!);
             return false;
         }
         if (newPassword !== confirmPassword) {
@@ -140,7 +138,7 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
                         </div>
 
                         <div className="text-xs text-slate-400 pl-1 pt-1">
-                            * Minim 8 caractere, cel puțin o cifră.
+                            * {MESAJ_CERINTE_PAROLA}
                         </div>
 
                         <Button type="submit" className="w-full !mt-6" size="md" disabled={loading} variant="primary">

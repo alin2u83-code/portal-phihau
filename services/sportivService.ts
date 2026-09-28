@@ -2,6 +2,7 @@ import { supabase } from '../supabaseClient';
 import { Sportiv } from '../types';
 import { DEBUTANT_GRAD_ID } from '../constants';
 import { mapeazaEroareUnicitateSportiv } from '../utils/error';
+import { obtineHeadereAutentificare } from './apiAutentificat';
 
 export const adaugaSportiv = async (formData: Partial<Sportiv>): Promise<{ success: boolean; data?: Sportiv; error?: any }> => {
     try {
@@ -49,15 +50,17 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
         // Schimbă email dacă s-a modificat
         const { email: newEmail } = formData as any;
         if (newEmail !== undefined && newEmail !== null && newEmail !== currentSportiv.email) {
-            // Actualizăm email în tabelul sportivi
-            const { error: emailError } = await supabase.from('sportivi').update({ email: newEmail }).eq('id', id);
-            if (emailError) throw emailError;
-
-            // Dacă sportivul are cont de login, actualizăm și în auth.users
+            // Dacă sportivul are cont de login, actualizăm ÎNTÂI emailul de login
+            // (serverul poate refuza cu 403 după 32-05 — dacă am actualiza mai
+            // întâi tabela sportivi, un refuz ar lăsa sportivi.email desincronizat
+            // de emailul real de autentificare).
             if (currentSportiv.user_id) {
+                const { data: headers, error: erorAuth } = await obtineHeadereAutentificare();
+                if (!headers) throw new Error(erorAuth || 'Sesiune expirată.');
+
                 const response = await fetch('/api/account?action=email', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers,
                     body: JSON.stringify({ user_id: currentSportiv.user_id, new_email: newEmail }),
                 });
                 if (!response.ok) {
@@ -65,6 +68,10 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
                     throw new Error(err.error || 'Eroare la actualizarea emailului de login.');
                 }
             }
+
+            // Actualizăm email în tabelul sportivi
+            const { error: emailError } = await supabase.from('sportivi').update({ email: newEmail }).eq('id', id);
+            if (emailError) throw emailError;
         }
 
         if (nameChanged) {
@@ -87,15 +94,20 @@ export const actualizeazaSportiv = async (id: string, formData: Partial<Sportiv>
             if (usernameError) throw usernameError;
 
             if (currentSportiv.user_id) {
-                const response = await fetch('/api/account?action=username', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: currentSportiv.user_id, username: newUsername.trim() }),
-                });
-                if (!response.ok) {
-                    const err = await response.json();
-                    console.warn('Nu s-a putut actualiza username în auth.users:', err.error);
-                    // Nu eșuăm complet — username a fost salvat în sportivi
+                const { data: headers, error: erorAuth } = await obtineHeadereAutentificare();
+                if (!headers) {
+                    console.warn('Nu s-au putut obține headerele de autentificare pentru actualizarea username-ului:', erorAuth);
+                } else {
+                    const response = await fetch('/api/account?action=username', {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify({ user_id: currentSportiv.user_id, username: newUsername.trim() }),
+                    });
+                    if (!response.ok) {
+                        const err = await response.json();
+                        console.warn('Nu s-a putut actualiza username în auth.users:', err.error);
+                        // Nu eșuăm complet — username a fost salvat în sportivi
+                    }
                 }
             }
         }

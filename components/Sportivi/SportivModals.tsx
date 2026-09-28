@@ -6,6 +6,8 @@ import { SportivWallet } from './SportivWallet';
 import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { DeleteAuditModal } from './DeleteAuditModal';
 import toast from 'react-hot-toast';
+import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../../utils/parola';
+import { obtineHeadereAutentificare } from '../../services/apiAutentificat';
 
 interface SportivModalsProps {
     // Form Modal (Add/Edit)
@@ -110,15 +112,21 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
             toast.error('Sportivul nu are un cont asociat.');
             return;
         }
-        if (parolaNoua.length < 8) {
-            toast.error('Parola trebuie să aibă cel puțin 8 caractere.');
+        const validare = valideazaParola(parolaNoua);
+        if (!validare.valid) {
+            toast.error(validare.mesaj!);
+            return;
+        }
+        const { data: headers, error: erorAuth } = await obtineHeadereAutentificare();
+        if (!headers) {
+            toast.error(erorAuth || 'Sesiune expirată.');
             return;
         }
         setResetLoading(true);
         try {
             const res = await fetch('/api/reset-parola-sportiv', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({ user_id: sportivForResetParola.user_id, parola_noua: parolaNoua }),
             });
             const data = await res.json();
@@ -221,14 +229,14 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
                                     Introdu o parolă temporară. Sportivul va fi obligat să o schimbe la prima autentificare.
                                 </p>
                                 <Input
-                                    label="Parolă temporară (min. 8 caractere)"
+                                    label="Parolă temporară"
                                     name="parola_noua"
                                     type="password"
                                     value={parolaNoua}
                                     onChange={e => setParolaNoua(e.target.value)}
-                                    placeholder="min. 8 caractere"
                                     required
                                 />
+                                <p className="text-xs text-slate-500 pl-1">{MESAJ_CERINTE_PAROLA}</p>
                             </>
                         )}
                         <div className="flex justify-end pt-4 gap-2 border-t border-slate-700">
@@ -245,7 +253,7 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
                                     type="submit"
                                     variant="primary"
                                     isLoading={resetLoading}
-                                    disabled={parolaNoua.length < 8}
+                                    disabled={!valideazaParola(parolaNoua).valid}
                                 >
                                     Resetează Parola
                                 </Button>

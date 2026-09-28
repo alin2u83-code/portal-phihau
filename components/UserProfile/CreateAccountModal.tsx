@@ -4,6 +4,7 @@ import { Modal, Input, Button, CredentialeContModal } from '../ui';
 import { useError } from '../ErrorProvider';
 import { useRoleAssignment } from '../../hooks/useRoleAssignment';
 import { Link, Copy, Check, Wand2, KeyRound } from 'lucide-react';
+import { genereazaMagicLinkSportiv } from '../../services/magicLinkService';
 
 type Metoda = 'parola' | 'magic-link';
 
@@ -56,21 +57,14 @@ export const CreateAccountModal: React.FC<{
 
     const handleGenerareMagicLink = async () => {
         setLoadingMagic(true);
-        try {
-            const response = await fetch('/api/genereaza-magic-link', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sportiv_id: sportiv.id, roles: ['SPORTIV'] }),
-            });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'Eroare la generare.');
-            setMagicLink({ link: result.link, username: result.username, tempEmail: result.tempEmail });
+        const { data, error } = await genereazaMagicLinkSportiv(sportiv.id, { roles: ['SPORTIV'] });
+        if (data) {
+            setMagicLink(data);
             onAccountCreated();
-        } catch (err: any) {
-            showError("Eroare", err.message);
-        } finally {
-            setLoadingMagic(false);
+        } else {
+            showError("Eroare", error || 'Eroare la generare.');
         }
+        setLoadingMagic(false);
     };
 
     const handleCopyLink = () => {

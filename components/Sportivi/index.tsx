@@ -28,6 +28,8 @@ import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';
 import { Wand2, Copy, Check, Download, AlertTriangle } from 'lucide-react';
 import { mutaInGrupa, scoateDinGrupa } from '../../services/grupeIstoricService';
 import { anuleazaAbonamenteNeachitateSportiv } from '../../services/facturaService';
+import { genereazaMagicLinkSportiv } from '../../services/magicLinkService';
+import { asteapta, DELAY_PREVENTIV_MS } from '../../utils/retryBackoff';
 import { useRegisterRefresh } from '../../contexts/RefreshContext';
 
 
@@ -100,6 +102,8 @@ export const Sportivi: React.FC<{
     const [bulkLinkuriTotal, setBulkLinkuriTotal] = useState(0);
     const [bulkLinkuriCopiedAll, setBulkLinkuriCopiedAll] = useState(false);
     const [bulkLinkuriCopiedId, setBulkLinkuriCopiedId] = useState<string | null>(null);
+    const [bulkLinkuriReincercari, setBulkLinkuriReincercari] = useState(0);
+    const [bulkLinkuriMesajReincercare, setBulkLinkuriMesajReincercare] = useState<string | null>(null);
     const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
     const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 
@@ -124,6 +128,8 @@ export const Sportivi: React.FC<{
         setBulkLinkuriList([]);
         setBulkLinkuriErori([]);
         setBulkLinkuriProgres(0);
+        setBulkLinkuriReincercari(0);
+        setBulkLinkuriMesajReincercare(null);
     };
 
     const handleGenerareBulkLinkuri = async () => {
@@ -144,26 +150,31 @@ export const Sportivi: React.FC<{
         setBulkLinkuriStatus('loading');
         setBulkLinkuriTotal(sportiviFaraConturi.length);
         setBulkLinkuriProgres(0);
+        setBulkLinkuriReincercari(0);
+        setBulkLinkuriMesajReincercare(null);
 
         const rezultate: typeof bulkLinkuriList = [];
         const erori: typeof bulkLinkuriErori = [];
 
         for (let i = 0; i < sportiviFaraConturi.length; i++) {
             const s = sportiviFaraConturi[i];
-            try {
-                const response = await fetch('/api/genereaza-magic-link', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sportiv_id: s.id, roles: ['SPORTIV'] }),
-                });
-                const result = await response.json();
-                if (response.ok && result.success) {
-                    rezultate.push({ id: s.id, nume: s.nume, prenume: s.prenume, link: result.link, tempEmail: result.tempEmail });
-                } else {
-                    erori.push({ id: s.id, nume: s.nume, prenume: s.prenume, error: result.error || 'Eroare necunoscută' });
-                }
-            } catch {
-                erori.push({ id: s.id, nume: s.nume, prenume: s.prenume, error: 'Eroare de rețea' });
+            if (i > 0) {
+                await asteapta(DELAY_PREVENTIV_MS);
+            }
+            const { data, error: erorGenerare } = await genereazaMagicLinkSportiv(s.id, {
+                roles: ['SPORTIV'],
+                laReincercare: (info) => {
+                    setBulkLinkuriReincercari(n => n + 1);
+                    setBulkLinkuriMesajReincercare(
+                        `Limită temporară atinsă pentru ${s.prenume} ${s.nume} — reîncercare ${info.reincercare}/${info.totalReincercari} în ${Math.ceil(info.delayMs / 1000)}s`
+                    );
+                },
+            });
+            setBulkLinkuriMesajReincercare(null);
+            if (data) {
+                rezultate.push({ id: s.id, nume: s.nume, prenume: s.prenume, link: data.link, tempEmail: data.tempEmail });
+            } else {
+                erori.push({ id: s.id, nume: s.nume, prenume: s.prenume, error: erorGenerare || 'Eroare necunoscută' });
             }
             setBulkLinkuriProgres(i + 1);
         }
@@ -1105,6 +1116,12 @@ export const Sportivi: React.FC<{
                                     style={{ width: bulkLinkuriTotal ? `${(bulkLinkuriProgres / bulkLinkuriTotal) * 100}%` : '0%' }}
                                 />
                             </div>
+                            {bulkLinkuriReincercari > 0 && (
+                                <p className="text-xs text-amber-300">Reîncercări automate: {bulkLinkuriReincercari}</p>
+                            )}
+                            {bulkLinkuriMesajReincercare && (
+                                <p className="text-xs text-amber-200/80">{bulkLinkuriMesajReincercare}</p>
+                            )}
                         </div>
                     )}
 
@@ -1122,6 +1139,9 @@ export const Sportivi: React.FC<{
                                     </div>
                                 )}
                             </div>
+                            {bulkLinkuriReincercari > 0 && (
+                                <p className="text-xs text-amber-300">{bulkLinkuriReincercari} reîncercări automate efectuate în timpul generării.</p>
+                            )}
 
                             {bulkLinkuriList.length > 0 && (
                                 <div className="flex gap-2 flex-wrap">

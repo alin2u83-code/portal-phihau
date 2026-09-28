@@ -3,6 +3,8 @@ import { Card, Button } from '../../ui';
 import { ImportResult } from './types';
 import { formatDateForDisplay } from './utils';
 import { Wand2, Copy, Check, Download, AlertTriangle } from 'lucide-react';
+import { genereazaMagicLinkSportiv } from '../../../services/magicLinkService';
+import { asteapta, DELAY_PREVENTIV_MS } from '../../../utils/retryBackoff';
 
 interface LinkGenerat {
     id: string;
@@ -32,6 +34,8 @@ export const Pas2Raport: React.FC<Props> = ({ importResult, onBack }) => {
     const [copiedAll, setCopiedAll] = useState(false);
     const [copiedIndividual, setCopiedIndividual] = useState<string | null>(null);
     const [progres, setProgres] = useState(0);
+    const [reincercari, setReincercari] = useState(0);
+    const [mesajReincercare, setMesajReincercare] = useState<string | null>(null);
 
     const toggleSection = (section: string) => {
         setExpandedSections(prev => {
@@ -71,25 +75,30 @@ export const Pas2Raport: React.FC<Props> = ({ importResult, onBack }) => {
 
         setGenerareStatus('loading');
         setProgres(0);
+        setReincercari(0);
+        setMesajReincercare(null);
         const rezultate: LinkGenerat[] = [];
         const erori: LinkEroare[] = [];
 
         for (let i = 0; i < importResult.adaugati.length; i++) {
             const s = importResult.adaugati[i];
-            try {
-                const response = await fetch('/api/genereaza-magic-link', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sportiv_id: s.id, roles: ['SPORTIV'] }),
-                });
-                const result = await response.json();
-                if (response.ok && result.success) {
-                    rezultate.push({ id: s.id, nume: s.nume, prenume: s.prenume, link: result.link, tempEmail: result.tempEmail });
-                } else {
-                    erori.push({ id: s.id, nume: s.nume, prenume: s.prenume, error: result.error || 'Eroare necunoscută' });
-                }
-            } catch {
-                erori.push({ id: s.id, nume: s.nume, prenume: s.prenume, error: 'Eroare de rețea' });
+            if (i > 0) {
+                await asteapta(DELAY_PREVENTIV_MS);
+            }
+            const { data, error: erorGenerare } = await genereazaMagicLinkSportiv(s.id, {
+                roles: ['SPORTIV'],
+                laReincercare: (info) => {
+                    setReincercari(n => n + 1);
+                    setMesajReincercare(
+                        `Limită temporară atinsă pentru ${s.prenume} ${s.nume} — reîncercare ${info.reincercare}/${info.totalReincercari} în ${Math.ceil(info.delayMs / 1000)}s`
+                    );
+                },
+            });
+            setMesajReincercare(null);
+            if (data) {
+                rezultate.push({ id: s.id, nume: s.nume, prenume: s.prenume, link: data.link, tempEmail: data.tempEmail });
+            } else {
+                erori.push({ id: s.id, nume: s.nume, prenume: s.prenume, error: erorGenerare || 'Eroare necunoscută' });
             }
             setProgres(i + 1);
         }
@@ -203,6 +212,12 @@ export const Pas2Raport: React.FC<Props> = ({ importResult, onBack }) => {
                                         style={{ width: `${(progres / adaugatiCuId.length) * 100}%` }}
                                     />
                                 </div>
+                                {reincercari > 0 && (
+                                    <p className="text-xs text-amber-300">Reîncercări automate: {reincercari}</p>
+                                )}
+                                {mesajReincercare && (
+                                    <p className="text-xs text-amber-200/80">{mesajReincercare}</p>
+                                )}
                             </div>
                         )}
 
@@ -221,6 +236,9 @@ export const Pas2Raport: React.FC<Props> = ({ importResult, onBack }) => {
                                         </div>
                                     )}
                                 </div>
+                                {reincercari > 0 && (
+                                    <p className="text-xs text-amber-300">{reincercari} reîncercări automate efectuate în timpul generării.</p>
+                                )}
 
                                 {/* Actiuni export */}
                                 {linkuriGenerate.length > 0 && (

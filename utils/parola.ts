@@ -14,6 +14,33 @@
 /** Lungime minimă acceptată pentru o parolă generată. */
 export const LUNGIME_MINIMA_PAROLA = 12;
 
+/** Mesaj unic pentru cerințele de parolă (D-07) — folosit client și server. */
+export const MESAJ_CERINTE_PAROLA = `Minim ${LUNGIME_MINIMA_PAROLA} caractere, cu cel puțin o literă mare, o literă mică și o cifră.`;
+
+/**
+ * Validează o parolă contra regulii unice D-07 (sursă unică de adevăr).
+ * Funcție pură, fără importuri — rulabilă atât în browser cât și în Node
+ * (folosită și server-side în api/*.ts pe Vercel).
+ *
+ * @param parola Parola de validat.
+ * @returns `{ valid: true }` dacă respectă regula, altfel `{ valid: false, mesaj }`.
+ */
+export function valideazaParola(parola: string): { valid: boolean; mesaj?: string } {
+    if (typeof parola !== 'string' || parola.length < LUNGIME_MINIMA_PAROLA) {
+        return { valid: false, mesaj: `Parola trebuie să aibă cel puțin ${LUNGIME_MINIMA_PAROLA} caractere.` };
+    }
+    if (!/[A-Z]/.test(parola)) {
+        return { valid: false, mesaj: 'Parola trebuie să conțină cel puțin o literă mare.' };
+    }
+    if (!/[a-z]/.test(parola)) {
+        return { valid: false, mesaj: 'Parola trebuie să conțină cel puțin o literă mică.' };
+    }
+    if (!/[0-9]/.test(parola)) {
+        return { valid: false, mesaj: 'Parola trebuie să conțină cel puțin o cifră.' };
+    }
+    return { valid: true };
+}
+
 // Alfabete fără caractere ambigue (I/l, O/o/0, 1) — reduce erori de citire/copiere manuală.
 const MAJUSCULE = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // fără I, O
 const MINUSCULE = 'abcdefghijkmnpqrstuvwxyz'; // fără l, o

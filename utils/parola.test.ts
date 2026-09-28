@@ -7,7 +7,7 @@
  * Rulare: `node --import tsx utils/parola.test.ts`
  */
 
-import { genereazaParolaTemporara, LUNGIME_MINIMA_PAROLA } from './parola';
+import { genereazaParolaTemporara, LUNGIME_MINIMA_PAROLA, valideazaParola, MESAJ_CERINTE_PAROLA } from './parola';
 
 function assert(condition: boolean, message: string): void {
     if (!condition) {
@@ -119,6 +119,50 @@ export function ruleazaTeste(): { passed: number; failed: number; errors: string
             clasePrimulCaracter.size > 1,
             `primul caracter aparține la ${clasePrimulCaracter.size} clase diferite (peste 200 generări) — dovadă shuffle`
         );
+    });
+
+    // ─────────────────────────────────────────────
+    // TEST 8: valideazaParola — regula D-07
+    // ─────────────────────────────────────────────
+    run("T8: valideazaParola('Abcdefghij1') (11 caractere) -> invalid, mesaj '12 caractere'", () => {
+        const r = valideazaParola('Abcdefghij1');
+        assert(!r.valid && !!r.mesaj?.includes('12 caractere'), `primit ${JSON.stringify(r)}`);
+    });
+
+    run("T9: valideazaParola('abcdefghijk1') -> invalid, mesaj 'literă mare'", () => {
+        const r = valideazaParola('abcdefghijk1');
+        assert(!r.valid && !!r.mesaj?.includes('literă mare'), `primit ${JSON.stringify(r)}`);
+    });
+
+    run("T10: valideazaParola('ABCDEFGHIJK1') -> invalid, mesaj 'literă mică'", () => {
+        const r = valideazaParola('ABCDEFGHIJK1');
+        assert(!r.valid && !!r.mesaj?.includes('literă mică'), `primit ${JSON.stringify(r)}`);
+    });
+
+    run("T11: valideazaParola('Abcdefghijkl') -> invalid, mesaj 'cifră'", () => {
+        const r = valideazaParola('Abcdefghijkl');
+        assert(!r.valid && !!r.mesaj?.includes('cifră'), `primit ${JSON.stringify(r)}`);
+    });
+
+    run("T12: valideazaParola('Abcdefghijk1') -> valid, fără mesaj", () => {
+        const r = valideazaParola('Abcdefghijk1');
+        assert(r.valid === true && r.mesaj === undefined, `primit ${JSON.stringify(r)}`);
+    });
+
+    run('T13: valideazaParola(undefined as any) -> invalid, nu aruncă', () => {
+        const r = valideazaParola(undefined as any);
+        assert(r.valid === false, `primit ${JSON.stringify(r)}`);
+    });
+
+    run('T14: toate cele 200 de parole generate de genereazaParolaTemporara() sunt valide', () => {
+        for (const parola of esantion200) {
+            const r = valideazaParola(parola);
+            assert(r.valid === true, `parola "${parola}" trebuie să fie valid=true, primit ${JSON.stringify(r)}`);
+        }
+    });
+
+    run("T15: MESAJ_CERINTE_PAROLA conține '12'", () => {
+        assert(MESAJ_CERINTE_PAROLA.includes('12'), `mesaj: "${MESAJ_CERINTE_PAROLA}"`);
     });
 
     return { passed, failed, errors };

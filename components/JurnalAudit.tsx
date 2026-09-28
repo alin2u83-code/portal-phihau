@@ -7,6 +7,7 @@ import { AuditSesiuni } from './AuditSesiuni';
 import type { AuditLogEntry } from '../types';
 import { Card, Button, Input, Select, Badge, SearchableSelect } from './ui';
 import { ArrowLeftIcon, ShieldCheckIcon, ClockIcon } from './icons';
+import { MonitorEmailuriAuth } from './MonitorEmailuriAuth';
 
 const PAGE_SIZE = 50;
 
@@ -105,6 +106,8 @@ export const JurnalAudit: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
                 </div>
             </div>
+
+            <MonitorEmailuriAuth mod="complet" />
 
             {/* Taburi */}
             <div className="flex gap-2">

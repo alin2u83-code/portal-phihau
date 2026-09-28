@@ -10,6 +10,7 @@ import { TutorialOverlay } from './Tutorial';
 import { useAIStore } from '../src/store/useAIStore';
 import { BotIcon, XIcon } from './icons';
 import { ThemeEditor } from './ThemeEditor';
+import { MonitorEmailuriAuth } from './MonitorEmailuriAuth';
 
 interface AppLayoutProps {
     currentUser: User;
@@ -81,6 +82,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             <main className={`flex-1 min-w-0 overflow-x-hidden transition-all duration-300 pt-16 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'} min-h-screen`} style={{ background: 'var(--t-content-bg)' }}>
                 <div className="p-4 pb-32 md:p-6 md:pb-28 lg:p-8 lg:pb-28 max-w-7xl mx-auto animate-fade-in">
                     <ErrorBoundary onNavigate={setActiveView}>
+                        <>
+                        {permissions?.isSuperAdmin && <MonitorEmailuriAuth mod="alerta" />}
                         <ClubGuard>
                             <AppRouter
                                 activeView={activeView}
@@ -101,6 +104,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                                 isEmergencyAdmin={currentUser?.email === 'alin2u83@gmail.com'}
                             />
                         </ClubGuard>
+                        </>
                     </ErrorBoundary>
                 </div>
             </main>

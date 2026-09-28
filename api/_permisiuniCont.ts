@@ -94,3 +94,60 @@ export function verificaPermisiuneCreareCont(params: {
 
     return { permis: true };
 }
+
+/**
+ * Gardă pură pentru modificarea unui cont EXISTENT (reset parolă, schimbare
+ * email/username — Faza 32, D-07). Greutatea țintei e calculată GLOBAL (nu
+ * per club): operația afectează contul în toate cluburile unde are roluri,
+ * deci un INSTRUCTOR din clubul A nu poate reseta un cont care e ADMIN_CLUB
+ * în clubul B, chiar dacă ținta nu are niciun rol în clubul A.
+ */
+export function verificaPermisiuneModificareCont(params: {
+    callerId: string;
+    callerRoles: RolApelant[];
+    tintaUserId: string;
+    tintaRoles: RolApelant[];
+    cluburiTinta: string[];
+    permiteSine: boolean;
+}): RezultatPermisiune {
+    const { callerId, callerRoles, tintaUserId, tintaRoles, cluburiTinta, permiteSine } = params;
+
+    // 0. Propriul cont — permis dacă fluxul o permite explicit (ex. AccountSettings).
+    if (permiteSine && callerId === tintaUserId) {
+        return { permis: true };
+    }
+
+    // 1. Greutatea globală minimă pentru a putea modifica orice cont (INSTRUCTOR+).
+    const globalaApelant = greutateMaximaGlobala(callerRoles);
+    if (globalaApelant < GREUTATE_MINIMA_CREARE_CONT) {
+        return { permis: false, status: 403, error: 'Nu aveți permisiunea de a modifica acest cont.' };
+    }
+
+    // 2. Un cont de federație nu poate fi modificat din aplicație, de nimeni.
+    const globalaTinta = greutateMaximaGlobala(tintaRoles);
+    if (globalaTinta >= GREUTATE_FEDERATIE) {
+        return { permis: false, status: 403, error: 'Contul unui administrator de federație nu poate fi modificat din aplicație.' };
+    }
+
+    // 3. Federația poate modifica orice cont non-federație.
+    if (globalaApelant >= GREUTATE_FEDERATIE) {
+        return { permis: true };
+    }
+
+    // 4. Scoping pe club: apelantul trebuie să aibă autoritate (greutate >= 2)
+    //    într-un club unde ținta are prezență.
+    const greutatiPerClub = greutatePerClub(callerRoles);
+    const cluburiCuAutoritate = cluburiTinta.filter(clubId => (greutatiPerClub.get(clubId) ?? 0) >= GREUTATE_MINIMA_CREARE_CONT);
+    if (cluburiCuAutoritate.length === 0) {
+        return { permis: false, status: 403, error: 'Nu puteți modifica un cont din alt club.' };
+    }
+
+    // 5. Anti-escaladare: greutatea apelantului în cel puțin unul din acele
+    //    cluburi trebuie să depășească STRICT greutatea globală a țintei.
+    const areAutoritateSuficienta = cluburiCuAutoritate.some(clubId => (greutatiPerClub.get(clubId) ?? 0) > globalaTinta);
+    if (!areAutoritateSuficienta) {
+        return { permis: false, status: 403, error: 'Nu puteți modifica un cont cu privilegii egale sau mai mari decât ale dumneavoastră.' };
+    }
+
+    return { permis: true };
+}

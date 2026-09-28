@@ -11,7 +11,7 @@
  * ADMIN_CLUB în Club B.
  */
 
-import { verificaPermisiuneCreareCont, RolApelant } from './_permisiuniCont';
+import { verificaPermisiuneCreareCont, verificaPermisiuneModificareCont, RolApelant } from './_permisiuniCont';
 
 function assert(condition: boolean, message: string): void {
     if (!condition) {
@@ -212,6 +212,179 @@ export function ruleazaTeste(): { passed: number; failed: number; errors: string
         if (!rezultat.permis) {
             assert(rezultat.status === 403, `status 403, primit ${rezultat.status}`);
             assert(rezultat.error === 'Nu puteți crea conturi în alt club.', `mesaj exact, primit "${rezultat.error}"`);
+        }
+    });
+
+    // ─────────────────────────────────────────────
+    // verificaPermisiuneModificareCont (Faza 32, D-07)
+    // ─────────────────────────────────────────────
+
+    run('T15: INSTRUCTOR@A reseteaza SPORTIV@A -> permis', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'caller-1',
+            callerRoles: [{ rol_denumire: 'INSTRUCTOR', club_id: 'club-A' }],
+            tintaUserId: 'tinta-1',
+            tintaRoles: [{ rol_denumire: 'SPORTIV', club_id: 'club-A' }],
+            cluburiTinta: ['club-A'],
+            permiteSine: false,
+        });
+        assert(rezultat.permis, 'INSTRUCTOR@A poate reseta SPORTIV@A');
+    });
+
+    run('T16: INSTRUCTOR@A -> ADMIN_CLUB@A -> 403 privilegii egale sau mai mari', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'caller-1',
+            callerRoles: [{ rol_denumire: 'INSTRUCTOR', club_id: 'club-A' }],
+            tintaUserId: 'tinta-1',
+            tintaRoles: [{ rol_denumire: 'ADMIN_CLUB', club_id: 'club-A' }],
+            cluburiTinta: ['club-A'],
+            permiteSine: false,
+        });
+        assert(!rezultat.permis, 'INSTRUCTOR nu poate modifica ADMIN_CLUB din acelasi club');
+        if (!rezultat.permis) {
+            assert(rezultat.status === 403, `status 403, primit ${rezultat.status}`);
+            assert(rezultat.error.includes('privilegii egale sau mai mari'), `mesaj, primit "${rezultat.error}"`);
+        }
+    });
+
+    run('T17: ADMIN_CLUB@A -> tinta doar SPORTIV@B -> 403 alt club', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'caller-1',
+            callerRoles: [{ rol_denumire: 'ADMIN_CLUB', club_id: 'club-A' }],
+            tintaUserId: 'tinta-1',
+            tintaRoles: [{ rol_denumire: 'SPORTIV', club_id: 'club-B' }],
+            cluburiTinta: ['club-B'],
+            permiteSine: false,
+        });
+        assert(!rezultat.permis, 'ADMIN_CLUB@A nu poate modifica un cont doar din club-B');
+        if (!rezultat.permis) {
+            assert(rezultat.error.includes('alt club'), `mesaj, primit "${rezultat.error}"`);
+        }
+    });
+
+    run('T18: SUPER_ADMIN_FEDERATIE -> ADMIN_CLUB@B -> permis', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'caller-1',
+            callerRoles: [{ rol_denumire: 'SUPER_ADMIN_FEDERATIE', club_id: null }],
+            tintaUserId: 'tinta-1',
+            tintaRoles: [{ rol_denumire: 'ADMIN_CLUB', club_id: 'club-B' }],
+            cluburiTinta: ['club-B'],
+            permiteSine: false,
+        });
+        assert(rezultat.permis, 'SUPER_ADMIN_FEDERATIE poate modifica orice cont non-federatie');
+    });
+
+    run('T19: SUPER_ADMIN_FEDERATIE -> alt cont SUPER_ADMIN_FEDERATIE -> 403 administrator de federatie', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'caller-1',
+            callerRoles: [{ rol_denumire: 'SUPER_ADMIN_FEDERATIE', club_id: null }],
+            tintaUserId: 'tinta-1',
+            tintaRoles: [{ rol_denumire: 'SUPER_ADMIN_FEDERATIE', club_id: null }],
+            cluburiTinta: [],
+            permiteSine: false,
+        });
+        assert(!rezultat.permis, 'niciun cont SUPER_ADMIN_FEDERATIE nu poate fi modificat din aplicatie');
+        if (!rezultat.permis) {
+            assert(rezultat.error.includes('administrator de federație'), `mesaj, primit "${rezultat.error}"`);
+        }
+    });
+
+    run('T20: apelant doar SPORTIV -> 403 Nu aveti permisiunea', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'caller-1',
+            callerRoles: [{ rol_denumire: 'SPORTIV', club_id: 'club-A' }],
+            tintaUserId: 'tinta-1',
+            tintaRoles: [{ rol_denumire: 'SPORTIV', club_id: 'club-A' }],
+            cluburiTinta: ['club-A'],
+            permiteSine: false,
+        });
+        assert(!rezultat.permis, 'SPORTIV nu poate modifica niciun cont');
+        if (!rezultat.permis) {
+            assert(rezultat.error === 'Nu aveți permisiunea de a modifica acest cont.', `mesaj exact, primit "${rezultat.error}"`);
+        }
+    });
+
+    run('T21: ADMIN_CLUB@A -> tinta SPORTIV@A + ADMIN_CLUB@B -> 403 (greutate tinta globala)', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'caller-1',
+            callerRoles: [{ rol_denumire: 'ADMIN_CLUB', club_id: 'club-A' }],
+            tintaUserId: 'tinta-1',
+            tintaRoles: [
+                { rol_denumire: 'SPORTIV', club_id: 'club-A' },
+                { rol_denumire: 'ADMIN_CLUB', club_id: 'club-B' },
+            ],
+            cluburiTinta: ['club-A', 'club-B'],
+            permiteSine: false,
+        });
+        assert(!rezultat.permis, 'tinta cu greutate globala 3 (ADMIN_CLUB@B) nu poate fi modificata de ADMIN_CLUB@A (greutate 3, nu > 3)');
+    });
+
+    run('T22: apelant ADMIN_CLUB@A + SPORTIV@B -> tinta SPORTIV@B -> 403 alt club', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'caller-1',
+            callerRoles: [
+                { rol_denumire: 'ADMIN_CLUB', club_id: 'club-A' },
+                { rol_denumire: 'SPORTIV', club_id: 'club-B' },
+            ],
+            tintaUserId: 'tinta-1',
+            tintaRoles: [{ rol_denumire: 'SPORTIV', club_id: 'club-B' }],
+            cluburiTinta: ['club-B'],
+            permiteSine: false,
+        });
+        assert(!rezultat.permis, 'greutatea apelantului in club-B (1, ca SPORTIV) e sub prag');
+        if (!rezultat.permis) {
+            assert(rezultat.error.includes('alt club'), `mesaj, primit "${rezultat.error}"`);
+        }
+    });
+
+    run('T23: apelant == tinta, permiteSine=true, apelant SPORTIV -> permis', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'user-x',
+            callerRoles: [{ rol_denumire: 'SPORTIV', club_id: 'club-A' }],
+            tintaUserId: 'user-x',
+            tintaRoles: [{ rol_denumire: 'SPORTIV', club_id: 'club-A' }],
+            cluburiTinta: ['club-A'],
+            permiteSine: true,
+        });
+        assert(rezultat.permis, 'propriul cont, permiteSine=true -> permis indiferent de greutate');
+    });
+
+    run('T24: apelant == tinta, permiteSine=false, ADMIN_CLUB@A -> 403', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'user-x',
+            callerRoles: [{ rol_denumire: 'ADMIN_CLUB', club_id: 'club-A' }],
+            tintaUserId: 'user-x',
+            tintaRoles: [{ rol_denumire: 'ADMIN_CLUB', club_id: 'club-A' }],
+            cluburiTinta: ['club-A'],
+            permiteSine: false,
+        });
+        assert(!rezultat.permis, 'permiteSine=false ignora shortcut-ul propriului cont');
+    });
+
+    run('T25: tinta fara roluri, cluburiTinta [A], apelant INSTRUCTOR@A -> permis', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'caller-1',
+            callerRoles: [{ rol_denumire: 'INSTRUCTOR', club_id: 'club-A' }],
+            tintaUserId: 'tinta-1',
+            tintaRoles: [],
+            cluburiTinta: ['club-A'],
+            permiteSine: false,
+        });
+        assert(rezultat.permis, 'tinta fara roluri (greutate 0) poate fi modificata de INSTRUCTOR@A');
+    });
+
+    run('T26: cluburiTinta [], apelant ADMIN_CLUB@A -> 403 alt club', () => {
+        const rezultat = verificaPermisiuneModificareCont({
+            callerId: 'caller-1',
+            callerRoles: [{ rol_denumire: 'ADMIN_CLUB', club_id: 'club-A' }],
+            tintaUserId: 'tinta-1',
+            tintaRoles: [],
+            cluburiTinta: [],
+            permiteSine: false,
+        });
+        assert(!rezultat.permis, 'cluburiTinta gol nu ofera nicio autoritate');
+        if (!rezultat.permis) {
+            assert(rezultat.error.includes('alt club'), `mesaj, primit "${rezultat.error}"`);
         }
     });
 

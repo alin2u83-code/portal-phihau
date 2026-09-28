@@ -5,6 +5,7 @@ import { useAuthForm } from '../hooks/useAuthForm';
 import { Button, Card, Input } from './ui';
 import { LogIn, Mail, Lock, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { inregistreazaEmailAuth } from '../services/authEmailAuditService';
 
 import { QwanKiDoLogo } from './Logo';
 
@@ -63,11 +64,13 @@ export const LoginPage: React.FC = () => {
         if (!forgotEmail.trim()) return;
         setForgotLoading(true);
         try {
-            await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+            const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
                 redirectTo: window.location.origin + '/reset-password',
             });
+            inregistreazaEmailAuth('reset_parola', !error);
             setForgotMessage('Email trimis dacă adresa există în sistem. Verifică și folderul Spam.');
         } catch {
+            inregistreazaEmailAuth('reset_parola', false);
             setForgotMessage('Email trimis dacă adresa există în sistem. Verifică și folderul Spam.');
         } finally {
             setForgotLoading(false);

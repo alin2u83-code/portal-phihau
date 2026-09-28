@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { inregistreazaEmailAuth } from './authEmailAuditService';
 
 const DURATA_VALABILITATE_ORE = 12;
 
@@ -7,6 +8,7 @@ export async function trimiteCodMfaEmail(email: string) {
         email,
         options: { shouldCreateUser: false },
     });
+    inregistreazaEmailAuth('cod_mfa', !error);
     return { error };
 }
 

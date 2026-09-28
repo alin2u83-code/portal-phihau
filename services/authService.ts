@@ -1,6 +1,7 @@
 import { supabase } from '../supabaseClient';
 import { getAuthErrorMessage } from '../utils/error';
 import { PHI_HAU_IASI_CLUB_ID, DEBUTANT_GRAD_ID } from '../constants';
+import { inregistreazaEmailAuth } from './authEmailAuditService';
 
 export interface CreateAccountParams {
     email: string;
@@ -62,6 +63,10 @@ export const createAccount = async (params: CreateAccountParams): Promise<Create
                 }
             }
         });
+
+        // Contorizare D-06: emailul de confirmare pleacă doar dacă "Confirm email"
+        // e activ în Supabase — contorizăm apelul, nu livrarea.
+        inregistreazaEmailAuth('confirmare_cont', !error);
 
         if (error) {
             if (existingSportiv) {

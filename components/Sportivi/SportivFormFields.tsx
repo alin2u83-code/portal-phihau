@@ -354,7 +354,7 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                                 onBlur={() => markTouched('parola')}
                                 disabled={loading}
                                 error={visibleErrors.parola}
-                                placeholder="opțional — minim 6 caractere dacă e completată"
+                                placeholder="opțional — minim 12 caractere, literă mare, literă mică și cifră"
                             />
                         </FormSection>
                     ) : (

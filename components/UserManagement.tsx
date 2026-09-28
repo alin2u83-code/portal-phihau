@@ -5,6 +5,7 @@ import { ArrowLeftIcon, ShieldCheckIcon, PlusIcon, LockIcon, ClipboardCheckIcon,
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
 import { useRoleAssignment } from '../hooks/useRoleAssignment';
+import { valideazaParola, MESAJ_CERINTE_PAROLA, genereazaParolaTemporara } from '../utils/parola';
 import { ResponsiveTable, Column } from './ResponsiveTable';
 
 const initialStaffFormState = {
@@ -60,8 +61,9 @@ const CreateStaffModal: React.FC<{
             return;
         }
 
-        if (formData.parola.length < 8) {
-             showError("Parolă Invalidă", "Parola trebuie să aibă cel puțin 8 caractere.");
+        const validare = valideazaParola(formData.parola);
+        if (!validare.valid) {
+             showError("Parolă Invalidă", validare.mesaj!);
             return;
         }
 
@@ -139,7 +141,7 @@ const CreateStaffModal: React.FC<{
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input label="Email (pentru login)" name="email" type="email" value={formData.email} onChange={handleChange} required />
-                    <Input label="Parolă Inițială" name="parola" type="password" value={formData.parola} onChange={handleChange} required placeholder="Minim 8 caractere"/>
+                    <Input label="Parolă Inițială" name="parola" type="password" value={formData.parola} onChange={handleChange} required placeholder={MESAJ_CERINTE_PAROLA}/>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Select label="Rol" name="rol_id" value={formData.rol_id} onChange={handleChange} required>
@@ -450,7 +452,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ sportivi, setSpo
         setCreateAccountForm({
             email: initialEmail,
             username: user.username || emailPrefix,
-            parola: 'Parola123!'
+            parola: genereazaParolaTemporara()
         });
         setIsCreateAccountModalOpen(true);
         setCreateAccountError('');

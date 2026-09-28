@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { valideazaParola } from '../utils/parola';
 
 export interface AuthFormData {
     nume?: string;
@@ -43,11 +44,20 @@ export function useAuthForm(formType: AuthFormType) {
             }
         }
 
-        if (formType === 'login' || formType === 'register') {
+        if (formType === 'login') {
             if (!formData.parola) {
                 newErrors.parola = 'Parola este obligatorie.';
-            } else if (formData.parola!.length < 6) {
-                newErrors.parola = 'Parola trebuie să aibă cel puțin 6 caractere.';
+            }
+        }
+
+        if (formType === 'register') {
+            if (!formData.parola) {
+                newErrors.parola = 'Parola este obligatorie.';
+            } else {
+                const validare = valideazaParola(formData.parola);
+                if (!validare.valid) {
+                    newErrors.parola = validare.mesaj!;
+                }
             }
         }
 

@@ -6,6 +6,8 @@ import { Button, Card, Input } from './ui';
 import { LogIn, Mail, Lock, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { inregistreazaEmailAuth } from '../services/authEmailAuditService';
+import { checkLeakedPassword } from '../utils/checkLeakedPassword';
+import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 
 import { QwanKiDoLogo } from './Logo';
 
@@ -18,6 +20,10 @@ export const LoginPage: React.FC = () => {
     const [forgotEmail, setForgotEmail] = useState('');
     const [forgotLoading, setForgotLoading] = useState(false);
     const [forgotMessage, setForgotMessage] = useState('');
+    const [resetStep, setResetStep] = useState<'email' | 'cod'>('email');
+    const [resetCod, setResetCod] = useState('');
+    const [resetParolaNoua, setResetParolaNoua] = useState('');
+    const [resetEroare, setResetEroare] = useState('');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,14 +70,62 @@ export const LoginPage: React.FC = () => {
         if (!forgotEmail.trim()) return;
         setForgotLoading(true);
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
-                redirectTo: window.location.origin + '/reset-password',
-            });
+            const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim());
             inregistreazaEmailAuth('reset_parola', !error);
-            setForgotMessage('Email trimis dacă adresa există în sistem. Verifică și folderul Spam.');
+            setForgotMessage('Cod trimis dacă adresa există în sistem. Verifică și folderul Spam.');
+            setResetStep('cod');
         } catch {
             inregistreazaEmailAuth('reset_parola', false);
-            setForgotMessage('Email trimis dacă adresa există în sistem. Verifică și folderul Spam.');
+            setForgotMessage('Cod trimis dacă adresa există în sistem. Verifică și folderul Spam.');
+            setResetStep('cod');
+        } finally {
+            setForgotLoading(false);
+        }
+    };
+
+    const handleVerificaCod = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setResetEroare('');
+        if (!resetCod.trim() || !resetParolaNoua) return;
+
+        const validare = valideazaParola(resetParolaNoua);
+        if (!validare.valid) {
+            setResetEroare(validare.mesaj!);
+            return;
+        }
+
+        setForgotLoading(true);
+        try {
+            const { leaked, count } = await checkLeakedPassword(resetParolaNoua);
+            if (leaked) {
+                setResetEroare(`Această parolă a apărut în ${count.toLocaleString()} breșe de securitate cunoscute. Alege alta.`);
+                setForgotLoading(false);
+                return;
+            }
+
+            const { error: verifyError } = await supabase.auth.verifyOtp({
+                email: forgotEmail.trim(),
+                token: resetCod.trim(),
+                type: 'recovery',
+            });
+            if (verifyError) {
+                setResetEroare('Cod invalid sau expirat. Cere unul nou.');
+                setForgotLoading(false);
+                return;
+            }
+
+            const { error: updateError } = await supabase.auth.updateUser({ password: resetParolaNoua });
+            if (updateError) {
+                setResetEroare(updateError.message);
+                setForgotLoading(false);
+                return;
+            }
+
+            await supabase.auth.signOut();
+            setForgotMessage('Parola a fost resetată cu succes. Intră în cont cu noua parolă.');
+            setResetStep('email');
+            setResetCod('');
+            setResetParolaNoua('');
         } finally {
             setForgotLoading(false);
         }
@@ -180,12 +234,13 @@ export const LoginPage: React.FC = () => {
                                 <Lock className="w-4 h-4 text-amber-500" />
                                 Resetare Parolă
                             </h3>
-                            {forgotMessage ? (
-                                <div className="text-green-400 text-sm bg-green-900/20 border border-green-700/50 p-3 rounded-lg">
-                                    {forgotMessage}
-                                </div>
-                            ) : (
+                            {resetStep === 'email' ? (
                                 <form onSubmit={handleForgotPassword} className="space-y-3">
+                                    {forgotMessage && (
+                                        <div className="text-green-400 text-sm bg-green-900/20 border border-green-700/50 p-3 rounded-lg">
+                                            {forgotMessage}
+                                        </div>
+                                    )}
                                     <Input
                                         label="Email cont"
                                         name="forgot_email"
@@ -211,7 +266,66 @@ export const LoginPage: React.FC = () => {
                                             isLoading={forgotLoading}
                                             className="flex-1 bg-amber-600 hover:bg-amber-500"
                                         >
-                                            Trimite link reset
+                                            Trimite cod
+                                        </Button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <form onSubmit={handleVerificaCod} className="space-y-3">
+                                    {forgotMessage && (
+                                        <div className="text-green-400 text-sm bg-green-900/20 border border-green-700/50 p-3 rounded-lg">
+                                            {forgotMessage}
+                                        </div>
+                                    )}
+                                    {resetEroare && (
+                                        <div className="text-red-400 text-sm bg-red-900/20 border border-red-700/50 p-3 rounded-lg">
+                                            {resetEroare}
+                                        </div>
+                                    )}
+                                    <Input
+                                        label="Cod primit pe email"
+                                        name="reset_cod"
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={resetCod}
+                                        onChange={e => setResetCod(e.target.value)}
+                                        placeholder="123456"
+                                        required
+                                    />
+                                    <Input
+                                        label="Parolă nouă"
+                                        name="reset_parola_noua"
+                                        type="password"
+                                        value={resetParolaNoua}
+                                        onChange={e => setResetParolaNoua(e.target.value)}
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                    <p className="text-xs text-slate-500 pl-1">{MESAJ_CERINTE_PAROLA}</p>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => {
+                                                setShowForgotPassword(false);
+                                                setResetStep('email');
+                                                setForgotMessage('');
+                                                setResetEroare('');
+                                                setResetCod('');
+                                                setResetParolaNoua('');
+                                            }}
+                                            className="flex-1"
+                                        >
+                                            Anulează
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            size="sm"
+                                            isLoading={forgotLoading}
+                                            className="flex-1 bg-amber-600 hover:bg-amber-500"
+                                        >
+                                            Setează parola
                                         </Button>
                                     </div>
                                 </form>

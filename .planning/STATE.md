@@ -172,6 +172,7 @@ Recent decisions affecting current work:
 | 260925-grp | UX modal Adauga Grupa: club auto-atribuit (fix isFederationAdmin context-aware), locatie implicita cand club are 1 singura, tip grupa default Per Sezon cu sezon activ preselectat, Program Saptamanal cu chip-uri multi-zi + avertisment program gol; ascuns "Activitate Sala" din sidebar Super Admin Federatie | 2026-09-25 | - | tsc OK, verificat vizual Playwright (ADMIN_CLUB + Super Admin Federatie) | [260925-grp-adauga-grupa-ux-club-locatie-tip-orar](./quick/260925-grp-adauga-grupa-ux-club-locatie-tip-orar/) |
 | 260926-b7z | Varianta 1 (semi-auto) notificari restantieri taxa lunara: buton "Trimite notificari restantieri" in PlatiScadente, modal cu lista mesaje personalizate per parinte (wa.me + copiaza mesaj), fara WhatsApp Business API | 2026-09-26 | 370e3aa,69b2dc3 | tsc OK, 21/21 teste unitare PASS, verificare vizuala browser neefectuata (executie non-interactiva) | [260926-b7z-implementeaza-varianta-1-notificari-rest](./quick/260926-b7z-implementeaza-varianta-1-notificari-rest/) |
 | - | Fix bug NotificariRestantieriModal: butoanele "Copiaza mesaj"/"Copiaza toate" nu arata confirmarea "Copiat!" — copiazaText astepta clipboard.writeText() inainte de setState (muta update-ul in microtask dupa await); aliniat la pattern fire-and-forget deja folosit in CreateAccountModal.tsx | 2026-09-26 | 4270166 | Playwright: root cauza confirmata prin inspectie React fiber, fix verificat functional (200ms dupa click, "Copiat!" apare corect) | - |
+| 260929-0hf | Alerte securitate admin: email automat (SMTP Hostinger, handler Vercel + nodemailer) la 5+ login-uri esuate/15min sau login admin de pe IP+browser nou; 3 tabele noi RLS + card Jurnal Audit; WhatsApp exclus din scop (necesita API platit) | 2026-09-29 | 3afa2b7,a74c83e,1e81f43 | Blocked (SMTP auth 535) | [260929-0hf-alerte-securitate-admin](./quick/260929-0hf-alerte-securitate-admin/) |
 
 ### Roadmap Evolution
 
@@ -203,6 +204,7 @@ at roadmap creation. De verificat înainte de Phase 9:
 - `rbv_sportivi_complet` view — confirmă că include `grad_curent_id` și `data_grad_curent` (sau echivalent) pentru calculul eligibilitate next grad
 - `grade` tabel — verifică dacă are coloana `timp_minim_luni` sau echivalent pentru condiția de eligibilitate GRD-03
 - Aplica manual migratia sql/fixes/fix_deduplicare_include_inactivi_merge_delete.sql in Supabase (SQL Editor / apply_migration) - contine DELETE ireversibil in merge_sportivi()
+- [260929-0hf] Alerte securitate admin — cod complet + migratie SQL aplicata live (verificat), dar SMTP Hostinger respinge autentificarea (`535 5.7.8 authentication failed`), reprodus pe 2 teste reale end-to-end (destinatari gasiti corect, insert-uri DB corecte, doar sendMail pica). Utilizator suspecteaza ca mailbox-ul `noreply@phihau.ro` posibil nu a fost creat niciodata in hPanel Hostinger (presupus deja existent din Faza 32, neconfirmat explicit). Pasi ramasi: verifica/creeaza mailbox-ul in hPanel, testeaza login direct pe webmail.hostinger.com cu aceleasi credentiale ca in Vercel, actualizeaza SMTP_PASS daca difera, retesteaza cu curl direct pe /api/alerta-securitate-login. Detalii complete: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md sectiunea "Update orchestrator".
 
 ## Deferred Items
 
@@ -218,6 +220,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-09-26T19:51:11.553Z
-Stopped at: Phase 32 context gathered
-Resume file: .planning/phases/32-audit-complet-auth-smtp-custom-pt-emailuri-reset-parola-conf/32-CONTEXT.md
+Last session: 2026-09-29T01:15:00.000Z
+Stopped at: Quick task 260929-0hf (alerte securitate admin) — cod+DB complete, blocat pe autentificare SMTP Hostinger (mailbox posibil neexistent)
+Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md

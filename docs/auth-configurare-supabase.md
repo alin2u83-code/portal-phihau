@@ -12,16 +12,41 @@ Proiect Supabase: `wuhidifzsutwgdfkwhmd`. Aplicație: `https://portal-phihau.ver
 2. **Deploy codul Fazei 32** în producție (push → Vercel) — endpoint-urile securizate (`api/reset-parola-sportiv.ts`, `api/account.ts`, `api/genereaza-magic-link.ts`) și apelanții client cu `Authorization: Bearer` trebuie să ajungă **în același deploy**. Dacă serverul e securizat înaintea clientului (sau invers), fluxurile de reset parolă / schimbare email / magic link vor primi 401.
 3. **Politica de parolă** (secțiunea 3) — **DOAR DUPĂ** deploy-ul de la pasul 2. Dacă o activezi înainte, utilizatorii văd mesajele vechi din UI ("min. 8 caractere") peste o regulă de 12 impusă de server, ceea ce confuzează fără rost.
 4. **Sesiuni / JWT** (secțiunea 4) — independent de deploy.
-5. **Praguri monitorizare** (secțiunea 5) — după ce cunoști limitele reale (Supabase + Hostinger).
+5. **Praguri monitorizare** (secțiunea 5) — după ce cunoști limitele reale (Supabase + spatiul.ro).
 6. **Verificare** (secțiunea 7).
 
-## 1. SMTP Hostinger (D-01, D-01b, D-03)
+## 1. SMTP spatiul.ro (D-01, D-01b, D-03)
 
-### Pre-rechizite în hPanel Hostinger
+> **Corecție (2026-09-29):** versiunea anterioară a acestui runbook presupunea Hostinger (`smtp.hostinger.com`). DNS-ul real al `phihau.ro` arată că emailul domeniului e găzduit la **spatiul.ro**:
+> - MX: `mx1`–`mx4.spatiul.ro`
+> - SPF: `v=spf1 ip4:80.96.32.27 ip4:80.96.33.233 +a +mx ~all` (IP-uri spatiul.ro, fără Hostinger)
+> - DKIM și DMARC: **absente** la data verificării
+>
+> Un mailbox `noreply@phihau.ro` creat la Hostinger nu poate fi folosit (nu primește/nu semnează pentru domeniu). Autentificarea SMTP la Hostinger eșuează cu `535 5.7.8 authentication failed`. Mailbox-ul trebuie creat și folosit la spatiul.ro.
 
-- Creează mailbox-ul **`noreply@phihau.ro`** (hPanel → Emails → Email Accounts). Notează parola **doar** în managerul tău de parole — niciodată în repo, `.env` sau acest document.
-- Verifică înregistrările DNS **SPF / DKIM / DMARC** pentru `phihau.ro` (hPanel → Emails → configurare DNS / Autentificare email). Fără acestea, emailurile pot ajunge în Spam sau pot fi respinse de provideri mari (Gmail/Outlook).
-- Notează limitele planului tău Hostinger: câte emailuri/oră și câte emailuri/zi permite mailbox-ul. Aceste valori devin pragurile din secțiunea 5.
+### Pre-rechizite în panoul spatiul.ro
+
+- Creează mailbox-ul **`noreply@phihau.ro`** în panoul de găzduire spatiul.ro (secțiunea Email / Conturi email). Notează parola **doar** în managerul tău de parole — niciodată în repo, `.env` sau acest document.
+- Notează **hostul SMTP** și porturile din panou (secțiunea "Configurare client email" a contului). Nu presupune valoarea — variante frecvente: `mail.phihau.ro` sau `smtp.spatiul.ro`. Verifică și că certificatul TLS corespunde hostului ales (nodemailer respinge certificate nepotrivite).
+- **SPF**: deja aliniat (include `+a +mx` și IP-urile spatiul.ro). Nu adăuga Hostinger.
+- **DKIM**: activează în panoul spatiul.ro (dacă e disponibil) și publică înregistrarea TXT cerută (`<selector>._domainkey.phihau.ro`). Absent = risc de Spam.
+- **DMARC**: adaugă TXT `_dmarc.phihau.ro`, început prudent: `v=DMARC1; p=none; rua=mailto:<adresa-ta>` — treci pe `quarantine` abia după ce rapoartele arată SPF/DKIM aliniate.
+- Verifică DNS după modificări: `Resolve-DnsName phihau.ro -Type TXT` / `Resolve-DnsName _dmarc.phihau.ro -Type TXT`.
+- Notează limitele planului spatiul.ro: câte emailuri/oră și câte emailuri/zi permite mailbox-ul. Aceste valori devin pragurile din secțiunea 5.
+
+### Variabile de mediu Vercel (alerte securitate — `api/_mailerSecuritate.ts`)
+
+Setează în Vercel Dashboard → Settings → Environment Variables, apoi **redeploy**:
+
+| Variabilă | Valoare |
+|---|---|
+| `SMTP_HOST` | hostul SMTP spatiul.ro din panou |
+| `SMTP_PORT` | `465` (SSL) sau `587` (STARTTLS), conform panoului |
+| `SMTP_USER` | `noreply@phihau.ro` |
+| `SMTP_PASS` | parola mailbox-ului spatiul.ro (nu cea de la Hostinger) |
+| `SMTP_FROM` | `Federația QwanKiDo România <noreply@phihau.ro>` |
+
+**Notă cod:** `api/_mailerSecuritate.ts` are `secure: true` hardcodat — funcționează doar cu SSL implicit (port 465). Dacă spatiul.ro oferă doar 587 (STARTTLS), codul trebuie schimbat în `secure: Number(process.env.SMTP_PORT) === 465`.
 
 ### Configurare în Supabase Dashboard
 
@@ -31,18 +56,20 @@ Proiect Supabase: `wuhidifzsutwgdfkwhmd`. Aplicație: `https://portal-phihau.ver
 |---|---|
 | Sender email | `noreply@phihau.ro` |
 | Sender name | Federația QwanKiDo România |
-| Host | `smtp.hostinger.com` |
+| Host | hostul SMTP spatiul.ro din panou (același ca `SMTP_HOST` din Vercel) |
 | Port | `465` (SSL). Dacă Save/Test eșuează, încearcă `587` (STARTTLS). |
 | Username | `noreply@phihau.ro` |
 | Password | parola mailbox-ului (din managerul de parole, nu de aici) |
 
 **D-01b — un singur sender pentru toate cele 4 tipuri de email:** Supabase Auth SMTP Settings are UN SINGUR "Sender email" global (nu suportă adrese diferite per tip de email fără Auth Hook custom, deja respins). `noreply@phihau.ro` acoperă toate cele 4 fluxuri: resetare parolă, confirmare cont, cod MFA, schimbare email.
 
-**Dezactivează link tracking** dacă providerul SMTP oferă această opțiune (nu e cazul cu SMTP direct Hostinger, dar verifică dacă folosești un intermediar) — link tracking poate deforma link-urile single-use din emailurile Supabase.
+**Dezactivează link tracking** dacă providerul SMTP oferă această opțiune (nu e cazul cu SMTP direct spatiul.ro, dar verifică dacă folosești un intermediar) — link tracking poate deforma link-urile single-use din emailurile Supabase.
 
-### Discreția D-01 — dacă SMTP-ul Hostinger nu funcționează
+### Discreția D-01 — dacă SMTP-ul spatiul.ro nu funcționează
 
-Dacă **AMBELE** porturi (465 și 587) eșuează la Save/Test în Supabase: **NU** continua cu alte variante (nu improviza o rută prin n8n — respinsă explicit de utilizator, vezi secțiunea Deferred din `32-CONTEXT.md`). Raportează blocajul exact ("blocat: `<mesajul de eroare>`") și oprește-te — decizia următoare (alt provider, alt port, suport Hostinger) rămâne a utilizatorului.
+Diagnostic rapid la `535 authentication failed`: (1) mailbox-ul chiar există în spatiul.ro? (2) loghează-te cu aceleași credențiale în webmail-ul spatiul.ro — dacă merge acolo dar nu în Vercel/Supabase, e typo la copierea parolei sau host greșit; (3) `SMTP_USER` trebuie să fie adresa completă.
+
+Dacă **AMBELE** porturi (465 și 587) eșuează la Save/Test în Supabase: **NU** continua cu alte variante (nu improviza o rută prin n8n — respinsă explicit de utilizator, vezi secțiunea Deferred din `32-CONTEXT.md`). Raportează blocajul exact ("blocat: `<mesajul de eroare>`") și oprește-te — decizia următoare (alt provider, alt port, suport spatiul.ro) rămâne a utilizatorului.
 
 ### Test imediat
 
@@ -59,7 +86,7 @@ Dacă emailurile sau codurile MFA nu mai pleacă după activare: dezactivează *
 
 `Authentication → Rate Limits`:
 
-- **Rate limit for sending emails**: implicit devine **30/oră** după activarea SMTP custom (față de 2/oră pe canalul implicit Supabase). Setează o valoare **≤ limita orară a planului Hostinger** notată la pasul 1.
+- **Rate limit for sending emails**: implicit devine **30/oră** după activarea SMTP custom (față de 2/oră pe canalul implicit Supabase). Setează o valoare **≤ limita orară a planului spatiul.ro** notată la pasul 1.
 - **OTP rate limit** (`/auth/v1/otp`): implicit 360/oră — nu necesită schimbare pentru scara actuală (7 cluburi, ~480 sportivi/club test).
 
 Valoarea aleasă pentru "Rate limit for sending emails" devine `prag_ora` în tabela `public.auth_email_praguri` (secțiunea 5).
@@ -113,12 +140,12 @@ Aceste setări sunt **globale** (nu per rol) — de aceea, pentru rolurile privi
 
 ## 5. Praguri monitorizare (D-06)
 
-După ce cunoști valorile reale (rate limit Supabase de la pasul 2, limitele Hostinger de la pasul 1):
+După ce cunoști valorile reale (rate limit Supabase de la pasul 2, limitele spatiul.ro de la pasul 1):
 
 ```sql
 UPDATE public.auth_email_praguri
-SET prag_ora = <min(rate limit Supabase, limita orară Hostinger)>,
-    prag_zi = <limita zilnică Hostinger>,
+SET prag_ora = <min(rate limit Supabase, limita orară spatiul.ro)>,
+    prag_zi = <limita zilnică spatiul.ro>,
     actualizat_la = now()
 WHERE id = 1;
 ```
@@ -153,7 +180,9 @@ Token-ul și parola SMTP se citesc **doar din variabile de mediu locale ale oper
 
 Checklist automat (rulat de agent, secțiunea "Porți finale" din `32-08-SUMMARY.md`) + checklist uman end-of-phase (8 puncte, în `32-08-SUMMARY.md`). Rezumat rapid:
 
-- [ ] Emailurile Auth (reset parolă, confirmare cont, cod MFA, schimbare email) pleacă de la `noreply@phihau.ro` via Hostinger.
+- [ ] Emailurile Auth (reset parolă, confirmare cont, cod MFA, schimbare email) pleacă de la `noreply@phihau.ro` via spatiul.ro.
+- [ ] Alertele de securitate (`api/alerta-securitate-login`) trimit efectiv: `auth_alerte_trimise.reusit=true`, fără `eroare`.
+- [ ] DNS: DKIM și DMARC publicate pe `phihau.ro`; emailul de test nu ajunge în Spam.
 - [ ] Codul MFA ajunge efectiv la ADMIN_CLUB/SUPER_ADMIN_FEDERATIE (critic — MFA folosește ACELAȘI canal SMTP).
 - [ ] Testul `PUT /auth/v1/user` cu parolă slabă → `422 weak_password`.
 - [ ] Endpoint-urile `/api/reset-parola-sportiv`, `/api/account`, `/api/genereaza-magic-link` refuză cereri fără `Authorization: Bearer` (401).

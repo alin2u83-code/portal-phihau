@@ -381,15 +381,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                         <ArrowLeftIcon className="w-4 h-4" />
                         <span className="hidden sm:inline">Înapoi</span>
                     </button>
-                ) : (
-                    <button
-                        onClick={onBack}
-                        className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors px-2 py-1.5 rounded-md hover:bg-slate-800 shrink-0"
-                    >
-                        <ArrowLeftIcon className="w-4 h-4" />
-                        <span className="hidden sm:inline">Meniu</span>
-                    </button>
-                )}
+                ) : null}
 
                 {/* Tab bar */}
                 <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 flex-1 sm:flex-none" style={{minWidth:0}}>

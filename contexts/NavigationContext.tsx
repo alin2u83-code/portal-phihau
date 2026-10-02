@@ -13,6 +13,8 @@ interface NavigationContextType {
     viewParams: any;
     setViewParams: (params: any) => void;
     navigateTo: (view: View, params?: any) => void;
+    /** Schimbă view-ul curent FĂRĂ intrare nouă în history (tab-uri de hub) */
+    replaceView: (view: View) => void;
     /** Navigare din sidebar/meniu principal — golește history */
     navigateRoot: (view: View) => void;
     /** Mergi înapoi la ecranul anterior */
@@ -59,6 +61,11 @@ export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children
         setViewParams(params ?? null);
     }, [activeView, viewParams, pushToHistory, setStoredView]);
 
+    const replaceView = useCallback((view: View) => {
+        setStoredView(view);
+        setViewParams(null);
+    }, [setStoredView]);
+
     const goBack = useCallback(() => {
         if (history.length === 0) return;
         const entry = history[history.length - 1];
@@ -79,7 +86,7 @@ export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children
     const previousView = canGoBack ? history[history.length - 1].view : null;
 
     return (
-        <NavigationContext.Provider value={{ activeView, setActiveView, viewParams, setViewParams, navigateTo, navigateRoot, goBack, canGoBack, previousView, history, jumpToHistory }}>
+        <NavigationContext.Provider value={{ activeView, setActiveView, viewParams, setViewParams, navigateTo, replaceView, navigateRoot, goBack, canGoBack, previousView, history, jumpToHistory }}>
             {children}
         </NavigationContext.Provider>
     );

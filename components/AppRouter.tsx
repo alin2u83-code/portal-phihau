@@ -74,7 +74,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     // navigării hub-ului "Plăți & Facturi" a fost mutată în
     // components/Plati/hub/PlatiHub.tsx. `goBack`/`canGoBack` rămân folosite
     // aici de vederea 'profil-sportiv'.
-    const { goBack, canGoBack } = useNavigation();
+    const { goBack, canGoBack, replaceView } = useNavigation();
 
     // Hook-urile trebuie declarate necondiționat, înaintea oricărui return
     // timpuriu (Rules of Hooks) — altfel o schimbare a trebuie_schimbata_parola
@@ -133,7 +133,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                 transition={{ duration: 0.2 }}
             >
                 <Suspense fallback={<MartialArtsSkeleton count={5} />}>
-                    <ActivitateSalaTabs activeView={activeView} onNavigate={setActiveView} isAdminClub={isAtLeastClubAdmin} isInstructorOnly={permissions.isInstructor && !isAtLeastClubAdmin} enabled={isAtLeastInstructor}>
+                    <ActivitateSalaTabs activeView={activeView} onNavigate={replaceView} isAdminClub={isAtLeastClubAdmin} isInstructorOnly={permissions.isInstructor && !isAtLeastClubAdmin} enabled={isAtLeastInstructor}>
                     {(() => {
                         switch (activeView) {
                             case 'legitimatii':

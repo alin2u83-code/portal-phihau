@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Eveniment, View, Sportiv, Rezultat, Plata, Permissions, Antrenament, Grupa } from '../types';
 import { Button, Modal, Input } from './ui';
-import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from './icons';
+import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from './icons';
 import { useError } from './ErrorProvider';
 import { getPretValabil } from '../utils/pricing';
 import { supabase } from '../supabaseClient';
@@ -354,7 +354,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
                 {permissions.hasAdminAccess && (
                     <Button onClick={() => onNavigate('stagii')} variant="primary">
                         <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Eveniment

@@ -1,7 +1,7 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, Grupa, Antrenament, Grad } from '../../types';
 import { Card, Select, Button, SearchableSelect } from '../ui';
-import { ArrowLeftIcon, DocumentArrowDownIcon, ExclamationTriangleIcon, ChevronDownIcon, ChevronRightIcon } from '../icons';
+import { DocumentArrowDownIcon, ExclamationTriangleIcon, ChevronDownIcon, ChevronRightIcon } from '../icons';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useData } from '../../contexts/DataContext';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -347,9 +347,6 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
         <div className="space-y-4 md:space-y-6">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <Button variant="secondary" onClick={onBack} className="shrink-0">
-                    <ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi
-                </Button>
                 <h1 className="text-xl md:text-3xl font-bold text-white truncate">Raport Lunar Prezență</h1>
             </div>
 

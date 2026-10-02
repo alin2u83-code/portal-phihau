@@ -1,7 +1,7 @@
 ﻿import React, { useMemo, useState, useEffect } from 'react';
 import { Antrenament, Sportiv, Grupa, View } from '../../types';
 import { Card, Input, Select, Button, SearchableSelect } from '../ui';
-import { ArrowLeftIcon, ExclamationTriangleIcon } from '../icons';
+import { ExclamationTriangleIcon } from '../icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useData } from '../../contexts/DataContext';
@@ -324,9 +324,6 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-3 flex-wrap">
-                <Button onClick={onBack} variant="secondary" className="mb-2"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Înapoi la Meniu</Button>
-            </div>
             <h1 className="text-3xl font-bold text-white">Analiză Prezențe</h1>
 
             {/* Selector tab General / Per Grupă */}

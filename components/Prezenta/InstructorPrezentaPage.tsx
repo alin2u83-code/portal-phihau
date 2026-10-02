@@ -3,7 +3,7 @@ import { supabase } from '../../supabaseClient';
 import { Antrenament, Sportiv, Grupa } from '../../types';
 import { useError } from '../ErrorProvider';
 import { Card, Button } from '../ui';
-import { ArrowLeftIcon, CalendarDaysIcon, SparklesIcon } from '../icons';
+import { CalendarDaysIcon, SparklesIcon } from '../icons';
 import { useAttendance } from '../../hooks/useAttendance';
 import { FormularPrezenta, SportivCuTip, TipMembru } from './ListaPrezentaAntrenament';
 import { PrezentaRapida } from './PrezentaRapida';
@@ -150,9 +150,6 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
         <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <Button onClick={onBack} variant="secondary" size="sm">
-                    <ArrowLeftIcon className="w-4 h-4 mr-1" /> Meniu
-                </Button>
                 <h1 className="text-xl font-bold text-white flex-1">Prezență Zilnică</h1>
             </div>
 

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Antrenament } from '../../types';
 import { Button, Card, Input, Select, Modal } from '../ui';
-import { ArrowLeftIcon, CalendarDaysIcon, EditIcon, TrashIcon, PlusIcon } from '../icons';
+import { CalendarDaysIcon, EditIcon, TrashIcon, PlusIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { MartialArtsSkeleton } from '../MartialArtsSkeleton';
@@ -200,10 +200,6 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                     <Button variant="secondary" onClick={handleRefresh} isLoading={isRefreshing} title="Reîncarcă datele">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                         Actualizează
-                    </Button>
-                    <Button variant="secondary" onClick={onBack}>
-                        <ArrowLeftIcon className="w-5 h-5 mr-2" />
-                        Înapoi
                     </Button>
                 </div>
             </div>

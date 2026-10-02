@@ -1,6 +1,6 @@
 import type { ThemeConfig } from '../types';
 
-export const DEFAULT_THEME: ThemeConfig = {
+export const QWANKIDO_BLUE: ThemeConfig = {
   name: 'QwanKiDo Blue',
   bg: '#020617',
   surface: '#0f172a',
@@ -35,7 +35,7 @@ export const DEFAULT_THEME: ThemeConfig = {
 };
 
 export const PREDEFINED_THEMES: ThemeConfig[] = [
-  DEFAULT_THEME,
+  QWANKIDO_BLUE,
   {
     name: 'Midnight Navy',
     bg: '#020617',
@@ -668,6 +668,10 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
 
 // Luminanța percepută a fundalului decide modul (light/dark) — folosit de tailwind.config.js
 // pentru a inversa paleta slate pe teme luminoase.
+// Tema implicită pentru utilizatorii/cluburile fără temă salvată
+export const DEFAULT_THEME: ThemeConfig =
+  PREDEFINED_THEMES.find((t) => t.name === 'Lavender Light') ?? QWANKIDO_BLUE;
+
 export function getThemeMode(bg: string): 'light' | 'dark' {
   const m = /^#?([0-9a-f]{6})$/i.exec((bg || '').trim());
   if (!m) return 'dark';

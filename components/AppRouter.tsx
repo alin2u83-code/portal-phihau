@@ -212,10 +212,6 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.PrezentaManagement onBack={handleBackToDashboard} onViewSportiv={onViewSportiv} onNavigate={setActiveView} />, isAtLeastInstructor);
                             case 'prezenta-instructor':
                                 return renderProtected(<Lazy.InstructorPrezentaPage onBack={handleBackToDashboard} onNavigate={setActiveView} onViewSportiv={onViewSportiv} />, permissions.isInstructor);
-                            case 'arhiva-prezente':
-                                return renderProtected(<Lazy.ArhivaPrezente onBack={() => setActiveView('prezenta-instructor')} />, permissions.isInstructor);
-                            case 'raport-activitate':
-                                return renderProtected(<Lazy.RaportActivitate onBack={handleBackToDashboard} onNavigate={setActiveView} />, isAtLeastInstructor);
                             case 'raport-lunar-prezenta':
                                 return renderProtected(<Lazy.RaportLunarPrezenta onBack={handleBackToDashboard} onNavigate={setActiveView} />, isAtLeastInstructor);
                             case 'program-antrenamente':

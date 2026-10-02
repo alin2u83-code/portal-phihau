@@ -66,7 +66,6 @@ export const VIEW_TITLES: Partial<Record<View, string>> = {
     'cluburi': 'Cluburi',
     'nomenclatoare': 'Nomenclatoare',
     'program-antrenamente': 'Program Antrenamente',
-    'arhiva-prezente': 'Arhivă Prezențe',
     'deconturi-federatie': 'Deconturi Federație',
     'structura-federatie': 'Structură Federație',
     'financial-dashboard': 'Dashboard Financiar',
@@ -81,7 +80,6 @@ export const VIEW_TITLES: Partial<Record<View, string>> = {
     'plati-hub': 'Plăți & Facturi',
     'raport-prezenta': 'Analiză Prezențe',
     'raport-lunar-prezenta': 'Raport Lunar Prezențe',
-    'raport-activitate': 'Raport Activitate',
     'sezoane': 'Sezoane',
 };
 

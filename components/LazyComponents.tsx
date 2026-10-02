@@ -48,9 +48,7 @@ export const FederationDashboard = lazy(() => import('./FederationDashboard').th
 export const FisaDigitalaSportiv = lazy(() => import('./Sportivi/FisaDigitalaSportiv').then(m => ({ default: m.FisaDigitalaSportiv })));
 export const FisaCompetitie = lazy(() => import('./Competitii/FisaCompetitie').then(m => ({ default: m.FisaCompetitie })));
 export const InstructorPrezentaPage = lazy(() => import('./Prezenta/InstructorPrezentaPage').then(m => ({ default: m.InstructorPrezentaPage })));
-export const RaportActivitate = lazy(() => import('./RaportActivitate').then(m => ({ default: m.RaportActivitate })));
 export const AdminConsole = lazy(() => import('./AdminConsole').then(m => ({ default: m.AdminConsole })));
-export const ArhivaPrezente = lazy(() => import('./Prezenta/ArhivaPrezente').then(m => ({ default: m.ArhivaPrezente })));
 export const ProgramAntrenamenteManagement = lazy(() => import('./Grupe/ProgramAntrenamenteManagement').then(m => ({ default: m.ProgramAntrenamenteManagement })));
 export const AdminMasterMap = lazy(() => import('./AdminMasterMap').then(m => ({ default: m.AdminMasterMap })));
 export const SportivDashboard = lazy(() => import('./SportivDashboard').then(m => ({ default: m.SportivDashboard })));

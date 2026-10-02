@@ -68,30 +68,28 @@ const alphaTextRules = {};
 
 // fundaluri tintate cu opacitate (bg-green-600/30) -> tinta usoara a culorii 500 pe fundal deschis
 const alphaBgRules = {};
-ACCENTS.forEach((h) => [10, 15, 20, 25, 30, 40, 50].forEach((a) => {
-  const sel = ['500', '600', '700', '800', '900'].map((n) => `[data-theme-mode="light"] .bg-${h}-${n}\\/${a}`).join(', ');
+ACCENTS.forEach((h) => [10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90].forEach((a) => {
+  const sel = ['500', '600', '700', '800', '900', '950'].filter((n) => a <= 50 || Number(n) >= 800).map((n) => `[data-theme-mode="light"] .bg-${h}-${n}\\/${a}`).join(', ');
   alphaBgRules[sel] = { backgroundColor: `rgb(${toRgb(colors[h][500])} / 0.12)` };
 }));
+
+const darkText = {};
+ACCENTS.forEach((h) => ['800', '900'].forEach((n) => { darkText[`[data-theme-mode="light"] .text-${h}-${n}`] = { color: colors[h][n] }; }));
 
 const themeContrastPlugin = plugin(({ addBase }) => {
   addBase({
     ...alphaTextRules,
     ...alphaBgRules,
+    ...darkText,
     ':root': darkVars,
     '[data-theme-mode="light"]': { ...lightVars, ...legacyLight },
-    // sidebar si footer raman inchise in temele luminoase -> reset la paleta dark
-    '[data-theme-mode="light"] aside, [data-theme-mode="light"] footer, [data-theme-mode="light"] [data-keep-dark]': darkVars,
+    // sidebar/footer sunt albe pe temele luminoase (urmeaza paleta light); [data-keep-dark] = zone care raman inchise la cerere
+    '[data-theme-mode="light"] [data-keep-dark]': darkVars,
+    '[data-theme-mode="light"] aside': { borderRight: '1px solid var(--t-border)' },
     '[data-theme-mode="light"] *': { colorScheme: 'light' },
     [`[data-theme-mode="light"] .text-white:not(:where(${satList}), :where(${satList}) *)`]: { color: 'rgb(var(--c-slate-50))' },
     // text slate-600/700 = text discret pe dark; in light trebuie sa ramana lizibil (bg/border-ul lor se inverseaza)
     '[data-theme-mode="light"] .text-slate-600, [data-theme-mode="light"] .text-slate-700': { color: '#526071' },
-    '[data-theme-mode="light"] aside .text-slate-600, [data-theme-mode="light"] aside .text-slate-700, [data-theme-mode="light"] footer .text-slate-600, [data-theme-mode="light"] footer .text-slate-700': { color: '#cbd5e1' },
-    '[data-theme-mode="light"] aside .text-slate-500, [data-theme-mode="light"] footer .text-slate-500': { color: '#a9b8cc' },
-    '[data-theme-mode="light"] aside .text-slate-400, [data-theme-mode="light"] footer .text-slate-400': { color: '#b8c4d6' },
-    '[data-theme-mode="light"] aside .text-amber-800, [data-theme-mode="light"] footer .text-amber-800': { color: '#fcd34d' },
-    '[data-theme-mode="light"] aside .text-amber-400\\/70, [data-theme-mode="light"] footer .text-amber-400\\/70': { color: '#fcd34d' },
-    '[data-theme-mode="light"] aside .text-purple-400, [data-theme-mode="light"] aside .text-sky-400': { color: '#e0e7ff' },
-    '[data-theme-mode="light"] aside .text-white, [data-theme-mode="light"] footer .text-white': { color: '#fff' },
     '[data-theme-mode="light"] .border-white\\/5, [data-theme-mode="light"] .border-white\\/10, [data-theme-mode="light"] .border-white\\/20': { borderColor: 'rgb(15 23 42 / 0.12)' },
     '[data-theme-mode="light"] .bg-white\\/5, [data-theme-mode="light"] .bg-white\\/10': { backgroundColor: 'rgb(15 23 42 / 0.05)' },
   });

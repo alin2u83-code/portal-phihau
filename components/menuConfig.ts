@@ -103,9 +103,7 @@ export const adminClubMenu: MenuItem[] = [
             { label: 'Grupe & Orar', view: 'grupe' },
             { label: 'Program Antrenamente', view: 'program-antrenamente' },
             { label: 'Înregistrare Prezențe', view: 'prezenta' },
-            { label: 'Raport Prezențe', view: 'raport-prezenta' },
             { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
-            { label: 'Raport Activitate', view: 'raport-activitate' },
             { label: 'Calendar', view: 'calendar' },
         ]
     },
@@ -165,10 +163,8 @@ export const instructorMenu: MenuItem[] = [
         submenu: [
             { label: 'Grupe & Orar', view: 'grupe' },
             { label: 'Înregistrare Prezențe', view: 'prezenta-instructor' },
-            { label: 'Arhivă Prezențe', view: 'arhiva-prezente' },
             { label: 'Program Antrenamente', view: 'program-antrenamente' },
-            { label: 'Raport Prezențe', view: 'raport-prezenta' },
-            { label: 'Raport Activitate', view: 'raport-activitate' },
+            { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
         ]
     },
     {

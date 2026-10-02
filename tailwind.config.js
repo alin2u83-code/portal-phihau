@@ -1,3 +1,103 @@
+import colors from 'tailwindcss/colors.js';
+import plugin from 'tailwindcss/plugin.js';
+
+// ---- Contrast teme luminoase (quick 261002-mo3) ----
+// Paleta slate + nuantele pale ale accentelor merg prin variabile CSS, ca sa poata fi
+// inversate pe temele luminoase (data-theme-mode="light", setat in applyTheme) fara a edita componentele.
+const toRgb = (hex) => {
+  const h = hex.replace('#', '');
+  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)).join(' ');
+};
+const SLATE_SHADES = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+const SLATE_LIGHT = { 50: '950', 100: '900', 200: '800', 300: '700', 400: '600', 500: '600', 600: '300', 700: '300', 800: '200', 900: '100', 950: '50' };
+const ACCENTS = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'];
+const WARM = ['amber', 'yellow', 'orange', 'lime'];
+const ACCENT_SHADES = ['200', '300', '400', '500', '600', '800', '900'];
+const LIGHT_600 = ['cyan', 'sky', 'emerald', 'green', 'teal']; // alb pe *-600 < 4.5:1 -> *-700
+// nuanta folosita in mod luminos pentru fiecare nuanta pala
+const accentLight = (hue, shade) => (shade === '800' ? '200' : shade === '900' ? '100' : shade === '600' ? (LIGHT_600.includes(hue) ? '700' : '600') : WARM.includes(hue) ? (shade === '500' ? '700' : '800') : { 200: '900', 300: '800', 400: '800', 500: '700' }[shade]);
+
+const slateColors = {};
+SLATE_SHADES.forEach((n) => { slateColors[n] = `rgb(var(--c-slate-${n}) / <alpha-value>)`; });
+const accentColors = {};
+ACCENTS.forEach((h) => {
+  accentColors[h] = {};
+  ACCENT_SHADES.forEach((n) => { accentColors[h][n] = `rgb(var(--c-${h}-${n}) / <alpha-value>)`; });
+});
+
+const darkVars = {};
+const lightVars = {};
+SLATE_SHADES.forEach((n) => {
+  darkVars[`--c-slate-${n}`] = toRgb(colors.slate[n]);
+  lightVars[`--c-slate-${n}`] = toRgb(n === '500' ? '#526071' : n === '400' ? '#475569' : colors.slate[SLATE_LIGHT[n]]);
+});
+ACCENTS.forEach((h) => ACCENT_SHADES.forEach((n) => {
+  darkVars[`--c-${h}-${n}`] = toRgb(colors[h][n]);
+  lightVars[`--c-${h}-${n}`] = toRgb(colors[h][accentLight(h, n)]);
+}));
+
+// fundaluri saturate pe care text-white ramane alb
+const SAT_SHADES = ['500', '600', '700'];
+const SAT = [];
+[...ACCENTS, 'brand', 'slate'].forEach((h) => SAT_SHADES.forEach((n) => { if (h !== 'slate') SAT.push(`[class~="bg-${h}-${n}"]`); }));
+SAT.push('[class~="bg-brand"]', '[class*="bg-gradient"]', '[class*="bg-[var(--t-primary"]', '[class*="bg-[var(--t-sidebar"]', '[class*="bg-[var(--t-status"]', '[class*="from-"]');
+const satList = SAT.join(', ');
+
+// variabilele legacy (--bg-card etc.) sunt fixe pe dark in index.css/SystemGuardian; in mod light le legam de tema
+// (!important: SystemGuardian le seteaza inline pe :root)
+const legacyLight = {
+  '--bg-main': 'var(--t-bg)',
+  '--bg-card': 'var(--t-surface)',
+  '--bg-card-hover': 'var(--t-table-row-hover)',
+  '--bg-input': 'var(--t-input-bg)',
+  '--bg-table-header': 'var(--t-table-header-bg)',
+  '--bg-table-row-hover': 'var(--t-table-row-hover)',
+  '--text-primary': 'var(--t-text)',
+  '--text-secondary': 'var(--t-text-muted)',
+  '--text-muted': 'var(--t-text-muted)',
+  '--border-color': 'var(--t-border)',
+};
+Object.keys(legacyLight).forEach((k) => { legacyLight[k] += ' !important'; });
+
+// text cu opacitate (text-emerald-300/60) pierde contrast pe fundal deschis -> culoare plina in mod light
+const alphaTextRules = {};
+[...ACCENTS, 'slate'].forEach((h) => ['200', '300', '400', '500'].forEach((n) => {
+  const sel = [40, 50, 60, 70, 80, 90].map((a) => `[data-theme-mode="light"] .text-${h}-${n}\\/${a}`).join(', ');
+  alphaTextRules[sel] = { color: `rgb(var(--c-${h}-${n}))` };
+}));
+
+// fundaluri tintate cu opacitate (bg-green-600/30) -> tinta usoara a culorii 500 pe fundal deschis
+const alphaBgRules = {};
+ACCENTS.forEach((h) => [10, 15, 20, 25, 30, 40, 50].forEach((a) => {
+  const sel = ['500', '600', '700', '800', '900'].map((n) => `[data-theme-mode="light"] .bg-${h}-${n}\\/${a}`).join(', ');
+  alphaBgRules[sel] = { backgroundColor: `rgb(${toRgb(colors[h][500])} / 0.12)` };
+}));
+
+const themeContrastPlugin = plugin(({ addBase }) => {
+  addBase({
+    ...alphaTextRules,
+    ...alphaBgRules,
+    ':root': darkVars,
+    '[data-theme-mode="light"]': { ...lightVars, ...legacyLight },
+    // sidebar si footer raman inchise in temele luminoase -> reset la paleta dark
+    '[data-theme-mode="light"] aside, [data-theme-mode="light"] footer, [data-theme-mode="light"] [data-keep-dark]': darkVars,
+    '[data-theme-mode="light"] *': { colorScheme: 'light' },
+    [`[data-theme-mode="light"] .text-white:not(:where(${satList}), :where(${satList}) *)`]: { color: 'rgb(var(--c-slate-50))' },
+    // text slate-600/700 = text discret pe dark; in light trebuie sa ramana lizibil (bg/border-ul lor se inverseaza)
+    '[data-theme-mode="light"] .text-slate-600, [data-theme-mode="light"] .text-slate-700': { color: '#526071' },
+    '[data-theme-mode="light"] aside .text-slate-600, [data-theme-mode="light"] aside .text-slate-700, [data-theme-mode="light"] footer .text-slate-600, [data-theme-mode="light"] footer .text-slate-700': { color: '#cbd5e1' },
+    '[data-theme-mode="light"] aside .text-slate-500, [data-theme-mode="light"] footer .text-slate-500': { color: '#a9b8cc' },
+    '[data-theme-mode="light"] aside .text-slate-400, [data-theme-mode="light"] footer .text-slate-400': { color: '#b8c4d6' },
+    '[data-theme-mode="light"] aside .text-amber-800, [data-theme-mode="light"] footer .text-amber-800': { color: '#fcd34d' },
+    '[data-theme-mode="light"] aside .text-amber-400\\/70, [data-theme-mode="light"] footer .text-amber-400\\/70': { color: '#fcd34d' },
+    '[data-theme-mode="light"] aside .text-purple-400, [data-theme-mode="light"] aside .text-sky-400': { color: '#e0e7ff' },
+    '[data-theme-mode="light"] aside .text-white, [data-theme-mode="light"] footer .text-white': { color: '#fff' },
+    '[data-theme-mode="light"] .border-white\\/5, [data-theme-mode="light"] .border-white\\/10, [data-theme-mode="light"] .border-white\\/20': { borderColor: 'rgb(15 23 42 / 0.12)' },
+    '[data-theme-mode="light"] .bg-white\\/5, [data-theme-mode="light"] .bg-white\\/10': { backgroundColor: 'rgb(15 23 42 / 0.05)' },
+  });
+});
+// ---- /Contrast ----
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -17,6 +117,8 @@ export default {
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
+        slate: slateColors,
+        ...accentColors,
         'status-success': '#10b981', // emerald-500
         'status-danger': '#ef4444', // red-500
         'status-warning': '#f59e0b', // amber-500
@@ -52,5 +154,5 @@ export default {
       }
     }
   },
-  plugins: [],
+  plugins: [themeContrastPlugin],
 }

@@ -283,7 +283,7 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     secondaryFg: '#334155',
     sidebarBg: '#1e3a5f',
     sidebarText: '#cbd5e1',
-    sidebarActive: '#3b82f6',
+    sidebarActive: '#2563eb',
     sidebarActiveFg: '#ffffff',
     headerBg: '#ffffff',
     headerBorder: '#e2e8f0',
@@ -298,7 +298,7 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     statusSuccess: '#15803d',
     statusDanger: '#dc2626',
     statusWarning: '#b45309',
-    statusInfo: '#0891b2',
+    statusInfo: '#0e7490',
   },
   {
     name: 'Snow',
@@ -331,7 +331,7 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     statusSuccess: '#15803d',
     statusDanger: '#dc2626',
     statusWarning: '#b45309',
-    statusInfo: '#0891b2',
+    statusInfo: '#0e7490',
   },
   // --- 10 teme noi ---
   {
@@ -573,15 +573,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     border: '#b8d8f8',
     text: '#0d2540',
     textMuted: '#2f5882',
-    primary: '#0284c7',
-    primaryHover: '#0369a1',
+    primary: '#0369a1',
+    primaryHover: '#075985',
     primaryFg: '#ffffff',
     secondary: '#e4f0fd',
     secondaryHover: '#d0e6fa',
     secondaryFg: '#0d2540',
     sidebarBg: '#0d2540',
     sidebarText: '#b8d8f8',
-    sidebarActive: '#0284c7',
+    sidebarActive: '#0369a1',
     sidebarActiveFg: '#ffffff',
     headerBg: '#ffffff',
     headerBorder: '#b8d8f8',
@@ -591,12 +591,12 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     tableBorder: '#b8d8f8',
     contentBg: '#f0f7ff',
     inputBg: '#ffffff',
-    inputFocusRing: '#0284c7',
+    inputFocusRing: '#0369a1',
     footerBg: '#0d2540',
     statusSuccess: '#15803d',
     statusDanger: '#dc2626',
     statusWarning: '#b45309',
-    statusInfo: '#0284c7',
+    statusInfo: '#0369a1',
   },
   {
     name: 'Mint Light',
@@ -606,15 +606,15 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     border: '#a8dfc4',
     text: '#0f2d1f',
     textMuted: '#256648',
-    primary: '#059669',
-    primaryHover: '#047857',
+    primary: '#047857',
+    primaryHover: '#065f46',
     primaryFg: '#ffffff',
     secondary: '#e0f4eb',
     secondaryHover: '#cceedd',
     secondaryFg: '#0f2d1f',
     sidebarBg: '#0d3320',
     sidebarText: '#a8dfc4',
-    sidebarActive: '#059669',
+    sidebarActive: '#047857',
     sidebarActiveFg: '#ffffff',
     headerBg: '#ffffff',
     headerBorder: '#a8dfc4',
@@ -624,12 +624,12 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     tableBorder: '#a8dfc4',
     contentBg: '#f0faf5',
     inputBg: '#ffffff',
-    inputFocusRing: '#059669',
+    inputFocusRing: '#047857',
     footerBg: '#0d3320',
     statusSuccess: '#059669',
     statusDanger: '#dc2626',
     statusWarning: '#b45309',
-    statusInfo: '#0891b2',
+    statusInfo: '#0e7490',
   },
   {
     name: 'Warm Slate',
@@ -662,12 +662,23 @@ export const PREDEFINED_THEMES: ThemeConfig[] = [
     statusSuccess: '#15803d',
     statusDanger: '#dc2626',
     statusWarning: '#b45309',
-    statusInfo: '#0284c7',
+    statusInfo: '#0369a1',
   },
 ];
 
+// Luminanța percepută a fundalului decide modul (light/dark) — folosit de tailwind.config.js
+// pentru a inversa paleta slate pe teme luminoase.
+export function getThemeMode(bg: string): 'light' | 'dark' {
+  const m = /^#?([0-9a-f]{6})$/i.exec((bg || '').trim());
+  if (!m) return 'dark';
+  const n = parseInt(m[1], 16);
+  const lum = (((n >> 16) & 255) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000;
+  return lum > 140 ? 'light' : 'dark';
+}
+
 export function applyTheme(theme: ThemeConfig): void {
   const root = document.documentElement;
+  root.setAttribute('data-theme-mode', getThemeMode(theme.bg));
   root.style.setProperty('--t-bg', theme.bg);
   root.style.setProperty('--t-surface', theme.surface);
   root.style.setProperty('--t-surface-2', theme.surface2);

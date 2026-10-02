@@ -303,10 +303,6 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
             case 'rapid':
                 return (
                     <div className="space-y-3">
-                        <ShortcutBar shortcuts={[
-                            { label: 'Program antrenamente', icon: <CalendarDaysIcon className="w-3.5 h-3.5" />, onClick: () => navTo('program-antrenamente') },
-                            { label: 'Grupe & Orar', icon: <UsersIcon className="w-3.5 h-3.5" />, onClick: () => switchTab('grupe') },
-                        ]} />
                         <PrezentaRapida
                             onSelectFull={handleSelectAntrenament}
                             onAddSediinta={canAdd ? () => setShowSediintaModal(true) : undefined}
@@ -320,8 +316,6 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                     : (
                         <div className="space-y-3">
                             <ShortcutBar shortcuts={[
-                                { label: 'Raport Prezențe', icon: <SparklesIcon className="w-3.5 h-3.5" />, onClick: () => navTo('raport-prezenta') },
-                                { label: 'Raport Lunar', icon: <ClockIcon className="w-3.5 h-3.5" />, onClick: () => navTo('raport-lunar-prezenta') },
                                 { label: 'Calendar Toate Grupele', icon: <CalendarDaysIcon className="w-3.5 h-3.5" />, onClick: () => navigateTo('calendar-all', null) },
                                 { label: 'Generator Program', icon: <CalendarDaysIcon className="w-3.5 h-3.5" />, onClick: () => navigateTo('generator', null) },
                                 { label: 'Raport Interval Examen', icon: <ClockIcon className="w-3.5 h-3.5" />, onClick: () => navTo('raport-interval-examen') },
@@ -359,9 +353,6 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
             case 'istoric':
                 return (
                     <div className="space-y-3">
-                        <ShortcutBar shortcuts={[
-                            { label: 'Raport Lunar Prezențe', icon: <ClockIcon className="w-3.5 h-3.5" />, onClick: () => navTo('raport-lunar-prezenta') },
-                        ]} />
                         <IstoricPrezentaGlobal onBack={navigateBack} onViewSportiv={onViewSportiv} />
                     </div>
                 );

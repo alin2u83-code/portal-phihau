@@ -205,21 +205,9 @@ export interface ConfirmButtonProps extends Omit<ButtonProps & { as?: 'label'; h
   cancelLabel?: string;
 }
 
-// Buton rapid catre Calendar (Activitate Sala) - reutilizat in header-ul paginilor Grupe, Program Antrenamente, Prezenta, Rapoarte
-export const CalendarQuickLink: React.FC<{ onNavigate?: (view: any) => void; className?: string }> = ({ onNavigate, className }) => {
-  if (!onNavigate) return null;
-  return (
-    <Button
-      variant="secondary"
-      size="sm"
-      leftIcon={<CalendarDaysIcon className="w-4 h-4" />}
-      onClick={() => onNavigate('calendar')}
-      className={className}
-    >
-      Calendar
-    </Button>
-  );
-};
+// Calendarul e acum tab in hub-ul "Prezente & Antrenamente" (ActivitateSalaTabs) — butonul rapid din headere
+// ar dubla navigarea, deci nu mai randeaza nimic. Pastrat doar ca sa nu se rupa importurile existente.
+export const CalendarQuickLink: React.FC<{ onNavigate?: (view: any) => void; className?: string }> = () => null;
 
 export const ConfirmButton: React.FC<ConfirmButtonProps> = ({
   onConfirm,

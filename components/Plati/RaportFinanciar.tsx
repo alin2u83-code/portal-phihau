@@ -19,6 +19,7 @@ import { formatNume } from '../../utils/formatareSportiv';
 import { calculeazaLuniLipsa, formatLuna } from '../../utils/luniLipsa';
 import { useDataStartFacturareAll } from '../../hooks/useDataStartFacturareAll';
 import { LuniLipsaWizard } from './LuniLipsaWizard';
+import { useStareVizualizare } from '../../hooks/useStareVizualizare';
 
 interface RaportFinanciarProps {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
@@ -55,7 +56,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     const { currentUser, activeRoleContext, clubs } = useData();
     const { showError, showSuccess } = useError();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
-    const [activeTab, setActiveTab] = useState<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii' | 'restante' | 'luni_lipsa' | 'plati_incasari'>('incasari');
+    const [activeTab, setActiveTab] = useStareVizualizare<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii' | 'restante' | 'luni_lipsa' | 'plati_incasari'>('raport-financiar-tab', 'incasari');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [restanteStart, setRestanteStart] = useState('');

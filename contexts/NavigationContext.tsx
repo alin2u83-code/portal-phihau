@@ -17,6 +17,8 @@ interface NavigationContextType {
     replaceView: (view: View) => void;
     /** Navigare din sidebar/meniu principal — golește history */
     navigateRoot: (view: View) => void;
+    /** Navigare din sidebar care păstrează traseul: view deja în traseu = revii acolo, altfel pagina curentă intră în traseu */
+    navigateTrail: (view: View) => void;
     /** Mergi înapoi la ecranul anterior */
     goBack: () => void;
     canGoBack: boolean;
@@ -29,7 +31,7 @@ interface NavigationContextType {
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
-const MAX_HISTORY = 15;
+const MAX_HISTORY = 30;
 
 export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [activeView, setStoredView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');
@@ -61,6 +63,21 @@ export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children
         setViewParams(params ?? null);
     }, [activeView, viewParams, pushToHistory, setStoredView]);
 
+    const navigateTrail = useCallback((view: View) => {
+        if (view === activeView) return;
+        const idx = history.findIndex(h => h.view === view);
+        if (idx >= 0) {
+            const entry = history[idx];
+            setHistory(prev => prev.slice(0, idx));
+            setStoredView(entry.view);
+            setViewParams(entry.params);
+            return;
+        }
+        pushToHistory(activeView, viewParams);
+        setStoredView(view);
+        setViewParams(null);
+    }, [activeView, viewParams, history, pushToHistory, setStoredView]);
+
     const replaceView = useCallback((view: View) => {
         setStoredView(view);
         setViewParams(null);
@@ -86,7 +103,7 @@ export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children
     const previousView = canGoBack ? history[history.length - 1].view : null;
 
     return (
-        <NavigationContext.Provider value={{ activeView, setActiveView, viewParams, setViewParams, navigateTo, replaceView, navigateRoot, goBack, canGoBack, previousView, history, jumpToHistory }}>
+        <NavigationContext.Provider value={{ activeView, setActiveView, viewParams, setViewParams, navigateTo, replaceView, navigateRoot, navigateTrail, goBack, canGoBack, previousView, history, jumpToHistory }}>
             {children}
         </NavigationContext.Provider>
     );

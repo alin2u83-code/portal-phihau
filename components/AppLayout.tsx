@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { TraseuMobil } from './TraseuMobil';
 import ErrorBoundary from './ErrorBoundary';
 import { ClubGuard } from './ClubGuard';
 import { AppRouter } from './AppRouter';
@@ -80,6 +81,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             />
 
             <main className={`flex-1 min-w-0 overflow-x-hidden transition-all duration-300 pt-16 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'} min-h-screen`} style={{ background: 'var(--t-content-bg)' }}>
+                <TraseuMobil />
                 <div className="p-4 pb-32 md:p-6 md:pb-28 lg:p-8 lg:pb-28 max-w-7xl mx-auto animate-fade-in">
                     <ErrorBoundary onNavigate={setActiveView}>
                         <>

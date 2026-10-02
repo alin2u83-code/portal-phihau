@@ -7,6 +7,7 @@ import { MatriceGradePanel, TabMatrice } from './MatriceGradePanel';
 import { Button, Badge, ConfirmModal } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronRightIcon } from '../icons';
 import { useError } from '../ErrorProvider';
+import { useStareVizualizare } from '../../hooks/useStareVizualizare';
 
 // ---------------------------------------------------------------------------
 // Tipuri
@@ -50,7 +51,7 @@ export const InlantuciriAdmin: React.FC<Props> = ({ permissions, onBack }) => {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<ViewMode>('per-inlantuire');
-  const [activeTab, setActiveTab] = useState<TabMatrice>('thao_quyen');
+  const [activeTab, setActiveTab] = useStareVizualizare<TabMatrice>('inlantuiri-tab', 'thao_quyen');
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
   const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 

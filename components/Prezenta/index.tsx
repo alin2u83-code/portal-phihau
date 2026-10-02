@@ -21,6 +21,7 @@ import { OrarEditor } from './OrarEditor';
 import { GrupeList } from './GrupeList';
 import { IstoricPrezentaGlobal } from './IstoricPrezentaGlobal';
 import { PrezentaRapida } from './PrezentaRapida';
+import { useStareVizualizare } from '../../hooks/useStareVizualizare';
 
 // --- Modal adaugare sedinta ad-hoc ---
 const SediintaAziModal: React.FC<{
@@ -182,7 +183,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
     const permissions = usePermissions(activeRoleContext);
     const canAdd = permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin;
     const { byId: statusById } = useStatusePrezenta();
-    const [activeTab, setActiveTab] = useState<Tab>('rapid');
+    const [activeTab, setActiveTab] = useStareVizualizare<Tab>('prezenta-tab', 'rapid');
     const [viewStack, setViewStack] = useState<ViewState[]>([{ view: 'rapid', id: null }]);
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [showSediintaModal, setShowSediintaModal] = useState(false);

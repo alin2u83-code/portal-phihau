@@ -7,6 +7,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useData } from '../../contexts/DataContext';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { supabase } from '../../supabaseClient';
+import { useStareVizualizare } from '../../hooks/useStareVizualizare';
 
 type ReportTab = 'general' | 'per-grupa';
 
@@ -42,7 +43,7 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
 
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-prezenta-filters', initialFilters);
     const [filtersExpanded, setFiltersExpanded] = useState(false);
-    const [activeReportTab, setActiveReportTab] = useState<ReportTab>('general');
+    const [activeReportTab, setActiveReportTab] = useStareVizualizare<ReportTab>('raport-prezenta-tab', 'general');
     const [perGrupaPagini, setPerGrupaPagini] = useState<Record<string, number>>({});
     const PER_GRUPA_PAGE_SIZE = 15;
 

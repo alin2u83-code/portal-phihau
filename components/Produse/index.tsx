@@ -16,6 +16,7 @@ import { fetchCereriClub, fetchComenziClub } from '../../services/comenziService
 import { useData } from '../../contexts/DataContext';
 import type { User, Permissions, Produs, ProdusCategorieDB, ProdusIntrare, ProdusVanzare, CerereProdusFull, ComandaProduseiFull } from '../../types';
 import { ArrowLeftIcon, PlusIcon } from '../icons';
+import { useStareVizualizare } from '../../hooks/useStareVizualizare';
 
 interface ProduseManagementProps {
   currentUser: User;
@@ -73,7 +74,7 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
   const [vanzari, setVanzari] = useState<ProdusVanzare[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<ActiveTab>('catalog');
+  const [activeTab, setActiveTab] = useStareVizualizare<ActiveTab>('produse-tab', 'catalog');
   const [showForm, setShowForm] = useState(false);
   const [showIntrareModal, setShowIntrareModal] = useState(false);
   const [showVanzareModal, setShowVanzareModal] = useState(false);

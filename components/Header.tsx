@@ -21,9 +21,27 @@ interface HeaderProps {
     onOpenThemeEditor: () => void;
 }
 
-const ROOT_VIEWS: View[] = ['dashboard', 'my-portal', 'federation-dashboard', 'admin-dashboard'];
+export const ROOT_VIEWS: View[] = ['dashboard', 'my-portal', 'federation-dashboard', 'admin-dashboard'];
+const MAX_PASI_TRASEU = 6;
 
-const VIEW_TITLES: Partial<Record<View, string>> = {
+export const VIEW_TITLES: Partial<Record<View, string>> = {
+    'activitati-nationale': 'Activități Naționale',
+    'admin-sms': 'SMS',
+    'cereri-gdpr': 'Cereri GDPR',
+    'cereri-inscriere': 'Cereri Înscriere',
+    'data-maintenance': 'Mentenanță Date',
+    'deduplicare-sportivi': 'Deduplicare Sportivi',
+    'familii': 'Familii',
+    'inlantuiri-admin': 'Nomenclator Înlănțuiri',
+    'istoric-activitate': 'Istoric Activitate',
+    'istoric-prezenta': 'Istoric Prezență',
+    'jurnal-audit': 'Jurnal Audit',
+    'produse': 'Echipamente',
+    'protectia-datelor': 'Protecția Datelor',
+    'stagii': 'Stagii',
+    'template-probe': 'Template Probe',
+    'user-management': 'Administrare Staff',
+    'vanzari-produse': 'Vânzări Echipamente',
     'dashboard': 'Dashboard',
     'my-portal': 'Portalul Meu',
     'federation-dashboard': 'Dashboard Federație',
@@ -91,13 +109,14 @@ export const Header: React.FC<HeaderProps> = ({
 
     type Crumb = { title: string; idx: number } | { title: '…'; idx: -1 };
     let visibleCrumbs: Crumb[];
-    if (namedHistory.length <= 2) {
+    if (namedHistory.length <= MAX_PASI_TRASEU - 1) {
         visibleCrumbs = namedHistory;
     } else {
+        // primul pas rămâne mereu vizibil, mijlocul se ascunde
         visibleCrumbs = [
             namedHistory[0],
             { title: '…', idx: -1 },
-            namedHistory[namedHistory.length - 1],
+            ...namedHistory.slice(-(MAX_PASI_TRASEU - 3)),
         ];
     }
 

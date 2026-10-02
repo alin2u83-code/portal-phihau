@@ -8,6 +8,7 @@ import { NavMenu } from './NavMenu';
 import { ROLES } from '../constants';
 
 import { QwanKiDoLogo } from './Logo';
+import { ROOT_VIEWS } from './Header';
 
 interface SidebarProps {
     currentUser: User;
@@ -49,7 +50,7 @@ const UserAvatar: React.FC<{ user: User; size?: 'sm' | 'md' }> = ({ user, size =
 
 export const Sidebar: React.FC<SidebarProps> = (props) => {
     const { currentUser, onLogout, isExpanded, setIsExpanded, clubs, permissions, activeRole, activeRoleContext, canSwitchRoles, onSwitchRole, isSwitchingRole, userRoles, isMobileOpen, setIsMobileOpen, onOpenThemeEditor } = props;
-    const { activeView, navigateRoot } = useNavigation();
+    const { activeView, navigateRoot, navigateTrail } = useNavigation();
     const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
     const mobileRoleSwitcherRef = useRef<HTMLDivElement>(null);
     const desktopRoleSwitcherRef = useRef<HTMLDivElement>(null);
@@ -72,7 +73,9 @@ export const Sidebar: React.FC<SidebarProps> = (props) => {
     }, []);
 
     const handleNavigate = (view: View) => {
-        navigateRoot(view);
+        // Paginile de start resetează traseul; restul îl păstrează (revenire ușoară de unde ai plecat)
+        if (ROOT_VIEWS.includes(view)) navigateRoot(view);
+        else navigateTrail(view);
         setIsMobileOpen(false);
     };
 

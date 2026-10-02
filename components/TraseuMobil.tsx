@@ -21,12 +21,15 @@ export const TraseuMobil: React.FC = () => {
     if (pasi.length === 0) return null;
 
     return (
+        <>
+        {/* spațiu rezervat: bara e fixă (main are overflow-x-hidden, deci sticky nu ar ține) */}
+        <div className="lg:hidden h-9" aria-hidden="true" />
         <nav
             aria-label="Traseu"
-            className="lg:hidden sticky top-16 z-30 border-b border-slate-800 backdrop-blur-md"
+            className="lg:hidden fixed top-16 left-0 right-0 z-30 h-9 border-b border-slate-800 backdrop-blur-md"
             style={{ background: 'var(--t-header-bg)' }}
         >
-            <div ref={ref} className="flex items-center gap-1.5 overflow-x-auto px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div ref={ref} className="flex items-center gap-1.5 overflow-x-auto px-4 h-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {pasi.map(p => (
                     <React.Fragment key={p.idx}>
                         <button
@@ -42,5 +45,6 @@ export const TraseuMobil: React.FC = () => {
                 <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-white">{VIEW_TITLES[activeView] || activeView}</span>
             </div>
         </nav>
+        </>
     );
 };

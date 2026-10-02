@@ -31,7 +31,7 @@ interface NavigationContextType {
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
-const MAX_HISTORY = 15;
+const MAX_HISTORY = 30;
 
 export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [activeView, setStoredView] = useLocalStorage<View>('phi-hau-active-view', 'dashboard');

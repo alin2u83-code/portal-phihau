@@ -25,6 +25,23 @@ export const ROOT_VIEWS: View[] = ['dashboard', 'my-portal', 'federation-dashboa
 const MAX_PASI_TRASEU = 6;
 
 export const VIEW_TITLES: Partial<Record<View, string>> = {
+    'activitati-nationale': 'Activități Naționale',
+    'admin-sms': 'SMS',
+    'cereri-gdpr': 'Cereri GDPR',
+    'cereri-inscriere': 'Cereri Înscriere',
+    'data-maintenance': 'Mentenanță Date',
+    'deduplicare-sportivi': 'Deduplicare Sportivi',
+    'familii': 'Familii',
+    'inlantuiri-admin': 'Nomenclator Înlănțuiri',
+    'istoric-activitate': 'Istoric Activitate',
+    'istoric-prezenta': 'Istoric Prezență',
+    'jurnal-audit': 'Jurnal Audit',
+    'produse': 'Echipamente',
+    'protectia-datelor': 'Protecția Datelor',
+    'stagii': 'Stagii',
+    'template-probe': 'Template Probe',
+    'user-management': 'Administrare Staff',
+    'vanzari-produse': 'Vânzări Echipamente',
     'dashboard': 'Dashboard',
     'my-portal': 'Portalul Meu',
     'federation-dashboard': 'Dashboard Federație',

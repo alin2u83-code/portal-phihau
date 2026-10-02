@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Antrenament, Sportiv, Grupa, ProgramItem } from '../../types';
-import { Button, CalendarQuickLink } from '../ui';
+import { Button } from '../ui';
 import { ArrowLeftIcon, CalendarDaysIcon, UsersIcon, SparklesIcon, ClockIcon, PlusIcon, ChevronDownIcon, XIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -409,7 +409,6 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                     ))}
                 </div>
 
-                {isAtRoot && <CalendarQuickLink onNavigate={onNavigate} className={!(canAdd && activeTab === 'rapid') ? 'ml-auto shrink-0' : 'shrink-0'} />}
 
                 {/* Buton adaugare — doar ADMIN/INSTRUCTOR */}
                 {canAdd && isAtRoot && activeTab === 'rapid' && (

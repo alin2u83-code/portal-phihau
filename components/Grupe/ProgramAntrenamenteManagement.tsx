@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Antrenament } from '../../types';
-import { Button, Card, Input, Select, Modal, CalendarQuickLink } from '../ui';
+import { Button, Card, Input, Select, Modal } from '../ui';
 import { ArrowLeftIcon, CalendarDaysIcon, EditIcon, TrashIcon, PlusIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -205,7 +205,6 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                         <ArrowLeftIcon className="w-5 h-5 mr-2" />
                         Înapoi
                     </Button>
-                    <CalendarQuickLink onNavigate={onNavigate} />
                 </div>
             </div>
 

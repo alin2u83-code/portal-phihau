@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { User, RaportActivitateRecord } from '../types';
 import { useError } from './ErrorProvider';
-import { Card, Button, Switch, CalendarQuickLink } from './ui';
+import { Card, Button, Switch } from './ui';
 import { DocumentArrowDownIcon } from './icons';
 import { exportToCsv } from '../utils/csv';
 import { useData } from '../contexts/DataContext';
@@ -219,7 +219,6 @@ export const RaportActivitate: React.FC<{ onBack: () => void; onNavigate?: (view
         <div className="space-y-6">
             <div className="flex justify-between items-center gap-3">
                 <h1 className="text-3xl font-bold text-white">Raport de Activitate</h1>
-                <CalendarQuickLink onNavigate={onNavigate} />
             </div>
             
             <Card>

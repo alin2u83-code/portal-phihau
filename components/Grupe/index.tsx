@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Grupa as GrupaType, ProgramItem, User, Club, Sportiv, Locatie } from '../../types';
-import { Button, Modal, Input, Select, CalendarQuickLink, EmptyState, ConfirmModal } from '../ui';
+import { Button, Modal, Input, Select, EmptyState, ConfirmModal } from '../ui';
 import { PlusIcon, TrashIcon, EditIcon, ArrowLeftIcon, UsersIcon } from '../icons';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
@@ -353,7 +353,6 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                         <div className="flex items-center gap-3">
                             <Button variant="secondary" onClick={onBack}><ArrowLeftIcon className="w-5 h-5 mr-2" />Înapoi</Button>
                             <h1 className="text-2xl sm:text-3xl font-bold text-white">Management Grupe & Orar</h1>
-                            <CalendarQuickLink onNavigate={onNavigate} />
                         </div>
                         <div className="flex gap-2 w-full sm:w-auto">
                             <Button

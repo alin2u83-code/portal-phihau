@@ -8,6 +8,7 @@ import { OnboardingCompletare } from './OnboardingCompletare';
 import { SetupMFAPage } from './SetupMFAPage';
 import { Card } from './ui';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
+import { ActivitateSalaTabs } from './ActivitateSalaTabs';
 import { useData } from '../contexts/DataContext';
 import { useNavigation } from '../contexts/NavigationContext';
 
@@ -132,6 +133,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                 transition={{ duration: 0.2 }}
             >
                 <Suspense fallback={<MartialArtsSkeleton count={5} />}>
+                    <ActivitateSalaTabs activeView={activeView} onNavigate={setActiveView} isAdminClub={isAtLeastClubAdmin} isInstructorOnly={permissions.isInstructor && !isAtLeastClubAdmin} enabled={isAtLeastInstructor}>
                     {(() => {
                         switch (activeView) {
                             case 'legitimatii':
@@ -311,6 +313,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return <div>Lipsește Vizualizarea</div>;
                         }
                     })()}
+                    </ActivitateSalaTabs>
                 </Suspense>
             </motion.div>
         </AnimatePresence>

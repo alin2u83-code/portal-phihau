@@ -18,6 +18,8 @@ export interface MenuItem {
 export interface SubMenuItem {
     label: string;
     view: View;
+    /** view-uri (tab-uri din același hub) care marchează acest item ca activ */
+    aliases?: View[];
 }
 
 // Meniu complet pentru Adminii de Federație
@@ -99,12 +101,9 @@ export const adminClubMenu: MenuItem[] = [
     {
         label: 'Activitate Sală', icon: CalendarDaysIcon,
         submenu: [
-            { label: 'Sezoane', view: 'sezoane' },
-            { label: 'Grupe & Orar', view: 'grupe' },
-            { label: 'Program Antrenamente', view: 'program-antrenamente' },
-            { label: 'Înregistrare Prezențe', view: 'prezenta' },
-            { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
-            { label: 'Calendar', view: 'calendar' },
+            { label: 'Grupe & Sezoane', view: 'grupe', aliases: ['sezoane'] },
+            { label: 'Prezențe & Antrenamente', view: 'prezenta', aliases: ['prezenta-instructor', 'program-antrenamente', 'calendar'] },
+            { label: 'Rapoarte Prezențe', view: 'raport-prezenta', aliases: ['raport-lunar-prezenta'] },
         ]
     },
     {
@@ -162,9 +161,8 @@ export const instructorMenu: MenuItem[] = [
         label: 'Activitate Sală', icon: CalendarDaysIcon,
         submenu: [
             { label: 'Grupe & Orar', view: 'grupe' },
-            { label: 'Înregistrare Prezențe', view: 'prezenta-instructor' },
-            { label: 'Program Antrenamente', view: 'program-antrenamente' },
-            { label: 'Raport Lunar Prezențe', view: 'raport-lunar-prezenta' },
+            { label: 'Prezențe & Antrenamente', view: 'prezenta-instructor', aliases: ['prezenta', 'program-antrenamente', 'calendar'] },
+            { label: 'Rapoarte Prezențe', view: 'raport-prezenta', aliases: ['raport-lunar-prezenta'] },
         ]
     },
     {
@@ -182,7 +180,6 @@ export const instructorMenu: MenuItem[] = [
         ]
     },
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
-    { label: 'Calendar', icon: CalendarIcon, view: 'calendar' },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
     { label: 'Setări Cont', icon: CogIcon, view: 'account-settings' },

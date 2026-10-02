@@ -36,7 +36,7 @@ const NavItem: React.FC<{
 
     // Item cu submeniu
     if (item.submenu && item.submenu.length > 0) {
-        const hasActiveChild = item.submenu.some(s => s.view === activeView);
+        const hasActiveChild = item.submenu.some(s => s.view === activeView || s.aliases?.includes(activeView as View));
         return (
             <div>
                 {/* Group header — același stil ca în AdminMasterMap */}
@@ -60,7 +60,7 @@ const NavItem: React.FC<{
                 {isExpanded && isSubmenuOpen && (
                     <div className="mt-1 ml-4 pl-3 border-l-2 border-amber-500/25 space-y-0.5">
                         {item.submenu.map(sub => {
-                            const isSubActive = activeView === sub.view;
+                            const isSubActive = activeView === sub.view || !!sub.aliases?.includes(activeView as View);
                             return (
                                 <div
                                     key={sub.view}
@@ -132,7 +132,7 @@ export const NavMenu: React.FC<NavMenuProps> = (props) => {
   const { activeView } = useNavigation();
   const { unreadCount } = useNotifications();
 
-  const initialOpen = menuToDisplay.find(item => item.submenu?.some(s => s.view === activeView))?.label ?? null;
+  const initialOpen = menuToDisplay.find(item => item.submenu?.some(s => s.view === activeView || s.aliases?.includes(activeView as View)))?.label ?? null;
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(initialOpen);
 
   const navRef = useRef<HTMLElement>(null);

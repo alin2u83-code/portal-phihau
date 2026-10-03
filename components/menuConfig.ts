@@ -18,6 +18,8 @@ export interface MenuItem {
 export interface SubMenuItem {
     label: string;
     view: View;
+    /** antet de secțiune afișat deasupra acestui item (și a celor următoare până la următorul antet) */
+    section?: string;
     /** view-uri (tab-uri din același hub) care marchează acest item ca activ */
     aliases?: View[];
 }
@@ -28,13 +30,13 @@ export const adminMenu: MenuItem[] = [
     {
         label: 'Gestiune Membri', icon: UsersIcon,
         submenu: [
-            { label: 'Sportivi', view: 'sportivi' },
-            { label: 'Import Sportivi', view: 'import-sportivi' },
-            { label: 'Deduplicare Sportivi', view: 'deduplicare-sportivi' },
+            { label: 'Sportivi', view: 'sportivi', section: 'Sportivi' },
             { label: 'Familii', view: 'familii' },
             { label: 'Legitimații', view: 'legitimatii' },
-            { label: 'Nomenclator Grade', view: 'grade' },
-            { label: 'Administrare Staff', view: 'user-management' },
+            { label: 'Cereri Înscriere', view: 'cereri-inscriere', section: 'Cereri' },
+            { label: 'Cereri GDPR', view: 'cereri-gdpr' },
+            { label: 'Import Sportivi', view: 'import-sportivi', section: 'Instrumente date' },
+            { label: 'Deduplicare Sportivi', view: 'deduplicare-sportivi' },
         ]
     },
     {
@@ -66,6 +68,8 @@ export const adminMenu: MenuItem[] = [
         label: 'Setări & Admin', icon: CogIcon,
         submenu: [
             { label: 'Gestiune Cluburi', view: 'cluburi' },
+            { label: 'Nomenclator Grade', view: 'grade' },
+            { label: 'Administrare Staff', view: 'user-management' },
             { label: 'Structură Federație', view: 'structura-federatie' },
             { label: 'Setări Club', view: 'setari-club' },
             { label: 'Mentenanță Date', view: 'data-maintenance' },
@@ -78,8 +82,6 @@ export const adminMenu: MenuItem[] = [
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
     { label: 'SMS', icon: MessageSquareIcon, view: 'admin-sms' },
-    { label: 'Cereri Înscriere', icon: UserPlusIcon, view: 'cereri-inscriere' },
-    { label: 'Cereri GDPR', icon: ClipboardListIcon, view: 'cereri-gdpr' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
 ];
 
@@ -89,13 +91,13 @@ export const adminClubMenu: MenuItem[] = [
     {
         label: 'Gestiune Membri', icon: UsersIcon,
         submenu: [
-            { label: 'Sportivi', view: 'sportivi' },
-            { label: 'Import Sportivi', view: 'import-sportivi' },
-            { label: 'Deduplicare Sportivi', view: 'deduplicare-sportivi' },
+            { label: 'Sportivi', view: 'sportivi', section: 'Sportivi' },
             { label: 'Familii', view: 'familii' },
             { label: 'Legitimații', view: 'legitimatii' },
-            { label: 'Nomenclator Grade', view: 'grade' },
-            { label: 'Administrare Staff', view: 'user-management' },
+            { label: 'Cereri Înscriere', view: 'cereri-inscriere', section: 'Cereri' },
+            { label: 'Cereri GDPR', view: 'cereri-gdpr' },
+            { label: 'Import Sportivi', view: 'import-sportivi', section: 'Instrumente date' },
+            { label: 'Deduplicare Sportivi', view: 'deduplicare-sportivi' },
         ]
     },
     {
@@ -142,14 +144,14 @@ export const adminClubMenu: MenuItem[] = [
         label: 'Setări & Admin', icon: CogIcon,
         submenu: [
             { label: 'Setări Club', view: 'setari-club' },
+            { label: 'Nomenclator Grade', view: 'grade' },
+            { label: 'Administrare Staff', view: 'user-management' },
             { label: 'Setări Cont', view: 'account-settings' },
             { label: 'Protecția datelor', view: 'protectia-datelor' },
         ]
     },
     { label: 'Notificări', icon: ClipboardCheckIcon, view: 'notificari' },
     { label: 'SMS', icon: MessageSquareIcon, view: 'admin-sms' },
-    { label: 'Cereri Înscriere', icon: UserPlusIcon, view: 'cereri-inscriere' },
-    { label: 'Cereri GDPR', icon: ClipboardListIcon, view: 'cereri-gdpr' },
     { label: 'Istoric Activitate', icon: ClockIcon, view: 'istoric-activitate' },
 ];
 

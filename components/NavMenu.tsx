@@ -62,8 +62,11 @@ const NavItem: React.FC<{
                         {item.submenu.map(sub => {
                             const isSubActive = activeView === sub.view || !!sub.aliases?.includes(activeView as View);
                             return (
+                                <React.Fragment key={sub.view}>
+                                {sub.section && (
+                                    <div className="px-2.5 pt-2 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">{sub.section}</div>
+                                )}
                                 <div
-                                    key={sub.view}
                                     onClick={() => onNavigate(sub.view)}
                                     className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-150 text-sm ${
                                         isSubActive
@@ -78,6 +81,7 @@ const NavItem: React.FC<{
                                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-amber-400' : 'bg-slate-600'}`} />
                                     {sub.label}
                                 </div>
+                                </React.Fragment>
                             );
                         })}
                     </div>

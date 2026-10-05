@@ -456,16 +456,16 @@ Plans:
 
 Plans:
 
-- [ ] 33-01-PLAN.md — Audit live + migratie atomica: tip FRQKD/FRAM pe config/vize/decont, scutiri, plati multiple catre federatie + activare automata ambele taxe, fara esec la pret lipsa (taxa in asteptare) (val 1)
-- [ ] 33-02-PLAN.md — RPC generare manuala (sportiv / selectie / in masa) + scutiri cu motiv, SECURITY DEFINER cu verificare club (val 2)
-- [ ] 33-03-PLAN.md — RPC plata club->federatie cu bifare (suma calculata in DB, metoda, dovada) + raport pe cluburi + RLS fara cross-club pe tabelele taxei (val 2)
-- [ ] 33-04-PLAN.md — Contracte TS: tipuri, perioada taxei, logica pura testata (stare, banner, eligibilitate, WhatsApp), serviciu RPC, hook reincarcare, selector perioada (val 2)
-- [ ] 33-05-PLAN.md — UI club: situatie taxe + generare + scutiri, restantieri cu WhatsApp/CSV, banner virat-neachitat (val 3)
-- [ ] 33-06-PLAN.md — UI federatie: ecran unic preturi FRQKD + FRAM (reminder februarie) + dashboard pe cluburi (val 3)
-- [ ] 33-07-PLAN.md — Plati catre federatie: modal bifare + istoric plati multiple + export CSV/Excel (val 3)
-- [ ] 33-08-PLAN.md — Istoric taxe pe profil sportiv + avertisment FRAM corect in Competitii (fara blocare) (val 3)
-- [ ] 33-10-PLAN.md — Teste live PostgREST: izolare cross-club, refuzuri RPC, flux complet de bani pe date canar (val 3)
-- [ ] 33-09-PLAN.md — Shell TaxeAnuale pe roluri + bannere + poarta de verificare a fazei si lista de acceptare end-of-phase (val 4)
+- [x] 33-01-PLAN.md — Audit live + migratie atomica: tip FRQKD/FRAM pe config/vize/decont, scutiri, plati multiple catre federatie + activare automata ambele taxe, fara esec la pret lipsa (taxa in asteptare) (val 1)
+- [x] 33-02-PLAN.md — RPC generare manuala (sportiv / selectie / in masa) + scutiri cu motiv, SECURITY DEFINER cu verificare club (val 2)
+- [x] 33-03-PLAN.md — RPC plata club->federatie cu bifare (suma calculata in DB, metoda, dovada) + raport pe cluburi + RLS fara cross-club pe tabelele taxei (val 2)
+- [x] 33-04-PLAN.md — Contracte TS: tipuri, perioada taxei, logica pura testata (stare, banner, eligibilitate, WhatsApp), serviciu RPC, hook reincarcare, selector perioada (val 2)
+- [x] 33-05-PLAN.md — UI club: situatie taxe + generare + scutiri, restantieri cu WhatsApp/CSV, banner virat-neachitat (val 3)
+- [x] 33-06-PLAN.md — UI federatie: ecran unic preturi FRQKD + FRAM (reminder februarie) + dashboard pe cluburi (val 3)
+- [x] 33-07-PLAN.md — Plati catre federatie: modal bifare + istoric plati multiple + export CSV/Excel (val 3)
+- [x] 33-08-PLAN.md — Istoric taxe pe profil sportiv + avertisment FRAM corect in Competitii (fara blocare) (val 3)
+- [x] 33-10-PLAN.md — Teste live PostgREST: izolare cross-club, refuzuri RPC, flux complet de bani pe date canar (val 3)
+- [x] 33-09-PLAN.md — Shell TaxeAnuale pe roluri + bannere + poarta de verificare a fazei si lista de acceptare end-of-phase (val 4)
 
 **Structura valurilor:** val 1 = {33-01} (audit + schema + activare, atomic: constrangerile noi rup functia veche); val 2 = {33-02 dupa 01, 33-03 dupa 01, 33-04 dupa 01}; val 3 = {33-05, 33-06, 33-07, 33-08 dupa 04; 33-10 dupa 02+03}; val 4 = {33-09 dupa 05+06+07+08+10}. Toate planurile sunt autonome (human_verify_mode = end-of-phase; lista de verificare umana in 33-09).
 

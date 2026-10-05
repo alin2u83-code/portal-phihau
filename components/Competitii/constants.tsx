@@ -2,6 +2,7 @@
 import React from 'react';
 import { VizaSportiv } from '../../types';
 import { TIP_COMPETITIE_LABELS } from '../../utils/competitiiTemplates';
+import { areTaxaAchitata } from '../../utils/taxeAnuale';
 
 // -----------------------------------------------
 // HELPERS persistare stare în sessionStorage
@@ -20,10 +21,11 @@ export function ssDel(key: string): void {
 }
 
 // -----------------------------------------------
-// HELPER: verifică dacă sportivul are viza FRAM activă pentru un an dat
+// HELPER: verifică taxa FRAM (an calendaristic) achitată sau scutită pentru un an dat.
+// Vizele FRQKD (sezon fiscal) sunt ignorate. Doar avertisment — nu blochează înscrierea.
 // -----------------------------------------------
 export function areVizaFRAM(sportivId: string, an: number, vizeSportivi: VizaSportiv[]): boolean {
-  return vizeSportivi.some(v => v.sportiv_id === sportivId && v.an === an && v.status_viza === 'Activ');
+  return areTaxaAchitata(vizeSportivi, sportivId, 'FRAM', an);
 }
 
 export const WarningVizaFRAM: React.FC<{ show: boolean; inline?: boolean }> = ({ show, inline }) => {
@@ -37,7 +39,7 @@ export const WarningVizaFRAM: React.FC<{ show: boolean; inline?: boolean }> = ({
   return (
     <div className="flex items-start gap-2 bg-yellow-900/30 border border-yellow-700/50 rounded-lg p-2.5 text-xs text-yellow-300">
       <span className="text-base leading-none shrink-0">⚠</span>
-      <span>Viza FRAM <strong>neachitată</strong> pentru anul curent. Sportivul nu va fi acceptat în competiție fără această viză.</span>
+      <span>Viza FRAM <strong>neachitată</strong> pentru anul curent. Sportivul nu va fi acceptat în competiție fără această viză. Avertisment — înscrierea nu este blocată în portal.</span>
     </div>
   );
 };

@@ -7,18 +7,13 @@ import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { calculeazaVarstaLaData, verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { formatNume } from '../../../utils/formatareSportiv';
+import { areVizaFRAM } from '../constants';
 import { BadgeEligibilitateGenerala } from './shared';
 import { EligibilitateGenerala } from './types';
 
 // -----------------------------------------------
 // HELPERS INTERNI
 // -----------------------------------------------
-
-function areVizaFRAM(sportivId: string, an: number, vizeSportivi: VizaSportiv[]): boolean {
-  return vizeSportivi.some(
-    v => v.sportiv_id === sportivId && v.an === an && v.status_viza === 'Activ'
-  );
-}
 
 function buildDejaInscrisiSet(inscrieri: InscriereCompetitie[]): Set<string> {
   const s = new Set<string>();

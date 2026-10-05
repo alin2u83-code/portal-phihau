@@ -447,6 +447,17 @@ Plans:
 
 **Structura valurilor:** val 1 = {32-01, 32-02, 32-03, 32-04} (independente); val 2 = {32-05 dupa 01, 32-06 dupa 01+02, 32-07 dupa 01+03}; val 3 = {32-08 dupa toate, neautonom — checkpoint de configurare externa}. 32-05 (endpoint-uri cu Bearer) si 32-02/32-06 (apelanti cu Bearer) trebuie sa ajunga in productie in acelasi deploy.
 
+### Phase 33: Taxe anuale FRQKD + FRAM: doua taxe separate, pret config super admin, generare automata+manuala+in masa, scutiri, plata catre federatie cu bifare sportivi (suma totala + metoda), banner restantieri, rapoarte
+
+**Goal:** Doua taxe anuale separate (FRQKD pe sezon fiscal, FRAM pe an calendaristic) cu pret fix setat de super admin, generare automata/manuala/in masa, scutiri, plata club->federatie cu bifare sportivi (suma totala + metoda), banner restantieri si rapoarte. Spec: docs/superpowers/specs/2026-10-05-taxe-anuale-frqkd-fram-design.md
+**Requirements**: TBD
+**Depends on:** Phase 32
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 33 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

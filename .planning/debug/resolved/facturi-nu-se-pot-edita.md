@@ -1,6 +1,6 @@
 ---
 slug: facturi-nu-se-pot-edita
-status: awaiting_human_verify
+status: resolved
 trigger: "Debug facturi: modificare, plata, creare — nu pot modifica detalii la facturi (toate 3 arii: creare/modificare/plata afectate simultan)."
 created: 2026-09-12
 updated: 2026-09-12
@@ -77,7 +77,7 @@ root_cause: "Doua bug-uri independente de tip schema-mismatch (nume camp in cod 
   (1) plati.reducereDetalii (coloana reala, camelCase) scrisa gresit ca 'reducere_detalii' (snake_case) in 2 locuri -> INSERT respins de PostgREST (PGRST204) la orice creare de factura.
   (2) RPC live 'proceseaza_plata_factura' insereaza in tranzactii o coloana 'descriere' care nu exista -> orice incasare esueaza cu eroare Postgres 42703."
 fix: "Aplicat (cod, verificat cu test API real): redenumit 'reducere_detalii' -> 'reducereDetalii' in GestiuneFacturi.tsx (handleAddFactura), JurnalIncasari.tsx (handleSaveIncasare), types.ts (tip Plata) si cele 3 citiri din PlatiScadente.tsx. Eliminat campul inexistent 'descriere' din INSERT-ul direct catre tranzactii in GestiuneFacturi.tsx (bug latent, ar fi aparut imediat dupa fix #1 la bifarea 'Incaseaza pe loc').
-  NEREZOLVAT: RPC 'proceseaza_plata_factura' (bug #2, afecteaza butonul 'Incaseaza' din ambele ecrane) — necesita acces la sursa reala a functiei (Supabase Studio) pentru un CREATE OR REPLACE FUNCTION corect; scrierile DDL pe DB live sunt blocate de permisiunile acestei sesiuni."
+  Bug #2 rezolvat pe live in migratia 20260912064106 (verificat 2026-10-05 via pg_get_functiondef: fara coloana descriere). Sursa adaugata in supabase/migrations. Rest: RPC SECURITY DEFINER fara verificare club (vezi audit RLS).
 verification: "Fix #1: verificat cu test API izolat (insert pe rand de test, sters imediat) — HTTP 201, succes, fara eroare, dupa aplicarea fix-ului. tsc --noEmit ruleaza curat (fara erori de tip) dupa toate modificarile. Verificare UI reala in asteptare (checkpoint uman)."
 files_changed:
   - components/Plati/GestiuneFacturi.tsx

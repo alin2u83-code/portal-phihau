@@ -18,6 +18,7 @@ import { usePlati } from './usePlati';
 import { useGrupe } from './useGrupe';
 import { usePermissions } from './usePermissions';
 import { useFetchAllowedClubs } from './useClubAccess';
+import { SELECT_VIZE_CU_PLATA } from '../services/taxeAnualeService';
 import { getCachedData, setCachedData } from '../utils/cache';
 
 export interface AppData {
@@ -349,7 +350,7 @@ export const useDataProvider = () => {
                 tranzactii: cleanedSupabase.from('tranzactii').select('*'),
                 istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
                 deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
-                vizeSportivi: cleanedSupabase.from('vize_sportivi').select('*'),
+                vizeSportivi: cleanedSupabase.from('vize_sportivi').select(SELECT_VIZE_CU_PLATA),
                 decontSportivi: cleanedSupabase.from('decont_sportivi').select('*'),
                 taxaAnualaFederatieConfig: cleanedSupabase.from('taxa_anuala_config').select('*'),
                 preturiConfig: cleanedSupabase.from('preturi_config').select('*'),

@@ -36,6 +36,7 @@ import { GradeTab } from './UserProfile/GradeTab';
 import { FinanciarTab } from './UserProfile/FinanciarTab';
 import { FamilieTab } from './UserProfile/FamilieTab';
 import { GrupeIstoricTab } from './UserProfile/GrupeIstoricTab';
+import { TaxeAnualeIstoric } from './UserProfile/TaxeAnualeIstoric';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 import { getAge } from '../utils/date';
@@ -915,6 +916,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                 )}
 
                 {activeTab === 'financiar' && (
+                    <>
                     <FinanciarTab
                         totalRestante={totalRestante}
                         tipuriAbonament={tipuriAbonament}
@@ -932,6 +934,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                         onReactivare={handleReactiveazaPlata}
                         onDeschideDetalii={setPlataDetaliuId}
                     />
+                    <div className="mt-6"><TaxeAnualeIstoric sportiv={sportiv} /></div>
+                    </>
                 )}
 
                 {activeTab === 'familie' && (

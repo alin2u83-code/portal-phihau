@@ -248,7 +248,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'nomenclatoare':
                                 return renderProtected(platiHubElement, canManageFinances);
                             case 'deconturi-federatie':
-                                return renderProtected(<Lazy.FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} decontSportivi={decontSportivi} currentUser={currentUser!} permissions={permissions} />, isAtLeastClubAdmin);
+                                return renderProtected(<Lazy.FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} decontSportivi={decontSportivi} currentUser={currentUser!} permissions={permissions} sportivi={filteredData.sportivi} plati={filteredData.plati} clubs={clubs} />, isAtLeastClubAdmin);
                             case 'user-management':
                                 return renderProtected(<Lazy.UserManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser!} allRoles={allRoles} setAllRoles={setAllRoles} clubs={clubs} permissions={permissions} />, isAtLeastClubAdmin);
                             case 'cluburi':

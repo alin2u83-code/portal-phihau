@@ -1,166 +1,23 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { DecontFederatie, DecontSportiv, User, Permissions, MetodaPlataDecont } from '../types';
-import { Card, Button, Modal, Select, EmptyState } from './ui';
-import { BanknotesIcon, UploadCloudIcon } from './icons';
-import { supabase } from '../supabaseClient';
+import React, { useEffect, useMemo, useState } from 'react';
+import { DecontFederatie, DecontSportiv, User, Permissions, Sportiv, Plata, SportivAcoperitPlata, TipTaxaFederala } from '../types';
+import { Card, Button, Modal, Select, EmptyState, Badge } from './ui';
+import { BanknotesIcon } from './icons';
+import { useData } from '../contexts/DataContext';
 import { useError } from './ErrorProvider';
-import { formatNume, sortBySportivNume } from '../utils/formatareSportiv';
-import { formatSezon } from '../utils/anFiscal';
-
-// --- Sub-componente ---
-
-interface SportivAcoperit {
-    id: string;
-    sportiv_id: string;
-    nume?: string | null;
-    prenume?: string | null;
-}
-
-const METODE_PLATA: MetodaPlataDecont[] = ['Cash', 'Transfer Bancar', 'Revolut'];
-
-interface PaymentConfirmationModalProps {
-    decont: DecontFederatie;
-    onClose: () => void;
-    onConfirm: (decont: DecontFederatie, file: File, metodaPlata: MetodaPlataDecont) => Promise<void>;
-}
-
-const PaymentConfirmationModal: React.FC<PaymentConfirmationModalProps> = ({
-    decont,
-    onClose,
-    onConfirm,
-}) => {
-    const [file, setFile] = useState<File | null>(null);
-    const [preview, setPreview] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [metodaPlata, setMetodaPlata] = useState<MetodaPlataDecont | ''>('');
-    const [sportiviAcoperiti, setSportiviAcoperiti] = useState<SportivAcoperit[]>([]);
-    const [loadingSportivi, setLoadingSportivi] = useState(true);
-    const [eroareSportivi, setEroareSportivi] = useState<string | null>(null);
-
-    useEffect(() => {
-        let active = true;
-        if (!supabase) return;
-        setLoadingSportivi(true);
-        setEroareSportivi(null);
-        supabase
-            .from('decont_sportivi')
-            .select('id, sportiv_id, an, sportivi(id, nume, prenume)')
-            .eq('decont_id', decont.id)
-            .then(({ data, error }) => {
-                if (!active) return;
-                if (error) {
-                    setEroareSportivi(error.message);
-                } else {
-                    const lista: SportivAcoperit[] = (data || []).map((row: any) => ({
-                        id: row.id,
-                        sportiv_id: row.sportiv_id,
-                        nume: row.sportivi?.nume,
-                        prenume: row.sportivi?.prenume,
-                    }));
-                    setSportiviAcoperiti(lista.sort((a, b) => sortBySportivNume(a, b)));
-                }
-                setLoadingSportivi(false);
-            });
-        return () => { active = false; };
-    }, [decont.id]);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.[0];
-        if (selectedFile) {
-            setFile(selectedFile);
-            const reader = new FileReader();
-            reader.onloadend = () => setPreview(reader.result as string);
-            reader.readAsDataURL(selectedFile);
-        }
-    };
-
-    const handleConfirm = async () => {
-        if (!file || !metodaPlata) return;
-        setLoading(true);
-        await onConfirm(decont, file, metodaPlata);
-        setLoading(false);
-    };
-
-    const nrDiferit = !loadingSportivi && !eroareSportivi && decont.nr_participanti != null && sportiviAcoperiti.length !== decont.nr_participanti;
-
-    return (
-        <Modal isOpen={true} onClose={onClose} title={`Confirmă Plata: ${decont.tip_activitate}`}>
-            <div className="space-y-4">
-                <p>
-                    Suma totală: <strong>{(decont.suma_totala || 0).toFixed(2)} RON</strong>.
-                    Încărcați dovada plății și alegeți metoda folosită.
-                </p>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-300">
-                        Sportivi acoperiți ({decont.nr_participanti ?? sportiviAcoperiti.length})
-                    </label>
-
-                    {nrDiferit && (
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm text-amber-300">
-                            ⚠️ Numărul de sportivi legați ({sportiviAcoperiti.length}) diferă de contorul decontului ({decont.nr_participanti}).
-                        </div>
-                    )}
-
-                    {loadingSportivi ? (
-                        <p className="text-center text-slate-500 text-sm py-4 italic">Se încarcă sportivii...</p>
-                    ) : eroareSportivi ? (
-                        <p className="text-center text-rose-400 text-sm py-4">{eroareSportivi}</p>
-                    ) : sportiviAcoperiti.length === 0 ? (
-                        <EmptyState title="Niciun sportiv legat" description="Decontul nu are încă sportivi legați în decont_sportivi." />
-                    ) : (
-                        <div className="max-h-48 overflow-y-auto rounded-lg border border-[var(--t-border)] p-2 bg-[var(--t-surface-2)]">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-0.5">
-                                {sportiviAcoperiti.map(s => (
-                                    <div key={s.id} className="px-2 py-1.5 text-sm text-slate-300">
-                                        {formatNume(s)}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                <Select
-                    label="Metoda Plata"
-                    value={metodaPlata}
-                    onChange={e => setMetodaPlata(e.target.value as MetodaPlataDecont | '')}
-                >
-                    <option value="">Alege metoda...</option>
-                    {METODE_PLATA.map(m => (
-                        <option key={m} value={m}>{m}</option>
-                    ))}
-                </Select>
-
-                <label htmlFor="file-upload-decont" className="cursor-pointer block">
-                    <div className={`p-6 border-2 border-dashed rounded-lg text-center transition-colors ${preview ? 'border-green-500 bg-green-900/20' : 'border-slate-600 hover:border-brand-primary hover:bg-brand-primary/10'}`}>
-                        {preview ? (
-                            <img src={preview} alt="Previzualizare" className="max-h-48 mx-auto rounded-md" />
-                        ) : (
-                            <div className="flex flex-col items-center">
-                                <UploadCloudIcon className="w-10 h-10 text-slate-400 mb-2" />
-                                <span className="font-semibold text-brand-primary">Alege un fișier</span>
-                                <p className="text-xs text-slate-500">PNG, JPG, PDF (MAX. 5MB)</p>
-                            </div>
-                        )}
-                    </div>
-                </label>
-                <input id="file-upload-decont" name="file-upload-decont" type="file" className="sr-only" onChange={handleFileChange} accept="image/png, image/jpeg, application/pdf" />
-
-                {file && <p className="text-sm text-center font-semibold text-slate-300">Fișier selectat: {file.name}</p>}
-
-                <div className="flex justify-end pt-4 gap-2 border-t border-[var(--t-border)]">
-                    <Button variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button>
-                    <Button variant="success" onClick={handleConfirm} isLoading={loading} disabled={!file || !metodaPlata}>
-                        Confirmă și Încarcă
-                    </Button>
-                </div>
-            </div>
-        </Modal>
-    );
-};
-
-// --- Componenta Principală ---
+import { formatNume } from '../utils/formatareSportiv';
+import { getPerioadaTaxa, formatPerioadaTaxa } from '../utils/anFiscal';
+import { construiesteSituatieTaxe, eligibiliPlataFederatie } from '../utils/taxeAnuale';
+import {
+    construiesteRanduriExport,
+    exportPlatiFederatieCSV,
+    exportPlatiFederatieXLSX,
+    formateazaDataRo,
+    RandScutitExport,
+} from '../utils/exportPlatiFederatie';
+import { incarcaSportiviAcoperiti, urlSemnatDovada } from '../services/taxeAnualeService';
+import { useReincarcaTaxe } from '../hooks/useReincarcaTaxe';
+import { SelectorPerioadaTaxa } from './Plati/TaxeAnualeTabs/SelectorPerioadaTaxa';
+import { PlataFederatieModal } from './Plati/TaxeAnualeTabs/PlataFederatieModal';
 
 interface FederationInvoicesProps {
     deconturi: DecontFederatie[];
@@ -169,140 +26,387 @@ interface FederationInvoicesProps {
     currentUser: User;
     onBack: () => void;
     permissions: Permissions;
+    sportivi?: Sportiv[];
+    plati?: Plata[];
+    clubs?: { id: string; nume: string }[];
 }
+
+const lei = (n: number) => `${n.toFixed(2)} lei`;
+const dataDecont = (d: DecontFederatie) => d.data_decont ?? d.data_generare ?? '';
+
+// --- Lista sportivilor acoperiti de o plata ---
+
+interface SportiviPlataModalProps {
+    decont: DecontFederatie;
+    tip: TipTaxaFederala;
+    an: number;
+    onClose: () => void;
+}
+
+const SportiviPlataModal: React.FC<SportiviPlataModalProps> = ({ decont, tip, an, onClose }) => {
+    const [lista, setLista] = useState<SportivAcoperitPlata[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [eroare, setEroare] = useState<string | null>(null);
+
+    useEffect(() => {
+        let activ = true;
+        setLoading(true);
+        incarcaSportiviAcoperiti({ tip, an, decontId: decont.id }).then(({ data, error }) => {
+            if (!activ) return;
+            if (error) setEroare(error);
+            else {
+                setLista(
+                    [...(data || [])].sort(
+                        (a, b) =>
+                            (a.nume ?? '').localeCompare(b.nume ?? '', 'ro') ||
+                            (a.prenume ?? '').localeCompare(b.prenume ?? '', 'ro')
+                    )
+                );
+            }
+            setLoading(false);
+        });
+        return () => {
+            activ = false;
+        };
+    }, [decont.id, tip, an]);
+
+    return (
+        <Modal isOpen={true} onClose={onClose} title={`Sportivi acoperiți — plata din ${formateazaDataRo(dataDecont(decont))}`}>
+            <div className="space-y-3">
+                {loading ? (
+                    <p className="text-center text-slate-500 text-sm py-4 italic">Se încarcă sportivii...</p>
+                ) : eroare ? (
+                    <p className="text-center text-rose-400 text-sm py-4">{eroare}</p>
+                ) : lista.length === 0 ? (
+                    <EmptyState title="Niciun sportiv legat" description="Plata nu are sportivi legați." />
+                ) : (
+                    <div className="max-h-80 overflow-y-auto rounded-lg border border-[var(--t-border)] divide-y divide-[var(--t-border)]">
+                        {lista.map(s => (
+                            <div key={s.sportiv_id} className="flex justify-between px-3 py-2 text-sm text-slate-300">
+                                <span>{formatNume({ nume: s.nume ?? '', prenume: s.prenume ?? '' } as any)}</span>
+                                <span className="font-semibold text-white">{lei(s.suma ?? 0)}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <div className="flex justify-end pt-3 border-t border-[var(--t-border)]">
+                    <Button variant="secondary" onClick={onClose}>Închide</Button>
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
+// --- Componenta principală ---
 
 export const FederationInvoices: React.FC<FederationInvoicesProps> = ({
     deconturi,
-    setDeconturi,
     decontSportivi,
     currentUser,
-    onBack,
     permissions,
+    sportivi = [],
+    plati = [],
+    clubs = [],
 }) => {
     const { isFederationAdmin, isAdminClub } = permissions;
-    const { showError, showSuccess } = useError();
-    const [selectedDecont, setSelectedDecont] = useState<DecontFederatie | null>(null);
+    const { showError } = useError();
+    const { vizeSportivi, activeRoleContext } = useData();
+    const reincarca = useReincarcaTaxe();
 
-    const filteredDeconturi = useMemo(() => {
-        const sorted = [...deconturi].sort((a, b) => {
-            const dateA = a.data_generare ? new Date(a.data_generare).getTime() : 0;
-            const dateB = b.data_generare ? new Date(b.data_generare).getTime() : 0;
-            return dateB - dateA;
-        });
-        if (isFederationAdmin) return sorted;
-        return sorted.filter(d => d.club_id === currentUser.club_id);
-    }, [deconturi, currentUser.club_id, isFederationAdmin]);
+    const [tip, setTip] = useState<TipTaxaFederala>('FRQKD');
+    const [an, setAn] = useState<number>(getPerioadaTaxa('FRQKD'));
+    const [clubFiltru, setClubFiltru] = useState<string>('');
+    const [modalPlata, setModalPlata] = useState(false);
+    const [decontSelectat, setDecontSelectat] = useState<DecontFederatie | null>(null);
+    const [seExporta, setSeExporta] = useState(false);
 
-    const totalDePlata = useMemo(() => {
-        return filteredDeconturi
-            .filter(d => d.status_plata === 'In asteptare')
-            .reduce((sum, d) => sum + (d.suma_totala || 0), 0);
-    }, [filteredDeconturi]);
+    const clubId: string | null = (activeRoleContext as any)?.club_id ?? currentUser.club_id ?? null;
+    const perioada = formatPerioadaTaxa(tip, an);
+    const clubEfectiv = isFederationAdmin ? clubFiltru : clubId ?? '';
 
-    const handleConfirmPayment = async (decont: DecontFederatie, file: File, metodaPlata: MetodaPlataDecont) => {
-        if (!supabase) return;
+    const numeClub = (id: string) => clubs.find(c => c.id === id)?.nume ?? `Club ${String(id).slice(0, 8)}`;
+
+    // Istoric: fiecare plata e un rand (mai multe plati pe aceeasi perioada nu se grupeaza)
+    const istoric = useMemo(() => {
+        return deconturi
+            .filter(d => d.tip_activitate === tip && d.an_fiscal === an)
+            .filter(d => (clubEfectiv ? d.club_id === clubEfectiv : true))
+            .sort((a, b) => {
+                const da = dataDecont(a) ? new Date(dataDecont(a)).getTime() : 0;
+                const db = dataDecont(b) ? new Date(dataDecont(b)).getTime() : 0;
+                return db - da;
+            });
+    }, [deconturi, tip, an, clubEfectiv]);
+
+    // KPI pentru clubul curent
+    const situatie = useMemo(
+        () =>
+            isAdminClub && clubId
+                ? construiesteSituatieTaxe({ sportivi, vize: vizeSportivi || [], plati, decontSportivi, tip, an, clubId })
+                : [],
+        [isAdminClub, clubId, sportivi, vizeSportivi, plati, decontSportivi, tip, an]
+    );
+    const kpi = useMemo(() => {
+        const eligibili = eligibiliPlataFederatie(situatie);
+        const virati = situatie.filter(s => s.virat);
+        const suma = (l: typeof situatie) => l.reduce((acc, s) => acc + (s.suma ?? 0), 0);
+        return {
+            deVirat: { nr: eligibili.length, suma: suma(eligibili) },
+            virat: { nr: virati.length, suma: suma(virati) },
+            scutiti: situatie.filter(s => s.stare === 'scutit').length,
+        };
+    }, [situatie]);
+
+    const randuriScutiti = (): RandScutitExport[] => {
+        const sportivById = new Map(sportivi.map(s => [s.id, s]));
+        return (vizeSportivi || [])
+            .filter(v => v.scutit && v.tip === tip && v.an === an)
+            .filter(v => (clubEfectiv ? v.club_id === clubEfectiv : true))
+            .map(v => {
+                const s = sportivById.get(v.sportiv_id);
+                return {
+                    Club: v.club_id ? numeClub(v.club_id) : '',
+                    Taxa: tip,
+                    Perioada: perioada,
+                    Nume: s?.nume ?? v.sportiv_id,
+                    Prenume: s?.prenume ?? '',
+                    Motiv: v.motiv_scutire ?? '',
+                };
+            });
+    };
+
+    const exportaPerioada = async (format: 'csv' | 'xlsx') => {
+        setSeExporta(true);
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
-            const filePath = `public/${decont.club_id}/${decont.id}/${fileName}`;
-
-            const { error: uploadError } = await supabase.storage.from('chitante_deconturi').upload(filePath, file);
-            if (uploadError) throw uploadError;
-
-            const { data, error } = await supabase
-                .from('deconturi_federatie')
-                .update({
-                    status_plata: 'Platit',
-                    metoda_plata: metodaPlata,
-                    confirmata_federatie: true,
-                    dovada_transfer_url: filePath,
-                })
-                .eq('id', decont.id)
-                .select()
-                .single();
-            if (error) throw error;
-
-            setDeconturi(prev => prev.map(d => d.id === decont.id ? data : d));
-            showSuccess("Succes", `Plata a fost confirmată prin ${metodaPlata}.`);
-            setSelectedDecont(null);
-        } catch (err: any) {
-            console.error('DETALII EROARE:', JSON.stringify(err, null, 2));
-            showError("Eroare la Confirmare", err.message);
+            const { data, error } = await incarcaSportiviAcoperiti({ tip, an });
+            if (error || !data) {
+                showError('Export plăți către federație', error ?? 'Datele nu au putut fi încărcate.');
+                return;
+            }
+            const ids = new Set(istoric.map(d => d.id));
+            const randuri = construiesteRanduriExport({
+                deconturi: istoric,
+                acoperiti: data.filter(a => ids.has(a.decont_id)),
+                clubs,
+            });
+            const nume = `plati_federatie_${tip}_${perioada}`;
+            if (format === 'csv') exportPlatiFederatieCSV(randuri, `${nume}.csv`);
+            else exportPlatiFederatieXLSX(randuri, randuriScutiti(), `${nume}.xlsx`);
+        } finally {
+            setSeExporta(false);
         }
     };
 
+    const exportaPlata = async (d: DecontFederatie, format: 'csv' | 'xlsx') => {
+        const { data, error } = await incarcaSportiviAcoperiti({ tip, an, decontId: d.id });
+        if (error || !data) {
+            showError('Export plată către federație', error ?? 'Datele nu au putut fi încărcate.');
+            return;
+        }
+        const randuri = construiesteRanduriExport({ deconturi: [d], acoperiti: data, clubs });
+        const nume = `plati_federatie_${tip}_${perioada}_${numeClub(d.club_id).replace(/[^\p{L}\p{N}]+/gu, '_')}_${dataDecont(d).slice(0, 10)}`;
+        if (format === 'csv') exportPlatiFederatieCSV(randuri, `${nume}.csv`);
+        else exportPlatiFederatieXLSX(randuri, [], `${nume}.xlsx`);
+    };
+
+    const deschideDovada = async (cale: string) => {
+        const fereastra = window.open('', '_blank');
+        const { data, error } = await urlSemnatDovada(cale);
+        if (error || !data) {
+            fereastra?.close();
+            showError('Dovadă plată', error ?? 'Dovada nu a putut fi deschisă.');
+            return;
+        }
+        if (fereastra) {
+            fereastra.opener = null;
+            fereastra.location.href = data;
+        } else {
+            window.open(data, '_blank', 'noopener');
+        }
+    };
+
+    const celulaMetoda = (d: DecontFederatie) =>
+        d.status_plata === 'In asteptare' ? (
+            <Badge variant="amber">În așteptare (vechi)</Badge>
+        ) : (
+            d.metoda_plata ?? '—'
+        );
+
+    const butoaneDovada = (d: DecontFederatie) =>
+        d.dovada_transfer_url ? (
+            <Button size="sm" variant="secondary" onClick={() => deschideDovada(d.dovada_transfer_url as string)}>
+                Vezi
+            </Button>
+        ) : (
+            <span className="text-slate-500">—</span>
+        );
+
+    const butoaneActiuni = (d: DecontFederatie) => (
+        <div className="flex flex-wrap gap-1 justify-end">
+            <Button size="sm" variant="secondary" onClick={() => setDecontSelectat(d)}>Sportivi</Button>
+            <Button size="sm" variant="secondary" onClick={() => exportaPlata(d, 'csv')}>CSV</Button>
+            <Button size="sm" variant="secondary" onClick={() => exportaPlata(d, 'xlsx')}>Excel</Button>
+        </div>
+    );
+
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-white">Deconturi către Federație</h1>
+            <h1 className="text-3xl font-bold text-white">Plăți către federație</h1>
 
-            <Card className="bg-brand-primary/10 border-brand-primary/30">
-                <div className="flex items-center gap-4">
-                    <BanknotesIcon className="w-10 h-10 text-brand-secondary" />
-                    <div>
-                        <h3 className="text-sm font-bold uppercase text-slate-400">Total de Plată către Federație</h3>
-                        <p className={`text-4xl font-black ${totalDePlata > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                            {totalDePlata.toFixed(2)} RON
-                        </p>
-                    </div>
-                </div>
-            </Card>
-
-            <Card className="p-0 overflow-hidden">
-                <div className="p-4 bg-slate-700/50 font-bold text-white">Istoric Deconturi</div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-700/30 text-slate-400 text-xs uppercase">
-                            <tr>
-                                <th className="p-3">Activitate</th>
-                                <th className="p-3">Sezon</th>
-                                <th className="p-3">Data</th>
-                                <th className="p-3 text-center">Nr. Sportivi</th>
-                                <th className="p-3 text-right">Sumă</th>
-                                <th className="p-3">Metoda</th>
-                                <th className="p-3 text-center">Status</th>
-                                <th className="p-3 text-right">Acțiuni</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-700">
-                            {filteredDeconturi.map(d => (
-                                <tr key={d.id}>
-                                    <td className="p-3 font-semibold">{d.tip_activitate}</td>
-                                    <td className="p-3">{d.an_fiscal != null ? formatSezon(d.an_fiscal) : '-'}</td>
-                                    <td className="p-3">{d.data_generare ? new Date(d.data_generare).toLocaleDateString('ro-RO') : '-'}</td>
-                                    <td className="p-3 text-center">{d.nr_participanti}</td>
-                                    <td className="p-3 text-right font-bold text-white">{(d.suma_totala || 0).toFixed(2)} RON</td>
-                                    <td className="p-3">{d.metoda_plata ?? '-'}</td>
-                                    <td className="p-3 text-center">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${d.status_plata === 'Platit' ? 'bg-green-600/30 text-green-300' : 'bg-red-600/30 text-red-300'}`}>
-                                            {d.status_plata === 'Platit' ? 'ACHITAT' : 'NEACHITAT'}
-                                        </span>
-                                    </td>
-                                    <td className="p-3 text-right">
-                                        {d.status_plata === 'In asteptare' && (isAdminClub || isFederationAdmin) ? (
-                                            <Button size="sm" variant="success" onClick={() => setSelectedDecont(d)}>Confirmă Plată</Button>
-                                        ) : (
-                                            <span className="text-xs text-slate-500 italic">
-                                                {d.status_plata === 'Platit'
-                                                    ? `${decontSportivi.filter(ds => ds.decont_id === d.id).length} sportivi`
-                                                    : 'Fără dovadă'}
-                                            </span>
-                                        )}
-                                    </td>
-                                </tr>
+            <div className="flex flex-col lg:flex-row lg:items-end gap-3">
+                <SelectorPerioadaTaxa
+                    tip={tip}
+                    an={an}
+                    onChange={(t, a) => {
+                        setTip(t);
+                        setAn(a);
+                    }}
+                />
+                {isFederationAdmin && (
+                    <div className="lg:w-64">
+                        <Select
+                            id="plati-federatie-club"
+                            label="Club"
+                            value={clubFiltru}
+                            onChange={e => setClubFiltru(e.target.value)}
+                        >
+                            <option value="">Toate cluburile</option>
+                            {clubs.map(c => (
+                                <option key={c.id} value={c.id}>{c.nume}</option>
                             ))}
-                        </tbody>
-                    </table>
-                    {filteredDeconturi.length === 0 && (
-                        <p className="p-8 text-center text-slate-500 italic">Niciun decont înregistrat.</p>
-                    )}
-                </div>
-            </Card>
+                        </Select>
+                    </div>
+                )}
+            </div>
 
-            {selectedDecont && (
-                <PaymentConfirmationModal
-                    decont={selectedDecont}
-                    onClose={() => setSelectedDecont(null)}
-                    onConfirm={handleConfirmPayment}
+            {isAdminClub && clubId && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="bg-brand-primary/10 border-brand-primary/30">
+                        <div className="flex items-center gap-4">
+                            <BanknotesIcon className="w-8 h-8 text-brand-secondary" />
+                            <div>
+                                <h3 className="text-xs font-bold uppercase text-slate-400">De virat</h3>
+                                <p className="text-lg font-black text-white">
+                                    {kpi.deVirat.nr} sportivi · {lei(kpi.deVirat.suma)}
+                                </p>
+                            </div>
+                        </div>
+                    </Card>
+                    <Card>
+                        <h3 className="text-xs font-bold uppercase text-slate-400">Virat</h3>
+                        <p className="text-lg font-black text-green-400">
+                            {kpi.virat.nr} · {lei(kpi.virat.suma)}
+                        </p>
+                    </Card>
+                    <Card>
+                        <h3 className="text-xs font-bold uppercase text-slate-400">Scutiți</h3>
+                        <p className="text-lg font-black text-blue-300">{kpi.scutiti}</p>
+                    </Card>
+                </div>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+                {isAdminClub && clubId && (
+                    <Button variant="success" onClick={() => setModalPlata(true)} disabled={kpi.deVirat.nr === 0}>
+                        Înregistrează plată către federație
+                    </Button>
+                )}
+                <Button variant="secondary" onClick={() => exportaPerioada('csv')} isLoading={seExporta}>
+                    Export CSV perioadă
+                </Button>
+                <Button variant="secondary" onClick={() => exportaPerioada('xlsx')} isLoading={seExporta}>
+                    Export Excel perioadă
+                </Button>
+            </div>
+
+            {istoric.length === 0 ? (
+                <EmptyState title={`Nicio plată către federație pentru ${tip} ${perioada}.`} />
+            ) : (
+                <>
+                    {/* Desktop: tabel */}
+                    <Card className="p-0 overflow-hidden hidden md:block">
+                        <div className="p-4 bg-slate-700/50 font-bold text-white">Istoric plăți</div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-700/30 text-slate-400 text-xs uppercase">
+                                    <tr>
+                                        <th className="p-3">Data plății</th>
+                                        <th className="p-3">Taxă</th>
+                                        <th className="p-3">Perioadă</th>
+                                        {isFederationAdmin && <th className="p-3">Club</th>}
+                                        <th className="p-3 text-center">Nr. sportivi</th>
+                                        <th className="p-3 text-right">Sumă</th>
+                                        <th className="p-3">Metodă</th>
+                                        <th className="p-3 text-center">Dovadă</th>
+                                        <th className="p-3 text-right">Acțiuni</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700">
+                                    {istoric.map(d => (
+                                        <tr key={d.id}>
+                                            <td className="p-3">{formateazaDataRo(dataDecont(d)) || '—'}</td>
+                                            <td className="p-3 font-semibold">{d.tip_activitate}</td>
+                                            <td className="p-3">{perioada}</td>
+                                            {isFederationAdmin && <td className="p-3">{numeClub(d.club_id)}</td>}
+                                            <td className="p-3 text-center">{d.nr_participanti ?? 0}</td>
+                                            <td className="p-3 text-right font-bold text-white">{lei(d.suma_totala || 0)}</td>
+                                            <td className="p-3">{celulaMetoda(d)}</td>
+                                            <td className="p-3 text-center">{butoaneDovada(d)}</td>
+                                            <td className="p-3">{butoaneActiuni(d)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+
+                    {/* Mobil: carduri */}
+                    <div className="md:hidden space-y-3">
+                        {istoric.map(d => (
+                            <Card key={d.id} className="space-y-2">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="font-semibold text-white">{formateazaDataRo(dataDecont(d)) || '—'}</p>
+                                        <p className="text-xs text-slate-400">
+                                            {d.tip_activitate} · {perioada}
+                                            {isFederationAdmin ? ` · ${numeClub(d.club_id)}` : ''}
+                                        </p>
+                                    </div>
+                                    <p className="font-black text-white">{lei(d.suma_totala || 0)}</p>
+                                </div>
+                                <div className="flex justify-between items-center text-sm text-slate-300">
+                                    <span>{d.nr_participanti ?? 0} sportivi</span>
+                                    <span>{celulaMetoda(d)}</span>
+                                    <span>{butoaneDovada(d)}</span>
+                                </div>
+                                {butoaneActiuni(d)}
+                            </Card>
+                        ))}
+                    </div>
+                </>
+            )}
+
+            {modalPlata && clubId && (
+                <PlataFederatieModal
+                    isOpen={modalPlata}
+                    onClose={() => setModalPlata(false)}
+                    clubId={clubId}
+                    tip={tip}
+                    an={an}
+                    sportivi={sportivi}
+                    plati={plati}
+                    onSaved={async () => {
+                        await reincarca();
+                    }}
+                />
+            )}
+
+            {decontSelectat && (
+                <SportiviPlataModal
+                    decont={decontSelectat}
+                    tip={tip}
+                    an={an}
+                    onClose={() => setDecontSelectat(null)}
                 />
             )}
         </div>

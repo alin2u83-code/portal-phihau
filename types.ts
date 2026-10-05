@@ -542,14 +542,32 @@ export interface DecontFederatie {
   data_decont?: string | null;
   dovada_transfer_url?: string | null;
   confirmata_federatie?: boolean | null;
+  creat_de?: string | null;
+  observatii?: string | null;
   created_at?: string;
 }
+
+// Faza 33: doua taxe federale anuale separate — FRQKD (pe sezon fiscal 1 sep) si FRAM (pe an calendaristic)
+export type TipTaxaFederala = 'FRQKD' | 'FRAM';
+
+export type StareTaxa =
+  | 'negenerata'
+  | 'in_asteptare'
+  | 'scutit'
+  | 'neachitat'
+  | 'achitat_partial'
+  | 'achitat'
+  | 'anulat'
+  | 'alt_club';
 
 export interface DecontSportiv {
   id: string;
   decont_id: string;
   sportiv_id: string;
   an: number;
+  tip: TipTaxaFederala;
+  plata_id: string | null;
+  suma: number | null;
   created_at?: string;
 }
 
@@ -565,9 +583,11 @@ export interface TaxaAnualeConfig {
   created_at?: string;
 }
 
-// Tabela noua public.taxa_anuala_config (an_fiscal/suma) — pretul taxei federale FRQKD per sezon, vezi Faza 29
+// Tabela noua public.taxa_anuala_config (tip/an_fiscal/suma) — pretul taxei federale per perioada:
+// FRQKD pe sezon fiscal (an_fiscal = anul de start al sezonului), FRAM pe an calendaristic. Vezi Faza 29 + Faza 33
 export interface TaxaAnualaFederatieConfig {
   id: string;
+  tip: TipTaxaFederala;
   an_fiscal: number;
   suma: number;
   created_at?: string;
@@ -584,6 +604,89 @@ export interface VizaSportiv {
   status_viza: 'Activ' | 'Inactiv' | 'Suspendat';
   observatii?: string | null;
   created_at?: string;
+  tip: TipTaxaFederala;
+  club_id: string | null;
+  scutit: boolean;
+  motiv_scutire?: string | null;
+  scutit_de?: string | null;
+  scutit_la?: string | null;
+  // Embed din plati prin FK vize_sportivi_plata_id_fkey (vezi SELECT_VIZE_CU_PLATA)
+  plata?: { status: Plata['status']; suma: number } | null;
+}
+
+/** Starea calculata a taxei unui sportiv pe (tip, perioada) — vezi utils/taxeAnuale.ts */
+export interface SituatieTaxaSportiv {
+  sportivId: string;
+  sportiv: Sportiv | null;
+  viza: VizaSportiv | null;
+  plata: Plata | null;
+  stare: StareTaxa;
+  suma: number | null;
+  virat: boolean;
+  decontId: string | null;
+}
+
+/** Notificare WhatsApp pentru taxa anuala (fara link de actiune in mesaj) */
+export interface NotificareTaxaAnuala {
+  cheie: string; // telefonWa sau 'fara-telefon:' + id sportiv
+  telefonAfisat: string | null;
+  telefonWa: string | null;
+  sursaTelefon: 'sportiv' | 'reprezentant_familie' | 'membru_familie' | null;
+  numeSportivi: string[];
+  sportivIds: string[];
+  plataIds: string[];
+  suma: number;
+  areAchitariPartiale: boolean;
+  tip: TipTaxaFederala;
+  an: number;
+  mesaj: string;
+}
+
+export interface RezultatGenerareTaxe {
+  facturat: number;
+  in_asteptare: number;
+  exista: number;
+  refuzat: number;
+  detalii: { sportiv_id: string; rezultat: string; plata_id: string | null }[];
+}
+
+/** Rand returnat de RPC raport_taxe_anuale_cluburi(p_tip, p_an) */
+export interface RandRaportTaxeClub {
+  club_id: string;
+  club_nume: string;
+  nr_sportivi: number;
+  nr_scutiti: number;
+  nr_in_asteptare: number;
+  nr_facturati: number;
+  suma_facturata: number;
+  suma_achitata_club: number;
+  suma_restanta_club: number;
+  nr_virati: number;
+  suma_virata: number;
+  suma_de_virat: number;
+}
+
+export interface SportivAcoperitPlata {
+  decont_id: string;
+  sportiv_id: string;
+  an: number;
+  tip: TipTaxaFederala;
+  suma: number | null;
+  plata_id: string | null;
+  nume: string | null;
+  prenume: string | null;
+  data_nasterii: string | null;
+}
+
+/** Sportiv virat federatiei dar neachitat (integral) catre club */
+export interface ViratNeachitat {
+  sportivId: string;
+  numeSportiv: string;
+  tip: TipTaxaFederala;
+  an: number;
+  suma: number;
+  statusFactura: Plata['status'];
+  plataId: string;
 }
 
 export interface SportivGrupaIstoric {

@@ -1,895 +1,77 @@
-﻿import React, { useState, useMemo } from 'react';
-import { supabase } from '../../supabaseClient';
-import { User, Sportiv, Plata, TaxaAnualeConfig, VizaSportiv, DecontSportiv, DecontFederatie, TaxaAnualaFederatieConfig } from '../../types';
-import { Button, Card, Input, Modal, Select, EmptyState } from '../ui';
-import { ArrowLeftIcon, CogIcon, BanknotesIcon, PlusIcon, CheckCircleIcon, XCircleIcon, SearchIcon, TrashIcon, CalendarIcon, DownloadIcon, PrinterIcon } from '../icons';
-import { useError } from '../ErrorProvider';
-import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
+import React, { useState, useMemo } from 'react';
+import { User, Sportiv, Plata, TipTaxaFederala } from '../../types';
+import { Button, EmptyState } from '../ui';
+import { ArrowLeftIcon } from '../icons';
 import { useData } from '../../contexts/DataContext';
-import { ResponsiveTable } from '../ResponsiveTable';
-import { getAnFiscalFederatie, formatSezon } from '../../utils/anFiscal';
+import { useNavigation } from '../../contexts/NavigationContext';
+import { usePermissions } from '../../hooks/usePermissions';
+import { getPerioadaTaxa, formatPerioadaTaxa } from '../../utils/anFiscal';
+import { pretTaxa } from '../../utils/taxeAnuale';
+import { TabPreturiTaxe } from './TaxeAnualeTabs/TabPreturiTaxe';
+import { TabRaportCluburi } from './TaxeAnualeTabs/TabRaportCluburi';
+import { TabSituatieTaxe } from './TaxeAnualeTabs/TabSituatieTaxe';
+import { TabRestantieriTaxe } from './TaxeAnualeTabs/TabRestantieriTaxe';
+import { BannerViratNeachitat } from './TaxeAnualeTabs/BannerViratNeachitat';
 
 interface TaxeAnualeProps {
     onBack: () => void;
     currentUser: User;
     sportivi: Sportiv[];
     plati: Plata[];
+    /** Pastrat pentru compatibilitate cu TabConfigurare; nu mai este folosit aici. */
     setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
     /** Faza 31 — ascuns cand e montat in hub-ul Plăți & Facturi */
     hideBackButton?: boolean;
 }
 
-// Formatare dată în format românesc: "01 Ian 2026"
-function formatDataRo(dateStr: string | null | undefined): string {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('ro-RO', { day: '2-digit', month: 'short', year: 'numeric' });
-}
+type TabId = 'preturi' | 'raport-cluburi' | 'situatie' | 'restantieri';
 
-// Titlu sigur pentru o taxă — evită "undefined" când câmpul `an` lipsește
-function getTitluTaxa(taxa: TaxaAnualeConfig): string {
-    if (taxa.descriere && taxa.descriere.trim() !== '') return taxa.descriere;
-    if (taxa.an != null) return `Taxă Anuală ${taxa.an}`;
-    return 'Taxă Anuală';
-}
+const TAXE: TipTaxaFederala[] = ['FRQKD', 'FRAM'];
 
-// Detectează tipul taxei după descriere
-const getTipTaxa = (taxa: TaxaAnualeConfig): 'FRAM' | 'FRQKD' | 'Alta' => {
-    const d = (taxa.descriere || '').toUpperCase();
-    if (d.includes('FRAM')) return 'FRAM';
-    if (d.includes('FRQKD')) return 'FRQKD';
-    return 'Alta';
-};
+/**
+ * Shell Taxe anuale (Faza 33): tab-uri pe rol din contextul activ.
+ * Federatie: Prețuri taxe + Raport cluburi. ADMIN_CLUB: Situație taxe + Restanțieri.
+ * Securitatea ramane in RLS/RPC; UI-ul doar alege ce afiseaza.
+ */
+export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, sportivi, plati, hideBackButton }) => {
+    const { activeRoleContext, taxaAnualaFederatieConfig, filteredData, loading } = useData();
+    const { setActiveView } = useNavigation();
+    const permissions = usePermissions(activeRoleContext);
 
-const TaxaCard: React.FC<{
-    taxa: TaxaAnualeConfig;
-    onUpdate: (id: string, updates: Partial<TaxaAnualeConfig>) => void;
-    onDelete: (taxa: TaxaAnualeConfig) => void;
-    onGenerate: (taxa: TaxaAnualeConfig) => void;
-    onViewStatus: (taxa: TaxaAnualeConfig) => void;
-    canManage: boolean;
-    canGenerate: boolean;
-}> = ({ taxa, onUpdate, onDelete, onGenerate, onViewStatus, canManage, canGenerate }) => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [editState, setEditState] = useState(taxa);
-    const { showError } = useError();
+    const esteFederatie = permissions.isFederationAdmin;
+    const esteAdminClub = !esteFederatie && permissions.isAdminClub;
+    const clubId: string | null = activeRoleContext?.club_id ?? null;
 
-    const handleSave = () => {
-        if (editState.suma <= 0) {
-            showError("Valoare Invalidă", "Suma trebuie să fie un număr pozitiv.");
-            return;
-        }
-        onUpdate(taxa.id, editState);
-        setIsEditing(false);
-    };
+    const taburi: { id: TabId; label: string }[] = esteFederatie
+        ? [
+            { id: 'preturi', label: 'Prețuri taxe' },
+            { id: 'raport-cluburi', label: 'Raport cluburi' },
+          ]
+        : [
+            { id: 'situatie', label: 'Situație taxe' },
+            { id: 'restantieri', label: 'Restanțieri' },
+          ];
 
-    const handleCancel = () => {
-        setEditState(taxa);
-        setIsEditing(false);
-    };
+    const [tabSelectat, setTabSelectat] = useState<TabId | null>(null);
+    const activeTab: TabId = taburi.some(t => t.id === tabSelectat) ? (tabSelectat as TabId) : taburi[0].id;
 
-    const perioadaText = useMemo(() => {
-        if (!taxa.data_inceput && !taxa.data_sfarsit) return null;
-        const start = formatDataRo(taxa.data_inceput);
-        const end = formatDataRo(taxa.data_sfarsit);
-        if (start && end) return `${start} – ${end}`;
-        if (start) return `Din ${start}`;
-        if (end) return `Până la ${end}`;
-        return null;
-    }, [taxa.data_inceput, taxa.data_sfarsit]);
-
-    return (
-        <Card className="flex flex-col bg-[var(--t-surface-2)] border-[var(--t-border)] hover:border-brand-secondary transition-colors">
-            <div className="flex justify-between items-start gap-2">
-                <div className="flex-grow min-w-0">
-                    {isEditing ? (
-                        <Input label="Descriere" value={editState.descriere || ''} onChange={e => setEditState({...editState, descriere: e.target.value})} />
-                    ) : (
-                        <h3 className="text-xl font-bold text-white break-words">{getTitluTaxa(taxa)}</h3>
-                    )}
-                    <div className="flex flex-wrap items-center gap-2 mt-1">
-                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-brand-primary/20 text-brand-secondary border border-brand-secondary/30">
-                            Anul {taxa.an ?? '—'}
-                        </span>
-                        {taxa.club_id ? (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/30 uppercase">Club Specific</span>
-                        ) : (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 uppercase">Federat</span>
-                        )}
-                    </div>
-
-                    {!isEditing && perioadaText && (
-                        <div className="flex items-center gap-1.5 mt-2">
-                            <CalendarIcon className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-                            <span className="text-xs text-slate-400">Valabilă: {perioadaText}</span>
-                        </div>
-                    )}
-
-                    {isEditing && (
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                            <Input
-                                label="Dată început"
-                                type="date"
-                                value={editState.data_inceput || ''}
-                                onChange={e => setEditState({...editState, data_inceput: e.target.value || null})}
-                            />
-                            <Input
-                                label="Dată sfârșit"
-                                type="date"
-                                value={editState.data_sfarsit || ''}
-                                onChange={e => setEditState({...editState, data_sfarsit: e.target.value || null})}
-                            />
-                        </div>
-                    )}
-                </div>
-
-                {canManage && (
-                    <div className="flex gap-2 flex-shrink-0">
-                        {isEditing ? (
-                            <>
-                                <Button variant="secondary" size="sm" onClick={handleCancel}>Anulează</Button>
-                                <Button variant="success" size="sm" onClick={handleSave}>Salvează</Button>
-                            </>
-                        ) : (
-                            <div className="flex gap-1">
-                                <Button variant="secondary" size="sm" onClick={() => setIsEditing(true)}>
-                                    <CogIcon className="w-4 h-4" />
-                                </Button>
-                                <Button variant="danger" size="sm" onClick={() => onDelete(taxa)}>
-                                    <TrashIcon className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            <div className="mt-6 flex items-end justify-between">
-                <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 tracking-tighter mb-1">Valoare Taxă</label>
-                    {isEditing ? (
-                        <Input label="" type="number" value={editState.suma} onChange={e => setEditState({...editState, suma: parseFloat(e.target.value) || 0})} />
-                    ) : (
-                        <p className="text-3xl font-black text-white">{taxa.suma.toFixed(2)} <span className="text-sm font-medium text-slate-400">RON</span></p>
-                    )}
-                </div>
-                <Button variant="secondary" size="sm" onClick={() => onViewStatus(taxa)}>
-                    Vezi Status
-                </Button>
-            </div>
-
-            {canGenerate && (
-                <div className="mt-6 pt-4 border-t border-[var(--t-border)] flex gap-2">
-                    <Button variant="info" size="sm" className="flex-1" onClick={() => onGenerate(taxa)}>
-                        <BanknotesIcon className="w-4 h-4 mr-2" /> Generează Facturi
-                    </Button>
-                </div>
-            )}
-        </Card>
-    );
-};
-
-// ====== Sub-componentă pentru lista "Au plătit" / "Nu au plătit" per tip taxă ======
-interface TipTaxaListeProps {
-    tip: 'FRAM' | 'FRQKD';
-    sportiviActivi: Sportiv[];
-    plati: Plata[];
-    anCurent: number;
-}
-
-const TipTaxaListe: React.FC<TipTaxaListeProps> = ({ tip, sportiviActivi, plati, anCurent }) => {
-    // Plăți achitate pentru acest tip de taxă în anul curent
-    const platiAchitate = useMemo(() => {
-        return plati.filter(p => {
-            if (p.status !== 'Achitat') return false;
-            if (p.an != null && p.an !== anCurent) return false;
-            if (p.an == null) {
-                // Fallback: verificăm după data plății
-                if (p.data) {
-                    const an = new Date(p.data).getFullYear();
-                    if (an !== anCurent) return false;
-                }
-            }
-            const desc = (p.descriere || '').toUpperCase();
-            const tipPlata = (p.tip || '').toUpperCase();
-            return desc.includes(tip) || tipPlata.includes(tip);
-        });
-    }, [plati, anCurent, tip]);
-
-    const idsAuPlatit = useMemo(() => new Set(platiAchitate.map(p => p.sportiv_id).filter(Boolean)), [platiAchitate]);
-
-    const auPlatit = useMemo(() =>
-        platiAchitate.map(p => {
-            const s = sportiviActivi.find(sp => sp.id === p.sportiv_id);
-            return s ? { sportiv: s, plata: p } : null;
-        }).filter((x): x is { sportiv: Sportiv; plata: Plata } => x !== null),
-        [platiAchitate, sportiviActivi]
-    );
-
-    const nuAuPlatit = useMemo(() =>
-        sportiviActivi.filter(s => !idsAuPlatit.has(s.id)),
-        [sportiviActivi, idsAuPlatit]
-    );
-
-    const culoareTip = tip === 'FRAM' ? 'text-sky-400' : 'text-violet-400';
-    const borderTip = tip === 'FRAM' ? 'border-sky-700/30' : 'border-violet-700/30';
-
-    return (
-        <div className={`rounded-xl border ${borderTip} p-4 space-y-4`}>
-            <h3 className={`text-base font-black uppercase tracking-widest ${culoareTip}`}>
-                Taxe {tip}
-            </h3>
-
-            {/* 2 coloane pe tabletă+ */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Au plătit */}
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between px-1">
-                        <span className="text-xs font-black uppercase tracking-wider text-emerald-400">Au plătit</span>
-                        <span className="text-sm font-black text-white">{auPlatit.length}</span>
-                    </div>
-                    <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
-                        {auPlatit.length === 0 ? (
-                            <div className="text-center py-4 text-[var(--t-text-muted)] italic text-xs bg-[var(--t-surface-2)] rounded-lg border border-dashed border-[var(--t-border)]">
-                                Nicio plată înregistrată.
-                            </div>
-                        ) : (
-                            auPlatit.map(({ sportiv, plata }) => (
-                                <div key={plata.id} className="flex items-center justify-between bg-emerald-900/10 border border-emerald-800/20 rounded-lg py-2 px-3">
-                                    <span className="font-semibold text-white text-xs">{sportiv.nume} {sportiv.prenume}</span>
-                                    <div className="flex flex-col items-end gap-0.5">
-                                        <span className="text-[10px] text-emerald-400 font-bold">{(plata.suma || 0).toFixed(2)} RON</span>
-                                        <span className="text-[10px] text-slate-500">{plata.data ? new Date(plata.data).toLocaleDateString('ro-RO') : '-'}</span>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
-
-                {/* Nu au plătit */}
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between px-1">
-                        <span className="text-xs font-black uppercase tracking-wider text-red-400">Nu au plătit</span>
-                        <span className="text-sm font-black text-white">{nuAuPlatit.length}</span>
-                    </div>
-                    <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
-                        {nuAuPlatit.length === 0 ? (
-                            <div className="flex items-center justify-center gap-2 py-4 text-emerald-400 text-xs bg-emerald-900/10 rounded-lg border border-dashed border-emerald-800/20">
-                                <CheckCircleIcon className="w-4 h-4" /> Toți au plătit.
-                            </div>
-                        ) : (
-                            nuAuPlatit.map(sportiv => (
-                                <div key={sportiv.id} className="flex items-center justify-between bg-red-900/10 border border-red-800/20 rounded-lg py-2 px-3">
-                                    <span className="font-semibold text-white text-xs">{sportiv.nume} {sportiv.prenume}</span>
-                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/20 uppercase">Restant</span>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// ====== Sub-componentă Tab "Taxe Club" — pentru ADMIN_CLUB ======
-interface TabTaxeClubProps {
-    sportiviActivi: Sportiv[];
-    plati: Plata[];
-    anCurent: number;
-}
-
-const TabTaxeClub: React.FC<TabTaxeClubProps> = ({ sportiviActivi, plati, anCurent }) => {
-    return (
-        <div className="space-y-6">
-            <p className="text-sm text-slate-400">
-                Situația plăților taxelor anuale la nivel de club pentru anul <span className="font-bold text-white">{anCurent}</span>.
-            </p>
-            {/* Desktop: 2 coloane (FRAM | FRQKD); Tabletă/Mobil: stacked */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <TipTaxaListe tip="FRAM" sportiviActivi={sportiviActivi} plati={plati} anCurent={anCurent} />
-                <TipTaxaListe tip="FRQKD" sportiviActivi={sportiviActivi} plati={plati} anCurent={anCurent} />
-            </div>
-        </div>
-    );
-};
-
-// ====== Sub-componentă Tab "Transmis Federație" — pentru ADMIN_CLUB ======
-interface TabTransmisFederatieProps {
-    decontSportivi: DecontSportiv[];
-    deconturiFederatie: DecontFederatie[];
-    sportivi: Sportiv[];
-    taxeAnualeConfig: TaxaAnualeConfig[];
-    anCurent: number;
-}
-
-const TabTransmisFederatie: React.FC<TabTransmisFederatieProps> = ({
-    decontSportivi, deconturiFederatie, sportivi, taxeAnualeConfig, anCurent
-}) => {
-    const deconturiAn = useMemo(() =>
-        decontSportivi.filter(ds => ds.an === anCurent),
-        [decontSportivi, anCurent]
-    );
-
-    const rows = useMemo(() => {
-        return deconturiAn.map(ds => {
-            const sportiv = sportivi.find(s => s.id === ds.sportiv_id);
-            const decont = deconturiFederatie.find(d => d.id === ds.decont_id);
-            const nrParticipanti = decont?.nr_participanti || 1;
-            const sumaTotal = decont?.suma_totala || 0;
-            const sumaPerSportiv = nrParticipanti > 0 ? sumaTotal / nrParticipanti : sumaTotal;
-            const dataDecont = decont?.data_generare || ds.created_at;
-            return {
-                id: ds.id,
-                numeSportiv: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : `ID: ${ds.sportiv_id.slice(0, 8)}`,
-                suma: sumaPerSportiv,
-                dataDecont,
-                decontId: ds.decont_id,
-            };
-        });
-    }, [deconturiAn, sportivi, deconturiFederatie]);
-
-    if (rows.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-500">
-                <BanknotesIcon className="w-12 h-12 text-slate-700" />
-                <p className="text-sm italic">Niciun decont transmis încă pentru anul {anCurent}.</p>
-            </div>
-        );
-    }
-
-    return (
-        <div className="space-y-4">
-            <p className="text-sm text-slate-400">
-                Sportivi incluși în deconturi transmise la federație în <span className="font-bold text-white">{anCurent}</span>.
-                Total: <span className="font-bold text-white">{rows.length}</span> sportivi.
-            </p>
-            <div className="overflow-x-auto rounded-xl border border-[var(--t-border)]">
-                <table className="w-full text-sm">
-                    <thead>
-                        <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
-                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider">Sportiv</th>
-                            <th className="text-right py-3 px-4 text-xs font-black uppercase tracking-wider">Sumă</th>
-                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider">Data Decontului</th>
-                            <th className="text-left py-3 px-4 text-xs font-black uppercase tracking-wider hidden sm:table-cell">Decont ID</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows.map(row => (
-                            <tr key={row.id} className="border-b border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)] transition-colors">
-                                <td className="py-3 px-4 font-semibold text-white">{row.numeSportiv}</td>
-                                <td className="py-3 px-4 text-right font-bold text-emerald-400">{row.suma.toFixed(2)} RON</td>
-                                <td className="py-3 px-4 text-slate-300 text-xs">{row.dataDecont ? new Date(row.dataDecont).toLocaleDateString('ro-RO') : '-'}</td>
-                                <td className="py-3 px-4 text-slate-500 font-mono text-[10px] hidden sm:table-cell">#{row.decontId.slice(0, 8)}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
-};
-
-// ====== Sub-componentă Tab "Raport Federație" — pentru SUPER_ADMIN ======
-interface TabRaportFederatieProps {
-    decontSportivi: DecontSportiv[];
-    deconturiFederatie: DecontFederatie[];
-    sportivi: Sportiv[];
-    taxeAnualeConfig: TaxaAnualeConfig[];
-    clubs: { id: string; nume: string }[];
-    anCurent: number;
-}
-
-const TabRaportFederatie: React.FC<TabRaportFederatieProps> = ({
-    decontSportivi, deconturiFederatie, sportivi, taxeAnualeConfig, clubs, anCurent
-}) => {
-    const deconturiAn = useMemo(() =>
-        decontSportivi.filter(ds => ds.an === anCurent),
-        [decontSportivi, anCurent]
-    );
-
-    // Grupăm pe club_id
-    const grupateClub = useMemo(() => {
-        const map = new Map<string, {
-            clubNume: string;
-            rows: {
-                id: string;
-                numeSportiv: string;
-                suma: number;
-                dataDecont: string | null | undefined;
-                tipTaxa: string;
-            }[];
-        }>();
-
-        deconturiAn.forEach(ds => {
-            const sportiv = sportivi.find(s => s.id === ds.sportiv_id);
-            const clubId = sportiv?.club_id || 'necunoscut';
-            const club = clubs.find(c => c.id === clubId);
-            const clubNume = club?.nume || (sportiv?.cluburi?.nume) || `Club ${clubId.slice(0, 8)}`;
-
-            const decont = deconturiFederatie.find(d => d.id === ds.decont_id);
-            const nrParticipanti = decont?.nr_participanti || 1;
-            const sumaTotal = decont?.suma_totala || 0;
-            const sumaPerSportiv = nrParticipanti > 0 ? sumaTotal / nrParticipanti : sumaTotal;
-            const dataDecont = decont?.data_generare || ds.created_at;
-
-            // Detectăm tip taxă din tip_activitate al decontului sau fallback la taxe config
-            const tipActivitate = (decont?.tip_activitate || '').toUpperCase();
-            const tipTaxa = tipActivitate.includes('FRAM') ? 'FRAM'
-                : tipActivitate.includes('FRQKD') ? 'FRQKD'
-                : 'Taxa Anuală';
-
-            if (!map.has(clubId)) {
-                map.set(clubId, { clubNume, rows: [] });
-            }
-            map.get(clubId)!.rows.push({
-                id: ds.id,
-                numeSportiv: sportiv ? `${sportiv.nume} ${sportiv.prenume}` : `ID: ${ds.sportiv_id.slice(0, 8)}`,
-                suma: sumaPerSportiv,
-                dataDecont,
-                tipTaxa,
+    // Preturi lipsa pentru perioada curenta (taxele raman «in asteptare», inscrierile nu esueaza)
+    const lipsuri = useMemo(() => {
+        const config = taxaAnualaFederatieConfig || [];
+        return TAXE
+            .filter(tip => pretTaxa(config, tip, getPerioadaTaxa(tip)) === null)
+            .map(tip => {
+                const perioada = formatPerioadaTaxa(tip, getPerioadaTaxa(tip));
+                return tip === 'FRQKD' ? `FRQKD sezonul ${perioada}` : `FRAM anul ${perioada}`;
             });
-        });
-
-        return Array.from(map.entries()).map(([clubId, val]) => ({
-            clubId,
-            clubNume: val.clubNume,
-            rows: val.rows,
-            total: val.rows.reduce((acc, r) => acc + r.suma, 0),
-        })).sort((a, b) => a.clubNume.localeCompare(b.clubNume, 'ro'));
-    }, [deconturiAn, sportivi, deconturiFederatie, clubs]);
-
-    if (grupateClub.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-500">
-                <BanknotesIcon className="w-12 h-12 text-slate-700" />
-                <p className="text-sm italic">Niciun decont transmis de cluburi pentru anul {anCurent}.</p>
-            </div>
-        );
-    }
-
-    return (
-        <div className="space-y-6">
-            <p className="text-sm text-slate-400">
-                Raport federație — deconturi transmise de cluburi pentru <span className="font-bold text-white">{anCurent}</span>.
-                Total cluburi raportate: <span className="font-bold text-white">{grupateClub.length}</span>.
-            </p>
-
-            {grupateClub.map(club => (
-                <div key={club.clubId} className="rounded-xl border border-[var(--t-border)] overflow-hidden">
-                    {/* Header club */}
-                    <div className="flex items-center justify-between px-5 py-3 bg-[var(--t-surface-2)] border-b border-[var(--t-border)]">
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm font-black text-white">{club.clubNume}</span>
-                            <span className="text-xs text-slate-400">{club.rows.length} sportivi</span>
-                        </div>
-                        <span className="text-sm font-black text-emerald-400">{club.total.toFixed(2)} RON</span>
-                    </div>
-
-                    {/* Tabel sportivi */}
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }} className="border-b border-[var(--t-border)]">
-                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider">Sportiv</th>
-                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider">Tip Taxă</th>
-                                    <th className="text-right py-2 px-4 text-[10px] font-black uppercase tracking-wider">Sumă</th>
-                                    <th className="text-left py-2 px-4 text-[10px] font-black uppercase tracking-wider hidden sm:table-cell">Data</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {club.rows.map(row => (
-                                    <tr key={row.id} className="border-b border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)] transition-colors">
-                                        <td className="py-2.5 px-4 font-semibold text-white">{row.numeSportiv}</td>
-                                        <td className="py-2.5 px-4">
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${
-                                                row.tipTaxa === 'FRAM'
-                                                    ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
-                                                    : row.tipTaxa === 'FRQKD'
-                                                    ? 'bg-violet-500/10 text-violet-400 border-violet-500/20'
-                                                    : 'bg-slate-700/50 text-slate-400 border-slate-600'
-                                            }`}>
-                                                {row.tipTaxa}
-                                            </span>
-                                        </td>
-                                        <td className="py-2.5 px-4 text-right font-bold text-emerald-400">{row.suma.toFixed(2)} RON</td>
-                                        <td className="py-2.5 px-4 text-slate-400 text-xs hidden sm:table-cell">
-                                            {row.dataDecont ? new Date(row.dataDecont).toLocaleDateString('ro-RO') : '-'}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-};
-
-// ====== Sub-componentă Tab "Taxa Federație (FRQKD)" — pentru SUPER_ADMIN_FEDERATIE ======
-interface TabTaxaFederatieFRQKDProps {
-    config: TaxaAnualaFederatieConfig[];
-    setConfig: React.Dispatch<React.SetStateAction<TaxaAnualaFederatieConfig[]>>;
-    anFiscalCurent: number;
-}
-
-const TabTaxaFederatieFRQKD: React.FC<TabTaxaFederatieFRQKDProps> = ({ config, setConfig, anFiscalCurent }) => {
-    const { showError, showSuccess } = useError();
-    const [anFiscalNou, setAnFiscalNou] = useState(anFiscalCurent);
-    const [sumaNoua, setSumaNoua] = useState(170);
-    const [isSaving, setIsSaving] = useState(false);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [editSuma, setEditSuma] = useState(0);
-    const [isSavingEdit, setIsSavingEdit] = useState(false);
-
-    const sorted = useMemo(() => config.slice().sort((a, b) => b.an_fiscal - a.an_fiscal), [config]);
-
-    const handleAdd = async () => {
-        if (!supabase) return;
-        if (!Number.isInteger(anFiscalNou) || anFiscalNou < 2020 || anFiscalNou > 2100) {
-            showError("An fiscal invalid", "Anul fiscal trebuie să fie un număr întreg între 2020 și 2100.");
-            return;
-        }
-        if (!(sumaNoua >= 0)) {
-            showError("Sumă invalidă", "Suma trebuie să fie un număr mai mare sau egal cu 0.");
-            return;
-        }
-        setIsSaving(true);
-        const { data, error } = await supabase
-            .from('taxa_anuala_config')
-            .insert({ an_fiscal: anFiscalNou, suma: sumaNoua })
-            .select()
-            .single();
-        setIsSaving(false);
-        if (error) {
-            if ((error as any).code === '23505') {
-                showError("Sezon deja configurat", `Sezonul ${formatSezon(anFiscalNou)} are deja un preț configurat — editează-l în loc să adaugi unul nou.`);
-            } else if ((error as any).code === '42501') {
-                showError("Acces refuzat", "Doar SUPER_ADMIN_FEDERATIE poate seta prețul taxei federale.");
-            } else {
-                showError("Eroare la adăugare", error.message);
-            }
-            return;
-        }
-        setConfig(prev => [...prev, data]);
-        showSuccess("Succes", `Sezonul ${formatSezon(anFiscalNou)} a fost configurat.`);
-    };
-
-    const handleStartEdit = (c: TaxaAnualaFederatieConfig) => {
-        setEditingId(c.id);
-        setEditSuma(c.suma);
-    };
-
-    const handleSaveEdit = async (id: string) => {
-        if (!supabase) return;
-        if (!(editSuma >= 0)) {
-            showError("Sumă invalidă", "Suma trebuie să fie un număr mai mare sau egal cu 0.");
-            return;
-        }
-        setIsSavingEdit(true);
-        const { data, error } = await supabase
-            .from('taxa_anuala_config')
-            .update({ suma: editSuma })
-            .eq('id', id)
-            .select()
-            .single();
-        setIsSavingEdit(false);
-        if (error) {
-            if ((error as any).code === '42501') {
-                showError("Acces refuzat", "Doar SUPER_ADMIN_FEDERATIE poate modifica prețul taxei federale.");
-            } else {
-                showError("Eroare la salvare", error.message);
-            }
-            return;
-        }
-        setConfig(prev => prev.map(c => c.id === id ? data : c));
-        showSuccess("Succes", "Prețul a fost actualizat.");
-        setEditingId(null);
-    };
-
-    return (
-        <div className="space-y-6">
-            <Card className="bg-[var(--t-surface-2)] border-[var(--t-border)]">
-                <p className="text-sm text-slate-300">
-                    Taxa Federație (FRQKD) se activează automat la prima participare a unui sportiv la examen de grad, stagiu sau competiție într-un sezon — o singură dată per sportiv per sezon — și generează atât factura sportivului către club, cât și obligația clubului către federație.
-                </p>
-                <p className="text-sm text-slate-400 mt-2">
-                    Sezonul federației începe la 1 septembrie. Sezonul curent este <span className="font-bold text-white">{formatSezon(anFiscalCurent)}</span>.
-                </p>
-            </Card>
-
-            <Card className="bg-[var(--t-surface-2)] border-[var(--t-border)]">
-                <h3 className="text-sm font-bold uppercase text-slate-400 mb-3">Adaugă sezon</h3>
-                <div className="flex flex-col sm:flex-row gap-3 items-end">
-                    <Input
-                        label="An fiscal"
-                        type="number"
-                        value={anFiscalNou}
-                        onChange={e => setAnFiscalNou(parseInt(e.target.value, 10) || 0)}
-                    />
-                    <Input
-                        label="Sumă (RON)"
-                        type="number"
-                        value={sumaNoua}
-                        onChange={e => setSumaNoua(parseFloat(e.target.value) || 0)}
-                    />
-                    <Button variant="primary" onClick={handleAdd} isLoading={isSaving}>
-                        <PlusIcon className="w-4 h-4 mr-2" /> Adaugă sezon
-                    </Button>
-                </div>
-            </Card>
-
-            {sorted.length === 0 ? (
-                <EmptyState
-                    title="Niciun sezon configurat"
-                    description="Adaugă un preț pentru sezonul curent folosind formularul de mai sus — altfel toate înscrierile la examen, stagiu și competiție vor eșua."
-                />
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                    {sorted.map(c => (
-                        <Card key={c.id} className="flex flex-col bg-[var(--t-surface-2)] border-[var(--t-border)]">
-                            <div className="flex justify-between items-start gap-2">
-                                <h3 className="text-xl font-bold text-white">{formatSezon(c.an_fiscal)}</h3>
-                                {c.an_fiscal === anFiscalCurent && (
-                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 uppercase">Sezon Curent</span>
-                                )}
-                            </div>
-                            <div className="mt-4">
-                                {editingId === c.id ? (
-                                    <div className="flex items-end gap-2">
-                                        <Input
-                                            label="Sumă (RON)"
-                                            type="number"
-                                            value={editSuma}
-                                            onChange={e => setEditSuma(parseFloat(e.target.value) || 0)}
-                                        />
-                                        <Button variant="secondary" size="sm" onClick={() => setEditingId(null)}>Anulează</Button>
-                                        <Button variant="success" size="sm" onClick={() => handleSaveEdit(c.id)} isLoading={isSavingEdit}>Salvează</Button>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-2xl font-black text-white">{c.suma.toFixed(2)} RON</p>
-                                        <Button variant="secondary" size="sm" onClick={() => handleStartEdit(c)}>
-                                            <CogIcon className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-                        </Card>
-                    ))}
-                </div>
-            )}
-            <p className="text-xs text-slate-500 italic">Prețul unui sezon se corectează, nu se șterge — nu există o operație de ștergere pentru rândurile de mai sus.</p>
-        </div>
-    );
-};
-
-// ====== Componenta principală ======
-export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, sportivi, plati, setPlati, hideBackButton }) => {
-    const { taxeAnualeConfig, vizeSportivi, decontSportivi, deconturiFederatie, clubs, setTaxeAnualeConfig, setVizeSportivi, loading, taxaAnualaFederatieConfig, setTaxaAnualaFederatieConfig } = useData();
-
-    // Tab-uri: ADMIN_CLUB vede 'config' | 'taxe-club' | 'transmis-federatie'
-    //         SUPER_ADMIN vede 'config' | 'taxa-federatie' | 'raport-federatie'
-    const [activeTab, setActiveTab] = useState<'config' | 'taxe-club' | 'transmis-federatie' | 'raport-federatie' | 'taxa-federatie'>('config');
-    const [taxaToGenerate, setTaxaToGenerate] = useState<TaxaAnualeConfig | null>(null);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [selectedTaxaForStatus, setSelectedTaxaForStatus] = useState<TaxaAnualeConfig | null>(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [newTaxa, setNewTaxa] = useState<Partial<TaxaAnualeConfig>>({
-        an: new Date().getFullYear(),
-        suma: 0,
-        descriere: 'Taxă Anuală',
-        data_inceput: `${new Date().getFullYear()}-01-01`,
-        data_sfarsit: `${new Date().getFullYear()}-12-31`,
-    });
-    const [taxaToDelete, setTaxaToDelete] = useState<TaxaAnualeConfig | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [statusFilter, setStatusFilter] = useState<'Toate' | 'Activ' | 'Neplătit'>('Toate');
-
-    const { showError, showSuccess } = useError();
-
-    const canManage = useMemo(() =>
-        currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'),
-        [currentUser.roluri]
-    );
-
-    const canGenerate = useMemo(() =>
-        currentUser.roluri.some(r =>
-            r.nume === 'ADMIN_CLUB' ||
-            r.nume === 'SUPER_ADMIN_FEDERATIE' ||
-            r.nume === 'ADMIN'
-        ),
-        [currentUser.roluri]
-    );
-
-    const anCurent = new Date().getFullYear();
-    const anFiscalCurent = getAnFiscalFederatie();
-
-    const sportiviActivi = useMemo(() => sportivi.filter(s => s.status === 'Activ'), [sportivi]);
-
-    const handleDeleteTaxa = async () => {
-        if (!taxaToDelete || !supabase) return;
-        setIsDeleting(true);
-        try {
-            const { error } = await supabase.from('taxe_anuale_config').delete().eq('id', taxaToDelete.id);
-            if (error) throw error;
-            setTaxeAnualeConfig(prev => prev.filter(t => t.id !== taxaToDelete.id));
-            showSuccess("Succes", "Configurarea a fost ștearsă.");
-        } catch (err: any) {
-            showError("Eroare la ștergere", err.message || "Asigurați-vă că nu există vize sau plăți asociate acestei taxe.");
-        } finally {
-            setIsDeleting(false);
-            setTaxaToDelete(null);
-        }
-    };
-
-    const handleUpdate = async (id: string, updates: Partial<TaxaAnualeConfig>) => {
-        if (!supabase) return;
-        const { data, error } = await supabase.from('taxe_anuale_config').update(updates).eq('id', id).select().single();
-        if (error) {
-            showError("Eroare la salvare", error);
-        } else if (data) {
-            setTaxeAnualeConfig(prev => prev.map(t => t.id === id ? data : t));
-            showSuccess("Succes", "Configurarea a fost salvată.");
-        }
-    };
-
-    const handleAddTaxa = async () => {
-        if (!supabase) return;
-        if (!newTaxa.an || !newTaxa.suma) {
-            showError("Date Incomplete", "Anul și suma sunt obligatorii.");
-            return;
-        }
-        const payload = {
-            ...newTaxa,
-            club_id: currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE') ? null : currentUser.club_id
-        };
-        const { data, error } = await supabase.from('taxe_anuale_config').insert(payload).select().single();
-        if (error) {
-            showError("Eroare la adăugare", error);
-        } else if (data) {
-            setTaxeAnualeConfig(prev => [...prev, data]);
-            showSuccess("Succes", "Taxa a fost adăugată.");
-            setShowAddModal(false);
-            setNewTaxa({
-                an: new Date().getFullYear(),
-                suma: 0,
-                descriere: 'Taxă Anuală',
-                data_inceput: `${new Date().getFullYear()}-01-01`,
-                data_sfarsit: `${new Date().getFullYear()}-12-31`,
-            });
-        }
-    };
-
-    const handleGenerareMasiva = async () => {
-        if (!taxaToGenerate || !supabase) return;
-        setIsGenerating(true);
-        const sportiviActiviList = sportivi.filter(s => s.status === 'Activ');
-        const descriereFactura = `${getTitluTaxa(taxaToGenerate)} ${taxaToGenerate.an ?? ''}`.trim();
-        const newPlati = sportiviActiviList.map(s => ({
-            sportiv_id: s.id,
-            familie_id: s.familie_id,
-            club_id: s.club_id,
-            an: taxaToGenerate.an,
-            suma: taxaToGenerate.suma,
-            data: new Date().toISOString().split('T')[0],
-            status: 'Neachitat',
-            descriere: descriereFactura,
-            tip: 'Taxa Anuala',
-            observatii: 'Generat automat'
-        }));
-        const { data, error } = await supabase
-            .from('plati')
-            .upsert(newPlati, { onConflict: 'sportiv_id,an', ignoreDuplicates: true })
-            .select();
-        setIsGenerating(false);
-        setTaxaToGenerate(null);
-        if (error) {
-            showError("Eroare la generarea facturilor", error);
-        } else {
-            const generated = data ?? [];
-            if (generated.length > 0) {
-                setPlati(prev => [...prev, ...generated]);
-                showSuccess("Operațiune finalizată", `${generated.length} facturi noi au fost generate.`);
-
-                // Notifică fiecare sportiv cu cont de utilizator
-                const sportiviCuUser = sportiviActiviList.filter(s => s.user_id);
-                if (sportiviCuUser.length > 0) {
-                    const mesaj = `Taxă anuală generată: ${getTitluTaxa(taxaToGenerate)} — ${taxaToGenerate.suma.toFixed(2)} RON. Verificați secțiunea Financiar.`;
-                    const notificari = sportiviCuUser.map(s => ({
-                        recipient_user_id: s.user_id,
-                        club_id: s.club_id,
-                        title: 'Taxă anuală generată',
-                        titlu: 'Taxă anuală generată',
-                        body: mesaj,
-                        sent_by: currentUser.id,
-                        tip: 'info',
-                        tip_destinatar: 'INDIVIDUAL',
-                        status_citire: false,
-                        is_read: false,
-                    }));
-                    await supabase.from('notificari').insert(notificari);
-                }
-            } else {
-                showSuccess("Info", "Toți sportivii activi au deja o taxă anuală generată pentru acest an.");
-            }
-        }
-    };
-
-    const statusList = useMemo(() => {
-        if (!selectedTaxaForStatus) return [];
-        return sportivi
-            .filter(s => s.status === 'Activ')
-            .map(s => {
-                const viza = vizeSportivi.find(v => v.sportiv_id === s.id && v.an === selectedTaxaForStatus.an);
-                return {
-                    ...s,
-                    vizaStatus: viza?.status_viza || 'Neplătit',
-                    dataPlatii: viza?.data_platii
-                };
-            })
-            .filter(s => {
-                const matchesSearch = s.nume.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                     s.prenume.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesFilter = statusFilter === 'Toate' ||
-                                     (statusFilter === 'Activ' && s.vizaStatus === 'Activ') ||
-                                     (statusFilter === 'Neplătit' && s.vizaStatus === 'Neplătit');
-                return matchesSearch && matchesFilter;
-            });
-    }, [selectedTaxaForStatus, sportivi, vizeSportivi, searchTerm, statusFilter]);
-
-    const handleExportCSV = () => {
-        if (!selectedTaxaForStatus) return;
-        const sportiviActiviSt = statusList.filter(s => s.vizaStatus === 'Activ');
-        const rows = [
-            ['Nr.', 'Nume', 'Prenume', 'Data Plății'],
-            ...sportiviActiviSt.map((s, i) => [
-                i + 1,
-                s.nume,
-                s.prenume,
-                s.dataPlatii ? new Date(s.dataPlatii).toLocaleDateString('ro-RO') : '-'
-            ])
-        ];
-        const csv = rows.map(r => r.join(',')).join('\n');
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `vize_active_${selectedTaxaForStatus.an}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    const handlePrint = () => {
-        window.print();
-    };
+    }, [taxaAnualaFederatieConfig]);
 
     if (loading) {
         return <div className="flex items-center justify-center h-64 text-slate-400">Se încarcă datele...</div>;
     }
 
-    // Calculăm tab-urile disponibile în funcție de rol
-    type TabId = 'config' | 'taxe-club' | 'transmis-federatie' | 'raport-federatie' | 'taxa-federatie';
-    const taburi: { id: TabId; label: string }[] = [
-        { id: 'config', label: 'Configurare' },
-        ...(canManage
-            ? [
-                { id: 'taxa-federatie' as TabId, label: 'Taxa Federație (FRQKD)' },
-                { id: 'raport-federatie' as TabId, label: 'Raport Federație' },
-              ]
-            : [
-                { id: 'taxe-club' as TabId, label: 'Taxe Club' },
-                { id: 'transmis-federatie' as TabId, label: 'Transmis Federație' },
-              ]
-        ),
-    ];
-
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     {!hideBackButton && (
@@ -898,48 +80,45 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                         </Button>
                     )}
                     <h1 className="text-4xl font-black text-white tracking-tighter">TAXE ANUALE & VIZE</h1>
-                    <p className="text-slate-400 text-sm">Gestionarea taxelor de federație și club pentru eligibilitatea la examene.</p>
+                    <p className="text-slate-400 text-sm">
+                        Taxele anuale FRQKD (sezon fiscal) și FRAM (an calendaristic): activare automată, generare, scutiri, plata către federație.
+                    </p>
                 </div>
-
-                <div className="flex flex-col items-start md:items-end gap-1">
-                    {canGenerate && !canManage && (
-                        <p className="text-xs text-amber-400/80 bg-amber-400/10 border border-amber-400/20 px-2 py-1 rounded-md">
-                            Admin Club: poți genera facturi, dar nu poți modifica taxele federale.
-                        </p>
-                    )}
-                    {canManage && activeTab === 'config' && (
-                        <Button variant="primary" onClick={() => setShowAddModal(true)}>
-                            <PlusIcon className="w-5 h-5 mr-2" /> Adaugă Configurare
-                        </Button>
-                    )}
-                </div>
+                {esteAdminClub && (
+                    <Button variant="secondary" onClick={() => setActiveView('deconturi-federatie')}>
+                        Plăți către federație
+                    </Button>
+                )}
             </div>
 
-            {!taxaAnualaFederatieConfig.some(c => c.an_fiscal === anFiscalCurent) && (
-                canManage ? (
+            {lipsuri.length > 0 && (
+                esteFederatie ? (
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-3">
                         <p className="text-sm text-rose-300">
-                            ⚠️ Sezonul <strong>{formatSezon(anFiscalCurent)}</strong> nu are preț configurat pentru Taxa Federație (FRQKD). Până la configurare, ORICE înscriere la examen de grad, stagiu sau competiție din tot portalul va eșua pentru sportivii fără viză pe sezonul curent.
+                            Lipsește prețul pentru: <strong>{lipsuri.join(', ')}</strong>. Taxele activate rămân «în așteptare» și se facturează automat când setezi prețul.
                         </p>
-                        <Button variant="danger" size="sm" onClick={() => setActiveTab('taxa-federatie')} className="flex-shrink-0">
+                        <Button variant="danger" size="sm" onClick={() => setTabSelectat('preturi')} className="flex-shrink-0">
                             Configurează prețul
                         </Button>
                     </div>
                 ) : (
                     <div className="bg-amber-400/10 border border-amber-400/20 rounded-lg px-4 py-3">
                         <p className="text-sm text-amber-300">
-                            ⚠️ Sezonul <strong>{formatSezon(anFiscalCurent)}</strong> nu are încă prețul taxei federale configurat — înscrierile la examen, stagiu sau competiție pot eșua până la configurare. Contactați federația.
+                            Federația nu a setat încă prețul pentru: <strong>{lipsuri.join(', ')}</strong>. Taxele activate rămân «în așteptare» și vor fi facturate automat.
                         </p>
                     </div>
                 )
             )}
 
-            {/* Tab-uri */}
+            {esteAdminClub && clubId && (
+                <BannerViratNeachitat clubId={clubId} sportivi={sportivi} plati={plati} />
+            )}
+
             <div className="flex border-b border-[var(--t-border)] overflow-x-auto">
                 {taburi.map(tab => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => setTabSelectat(tab.id)}
                         className={`px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px whitespace-nowrap ${
                             activeTab === tab.id
                                 ? 'border-brand-primary text-brand-secondary'
@@ -951,219 +130,23 @@ export const TaxeAnuale: React.FC<TaxeAnualeProps> = ({ onBack, currentUser, spo
                 ))}
             </div>
 
-            {/* ===== TAB CONFIGURARE ===== */}
-            {activeTab === 'config' && (
-                <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                        {taxeAnualeConfig.length > 0 ? (
-                            taxeAnualeConfig
-                                .slice()
-                                .sort((a, b) => (b.an ?? 0) - (a.an ?? 0))
-                                .map(taxa => (
-                                    <TaxaCard
-                                        key={taxa.id}
-                                        taxa={taxa}
-                                        onUpdate={handleUpdate}
-                                        onDelete={setTaxaToDelete}
-                                        onGenerate={setTaxaToGenerate}
-                                        onViewStatus={setSelectedTaxaForStatus}
-                                        canManage={canManage}
-                                        canGenerate={canGenerate}
-                                    />
-                                ))
-                        ) : (
-                            <Card className="col-span-full text-center py-12 bg-[var(--t-surface-2)] border-dashed border-[var(--t-border)]">
-                                <BanknotesIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                                <p className="text-slate-400 font-medium">Nicio taxă anuală configurată.</p>
-                                {canManage && (
-                                    <Button variant="secondary" size="sm" className="mt-4" onClick={() => setShowAddModal(true)}>
-                                        Configurează Prima Taxă
-                                    </Button>
-                                )}
-                            </Card>
+            {activeTab === 'preturi' && esteFederatie && <TabPreturiTaxe />}
+            {activeTab === 'raport-cluburi' && esteFederatie && <TabRaportCluburi />}
+
+            {!esteFederatie && (
+                clubId ? (
+                    <>
+                        {activeTab === 'situatie' && (
+                            <TabSituatieTaxe clubId={clubId} sportivi={sportivi} plati={plati} familii={filteredData?.familii ?? []} />
                         )}
-                    </div>
-                </>
+                        {activeTab === 'restantieri' && (
+                            <TabRestantieriTaxe clubId={clubId} sportivi={sportivi} plati={plati} familii={filteredData?.familii ?? []} />
+                        )}
+                    </>
+                ) : (
+                    <EmptyState title="Selectează un context de club pentru a gestiona taxele." />
+                )
             )}
-
-            {/* ===== TAB TAXE CLUB (ADMIN_CLUB) ===== */}
-            {activeTab === 'taxe-club' && !canManage && (
-                <TabTaxeClub
-                    sportiviActivi={sportiviActivi}
-                    plati={plati}
-                    anCurent={anCurent}
-                />
-            )}
-
-            {/* ===== TAB TRANSMIS FEDERATIE (ADMIN_CLUB) ===== */}
-            {activeTab === 'transmis-federatie' && !canManage && (
-                <TabTransmisFederatie
-                    decontSportivi={decontSportivi}
-                    deconturiFederatie={deconturiFederatie}
-                    sportivi={sportivi}
-                    taxeAnualeConfig={taxeAnualeConfig}
-                    anCurent={anCurent}
-                />
-            )}
-
-            {/* ===== TAB RAPORT FEDERATIE (SUPER_ADMIN) ===== */}
-            {activeTab === 'raport-federatie' && canManage && (
-                <TabRaportFederatie
-                    decontSportivi={decontSportivi}
-                    deconturiFederatie={deconturiFederatie}
-                    sportivi={sportivi}
-                    taxeAnualeConfig={taxeAnualeConfig}
-                    clubs={clubs}
-                    anCurent={anCurent}
-                />
-            )}
-
-            {/* ===== TAB TAXA FEDERATIE FRQKD (SUPER_ADMIN_FEDERATIE) ===== */}
-            {activeTab === 'taxa-federatie' && canManage && (
-                <TabTaxaFederatieFRQKD
-                    config={taxaAnualaFederatieConfig}
-                    setConfig={setTaxaAnualaFederatieConfig}
-                    anFiscalCurent={anFiscalCurent}
-                />
-            )}
-
-            {/* Modal Status Vize */}
-            <Modal
-                isOpen={!!selectedTaxaForStatus}
-                onClose={() => {
-                    setSelectedTaxaForStatus(null);
-                    setStatusFilter('Toate');
-                    setSearchTerm('');
-                }}
-                title={`Status Vize - Anul ${selectedTaxaForStatus?.an ?? '—'}`}
-            >
-                <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="relative flex-grow">
-                            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                            <Input
-                                label=""
-                                placeholder="Caută sportiv..."
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
-                        <div className="w-full sm:w-48">
-                            <Select
-                                label=""
-                                value={statusFilter}
-                                onChange={e => setStatusFilter(e.target.value as any)}
-                            >
-                                <option value="Toate">Toate Statusurile</option>
-                                <option value="Activ">Active</option>
-                                <option value="Neplătit">Neplătite</option>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {statusList.some(s => s.vizaStatus === 'Activ') && (
-                        <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center p-3 bg-[var(--t-surface-2)] rounded-lg border border-[var(--t-border)]">
-                            <p className="text-xs text-slate-400">
-                                <span className="font-bold text-emerald-400">{statusList.filter(s => s.vizaStatus === 'Activ').length}</span> sportivi cu viză activă — pot fi exportați pentru federație
-                            </p>
-                            <div className="flex gap-2 w-full sm:w-auto">
-                                <Button variant="secondary" size="sm" className="flex-1 sm:flex-none" onClick={handleExportCSV}>
-                                    <DownloadIcon className="w-4 h-4 mr-1.5" /> Export CSV
-                                </Button>
-                                <Button variant="secondary" size="sm" className="flex-1 sm:flex-none" onClick={handlePrint}>
-                                    <PrinterIcon className="w-4 h-4 mr-1.5" /> Tipărește
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="max-h-[60vh] overflow-y-auto rounded-lg border border-[var(--t-border)]">
-                        <ResponsiveTable
-                            data={statusList}
-                            columns={[
-                                { label: 'Sportiv', key: 'nume', render: (s) => <span className="font-bold text-white">{s.nume} {s.prenume}</span> },
-                                {
-                                    label: 'Status Viză',
-                                    key: 'vizaStatus',
-                                    render: (s) => (
-                                        <div className="flex items-center gap-2">
-                                            {s.vizaStatus === 'Activ' ? (
-                                                <span className="flex items-center gap-1 text-emerald-400 text-xs font-bold bg-emerald-400/10 px-2 py-1 rounded-full border border-emerald-400/20">
-                                                    <CheckCircleIcon className="w-3 h-3" /> ACTIVĂ
-                                                </span>
-                                            ) : (
-                                                <span className="flex items-center gap-1 text-red-400 text-xs font-bold bg-red-400/10 px-2 py-1 rounded-full border border-red-400/20">
-                                                    <XCircleIcon className="w-3 h-3" /> NEPLĂTITĂ
-                                                </span>
-                                            )}
-                                        </div>
-                                    )
-                                },
-                                {
-                                    label: 'Data Plății',
-                                    key: 'dataPlatii',
-                                    render: (s) => <span className="text-xs text-slate-400">{s.dataPlatii ? new Date(s.dataPlatii).toLocaleDateString('ro-RO') : '-'}</span>
-                                }
-                            ]}
-                        />
-                    </div>
-                </div>
-            </Modal>
-
-            {/* Modal Adaugă Taxă — doar SUPER_ADMIN_FEDERATIE */}
-            {canManage && (
-                <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Adaugă Configurare Taxă">
-                    <div className="space-y-4">
-                        <Input label="Anul" type="number" value={newTaxa.an} onChange={e => setNewTaxa({...newTaxa, an: parseInt(e.target.value)})} />
-                        <Input label="Suma (RON)" type="number" value={newTaxa.suma} onChange={e => setNewTaxa({...newTaxa, suma: parseFloat(e.target.value)})} />
-                        <Input label="Descriere (ex: Taxă FRAM 2026)" value={newTaxa.descriere} onChange={e => setNewTaxa({...newTaxa, descriere: e.target.value})} />
-                        <div className="grid grid-cols-2 gap-3">
-                            <Input
-                                label="Dată început valabilitate"
-                                type="date"
-                                value={newTaxa.data_inceput || ''}
-                                onChange={e => setNewTaxa({...newTaxa, data_inceput: e.target.value || null})}
-                            />
-                            <Input
-                                label="Dată sfârșit valabilitate"
-                                type="date"
-                                value={newTaxa.data_sfarsit || ''}
-                                onChange={e => setNewTaxa({...newTaxa, data_sfarsit: e.target.value || null})}
-                            />
-                        </div>
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button variant="secondary" onClick={() => setShowAddModal(false)}>Anulează</Button>
-                            <Button variant="primary" onClick={handleAddTaxa}>Adaugă Taxă</Button>
-                        </div>
-                    </div>
-                </Modal>
-            )}
-
-            {/* Confirmare generare facturi */}
-            <ConfirmDeleteModal
-                isOpen={!!taxaToGenerate}
-                onClose={() => setTaxaToGenerate(null)}
-                onConfirm={handleGenerareMasiva}
-                title="Confirmare Generare Facturi"
-                tableName=""
-                isLoading={isGenerating}
-                customMessage={`Sigur dorești să generezi facturi pentru "${taxaToGenerate ? getTitluTaxa(taxaToGenerate) : ''} (${taxaToGenerate?.an ?? ''})" pentru TOȚI sportivii activi care nu au deja această factură?`}
-                confirmButtonText="Da, generează"
-                confirmButtonVariant="success"
-                icon={BanknotesIcon}
-            />
-
-            {/* Confirmare ștergere taxă */}
-            <ConfirmDeleteModal
-                isOpen={!!taxaToDelete}
-                onClose={() => setTaxaToDelete(null)}
-                onConfirm={handleDeleteTaxa}
-                title="Șterge Configurare Taxă"
-                tableName="Configurare Taxă Anuală"
-                isLoading={isDeleting}
-                customMessage={`Sigur dorești să ștergi configurarea pentru anul ${taxaToDelete?.an ?? '—'}? Această acțiune va eșua dacă există deja vize generate pe baza acestei configurări.`}
-            />
         </div>
     );
 };

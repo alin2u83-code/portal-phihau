@@ -814,7 +814,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                     </Button>
                     {onNavigate && (
                         <>
-                            <Button variant="secondary" onClick={() => onNavigate('plati-scadente')} className="shadow-sm hover:shadow-md transition-all" title="Vezi plățile acestui sportiv">
+                            <Button variant="secondary" onClick={() => {
+                                // PlatiScadente își citește filtrul din localStorage la montare: îl setăm pe sportivul curent,
+                                // altfel lista arată facturile tuturor sportivilor (nu doar ale celui din profil).
+                                try {
+                                    window.localStorage.setItem('phi-hau-plati-scadente-filter', JSON.stringify({
+                                        sportiv: `${sportiv.nume} ${sportiv.prenume}`.trim(),
+                                        tip: '',
+                                        status: '',
+                                        clubId: '',
+                                    }));
+                                } catch {}
+                                onNavigate('plati-scadente');
+                            }} className="shadow-sm hover:shadow-md transition-all" title="Vezi plățile acestui sportiv">
                                 <BanknotesIcon className="w-4 h-4 mr-2"/> Plăți
                             </Button>
                             <Button variant="secondary" onClick={() => onViewExameneRaport ? onViewExameneRaport(sportiv.id) : onNavigate?.('examene')} className="shadow-sm hover:shadow-md transition-all" title="Raport examene sportiv">

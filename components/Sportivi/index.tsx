@@ -260,6 +260,8 @@ export const Sportivi: React.FC<{
 
     // Ref pentru scroll restaurat — se setează true după prima restaurare
     const scrollRestoredRef = useRef(false);
+    const scrollRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const scrollRetryCleanupRef = useRef<(() => void) | null>(null);
 
     // Reset page si loadAll la schimbarea filtrelor
     // Excepție: nu resetăm dacă tocmai am restaurat starea din sessionStorage
@@ -342,34 +344,61 @@ export const Sportivi: React.FC<{
         if (!restoredState) return;
         scrollRestoredRef.current = true;
 
-        const doScroll = () => {
-            const sportivId = restoredState.sportivId;
-            if (sportivId) {
-                const el = document.getElementById(`row-${sportivId}`);
-                if (el) {
-                    el.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'center' });
-                    return;
-                }
-            }
-            // fallback: scroll la poziția salvată
-            const scrollTarget = restoredState.scrollY;
-            if (scrollTarget) {
-                try {
-                    window.scrollTo({ top: scrollTarget, left: 0, behavior: 'instant' as ScrollBehavior });
-                } catch {
-                    window.scrollTo(0, scrollTarget);
-                }
+        // Lista se randează în două faze (întâi o variantă scurtă fără id pe rânduri, apoi toate rândurile),
+        // deci un singur scrollTo ar fi limitat la înălțimea scurtă. Reîncercăm până apare rândul țintă
+        // (sau până se poate atinge scrollY salvat), și ne oprim dacă utilizatorul derulează singur.
+        // Timer-ul nu depinde de ciclul efectului: un nou `loading` (refetch) nu trebuie să-l anuleze.
+        const MAX_ASTEPTARE_MS = 30000;
+        const INTERVAL_MS = 150;
+        const startedAt = Date.now();
+        const sportivId = restoredState.sportivId;
+        const scrollTarget = restoredState.scrollY;
+
+        const opreste = () => {
+            if (scrollRetryTimerRef.current) clearTimeout(scrollRetryTimerRef.current);
+            scrollRetryTimerRef.current = null;
+            ['wheel', 'touchstart', 'keydown'].forEach(ev => window.removeEventListener(ev, opreste));
+        };
+        ['wheel', 'touchstart', 'keydown'].forEach(ev => window.addEventListener(ev, opreste, { passive: true }));
+        scrollRetryCleanupRef.current = opreste;
+
+        const scrollPeScrollY = () => {
+            if (!scrollTarget) return;
+            try {
+                window.scrollTo({ top: scrollTarget, left: 0, behavior: 'instant' as ScrollBehavior });
+            } catch {
+                window.scrollTo(0, scrollTarget);
             }
         };
 
-        // Dublu RAF: asigură că browserul a pictat DOM-ul înainte de scroll
-        let raf2: number;
-        const raf1 = requestAnimationFrame(() => {
-            raf2 = requestAnimationFrame(doScroll);
-        });
-        return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
+        const incearca = () => {
+            const el = sportivId ? document.getElementById(`row-${sportivId}`) : null;
+            if (el) {
+                el.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'center' });
+                opreste();
+                return;
+            }
+            // Fără id de sportiv: ne ajunge înălțimea paginii să poată atinge scrollY salvat
+            if (!sportivId && document.documentElement.scrollHeight >= scrollTarget + window.innerHeight) {
+                scrollPeScrollY();
+                opreste();
+                return;
+            }
+            if (Date.now() - startedAt >= MAX_ASTEPTARE_MS) {
+                scrollPeScrollY(); // ultima încercare: poziția salvată
+                opreste();
+                return;
+            }
+            scrollRetryTimerRef.current = setTimeout(incearca, INTERVAL_MS);
+        };
+
+        // Dublu RAF: asigură că browserul a pictat DOM-ul înainte de prima încercare
+        requestAnimationFrame(() => requestAnimationFrame(incearca));
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading]);
+
+    // La demontare oprim reîncercările de restaurare rămase
+    useEffect(() => () => { scrollRetryCleanupRef.current?.(); }, []);
 
     const handleFilterChange = (name: keyof typeof filters, value: string) => {
         setFilters(prev => ({ ...prev, [name]: value }));

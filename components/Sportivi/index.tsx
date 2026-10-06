@@ -335,7 +335,9 @@ export const Sportivi: React.FC<{
     // Restaurează poziția după ce datele s-au încărcat
     // Dublu RAF: primul frame React a comis DOM-ul, al doilea frame browserul a pictat
     useEffect(() => {
-        if (sportiviLoading) return;
+        // Așteptăm același `loading` ca la randarea listei (sportivi + familii): altfel rândurile
+        // nu există încă, scrollTo rămâne clamped la 0 și restaurarea nu se mai reîncearcă.
+        if (loading) return;
         if (scrollRestoredRef.current) return;
         if (!restoredState) return;
         scrollRestoredRef.current = true;
@@ -367,7 +369,7 @@ export const Sportivi: React.FC<{
         });
         return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sportiviLoading]);
+    }, [loading]);
 
     const handleFilterChange = (name: keyof typeof filters, value: string) => {
         setFilters(prev => ({ ...prev, [name]: value }));

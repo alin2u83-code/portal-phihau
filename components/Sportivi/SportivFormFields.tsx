@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Sportiv, Grupa, Familie, TipAbonament, Club, User, Grad, Rol } from '../../types';
 import { Button, Input, Select, FormSection, Switch, DateInputDMY, Accordion, AccordionItem } from '../ui';
 import { PlusIcon, ShieldCheckIcon } from '../icons';
@@ -54,6 +54,21 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
         const activeRoleName = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
         return activeRoleName === 'SUPER_ADMIN_FEDERATIE' || activeRoleName === 'ADMIN';
     }, [activeRoleContext]);
+
+    // Gradul cu care s-a deschis sportivul — referinta pentru avertismentul de retrogradare.
+    // grad_actual_id e derivat in DB (MAX ordine din istoric_grade, Faza 18 D-01/D-02),
+    // deci alegerea unui grad mai mic nu are efect; corectia se face stergand randul din istoric.
+    const gradInitialRef = useRef<{ id?: string; grad: string | null } | null>(null);
+    if (!gradInitialRef.current || gradInitialRef.current.id !== formData.id) {
+        gradInitialRef.current = { id: formData.id, grad: formData.grad_actual_id ?? null };
+    }
+    const avertismentRetrogradare = useMemo(() => {
+        if (!formData.id) return false;
+        const initial = grade.find(g => g.id === gradInitialRef.current?.grad);
+        const selectat = grade.find(g => g.id === formData.grad_actual_id);
+        if (!initial) return false;
+        return (selectat?.ordine ?? -1) < initial.ordine;
+    }, [formData.id, formData.grad_actual_id, grade]);
 
     const clubIdPentruSezon = formData.club_id || activeRoleContext?.club_id || currentUser?.club_id || null;
     const { sezonActiv } = useSezonActiv(clubIdPentruSezon);
@@ -454,18 +469,26 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                                 </div>
                             </div>
                         )}
-                        <Select
-                            label="Grad Inițial / Actual"
-                            name="grad_actual_id"
-                            value={formData.grad_actual_id || ''}
-                            onChange={handleChange}
-                            disabled={loading}
-                        >
-                            <option value="">Începător (fără grad)</option>
-                            {grade.sort((a, b) => a.ordine - b.ordine).map(g => (
-                                <option key={g.id} value={g.id}>{g.nume}</option>
-                            ))}
-                        </Select>
+                        <div>
+                            <Select
+                                label="Grad Inițial / Actual"
+                                name="grad_actual_id"
+                                value={formData.grad_actual_id || ''}
+                                onChange={handleChange}
+                                disabled={loading}
+                            >
+                                <option value="">Începător (fără grad)</option>
+                                {grade.sort((a, b) => a.ordine - b.ordine).map(g => (
+                                    <option key={g.id} value={g.id}>{g.nume}</option>
+                                ))}
+                            </Select>
+                            {avertismentRetrogradare && (
+                                <p className="mt-1 text-xs text-amber-400" role="alert">
+                                    Gradul nu poate fi coborât de aici: gradul actual este cel mai mare din istoric.
+                                    Pentru o corecție, șterge din profilul sportivului, tab „Evoluție & Grade”, intrarea acordată greșit.
+                                </p>
+                            )}
+                        </div>
                         <div className="flex gap-2 items-end">
                             <Select
                                 label="Grupă"

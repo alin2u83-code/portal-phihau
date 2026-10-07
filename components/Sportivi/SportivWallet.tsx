@@ -6,6 +6,7 @@ import { useError } from '../ErrorProvider';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
 import { calculeazaSold } from '../../services/soldService';
+import { esteAnulata } from '../../utils/paymentStatus';
 
 interface SportivWalletProps {
     sportiv: Sportiv;
@@ -43,56 +44,51 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
     const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer Bancar' | 'Revolut'>('Cash');
     const [isSaving, setIsSaving] = useState(false);
 
+    // NOTA: `vizualizarePlati` (view_plata_sportiv) NU se mai foloseste aici — view-ul expune
+    // suma_datorata = suma_initiala si suma_incasata = plati.suma, fara tranzactii, deci Portofelul
+    // afisa preturile initiale ca "datorate" chiar si pentru facturile achitate. Totul vine din `plati` + `tranzactii`.
     const { sold, totalDue, invoiceHistory } = useMemo(() => {
-        if (!vizualizarePlati || !allSportivi) {
-             return { sold: 0, invoiceHistory: [], totalDue: 0 };
+        if (!allPlati || !allSportivi) {
+             return { sold: 0, invoiceHistory: [] as InvoiceHistoryItem[], totalDue: 0 };
         }
-        
+
         const familyMemberIds = isFamilyWallet
             ? new Set(allSportivi.filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
             : new Set([sportiv.id]);
 
-        const relevantPlatiView = vizualizarePlati.filter(p => {
+        const relevante = allPlati.filter(p => {
             if (isFamilyWallet && p.familie_id === sportiv.familie_id) return true;
             if (p.sportiv_id && familyMemberIds.has(p.sportiv_id)) return true;
             return false;
         });
 
-        const invoices = new Map<string, InvoiceHistoryItem>();
+        const history: InvoiceHistoryItem[] = relevante.map(p => {
+            const anulata = esteAnulata(p);
+            const remaining = anulata || p.status === 'Achitat' ? 0 : Math.max(0, p.suma || 0);
+            const details = {
+                plata_id: p.id,
+                sportiv_id: p.sportiv_id,
+                descriere: p.descriere,
+                data_emitere: p.data,
+                data_plata: null,
+                suma_datorata: p.suma_initiala ?? p.suma,
+                suma_incasata: null,
+                status: p.status,
+            } as unknown as VizualizarePlata;
+            return { details, payments: [], totalPaid: 0, remaining };
+        }).filter(h => h.details.status !== 'Anulat');
 
-        relevantPlatiView.forEach(p => {
-            if (!invoices.has(p.plata_id)) {
-                invoices.set(p.plata_id, {
-                    details: p,
-                    payments: [],
-                    totalPaid: 0,
-                    remaining: p.suma_datorata,
-                });
-            }
-            if (p.tranzactie_id && p.suma_incasata && p.data_plata) {
-                invoices.get(p.plata_id)!.payments.push(p);
-            }
-        });
+        history.sort((a, b) => new Date((b.details.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((a.details.data_emitere || '').toString().slice(0, 10)).getTime());
 
-        invoices.forEach(invoice => {
-            const totalPaidForInvoice = invoice.payments.reduce((sum, payment) => sum + (payment.suma_incasata || 0), 0);
-            invoice.totalPaid = totalPaidForInvoice;
-            invoice.remaining = (invoice.details.suma_datorata || 0) - totalPaidForInvoice;
-        });
-        
         // Sold = sursa unică (soldService): tranzacții reale − facturi neanulate.
-        // Lista de facturi și "de plată" rămân din view (detaliu pe factură).
         const currentSold = calculeazaSold(allPlati, filteredData.tranzactii, {
             sportivIds: Array.from(familyMemberIds),
             familieId: isFamilyWallet ? sportiv.familie_id : null,
         });
-        const dueAmount = Array.from(invoices.values()).reduce((sum, inv) => sum + Math.max(0, inv.remaining || 0), 0);
-        
-        const sortedHistory = Array.from(invoices.values()).sort((a,b) => new Date((b.details.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((a.details.data_emitere || '').toString().slice(0, 10)).getTime());
+        const dueAmount = history.reduce((sum, inv) => sum + inv.remaining, 0);
 
-        return { sold: currentSold, totalDue: dueAmount, invoiceHistory: sortedHistory };
-
-    }, [sportiv, isFamilyWallet, vizualizarePlati, allSportivi, familie, allPlati, filteredData.tranzactii]);
+        return { sold: currentSold, totalDue: dueAmount, invoiceHistory: history };
+    }, [sportiv, isFamilyWallet, allSportivi, familie, allPlati, filteredData.tranzactii]);
 
     const handleConfirmPayment = async () => {
         setIsSaving(true);
@@ -115,32 +111,50 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
              return;
         }
 
-        const platiToUpdate: Partial<Plata>[] = [];
-        const platiIdsToLink: string[] = [];
-        let amountToApply = amountToSettle;
-
-        for (const plata of unpaidPlati) {
-            if (amountToApply < 0.01) break;
-            const paymentForThisPlata = Math.min(amountToApply, plata.suma);
-            const newRemaining = plata.suma - paymentForThisPlata;
-            const newStatus: Plata['status'] = newRemaining < 0.01 ? 'Achitat' : 'Achitat Parțial';
-            platiToUpdate.push({ id: plata.id, status: newStatus });
-            platiIdsToLink.push(plata.id);
-            amountToApply -= paymentForThisPlata;
+        const clubId = sportiv.club_id;
+        if (!clubId) {
+            showError("Club lipsă", "Sportivul nu are club asociat — încasarea nu poate fi înregistrată.");
+            setIsSaving(false);
+            return;
         }
 
         try {
-            const { data: tx, error: txError } = await supabase.from('tranzactii').insert({ plata_ids: platiIdsToLink, sportiv_id: isFamilyWallet ? null : sportiv.id, familie_id: isFamilyWallet ? familie?.id : null, suma: amountToSettle, data_platii: new Date().toISOString().split('T')[0], metoda_plata: paymentMethod }).select().single();
-            if (txError) throw txError;
-            
-            const { data: updatedPlati, error: updateError } = await supabase.from('plati').upsert(platiToUpdate).select();
-            if (updateError) throw updateError;
-            
-            setTranzactii(prev => [...prev, tx as Tranzactie]);
-            setPlati(prev => {
-                const updatesMap = new Map((updatedPlati as Plata[]).map(p => [p.id, p]));
-                return prev.map(p => updatesMap.has(p.id) ? { ...p, ...updatesMap.get(p.id)!} : p);
-            });
+            // O tranzacție per factură, prin RPC-ul normalizat (tranzactii + tranzactie_plata);
+            // trigger-ul DB recalculează statusul facturii. Același flux ca JurnalIncasari.
+            const tranzactiiNoi: Tranzactie[] = [];
+            const platiIds: string[] = [];
+            let amountToApply = amountToSettle;
+            for (const plata of unpaidPlati) {
+                if (amountToApply < 0.01) break;
+                const suma = Math.min(amountToApply, plata.suma);
+                if (suma <= 0) continue;
+                const p_tranzactie = {
+                    sportiv_id: isFamilyWallet ? null : sportiv.id,
+                    familie_id: isFamilyWallet ? familie?.id : null,
+                    suma,
+                    data_platii: new Date().toISOString().split('T')[0],
+                    metoda_plata: paymentMethod,
+                    club_id: clubId,
+                };
+                const p_plati = [{ plata_id: plata.id, suma_alocata: suma }];
+                const { data: txId, error: txError } = await supabase.rpc('proceseaza_incasare_normalizata', { p_tranzactie, p_plati });
+                if (txError) throw txError;
+                const { data: tx, error: fetchError } = await supabase.from('tranzactii').select('*').eq('id', txId).maybeSingle();
+                if (fetchError) throw fetchError;
+                if (tx) tranzactiiNoi.push(tx as Tranzactie);
+                platiIds.push(plata.id);
+                amountToApply -= suma;
+            }
+
+            if (platiIds.length > 0) {
+                const { data: updatedPlati, error: updateError } = await supabase.from('plati').select('*').in('id', platiIds);
+                if (updateError) throw updateError;
+                setPlati(prev => {
+                    const updatesMap = new Map((updatedPlati as Plata[]).map(p => [p.id, p]));
+                    return prev.map(p => updatesMap.has(p.id) ? { ...p, ...updatesMap.get(p.id)! } : p);
+                });
+            }
+            setTranzactii(prev => [...prev, ...tranzactiiNoi]);
 
             showSuccess('Succes', `Încasare de ${(amountToSettle || 0).toFixed(2)} RON confirmată!`);
             setShowPaymentForm(false);

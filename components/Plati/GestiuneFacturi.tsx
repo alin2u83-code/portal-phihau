@@ -255,19 +255,29 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 // "column descriere of relation tranzactii does not exist". Coloanele
                 // reale sunt: id, plata_ids, sportiv_id, familie_id, suma, data_platii,
                 // metoda_plata, created_at, club_id, suma_totala, suma_incasata.
-                const { error: txError } = await supabase.from('tranzactii').insert({
-                    plata_ids: [plataData.id],
-                    sportiv_id: plataData.sportiv_id,
-                    familie_id: plataData.familie_id,
-                    suma: sumaNum,
-                    data_platii: formState.data,
-                    metoda_plata: formState.metoda_plata,
-                    club_id: plataData.club_id
+                // Flux normalizat (tranzactii + tranzactie_plata) — ca JurnalIncasari; nu mai scriem plata_ids.
+                const { error: txError } = await supabase.rpc('proceseaza_incasare_normalizata', {
+                    p_tranzactie: {
+                        sportiv_id: plataData.sportiv_id,
+                        familie_id: plataData.familie_id,
+                        suma: sumaNum,
+                        data_platii: formState.data,
+                        metoda_plata: formState.metoda_plata,
+                        club_id: plataData.club_id,
+                    },
+                    p_plati: [{ plata_id: plataData.id, suma_alocata: sumaNum }],
                 });
                 if (txError) throw txError;
             }
 
-            setPlati(prev => [plataData, ...prev]);
+            // Trigger-ul DB recalculeaza statusul dupa incasare — luam factura proaspata, nu pe cea de la INSERT.
+            let plataFinala = plataData;
+            if (formState.isDirectPayment) {
+                const { data: proaspata } = await supabase.from('plati').select('*').eq('id', plataData.id).maybeSingle();
+                if (proaspata) plataFinala = proaspata;
+            }
+
+            setPlati(prev => [plataFinala, ...prev]);
             setFormState(initialFormState);
             setSelectedEchipament('');
             setSelectedMarimeId('');

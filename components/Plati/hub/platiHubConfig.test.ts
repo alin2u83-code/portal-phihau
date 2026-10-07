@@ -41,9 +41,8 @@ const HARTA_ASTEPTATA_SECTIUNE_TAB: Record<SectiuneHub, string> = {
     'plati-scadente': 'facturi',
     'gestiune-facturi': 'facturi',
     'facturi-fara-prezenta': 'facturi',
-    'jurnal-incasari': 'incasari',
-    'sumar-incasari': 'incasari',
-    'istoric-plati': 'incasari',
+    'jurnal-incasari': 'facturi',
+    'sumar-incasari': 'facturi',
     'raport-financiar': 'rapoarte',
     'financial-dashboard': 'rapoarte',
     'tipuri-abonament': 'configurare',
@@ -83,9 +82,14 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
         assertPozitie(r, { tab: 'rapoarte', sectiune: 'raport-financiar' }, 'T2');
     });
 
-    run('T3: plati-hub + { tab: incasari, sectiune: jurnal-incasari } → incasari/jurnal-incasari', () => {
-        const r = rezolvaPozitieHub('plati-hub' as any, { tab: 'incasari', sectiune: 'jurnal-incasari' }, true);
-        assertPozitie(r, { tab: 'incasari', sectiune: 'jurnal-incasari' }, 'T3');
+    run('T3: plati-hub + { tab: facturi, sectiune: jurnal-incasari } → facturi/jurnal-incasari', () => {
+        const r = rezolvaPozitieHub('plati-hub' as any, { tab: 'facturi', sectiune: 'jurnal-incasari' }, true);
+        assertPozitie(r, { tab: 'facturi', sectiune: 'jurnal-incasari' }, 'T3');
+    });
+
+    run('T3b: alias tab desfiintat incasari → facturi/jurnal-incasari', () => {
+        const r = rezolvaPozitieHub('plati-hub' as any, { tab: 'incasari' }, true);
+        assertPozitie(r, { tab: 'facturi', sectiune: 'jurnal-incasari' }, 'T3b');
     });
 
     run('T4: sectiunea castiga peste tab-ul din viewParams (tab=facturi, sectiune=raport-financiar)', () => {
@@ -108,9 +112,9 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
         assertPozitie(r, { tab: 'rapoarte', sectiune: 'financial-dashboard' }, 'T7');
     });
 
-    run('T8: literal vechi istoric-plati, fara viewParams → incasari/istoric-plati', () => {
+    run('T8: istoric-plati nu mai e in hub (ecran personal separat) → pozitie implicita', () => {
         const r = rezolvaPozitieHub('istoric-plati' as any, null, true);
-        assertPozitie(r, { tab: 'incasari', sectiune: 'istoric-plati' }, 'T8');
+        assertPozitie(r, { tab: 'facturi', sectiune: 'plati-scadente' }, 'T8');
     });
 
     run('T9: literal vechi nomenclatoare, fara viewParams → configurare/nomenclatoare', () => {
@@ -133,9 +137,9 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
         assertPozitie(r, { tab: 'facturi', sectiune: 'plati-scadente' }, 'T12');
     });
 
-    run('T13: TAB_PENTRU_SECTIUNE respecta gruparea D-01..D-04 pentru toate cele 13 sectiuni', () => {
+    run('T13: TAB_PENTRU_SECTIUNE respecta gruparea D-01..D-04 pentru toate cele 12 sectiuni', () => {
         const chei = Object.keys(HARTA_ASTEPTATA_SECTIUNE_TAB) as SectiuneHub[];
-        assert(chei.length === 13, `asteptate 13 sectiuni in harta de test, gasite ${chei.length}`);
+        assert(chei.length === 12, `asteptate 12 sectiuni in harta de test, gasite ${chei.length}`);
         for (const sectiune of chei) {
             const tabAsteptat = HARTA_ASTEPTATA_SECTIUNE_TAB[sectiune];
             const tabReal = TAB_PENTRU_SECTIUNE[sectiune];
@@ -143,8 +147,8 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
         }
     });
 
-    run('T14: VEDERI_HUB are exact 13 elemente si include plati-hub', () => {
-        assert(VEDERI_HUB.length === 13, `asteptate 13 elemente in VEDERI_HUB, gasite ${VEDERI_HUB.length}`);
+    run('T14: VEDERI_HUB are exact 12 elemente si include plati-hub', () => {
+        assert(VEDERI_HUB.length === 12, `asteptate 12 elemente in VEDERI_HUB, gasite ${VEDERI_HUB.length}`);
         assert((VEDERI_HUB as readonly string[]).includes('plati-hub'), 'VEDERI_HUB trebuie sa contina plati-hub');
     });
 
@@ -161,9 +165,9 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
         assert(esteSectiuneHub('familii') === false, "esteSectiuneHub('familii') trebuie sa fie false");
     });
 
-    run('T17: TABURI_HUB are exact 4 tab-uri, in ordinea Facturi/Incasari/Rapoarte/Configurare', () => {
+    run('T17: TABURI_HUB are exact 3 tab-uri, in ordinea Facturi/Rapoarte/Configurare', () => {
         assert(
-            JSON.stringify(TABURI_HUB) === JSON.stringify(['facturi', 'incasari', 'rapoarte', 'configurare']),
+            JSON.stringify(TABURI_HUB) === JSON.stringify(['facturi', 'rapoarte', 'configurare']),
             `ordine neasteptata TABURI_HUB: ${JSON.stringify(TABURI_HUB)}`
         );
     });

@@ -67,13 +67,13 @@
 import type { View, User, Permissions, Plata, Sportiv } from '../../../types';
 
 /** Cele 4 tab-uri interne ale hub-ului "Plăți & Facturi" (D-01..D-04). */
-export type TabHub = 'facturi' | 'incasari' | 'rapoarte' | 'configurare';
+export type TabHub = 'facturi' | 'rapoarte' | 'configurare';
 
 /** Cele 12 vederi (literale View vechi) + sumar-incasari (sectiune noua, nu View) care intra in hub — familii si deconturi-federatie
  * raman in afara hub-ului (D-05), NU apar aici. */
 export type SectiuneHub =
   | 'plati-scadente' | 'gestiune-facturi' | 'facturi-fara-prezenta'
-  | 'jurnal-incasari' | 'sumar-incasari' | 'istoric-plati'
+  | 'jurnal-incasari' | 'sumar-incasari'
   | 'raport-financiar' | 'financial-dashboard'
   | 'tipuri-abonament' | 'configurare-preturi' | 'reduceri' | 'taxe-anuale' | 'nomenclatoare';
 
@@ -105,19 +105,19 @@ export interface PlatiHubTabProps {
 // ─────────────────────────────────────────────────────────────────────────
 
 /** Ordinea tab-urilor in UI (pastilele hub-ului). */
-export const TABURI_HUB: readonly TabHub[] = ['facturi', 'incasari', 'rapoarte', 'configurare'];
+export const TABURI_HUB: readonly TabHub[] = ['facturi', 'rapoarte', 'configurare'];
 
 export const ETICHETE_TABURI: Record<TabHub, string> = {
-  facturi: 'Facturi',
-  incasari: 'Încasări',
+  facturi: 'Facturi & Încasări',
   rapoarte: 'Rapoarte',
   configurare: 'Configurare',
 };
 
 /** Gruparea LOCKED D-01..D-04. Ordinea din fiecare lista e ordinea pastilelor in UI. */
 export const SECTIUNI_PE_TAB: Record<TabHub, readonly SectiuneHub[]> = {
-  facturi: ['plati-scadente', 'gestiune-facturi', 'facturi-fara-prezenta'], // D-01
-  incasari: ['jurnal-incasari', 'sumar-incasari', 'istoric-plati'], // D-02 (+ sumar-incasari, debug plati 2026-10-07)
+  // D-01 + D-02 unificate (2026-10-08): facturi si incasari intr-un singur tab.
+  // 'istoric-plati' nu mai e in hub: e istoricul PERSONAL al utilizatorului, ecran separat (AppRouter).
+  facturi: ['plati-scadente', 'gestiune-facturi', 'facturi-fara-prezenta', 'jurnal-incasari', 'sumar-incasari'],
   rapoarte: ['raport-financiar', 'financial-dashboard'], // D-03
   configurare: ['tipuri-abonament', 'configurare-preturi', 'reduceri', 'taxe-anuale', 'nomenclatoare'], // D-04
 };
@@ -128,9 +128,6 @@ export const ETICHETE_SECTIUNI: Record<SectiuneHub, string> = {
   'facturi-fara-prezenta': 'Facturi fără Prezență',
   'jurnal-incasari': 'Jurnal Încasări',
   'sumar-incasari': 'Sumar Încasări',
-  // IstoricPlati afiseaza platile utilizatorului logat — comportament neschimbat
-  // fata de vederea veche, eticheta reflecta asta ("Personale").
-  'istoric-plati': 'Istoric Plăți Personale',
   'raport-financiar': 'Raport Financiar',
   'financial-dashboard': 'Dashboard Financiar',
   'tipuri-abonament': 'Config. Abonamente',
@@ -203,7 +200,10 @@ export function rezolvaPozitieHub(activeView: View, viewParams: unknown, poateVe
   const tabDinParams = vp ? vp.tab : undefined;
 
   let rezultat: PozitieHub;
-  if (esteSectiuneHub(sectiuneDinParams)) {
+  // Alias: linkuri vechi cu tab 'incasari' (tab desfiintat) deschid Jurnalul in tab-ul unificat.
+  if (tabDinParams === 'incasari' && !esteSectiuneHub(sectiuneDinParams)) {
+    rezultat = { tab: 'facturi', sectiune: 'jurnal-incasari' };
+  } else if (esteSectiuneHub(sectiuneDinParams)) {
     rezultat = { tab: TAB_PENTRU_SECTIUNE[sectiuneDinParams], sectiune: sectiuneDinParams };
   } else if (esteTabHub(tabDinParams)) {
     rezultat = { tab: tabDinParams, sectiune: SECTIUNE_IMPLICITA[tabDinParams] };

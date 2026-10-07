@@ -161,7 +161,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     // Faza 31 (31-08): un singur element pentru hub-ul "Plăți & Facturi",
     // construit o singură dată. Crearea unui element JSX nu îl randează —
     // e returnat doar din ramurile de mai jos (vederea hub + alias-urile
-    // legacy, și din ramura canManageFinances a lui 'istoric-plati'). Definit
+    // legacy). Definit
     // DUPĂ return-urile timpurii (OnboardingCompletare/MandatoryPasswordChange)
     // și nu introduce niciun hook nou (Rules of Hooks — vezi CR-03 mai sus).
     const platiHubElement = (
@@ -336,10 +336,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'istoric-prezenta':
                                 return <Lazy.MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} />;
                             case 'istoric-plati':
-                                // Faza 31: canManageFinances → hub (tab Încasări, secțiune Istoric
-                                // Plăți Personale); altfel ramură IDENTICĂ cu cea veche (rolul
-                                // SPORTIV își vede propriul istoric, fără acces la hub).
-                                return canManageFinances ? platiHubElement : <Lazy.IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} plati={filteredData.plati} tranzactii={filteredData.tranzactii} />;
+                                // Istoricul PERSONAL de plăți (propriul utilizator) — ecran separat, nu face parte din hub.
+                                return <Lazy.IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} plati={filteredData.plati} tranzactii={filteredData.tranzactii} />;
                             case 'account-settings':
                                 return <Lazy.AccountSettings onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} setCurrentUser={setCurrentUser} setSportivi={setSportivi} />;
                             case 'fisa-digitala':

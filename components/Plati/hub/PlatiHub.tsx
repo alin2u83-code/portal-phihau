@@ -5,7 +5,6 @@ import { Button } from '../../ui';
 import { ArrowLeftIcon, FileTextIcon, BanknotesIcon, ChartBarIcon, CogIcon } from '../../icons';
 import { MartialArtsSkeleton } from '../../MartialArtsSkeleton';
 import { TabFacturi } from './TabFacturi';
-import { TabIncasari } from './TabIncasari';
 import { TabRapoarte } from './TabRapoarte';
 import { TabConfigurare } from './TabConfigurare';
 import {
@@ -53,7 +52,6 @@ export interface PlatiHubProps {
 
 const ICONITE_TABURI: Record<TabHub, React.ComponentType<{ className?: string }>> = {
   facturi: FileTextIcon,
-  incasari: BanknotesIcon,
   rapoarte: ChartBarIcon,
   configurare: CogIcon,
 };
@@ -85,7 +83,7 @@ export const PlatiHub: React.FC<PlatiHubProps> = ({
   // history, deci "înapoi" din Jurnal revine pe Facturi, ca vechiul flux.
   const handleIncaseazaMultiple = (platiSelectate: Plata[]) => {
     setPlatiPentruIncasare(platiSelectate);
-    navigateTo('plati-hub' as any, { tab: 'incasari', sectiune: 'jurnal-incasari' });
+    navigateTo('plati-hub' as any, { tab: 'facturi', sectiune: 'jurnal-incasari' });
   };
 
   // F4 (mutat din AppRouter.tsx:87-89)
@@ -214,11 +212,6 @@ export const PlatiHub: React.FC<PlatiHubProps> = ({
             {...propsComune}
             onIncaseazaMultiple={handleIncaseazaMultiple}
             initialSportivId={initialSportivId}
-          />
-        )}
-        {pozitie.tab === 'incasari' && (
-          <TabIncasari
-            {...propsComune}
             platiPentruIncasare={platiPentruIncasare}
             onIncasareProcesata={handleIncasareProcesata}
             onJurnalBack={handleJurnalBack}

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, VizualizarePlata } from '../../types';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, User, Club, Grad } from '../../types';
 import { Button, Input, Modal } from '../ui';
 import { SportivFormModal } from './SportivFormModal';
-import { SportivWallet } from './SportivWallet';
 import { SportivAccountSettingsModal } from './SportivAccountSettings';
 import { DeleteAuditModal } from './DeleteAuditModal';
 import toast from 'react-hot-toast';
@@ -41,15 +40,6 @@ interface SportivModalsProps {
     createAccountError: string;
     createAccountLoading: boolean;
 
-    // Wallet Modal
-    isWalletModalOpen: boolean;
-    onCloseWalletModal: () => void;
-    sportivForWallet: Sportiv | null;
-    allSportivi: Sportiv[];
-    vizualizarePlati: VizualizarePlata[];
-    plati: Plata[];
-    setPlati: React.Dispatch<React.SetStateAction<Plata[]>>;
-    setTranzactii: React.Dispatch<React.SetStateAction<Tranzactie[]>>;
 
     // Delete Modal
     sportivToDelete: Sportiv | null;
@@ -88,14 +78,6 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
     onCreateAccount,
     createAccountError,
     createAccountLoading,
-    isWalletModalOpen,
-    onCloseWalletModal,
-    sportivForWallet,
-    allSportivi,
-    vizualizarePlati,
-    plati,
-    setPlati,
-    setTranzactii,
     sportivToDelete,
     onCloseDeleteModal,
     onDeactivate,
@@ -186,21 +168,6 @@ export const SportivModals: React.FC<SportivModalsProps> = ({
                 </Modal>
             )}
 
-            {isWalletModalOpen && sportivForWallet && (
-                <SportivWallet
-                    sportiv={sportivForWallet}
-                    familie={familii.find(f => f.id === sportivForWallet.familie_id)}
-                    allSportivi={allSportivi}
-                    vizualizarePlati={vizualizarePlati}
-                    allPlati={plati}
-                    setPlati={setPlati}
-                    setTranzactii={setTranzactii}
-                    onClose={() => {
-                        onCloseWalletModal();
-                    }}
-                />
-            )}
-            
             {sportivToDelete && (
                 <DeleteAuditModal
                     isOpen={!!sportivToDelete}

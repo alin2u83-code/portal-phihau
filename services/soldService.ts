@@ -53,7 +53,7 @@ export function calculeazaSolduri(
 /**
  * Soldul unui sportiv individual sau al unei familii întregi.
  *  - `familieId` + `sportivIds` (membrii): soldul familiei + soldurile individuale ale membrilor
- *    (itemi fără `familie_id`) — exact ce vede un părinte în portofel.
+ *    (itemi fără `familie_id`) — soldul total al familiei.
  *  - doar `sportivIds`: soldul individual al sportivilor dați.
  */
 export function calculeazaSold(

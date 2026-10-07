@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useTransition } from 'react';
 import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, Grupa, VizualizarePlata } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge, Skeleton } from './ui';
-import { ArrowLeftIcon, EditIcon, WalletIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon, UserCircleIcon, ClipboardListIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, UsersIcon, CheckIcon, XIcon } from './icons';
+import { ArrowLeftIcon, EditIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon, UserCircleIcon, ClipboardListIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, UsersIcon, CheckIcon, XIcon } from './icons';
 import { calculeazaLuniLipsa } from '../utils/luniLipsa';
 import { useDataStartFacturare } from '../hooks/useDataStartFacturare';
 import { useIstoricGrupeSportiv } from '../hooks/useGrupeIstoric';
@@ -10,7 +10,7 @@ import { useError } from './ErrorProvider';
 import { esteAnulata } from '../utils/paymentStatus';
 import { anuleazaFacturaAbonament, reactiveazaFacturaAbonament } from '../services/facturaService';
 import { SportivFormModal } from './Sportivi/SportivFormModal';
-import { SportivWallet } from './Sportivi/SportivWallet';
+import { calculeazaSold } from '../services/soldService';
 import { DeleteAuditModal } from './Sportivi/DeleteAuditModal';
 import { SportivFeedbackReport } from './Sportivi/SportivFeedbackReport';
 import { RaportCompletSportiv } from './Sportivi/RaportCompletSportiv';
@@ -37,6 +37,8 @@ import { FinanciarTab } from './UserProfile/FinanciarTab';
 import { FamilieTab } from './UserProfile/FamilieTab';
 import { GrupeIstoricTab } from './UserProfile/GrupeIstoricTab';
 import { TaxeAnualeIstoric } from './UserProfile/TaxeAnualeIstoric';
+
+type FacturaProfil = { detalii: VizualizarePlata; incasari: { data_plata: string; suma_incasata: number; tranzactie_id: string | null }[]; totalIncasat: number };
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 import { getAge } from '../utils/date';
@@ -76,14 +78,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const grupe = filteredData.grupe;
     const familii = filteredData.familii;
     const tipuriAbonament = filteredData.tipuriAbonament;
-    const vizualizarePlati = filteredData.vizualizarePlati;
     const sportivi = filteredData.sportivi;
     
     const { showError, showSuccess } = useError();
     
     const [, startTransition] = useTransition();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isRaportCompletOpen, setIsRaportCompletOpen] = useState(false);
@@ -225,55 +225,81 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         return grade.find(g => g.id === sportiv.grad_actual_id) ?? null;
     }, [grade, sportiv.grad_actual_id]);
 
-    const { totalRestante, istoricFacturi } = useMemo(() => {
-        if (!vizualizarePlati || !sportivi) return { totalRestante: 0, istoricFacturi: [] };
+    // Sursa unică: `plati` (stare proaspătă, actualizată optimist) + `istoricPlatiDetaliat` (încasat per factură
+    // din tranzactie_plata). NU `vizualizarePlati` (view_plata_sportiv): expune prețul inițial ca "datorat" și nu are încasări.
+    const istoricPlatiDetaliat = filteredData.istoricPlatiDetaliat;
+    const { totalRestante, istoricFacturi, sold } = useMemo(() => {
+        if (!plati || !sportivi) return { totalRestante: 0, istoricFacturi: [] as FacturaProfil[], sold: 0 };
 
         const familyMemberIds = sportiv.familie_id
             ? new Set((sportivi || []).filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
             : new Set([sportiv.id]);
 
-        const platiRelevante = (vizualizarePlati || []).filter(p => {
-            if (p.familie_id && p.familie_id === sportiv.familie_id) return true;
-            if (p.sportiv_id && familyMemberIds.has(p.sportiv_id)) return true;
-            return false;
-        });
+        const incasatPerFactura = new Map((istoricPlatiDetaliat || []).map(i => [i.plata_id, i]));
+        const numeSportiv = new Map((sportivi || []).map(s => [s.id, `${s.nume} ${s.prenume}`]));
 
-        const facturiMap = new Map<string, {
-            detalii: VizualizarePlata;
-            incasari: { data_plata: string; suma_incasata: number; tranzactie_id: string | null }[];
-            totalIncasat: number;
-        }>();
+        const facturi: FacturaProfil[] = (plati || [])
+            .filter(p => (p.familie_id && p.familie_id === sportiv.familie_id) || (p.sportiv_id && familyMemberIds.has(p.sportiv_id)))
+            .map(p => {
+                const i = incasatPerFactura.get(p.id);
+                const totalIncasat = i?.total_incasat ?? 0;
+                const detalii = {
+                    plata_id: p.id,
+                    sportiv_id: p.sportiv_id,
+                    nume_complet: p.sportiv_id ? (numeSportiv.get(p.sportiv_id) ?? '') : '',
+                    club_id: p.club_id,
+                    familie_id: p.familie_id,
+                    data_emitere: p.data,
+                    descriere: p.descriere,
+                    suma_datorata: p.suma,
+                    status: p.status,
+                    tranzactie_id: i?.tranzactie_id ?? null,
+                    data_plata: i?.data_plata_string ?? null,
+                    suma_incasata: totalIncasat || null,
+                } as unknown as VizualizarePlata;
+                return {
+                    detalii,
+                    incasari: totalIncasat > 0
+                        ? [{ data_plata: i?.data_plata_string ?? '', suma_incasata: totalIncasat, tranzactie_id: i?.tranzactie_id ?? null }]
+                        : [],
+                    totalIncasat,
+                };
+            });
 
-        platiRelevante.forEach(p => {
-            if (!facturiMap.has(p.plata_id)) {
-                facturiMap.set(p.plata_id, { detalii: { ...p, suma_datorata: p.suma_datorata }, incasari: [], totalIncasat: 0 });
-            }
-            if (p.data_plata && p.suma_incasata) {
-                const factura = facturiMap.get(p.plata_id)!;
-                factura.incasari.push({ data_plata: p.data_plata, suma_incasata: p.suma_incasata, tranzactie_id: p.tranzactie_id ?? null });
-                factura.totalIncasat += p.suma_incasata;
-            }
-        });
-        
-        const facturiProcesate = Array.from(facturiMap.values());
-        
-        const restante = facturiProcesate.reduce((sum, f) => {
-            // O factură anulată nu mai reprezintă o datorie — nu intră în „Total de achitat”.
-            if (esteAnulata(f.detalii)) return sum;
-            const ramasDePlata = (f.detalii.suma_datorata || 0) - f.totalIncasat;
-            return sum + Math.max(0, ramasDePlata);
+        const restante = facturi.reduce((sum, f) => {
+            // O factură anulată sau achitată nu mai reprezintă o datorie.
+            if (esteAnulata(f.detalii) || f.detalii.status === 'Achitat') return sum;
+            return sum + Math.max(0, (f.detalii.suma_datorata || 0) - f.totalIncasat);
         }, 0);
 
-        return { 
-            totalRestante: restante, 
-            istoricFacturi: facturiProcesate.sort((a, b) => new Date((b.detalii.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((a.detalii.data_emitere || '').toString().slice(0, 10)).getTime())
+        return {
+            totalRestante: restante,
+            istoricFacturi: facturi.sort((a, b) => new Date((b.detalii.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((a.detalii.data_emitere || '').toString().slice(0, 10)).getTime()),
+            sold: calculeazaSold(plati, tranzactii, {
+                sportivIds: Array.from(familyMemberIds),
+                familieId: sportiv.familie_id ?? null,
+            }),
         };
-    }, [sportiv, vizualizarePlati, sportivi]);
+    }, [sportiv, plati, tranzactii, sportivi, istoricPlatiDetaliat]);
+
+    // Deschide Plăți Scadente filtrat pe sportivul curent (fluxul de încasare existent) — folosit de „Plăți” și „Încasează”.
+    const deschidePlatiSportiv = () => {
+        // PlatiScadente își citește filtrul din localStorage la montare: îl setăm pe sportivul curent,
+        // altfel lista arată facturile tuturor sportivilor (nu doar ale celui din profil).
+        try {
+            window.localStorage.setItem('phi-hau-plati-scadente-filter', JSON.stringify({
+                sportiv: `${sportiv.nume} ${sportiv.prenume}`.trim(),
+                tip: '',
+                status: '',
+                clubId: '',
+            }));
+        } catch {}
+        onNavigate?.('plati-scadente');
+    };
 
     const userPlatiIds = useMemo(() => {
         return new Set((plati || []).filter(p => (p.sportiv_id === sportiv.id || (p.familie_id && p.familie_id === sportiv.familie_id))).map(p => p.id));
     }, [plati, sportiv]);
-    const possibleViewError = userPlatiIds.size > 0 && istoricFacturi.length === 0 && !sportiv.user_id;
 
     const lastThreeAttendances = useMemo(() => {
         const now = new Date();
@@ -584,7 +610,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             showError('Anulare eșuată', error.message);
         } else if (data) {
             setPlati(prev => prev.map(p => p.id === plataId ? data : p));
-            // istoricFacturi (folosit de FinanciarTab) e derivat din vizualizarePlati, nu din plati —
+            // istoricFacturi (folosit de FinanciarTab) e derivat din plati + istoricPlatiDetaliat; vizualizarePlati se mai actualizează doar pentru FacturaDetaliu —
             // fără actualizarea asta badge-ul/statusul nu s-ar reflecta imediat în UI (mismatch cu
             // handleSavePlataEdit, care actualizează ambele state-uri identic).
             setVizualizarePlati(prev => prev.map(v => v.plata_id === plataId ? { ...v, status: data.status } : v));
@@ -809,24 +835,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                     <Button variant="secondary" onClick={() => setIsEditModalOpen(true)} className="shadow-sm hover:shadow-md transition-all">
                         <EditIcon className="w-4 h-4 mr-2"/> Editare
                     </Button>
-                    <Button variant="primary" onClick={() => startTransition(() => setIsWalletModalOpen(true))} className="shadow-sm hover:shadow-md transition-all bg-indigo-600 hover:bg-indigo-500 border-none">
-                        <WalletIcon className="w-4 h-4 mr-2"/> Portofel
-                    </Button>
                     {onNavigate && (
                         <>
-                            <Button variant="secondary" onClick={() => {
-                                // PlatiScadente își citește filtrul din localStorage la montare: îl setăm pe sportivul curent,
-                                // altfel lista arată facturile tuturor sportivilor (nu doar ale celui din profil).
-                                try {
-                                    window.localStorage.setItem('phi-hau-plati-scadente-filter', JSON.stringify({
-                                        sportiv: `${sportiv.nume} ${sportiv.prenume}`.trim(),
-                                        tip: '',
-                                        status: '',
-                                        clubId: '',
-                                    }));
-                                } catch {}
-                                onNavigate('plati-scadente');
-                            }} className="shadow-sm hover:shadow-md transition-all" title="Vezi plățile acestui sportiv">
+                            <Button variant="secondary" onClick={deschidePlatiSportiv} className="shadow-sm hover:shadow-md transition-all" title="Vezi plățile acestui sportiv">
                                 <BanknotesIcon className="w-4 h-4 mr-2"/> Plăți
                             </Button>
                             <Button variant="secondary" onClick={() => onViewExameneRaport ? onViewExameneRaport(sportiv.id) : onNavigate?.('examene')} className="shadow-sm hover:shadow-md transition-all" title="Raport examene sportiv">
@@ -931,12 +942,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                     <>
                     <FinanciarTab
                         totalRestante={totalRestante}
+                        sold={sold}
+                        onIncaseaza={onNavigate ? deschidePlatiSportiv : undefined}
                         tipuriAbonament={tipuriAbonament}
                         sportiv={sportiv}
                         sportivi={sportivi}
                         familii={familii}
-                        vizualizarePlati={vizualizarePlati}
-                        possibleViewError={possibleViewError}
                         istoricFacturi={istoricFacturi}
                         setPlataToEdit={setPlataToEdit}
                         plati={plati}
@@ -969,7 +980,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
 
             {/* Modals */}
             {isEditModalOpen && <SportivFormModal isOpen={isEditModalOpen} onClose={(savedSportiv) => { setIsEditModalOpen(false); if (savedSportiv) onBack(); }} onSave={handleSave} sportivToEdit={sportiv} grupe={grupe} setGrupe={()=>{}} grade={grade} familii={familii} setFamilii={()=>{}} tipuriAbonament={tipuriAbonament} clubs={clubs} currentUser={currentUser} allRoles={allRoles} />}
-            {isWalletModalOpen && <SportivWallet sportiv={sportiv} familie={familii.find(f => f.id === sportiv.familie_id)} allSportivi={sportivi} vizualizarePlati={vizualizarePlati} allPlati={plati} setPlati={setPlati} setTranzactii={setTranzactii} onClose={() => setIsWalletModalOpen(false)} />}
             {isDeleteModalOpen && <DeleteAuditModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} sportiv={sportiv} onDeactivate={handleDeactivate} onDelete={handleDelete} />}
             {isReportModalOpen && <SportivFeedbackReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} sportiv={sportiv} antrenamente={antrenamente} grupe={grupe} grade={grade} participari={participari} examene={examene} />}
             {isRaportCompletOpen && <RaportCompletSportiv isOpen={isRaportCompletOpen} onClose={() => setIsRaportCompletOpen(false)} sportiv={sportiv} />}

@@ -1,14 +1,12 @@
 import React from 'react';
 import { Sportiv, Familie, Grupa, Grad } from '../../types';
 import { Card, Button, RoleBadge } from '../ui';
-import { WalletIcon } from '../icons';
 import { GradBadge } from '../../utils/grades';
 import { formatNume } from '../../utils/formatareSportiv';
 
 interface SportiviMobileListProps {
   sportivi: Sportiv[];
   onRowClick: (sportiv: Sportiv) => void;
-  onOpenWallet: (sportiv: Sportiv) => void;
   families: Familie[];
   familyBalances: Map<string, number>;
   individualBalances: Map<string, number>;
@@ -30,7 +28,7 @@ const getAge = (dateString: string | null | undefined): number => {
 };
 
 export const SportiviMobileList: React.FC<SportiviMobileListProps> = (props) => {
-  const { sportivi, onRowClick, onOpenWallet, families, familyBalances, individualBalances, grupe, grade, requestSort, sortConfig } = props;
+  const { sportivi, onRowClick, families, familyBalances, individualBalances, grupe, grade, requestSort, sortConfig } = props;
 
   return (
     <div>
@@ -74,11 +72,6 @@ export const SportiviMobileList: React.FC<SportiviMobileListProps> = (props) => 
                     <p className={`font-bold ${individualBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{individualBalance.toFixed(2)} lei</p>
                   </div>
                 ) : null}
-              </div>
-              <div className="mt-4 flex gap-2">
-                <Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); onOpenWallet(sportiv); }} className="w-full">
-                  <WalletIcon className="w-4 h-4 mr-2" /> Portofel
-                </Button>
               </div>
             </Card>
           );

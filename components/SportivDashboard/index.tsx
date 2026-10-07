@@ -588,7 +588,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                             onClick={() => onNavigate('istoric-plati')}
                             className="flex-1 sm:flex-none bg-sky-500 hover:bg-sky-600 border-none shadow-lg shadow-sky-500/20"
                         >
-                            <WalletIcon className="w-4 h-4 mr-2" /> Portofelul Meu
+                            <WalletIcon className="w-4 h-4 mr-2" /> Istoric Plăți
                         </Button>
                         <Button
                             variant="secondary"

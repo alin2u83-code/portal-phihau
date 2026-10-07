@@ -4,7 +4,7 @@ import type { SortConfigEntry } from '../../hooks/useSortConfig';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { GradBadge } from '../../utils/grades';
 import { Button, Card, RoleBadge } from '../ui';
-import { EditIcon, WalletIcon, ShieldCheckIcon, TrashIcon, LockIcon } from '../icons';
+import { EditIcon, ShieldCheckIcon, TrashIcon, LockIcon } from '../icons';
 import { getAge } from '../../utils/date';
 import { formatNume } from '../../utils/formatareSportiv';
 
@@ -14,7 +14,6 @@ interface SportiviTableProps {
   grade: Grad[];
   onRowClick: (sportiv: Sportiv) => void;
   onEdit: (sportiv: Sportiv) => void;
-  onOpenWallet: (sportiv: Sportiv) => void;
   onOpenAccountSettings: (sportiv: Sportiv) => void;
   onDelete: (sportiv: Sportiv) => void;
   onResetParola?: (sportiv: Sportiv) => void;
@@ -28,7 +27,7 @@ interface SportiviTableProps {
 }
 
 export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
-  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenWallet, onOpenAccountSettings, onDelete, onResetParola, onToggleStatus, requestSort, sortConfig, searchTerm, onSearchChange, selectedIds, onSelectionChange } = props;
+  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenAccountSettings, onDelete, onResetParola, onToggleStatus, requestSort, sortConfig, searchTerm, onSearchChange, selectedIds, onSelectionChange } = props;
 
   const allSelected = sportivi.length > 0 && sportivi.every(s => selectedIds?.has(s.id));
 
@@ -129,17 +128,13 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
     {
         key: 'actions',
         label: 'Acțiuni',
-        tooltip: "Acțiuni rapide: gestionează portofelul, setările contului sau șterge.",
+        tooltip: "Acțiuni rapide: gestionează setările contului sau șterge.",
         headerClassName: 'text-right',
         cellClassName: 'text-right',
         render: (s) => (
             <div className="flex justify-end items-center gap-1 md:gap-2" onClick={(e) => e.stopPropagation()}>
                 <Button size="sm" variant="secondary" onClick={() => onEdit(s)} title="Editează Profil" className="!p-1.5 md:!p-2">
                     <EditIcon className="w-4 h-4" />
-                </Button>
-                <Button size="sm" variant="info" onClick={() => onOpenWallet(s)} title="Portofel Sportiv" className="!p-1.5 md:!p-2 flex items-center gap-1">
-                    <WalletIcon className="w-4 h-4" />
-                    <span className="hidden lg:inline text-xs font-bold">Portofel</span>
                 </Button>
                 <Button size="sm" variant="secondary" onClick={() => onOpenAccountSettings(s)} title="Setări Cont de Acces" className="!p-1.5 md:!p-2">
                     <ShieldCheckIcon className="w-4 h-4" />
@@ -191,9 +186,6 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
                         <TrashIcon className="w-4 h-4" />
                     </Button>
                 </div>
-                <Button size="sm" variant="info" onClick={(e) => { e.stopPropagation(); onOpenWallet(sportiv); }}>
-                    <WalletIcon className="w-4 h-4 mr-2" /> Portofel
-                </Button>
             </div>
           </Card>
       );

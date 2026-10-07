@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Sportiv, TipAbonament, Familie, VizualizarePlata, Plata, Tranzactie } from '../../types';
-import { Card, Button, Skeleton, Modal } from '../ui';
+import { Card, Button, Modal } from '../ui';
 import { UsersIcon, ExclamationTriangleIcon, CalendarDaysIcon, EditIcon, TrashIcon, BanknotesIcon, CheckCircleIcon, WalletIcon, ChevronDownIcon, ChevronUpIcon, XCircleIcon, ClipboardListIcon } from '../icons';
 import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
 import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare';
@@ -21,12 +21,14 @@ interface FacturaEntry {
 
 interface FinanciarTabProps {
     totalRestante: number;
+    /** Sold = încasat − facturat (soldService); negativ = datorie, pozitiv = credit */
+    sold: number;
+    /** Deschide fluxul de încasare existent (Plăți Scadente) filtrat pe sportiv */
+    onIncaseaza?: () => void;
     tipuriAbonament: TipAbonament[];
     sportiv: Sportiv;
     sportivi: Sportiv[];
     familii: Familie[];
-    vizualizarePlati: VizualizarePlata[];
-    possibleViewError: boolean;
     istoricFacturi: FacturaEntry[];
     setPlataToEdit: (plata: Plata | null) => void;
     plati: Plata[];
@@ -119,8 +121,8 @@ const ProgressBar: React.FC<{ procent: number; status: string }> = ({ procent, s
 };
 
 export const FinanciarTab: React.FC<FinanciarTabProps> = ({
-    totalRestante, tipuriAbonament, sportiv, sportivi, familii,
-    vizualizarePlati, possibleViewError, istoricFacturi,
+    totalRestante, sold, onIncaseaza, tipuriAbonament, sportiv, sportivi, familii,
+    istoricFacturi,
     setPlataToEdit, plati, setPlataToDelete, tranzactii,
     setPlataToAnula, onReactivare, onDeschideDetalii,
 }) => {
@@ -191,6 +193,19 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                         )}
                     </div>
 
+                    {/* Sold (credit / datorie) */}
+                    <div className="flex items-center justify-between px-1">
+                        <span className="text-xs text-slate-300 font-medium">Sold</span>
+                        <span className={`text-sm font-bold ${sold >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {sold.toFixed(2)} RON
+                        </span>
+                    </div>
+                    {onIncaseaza && totalRestante > 0 && (
+                        <Button variant="primary" size="sm" onClick={onIncaseaza} className="w-full">
+                            <BanknotesIcon className="w-4 h-4 mr-2" /> Încasează
+                        </Button>
+                    )}
+
                     {/* Statistici rapide */}
                     <div className="grid grid-cols-2 gap-2">
                         <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/40 text-center">
@@ -249,17 +264,7 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                 </div>
 
                 {/* Lista */}
-                {!vizualizarePlati ? (
-                    <div className="space-y-2">
-                        <Skeleton className="h-24 w-full" />
-                        <Skeleton className="h-24 w-full" />
-                    </div>
-                ) : possibleViewError ? (
-                    <Card className="text-center p-6 border-red-900/50 bg-red-900/10">
-                        <ExclamationTriangleIcon className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                        <p className="text-red-300 text-sm">Datele financiare sunt indisponibile.</p>
-                    </Card>
-                ) : facturiFiltrate.length === 0 ? (
+                {facturiFiltrate.length === 0 ? (
                     <Card className="text-center py-12">
                         <BanknotesIcon className="w-10 h-10 mx-auto mb-3 text-slate-700" />
                         <p className="text-slate-500 text-sm">

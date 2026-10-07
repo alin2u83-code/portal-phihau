@@ -53,8 +53,6 @@ export const Sportivi: React.FC<{
         setGrupe,
         setFamilii,
         currentUser,
-        setPlati,
-        setTranzactii,
         setSportivi,
         clubs = [],
         grade = [],
@@ -64,7 +62,6 @@ export const Sportivi: React.FC<{
         plati = [],
         tranzactii = [],
         tipuriAbonament = [],
-        vizualizarePlati = [],
         activeRoleContext,
     } = useData();
 
@@ -81,8 +78,6 @@ export const Sportivi: React.FC<{
     const [showNewGrupaModal, setShowNewGrupaModal] = useState(false);
     const [newGrupaDenumire, setNewGrupaDenumire] = useState('');
     const [newGrupaProgram, setNewGrupaProgram] = useState<ProgramItem[]>([]);
-    const [sportivForWallet, setSportivForWallet] = useState<Sportiv | null>(null);
-    const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [selectedSportivForHighlight, setSelectedSportivForHighlight] = useState<Sportiv | null>(null);
     const [sportivToEdit, setSportivToEdit] = useState<Sportiv | null>(null);
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -466,15 +461,6 @@ export const Sportivi: React.FC<{
         setNewGrupaProgram([]);
         setBulkGrupaId('');
         await handleBulkAssignGroup(nouaGrupa.id, nouaGrupa.denumire);
-    };
-
-    const handleOpenWallet = (sportiv: Sportiv) => {
-        // startTransition defers the heavy render (SportivWallet useMemo on vizualizarePlati)
-        // so the browser can paint the button press before React renders the modal
-        startTransition(() => {
-            setSportivForWallet(sportiv);
-            setIsWalletModalOpen(true);
-        });
     };
 
     const handleRowClick = (sportiv: Sportiv) => {
@@ -907,7 +893,6 @@ export const Sportivi: React.FC<{
                 <SportiviMobileList
                     sportivi={sortedAndFilteredSportivi}
                     onRowClick={handleRowClick}
-                    onOpenWallet={handleOpenWallet}
                     families={familii}
                     familyBalances={familyBalances}
                     individualBalances={individualBalances}
@@ -923,7 +908,6 @@ export const Sportivi: React.FC<{
                     grade={grade}
                     onRowClick={handleRowClick}
                     onEdit={handleOpenEditSportiv}
-                    onOpenWallet={handleOpenWallet}
                     onOpenAccountSettings={setAccountSettingsSportiv}
                     onDelete={setSportivToDelete}
                     onResetParola={setSportivForResetParola}
@@ -1056,17 +1040,6 @@ export const Sportivi: React.FC<{
                 onCreateAccount={handleCreateAccount}
                 createAccountError={createAccountError}
                 createAccountLoading={createAccountLoading}
-                isWalletModalOpen={isWalletModalOpen}
-                onCloseWalletModal={() => {
-                    setIsWalletModalOpen(false);
-                    setSportivForWallet(null);
-                }}
-                sportivForWallet={sportivForWallet}
-                allSportivi={sportivi}
-                vizualizarePlati={vizualizarePlati}
-                plati={plati}
-                setPlati={setPlati}
-                setTranzactii={setTranzactii}
                 sportivToDelete={sportivToDelete}
                 onCloseDeleteModal={() => setSportivToDelete(null)}
                 onDeactivate={handleDeactivate}

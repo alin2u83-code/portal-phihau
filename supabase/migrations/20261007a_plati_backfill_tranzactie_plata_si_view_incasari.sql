@@ -1,20 +1,28 @@
 -- Debug plati/incasari 2026-10-07 — pasii 2 si 3
--- (NEAPLICATA la momentul scrierii — ruleaza doar dupa aprobare.)
 --
--- 3) Backfill `tranzactie_plata` pentru tranzactiile vechi care au doar `plata_ids`
---    (51 tranzactii, 62 alocari, 10.470 RON; 7 tranzactii raman cu 1.510 RON nealocati = surplus/factura stearsa).
---    Trigger-ul on_tranzactie_plata_change recalculeaza status/suma_ramasa din suma_initiala si ar rescrie
---    starea facturilor existente => il suspendam in tranzactie; statusurile NU se modifica.
--- 3b) club_id lipsa pe tranzactii (scrise de Portofel inainte de fix): derivat din sportiv/familie.
--- 2) view_istoric_plati_detaliat: fallback-ul pe plata_ids nu mai numara suma INTREAGA a tranzactiei
---    pentru fiecare factura; imparte egal pe numarul de facturi si plafoneaza la suma facturii.
+-- 3b) club_id lipsa pe tranzactiile scrise de Portofel (fara alocari in tranzactie_plata):
+--     derivat din sportiv/familie. Facut INAINTE de backfill ca sa nu atinga alte tranzactii.
+-- 3)  Backfill `tranzactie_plata` pentru tranzactiile vechi care au doar `plata_ids`.
+--     Trigger-ul on_tranzactie_plata_change recalculeaza status/suma_ramasa din suma_initiala si ar rescrie
+--     starea facturilor existente => il suspendam in tranzactie; statusurile NU se modifica.
+--     Idempotent: ruleaza doar pe tranzactii fara alocari.
+-- 2)  view_istoric_plati_detaliat: fallback-ul pe plata_ids nu mai numara suma INTREAGA a tranzactiei
+--     pentru fiecare factura; imparte egal pe numarul de facturi si plafoneaza la suma facturii.
 
 begin;
 
--- suspendam trigger-ul DOAR pentru aceasta tranzactie
+-- 3b) club_id
+update public.tranzactii t
+set club_id = coalesce(
+      (select s.club_id from public.sportivi s where s.id = t.sportiv_id),
+      (select s.club_id from public.sportivi s where s.familie_id = t.familie_id and s.club_id is not null limit 1))
+where t.club_id is null
+  and not exists (select 1 from public.tranzactie_plata tp where tp.tranzactie_id = t.id)
+  and (t.sportiv_id is not null or t.familie_id is not null);
+
+-- 3) backfill (trigger suspendat doar in aceasta tranzactie)
 alter table public.tranzactie_plata disable trigger tranzactie_plata_change_trigger;
 
--- alocare secventiala (ordine tranzactie, apoi ordinea din plata_ids), plafon = plati.suma - deja alocat
 do $$
 declare
   r record;
@@ -47,14 +55,6 @@ begin
 end $$;
 
 alter table public.tranzactie_plata enable trigger tranzactie_plata_change_trigger;
-
--- 3b) club_id lipsa
-update public.tranzactii t
-set club_id = coalesce(
-      (select s.club_id from public.sportivi s where s.id = t.sportiv_id),
-      (select s.club_id from public.sportivi s where s.familie_id = t.familie_id and s.club_id is not null limit 1))
-where t.club_id is null
-  and (t.sportiv_id is not null or t.familie_id is not null);
 
 -- 2) view_istoric_plati_detaliat — fallback corectat (pastram security_invoker)
 create or replace view public.view_istoric_plati_detaliat as

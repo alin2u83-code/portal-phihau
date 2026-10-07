@@ -16,7 +16,7 @@ import { useNavigation } from '../contexts/NavigationContext';
 const scrollPositions = new Map<View, number>();
 // View-uri de detaliu: se deschid mereu de sus (alt sportiv/fisa decat data trecuta)
 const SCROLL_FARA_RESTAURARE = new Set<View>(['profil-sportiv', 'fisa-digitala', 'fisa-competitie']);
-const SCROLL_RESTAURARE_MAX_MS = 5000;
+const SCROLL_RESTAURARE_MAX_MS = 15000; // liste lente (date de la Supabase); wheel/touch/key opresc restaurarea
 
 export interface AppRouterProps {
     activeView: View;
@@ -65,18 +65,14 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     useEffect(() => {
         // Inregistram pozitia doar pentru view-ul curent; in timpul restaurarii ignoram evenimentele
         // (altfel pagina inca scurta ar suprascrie pozitia salvata cu o valoare clamped).
-        let raf = 0;
+        // Fara requestAnimationFrame: Map.set e ieftin, iar rAF nu ruleaza in tab-uri fara focus.
         const onScroll = () => {
-            if (raf || scrollRestoringRef.current) return;
-            raf = requestAnimationFrame(() => {
-                raf = 0;
-                if (scrollKeyRef.current && !scrollRestoringRef.current) {
-                    scrollPositions.set(scrollKeyRef.current, window.scrollY);
-                }
-            });
+            if (scrollKeyRef.current && !scrollRestoringRef.current) {
+                scrollPositions.set(scrollKeyRef.current, window.scrollY);
+            }
         };
         window.addEventListener('scroll', onScroll, { passive: true });
-        return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf); };
+        return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
     useLayoutEffect(() => {

@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient';
 import { 
     Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata,
     Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie,
-    Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat, VederePrezentaSportiv, FilteredData,
+    Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, IstoricPlataDetaliat, VederePrezentaSportiv, FilteredData,
     TaxaAnualeConfig, VizaSportiv, DecontSportiv, TaxaAnualaFederatieConfig
 } from '../types';
 import { Session, SupabaseClient } from '@supabase/supabase-js';
@@ -41,7 +41,6 @@ export interface AppData {
     locatii: Locatie[];
     clubs: Club[];
     deconturiFederatie: DecontFederatie[];
-    vizualizarePlati: VizualizarePlata[];
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
     istoricPrezenta: VederePrezentaSportiv[];
     taxeAnualeConfig: TaxaAnualeConfig[];
@@ -57,7 +56,7 @@ const initialData: AppData = {
     grupe: [], plati: [], tranzactii: [], evenimente: [], 
     rezultate: [], preturiConfig: [], tipuriAbonament: [], familii: [], 
     allRoles: [], reduceri: [], tipuriPlati: [], 
-    locatii: [], clubs: [], deconturiFederatie: [], vizualizarePlati: [],
+    locatii: [], clubs: [], deconturiFederatie: [],
     istoricPlatiDetaliat: [], istoricPrezenta: [], taxeAnualeConfig: [], taxaAnualaFederatieConfig: [], vizeSportivi: [], decontSportivi: [], allowedClubs: []
 };
 
@@ -141,7 +140,6 @@ export const useDataProvider = () => {
         reduceri: data.reduceri,
         deconturiFederatie: data.deconturiFederatie,
         istoricGrade: data.istoricGrade,
-        vizualizarePlati: data.vizualizarePlati,
         istoricPlatiDetaliat: data.istoricPlatiDetaliat,
         locatii: data.locatii
     });
@@ -337,7 +335,6 @@ export const useDataProvider = () => {
                 tipuriAbonament: withClub(cleanedSupabase.from('tipuri_abonament').select('id, denumire, pret, club_id, numar_membri, sezon_id')),
                 sesiuniExamene: withClub(cleanedSupabase.from('sesiuni_examene').select('*')),
                 familii: withClub(cleanedSupabase.from('familii').select('*')),
-                vizualizarePlati: withClub(cleanedSupabase.from('view_plata_sportiv').select('*')),
                 locatii: cleanedSupabase.from('nom_locatii').select('*'),
                 evenimente: withClub(cleanedSupabase.from('evenimente').select('*')),
                 taxeAnualeConfig: cleanedSupabase.from('taxe_anuale_config').select('*'),
@@ -449,7 +446,6 @@ export const useDataProvider = () => {
                 sesiuniExamene: finalData.sesiuniExamene || prev.sesiuniExamene,
                 evenimente: finalData.evenimente || prev.evenimente,
                 familii: finalData.familii || prev.familii,
-                vizualizarePlati: finalData.vizualizarePlati || prev.vizualizarePlati,
                 inscrieriExamene: finalData.inscrieriExamene || prev.inscrieriExamene,
                 istoricGrade: finalData.istoricGrade || prev.istoricGrade,
                 taxeAnualeConfig: finalData.taxeAnualeConfig || prev.taxeAnualeConfig,
@@ -571,7 +567,6 @@ export const useDataProvider = () => {
         setTipuriPlati: createSetter('tipuriPlati'),
         setReduceri: createSetter('reduceri'),
         setDeconturiFederatie: createSetter('deconturiFederatie'),
-        setVizualizarePlati: createSetter('vizualizarePlati'),
         setTaxeAnualeConfig: createSetter('taxeAnualeConfig'),
         setVizeSportivi: createSetter('vizeSportivi'),
         setDecontSportivi: createSetter('decontSportivi'),

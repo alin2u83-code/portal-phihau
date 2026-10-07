@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useTransition } from 'react';
-import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, Grupa, VizualizarePlata } from '../types';
+import { Sportiv, User, Rol, InscriereExamen, Examen, Grad, Antrenament, IstoricGrade, Plata, Familie, TipAbonament, Tranzactie, Reducere, Club, Grupa } from '../types';
 import { Button, Card, Select, Modal, Input, RoleBadge, Skeleton } from './ui';
 import { ArrowLeftIcon, EditIcon, TrashIcon, ShieldCheckIcon, PlusIcon, ChartBarIcon, TransferIcon, CheckCircleIcon, ExclamationTriangleIcon, UserPlusIcon, UserCircleIcon, ClipboardListIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon, UsersIcon, CheckIcon, XIcon } from './icons';
 import { calculeazaLuniLipsa } from '../utils/luniLipsa';
@@ -11,6 +11,7 @@ import { esteAnulata } from '../utils/paymentStatus';
 import { anuleazaFacturaAbonament, reactiveazaFacturaAbonament } from '../services/facturaService';
 import { SportivFormModal } from './Sportivi/SportivFormModal';
 import { calculeazaSold } from '../services/soldService';
+import { construiesteFacturi, facturiAleSportivului, totalDeAchitat } from '../utils/facturiSportiv';
 import { DeleteAuditModal } from './Sportivi/DeleteAuditModal';
 import { SportivFeedbackReport } from './Sportivi/SportivFeedbackReport';
 import { RaportCompletSportiv } from './Sportivi/RaportCompletSportiv';
@@ -38,8 +39,6 @@ import { FamilieTab } from './UserProfile/FamilieTab';
 import { GrupeIstoricTab } from './UserProfile/GrupeIstoricTab';
 import { TaxeAnualeIstoric } from './UserProfile/TaxeAnualeIstoric';
 
-type FacturaProfil = { detalii: VizualizarePlata; incasari: { data_plata: string; suma_incasata: number; tranzactie_id: string | null }[]; totalIncasat: number };
-
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 import { getAge } from '../utils/date';
 const parseDurationToMonths = (durationStr: string): number => { const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
@@ -61,7 +60,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         setSportivi,
         setPlati,
         setTranzactii,
-        setVizualizarePlati,
         clubs,
         allRoles,
         filteredData
@@ -226,59 +224,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     }, [grade, sportiv.grad_actual_id]);
 
     // Sursa unică: `plati` (stare proaspătă, actualizată optimist) + `istoricPlatiDetaliat` (încasat per factură
-    // din tranzactie_plata). NU `vizualizarePlati` (view_plata_sportiv): expune prețul inițial ca "datorat" și nu are încasări.
+    // din tranzactie_plata). (utils/facturiSportiv — sursa unică pentru facturi + încasări).
     const istoricPlatiDetaliat = filteredData.istoricPlatiDetaliat;
     const { totalRestante, istoricFacturi, sold } = useMemo(() => {
-        if (!plati || !sportivi) return { totalRestante: 0, istoricFacturi: [] as FacturaProfil[], sold: 0 };
-
+        const membri = facturiAleSportivului(plati, sportiv, sportivi);
+        const numeSportiv = new Map((sportivi || []).map(x => [x.id, `${x.nume} ${x.prenume}`]));
+        const facturi = construiesteFacturi(membri, istoricPlatiDetaliat, id => numeSportiv.get(id) ?? '');
         const familyMemberIds = sportiv.familie_id
-            ? new Set((sportivi || []).filter(s => s.familie_id === sportiv.familie_id).map(s => s.id))
-            : new Set([sportiv.id]);
-
-        const incasatPerFactura = new Map((istoricPlatiDetaliat || []).map(i => [i.plata_id, i]));
-        const numeSportiv = new Map((sportivi || []).map(s => [s.id, `${s.nume} ${s.prenume}`]));
-
-        const facturi: FacturaProfil[] = (plati || [])
-            .filter(p => (p.familie_id && p.familie_id === sportiv.familie_id) || (p.sportiv_id && familyMemberIds.has(p.sportiv_id)))
-            .map(p => {
-                const i = incasatPerFactura.get(p.id);
-                const totalIncasat = i?.total_incasat ?? 0;
-                const detalii = {
-                    plata_id: p.id,
-                    sportiv_id: p.sportiv_id,
-                    nume_complet: p.sportiv_id ? (numeSportiv.get(p.sportiv_id) ?? '') : '',
-                    club_id: p.club_id,
-                    familie_id: p.familie_id,
-                    data_emitere: p.data,
-                    descriere: p.descriere,
-                    suma_datorata: p.suma,
-                    status: p.status,
-                    tranzactie_id: i?.tranzactie_id ?? null,
-                    data_plata: i?.data_plata_string ?? null,
-                    suma_incasata: totalIncasat || null,
-                } as unknown as VizualizarePlata;
-                return {
-                    detalii,
-                    incasari: totalIncasat > 0
-                        ? [{ data_plata: i?.data_plata_string ?? '', suma_incasata: totalIncasat, tranzactie_id: i?.tranzactie_id ?? null }]
-                        : [],
-                    totalIncasat,
-                };
-            });
-
-        const restante = facturi.reduce((sum, f) => {
-            // O factură anulată sau achitată nu mai reprezintă o datorie.
-            if (esteAnulata(f.detalii) || f.detalii.status === 'Achitat') return sum;
-            return sum + Math.max(0, (f.detalii.suma_datorata || 0) - f.totalIncasat);
-        }, 0);
-
+            ? (sportivi || []).filter(x => x.familie_id === sportiv.familie_id).map(x => x.id)
+            : [sportiv.id];
         return {
-            totalRestante: restante,
-            istoricFacturi: facturi.sort((a, b) => new Date((b.detalii.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((a.detalii.data_emitere || '').toString().slice(0, 10)).getTime()),
-            sold: calculeazaSold(plati, tranzactii, {
-                sportivIds: Array.from(familyMemberIds),
-                familieId: sportiv.familie_id ?? null,
-            }),
+            totalRestante: totalDeAchitat(facturi),
+            istoricFacturi: facturi,
+            sold: calculeazaSold(plati, tranzactii, { sportivIds: familyMemberIds, familieId: sportiv.familie_id ?? null }),
         };
     }, [sportiv, plati, tranzactii, sportivi, istoricPlatiDetaliat]);
 
@@ -496,10 +454,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             showError("Eroare la Salvare", "Nu s-a putut actualiza factura. Verificați permisiunile.");
         } else {
             setPlati(prev => prev.map(p => p.id === editedPlata.id ? { ...p, ...data } : p));
-            setVizualizarePlati(prev => prev.map(v => v.plata_id === editedPlata.id
-                ? { ...v, status: data.status, suma_datorata: data.suma, descriere: data.descriere, data_emitere: data.data }
-                : v
-            ));
             setPlataToEdit(null);
             showSuccess("Succes", "Factura a fost actualizată.");
         }
@@ -529,10 +483,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         setPlati(prev => prev.map(p =>
             p.id === oldPlataId ? { ...p, status: 'Neachitat' } :
             p.id === newPlataId ? { ...p, status: newStatus } : p
-        ));
-        setVizualizarePlati(prev => prev.map(v =>
-            v.plata_id === oldPlataId ? { ...v, status: 'Neachitat' } :
-            v.plata_id === newPlataId ? { ...v, status: newStatus } : v
         ));
         setPlataToEdit(null);
         showSuccess('Plată mutată', `Încasarea a fost transferată. Factura nouă: ${newStatus}.`);
@@ -596,7 +546,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             showError("Eroare la Ștergere", error.message ?? error);
         } else {
             setPlati(prev => prev.filter(p => p.id !== id));
-            setVizualizarePlati(prev => prev.filter(v => v.plata_id !== id));
             setPlataToDelete(null);
             showSuccess("Succes", "Factura a fost ștearsă.");
         }
@@ -610,10 +559,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             showError('Anulare eșuată', error.message);
         } else if (data) {
             setPlati(prev => prev.map(p => p.id === plataId ? data : p));
-            // istoricFacturi (folosit de FinanciarTab) e derivat din plati + istoricPlatiDetaliat; vizualizarePlati se mai actualizează doar pentru FacturaDetaliu —
-            // fără actualizarea asta badge-ul/statusul nu s-ar reflecta imediat în UI (mismatch cu
-            // handleSavePlataEdit, care actualizează ambele state-uri identic).
-            setVizualizarePlati(prev => prev.map(v => v.plata_id === plataId ? { ...v, status: data.status } : v));
             showSuccess('Succes', 'Factura a fost anulată.');
         }
         setPlataToAnula(null);
@@ -627,7 +572,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             showError('Reactivare eșuată', error.message);
         } else if (data) {
             setPlati(prev => prev.map(p => p.id === plata.id ? data : p));
-            setVizualizarePlati(prev => prev.map(v => v.plata_id === plata.id ? { ...v, status: data.status } : v));
             showSuccess('Succes', 'Factura a fost reactivată.');
         }
     };

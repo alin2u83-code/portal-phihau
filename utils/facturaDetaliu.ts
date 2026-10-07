@@ -9,7 +9,7 @@
  * `suma_initiala` = total facturat (după reducere); `suma` = rest de plată,
  * recalculat de `recalculare_stare_plata` ca `suma_initiala - SUM(tranzactii)`.
  */
-import type { Plata, Tranzactie, VizualizarePlata } from '../types';
+import type { Plata, Tranzactie } from '../types';
 
 // ─── Constante ───────────────────────────────────────────────────────────────
 
@@ -34,7 +34,7 @@ export interface RandIstoricTranzactie {
   suma: number;
   metoda: string | null;
   nrFacturiAcoperite: number;
-  sursa: 'tranzactii' | 'vizualizare' | 'ambele';
+  sursa: 'tranzactii' | 'alocare' | 'ambele';
 }
 
 export type PlanAchitare =
@@ -84,15 +84,21 @@ export function calculeazaSumarFactura(
   return { sumaFacturata, restDePlata, totalIncasat, avertizare };
 }
 
+/** Rând din `tranzactie_plata`: cât din tranzacție a fost alocat acestei facturi. */
+export interface AlocareTranzactie {
+  tranzactie_id: string;
+  suma_alocata: number;
+}
+
 /**
  * Construiește istoricul de tranzacții asociate unei facturi din ambele surse
- * de legătură existente (`tranzactii.plata_ids` și `view_plata_sportiv`),
+ * de legătură (`tranzactii.plata_ids` — fluxul vechi — și `tranzactie_plata` — fluxul normalizat),
  * deduplicat pe id-ul tranzacției, sortat descrescător după dată.
  */
 export function construiesteIstoricTranzactii(
   plataId: string,
   tranzactii: Tranzactie[],
-  vizualizari: VizualizarePlata[]
+  alocari: AlocareTranzactie[]
 ): RandIstoricTranzactie[] {
   const randuri = new Map<string, RandIstoricTranzactie>();
 
@@ -109,23 +115,20 @@ export function construiesteIstoricTranzactii(
     }
   }
 
-  for (const v of vizualizari) {
-    if (v.plata_id !== plataId || !v.tranzactie_id) continue;
-    const tranzactiaCuAcelasiId = tranzactii.find(t => t.id === v.tranzactie_id);
-    const existent = randuri.get(v.tranzactie_id);
+  for (const al of alocari) {
+    const tranzactia = tranzactii.find(t => t.id === al.tranzactie_id);
+    const existent = randuri.get(al.tranzactie_id);
     if (existent) {
       existent.sursa = 'ambele';
-      if (v.suma_incasata != null) {
-        existent.suma = Number(v.suma_incasata);
-      }
+      existent.suma = Number(al.suma_alocata);
     } else {
-      randuri.set(v.tranzactie_id, {
-        tranzactieId: v.tranzactie_id,
-        data: tranzactiaCuAcelasiId?.data_platii ?? v.data_plata ?? null,
-        suma: Number(v.suma_incasata) || 0,
-        metoda: tranzactiaCuAcelasiId?.metoda_plata ?? null,
-        nrFacturiAcoperite: tranzactiaCuAcelasiId?.plata_ids?.length || 1,
-        sursa: 'vizualizare',
+      randuri.set(al.tranzactie_id, {
+        tranzactieId: al.tranzactie_id,
+        data: tranzactia?.data_platii ?? null,
+        suma: Number(al.suma_alocata) || 0,
+        metoda: tranzactia?.metoda_plata ?? null,
+        nrFacturiAcoperite: tranzactia?.plata_ids?.length || 1,
+        sursa: 'alocare',
       });
     }
   }

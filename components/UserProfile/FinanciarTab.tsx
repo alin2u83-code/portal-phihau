@@ -1,23 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Sportiv, TipAbonament, Familie, VizualizarePlata, Plata, Tranzactie } from '../../types';
+import { Sportiv, TipAbonament, Familie, Plata, Tranzactie } from '../../types';
 import { Card, Button, Modal } from '../ui';
 import { UsersIcon, ExclamationTriangleIcon, CalendarDaysIcon, EditIcon, TrashIcon, BanknotesIcon, CheckCircleIcon, WalletIcon, ChevronDownIcon, ChevronUpIcon, XCircleIcon, ClipboardListIcon } from '../icons';
 import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
 import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare';
 import { formatLuna } from '../../utils/luniLipsa';
 import { esteDeIncasat, esteAnulata } from '../../utils/paymentStatus';
-
-interface Incasare {
-    data_plata: string;
-    suma_incasata: number;
-    tranzactie_id: string | null;
-}
-
-interface FacturaEntry {
-    detalii: VizualizarePlata;
-    incasari: Incasare[];
-    totalIncasat: number;
-}
+import type { FacturaEntry } from '../../utils/facturiSportiv';
 
 interface FinanciarTabProps {
     totalRestante: number;
@@ -131,7 +120,7 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
 
     // Lunile facturilor de Abonament individuale din istoricFacturi — un singur
     // usePrezenteLunare la nivelul componentei (nu per card, ar produce N interogări).
-    // VizualizarePlata nu poartă coloanele luna/an, deci căutăm plata originală în
+    // Factura din listă nu poartă coloanele luna/an, deci căutăm plata originală în
     // `plati` după plata_id și preferăm plata.luna/plata.an când există.
     const luniAbonamenteFacturi = useMemo(() => {
         const perechi = new Map<string, { luna: number; an: number }>();

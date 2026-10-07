@@ -203,21 +203,6 @@ export interface NotificareRestanta {
   mesaj: string;
 }
 
-export interface VizualizarePlata {
-  plata_id: string;
-  sportiv_id: string;
-  nume_complet: string;
-  club_id: string;
-  familie_id?: string | null;
-  data_emitere: string;
-  descriere: string;
-  suma_datorata: number;
-  status: 'Achitat' | 'Neachitat' | 'Achitat Parțial' | 'Anulat';
-  tranzactie_id?: string | null;
-  data_plata: string | null;
-  suma_incasata: number | null;
-}
-
 export interface IstoricPlataDetaliat {
   plata_id: string;
   sportiv_id: string | null;
@@ -798,7 +783,6 @@ export interface FilteredData {
     reduceri: Reducere[];
     deconturiFederatie: DecontFederatie[];
     istoricGrade: IstoricGrade[];
-    vizualizarePlati: VizualizarePlata[];
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
     locatii: Locatie[];
 }

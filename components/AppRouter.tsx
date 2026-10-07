@@ -337,7 +337,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return <Lazy.MartialAttendance onBack={handleBackToDashboard} currentUser={currentUser!} />;
                             case 'istoric-plati':
                                 // Istoricul PERSONAL de plăți (propriul utilizator) — ecran separat, nu face parte din hub.
-                                return <Lazy.IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} plati={filteredData.plati} tranzactii={filteredData.tranzactii} />;
+                                return <Lazy.IstoricPlati onBack={handleBackToDashboard} viewedUser={currentUser!} plati={filteredData.plati} istoric={filteredData.istoricPlatiDetaliat} />;
                             case 'account-settings':
                                 return <Lazy.AccountSettings onBack={handleBackToDashboard} currentUser={currentUser!} userRoles={userRoles} setCurrentUser={setCurrentUser} setSportivi={setSportivi} />;
                             case 'fisa-digitala':

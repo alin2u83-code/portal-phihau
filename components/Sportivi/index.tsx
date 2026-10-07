@@ -2,7 +2,7 @@ import React, { useState, useMemo, useTransition, useEffect, useRef } from 'reac
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../supabaseClient';
 import { invalidateGrupeCache } from '../../hooks/useGrupe';
-import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, VizualizarePlata, ProgramItem } from '../../types';
+import { Sportiv, Grupa, TipAbonament, Familie, Rol, Plata, Tranzactie, User, Club, Grad, Permissions, ProgramItem } from '../../types';
 import { Button, Modal, Input, CredentialeContModal, ConfirmModal } from '../ui';
 import { PlusIcon, UploadCloudIcon, ArrowLeftIcon } from '../icons';
 import { ProgramEditor } from '../Grupe/ProgramEditor';

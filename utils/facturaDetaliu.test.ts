@@ -13,7 +13,8 @@ import {
   planificaAchitareRapida,
   construiestePayloadEditareFactura,
 } from './facturaDetaliu';
-import type { Tranzactie, VizualizarePlata } from '../types';
+import type { Tranzactie } from '../types';
+import type { AlocareTranzactie } from './facturaDetaliu';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -83,39 +84,31 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
     assert(r[0].nrFacturiAcoperite === 2, `nrFacturiAcoperite asteptat 2, primit ${r[0].nrFacturiAcoperite}`);
   });
 
-  run('T6: vizualizare cu tranzactie_id ce exista in tranzactii cu plata_ids [] → 1 rand sursa vizualizare', () => {
+  run('T6: alocare ce exista in tranzactii cu plata_ids [] → 1 rand sursa alocare', () => {
     const tranzactii: Tranzactie[] = [
       { id: 'T2', plata_ids: [], sportiv_id: null, familie_id: null, suma: 40, data_platii: '2026-09-02', metoda_plata: 'Transfer Bancar' },
     ];
-    const vizualizari: VizualizarePlata[] = [
-      { plata_id: 'A', sportiv_id: 's1', nume_complet: 'X', club_id: 'c1', data_emitere: '2026-09-01', descriere: 'd', suma_datorata: 40, status: 'Achitat', tranzactie_id: 'T2', data_plata: '2026-09-02', suma_incasata: 40 },
-    ];
-    const r = construiesteIstoricTranzactii('A', tranzactii, vizualizari);
+    const alocari: AlocareTranzactie[] = [{ tranzactie_id: 'T2', suma_alocata: 40 }];
+    const r = construiesteIstoricTranzactii('A', tranzactii, alocari);
     assert(r.length === 1, `lungime asteptata 1, primit ${r.length}`);
-    assert(r[0].sursa === 'vizualizare', `sursa asteptata vizualizare, primit ${r[0].sursa}`);
+    assert(r[0].sursa === 'alocare', `sursa asteptata alocare, primit ${r[0].sursa}`);
     assert(r[0].suma === 40, `suma asteptata 40, primit ${r[0].suma}`);
     assert(r[0].metoda === 'Transfer Bancar', `metoda asteptata din tranzactia T2, primit ${r[0].metoda}`);
   });
 
-  run('T7: aceeasi tranzactie in ambele surse → 1 singur rand sursa ambele, suma din vizualizare', () => {
+  run('T7: aceeasi tranzactie in ambele surse → 1 singur rand sursa ambele, suma din alocare', () => {
     const tranzactii: Tranzactie[] = [
       { id: 'T1', plata_ids: ['A'], sportiv_id: null, familie_id: null, suma: 50, data_platii: '2026-09-01', metoda_plata: 'Cash' },
     ];
-    const vizualizari: VizualizarePlata[] = [
-      { plata_id: 'A', sportiv_id: 's1', nume_complet: 'X', club_id: 'c1', data_emitere: '2026-09-01', descriere: 'd', suma_datorata: 50, status: 'Achitat', tranzactie_id: 'T1', data_plata: '2026-09-01', suma_incasata: 45 },
-    ];
-    const r = construiesteIstoricTranzactii('A', tranzactii, vizualizari);
+    const alocari: AlocareTranzactie[] = [{ tranzactie_id: 'T1', suma_alocata: 45 }];
+    const r = construiesteIstoricTranzactii('A', tranzactii, alocari);
     assert(r.length === 1, `lungime asteptata 1, primit ${r.length}`);
     assert(r[0].sursa === 'ambele', `sursa asteptata ambele, primit ${r[0].sursa}`);
-    assert(r[0].suma === 45, `suma asteptata 45 (din vizualizare), primit ${r[0].suma}`);
+    assert(r[0].suma === 45, `suma asteptata 45 (din alocare), primit ${r[0].suma}`);
   });
 
-  run('T8: vizualizare cu tranzactie_id null si randuri pentru alta plata → ignorate', () => {
-    const vizualizari: VizualizarePlata[] = [
-      { plata_id: 'A', sportiv_id: 's1', nume_complet: 'X', club_id: 'c1', data_emitere: '2026-09-01', descriere: 'd', suma_datorata: 50, status: 'Achitat', tranzactie_id: null, data_plata: null, suma_incasata: null },
-      { plata_id: 'B', sportiv_id: 's1', nume_complet: 'X', club_id: 'c1', data_emitere: '2026-09-01', descriere: 'd', suma_datorata: 50, status: 'Achitat', tranzactie_id: 'T9', data_plata: '2026-09-01', suma_incasata: 50 },
-    ];
-    const r = construiesteIstoricTranzactii('A', [], vizualizari);
+  run('T8: fara tranzactii si fara alocari → istoric gol', () => {
+    const r = construiesteIstoricTranzactii('A', [], []);
     assert(r.length === 0, `lungime asteptata 0, primit ${r.length}`);
   });
 

@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { useData } from '../../contexts/DataContext';
@@ -16,6 +16,7 @@ import {
   planificaAchitareRapida,
   construiestePayloadEditareFactura,
   type FormEditareFactura,
+  type AlocareTranzactie,
 } from '../../utils/facturaDetaliu';
 import type { Plata } from '../../types';
 
@@ -28,7 +29,7 @@ const METODE_PLATA = ['Cash', 'Transfer Bancar', 'Revolut'] as const;
 const STATUSURI_CORECTIE = ['Neachitat', 'Achitat Parțial', 'Achitat'] as const;
 
 export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose }) => {
-  const { filteredData, setPlati, setTranzactii, setVizualizarePlati, clubs, reduceri, activeRoleContext } = useData();
+  const { filteredData, setPlati, setTranzactii, clubs, reduceri, activeRoleContext } = useData();
   const permissions = usePermissions(activeRoleContext);
   const { showError, showSuccess } = useError();
   const queryClient = useQueryClient();
@@ -60,9 +61,20 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plata?.id]);
 
+  // Alocările reale ale facturii (tranzactie_plata) — o singură interogare mică per factură deschisă.
+  const { data: alocari = [] } = useQuery({
+    queryKey: ['alocari-factura', plata?.id],
+    enabled: !!plata?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('tranzactie_plata').select('tranzactie_id, suma_alocata').eq('plata_id', plata!.id);
+      if (error) throw error;
+      return (data || []) as AlocareTranzactie[];
+    },
+  });
+
   const istoric = useMemo(
-    () => (plata ? construiesteIstoricTranzactii(plata.id, filteredData.tranzactii || [], filteredData.vizualizarePlati || []) : []),
-    [plata, filteredData.tranzactii, filteredData.vizualizarePlati]
+    () => (plata ? construiesteIstoricTranzactii(plata.id, filteredData.tranzactii || [], alocari) : []),
+    [plata, filteredData.tranzactii, alocari]
   );
 
   const sumar = useMemo(() => (plata ? calculeazaSumarFactura(plata, istoric.length) : null), [plata, istoric]);
@@ -112,7 +124,6 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
     const { data: proaspata } = await supabase.from('plati').select('*').eq('id', plata.id).maybeSingle();
     if (proaspata) {
       setPlati(prev => prev.map(p => (p.id === plata.id ? { ...p, ...proaspata } : p)));
-      setVizualizarePlati(prev => prev.map(v => (v.plata_id === plata.id ? { ...v, status: (proaspata as any).status } : v)));
     }
     if (tranzactieId) {
       const { data: t } = await supabase.from('tranzactii').select('*').eq('id', tranzactieId).maybeSingle();
@@ -121,6 +132,7 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
       }
     }
     queryClient.invalidateQueries({ queryKey: ['plati'] });
+    queryClient.invalidateQueries({ queryKey: ['alocari-factura', plata.id] });
     queryClient.invalidateQueries({ queryKey: ['facturi-abonament-luna'] });
     return proaspata;
   };
@@ -198,7 +210,6 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
         return;
       }
       setPlati(prev => prev.map(p => (p.id === data.id ? { ...p, ...data } : p)));
-      setVizualizarePlati(prev => prev.map(v => (v.plata_id === data.id ? { ...v, status: (data as any).status } : v)));
       queryClient.invalidateQueries({ queryKey: ['plati'] });
       queryClient.invalidateQueries({ queryKey: ['facturi-abonament-luna'] });
       showSuccess('Succes', 'Factura a fost corectată.');

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Sportiv, Rol, SesiuneExamen, InscriereExamen, Antrenament, Grupa, Plata, Tranzactie, Eveniment, Rezultat, TipAbonament, Familie, AnuntPrezenta, Reducere, DecontFederatie, IstoricGrade, VizualizarePlata, IstoricPlataDetaliat, Locatie } from '../types';
+import { Sportiv, Rol, SesiuneExamen, InscriereExamen, Antrenament, Grupa, Plata, Tranzactie, Eveniment, Rezultat, TipAbonament, Familie, AnuntPrezenta, Reducere, DecontFederatie, IstoricGrade, IstoricPlataDetaliat, Locatie } from '../types';
 
 interface UseFilteredDataProps {
     activeRole: Rol['nume'] | null;
@@ -19,7 +19,6 @@ interface UseFilteredDataProps {
     reduceri: Reducere[];
     deconturiFederatie: DecontFederatie[];
     istoricGrade: IstoricGrade[];
-    vizualizarePlati: VizualizarePlata[];
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
     locatii: Locatie[];
 }
@@ -42,7 +41,6 @@ export const useFilteredData = ({
     reduceri,
     deconturiFederatie,
     istoricGrade,
-    vizualizarePlati,
     istoricPlatiDetaliat,
     locatii
 }: UseFilteredDataProps) => {
@@ -81,7 +79,6 @@ export const useFilteredData = ({
             reduceri: reduceri || [],
             deconturiFederatie: deconturiFederatie || [],
             istoricGrade: istoricGrade || [],
-            vizualizarePlati: vizualizarePlati || [],
             istoricPlatiDetaliat: istoricPlatiDetaliat || [],
             locatii: locatii || [],
         };
@@ -103,8 +100,7 @@ export const useFilteredData = ({
         reduceri,
         deconturiFederatie,
         istoricGrade,
-        vizualizarePlati,
-        istoricPlatiDetaliat,
+            istoricPlatiDetaliat,
         locatii
     ]);
 };

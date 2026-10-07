@@ -4,6 +4,8 @@ import { Modal, Button, Input, Select, Card } from '../ui';
 import { BanknotesIcon, BookOpenIcon, TrophyIcon, WalletIcon, PlusIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { supabase } from '../../supabaseClient';
+import { useData } from '../../contexts/DataContext';
+import { calculeazaSold } from '../../services/soldService';
 
 interface SportivWalletProps {
     sportiv: Sportiv;
@@ -34,6 +36,7 @@ type InvoiceHistoryItem = {
 export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, allSportivi, vizualizarePlati, allPlati, setPlati, setTranzactii, onClose }) => {
     
     const isFamilyWallet = !!sportiv.familie_id && !!familie;
+    const { filteredData } = useData();
     const { showError, showSuccess } = useError();
     const [showPaymentForm, setShowPaymentForm] = useState(false);
     const [paymentAmount, setPaymentAmount] = useState('');
@@ -56,8 +59,6 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
         });
 
         const invoices = new Map<string, InvoiceHistoryItem>();
-        let totalPaidOverall = 0;
-        let totalBilledOverall = 0;
 
         relevantPlatiView.forEach(p => {
             if (!invoices.has(p.plata_id)) {
@@ -67,7 +68,6 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
                     totalPaid: 0,
                     remaining: p.suma_datorata,
                 });
-                totalBilledOverall += (p.suma_datorata || 0);
             }
             if (p.tranzactie_id && p.suma_incasata && p.data_plata) {
                 invoices.get(p.plata_id)!.payments.push(p);
@@ -78,17 +78,21 @@ export const SportivWallet: React.FC<SportivWalletProps> = ({ sportiv, familie, 
             const totalPaidForInvoice = invoice.payments.reduce((sum, payment) => sum + (payment.suma_incasata || 0), 0);
             invoice.totalPaid = totalPaidForInvoice;
             invoice.remaining = (invoice.details.suma_datorata || 0) - totalPaidForInvoice;
-            totalPaidOverall += totalPaidForInvoice;
         });
         
-        const currentSold = totalPaidOverall - totalBilledOverall;
+        // Sold = sursa unică (soldService): tranzacții reale − facturi neanulate.
+        // Lista de facturi și "de plată" rămân din view (detaliu pe factură).
+        const currentSold = calculeazaSold(allPlati, filteredData.tranzactii, {
+            sportivIds: Array.from(familyMemberIds),
+            familieId: isFamilyWallet ? sportiv.familie_id : null,
+        });
         const dueAmount = Array.from(invoices.values()).reduce((sum, inv) => sum + Math.max(0, inv.remaining || 0), 0);
         
         const sortedHistory = Array.from(invoices.values()).sort((a,b) => new Date((b.details.data_emitere || '').toString().slice(0, 10)).getTime() - new Date((a.details.data_emitere || '').toString().slice(0, 10)).getTime());
 
         return { sold: currentSold, totalDue: dueAmount, invoiceHistory: sortedHistory };
 
-    }, [sportiv, isFamilyWallet, vizualizarePlati, allSportivi, familie]);
+    }, [sportiv, isFamilyWallet, vizualizarePlati, allSportivi, familie, allPlati, filteredData.tranzactii]);
 
     const handleConfirmPayment = async () => {
         setIsSaving(true);

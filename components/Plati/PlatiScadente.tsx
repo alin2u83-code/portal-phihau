@@ -11,6 +11,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../../constants';
 import { useData } from '../../contexts/DataContext';
+import { calculeazaSolduri } from '../../services/soldService';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat, esteAnulata } from '../../utils/paymentStatus';
 import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
 import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare';
@@ -114,31 +115,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const [isNotificariRestantieriOpen, setIsNotificariRestantieriOpen] = useState(false);
 
     const balances = useMemo(() => {
-        const famBalances = new Map<string, number>();
-        const indivBalances = new Map<string, number>();
-
-        (familii || []).forEach(f => famBalances.set(f.id, 0));
-        (sportivi || []).forEach(s => indivBalances.set(s.id, 0));
-
-        (tranzactii || []).forEach(t => {
-            if (t.familie_id) {
-                famBalances.set(t.familie_id, (famBalances.get(t.familie_id) || 0) + t.suma);
-            } else if (t.sportiv_id) {
-                indivBalances.set(t.sportiv_id, (indivBalances.get(t.sportiv_id) || 0) + t.suma);
-            }
+        const { perSportiv, perFamilie } = calculeazaSolduri(plati, tranzactii, {
+            sportivIds: (sportivi || []).map(s => s.id),
+            familieIds: (familii || []).map(f => f.id),
         });
-
-        (plati || []).forEach(p => {
-            // O factură anulată nu mai reprezintă o datorie — nu are voie să reducă soldul.
-            if (esteAnulata(p)) return;
-            if (p.familie_id) {
-                famBalances.set(p.familie_id, (famBalances.get(p.familie_id) || 0) - p.suma);
-            } else if (p.sportiv_id) {
-                indivBalances.set(p.sportiv_id, (indivBalances.get(p.sportiv_id) || 0) - p.suma);
-            }
-        });
-
-        return { famBalances, indivBalances };
+        return { famBalances: perFamilie, indivBalances: perSportiv };
     }, [familii, sportivi, plati, tranzactii]);
 
     const handleGenerateSubscriptions = async () => {
@@ -174,24 +155,11 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             const politici = politiciLoialitate ?? [];
 
             // Calculează solduri proaspete folosind datele din DB, nu state-ul React
-            const famBalancesFresh = new Map<string, number>();
-            const indivBalancesFresh = new Map<string, number>();
-            (familii || []).forEach(f => famBalancesFresh.set(f.id, 0));
-            (sportivi || []).forEach(s => indivBalancesFresh.set(s.id, 0));
-            (tranzactiiProaspete || []).forEach(t => {
-                if (t.familie_id) {
-                    famBalancesFresh.set(t.familie_id, (famBalancesFresh.get(t.familie_id) || 0) + t.suma);
-                } else if (t.sportiv_id) {
-                    indivBalancesFresh.set(t.sportiv_id, (indivBalancesFresh.get(t.sportiv_id) || 0) + t.suma);
-                }
-            });
-            (platiProaspete || []).forEach(p => {
-                if (p.familie_id) {
-                    famBalancesFresh.set(p.familie_id, (famBalancesFresh.get(p.familie_id) || 0) - p.suma);
-                } else if (p.sportiv_id) {
-                    indivBalancesFresh.set(p.sportiv_id, (indivBalancesFresh.get(p.sportiv_id) || 0) - p.suma);
-                }
-            });
+            const { perFamilie: famBalancesFresh, perSportiv: indivBalancesFresh } = calculeazaSolduri(
+                platiProaspete as any[],
+                tranzactiiProaspete as any[],
+                { sportivIds: (sportivi || []).map(s => s.id), familieIds: (familii || []).map(f => f.id) }
+            );
 
             const sportiviQuery = supabase
                 .from('sportivi')

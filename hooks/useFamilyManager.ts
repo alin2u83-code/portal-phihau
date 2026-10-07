@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Familie, Sportiv, Plata, Tranzactie } from '../types';
 import * as familieService from '../services/familieService';
+import { calculeazaSolduri } from '../services/soldService';
 import { useError } from '../components/ErrorProvider';
 
 export const useFamilyManager = (
@@ -14,49 +15,28 @@ export const useFamilyManager = (
     const { showError, showSuccess } = useError();
     const [loading, setLoading] = useState(false);
 
-    const familyBalances = useMemo(() => {
-        const balances = new Map<string, number>();
-        if (!initialFamilii || !plati || !tranzactii) return balances;
-        
-        initialFamilii.forEach(f => balances.set(f.id, 0));
-        
-        tranzactii.forEach(t => {
-            if (t.familie_id) {
-                balances.set(t.familie_id, (balances.get(t.familie_id) || 0) + t.suma);
-            }
-        });
-        
-        plati.forEach(p => {
-            if (p.familie_id) {
-                balances.set(p.familie_id, (balances.get(p.familie_id) || 0) - p.suma);
-            }
-        });
-        
-        return balances;
-    }, [initialFamilii, plati, tranzactii]);
+    const solduri = useMemo(
+        () => calculeazaSolduri(plati, tranzactii, {
+            sportivIds: (sportivi || []).map(s => s.id),
+            familieIds: (initialFamilii || []).map(f => f.id),
+        }),
+        [initialFamilii, sportivi, plati, tranzactii]
+    );
 
+    const familyBalances = useMemo(() => {
+        if (!initialFamilii || !plati || !tranzactii) return new Map<string, number>();
+        return solduri.perFamilie;
+    }, [initialFamilii, plati, tranzactii, solduri]);
+
+    // Doar sportivii fără familie au un sold individual propriu în această listă.
     const individualBalances = useMemo(() => {
         const balances = new Map<string, number>();
         if (!sportivi || !plati || !tranzactii) return balances;
-        
         sportivi.forEach(s => {
-            if (!s.familie_id) balances.set(s.id, 0);
+            if (!s.familie_id) balances.set(s.id, solduri.perSportiv.get(s.id) || 0);
         });
-        
-        tranzactii.forEach(t => {
-            if (t.sportiv_id && !t.familie_id && balances.has(t.sportiv_id)) {
-                balances.set(t.sportiv_id, (balances.get(t.sportiv_id) || 0) + t.suma);
-            }
-        });
-        
-        plati.forEach(p => {
-            if (p.sportiv_id && !p.familie_id && balances.has(p.sportiv_id)) {
-                balances.set(p.sportiv_id, (balances.get(p.sportiv_id) || 0) - p.suma);
-            }
-        });
-        
         return balances;
-    }, [sportivi, plati, tranzactii]);
+    }, [sportivi, plati, tranzactii, solduri]);
 
     const unassignedSportivi = useMemo(() => {
         return sportivi.filter(s => !s.familie_id);

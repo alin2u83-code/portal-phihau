@@ -42,6 +42,7 @@ const HARTA_ASTEPTATA_SECTIUNE_TAB: Record<SectiuneHub, string> = {
     'gestiune-facturi': 'facturi',
     'facturi-fara-prezenta': 'facturi',
     'jurnal-incasari': 'incasari',
+    'sumar-incasari': 'incasari',
     'istoric-plati': 'incasari',
     'raport-financiar': 'rapoarte',
     'financial-dashboard': 'rapoarte',
@@ -132,9 +133,9 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
         assertPozitie(r, { tab: 'facturi', sectiune: 'plati-scadente' }, 'T12');
     });
 
-    run('T13: TAB_PENTRU_SECTIUNE respecta gruparea D-01..D-04 pentru toate cele 12 sectiuni', () => {
+    run('T13: TAB_PENTRU_SECTIUNE respecta gruparea D-01..D-04 pentru toate cele 13 sectiuni', () => {
         const chei = Object.keys(HARTA_ASTEPTATA_SECTIUNE_TAB) as SectiuneHub[];
-        assert(chei.length === 12, `asteptate 12 sectiuni in harta de test, gasite ${chei.length}`);
+        assert(chei.length === 13, `asteptate 13 sectiuni in harta de test, gasite ${chei.length}`);
         for (const sectiune of chei) {
             const tabAsteptat = HARTA_ASTEPTATA_SECTIUNE_TAB[sectiune];
             const tabReal = TAB_PENTRU_SECTIUNE[sectiune];

@@ -60,6 +60,7 @@ export const TabIncasari: React.FC<TabIncasariProps> = ({
           hideBackButton
         />
       )}
+      {sectiune === 'sumar-incasari' && <Lazy.SumarIncasari permissions={permissions} />}
       {sectiune === 'istoric-plati' && (
         <Lazy.IstoricPlati
           onBack={onBack}

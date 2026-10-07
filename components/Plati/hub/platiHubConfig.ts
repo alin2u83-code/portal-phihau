@@ -69,11 +69,11 @@ import type { View, User, Permissions, Plata, Sportiv } from '../../../types';
 /** Cele 4 tab-uri interne ale hub-ului "Plăți & Facturi" (D-01..D-04). */
 export type TabHub = 'facturi' | 'incasari' | 'rapoarte' | 'configurare';
 
-/** Cele 12 vederi (literale View vechi) care intra in hub — familii si deconturi-federatie
+/** Cele 12 vederi (literale View vechi) + sumar-incasari (sectiune noua, nu View) care intra in hub — familii si deconturi-federatie
  * raman in afara hub-ului (D-05), NU apar aici. */
 export type SectiuneHub =
   | 'plati-scadente' | 'gestiune-facturi' | 'facturi-fara-prezenta'
-  | 'jurnal-incasari' | 'istoric-plati'
+  | 'jurnal-incasari' | 'sumar-incasari' | 'istoric-plati'
   | 'raport-financiar' | 'financial-dashboard'
   | 'tipuri-abonament' | 'configurare-preturi' | 'reduceri' | 'taxe-anuale' | 'nomenclatoare';
 
@@ -117,7 +117,7 @@ export const ETICHETE_TABURI: Record<TabHub, string> = {
 /** Gruparea LOCKED D-01..D-04. Ordinea din fiecare lista e ordinea pastilelor in UI. */
 export const SECTIUNI_PE_TAB: Record<TabHub, readonly SectiuneHub[]> = {
   facturi: ['plati-scadente', 'gestiune-facturi', 'facturi-fara-prezenta'], // D-01
-  incasari: ['jurnal-incasari', 'istoric-plati'], // D-02
+  incasari: ['jurnal-incasari', 'sumar-incasari', 'istoric-plati'], // D-02 (+ sumar-incasari, debug plati 2026-10-07)
   rapoarte: ['raport-financiar', 'financial-dashboard'], // D-03
   configurare: ['tipuri-abonament', 'configurare-preturi', 'reduceri', 'taxe-anuale', 'nomenclatoare'], // D-04
 };
@@ -127,6 +127,7 @@ export const ETICHETE_SECTIUNI: Record<SectiuneHub, string> = {
   'gestiune-facturi': 'Gestiune Facturi',
   'facturi-fara-prezenta': 'Facturi fără Prezență',
   'jurnal-incasari': 'Jurnal Încasări',
+  'sumar-incasari': 'Sumar Încasări',
   // IstoricPlati afiseaza platile utilizatorului logat — comportament neschimbat
   // fata de vederea veche, eticheta reflecta asta ("Personale").
   'istoric-plati': 'Istoric Plăți Personale',
@@ -153,7 +154,13 @@ export const TAB_PENTRU_SECTIUNE: Record<SectiuneHub, TabHub> = TABURI_HUB.reduc
   return acc;
 }, {} as Record<SectiuneHub, TabHub>);
 
-const TOATE_SECTIUNILE_HUB: readonly SectiuneHub[] = TABURI_HUB.flatMap(tab => SECTIUNI_PE_TAB[tab]);
+/** Sectiuni care NU sunt View-uri vechi (nu exista literal View pentru ele) — exclse din VEDERI_HUB. */
+type SectiuneFaraView = 'sumar-incasari';
+type SectiuneCuView = Exclude<SectiuneHub, SectiuneFaraView>;
+
+const TOATE_SECTIUNILE_HUB: readonly SectiuneCuView[] = TABURI_HUB
+  .flatMap(tab => SECTIUNI_PE_TAB[tab])
+  .filter((s): s is SectiuneCuView => s !== 'sumar-incasari');
 
 /** Vederile (literale View) care intra in hub: 'plati-hub' + cele 12 sectiuni (13 total).
  * NU include 'familii' si 'deconturi-federatie' (D-05 — raman ecrane separate). */

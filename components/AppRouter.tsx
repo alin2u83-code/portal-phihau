@@ -18,6 +18,73 @@ const scrollPositions = new Map<View, number>();
 const SCROLL_FARA_RESTAURARE = new Set<View>(['profil-sportiv', 'fisa-digitala', 'fisa-competitie']);
 const SCROLL_RESTAURARE_MAX_MS = 15000; // liste lente (date de la Supabase); wheel/touch/key opresc restaurarea
 
+// Salveaza/restaureaza scroll-ul unui view. Se monteaza INAUNTRUL motion.div-ului view-ului, deci doar
+// dupa ce animatia de iesire (AnimatePresence mode="wait") a scos view-ul vechi din DOM — altfel
+// restaurarea ar rula pe pagina veche, inalta, si s-ar pierde cand apare view-ul nou, scurt.
+// Pozitia fiecarui view se salveaza la fiecare `scroll`, cat timp view-ul e afisat.
+let ultimulViewAfisat: View | null = null;
+const ScrollRestorer: React.FC<{ view: View }> = ({ view }) => {
+    useLayoutEffect(() => {
+        const prev = ultimulViewAfisat;
+        ultimulViewAfisat = view;
+        // Revenire din profil-sportiv → sportivi: restaurarea o face Sportivi.tsx (pe rand + paginare)
+        const deLaSportivi = prev === 'profil-sportiv' && view === 'sportivi';
+        const target = SCROLL_FARA_RESTAURARE.has(view) ? 0 : (scrollPositions.get(view) ?? 0);
+
+        let restaurare = !deLaSportivi;
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        const evenimenteUtilizator = ['wheel', 'touchstart', 'keydown'];
+
+        // In timpul restaurarii ignoram `scroll` (pagina inca scurta ar suprascrie pozitia salvata cu o valoare clamped).
+        // Fara requestAnimationFrame: Map.set e ieftin, iar rAF nu ruleaza in tab-uri fara focus.
+        const onScroll = () => { if (!restaurare) scrollPositions.set(view, window.scrollY); };
+        window.addEventListener('scroll', onScroll, { passive: true });
+
+        const scrollLa = (y: number) => {
+            try {
+                window.scrollTo({ top: y, left: 0, behavior: 'instant' as ScrollBehavior });
+            } catch {
+                window.scrollTo(0, y);
+            }
+            if (y === 0) { document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } // Safari fallback
+        };
+        const opreste = () => {
+            if (timer) clearTimeout(timer);
+            timer = null;
+            restaurare = false;
+            evenimenteUtilizator.forEach(ev => window.removeEventListener(ev, opreste));
+        };
+
+        if (restaurare) {
+            scrollLa(0);
+            if (target <= 0) {
+                restaurare = false;
+            } else {
+                // Continutul se randeaza asincron (lazy + date): reincercam pana poate fi atinsa pozitia salvata
+                // sau pana expira timpul; ne oprim daca utilizatorul deruleaza singur.
+                const startedAt = Date.now();
+                evenimenteUtilizator.forEach(ev => window.addEventListener(ev, opreste, { passive: true }));
+                const incearca = () => {
+                    const poateAtinge = document.documentElement.scrollHeight >= target + window.innerHeight;
+                    if (poateAtinge || Date.now() - startedAt >= SCROLL_RESTAURARE_MAX_MS) {
+                        scrollLa(target);
+                        timer = setTimeout(opreste, 150); // scroll-ul programatic nu trebuie inregistrat gresit
+                        return;
+                    }
+                    timer = setTimeout(incearca, 100);
+                };
+                timer = setTimeout(incearca, 0);
+            }
+        }
+
+        return () => {
+            opreste();
+            window.removeEventListener('scroll', onScroll);
+        };
+    }, [view]);
+    return null;
+};
+
 export interface AppRouterProps {
     activeView: View;
     setActiveView: (view: View) => void;
@@ -55,72 +122,6 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         decontSportivi, setDecontSportivi,
         filteredData, antrenamente, setAntrenamente, anunturiPrezenta, setAnunturiPrezenta, setCurrentUser
     } = useData();
-
-    // Scroll per view: salvam pozitia fiecarui view si o restauram la revenire (orice cale: Inapoi, meniu, gest).
-    // View-urile de detaliu (profil, fise) si view-urile nevizitate pornesc de sus.
-    // Excepție: revenire din profil-sportiv → sportivi păstrează scroll-ul (restaurat de Sportivi.tsx)
-    const prevViewRef = useRef<View | null>(null);
-    const scrollKeyRef = useRef<View | null>(null);
-    const scrollRestoringRef = useRef(false);
-    useEffect(() => {
-        // Inregistram pozitia doar pentru view-ul curent; in timpul restaurarii ignoram evenimentele
-        // (altfel pagina inca scurta ar suprascrie pozitia salvata cu o valoare clamped).
-        // Fara requestAnimationFrame: Map.set e ieftin, iar rAF nu ruleaza in tab-uri fara focus.
-        const onScroll = () => {
-            if (scrollKeyRef.current && !scrollRestoringRef.current) {
-                scrollPositions.set(scrollKeyRef.current, window.scrollY);
-            }
-        };
-        window.addEventListener('scroll', onScroll, { passive: true });
-        return () => window.removeEventListener('scroll', onScroll);
-    }, []);
-
-    useLayoutEffect(() => {
-        const prev = prevViewRef.current;
-        prevViewRef.current = activeView;
-        if (prev === null || prev === activeView) { scrollKeyRef.current = activeView; return; }
-
-        const isBackFromProfile = prev === 'profil-sportiv' && activeView === 'sportivi';
-        const target = SCROLL_FARA_RESTAURARE.has(activeView) ? 0 : (scrollPositions.get(activeView) ?? 0);
-        scrollRestoringRef.current = true;
-        scrollKeyRef.current = activeView;
-        if (isBackFromProfile) { scrollRestoringRef.current = false; return; }
-
-        const scrollLa = (y: number) => {
-            try {
-                window.scrollTo({ top: y, left: 0, behavior: 'instant' as ScrollBehavior });
-            } catch {
-                window.scrollTo(0, y);
-            }
-            if (y === 0) { document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } // Safari fallback
-        };
-        scrollLa(0);
-        if (target <= 0) { scrollRestoringRef.current = false; return; }
-
-        // Continutul se randeaza asincron (lazy + date): reincercam pana poate fi atinsa pozitia salvata
-        // sau pana expira timpul; ne oprim daca utilizatorul deruleaza singur.
-        const startedAt = Date.now();
-        let timer: ReturnType<typeof setTimeout> | null = null;
-        const opreste = () => {
-            if (timer) clearTimeout(timer);
-            timer = null;
-            scrollRestoringRef.current = false;
-            ['wheel', 'touchstart', 'keydown'].forEach(ev => window.removeEventListener(ev, opreste));
-        };
-        ['wheel', 'touchstart', 'keydown'].forEach(ev => window.addEventListener(ev, opreste, { passive: true }));
-        const incearca = () => {
-            const poateAtinge = document.documentElement.scrollHeight >= target + window.innerHeight;
-            if (poateAtinge || Date.now() - startedAt >= SCROLL_RESTAURARE_MAX_MS) {
-                scrollLa(target);
-                // dupa ultima asezare, lasam o scurta pauza ca scroll-ul programatic sa nu fie inregistrat gresit
-                setTimeout(opreste, 100);
-                return;
-            }
-            timer = setTimeout(incearca, 100);
-        };
-        timer = setTimeout(incearca, 0);
-        return opreste;
-    }, [activeView]);
 
     // Faza 31 (31-08): logica fluxului de încasare multiplă (F1-F4) și a
     // navigării hub-ului "Plăți & Facturi" a fost mutată în
@@ -184,6 +185,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
             >
+                <ScrollRestorer view={activeView} />
                 <Suspense fallback={<MartialArtsSkeleton count={5} />}>
                     <ActivitateSalaTabs activeView={activeView} onNavigate={replaceView} isAdminClub={isAtLeastClubAdmin} isInstructorOnly={permissions.isInstructor && !isAtLeastClubAdmin} enabled={isAtLeastInstructor}>
                     {(() => {

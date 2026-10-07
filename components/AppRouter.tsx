@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect, useRef } from 'react';
+import React, { Suspense, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { View, Sportiv, Plata } from '../types';
 import * as Lazy from './LazyComponents';
@@ -11,6 +11,12 @@ import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { ActivitateSalaTabs } from './ActivitateSalaTabs';
 import { useData } from '../contexts/DataContext';
 import { useNavigation } from '../contexts/NavigationContext';
+
+// Pozitia de scroll per view (modul-level: supravietuieste demontarii componentelor)
+const scrollPositions = new Map<View, number>();
+// View-uri de detaliu: se deschid mereu de sus (alt sportiv/fisa decat data trecuta)
+const SCROLL_FARA_RESTAURARE = new Set<View>(['profil-sportiv', 'fisa-digitala', 'fisa-competitie']);
+const SCROLL_RESTAURARE_MAX_MS = 5000;
 
 export interface AppRouterProps {
     activeView: View;
@@ -50,24 +56,74 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         filteredData, antrenamente, setAntrenamente, anunturiPrezenta, setAnunturiPrezenta, setCurrentUser
     } = useData();
 
-    // Scroll to top on page navigation; preserve position during saves (same view re-renders)
+    // Scroll per view: salvam pozitia fiecarui view si o restauram la revenire (orice cale: Inapoi, meniu, gest).
+    // View-urile de detaliu (profil, fise) si view-urile nevizitate pornesc de sus.
     // Excepție: revenire din profil-sportiv → sportivi păstrează scroll-ul (restaurat de Sportivi.tsx)
     const prevViewRef = useRef<View | null>(null);
+    const scrollKeyRef = useRef<View | null>(null);
+    const scrollRestoringRef = useRef(false);
     useEffect(() => {
-        if (prevViewRef.current !== null && prevViewRef.current !== activeView) {
-            const isBackFromProfile =
-                prevViewRef.current === 'profil-sportiv' && activeView === 'sportivi';
-            if (!isBackFromProfile) {
-                try {
-                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-                } catch {
-                    window.scrollTo(0, 0);
+        // Inregistram pozitia doar pentru view-ul curent; in timpul restaurarii ignoram evenimentele
+        // (altfel pagina inca scurta ar suprascrie pozitia salvata cu o valoare clamped).
+        let raf = 0;
+        const onScroll = () => {
+            if (raf || scrollRestoringRef.current) return;
+            raf = requestAnimationFrame(() => {
+                raf = 0;
+                if (scrollKeyRef.current && !scrollRestoringRef.current) {
+                    scrollPositions.set(scrollKeyRef.current, window.scrollY);
                 }
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0; // Safari fallback
-            }
-        }
+            });
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf); };
+    }, []);
+
+    useLayoutEffect(() => {
+        const prev = prevViewRef.current;
         prevViewRef.current = activeView;
+        if (prev === null || prev === activeView) { scrollKeyRef.current = activeView; return; }
+
+        const isBackFromProfile = prev === 'profil-sportiv' && activeView === 'sportivi';
+        const target = SCROLL_FARA_RESTAURARE.has(activeView) ? 0 : (scrollPositions.get(activeView) ?? 0);
+        scrollRestoringRef.current = true;
+        scrollKeyRef.current = activeView;
+        if (isBackFromProfile) { scrollRestoringRef.current = false; return; }
+
+        const scrollLa = (y: number) => {
+            try {
+                window.scrollTo({ top: y, left: 0, behavior: 'instant' as ScrollBehavior });
+            } catch {
+                window.scrollTo(0, y);
+            }
+            if (y === 0) { document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } // Safari fallback
+        };
+        scrollLa(0);
+        if (target <= 0) { scrollRestoringRef.current = false; return; }
+
+        // Continutul se randeaza asincron (lazy + date): reincercam pana poate fi atinsa pozitia salvata
+        // sau pana expira timpul; ne oprim daca utilizatorul deruleaza singur.
+        const startedAt = Date.now();
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        const opreste = () => {
+            if (timer) clearTimeout(timer);
+            timer = null;
+            scrollRestoringRef.current = false;
+            ['wheel', 'touchstart', 'keydown'].forEach(ev => window.removeEventListener(ev, opreste));
+        };
+        ['wheel', 'touchstart', 'keydown'].forEach(ev => window.addEventListener(ev, opreste, { passive: true }));
+        const incearca = () => {
+            const poateAtinge = document.documentElement.scrollHeight >= target + window.innerHeight;
+            if (poateAtinge || Date.now() - startedAt >= SCROLL_RESTAURARE_MAX_MS) {
+                scrollLa(target);
+                // dupa ultima asezare, lasam o scurta pauza ca scroll-ul programatic sa nu fie inregistrat gresit
+                setTimeout(opreste, 100);
+                return;
+            }
+            timer = setTimeout(incearca, 100);
+        };
+        timer = setTimeout(incearca, 0);
+        return opreste;
     }, [activeView]);
 
     // Faza 31 (31-08): logica fluxului de încasare multiplă (F1-F4) și a

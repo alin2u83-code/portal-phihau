@@ -169,16 +169,16 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
 
     return ReactDOM.createPortal(
         <div
-            className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-0 sm:p-4 backdrop-blur-sm"
             onClick={handleClose}
         >
             <div
-                className="bg-slate-900 border border-slate-700/80 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
+                className="bg-slate-900 border border-slate-700/80 w-full max-w-[1400px] h-full sm:h-[90vh] rounded-none sm:rounded-2xl shadow-2xl flex flex-col"
                 style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/80 bg-slate-800/60 rounded-t-2xl">
+                <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/80 bg-slate-800/60 sm:rounded-t-2xl">
                     <div className="flex items-center gap-3 min-w-0">
                         <div className="p-2 rounded-lg bg-sky-500/10 shrink-0">
                             <UserPlusIcon className="w-5 h-5 text-sky-400" />
@@ -205,7 +205,7 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
                 <div className="flex flex-col md:flex-row gap-4 md:gap-0 p-4 flex-1 min-h-0 overflow-hidden">
 
                     {/* Panoul drept — "În grupă" — apare primul pe mobil */}
-                    <div className="flex flex-col md:w-72 shrink-0 min-h-0 order-first md:order-last md:pl-4">
+                    <div className="flex flex-col md:w-80 lg:w-96 shrink-0 min-h-0 order-first md:order-last md:pl-4">
                         <div className="flex items-center gap-2 mb-3">
                             <span className="text-sm font-semibold text-slate-300">
                                 În grupă
@@ -214,7 +214,7 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
                                 {sportiviInGrupa.length}
                             </span>
                         </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain max-h-[30vh] md:max-h-[55vh] rounded-xl border border-slate-700/50">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain max-h-[28vh] md:max-h-none rounded-xl border border-slate-700/50">
                             {sportiviInGrupa.length === 0 ? (
                                 <p className="text-slate-500 italic text-sm text-center py-4 px-3">
                                     Niciun sportiv în grupă
@@ -326,7 +326,7 @@ export const AdaugaSportiviModal: React.FC<AdaugaSportiviModalProps> = ({
                         </div>
 
                         {/* Lista disponibili */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain max-h-[35vh] md:max-h-[55vh] rounded-xl border border-slate-700/50">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain rounded-xl border border-slate-700/50">
                             {sportiviDisponibili.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
                                     <div className="p-4 rounded-full bg-slate-700/50 mb-3">

@@ -3,13 +3,15 @@ import { Sportiv, Familie, Grupa, Grad } from '../../types';
 import { Card, Button, RoleBadge } from '../ui';
 import { GradBadge } from '../../utils/grades';
 import { formatNume } from '../../utils/formatareSportiv';
+import { RestanteButton } from './RestanteSportiv';
+import type { FacturaEntry } from '../../utils/facturiSportiv';
 
 interface SportiviMobileListProps {
   sportivi: Sportiv[];
   onRowClick: (sportiv: Sportiv) => void;
   families: Familie[];
-  familyBalances: Map<string, number>;
-  individualBalances: Map<string, number>;
+  restanteDe: (sportiv: Sportiv) => FacturaEntry[];
+  onDeschideFactura: (plataId: string) => void;
   grupe: Grupa[];
   grade: Grad[];
   requestSort: (key: string) => void;
@@ -28,7 +30,7 @@ const getAge = (dateString: string | null | undefined): number => {
 };
 
 export const SportiviMobileList: React.FC<SportiviMobileListProps> = (props) => {
-  const { sportivi, onRowClick, families, familyBalances, individualBalances, grupe, grade, requestSort, sortConfig } = props;
+  const { sportivi, onRowClick, families, restanteDe, onDeschideFactura, grupe, grade, requestSort, sortConfig } = props;
 
   return (
     <div>
@@ -43,8 +45,7 @@ export const SportiviMobileList: React.FC<SportiviMobileListProps> = (props) => 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {sportivi.map(sportiv => {
           const familie = families.find(f => f.id === sportiv.familie_id);
-          const familyBalance = familie ? familyBalances.get(familie.id) : undefined;
-          const individualBalance = individualBalances.get(sportiv.id);
+          const restante = restanteDe(sportiv);
           const grupa = grupe.find(g => g.id === sportiv.grupa_id);
           const grad = grade.find(g => g.id === sportiv.grad_actual_id);
 
@@ -60,19 +61,12 @@ export const SportiviMobileList: React.FC<SportiviMobileListProps> = (props) => 
                   {(sportiv.roluri || []).map(r => <RoleBadge key={r.id} role={r} />)}
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-slate-700">
-                {familie && familyBalance !== undefined ? (
-                  <div className="text-xs">
-                    <p className="text-slate-300">Familia {familie.nume}</p>
-                    <p className={`font-bold ${familyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>Sold: {familyBalance.toFixed(2)} lei</p>
-                  </div>
-                ) : individualBalance !== undefined ? (
-                  <div className="text-xs">
-                    <p className="text-slate-300">Sold Individual</p>
-                    <p className={`font-bold ${individualBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{individualBalance.toFixed(2)} lei</p>
-                  </div>
-                ) : null}
-              </div>
+              {(familie || restante.length > 0) && (
+                <div className="mt-4 pt-4 border-t border-slate-700 flex flex-wrap items-center justify-between gap-2">
+                  {familie && <p className="text-xs text-slate-300">Familia {familie.nume}</p>}
+                  <RestanteButton facturi={restante} onDeschideFactura={onDeschideFactura} className="ml-auto" />
+                </div>
+              )}
             </Card>
           );
         })}

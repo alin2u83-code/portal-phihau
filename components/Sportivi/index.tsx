@@ -14,6 +14,8 @@ import { MartialArtsSkeleton } from '../MartialArtsSkeleton';
 import { SportiviFilter } from './SportiviFilter';
 import { SportiviTable } from './SportiviTable';
 import { SportiviMobileList } from './SportiviMobileList';
+import { useRestantePerSportiv } from './RestanteSportiv';
+import { FacturaDetaliu } from '../Plati/FacturaDetaliu';
 import { SportivModals } from './SportivModals';
 import { SportivFormModal } from './SportivFormModal';
 import { useNavigation } from '../../contexts/NavigationContext';
@@ -314,10 +316,11 @@ export const Sportivi: React.FC<{
 
     useRegisterRefresh(refetchSportivi);
 
+    const [plataDetaliuId, setPlataDetaliuId] = useState<string | null>(null);
+    const restanteDe = useRestantePerSportiv(sportiviData || [], plati, filteredData?.istoricPlatiDetaliat);
+
     const {
         loading: familyLoading,
-        familyBalances,
-        individualBalances,
     } = useFamilyManager(
         familii,
         setFamilii,
@@ -894,8 +897,8 @@ export const Sportivi: React.FC<{
                     sportivi={sortedAndFilteredSportivi}
                     onRowClick={handleRowClick}
                     families={familii}
-                    familyBalances={familyBalances}
-                    individualBalances={individualBalances}
+                    restanteDe={restanteDe}
+                    onDeschideFactura={setPlataDetaliuId}
                     grupe={grupe}
                     grade={grade}
                     requestSort={requestSort}
@@ -916,9 +919,12 @@ export const Sportivi: React.FC<{
                     sortConfig={sortConfig}
                     selectedIds={selectedSportivIds}
                     onSelectionChange={setSelectedSportivIds}
+                    restanteDe={restanteDe}
+                    onDeschideFactura={setPlataDetaliuId}
                 />
             )}
             </div>
+            <FacturaDetaliu plataId={plataDetaliuId} onClose={() => setPlataDetaliuId(null)} />
 
             {/* Paginare */}
             {!loadAll ? (

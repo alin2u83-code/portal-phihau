@@ -10,7 +10,6 @@ import { useError } from './ErrorProvider';
 import { esteAnulata } from '../utils/paymentStatus';
 import { anuleazaFacturaAbonament, reactiveazaFacturaAbonament } from '../services/facturaService';
 import { SportivFormModal } from './Sportivi/SportivFormModal';
-import { calculeazaSold } from '../services/soldService';
 import { construiesteFacturi, facturiAleSportivului, totalDeAchitat } from '../utils/facturiSportiv';
 import { DeleteAuditModal } from './Sportivi/DeleteAuditModal';
 import { SportivFeedbackReport } from './Sportivi/SportivFeedbackReport';
@@ -226,19 +225,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     // Sursa unică: `plati` (stare proaspătă, actualizată optimist) + `istoricPlatiDetaliat` (încasat per factură
     // din tranzactie_plata). (utils/facturiSportiv — sursa unică pentru facturi + încasări).
     const istoricPlatiDetaliat = filteredData.istoricPlatiDetaliat;
-    const { totalRestante, istoricFacturi, sold } = useMemo(() => {
+    const { totalRestante, istoricFacturi } = useMemo(() => {
         const membri = facturiAleSportivului(plati, sportiv, sportivi);
         const numeSportiv = new Map((sportivi || []).map(x => [x.id, `${x.nume} ${x.prenume}`]));
         const facturi = construiesteFacturi(membri, istoricPlatiDetaliat, id => numeSportiv.get(id) ?? '');
-        const familyMemberIds = sportiv.familie_id
-            ? (sportivi || []).filter(x => x.familie_id === sportiv.familie_id).map(x => x.id)
-            : [sportiv.id];
         return {
             totalRestante: totalDeAchitat(facturi),
             istoricFacturi: facturi,
-            sold: calculeazaSold(plati, tranzactii, { sportivIds: familyMemberIds, familieId: sportiv.familie_id ?? null }),
         };
-    }, [sportiv, plati, tranzactii, sportivi, istoricPlatiDetaliat]);
+    }, [sportiv, plati, sportivi, istoricPlatiDetaliat]);
 
     // Deschide Plăți Scadente filtrat pe sportivul curent (fluxul de încasare existent) — folosit de „Plăți” și „Încasează”.
     const deschidePlatiSportiv = () => {
@@ -886,7 +881,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                     <>
                     <FinanciarTab
                         totalRestante={totalRestante}
-                        sold={sold}
                         onIncaseaza={onNavigate ? deschidePlatiSportiv : undefined}
                         tipuriAbonament={tipuriAbonament}
                         sportiv={sportiv}

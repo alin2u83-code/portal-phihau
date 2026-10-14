@@ -7,11 +7,10 @@ import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare'
 import { formatLuna } from '../../utils/luniLipsa';
 import { esteDeIncasat, esteAnulata } from '../../utils/paymentStatus';
 import type { FacturaEntry } from '../../utils/facturiSportiv';
+import { RestanteButton } from '../Sportivi/RestanteSportiv';
 
 interface FinanciarTabProps {
     totalRestante: number;
-    /** Sold = încasat − facturat (soldService); negativ = datorie, pozitiv = credit */
-    sold: number;
     /** Deschide fluxul de încasare existent (Plăți Scadente) filtrat pe sportiv */
     onIncaseaza?: () => void;
     tipuriAbonament: TipAbonament[];
@@ -110,7 +109,7 @@ const ProgressBar: React.FC<{ procent: number; status: string }> = ({ procent, s
 };
 
 export const FinanciarTab: React.FC<FinanciarTabProps> = ({
-    totalRestante, sold, onIncaseaza, tipuriAbonament, sportiv, sportivi, familii,
+    totalRestante, onIncaseaza, tipuriAbonament, sportiv, sportivi, familii,
     istoricFacturi,
     setPlataToEdit, plati, setPlataToDelete, tranzactii,
     setPlataToAnula, onReactivare, onDeschideDetalii,
@@ -182,13 +181,14 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                         )}
                     </div>
 
-                    {/* Sold (credit / datorie) */}
-                    <div className="flex items-center justify-between px-1">
-                        <span className="text-xs text-slate-300 font-medium">Sold</span>
-                        <span className={`text-sm font-bold ${sold >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {sold.toFixed(2)} RON
-                        </span>
-                    </div>
+                    {/* Restanțe — lista facturilor neachitate, cu link la fiecare factură */}
+                    {onDeschideDetalii && (
+                        <RestanteButton
+                            facturi={istoricFacturi.filter(f => esteDeIncasat(f.detalii) && f.rest > 0)}
+                            onDeschideFactura={onDeschideDetalii}
+                            className="w-full justify-center"
+                        />
+                    )}
                     {onIncaseaza && totalRestante > 0 && (
                         <Button variant="primary" size="sm" onClick={onIncaseaza} className="w-full">
                             <BanknotesIcon className="w-4 h-4 mr-2" /> Încasează

@@ -7,6 +7,8 @@ import { Button, Card, RoleBadge } from '../ui';
 import { EditIcon, ShieldCheckIcon, TrashIcon, LockIcon } from '../icons';
 import { getAge } from '../../utils/date';
 import { formatNume } from '../../utils/formatareSportiv';
+import { RestanteButton } from './RestanteSportiv';
+import type { FacturaEntry } from '../../utils/facturiSportiv';
 
 interface SportiviTableProps {
   sportivi: Sportiv[];
@@ -24,10 +26,13 @@ interface SportiviTableProps {
   onSearchChange?: (value: string) => void;
   selectedIds?: Set<string>;
   onSelectionChange?: (ids: Set<string>) => void;
+  /** Facturile restante ale unui sportiv; dacă lipsește, coloana/butonul de restanțe nu apar. */
+  restanteDe?: (sportiv: Sportiv) => FacturaEntry[];
+  onDeschideFactura?: (plataId: string) => void;
 }
 
 export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
-  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenAccountSettings, onDelete, onResetParola, onToggleStatus, requestSort, sortConfig, searchTerm, onSearchChange, selectedIds, onSelectionChange } = props;
+  const { sportivi, grupe, grade, onRowClick, onEdit, onOpenAccountSettings, onDelete, onResetParola, onToggleStatus, requestSort, sortConfig, searchTerm, onSearchChange, selectedIds, onSelectionChange, restanteDe, onDeschideFactura } = props;
 
   const allSelected = sportivi.length > 0 && sportivi.every(s => selectedIds?.has(s.id));
 
@@ -125,6 +130,14 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
         const denumire = grupe.find(g => g.id === s.grupa_id)?.denumire;
         return <span className="truncate max-w-[120px] block" title={denumire || '-'}>{denumire || '-'}</span>;
     }, className: 'hidden md:table-cell' },
+    ...(restanteDe && onDeschideFactura ? [{
+        key: 'restante',
+        label: 'Restanțe',
+        tooltip: "Facturi neachitate; click pentru lista cu link la fiecare factură.",
+        className: 'hidden md:table-cell',
+        stopRowClick: true,
+        render: (s: Sportiv) => <RestanteButton facturi={restanteDe(s)} onDeschideFactura={onDeschideFactura} />,
+    } as Column<Sportiv>] : []),
     {
         key: 'actions',
         label: 'Acțiuni',
@@ -173,7 +186,11 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
                 {(sportiv.roluri || []).map(r => <RoleBadge key={r.id} role={r} />)}
               </div>
             </div>
-            
+            {restanteDe && onDeschideFactura && restanteDe(sportiv).length > 0 && (
+                <div className="mt-3" onClick={e => e.stopPropagation()}>
+                    <RestanteButton facturi={restanteDe(sportiv)} onDeschideFactura={onDeschideFactura} />
+                </div>
+            )}
             <div className="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center">
                 <div className="flex gap-2">
                      <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); onEdit(sportiv); }} className="!p-2">

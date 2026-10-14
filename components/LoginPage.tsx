@@ -165,6 +165,10 @@ export const LoginPage: React.FC = () => {
                                 label="Email / Username"
                                 name="email"
                                 type="text"
+                                autoComplete="username"
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                spellCheck={false}
                                 value={formData.email || ''}
                                 onChange={(e) => { handleChange(e); clearStates(); }}
                                 required
@@ -179,6 +183,7 @@ export const LoginPage: React.FC = () => {
                             <Input
                                 label="Parolă"
                                 name="parola"
+                                autoComplete="current-password"
                                 type={showPassword ? 'text' : 'password'}
                                 value={formData.parola || ''}
                                 onChange={(e) => { handleChange(e); clearStates(); }}
@@ -245,6 +250,7 @@ export const LoginPage: React.FC = () => {
                                         label="Email cont"
                                         name="forgot_email"
                                         type="email"
+                                        autoComplete="email"
                                         value={forgotEmail}
                                         onChange={e => setForgotEmail(e.target.value)}
                                         placeholder="adresa@email.com"
@@ -285,6 +291,7 @@ export const LoginPage: React.FC = () => {
                                     <Input
                                         label="Cod primit pe email"
                                         name="reset_cod"
+                                        autoComplete="one-time-code"
                                         type="text"
                                         inputMode="numeric"
                                         value={resetCod}
@@ -295,6 +302,7 @@ export const LoginPage: React.FC = () => {
                                     <Input
                                         label="Parolă nouă"
                                         name="reset_parola_noua"
+                                        autoComplete="new-password"
                                         type="password"
                                         value={resetParolaNoua}
                                         onChange={e => setResetParolaNoua(e.target.value)}

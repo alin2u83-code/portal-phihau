@@ -301,6 +301,21 @@ export const LoginPage: React.FC = () => {
                                         placeholder="123456"
                                         required
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            try {
+                                                const cifre = (await navigator.clipboard.readText()).replace(/\D/g, '');
+                                                if (cifre) setResetCod(cifre.slice(0, 8));
+                                                else setResetEroare('Nu am găsit niciun cod în clipboard. Copiază codul din email și încearcă din nou.');
+                                            } catch {
+                                                setResetEroare('Browserul nu permite citirea clipboard-ului. Lipește codul manual în câmp.');
+                                            }
+                                        }}
+                                        className="w-full text-xs font-medium text-amber-400 hover:text-amber-300 border border-amber-500/30 hover:border-amber-500/60 rounded-lg py-2 transition-colors"
+                                    >
+                                        Lipește codul copiat din email
+                                    </button>
                                     <Input
                                         label="Parolă nouă"
                                         name="reset_parola_noua"

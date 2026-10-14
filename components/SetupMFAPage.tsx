@@ -60,6 +60,23 @@ export function SetupMFAPage() {
         setLoading(false);
     }
 
+    async function lipesteCod() {
+        setError(null);
+        try {
+            const text = await navigator.clipboard.readText();
+            const cifre = text.replace(/\D/g, '');
+            const cod = cifre.length >= 8 ? cifre.slice(0, 8) : cifre;
+            if (!cod) {
+                setError('Nu am găsit niciun cod în clipboard. Copiază codul din email și încearcă din nou.');
+                return;
+            }
+            setCode(cod);
+            inputRef.current?.focus();
+        } catch {
+            setError('Browserul nu permite citirea clipboard-ului. Lipește codul manual în câmp.');
+        }
+    }
+
     async function verifyCode() {
         if (!email || code.length !== 8) return;
         setLoading(true);
@@ -134,6 +151,14 @@ export function SetupMFAPage() {
                             className="w-full bg-slate-700/60 border border-slate-600 rounded-xl px-4 py-3 text-white text-center text-2xl font-mono tracking-[0.3em] placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
                             autoComplete="one-time-code"
                         />
+                        <button
+                            type="button"
+                            onClick={lipesteCod}
+                            disabled={loading}
+                            className="w-full text-xs font-medium text-amber-400 hover:text-amber-300 border border-amber-500/30 hover:border-amber-500/60 rounded-lg py-2 transition-colors disabled:opacity-40"
+                        >
+                            Lipește codul copiat din email
+                        </button>
                         <label className="flex items-start gap-2 text-xs text-slate-300 cursor-pointer select-none">
                             <input
                                 type="checkbox"

@@ -23,6 +23,7 @@ import { ExportSportiviTable } from './ExportSportiviTable';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useRoleAssignment } from '../../hooks/useRoleAssignment';
 import { useSportivi } from '../../hooks/useSportivi';
+import { useSezonActivCurent } from '../../hooks/useSezoane';
 import { useData } from '../../contexts/DataContext';
 import { useFamilyManager } from '../../hooks/useFamilyManager';
 import { getAge } from '../../utils/date';
@@ -326,6 +327,18 @@ export const Sportivi: React.FC<{
     useEffect(() => {
         if (!loadAll && !sportiviLoading && totalPages > 0 && page > totalPages) setPage(totalPages);
     }, [loadAll, sportiviLoading, totalPages, page]);
+
+    // Grupe destinație la mutare: doar active acum (ne-arhivate; cele per sezon doar din sezonul activ).
+    // O grupă arhivată/din alt sezon rămâne vizibilă (dezactivată) doar dacă e grupa curentă a unui sportiv selectat.
+    const { sezonActivId } = useSezonActivCurent();
+    const esteGrupaActiva = (g: any) =>
+        !g.arhivat && (g.tip_grupa !== 'per_sezon' || !sezonActivId || g.sezon_id === sezonActivId);
+    const grupeDestinatieMutare = useMemo(() => {
+        const curente = new Set(sportivi.filter(s => selectedSportivIds.has(s.id)).map(s => s.grupa_id).filter(Boolean));
+        return grupeFiltrateClub
+            .filter(g => esteGrupaActiva(g) || curente.has(g.id))
+            .map(g => ({ g, inactiva: !esteGrupaActiva(g) }));
+    }, [grupeFiltrateClub, sportivi, selectedSportivIds, sezonActivId]);
 
     useRegisterRefresh(refetchSportivi);
 
@@ -1082,8 +1095,10 @@ export const Sportivi: React.FC<{
                             autoFocus
                         >
                             <option value="">Fără grupă (elimină din grupă)</option>
-                            {grupeFiltrateClub.map(g => (
-                                <option key={g.id} value={g.id}>{g.denumire}</option>
+                            {grupeDestinatieMutare.map(({ g, inactiva }) => (
+                                <option key={g.id} value={g.id} disabled={inactiva}>
+                                    {g.denumire}{inactiva ? ' (inactivă — grupa curentă)' : ''}
+                                </option>
                             ))}
                             <option value="__new__">+ Grupă nouă...</option>
                         </select>

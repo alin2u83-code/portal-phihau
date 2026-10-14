@@ -14,6 +14,7 @@ import { useNavigation } from '../../contexts/NavigationContext';
 import { WalletIcon } from '../icons';
 import { useData } from '../../contexts/DataContext';
 import { useSortAthletes, type SortBy } from '../../hooks/useSortAthletes';
+import { LocatieGrupaPanel } from './LocatieGrupaPanel';
 
 const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
@@ -900,7 +901,8 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
                             <h1 className="text-xl font-bold text-white">{grupa.denumire}</h1>
                             {sezonGrupa && <Badge variant="amber">Sezon: {sezonGrupa.denumire}</Badge>}
                         </div>
-                        <p className="text-sm text-slate-400">Sala: {grupa.sala || 'Nespecificată'} · {sportiviCount} sportivi activi</p>
+                        <LocatieGrupaPanel grupa={grupa} />
+                        <p className="text-sm text-slate-400">{sportiviCount} sportivi activi</p>
                     </div>
                 </div>
             </div>

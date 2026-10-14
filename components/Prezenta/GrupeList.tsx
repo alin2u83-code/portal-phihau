@@ -3,6 +3,8 @@ import { Grupa } from '../../types';
 import { Button, Card, EmptyState } from '../ui';
 import { CalendarDaysIcon, UsersIcon, CogIcon } from '../icons';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { useData } from '../../contexts/DataContext';
+import { numeSalaGrupa } from '../Grupe/locatieGrupa';
 
 export const GrupeList: React.FC<{
     onSelect: (id: string) => void;
@@ -11,6 +13,7 @@ export const GrupeList: React.FC<{
     grupe: (Grupa & {sportivi_count: {count: number}[]})[]
 }> = ({ onSelect, onSelectToday, onGlobalHistory, grupe }) => {
     const { navigateTo } = useNavigation();
+    const { locatii } = useData();
 
     return (
     <div className="space-y-4 md:space-y-8 animate-fade-in">
@@ -55,7 +58,7 @@ export const GrupeList: React.FC<{
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 text-sm text-slate-400">
                                 <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                                <span>{g.sala || 'Sală nespecificată'}</span>
+                                <span>{numeSalaGrupa(g, locatii) || 'Sală nespecificată'}</span>
                             </div>
                             {g.program && g.program.length > 0 && (
                                 <div className="flex items-center gap-2 text-sm text-slate-500">

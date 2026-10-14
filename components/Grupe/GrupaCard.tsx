@@ -5,6 +5,8 @@ import { TrashIcon, UsersIcon, CalendarIcon, ExclamationTriangleIcon, SparklesIc
 import { sortProgram } from './ProgramEditor';
 import { formatTime } from '../../utils/date';
 import { supabase } from '../../supabaseClient';
+import { useData } from '../../contexts/DataContext';
+import { numeSalaGrupa } from './locatieGrupa';
 
 interface GrupaWithDetails extends GrupaType {
     sportivi: { count: number }[];
@@ -67,6 +69,7 @@ export const GrupaCard: React.FC<{
     onDubleaza,
     nrFaraAbonamentValid,
 }) => {
+    const { locatii } = useData();
     const sportiviCount = grupa.sportivi?.[0]?.count ?? 0;
     const tipGrupa = grupa.tip_grupa ?? 'permanent';
     const esteArhivata = grupa.arhivat === true;
@@ -127,7 +130,7 @@ export const GrupaCard: React.FC<{
                         )}
                     </div>
                 </div>
-                <p className="text-sm text-slate-400 mb-4">{grupa.sala || 'Sală nespecificată'}</p>
+                <p className="text-sm text-slate-400 mb-4">{numeSalaGrupa(grupa, locatii) || 'Sală nespecificată'}</p>
                 <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
                     <div className="flex items-center gap-2 text-green-400">
                         <UsersIcon className="w-4 h-4"/>

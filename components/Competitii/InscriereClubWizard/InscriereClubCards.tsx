@@ -168,7 +168,7 @@ function calculeazaStatusCard(
     for (const cat of catEchipa) {
       // Verifică câți sportivi eligibili există pentru această categorie
       const eligibili = sportiviSelectatiArr.filter(s => {
-        if (cat.gen !== 'Mixt' && s.gen !== cat.gen) return false;
+        if (cat.gen !== 'Mixt' && s.gen && s.gen !== cat.gen) return false;
         return verificaEligibilitate(s, cat, grade, dataComp).eligibil;
       });
 

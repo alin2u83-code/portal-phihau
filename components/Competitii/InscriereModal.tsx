@@ -344,6 +344,12 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
               </span>
             )}
             <WarningVizaFRAM show={faraViza} inline />
+            {!sportiv.gen && (
+              <span className="text-[10px] font-bold text-amber-400 bg-amber-900/30 border border-amber-700/50 rounded-full px-1.5 py-0.5"
+                title="Genul nu este setat în profilul sportivului">
+                Gen lipsă
+              </span>
+            )}
           </div>
           <div className="text-xs text-slate-400">{varsta !== null ? `${varsta} ani` : ''}{grad?.nume ? ` · ${grad.nume}` : ''}</div>
         </div>
@@ -551,10 +557,10 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
                 (() => {
                   const genFiltru = categorie.gen === 'Masculin' ? 'Masculin' : categorie.gen === 'Feminin' ? 'Feminin' : null;
                   const neinscrisiFiltered = genFiltru
-                    ? eligibiliSortati.neinscrisi.filter(e => e.sportiv.gen === genFiltru)
+                    ? eligibiliSortati.neinscrisi.filter(e => e.sportiv.gen === genFiltru || !e.sportiv.gen)
                     : eligibiliSortati.neinscrisi;
                   const dejaFiltered = genFiltru
-                    ? eligibiliSortati.dejaInscrisiLst.filter(e => e.sportiv.gen === genFiltru)
+                    ? eligibiliSortati.dejaInscrisiLst.filter(e => e.sportiv.gen === genFiltru || !e.sportiv.gen)
                     : eligibiliSortati.dejaInscrisiLst;
                   return (
                     <div className="max-h-52 overflow-y-auto overscroll-contain space-y-1">

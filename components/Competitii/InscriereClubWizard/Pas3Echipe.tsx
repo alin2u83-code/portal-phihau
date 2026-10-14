@@ -141,7 +141,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     const eCompleta = !!echipaDB && (nrTitulari >= titMin || echipaDB.echipa_incompleta);
     // Task 5: excludem sportivii fără data_nasterii sau gen din contorizarea eligibililor
     const eligibili = sportivi.filter(s => {
-      if (!s.data_nasterii || !s.gen) return false;
+      if (!s.data_nasterii) return false;
       return verificaEligibilitate(s, cat, grade, dataCompetitie).eligibil;
     }).length;
     return { cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili };

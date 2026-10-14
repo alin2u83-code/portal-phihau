@@ -33,7 +33,7 @@ const ScrollRestorer: React.FC<{ view: View }> = ({ view }) => {
 
         let restaurare = !deLaSportivi;
         let timer: ReturnType<typeof setTimeout> | null = null;
-        const evenimenteUtilizator = ['wheel', 'touchstart', 'keydown'];
+        const evenimenteUtilizator = ['wheel', 'touchmove', 'keydown']; // touchmove, nu touchstart: un tap pe mobil nu trebuie să oprească restaurarea
 
         // In timpul restaurarii ignoram `scroll` (pagina inca scurta ar suprascrie pozitia salvata cu o valoare clamped).
         // Fara requestAnimationFrame: Map.set e ieftin, iar rAF nu ruleaza in tab-uri fara focus.

@@ -2,6 +2,7 @@ import React from 'react';
 import { Input, Button } from './ui';
 import { SearchIcon } from './icons';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useMemorieSesiune } from '../hooks/useMemorieSesiune';
 
 // --- TYPE DEFINITIONS ---
 
@@ -71,7 +72,10 @@ export function ResponsiveTable<T>({
         return () => window.removeEventListener('resize', onResize);
     }, [cardBreakpoint]);
     const useCardLayout = renderMobileItem != null && (cardBreakpoint > 768 ? windowWidth < cardBreakpoint : isMobile);
-    const [currentPage, setCurrentPage] = React.useState(1);
+    // Pagina curentă se păstrează la schimbarea meniului (cheie: structura coloanelor tabelului)
+    const [pagina, setCurrentPage] = useMemorieSesiune<number>(`rt-pagina:${columns.map(c => c.key).join(',')}`, 1);
+    const nrPagini = disablePagination || !pageSize ? 1 : Math.max(1, Math.ceil((data?.length ?? 0) / pageSize));
+    const currentPage = Math.min(Math.max(1, pagina), nrPagini);
 
     const paginatedData = React.useMemo(() => {
         if (!data) return [];

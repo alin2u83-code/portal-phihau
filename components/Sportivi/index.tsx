@@ -39,6 +39,10 @@ import { useRegisterRefresh } from '../../contexts/RefreshContext';
 
 
 
+// Starea listei (pagina, nr. itemi/pagină, „Toți”) se păstrează la schimbarea meniului, cât timp aplicația e deschisă
+type StareLista = { page: number; pageSize: number; loadAll: boolean };
+let stareListaSportivi: StareLista | null = null;
+
 // --- Componenta Management Principală ---
 export const Sportivi: React.FC<{
     onViewSportiv: (sportiv: Sportiv) => void;
@@ -246,14 +250,15 @@ export const Sportivi: React.FC<{
     }
     const restoredState = restoredStateRef.current;
 
-    const [page, setPage] = useState(restoredState?.page ?? 1);
-    // Prioritate: stare restaurată din sessionStorage (revenire din profil) > preferință localStorage > default 25
-    const [pageSize, setPageSize] = useState(restoredState?.pageSize ?? savedPageSize);
-    const [loadAll, setLoadAll] = useState(restoredState?.loadAll ?? false);
+    // Prioritate: stare din revenirea din profil > ultima stare a listei (alt meniu și înapoi) > preferință localStorage > default
+    const stareInitiala = restoredState ?? stareListaSportivi;
+    const [page, setPage] = useState(stareInitiala?.page ?? 1);
+    const [pageSize, setPageSize] = useState(stareInitiala?.pageSize ?? savedPageSize);
+    const [loadAll, setLoadAll] = useState(stareInitiala?.loadAll ?? false);
     const [showMutaGrupaModal, setShowMutaGrupaModal] = useState(false);
 
     // Ref pentru a sări peste reset-ul paginării la primul efect (când restaurăm din sessionStorage)
-    const isRestoringRef = useRef(!!restoredState);
+    const isRestoringRef = useRef(!!stareInitiala);
 
     // Ref pentru scroll restaurat — se setează true după prima restaurare
     const scrollRestoredRef = useRef(false);
@@ -270,6 +275,10 @@ export const Sportivi: React.FC<{
         setPage(1);
         setLoadAll(false);
     }, [filters.searchTerm, filters.statusFilter, filters.grupaFilter, filters.rolFilter, filters.gradFilter, setFilters]);
+
+    useEffect(() => {
+        stareListaSportivi = { page, pageSize, loadAll };
+    }, [page, pageSize, loadAll]);
 
     const handlePageSizeChange = (newSize: number) => {
         if (newSize === 0) {
@@ -313,6 +322,10 @@ export const Sportivi: React.FC<{
         ? [...sportiviData].sort((a, b) => a.nume.localeCompare(b.nume, 'ro-RO'))
         : [];
     const totalPages = Math.ceil(totalSportivi / pageSize);
+    // Pagina restaurată poate depăși numărul de pagini dacă lista s-a micșorat între timp
+    useEffect(() => {
+        if (!loadAll && !sportiviLoading && totalPages > 0 && page > totalPages) setPage(totalPages);
+    }, [loadAll, sportiviLoading, totalPages, page]);
 
     useRegisterRefresh(refetchSportivi);
 
@@ -355,9 +368,9 @@ export const Sportivi: React.FC<{
         const opreste = () => {
             if (scrollRetryTimerRef.current) clearTimeout(scrollRetryTimerRef.current);
             scrollRetryTimerRef.current = null;
-            ['wheel', 'touchstart', 'keydown'].forEach(ev => window.removeEventListener(ev, opreste));
+            ['wheel', 'touchmove', 'keydown'].forEach(ev => window.removeEventListener(ev, opreste));
         };
-        ['wheel', 'touchstart', 'keydown'].forEach(ev => window.addEventListener(ev, opreste, { passive: true }));
+        ['wheel', 'touchmove', 'keydown'].forEach(ev => window.addEventListener(ev, opreste, { passive: true }));
         scrollRetryCleanupRef.current = opreste;
 
         const scrollPeScrollY = () => {

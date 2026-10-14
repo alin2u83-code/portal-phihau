@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigation } from '../contexts/NavigationContext';
-import { trimiteCodMfaEmail, verificaCodMfaEmail } from '../services/emailMfaService';
+import { trimiteCodMfaEmail, verificaCodMfaEmail, inregistreazaDispozitivIncredere } from '../services/emailMfaService';
 import { Button, Card } from './ui';
 
 type Step = 'loading' | 'cod-trimis';
@@ -14,6 +14,7 @@ export function SetupMFAPage() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [retrimisLa, setRetrimisLa] = useState<number>(0);
+    const [dispozitivIncredere, setDispozitivIncredere] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -69,6 +70,10 @@ export function SetupMFAPage() {
         if (verifyErr) {
             setError('Cod incorect sau expirat. Verifică emailul sau retrimite codul.');
         } else {
+            if (dispozitivIncredere) {
+                const { data } = await supabase!.auth.getUser();
+                if (data.user) await inregistreazaDispozitivIncredere(data.user.id); // eșecul nu blochează intrarea
+            }
             navigateTo('dashboard');
         }
         setLoading(false);
@@ -129,6 +134,15 @@ export function SetupMFAPage() {
                             className="w-full bg-slate-700/60 border border-slate-600 rounded-xl px-4 py-3 text-white text-center text-2xl font-mono tracking-[0.3em] placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
                             autoComplete="one-time-code"
                         />
+                        <label className="flex items-start gap-2 text-xs text-slate-300 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={dispozitivIncredere}
+                                onChange={e => setDispozitivIncredere(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                            />
+                            <span>Am încredere în acest dispozitiv — nu mai cere cod 7 zile. Nu bifa pe un calculator folosit și de alții.</span>
+                        </label>
                         <Button
                             onClick={verifyCode}
                             disabled={code.length !== 8 || loading}

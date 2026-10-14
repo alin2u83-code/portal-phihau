@@ -6,6 +6,7 @@ import { useError } from './ErrorProvider';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 import { Eye, EyeOff } from 'lucide-react';
+import { revocaDispozitiveIncredere } from '../services/emailMfaService';
 
 export const ResetPasswordPage: React.FC = () => {
     const [password, setPassword] = useState('');
@@ -37,6 +38,7 @@ export const ResetPasswordPage: React.FC = () => {
         if (error) {
             showError("Eroare", error.message);
         } else {
+            await revocaDispozitiveIncredere();
             showSuccess("Succes", "Parola a fost resetată cu succes!");
             navigate('/login');
         }

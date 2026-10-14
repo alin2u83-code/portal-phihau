@@ -8,6 +8,7 @@ import { getAuthErrorMessage } from '../utils/error';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 import { Eye, EyeOff } from 'lucide-react';
+import { revocaDispozitiveIncredere } from '../services/emailMfaService';
 
 interface MandatoryPasswordChangeProps {
     currentUser: User;
@@ -59,6 +60,7 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
             if (authError) {
                 throw authError;
             }
+            await revocaDispozitiveIncredere();
 
             const { error: profileError } = await supabase
                 .from('sportivi')

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigation } from '../contexts/NavigationContext';
-import { esteMfaEmailValid } from '../services/emailMfaService';
+import { esteMfaEmailValid, esteDispozitivDeIncredere } from '../services/emailMfaService';
 
 // MFA obligatoriu doar pentru rolurile cu acces la date sensibile (financiar/medical).
 // Per D-02 (17-CONTEXT.md): blocare imediata, fara perioada de gratie, fara toggle.
@@ -35,13 +35,16 @@ export function useMFAGuard(activeRoleContext: any | null) {
                 setMfaChecked(true);
                 return;
             }
-            esteMfaEmailValid(data.user.id).then(valid => {
-                if (!valid) {
-                    navigateTo('setup-mfa');
-                    return; // NU seta mfaChecked=true aici — App.tsx randeaza gate cat timp e false
-                }
-                setMfaChecked(true);
-            });
+            const userId = data.user.id;
+            esteMfaEmailValid(userId)
+                .then(valid => valid || esteDispozitivDeIncredere(userId)) // dispozitiv de incredere (7 zile) = fara cod
+                .then(valid => {
+                    if (!valid) {
+                        navigateTo('setup-mfa');
+                        return; // NU seta mfaChecked=true aici — App.tsx randeaza gate cat timp e false
+                    }
+                    setMfaChecked(true);
+                });
         });
     }, [activeRoleContext, activeView]);
 

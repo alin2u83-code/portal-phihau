@@ -10,6 +10,7 @@ import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 
 import { QwanKiDoLogo } from './Logo';
+import { revocaDispozitiveIncredere } from '../services/emailMfaService';
 
 export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
@@ -121,6 +122,7 @@ export const LoginPage: React.FC = () => {
                 return;
             }
 
+            await revocaDispozitiveIncredere(); // parola schimbată => dispozitivele de încredere nu mai sunt valide
             await supabase.auth.signOut();
             setForgotMessage('Parola a fost resetată cu succes. Intră în cont cu noua parolă.');
             setResetStep('email');

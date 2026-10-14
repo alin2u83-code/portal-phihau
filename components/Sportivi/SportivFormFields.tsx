@@ -287,12 +287,14 @@ export const SportivFormFields: React.FC<SportivFormFieldsProps> = ({
                             name="gen"
                             value={formData.gen || ''}
                             onChange={handleChange}
+                            required
                             disabled={loading}
                         >
-                            <option value="">Nespecificat</option>
+                            <option value="">Selectează genul...</option>
                             <option value="Masculin">Masculin</option>
                             <option value="Feminin">Feminin</option>
                         </Select>
+                        {errors.gen && <p className="text-xs text-red-400 -mt-2 ml-1">{errors.gen}</p>}
                         <Input
                             label="CNP"
                             name="cnp"

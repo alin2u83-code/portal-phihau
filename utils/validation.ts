@@ -7,6 +7,7 @@ export const validateSportiv = (data: Partial<Sportiv>): Record<string, string> 
     if (!data.nume?.trim()) newErrors.nume = "Numele este obligatoriu.";
     if (!data.prenume?.trim()) newErrors.prenume = "Prenumele este obligatoriu.";
     if (!data.data_nasterii) newErrors.data_nasterii = "Data nașterii este obligatorie.";
+    if (data.gen !== 'Masculin' && data.gen !== 'Feminin') newErrors.gen = "Genul este obligatoriu (necesar pentru înscrierea la competiții).";
     if (!data.id && data.parola) {
         const validare = valideazaParola(data.parola);
         if (!validare.valid) newErrors.parola = validare.mesaj!;

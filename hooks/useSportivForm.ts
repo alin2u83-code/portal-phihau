@@ -12,7 +12,8 @@ export const useSportivForm = (initialData: Partial<Sportiv> = {}) => {
         if (!formData.prenume) newErrors.prenume = 'Prenumele este obligatoriu';
         if (!formData.data_nasterii) newErrors.data_nasterii = 'Data nașterii este obligatorie';
         if (!formData.club_id) newErrors.club_id = 'Clubul este obligatoriu';
-        
+        if (formData.gen !== 'Masculin' && formData.gen !== 'Feminin') newErrors.gen = 'Genul este obligatoriu';
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };

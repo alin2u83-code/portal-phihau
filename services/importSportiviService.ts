@@ -147,6 +147,7 @@ export const importSportivi = async (
           }, { onConflict: 'sportiv_id,grad_id', ignoreDuplicates: true });
         if (istoricError) throw istoricError;
       } else {
+        if (!sportivData.gen) throw new Error(`Genul lipsește sau este invalid pentru ${numeClean} ${prenumeClean} (acceptat: M/F, Masculin/Feminin)`);
         const { data: inserted, error: insertError } = await supabase
           .from('sportivi')
           .insert(sportivData)

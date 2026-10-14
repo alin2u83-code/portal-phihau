@@ -355,6 +355,8 @@ export const ImportSportiviPage: React.FC<{ onBack: () => void }> = ({ onBack })
                     if (!dataNasteriiCSV) {
                         const errorMsg = rawDate ? `Data nasterii invalida: ${rawDate}` : 'Lipseste data nasterii';
                         uniques.push({ ...sportivData, originalIndex: index, error: errorMsg, rawDate: rawDate || '' });
+                    } else if (config.addNew && !sportivData.gen) {
+                        uniques.push({ ...sportivData, originalIndex: index, error: 'Genul lipsește sau este invalid (M/F, Masculin/Feminin)', rawDate: rawDate || '' });
                     } else {
                         if (!config.addNew) {
                             uniques.push({ ...sportivData, originalIndex: index, rawDate: rawDate || '', _omis: true, motiv: 'Sportiv nou (mod: actualizează existenți)' });

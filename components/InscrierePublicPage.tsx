@@ -25,6 +25,7 @@ interface FormErrors {
     prenume?: string;
     email_contact?: string;
     club_id?: string;
+    sex?: string;
     general?: string;
 }
 
@@ -89,6 +90,7 @@ export const InscrierePublicPage: React.FC = () => {
         if (!formData.nume.trim()) newErrors.nume = 'Numele este obligatoriu.';
         if (!formData.prenume.trim()) newErrors.prenume = 'Prenumele este obligatoriu.';
         if (!formData.club_id) newErrors.club_id = 'Selectează un club.';
+        if (formData.sex !== 'Masculin' && formData.sex !== 'Feminin') newErrors.sex = 'Sexul este obligatoriu.';
 
         if (!formData.email_contact.trim()) {
             newErrors.email_contact = 'Email-ul este obligatoriu.';
@@ -229,17 +231,18 @@ export const InscrierePublicPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className={labelBase}>Sex</label>
+                                <label className={labelBase}>Sex <span className="text-red-400">*</span></label>
                                 <select
                                     name="sex"
                                     value={formData.sex}
                                     onChange={handleChange}
-                                    className={`${inputBase}`}
+                                    className={`${inputBase} ${errors.sex ? errorClass : ''}`}
                                 >
                                     <option value="">Selectează...</option>
                                     <option value="Masculin">Masculin</option>
                                     <option value="Feminin">Feminin</option>
                                 </select>
+                                {errors.sex && <p className="text-red-400 text-xs mt-1">{errors.sex}</p>}
                             </div>
                         </div>
 

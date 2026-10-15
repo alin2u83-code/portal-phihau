@@ -1,0 +1,13 @@
+<!-- Șablon email cod (MFA / OTP / reautentificare / resetare).
+     Lipește în Supabase Dashboard → Authentication → Email Templates
+     (Magic Link, Reauthentication, Recovery, Confirm signup — oricare trimite {{ .Token }}).
+     Fără JS în email: codul e într-o casetă cu user-select:all — un tap/dublu-click
+     îl selectează întreg, apoi "Copiază". Fără link de acțiune (regulă proiect). -->
+<div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1f2937">
+  <h2 style="margin:0 0 12px;font-size:18px">Codul tău PhiHau</h2>
+  <p style="margin:0 0 16px;font-size:14px">Introdu codul de mai jos în aplicație. Atinge codul pentru a-l selecta, apoi alege „Copiază”.</p>
+  <div style="background:#f3f4f6;border:2px dashed #9ca3af;border-radius:10px;padding:18px;text-align:center">
+    <span style="display:inline-block;font-family:'Courier New',Courier,monospace;font-size:34px;font-weight:bold;letter-spacing:8px;color:#111827;-webkit-user-select:all;user-select:all">{{ .Token }}</span>
+  </div>
+  <p style="margin:16px 0 0;font-size:12px;color:#6b7280">Codul expiră în scurt timp. Dacă nu ai cerut tu acest cod, ignoră emailul și schimbă parola.</p>
+</div>

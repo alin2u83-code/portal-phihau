@@ -14,6 +14,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
 import { checkRateLimit, getClientIp } from './_rateLimit.js';
 import { trimiteAlertaSecuritate } from './_mailerSecuritate.js';
+import { cautaGeoIp, formateazaGeoIp } from './_geoIp.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
@@ -85,8 +86,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 .gte('created_at', acumMinus15Min);
 
             if ((count || 0) >= 5) {
+                const geoText = formateazaGeoIp(await cautaGeoIp(ip));
                 const subiect = 'Alertă securitate PhiHau: 5+ login-uri eșuate în 15 minute';
-                const corpText = `S-au înregistrat ${count} login-uri eșuate în ultimele 15 minute pentru contul: ${emailLower}\n\nIP: ${ip}\nBrowser/dispozitiv: ${userAgent}\nOra: ${acumFormatat}\n\nVerifică Jurnal Audit → card Alerte Securitate Admin.`;
+                const corpText = `S-au înregistrat ${count} login-uri eșuate în ultimele 15 minute pentru contul: ${emailLower}\n\nIP: ${ip}\n${geoText}\nBrowser/dispozitiv: ${userAgent}\nOra: ${acumFormatat}\n\nVerifică Jurnal Audit → card Alerte Securitate Admin.`;
                 await trimiteAlertaSecuritate({
                     supabaseAdmin,
                     tip: 'login_esuat_burst',
@@ -123,8 +125,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     });
 
                     const rolGasit = roluri.map((r: any) => r.rol_denumire).join(', ') || 'necunoscut';
+
+                    // Nume + prenume din sportivi (fallback: emailul folosit la login).
+                    let numeAfisat = emailLower;
+                    try {
+                        const { data: sportiv } = await supabaseAdmin
+                            .from('sportivi')
+                            .select('nume, prenume')
+                            .eq('user_id', userId)
+                            .limit(1)
+                            .maybeSingle();
+                        const nc = [sportiv?.nume, sportiv?.prenume].filter(Boolean).join(' ').trim();
+                        if (nc) numeAfisat = nc;
+                    } catch {
+                        // fallback pe email
+                    }
+
+                    const geoText = formateazaGeoIp(await cautaGeoIp(ip));
                     const subiect = 'Alertă securitate PhiHau: login admin de pe dispozitiv necunoscut';
-                    const corpText = `Cont admin autentificat de pe o combinație IP+browser nemaivăzută.\n\nUser ID: ${userId}\nRol: ${rolGasit}\nIP: ${ip}\nBrowser/dispozitiv: ${userAgent}\nOra: ${acumFormatat}\n\nVerifică Jurnal Audit → card Alerte Securitate Admin.`;
+                    const corpText = `Cont admin autentificat de pe o combinație IP+browser nemaivăzută.\n\nUtilizator: ${numeAfisat}\nRol: ${rolGasit}\nIP: ${ip}\n${geoText}\nBrowser/dispozitiv: ${userAgent}\nOra: ${acumFormatat}\n\nVerifică Jurnal Audit → card Alerte Securitate Admin.`;
                     await trimiteAlertaSecuritate({
                         supabaseAdmin,
                         tip: 'dispozitiv_necunoscut',

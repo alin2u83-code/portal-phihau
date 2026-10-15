@@ -236,20 +236,25 @@ export const Sportivi: React.FC<{
     // useRef cu funcție lazy asigură că citim sessionStorage o singură dată, indiferent de re-render-uri
     type SavedPaginationState = { page: number; pageSize: number; loadAll: boolean; scrollY: number; sportivId?: string; fromProfile: true };
     const restoredStateRef = useRef<SavedPaginationState | null>(null);
-    if (restoredStateRef.current === null) {
-        // Se execută o singură dată (primul render); dacă nu există cheie, rămâne null
+    const restoredStateCititRef = useRef(false);
+    if (!restoredStateCititRef.current) {
+        // Citim o singură dată, la primul render al acestei instanțe. Cheia NU se șterge aici: click-ul pe rând
+        // o scrie și declanșează un re-render al listei încă montate, care ar consuma-o înainte de navigare,
+        // iar instanța nouă (la revenire) nu ar mai găsi nimic de restaurat.
+        restoredStateCititRef.current = true;
         try {
             const raw = sessionStorage.getItem(PAGINATION_STORAGE_KEY);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (parsed?.fromProfile) {
-                    restoredStateRef.current = parsed as SavedPaginationState;
-                    sessionStorage.removeItem(PAGINATION_STORAGE_KEY);
-                }
+                if (parsed?.fromProfile) restoredStateRef.current = parsed as SavedPaginationState;
             }
         } catch {}
     }
     const restoredState = restoredStateRef.current;
+    // Starea a fost preluată la montare: o ștergem după montare (nu în render), ca să nu se aplice a doua oară
+    useEffect(() => {
+        try { sessionStorage.removeItem(PAGINATION_STORAGE_KEY); } catch {}
+    }, []);
 
     // Prioritate: stare din revenirea din profil > ultima stare a listei (alt meniu și înapoi) > preferință localStorage > default
     const stareInitiala = restoredState ?? stareListaSportivi;

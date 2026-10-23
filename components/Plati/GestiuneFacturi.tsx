@@ -12,7 +12,7 @@ import { getPretValabil, getPretProdus } from '../../utils/pricing';
 import { formatNume } from '../../utils/formatareSportiv';
 import { genereazaFacturaAbonament } from '../../services/facturaService';
 import { formatLuna } from '../../utils/luniLipsa';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat } from '../../utils/paymentStatus';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat, restDePlata, sumaIncasataFactura } from '../../utils/paymentStatus';
 import { PeriodFilterBar } from './PeriodFilterBar';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
 import { filtreazaTipuriSezon, gasesteTipDupaId } from '../../utils/abonamente';
@@ -77,7 +77,6 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const [plataToEdit, setPlataToEdit] = useState<Plata | null>(null);
     const [editStatus, setEditStatus] = useState<Plata['status']>('Neachitat');
     const [editSumaTotal, setEditSumaTotal] = useState('');
-    const [editSumaRamasa, setEditSumaRamasa] = useState('');
     const [isEditLoading, setIsEditLoading] = useState(false);
 
     const [plataToDelete, setPlataToDelete] = useState<Plata | null>(null);
@@ -364,27 +363,21 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const handleOpenEdit = (plata: Plata) => {
         setPlataToEdit(plata);
         setEditStatus(plata.status);
-        setEditSumaTotal((plata.suma_initiala ?? plata.suma).toFixed(2));
-        setEditSumaRamasa(plata.suma.toFixed(2));
+        setEditSumaTotal(plata.suma.toFixed(2));
     };
 
     const handleSaveEdit = async () => {
         if (!plataToEdit || !supabase) return;
         const sumaTotal = parseFloat(editSumaTotal);
-        const sumaRamasa = parseFloat(editSumaRamasa);
-        if (isNaN(sumaTotal) || sumaTotal < 0 || isNaN(sumaRamasa) || sumaRamasa < 0) {
-            showError("Sume invalide", "Introduceți valori numerice pozitive.");
-            return;
-        }
-        if (sumaRamasa > sumaTotal) {
-            showError("Sumă invalidă", "Suma rămasă nu poate depăși suma totală.");
+        if (isNaN(sumaTotal) || sumaTotal < 0) {
+            showError("Sumă invalidă", "Introduceți o sumă totală numerică pozitivă.");
             return;
         }
         setIsEditLoading(true);
+        // `suma` = total facturat (soldService scade `suma`); restul (suma_ramasa) îl mențin trigger-ele din DB.
         const { data, error } = await supabase.from('plati').update({
             status: editStatus,
-            suma_initiala: sumaTotal,
-            suma: sumaRamasa,
+            suma: sumaTotal,
         }).eq('id', plataToEdit.id).select().maybeSingle();
         setIsEditLoading(false);
 
@@ -535,19 +528,25 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         },
         {
             key: 'suma',
-            label: 'Sumă / Rest',
+            label: 'Total / Rest',
             headerClassName: 'text-right',
             cellClassName: 'text-right',
-            render: (p) => (
-                <div className="text-right">
-                    <div className="font-bold text-white">{p.suma.toFixed(2)} lei</div>
-                    {p.suma_initiala && p.suma_initiala > p.suma && (
-                        <div className="text-[10px] text-slate-400 line-through">
-                            {p.suma_initiala.toFixed(2)} lei
-                        </div>
-                    )}
-                </div>
-            )
+            render: (p) => {
+                const rest = restDePlata(p);
+                return (
+                    <div className="text-right">
+                        <div className="font-bold text-white">{p.suma.toFixed(2)} lei</div>
+                        {p.suma_initiala && p.suma_initiala > p.suma && (
+                            <div className="text-[10px] text-slate-400 line-through">
+                                {p.suma_initiala.toFixed(2)} lei
+                            </div>
+                        )}
+                        {rest > 0.01 && rest < p.suma - 0.01 && (
+                            <div className="text-[10px] text-amber-400">rest {rest.toFixed(2)} lei</div>
+                        )}
+                    </div>
+                );
+            }
         },
         {
             key: 'incasat',
@@ -555,7 +554,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             headerClassName: 'text-right',
             cellClassName: 'text-right',
             render: (p) => {
-                const incasat = (p.suma_initiala || p.suma) - p.suma;
+                const incasat = sumaIncasataFactura(p);
                 return (
                     <div className="text-right font-medium text-emerald-400">
                         {incasat.toFixed(2)} lei
@@ -588,7 +587,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     {esteDeIncasat(p) && (
                         <Button size="sm" variant="success" onClick={() => {
                             setPlataForPayment(p);
-                            setPaymentAmount(p.suma.toString());
+                            setPaymentAmount(restDePlata(p).toString());
                         }} title="Încasează">
                             <WalletIcon className="w-4 h-4" />
                         </Button>
@@ -632,16 +631,16 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             
             <div className="mt-2 grid grid-cols-2 gap-2">
                 <p className="text-sm text-slate-300"><span className="text-slate-500">Descriere:</span> {p.descriere}</p>
-                <p className="text-sm font-bold text-white text-right"><span className="text-slate-500 font-normal">Rest:</span> {p.suma.toFixed(2)} lei</p>
+                <p className="text-sm font-bold text-white text-right"><span className="text-slate-500 font-normal">Rest:</span> {restDePlata(p).toFixed(2)} lei</p>
                 <p className="text-sm text-slate-300"><span className="text-slate-500">Tip:</span> {p.tip}</p>
-                <p className="text-sm font-bold text-emerald-400 text-right"><span className="text-slate-500 font-normal">Încasat:</span> {((p.suma_initiala || p.suma) - p.suma).toFixed(2)} lei</p>
+                <p className="text-sm font-bold text-emerald-400 text-right"><span className="text-slate-500 font-normal">Încasat:</span> {sumaIncasataFactura(p).toFixed(2)} lei</p>
             </div>
 
             <div className="flex flex-wrap justify-end gap-2 mt-4 pt-2 border-t border-slate-700">
                 {esteDeIncasat(p) && (
                     <Button size="sm" variant="success" onClick={() => {
                         setPlataForPayment(p);
-                        setPaymentAmount(p.suma.toString());
+                        setPaymentAmount(restDePlata(p).toString());
                     }} className="flex-1 justify-center">
                         <WalletIcon className="w-4 h-4 mr-2" /> Încasează
                     </Button>
@@ -821,7 +820,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     <div className="space-y-4">
                         <div className="p-3 bg-slate-800 rounded-lg border border-slate-700">
                             <p className="text-sm text-slate-400">Factură: <span className="text-white font-medium">{plataForPayment.descriere}</span></p>
-                            <p className="text-sm text-slate-400">Total de plată: <span className="text-white font-bold">{plataForPayment.suma.toFixed(2)} RON</span></p>
+                            <p className="text-sm text-slate-400">Rest de plată: <span className="text-white font-bold">{restDePlata(plataForPayment).toFixed(2)} RON</span></p>
                         </div>
 
                         <Input 
@@ -852,29 +851,23 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     <div className="space-y-4">
                         <p className="text-slate-300 text-sm">Factură: <strong className="text-white">{plataToEdit.descriere}</strong></p>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input
-                                label="Sumă Totală Factură (RON)"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={editSumaTotal}
-                                onChange={e => setEditSumaTotal(e.target.value)}
-                            />
-                            <Input
-                                label="Sumă Rămasă de Plată (RON)"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={editSumaRamasa}
-                                onChange={e => setEditSumaRamasa(e.target.value)}
-                            />
-                        </div>
-                        <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700 text-sm text-slate-400 flex justify-between">
-                            <span>Suma încasată (calculat):</span>
-                            <span className="text-emerald-400 font-bold">
-                                {Math.max(0, (parseFloat(editSumaTotal) || 0) - (parseFloat(editSumaRamasa) || 0)).toFixed(2)} RON
-                            </span>
+                        <Input
+                            label="Sumă Totală Factură (RON)"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={editSumaTotal}
+                            onChange={e => setEditSumaTotal(e.target.value)}
+                        />
+                        <div className="p-3 bg-slate-800/60 rounded-lg border border-slate-700 text-sm text-slate-400 space-y-1">
+                            <div className="flex justify-between">
+                                <span>Încasat (din tranzacții):</span>
+                                <span className="text-emerald-400 font-bold">{sumaIncasataFactura(plataToEdit).toFixed(2)} RON</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Rest de plată:</span>
+                                <span className="text-white font-bold">{restDePlata(plataToEdit).toFixed(2)} RON</span>
+                            </div>
                         </div>
 
                         <Select label="Status" value={editStatus} onChange={e => setEditStatus(e.target.value as Plata['status'])}>
@@ -904,8 +897,8 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 const s = sportivi.find(sp => sp.id === plataForView.sportiv_id);
                 const f = familii.find(fam => fam.id === plataForView.familie_id);
                 const entityName = s ? formatNume(s) : f ? `Familia ${f.nume}` : plataForView.sportiv_nume ? `${plataForView.sportiv_nume} ${plataForView.sportiv_prenume || ''}`.trim() : '—';
-                const sumaTotal = plataForView.suma_initiala ?? plataForView.suma;
-                const incasat = sumaTotal - plataForView.suma;
+                const sumaTotal = plataForView.suma;
+                const incasat = sumaIncasataFactura(plataForView);
                 const plataIstoric: IstoricPlataDetaliat = {
                     plata_id: plataForView.id,
                     sportiv_id: plataForView.sportiv_id,
@@ -916,7 +909,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     status: plataForView.status,
                     data_emitere: plataForView.data,
                     total_incasat: incasat,
-                    rest_de_plata: plataForView.suma,
+                    rest_de_plata: restDePlata(plataForView),
                     tranzactie_id: null,
                     data_plata_string: null,
                     suma_incasata: incasat > 0 ? incasat : null,

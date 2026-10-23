@@ -12,7 +12,7 @@ import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../../constants';
 import { useData } from '../../contexts/DataContext';
 import { calculeazaSolduri } from '../../services/soldService';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat, esteAnulata } from '../../utils/paymentStatus';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat, esteAnulata, restDePlata } from '../../utils/paymentStatus';
 import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
 import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare';
 import { anuleazaFacturaAbonament, reactiveazaFacturaAbonament } from '../../services/facturaService';
@@ -782,7 +782,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 return {
                     recipient_user_id: sportiv.user_id,
                     title: 'Plată Scadentă',
-                    body: `Ai o plată restantă: ${p.descriereDetaliata} în valoare de ${p.suma.toFixed(2)} RON. Te rugăm să achiți cât mai curând.`,
+                    body: `Ai o plată restantă: ${p.descriereDetaliata} în valoare de ${restDePlata(p).toFixed(2)} RON. Te rugăm să achiți cât mai curând.`,
                     type: 'plata'
                 };
             }).filter((n): n is NonNullable<typeof n> => n !== null);
@@ -985,7 +985,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                 </div>
                                             </td>
                                             <td className="p-3 text-right">
-                                                <div className="font-bold text-white">{p.suma.toFixed(2)} RON</div>
+                                                <div className="font-bold text-white">{restDePlata(p).toFixed(2)} RON</div>
                                                 {p.reducereDetalii && p.suma_initiala && (
                                                     <div className="text-xs text-slate-400">
                                                         <span className="line-through">{p.suma_initiala.toFixed(2)}</span>
@@ -999,7 +999,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                     {esteDeIncasat(p) && (
                                                         <Button size="sm" variant="success" onClick={() => {
                                                             setPlataForPayment(p);
-                                                            setPaymentAmount(p.suma.toString());
+                                                            setPaymentAmount(restDePlata(p).toString());
                                                         }} title="Încasează Rapid">
                                                             <WalletIcon className="w-4 h-4" />
                                                         </Button>
@@ -1099,7 +1099,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                 )}
                                             </div>
                                             <div className="shrink-0 text-right">
-                                                <p className="text-white font-bold text-sm whitespace-nowrap">{p.suma.toFixed(2)} RON</p>
+                                                <p className="text-white font-bold text-sm whitespace-nowrap">{restDePlata(p).toFixed(2)} RON</p>
                                                 {p.reducereDetalii && p.suma_initiala && (
                                                     <p className="text-xs text-slate-500">
                                                         <span className="line-through">{p.suma_initiala.toFixed(2)}</span>
@@ -1135,7 +1135,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                             </div>
                                             <div className="flex gap-1.5">
                                                 {esteDeIncasat(p) && (
-                                                    <Button size="sm" variant="success" onClick={() => { setPlataForPayment(p); setPaymentAmount(p.suma.toString()); }} title="Încasează">
+                                                    <Button size="sm" variant="success" onClick={() => { setPlataForPayment(p); setPaymentAmount(restDePlata(p).toString()); }} title="Încasează">
                                                         <WalletIcon className="w-3.5 h-3.5" />
                                                     </Button>
                                                 )}
@@ -1188,7 +1188,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     <div className="space-y-4">
                         <div className="p-3 bg-[var(--t-surface)] rounded-lg border border-[var(--t-border)]">
                             <p className="text-sm text-slate-400">Factură: <span className="text-white font-medium">{plataForPayment.descriere}</span></p>
-                            <p className="text-sm text-slate-400">Total de plată: <span className="text-white font-bold">{plataForPayment.suma.toFixed(2)} RON</span></p>
+                            <p className="text-sm text-slate-400">Rest de plată: <span className="text-white font-bold">{restDePlata(plataForPayment).toFixed(2)} RON</span></p>
                         </div>
 
                         <Input 

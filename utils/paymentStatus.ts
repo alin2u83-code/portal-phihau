@@ -94,6 +94,22 @@ export function getDaysOverdue(plata: Pick<Plata, 'status' | 'data'>): number {
   return Math.max(0, Math.floor((azi.getTime() - dataScadenta.getTime()) / 86_400_000));
 }
 
+/**
+ * Rest de plată al unei facturi. Convenția DB: `suma` = total facturat (după reducere, nu scade la încasare),
+ * `suma_ramasa` = restul, menținut de trigger. Statusul e autoritar pentru Achitat/Anulat/Neachitat.
+ */
+export function restDePlata(p: { status: string; suma: number; suma_ramasa?: number | null }): number {
+  if (p.status === 'Achitat' || p.status === 'Anulat') return 0;
+  if (p.status === 'Neachitat') return Number(p.suma) || 0;
+  return Number(p.suma_ramasa ?? p.suma) || 0;
+}
+
+/** Sumă încasată = total facturat − rest. */
+export function sumaIncasataFactura(p: { status: string; suma: number; suma_ramasa?: number | null }): number {
+  if (p.status === 'Anulat') return 0;
+  return Math.max(0, (Number(p.suma) || 0) - restDePlata(p));
+}
+
 /** Adevărat dacă factura a fost anulată (soft). */
 export function esteAnulata(p: Pick<Plata, 'status'>): boolean {
   return p.status === 'Anulat';

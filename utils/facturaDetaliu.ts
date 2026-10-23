@@ -5,11 +5,13 @@
  * construcția payload-ului whitelist pentru corecția manuală — toate funcții
  * pure, fără React/Supabase, testate izolat cu utils/facturaDetaliu.test.ts.
  *
- * Semantica sumelor în DB (sql/refactor/REFACTOR_FINANCIAL.sql:1-47):
- * `suma_initiala` = total facturat (după reducere); `suma` = rest de plată,
- * recalculat de `recalculare_stare_plata` ca `suma_initiala - SUM(tranzactii)`.
+ * Semantica sumelor în DB (verificată live 23.10.2026, aliniată cu services/soldService.ts):
+ * `suma` = total facturat DUPĂ reducere (nu scade la încasare — soldService scade `suma` din sold);
+ * `suma_initiala` = preț de listă înainte de reducere (poate fi null);
+ * `suma_ramasa` = rest de plată, recalculat de `recalculare_stare_plata` ca `suma - SUM(tranzactie_plata)`.
  */
 import type { Plata, Tranzactie } from '../types';
+import { restDePlata } from './paymentStatus';
 
 // ─── Constante ───────────────────────────────────────────────────────────────
 
@@ -17,6 +19,9 @@ import type { Plata, Tranzactie } from '../types';
 const TOLERANTA = 0.01;
 
 /** Lista albă de câmpuri editabile pe tabela `plati` din ecranul de detaliu (D-07). */
+/** Subset din Plata folosit de calculele de sume (`suma_ramasa` nu e în types.ts). */
+type PlataSume = Pick<Plata, 'suma' | 'suma_initiala' | 'status'> & { suma_ramasa?: number | null };
+
 export const CAMPURI_EDITABILE_PLATA = ['descriere', 'data', 'suma_initiala', 'suma', 'status'] as const;
 
 // ─── Tipuri ──────────────────────────────────────────────────────────────────
@@ -40,13 +45,13 @@ export interface RandIstoricTranzactie {
 export type PlanAchitare =
   | { tip: 'invalid'; motiv: string }
   | { tip: 'direct'; sumaIncasata: number }
-  | { tip: 'cu_corectie'; sumaIncasata: number; sumaInitialaVeche: number; sumaInitialaNoua: number };
+  | { tip: 'cu_corectie'; sumaIncasata: number; sumaVeche: number; sumaNoua: number };
 
 export interface FormEditareFactura {
   descriere: string;
   data: string;
-  suma_initiala: number | string;
-  suma: number | string;
+  suma_initiala: number | string; // preț listă
+  suma: number | string;         // total facturat după reducere
   status: string;
 }
 
@@ -69,19 +74,19 @@ function parseSuma(v: number | string): number {
  * nicio tranzacție care să justifice restul de plată zero (marcaj fără încasare).
  */
 export function calculeazaSumarFactura(
-  plata: Pick<Plata, 'suma' | 'suma_initiala' | 'status'>,
+  plata: PlataSume,
   nrTranzactii: number
 ): SumarFactura {
-  const sumaFacturata = round2(plata.suma_initiala ?? plata.suma);
-  const restDePlata = round2(plata.suma);
-  const totalIncasat = round2(Math.max(0, sumaFacturata - restDePlata));
+  const sumaFacturata = round2(plata.suma);
+  const rest = round2(restDePlata(plata));
+  const totalIncasat = round2(Math.max(0, sumaFacturata - rest));
 
   let avertizare: string | null = null;
-  if (plata.status === 'Achitat' && restDePlata > TOLERANTA && nrTranzactii === 0) {
-    avertizare = `Status «Achitat», dar restul de plată în baza de date este ${restDePlata.toFixed(2)} RON și nu există nicio încasare înregistrată — marcaj fără încasare.`;
+  if (plata.status === 'Achitat' && sumaFacturata > TOLERANTA && nrTranzactii === 0) {
+    avertizare = `Status «Achitat», dar nu există nicio încasare înregistrată pentru suma facturată de ${sumaFacturata.toFixed(2)} RON — marcaj fără încasare.`;
   }
 
-  return { sumaFacturata, restDePlata, totalIncasat, avertizare };
+  return { sumaFacturata, restDePlata: rest, totalIncasat, avertizare };
 }
 
 /** Rând din `tranzactie_plata`: cât din tranzacție a fost alocat acestei facturi. */
@@ -147,7 +152,7 @@ export function construiesteIstoricTranzactii(
  * `proceseaza_plata_factura` (vezi 31-03-PLAN.md obiectiv).
  */
 export function planificaAchitareRapida(
-  plata: Pick<Plata, 'suma' | 'suma_initiala' | 'status'>,
+  plata: PlataSume,
   sumaIncasata: number
 ): PlanAchitare {
   if (plata.status === 'Anulat') {
@@ -160,7 +165,7 @@ export function planificaAchitareRapida(
     return { tip: 'invalid', motiv: 'Introduceți o sumă pozitivă.' };
   }
 
-  const rest = round2(plata.suma);
+  const rest = round2(restDePlata(plata));
   const X = round2(sumaIncasata);
 
   if (X > rest + TOLERANTA) {
@@ -171,12 +176,14 @@ export function planificaAchitareRapida(
     return { tip: 'direct', sumaIncasata: rest };
   }
 
-  const veche = round2(plata.suma_initiala ?? plata.suma);
+  // Încasăm mai puțin decât restul și iertăm diferența: totalul facturat scade cu (rest − X),
+  // astfel încât după încasare suma încasată = totalul și factura devine Achitat.
+  const veche = round2(plata.suma);
   return {
     tip: 'cu_corectie',
     sumaIncasata: X,
-    sumaInitialaVeche: veche,
-    sumaInitialaNoua: round2(veche - (rest - X)),
+    sumaVeche: veche,
+    sumaNoua: round2(veche - (rest - X)),
   };
 }
 
@@ -204,21 +211,9 @@ export function construiestePayloadEditareFactura(
     return { payload: null, eroare: 'Sumele trebuie să fie numere pozitive.' };
   }
 
-  if (suma > sumaInitiala + TOLERANTA) {
-    return { payload: null, eroare: 'Restul de plată nu poate depăși suma facturată.' };
-  }
-
   const status = form.status;
   if (status !== 'Neachitat' && status !== 'Achitat Parțial' && status !== 'Achitat') {
     return { payload: null, eroare: 'Status invalid (anularea se face din acțiunea dedicată).' };
-  }
-
-  if (status === 'Achitat' && suma > TOLERANTA) {
-    return { payload: null, eroare: 'Pentru status Achitat, restul de plată trebuie să fie 0.' };
-  }
-
-  if (status !== 'Achitat' && suma <= TOLERANTA) {
-    return { payload: null, eroare: 'Rest 0 înseamnă factură achitată — alegeți statusul Achitat.' };
   }
 
   return {

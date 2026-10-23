@@ -6,7 +6,7 @@ import { useData } from '../../contexts/DataContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Modal, Button, Input, Select } from '../ui';
 import { CheckCircleIcon, ExclamationTriangleIcon, EditIcon, ChevronDownIcon, ChevronUpIcon } from '../icons';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat } from '../../utils/paymentStatus';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat, restDePlata } from '../../utils/paymentStatus';
 import { formatLuna } from '../../utils/luniLipsa';
 import { formatNume } from '../../utils/formatareSportiv';
 import { FEDERATIE_ID, FEDERATIE_NAME } from '../../constants';
@@ -47,7 +47,7 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
 
   useEffect(() => {
     if (plata) {
-      setSumaIncasare(plata.suma.toFixed(2));
+      setSumaIncasare(restDePlata(plata).toFixed(2));
       setMetodaPlata('Cash');
       setFormCorectie({
         descriere: plata.descriere,
@@ -148,7 +148,7 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
       if (planAchitare.tip === 'cu_corectie') {
         const { data, error } = await supabase
           .from('plati')
-          .update({ suma_initiala: planAchitare.sumaInitialaNoua, suma: planAchitare.sumaIncasata })
+          .update({ suma: planAchitare.sumaNoua })
           .eq('id', plata.id)
           .select()
           .maybeSingle();
@@ -174,7 +174,7 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
       if (rpcError || !rezultat?.success) {
         const mesajBaza = rpcError?.message || rezultat?.error || 'A apărut o eroare necunoscută.';
         const mesaj = planAchitare.tip === 'cu_corectie'
-          ? `Suma facturată a fost deja corectată la ${planAchitare.sumaInitialaNoua.toFixed(2)} RON; încasarea NU a fost înregistrată — reîncercați. (${mesajBaza})`
+          ? `Suma facturată a fost deja corectată la ${planAchitare.sumaNoua.toFixed(2)} RON; încasarea NU a fost înregistrată — reîncercați. (${mesajBaza})`
           : mesajBaza;
         showError('Încasare eșuată', mesaj);
         await refetchDupaScriere();
@@ -185,7 +185,7 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
       if ((proaspata as any)?.status === 'Achitat') {
         showSuccess('Factură achitată', `Încasare de ${planAchitare.sumaIncasata.toFixed(2)} RON înregistrată cu succes.`);
       } else {
-        showError('Atenție', `Încasarea s-a înregistrat, dar statusul facturii este «${(proaspata as any)?.status ?? 'necunoscut'}» cu rest ${(proaspata as any)?.suma ?? '?'} RON. Verificați istoricul.`);
+        showError('Atenție', `Încasarea s-a înregistrat, dar statusul facturii este «${(proaspata as any)?.status ?? 'necunoscut'}» cu rest ${(proaspata as any)?.suma_ramasa ?? '?'} RON. Verificați istoricul.`);
       }
     } finally {
       setSeProceseaza(false);
@@ -327,7 +327,7 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
                 <div className="p-2.5 bg-amber-950/20 border border-amber-500/20 rounded-xl flex items-start gap-2">
                   <ExclamationTriangleIcon className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-300">
-                    Suma facturată se corectează de la {planAchitare.sumaInitialaVeche.toFixed(2)} la {planAchitare.sumaInitialaNoua.toFixed(2)} RON, apoi se înregistrează încasarea de {planAchitare.sumaIncasata.toFixed(2)} RON; factura devine Achitat.
+                    Suma facturată se corectează de la {planAchitare.sumaVeche.toFixed(2)} la {planAchitare.sumaNoua.toFixed(2)} RON (diferența de {(planAchitare.sumaVeche - planAchitare.sumaNoua).toFixed(2)} RON se iartă), apoi se înregistrează încasarea de {planAchitare.sumaIncasata.toFixed(2)} RON; factura devine Achitat.
                   </p>
                 </div>
               )}
@@ -376,14 +376,14 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <Input
-                    label="Sumă facturată (RON)"
+                    label="Preț listă (RON)"
                     type="number"
                     step="0.01"
                     value={formCorectie.suma_initiala}
                     onChange={e => setFormCorectie(prev => ({ ...prev, suma_initiala: e.target.value }))}
                   />
                   <Input
-                    label="Rest de plată (RON)"
+                    label="Sumă facturată (RON)"
                     type="number"
                     step="0.01"
                     value={formCorectie.suma}

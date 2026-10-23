@@ -44,23 +44,31 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
 
   // ── calculeazaSumarFactura ──────────────────────────────────────────────
 
-  run('T1: sumar Achitat Parțial cu suma_initiala', () => {
-    const r = calculeazaSumarFactura({ suma: 100, suma_initiala: 150, status: 'Achitat Parțial' }, 1);
-    assert(r.sumaFacturata === 150, `sumaFacturata asteptat 150, primit ${r.sumaFacturata}`);
-    assert(r.restDePlata === 100, `restDePlata asteptat 100, primit ${r.restDePlata}`);
-    assert(r.totalIncasat === 50, `totalIncasat asteptat 50, primit ${r.totalIncasat}`);
+  run('T1: sumar Achitat Parțial — suma = total facturat, rest din suma_ramasa', () => {
+    const r = calculeazaSumarFactura({ suma: 100, suma_initiala: 150, suma_ramasa: 60, status: 'Achitat Parțial' }, 1);
+    assert(r.sumaFacturata === 100, `sumaFacturata asteptat 100, primit ${r.sumaFacturata}`);
+    assert(r.restDePlata === 60, `restDePlata asteptat 60, primit ${r.restDePlata}`);
+    assert(r.totalIncasat === 40, `totalIncasat asteptat 40, primit ${r.totalIncasat}`);
     assert(r.avertizare === null, `avertizare asteptata null, primit ${r.avertizare}`);
   });
 
-  run('T2: sumar fara suma_initiala (null) → sumaFacturata = suma', () => {
+  run('T2: Neachitat → rest = suma, incasat 0', () => {
     const r = calculeazaSumarFactura({ suma: 120, suma_initiala: null, status: 'Neachitat' }, 0);
     assert(r.sumaFacturata === 120, `sumaFacturata asteptat 120, primit ${r.sumaFacturata}`);
+    assert(r.restDePlata === 120, `restDePlata asteptat 120, primit ${r.restDePlata}`);
     assert(r.totalIncasat === 0, `totalIncasat asteptat 0, primit ${r.totalIncasat}`);
   });
 
-  run('T3: sumar Achitat cu rest > 0 si 0 tranzactii → avertizare nenula', () => {
+  run('T3: sumar Achitat cu 0 tranzactii → avertizare nenula', () => {
     const r = calculeazaSumarFactura({ suma: 100, suma_initiala: 100, status: 'Achitat' }, 0);
     assert(!!r.avertizare, `avertizare asteptata nenula, primit ${r.avertizare}`);
+    assert(r.restDePlata === 0, `restDePlata asteptat 0 (Achitat), primit ${r.restDePlata}`);
+  });
+
+  run('T3b: Achitat cu reducere si tranzactie → fara avertizare, incasat = suma', () => {
+    const r = calculeazaSumarFactura({ suma: 100, suma_initiala: 150, status: 'Achitat' }, 1);
+    assert(r.avertizare === null, `avertizare asteptata null, primit ${r.avertizare}`);
+    assert(r.totalIncasat === 100, `totalIncasat asteptat 100, primit ${r.totalIncasat}`);
   });
 
   // ── construiesteIstoricTranzactii ──────────────────────────────────────
@@ -170,14 +178,14 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
     const r = planificaAchitareRapida({ suma: 150, suma_initiala: 150, status: 'Neachitat' }, 100);
     assert(r.tip === 'cu_corectie', `tip asteptat cu_corectie, primit ${r.tip}`);
     assert((r as any).sumaIncasata === 100, `sumaIncasata asteptata 100, primit ${(r as any).sumaIncasata}`);
-    assert((r as any).sumaInitialaVeche === 150, `sumaInitialaVeche asteptata 150, primit ${(r as any).sumaInitialaVeche}`);
-    assert((r as any).sumaInitialaNoua === 100, `sumaInitialaNoua asteptata 100, primit ${(r as any).sumaInitialaNoua}`);
+    assert((r as any).sumaVeche === 150, `sumaVeche asteptata 150, primit ${(r as any).sumaVeche}`);
+    assert((r as any).sumaNoua === 100, `sumaNoua asteptata 100, primit ${(r as any).sumaNoua}`);
   });
 
-  run('T19: cu_corectie cu suma_initiala diferita de rest', () => {
-    const r = planificaAchitareRapida({ suma: 100, suma_initiala: 150, status: 'Neachitat' }, 80);
+  run('T19: Parțial — rest din suma_ramasa; corectia scade totalul cu diferenta iertata', () => {
+    const r = planificaAchitareRapida({ suma: 150, suma_initiala: 150, suma_ramasa: 100, status: 'Achitat Parțial' }, 80);
     assert(r.tip === 'cu_corectie', `tip asteptat cu_corectie, primit ${r.tip}`);
-    assert((r as any).sumaInitialaNoua === 130, `sumaInitialaNoua asteptata 130, primit ${(r as any).sumaInitialaNoua}`);
+    assert((r as any).sumaNoua === 130, `sumaNoua asteptata 130 (150-(100-80)), primit ${(r as any).sumaNoua}`);
   });
 
   run('T20: suma_initiala null → direct cand egaleaza suma', () => {
@@ -189,7 +197,7 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
   run('T21: rotunjire la 2 zecimale in cu_corectie', () => {
     const r = planificaAchitareRapida({ suma: 99.99, suma_initiala: 99.99, status: 'Neachitat' }, 33.33);
     assert(r.tip === 'cu_corectie', `tip asteptat cu_corectie, primit ${r.tip}`);
-    assert((r as any).sumaInitialaNoua === 33.33, `sumaInitialaNoua asteptata 33.33, primit ${(r as any).sumaInitialaNoua}`);
+    assert((r as any).sumaNoua === 33.33, `sumaNoua asteptata 33.33, primit ${(r as any).sumaNoua}`);
   });
 
   // ── construiestePayloadEditareFactura ───────────────────────────────────
@@ -221,11 +229,11 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
     assert(payload!.suma_initiala === 12.5, `suma_initiala asteptata 12.5, primit ${payload!.suma_initiala}`);
   });
 
-  run('T24: suma > suma_initiala → eroare', () => {
+  run('T24: suma > suma_initiala acceptata (suma = total facturat, nu rest)', () => {
     const { eroare } = construiestePayloadEditareFactura({
       descriere: 'Test', data: '2026-09-26', suma_initiala: 50, suma: 100, status: 'Neachitat',
     });
-    assert(!!eroare, `eroare asteptata nenula, primit ${eroare}`);
+    assert(eroare === null, `eroare asteptata null, primit ${eroare}`);
   });
 
   run('T25: suma negativa → eroare', () => {
@@ -256,18 +264,18 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
     assert(!!eroare, `eroare asteptata nenula, primit ${eroare}`);
   });
 
-  run('T29: status Achitat cu suma 20 → eroare', () => {
+  run('T29: status Achitat cu suma 20 acceptat (restul nu mai e in suma)', () => {
     const { eroare } = construiestePayloadEditareFactura({
       descriere: 'Test', data: '2026-09-26', suma_initiala: 50, suma: 20, status: 'Achitat',
     });
-    assert(!!eroare, `eroare asteptata nenula, primit ${eroare}`);
+    assert(eroare === null, `eroare asteptata null, primit ${eroare}`);
   });
 
-  run('T30: status Neachitat cu suma 0 → eroare', () => {
+  run('T30: status Neachitat cu suma 0 acceptat (factura gratuita)', () => {
     const { eroare } = construiestePayloadEditareFactura({
       descriere: 'Test', data: '2026-09-26', suma_initiala: 50, suma: 0, status: 'Neachitat',
     });
-    assert(!!eroare, `eroare asteptata nenula, primit ${eroare}`);
+    assert(eroare === null, `eroare asteptata null, primit ${eroare}`);
   });
 
   run('T31: descriere goala → eroare', () => {

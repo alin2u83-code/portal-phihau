@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Plata, IstoricPlataDetaliat, Sportiv, User, TipPlata, Familie, Tranzactie, Reducere, PretConfig, TipAbonament } from '../../types';
 import { Button, Card, Input, Select, Modal, SearchInput } from '../ui';
 import { ArrowLeftIcon, PlusIcon, EditIcon, TrashIcon, WalletIcon, CheckCircleIcon, EyeIcon, ClipboardListIcon } from '../icons';
@@ -106,6 +106,12 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const echipamenteDisponibile = useMemo(() => [...new Set(preturiConfig.filter(p => p.categorie === 'Echipament').map(p => p.denumire_serviciu))], [preturiConfig]);
     const marimiDisponibile = useMemo(() => preturiConfig.filter(p => p.categorie === 'Echipament' && p.denumire_serviciu === selectedEchipament), [preturiConfig, selectedEchipament]);
 
+    // Sumele tastate de admin nu se suprascriu la refetch (reduceri/tipuri/preturi); se reiau doar la schimbarea sportivului/tipului/datei/mărimii.
+    const sumeEditateManual = useRef(false);
+    useEffect(() => {
+        sumeEditateManual.current = false;
+    }, [formState.sportiv_id, formState.tip, formState.data, selectedMarimeId]);
+
     // Auto-calculation logic (similar to JurnalIncasari)
     useEffect(() => {
         const sportiv = sportivi.find(s => s.id === formState.sportiv_id);
@@ -155,13 +161,15 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             }
         }
 
-        setFormState(prev => ({
-            ...prev,
-            suma: finalPrice.toString(),
-            suma_initiala: calculatedPrice.toString(),
-            reducere_id: reducereId,
-            descriere: prev.descriere || description
-        }));
+        setFormState(prev => sumeEditateManual.current
+            ? { ...prev, descriere: prev.descriere || description }
+            : {
+                ...prev,
+                suma: finalPrice.toString(),
+                suma_initiala: calculatedPrice.toString(),
+                reducere_id: reducereId,
+                descriere: prev.descriere || description
+            });
 
     }, [formState.sportiv_id, formState.tip, formState.data, selectedMarimeId, sportivi, preturiConfig, tipuriAbonament, reduceri, sezonActivId]);
 
@@ -199,6 +207,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+        if (name === 'suma' || name === 'suma_initiala' || name === 'reducere_id') sumeEditateManual.current = true;
         setFormState(prev => ({ ...prev, [name]: val }));
     };
 
@@ -228,16 +237,19 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 sportiv_id: formState.sportiv_id,
                 familie_id: sportivSelectat.familie_id,
                 club_id: sportivSelectat.club_id || currentUser.club_id,
+                // suma_initiala = total facturat DUPĂ reducere, suma = rest (recalculat de DB după încasare);
+                // prețul de listă rămâne doar în reducereDetalii, altfel reducerea apare ca "încasat".
                 suma: sumaNum,
-                suma_initiala: sumaInitNum,
+                suma_initiala: sumaNum,
                 reducere_id: formState.reducere_id || null,
                 // Numele real al coloanei in DB e camelCase ("reducereDetalii"), nu
                 // snake_case — vezi debug facturi-nu-se-pot-edita.md (2026-09-12).
                 // Cu "reducere_detalii" (snake_case), Supabase respinge INSERT-ul cu
                 // PGRST204 "Could not find the 'reducere_detalii' column of 'plati'".
-                reducereDetalii: reducere?.nume || null,
+                reducereDetalii: reducere ? `${reducere.nume} (preț listă ${sumaInitNum.toFixed(2)} lei)` : null,
                 data: formState.data,
-                status: formState.isDirectPayment ? 'Achitat' : 'Neachitat',
+                // Mereu Neachitat la insert; statusul 'Achitat' îl setează DB după RPC-ul de încasare.
+                status: 'Neachitat',
                 descriere: formState.descriere,
                 tip: formState.tip,
                 observatii: formState.isDirectPayment ? 'Încasat direct la emitere' : 'Generat manual de admin'
@@ -267,7 +279,12 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                     },
                     p_plati: [{ plata_id: plataData.id, suma_alocata: sumaNum }],
                 });
-                if (txError) throw txError;
+                if (txError) {
+                    // Fără încasare nu are rost factura: o ștergem ca să nu rămână orfană.
+                    const { error: delErr } = await supabase.from('plati').delete().eq('id', plataData.id);
+                    if (delErr) console.error('Factura orfană nu a putut fi ștearsă:', delErr);
+                    throw txError;
+                }
             }
 
             // Trigger-ul DB recalculeaza statusul dupa incasare — luam factura proaspata, nu pe cea de la INSERT.
@@ -278,6 +295,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             }
 
             setPlati(prev => [plataFinala, ...prev]);
+            sumeEditateManual.current = false;
             setFormState(initialFormState);
             setSelectedEchipament('');
             setSelectedMarimeId('');

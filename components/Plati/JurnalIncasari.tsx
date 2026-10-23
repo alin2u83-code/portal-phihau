@@ -12,6 +12,7 @@ import { sendNotification } from '../../utils/notifications';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { PeriodFilterBar } from './PeriodFilterBar';
 import { filtreazaTipuriSezon, gasesteTipDupaId } from '../../utils/abonamente';
+import { restDePlata } from '../../utils/paymentStatus';
 import { useSezonActiv } from '../../hooks/useSezoane';
 
 const QuickAddTipPlataModal: React.FC<{ 
@@ -197,7 +198,8 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
     useEffect(() => {
         if (platiInitiale.length > 0) {
-            const totalSuma = platiInitiale.reduce((acc, p) => acc + p.suma, 0);
+            // suma = total facturat; de încasat e restul (facturi parțiale)
+            const totalSuma = platiInitiale.reduce((acc, p) => acc + restDePlata(p), 0);
             const commonDesc = isMultiple ? `Încasare multiplă (${platiInitiale.length} elemente)` : platiInitiale[0].descriere;
             
             setFormState({
@@ -328,12 +330,14 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
                 const idsToUpdate = platiInitiale.map(p => p.id);
 
-                const { data: currentPlati, error: fetchError } = await supabase.from('plati').select('id, descriere, status, suma').in('id', idsToUpdate);
+                const { data: currentPlati, error: fetchError } = await supabase.from('plati').select('id, descriere, status, suma, suma_ramasa').in('id', idsToUpdate);
                 if (fetchError) throw new Error("Nu am putut verifica statusul curent al facturilor.");
 
-                const alreadyPaid = currentPlati?.filter(p => p.status === 'Achitat' && p.suma <= 0.01);
+                const alreadyPaid = currentPlati?.filter(p => p.status === 'Achitat' || p.status === 'Anulat');
+                // Rest proaspăt din DB per factură (nu cel din state, posibil învechit)
+                const restProaspat = new Map((currentPlati || []).map(p => [p.id, restDePlata(p as any)]));
                 if (alreadyPaid && alreadyPaid.length > 0) {
-                    throw new Error(`Plată Blocată: Factura "${alreadyPaid[0].descriere}" este deja achitată.`);
+                    throw new Error(`Plată Blocată: Factura "${alreadyPaid[0].descriere}" este deja ${alreadyPaid[0].status === 'Anulat' ? 'anulată' : 'achitată'}.`);
                 }
                 
                 const sportivPtClub = sportivi.find(s => s.id === (formState.sportiv_id || platiInitiale[0]?.sportiv_id));
@@ -355,7 +359,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 for (const invoice of sortedInvoices) {
                     if (remainingPayment <= 0.001) break;
 
-                    const amountForThisInvoice = Math.min(invoice.suma, remainingPayment);
+                    const amountForThisInvoice = Math.min(restProaspat.get(invoice.id) ?? restDePlata(invoice), remainingPayment);
                     
                     if (amountForThisInvoice > 0) {
                         const p_tranzactie = {
@@ -426,7 +430,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     familie_id: sportiv?.familie_id, 
                     club_id: clubId,
                     suma: sumaNum, 
-                    suma_initiala: sumaNum,
+                    suma_initiala: formState.suma_initiala > 0 ? formState.suma_initiala : sumaNum, // preț listă (suma = total după reducere)
                     reducere_id: formState.reducere_id,
                     // Numele real al coloanei in DB e camelCase ("reducereDetalii"), nu
                     // snake_case — vezi debug facturi-nu-se-pot-edita.md (2026-09-12).
@@ -512,6 +516,9 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
 
         try {
             const { plata_ids, id: tranzactieId } = tranzactieToDelete;
+            // Facturile afectate din fluxul normalizat (tranzactie_plata) — plata_ids e gol la ~30% din tranzacții.
+            const { data: alocari } = await supabase.from('tranzactie_plata').select('plata_id').eq('tranzactie_id', tranzactieId);
+            const idsAfectate = [...new Set([...(plata_ids || []), ...((alocari || []).map(a => a.plata_id))])];
             if (plata_ids && plata_ids.length > 0) {
                 const { error: updateError } = await supabase.from('plati').update({ status: 'Neachitat' }).in('id', plata_ids);
                 if (updateError) throw updateError;
@@ -520,8 +527,13 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
             if (deleteError) throw deleteError;
 
             setTranzactii(prev => prev.filter(t => t.id !== tranzactieId));
-            if (plata_ids && plata_ids.length > 0) {
-                setPlati(prev => prev.map(p => plata_ids.includes(p.id) ? { ...p, status: 'Neachitat' } : p));
+            if (idsAfectate.length > 0) {
+                // Trigger-ul DB recalculează status + rest după ștergerea alocărilor — preluăm starea reală.
+                const { data: replati } = await supabase.from('plati').select('*').in('id', idsAfectate);
+                if (replati) {
+                    const mapPlati = new Map(replati.map(p => [p.id, p]));
+                    setPlati(prev => prev.map(p => mapPlati.has(p.id) ? { ...p, ...mapPlati.get(p.id)! } : p));
+                }
             }
             showSuccess("Succes", "Tranzacția a fost ștearsă și facturile asociate au fost actualizate.");
         } catch (err: any) {

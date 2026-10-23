@@ -13,7 +13,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
 import { useError } from '../ErrorProvider';
-import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat } from '../../utils/paymentStatus';
+import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat, restDePlata, sumaIncasataFactura } from '../../utils/paymentStatus';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
 import { formatNume } from '../../utils/formatareSportiv';
 import { calculeazaLuniLipsa, formatLuna } from '../../utils/luniLipsa';
@@ -199,7 +199,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     }, [selectedMonth, luniDisponibile, istoricPlatiDetaliat, lunaCurenta]);
 
     const totalRestante = useMemo(() =>
-        raportLunarData.restante.reduce((s, p) => s + (p.suma_datorata || 0), 0),
+        raportLunarData.restante.reduce((s, p) => s + (p.rest_de_plata ?? p.suma_datorata ?? 0), 0),
         [raportLunarData.restante]
     );
 
@@ -264,17 +264,18 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     const openEditFactura = (row: IstoricPlataDetaliat) => {
         setFacturaToEdit(row);
         setEditFacturaStatus(row.status);
-        setEditFacturaSumaRamasa((row.rest_de_plata ?? row.suma_datorata).toFixed(2));
+        setEditFacturaSumaRamasa(row.suma_datorata.toFixed(2));
     };
 
     const handleSaveEditFactura = async () => {
         if (!facturaToEdit) return;
-        const sumaRamasa = parseFloat(editFacturaSumaRamasa.replace(',', '.'));
-        if (isNaN(sumaRamasa) || sumaRamasa < 0) { showError('Sumă invalidă', 'Introduceți o valoare numerică pozitivă.'); return; }
+        const sumaTotala = parseFloat(editFacturaSumaRamasa.replace(',', '.'));
+        if (isNaN(sumaTotala) || sumaTotala < 0) { showError('Sumă invalidă', 'Introduceți o valoare numerică pozitivă.'); return; }
         setIsEditFacturaLoading(true);
+        // `suma` = total facturat (restul e în suma_ramasa, menținut de DB) — nu scriem restul în `suma`.
         const { data, error } = await supabase.from('plati').update({
             status: editFacturaStatus,
-            suma: sumaRamasa,
+            suma: sumaTotala,
         }).eq('id', facturaToEdit.plata_id).select().maybeSingle();
         setIsEditFacturaLoading(false);
         if (error) {
@@ -284,9 +285,12 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             // ale view-ului rbv_plati_club (club_nume, sportiv_nume,
             // sportiv_prenume), pe care tabela reala "plati" nu le intoarce.
             setPlati(prev => prev.map(p => p.id === data.id ? { ...p, ...(data as Plata) } : p));
-            setRestanteDetail(prev => prev
-                ? { ...prev, facturi: (prev.facturi || []).filter(f => f.plata_id !== facturaToEdit.plata_id) }
-                : prev);
+            // Factura iese din lista de restanțe doar dacă nu mai e de încasat (nu și la schimbarea sumei).
+            if (!esteDeIncasat({ status: editFacturaStatus })) {
+                setRestanteDetail(prev => prev
+                    ? { ...prev, facturi: (prev.facturi || []).filter(f => f.plata_id !== facturaToEdit.plata_id) }
+                    : prev);
+            }
             setFacturaToEdit(null);
             showSuccess('Succes', 'Factura a fost actualizată.');
         }
@@ -300,7 +304,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             .reduce((s, t) => s + (t.suma_incasata || 0), 0);
 
         const emisLuna = (istoricPlatiDetaliat || [])
-            .filter(t => t.data_emitere?.toString().startsWith(lunaAct))
+            .filter(t => t.data_emitere?.toString().startsWith(lunaAct) && t.status !== 'Anulat')
             .reduce((s, t) => s + t.suma_datorata, 0);
 
         const totalRestante = (istoricPlatiDetaliat || [])
@@ -350,12 +354,13 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
         if (!luna) return { luna, total: 0, achitate: 0, neachitate: 0, listaNeachitate: [] as Plata[], totalSuma: 0, incasatSuma: 0 };
         const lunares = (plati || []).filter(p =>
             (p.tip || '').toLowerCase().includes('abonament') &&
+            p.status !== 'Anulat' &&
             p.data.toString().startsWith(luna)
         );
         const achitate = lunares.filter(p => p.status === 'Achitat');
         const neachitate = lunares.filter(p => esteDeIncasat(p));
         const totalSuma = lunares.reduce((s, p) => s + p.suma, 0);
-        const incasatSuma = achitate.reduce((s, p) => s + p.suma, 0);
+        const incasatSuma = lunares.reduce((s, p) => s + sumaIncasataFactura(p), 0); // include încasările parțiale
         return { luna, total: lunares.length, achitate: achitate.length, neachitate: neachitate.length, listaNeachitate: neachitate, totalSuma, incasatSuma };
     }, [plati, lunaAbonamente, luniAbonamente]);
 
@@ -1087,7 +1092,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                                                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${cfg.cls}`}>
                                                                 {cfg.label}
                                                             </span>
-                                                            <span className="text-white font-bold text-sm whitespace-nowrap">{formatSum(p.suma)}</span>
+                                                            <span className="text-white font-bold text-sm whitespace-nowrap">{formatSum(restDePlata(p))}</span>
                                                         </div>
                                                     </div>
                                                 );
@@ -1493,7 +1498,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                             <option value="Anulat">Anulat</option>
                         </Select>
                         <Input
-                            label="Sumă rămasă de achitat (RON)"
+                            label="Sumă totală factură (RON)"
                             type="number"
                             step="0.01"
                             value={editFacturaSumaRamasa}

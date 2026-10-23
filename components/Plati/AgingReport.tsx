@@ -6,7 +6,7 @@
 import React, { useMemo } from 'react';
 import { Plata, Sportiv, Familie } from '../../types';
 import { formatNume } from '../../utils/formatareSportiv';
-import { esteDeIncasat } from '../../utils/paymentStatus';
+import { esteDeIncasat, restDePlata } from '../../utils/paymentStatus';
 
 interface Props {
     plati: Plata[];
@@ -94,7 +94,7 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
             return {
                 ...b,
                 count: items.length,
-                total: items.reduce((s, p) => s + p.suma, 0),
+                total: items.reduce((s, p) => s + restDePlata(p), 0), // rest, nu totalul facturii (parțiale)
             };
         });
 
@@ -113,7 +113,7 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
             .sort((a, b) => b.daysOverdue - a.daysOverdue)
             .slice(0, 25);
 
-        const grandTotal = neachitate.reduce((s, p) => s + p.suma, 0);
+        const grandTotal = neachitate.reduce((s, p) => s + restDePlata(p), 0);
         const grandCount = neachitate.length;
 
         return { buckets, detailRows, grandTotal, grandCount };
@@ -231,7 +231,7 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
                                             </span>
                                         </td>
                                         <td className="px-4 py-2.5 text-right font-bold text-white whitespace-nowrap">
-                                            {row.suma.toLocaleString('ro-RO', { minimumFractionDigits: 2 })} RON
+                                            {restDePlata(row).toLocaleString('ro-RO', { minimumFractionDigits: 2 })} RON
                                         </td>
                                     </tr>
                                 ))}
@@ -257,7 +257,7 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
                                     </div>
                                 </div>
                                 <p className="text-white font-bold text-sm whitespace-nowrap shrink-0">
-                                    {row.suma.toLocaleString('ro-RO', { minimumFractionDigits: 2 })} RON
+                                    {restDePlata(row).toLocaleString('ro-RO', { minimumFractionDigits: 2 })} RON
                                 </p>
                             </div>
                         ))}

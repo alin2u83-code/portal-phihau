@@ -2,6 +2,7 @@
 import { Plata, Tranzactie, Sportiv, Familie } from '../../types';
 import { Card, Button, Select, Input } from '../ui';
 import { ArrowLeftIcon, BanknotesIcon, UsersIcon, ExclamationTriangleIcon } from '../icons';
+import { restDePlata } from '../../utils/paymentStatus';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 interface FinancialDashboardProps {
@@ -60,7 +61,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
 
         const totalRestante = plati
             .filter(p => p.status === 'Neachitat' || p.status === 'Achitat Parțial')
-            .reduce((sum, p) => sum + p.suma, 0);
+            .reduce((sum, p) => sum + restDePlata(p), 0);
             
         const nrSportiviActivi = sportivi.filter(s => s.status === 'Activ').length;
 
@@ -187,7 +188,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
                             <tr>
                                 <th className="p-2 font-semibold">Data</th>
                                 <th className="p-2 font-semibold">Sportiv/Familie</th>
-                                <th className="p-2 font-semibold text-right">Sumă</th>
+                                <th className="p-2 font-semibold text-right">{showUnpaidOnly ? 'Rest' : 'Sumă'}</th>
                                 <th className="p-2 font-semibold">Tip Plată</th>
                                 <th className="p-2 font-semibold text-center">Status</th>
                             </tr>
@@ -197,7 +198,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
                                 <tr key={p.id}>
                                     <td className="p-2">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
                                     <td className="p-2 font-medium">{getEntityName(p)}</td>
-                                    <td className="p-2 text-right font-bold">{p.suma.toFixed(2)} RON</td>
+                                    <td className="p-2 text-right font-bold">{(showUnpaidOnly ? restDePlata(p) : p.suma).toFixed(2)} RON</td>
                                     <td className="p-2">{p.tip}</td>
                                     <td className="p-2 text-center">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.status === 'Achitat' ? 'bg-green-700/50 text-green-300' : 'bg-red-700/50 text-red-300'}`}>{p.status}</span>

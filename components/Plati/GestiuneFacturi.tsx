@@ -237,16 +237,16 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 sportiv_id: formState.sportiv_id,
                 familie_id: sportivSelectat.familie_id,
                 club_id: sportivSelectat.club_id || currentUser.club_id,
-                // suma_initiala = total facturat DUPĂ reducere, suma = rest (recalculat de DB după încasare);
-                // prețul de listă rămâne doar în reducereDetalii, altfel reducerea apare ca "încasat".
+                // suma = total facturat după reducere (soldService scade `suma`), suma_initiala = preț listă;
+                // restul de plată e în suma_ramasa, calculat de DB.
                 suma: sumaNum,
-                suma_initiala: sumaNum,
+                suma_initiala: sumaInitNum,
                 reducere_id: formState.reducere_id || null,
                 // Numele real al coloanei in DB e camelCase ("reducereDetalii"), nu
                 // snake_case — vezi debug facturi-nu-se-pot-edita.md (2026-09-12).
                 // Cu "reducere_detalii" (snake_case), Supabase respinge INSERT-ul cu
                 // PGRST204 "Could not find the 'reducere_detalii' column of 'plati'".
-                reducereDetalii: reducere ? `${reducere.nume} (preț listă ${sumaInitNum.toFixed(2)} lei)` : null,
+                reducereDetalii: reducere?.nume || null,
                 data: formState.data,
                 // Mereu Neachitat la insert; statusul 'Achitat' îl setează DB după RPC-ul de încasare.
                 status: 'Neachitat',

@@ -30,3 +30,4 @@ RubisianCube/
 .worktrees/
 .mcp.json
 The Vault/.obsidian/
+.claude/settings.local.json

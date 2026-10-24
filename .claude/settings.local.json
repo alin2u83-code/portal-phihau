@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Edit(supabase/migrations/**)",
       "Bash(npx tsc:*)",
       "Bash(grep -v \"^$\")",
       "Bash(grep -r import.*from /c/Users/lungu/portal-phihau --include=*.tsx --include=*.ts)",

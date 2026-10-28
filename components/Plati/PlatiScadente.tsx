@@ -19,6 +19,7 @@ import { anuleazaFacturaAbonament, reactiveazaFacturaAbonament } from '../../ser
 import { formatLuna } from '../../utils/luniLipsa';
 import { filtreazaTipuriSezon, gasesteTipDupaId, esteTipDinSezonArhivat } from '../../utils/abonamente';
 import { useSezonActiv } from '../../hooks/useSezoane';
+import { useNavigation } from '../../contexts/NavigationContext';
 import { decideGratieReinnoire, primaZiLunaCurenta } from '../../utils/perioadaGratie';
 import { numaraReinnoiriConsecutive, calculeazaBonusLoialitate } from '../../utils/loialitateReinnoiri';
 import { getPoliticiLoialitate } from '../../services/loialitateService';
@@ -94,6 +95,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const inscrieriExamene = filteredData.inscrieriExamene;
     const grupe = filteredData.grupe;
     const queryClient = useQueryClient();
+    const { setActiveView } = useNavigation();
     const { sezonActivId } = useSezonActiv(activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
 
     const [filter, setFilter] = useLocalStorage('phi-hau-plati-scadente-filter', initialFilters);
@@ -913,7 +915,14 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                             <p className="text-xs text-amber-300 mb-1.5">
                                 {sportiviFaraAbonamentValid.ignorati.length} fără niciun tip de abonament configurat:
                             </p>
-                            <div className="flex flex-wrap gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => setActiveView('tipuri-abonament')}
+                                className="mb-2 text-xs font-semibold px-3 py-1.5 rounded-md bg-amber-500 text-slate-900 hover:bg-amber-400 transition-colors"
+                            >
+                                Configurează abonament
+                            </button>
+                            <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                                 {sportiviFaraAbonamentValid.ignorati.map(s => (
                                     <button
                                         key={s.id}

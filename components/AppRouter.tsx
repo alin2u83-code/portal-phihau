@@ -7,6 +7,7 @@ import { MandatoryPasswordChange } from './MandatoryPasswordChange';
 import { OnboardingCompletare } from './OnboardingCompletare';
 import { SetupMFAPage } from './SetupMFAPage';
 import { Card } from './ui';
+import { DeRezolvatCard } from './DeRezolvatCard';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { ActivitateSalaTabs } from './ActivitateSalaTabs';
 import { useData } from '../contexts/DataContext';
@@ -225,6 +226,9 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                                 <h1 className="text-2xl font-bold text-white">Bună ziua{currentUser?.nume ? `, ${currentUser.nume}` : ''}!</h1>
                                                 <p className="text-slate-400 text-sm">Ce facem azi?</p>
                                             </header>
+                                            {permissions.isAdminClub && !permissions.isFederationAdmin && (
+                                                <DeRezolvatCard sportivi={filteredData.sportivi} grupe={filteredData.grupe} plati={filteredData.plati} tipuriAbonament={filteredData.tipuriAbonament} onNavigate={setActiveView} />
+                                            )}
                                             <Lazy.AdminMasterMap onNavigate={setActiveView} deconturiFederatie={filteredData.deconturiFederatie} inscrieriExamene={filteredData.inscrieriExamene} plati={filteredData.plati} currentUser={currentUser ?? null} />
                                         </div>
                                     );

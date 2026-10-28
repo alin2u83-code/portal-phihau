@@ -81,6 +81,26 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         }
     };
 
+    // Factura automata la inscriere (cluburi.factura_automata_inscriere), per club
+    const [facturaAuto, setFacturaAuto] = useState(false);
+    useEffect(() => {
+        if (!clubTintaGratie) return;
+        let cancelled = false;
+        (async () => {
+            const { data } = await supabase.from('cluburi').select('factura_automata_inscriere').eq('id', clubTintaGratie).maybeSingle();
+            if (!cancelled) setFacturaAuto(!!data?.factura_automata_inscriere);
+        })();
+        return () => { cancelled = true; };
+    }, [clubTintaGratie]);
+
+    const handleToggleFacturaAuto = async (valoare: boolean) => {
+        if (!clubTintaGratie) return;
+        const { error } = await supabase.from('cluburi').update({ factura_automata_inscriere: valoare }).eq('id', clubTintaGratie);
+        if (error) { showError('Eroare la salvare', error.message); return; }
+        setFacturaAuto(valoare);
+        showSuccess('Salvat', valoare ? 'Factura se generează automat la înscriere.' : 'Factura automată la înscriere e dezactivată.');
+    };
+
     // Implicit: sezonul activ al clubului propriu, la prima încărcare
     useEffect(() => {
         setNewSezonId(prev => prev || sezonActivId || '');
@@ -244,6 +264,19 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
                             Salvează
                         </Button>
                     </div>
+                </Card>
+            )}
+
+            {(permissions?.isAdminClub || isFederationAdmin) && (
+                <Card className="mb-8 border-l-4 border-emerald-400">
+                    <h3 className="text-xl font-bold text-white mb-2">Factură automată la înscriere</h3>
+                    <p className="text-sm text-slate-400 mb-4">
+                        La înscrierea unui sportiv nou se generează factura de abonament a lunii curente (tipul asignat sau Individual din sezonul activ). Dacă sportivul nu plătește, ștergi sau anulezi factura. Sportivii din familii sunt omiși.
+                    </p>
+                    <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer select-none">
+                        <input type="checkbox" checked={facturaAuto} onChange={e => handleToggleFacturaAuto(e.target.checked)} className="h-4 w-4 rounded border-slate-500 bg-slate-800" />
+                        Generează automat factura la înscriere{isFederationAdmin && clubs.find(c => c.id === clubTintaGratie) ? ` — ${clubs.find(c => c.id === clubTintaGratie)!.nume}` : ''}
+                    </label>
                 </Card>
             )}
 

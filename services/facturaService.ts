@@ -1,6 +1,7 @@
 import { supabase } from '../supabaseClient';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Plata, Sportiv } from '../types';
+import type { Plata, Sportiv, TipAbonament } from '../types';
+import { filtreazaTipuriSezon, gasesteTipDupaId } from '../utils/abonamente';
 import { formatLuna } from '../utils/luniLipsa';
 
 /**
@@ -120,6 +121,32 @@ export async function genereazaFacturaAbonament(
     }
 
     return { data: data as Plata | null, error: null };
+}
+
+/**
+ * Factura de abonament a lunii curente la inscrierea unui sportiv nou (setare per club).
+ * Pret: tipul asignat sportivului, altfel tipul Individual (numar_membri=1) al sezonului activ.
+ * Sportivii din familie sunt omisi — familia se factureaza cumulat din "Genereaza Abonamente".
+ * Fara tip de abonament sau cu factura deja existenta nu se creeaza nimic (nu e eroare).
+ */
+export async function genereazaFacturaLaInscriere(
+    sportiv: Sportiv,
+    tipuriAbonament: TipAbonament[],
+    sezonActivId: string | null | undefined
+): Promise<{ data: Plata | null; error: any; omis?: string }> {
+    if (sportiv.familie_id) return { data: null, error: null, omis: 'Sportivul face parte dintr-o familie.' };
+    const tip = gasesteTipDupaId(tipuriAbonament, sportiv.tip_abonament_id)
+        || filtreazaTipuriSezon(tipuriAbonament, sezonActivId).find(t => t.numar_membri === 1 && (!t.club_id || t.club_id === sportiv.club_id));
+    if (!tip) return { data: null, error: null, omis: 'Nu exista tip de abonament Individual pentru sezonul activ.' };
+    const azi = new Date();
+    const res = await genereazaFacturaAbonament({
+        sportiv, luna: azi.getMonth() + 1, an: azi.getFullYear(), suma: tip.pret,
+        observatii: 'Generat automat la inscriere.',
+    });
+    if (res.data) {
+        await supabase.from('plati').update({ suma_initiala: tip.pret } as any).eq('id', res.data.id);
+    }
+    return res;
 }
 
 // ─── Anulare / Reactivare / Ștergere definitivă (quick 260829-erg) ─────────────

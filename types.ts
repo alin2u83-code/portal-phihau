@@ -58,6 +58,8 @@ export interface Club {
   tema_config?: ThemeConfig | null;
   /** Faza 30: prag in zile pentru perioada de gratie la reinnoire abonament (vezi utils/perioadaGratie.ts). */
   perioada_gratie_zile?: number | null;
+  /** Daca true, la inscrierea unui sportiv nou se genereaza automat factura de abonament a lunii curente. */
+  factura_automata_inscriere?: boolean | null;
 }
 
 export interface ClubStats {

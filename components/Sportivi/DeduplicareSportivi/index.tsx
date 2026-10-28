@@ -348,6 +348,7 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
                             onSelectPrimar={id => selecteazaPrimar(p.id, id)}
                             onIgnora={() => toggleIgnora(p.id)}
                             onFuzioneaza={() => deschideModalFuzionare(p)}
+                            blocatCrossClub={!permissions.isFederationAdmin && p.sportiv_a.club_id !== p.sportiv_b.club_id}
                         />
                     ))}
                 </div>

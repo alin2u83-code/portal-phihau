@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
 import ReactDOM from 'react-dom';
+import toast from 'react-hot-toast';
 import { ErrorNotification } from './ErrorNotification';
 
 interface NotificationInfo {
@@ -47,8 +48,8 @@ export const ErrorProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   const showSuccess = useCallback((title: string, message: string) => {
-    const newNotification = { title, message, type: 'success' as const, id: Date.now() + Math.random() };
-    setNotifications(prev => [...prev, newNotification]);
+    // Succes = toast auto-inchis (nu blocheaza cu OK); erorile raman modal
+    toast.success(message || title, { duration: 3500 });
   }, []);
 
   const hideNotification = useCallback((id: number) => {

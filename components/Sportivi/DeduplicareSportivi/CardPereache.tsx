@@ -16,9 +16,10 @@ export const CardPereache: React.FC<{
     onSelectPrimar: (id: string) => void;
     onIgnora: () => void;
     onFuzioneaza: () => void;
+    blocatCrossClub?: boolean;
 }> = ({
     pereche, ignorata, fuzionata, inProgres, primarId,
-    gradeMap, clubMap, afiseazaClub, onSelectPrimar, onIgnora, onFuzioneaza,
+    gradeMap, clubMap, afiseazaClub, onSelectPrimar, onIgnora, onFuzioneaza, blocatCrossClub,
 }) => {
     const scoreColor =
         pereche.similarity_score >= 0.95 ? 'text-rose-400 bg-rose-500/15 border-rose-500/30' :
@@ -72,7 +73,8 @@ export const CardPereache: React.FC<{
                             variant="warning"
                             onClick={onFuzioneaza}
                             isLoading={inProgres}
-                            disabled={inProgres}
+                            disabled={inProgres || blocatCrossClub}
+                            title={blocatCrossClub ? 'Sportivii sunt în cluburi diferite — doar federația poate fuziona' : undefined}
                         >
                             <TransferIcon className="h-3.5 w-3.5 mr-1.5" />
                             Fuzioneaza
@@ -113,6 +115,12 @@ export const CardPereache: React.FC<{
                     disabled={inProgres}
                 />
             </div>
+
+            {!ignorata && blocatCrossClub && (
+                <p className="text-xs text-amber-400 mt-3">
+                    Sportivii sunt în cluburi diferite ({clubMap[pereche.sportiv_a.club_id || ''] || '—'} / {clubMap[pereche.sportiv_b.club_id || ''] || '—'}). Fuzionarea o poate face doar federația. Dacă nu sunt aceeași persoană, apasă „Nu sunt duplicate".
+                </p>
+            )}
 
             {!ignorata && (
                 <p className="text-[11px] text-slate-600 mt-3 italic">

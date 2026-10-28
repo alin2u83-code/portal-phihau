@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { Grupa as GrupaType, ProgramItem, Antrenament, type Sezon } from '../../types';
 import { Button, Card, Input, Modal, ConfirmButton, Badge, Select } from '../ui';
 import { ArrowLeftIcon, PlusIcon, TrashIcon, CheckCircleIcon, CogIcon, XCircleIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons';
@@ -646,6 +647,21 @@ const TabSportivi: React.FC<{ grupa: GrupaWithDetails; onOpenAdaugaSportivi: (g:
             queryClient.setQueryData(['sportivi-grupa', grupa.id], (prev: any) =>
                 (prev ?? []).map((s: any) => (s.id === sportivId ? { ...s, status: statusNou } : s))
             );
+            // O atingere accidentala pe tableta dezactiveaza sportivul: oferim anulare
+            if (statusNou === 'Inactiv') {
+                toast((t) => (
+                    <span className="flex items-center gap-3 text-sm">
+                        Sportiv dezactivat
+                        <button
+                            type="button"
+                            className="font-semibold underline"
+                            onClick={() => { toast.dismiss(t.id); toggleStatus(sportivId, 'Inactiv'); }}
+                        >
+                            Anulează
+                        </button>
+                    </span>
+                ), { duration: 6000 });
+            }
         } catch (err: any) {
             showError('Eroare la schimbarea statusului', err);
         } finally {

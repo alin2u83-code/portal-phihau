@@ -66,14 +66,18 @@ export const DeduplicareSportivi: React.FC<{ onBack: () => void }> = ({ onBack }
                 .order('nume').order('prenume');
             if (spErr) throw spErr;
 
-            const local = detecteazaLocalDuplicate((sp || []) as SportivCard[]);
+            // Admin club vede doar sportivii clubului sau; federatia ii vede pe toti
+            const vizibili = permissions.isFederationAdmin
+                ? (sp || [])
+                : (sp || []).filter((s: any) => s.club_id === activeRoleContext?.club_id);
+            const local = detecteazaLocalDuplicate(vizibili as SportivCard[]);
             setPerechi(local);
         } catch (err: any) {
             showError('Eroare incarcare', err.message);
         } finally {
             setLoading(false);
         }
-    }, [showError]);
+    }, [showError, permissions.isFederationAdmin, activeRoleContext?.club_id]);
 
     useEffect(() => { incarcaDate(); }, [incarcaDate]);
 

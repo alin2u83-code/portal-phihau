@@ -3,36 +3,11 @@ import { supabase } from '../supabaseClient';
 import { usePermissions } from '../hooks/usePermissions';
 import { useDataProvider } from '../hooks/useDataProvider';
 import { View } from '../types';
-import { Card, Accordion, AccordionItem } from './ui';
-import {
-    UsersIcon, CreditCardIcon, BuildingOfficeIcon, TrophyIcon,
-    CogIcon,
-    UserPlusIcon, ClockIcon, ChartBarIcon, FileTextIcon,
-    BellIcon, SitemapIcon, BookOpenIcon, ClipboardListIcon,
-    ArchiveBoxIcon,
-} from './icons';
+import { Card, StatCard, Skeleton } from './ui';
+import { UsersIcon, CreditCardIcon, BuildingOfficeIcon } from './icons';
 
 interface AdminDashboardProps {
     onNavigate: (view: View) => void;
-}
-
-interface StatCard {
-    label: string;
-    value: number | undefined;
-    icon: React.ElementType;
-    color: string;
-}
-
-interface ActionCard {
-    label: string;
-    view: View;
-    icon: React.ElementType;
-    color: string;
-}
-
-interface ActionGroup {
-    title: string;
-    items: ActionCard[];
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
@@ -41,8 +16,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
     const [counts, setCounts] = useState<{ sportivi: number; plati: number; cluburi: number; utilizatori: number } | null>(null);
     const [loading, setLoading] = useState(true);
-    const [openSection, setOpenSection] = useState<string>('gestiune-membri');
-    const handleToggle = (id: string) => setOpenSection(prev => prev === id ? '' : id);
 
     useEffect(() => {
         if (!permissions.isFederationAdmin) {
@@ -75,108 +48,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     }, [permissions.isFederationAdmin, onNavigate]);
 
     if (loading) {
-        return <Card className="p-8 text-center bg-slate-900 border-slate-800 text-slate-400">Se încarcă datele administrative...</Card>;
+        return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
+            </div>
+        );
     }
 
     if (!permissions.isFederationAdmin) {
         return (
-            <Card className="p-4 text-center bg-red-900/20 border-red-900/50 text-red-400">
+            <Card className="text-center text-[var(--t-status-danger)]">
                 <p>Acces restricționat. Redirecționare...</p>
             </Card>
         );
     }
 
-    const stats: StatCard[] = [
-        { label: 'Sportivi Total', value: counts?.sportivi, icon: UsersIcon, color: 'text-sky-500' },
-        { label: 'Plăți Înregistrate', value: counts?.plati, icon: CreditCardIcon, color: 'text-emerald-500' },
-        { label: 'Cluburi Active', value: counts?.cluburi, icon: BuildingOfficeIcon, color: 'text-amber-500' },
-        { label: 'Utilizatori', value: counts?.utilizatori, icon: UsersIcon, color: 'text-violet-500' },
-    ];
-
-    const actionGroups: ActionGroup[] = [
-        {
-            title: 'Gestiune Membri',
-            items: [
-                { label: 'Sportivi', view: 'sportivi', icon: UsersIcon, color: 'text-sky-400' },
-                { label: 'Import Sportivi', view: 'import-sportivi', icon: ArchiveBoxIcon, color: 'text-sky-400' },
-                { label: 'Deduplicare', view: 'deduplicare-sportivi', icon: ClipboardListIcon, color: 'text-sky-400' },
-                { label: 'Familii', view: 'familii', icon: UsersIcon, color: 'text-sky-400' },
-                { label: 'Legitimații', view: 'legitimatii', icon: FileTextIcon, color: 'text-sky-400' },
-                { label: 'Nomenclator Grade', view: 'grade', icon: BookOpenIcon, color: 'text-sky-400' },
-                { label: 'Administrare Staff', view: 'user-management', icon: UserPlusIcon, color: 'text-sky-400' },
-            ],
-        },
-        {
-            title: 'Evenimente & Examene',
-            items: [
-                { label: 'Sesiuni Examene', view: 'examene', icon: TrophyIcon, color: 'text-indigo-400' },
-                { label: 'Stagii', view: 'stagii', icon: TrophyIcon, color: 'text-indigo-400' },
-                { label: 'Competiții', view: 'competitii', icon: TrophyIcon, color: 'text-rose-400' },
-                { label: 'Rapoarte Examen', view: 'rapoarte-examen', icon: ChartBarIcon, color: 'text-indigo-400' },
-                { label: 'Rapoarte', view: 'rapoarte', icon: ChartBarIcon, color: 'text-indigo-400' },
-            ],
-        },
-        {
-            title: 'Setări & Admin',
-            items: [
-                { label: 'Gestiune Cluburi', view: 'cluburi', icon: BuildingOfficeIcon, color: 'text-amber-400' },
-                { label: 'Structură Federație', view: 'structura-federatie', icon: SitemapIcon, color: 'text-amber-400' },
-                { label: 'Setări Club', view: 'setari-club', icon: CogIcon, color: 'text-amber-400' },
-                { label: 'Mentenanță Date', view: 'data-maintenance', icon: ArchiveBoxIcon, color: 'text-amber-400' },
-                { label: 'Setări Cont', view: 'account-settings', icon: CogIcon, color: 'text-amber-400' },
-                { label: 'Notificări', view: 'notificari', icon: BellIcon, color: 'text-amber-400' },
-                { label: 'Cereri Înscriere', view: 'cereri-inscriere', icon: UserPlusIcon, color: 'text-amber-400' },
-                { label: 'Istoric Activitate', view: 'istoric-activitate', icon: ClockIcon, color: 'text-amber-400' },
-            ],
-        },
-    ];
-
     return (
-        <div className="space-y-8">
-            <h1 className="text-xl md:text-2xl font-bold text-white">Panou Administrativ</h1>
+        <div className="space-y-6">
+            <header>
+                <h2 className="text-2xl font-semibold leading-tight text-[var(--t-text)]">Panou administrativ</h2>
+                <p className="text-sm text-[var(--t-text-muted)]">Totaluri la nivel de federație.</p>
+            </header>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map(({ label, value, icon: Icon, color }) => (
-                    <Card key={label} className="p-4 md:p-6 bg-slate-900 border-slate-800 hover:border-slate-700 transition-all group">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm md:text-base font-medium text-slate-400">{label}</h3>
-                            <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
-                                <Icon className={`w-5 h-5 ${color}`} />
-                            </div>
-                        </div>
-                        <p className="text-3xl font-bold text-white">{value ?? '—'}</p>
-                    </Card>
-                ))}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard label="Sportivi total" value={counts?.sportivi ?? '—'} icon={UsersIcon} />
+                <StatCard label="Plăți înregistrate" value={counts?.plati ?? '—'} icon={CreditCardIcon} />
+                <StatCard label="Cluburi" value={counts?.cluburi ?? '—'} icon={BuildingOfficeIcon} />
+                <StatCard label="Utilizatori" value={counts?.utilizatori ?? '—'} icon={UsersIcon} />
             </div>
-
-            {/* Action Groups */}
-            <Accordion>
-                {actionGroups.map(({ title, items }, idx) => {
-                    const ids = ['gestiune-membri', 'evenimente', 'setari-admin'];
-                    const icons = [UsersIcon, TrophyIcon, CogIcon];
-                    const id = ids[idx];
-                    const Icon = icons[idx];
-                    return (
-                        <AccordionItem key={id} id={id} title={title} icon={Icon} isOpen={openSection === id} onToggle={handleToggle}>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                                {items.map(({ label, view, icon: ItemIcon, color }) => (
-                                    <button
-                                        key={view}
-                                        onClick={() => onNavigate(view)}
-                                        className="flex items-center gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-600 hover:bg-slate-800 transition-all text-left group"
-                                    >
-                                        <div className="shrink-0 p-1.5 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-colors">
-                                            <ItemIcon className={`w-4 h-4 ${color}`} />
-                                        </div>
-                                        <span className="text-sm text-slate-300 group-hover:text-white transition-colors leading-tight">{label}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </AccordionItem>
-                    );
-                })}
-            </Accordion>
         </div>
     );
 };

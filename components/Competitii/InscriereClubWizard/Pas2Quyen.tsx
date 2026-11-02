@@ -79,11 +79,14 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
       .map(s => {
         const grad = grade.find(g => g.id === s.grad_actual_id) ?? null;
         const autoCat = autoCategorie.get(s.id)!;
-        const tipProba = autoCat.proba?.tip_proba ?? 'thao_quyen_individual';
+        // Co Vo Dao: se aleg doar forme de arme (inlantuiri thao_lo_individual), nu quyen Qwan Ki Do
+        const tipProba = competitie.tip === 'cvd'
+          ? 'thao_lo_individual'
+          : (autoCat.proba?.tip_proba ?? 'thao_quyen_individual');
         const opts = grad ? (dreptMap.get(tipProba)?.get(grad.id) ?? []) : [];
         return { sportiv: s, grad, autoCat, opts };
       }),
-    [sportivi, selectedSportivi, autoCategorie, grade, dreptMap]
+    [sportivi, selectedSportivi, autoCategorie, grade, dreptMap, competitie.tip]
   );
 
   /**

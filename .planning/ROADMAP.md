@@ -474,7 +474,7 @@ Plans:
 **Goal:** Stil vizual unic (minimalist, aerisit) pentru sidebar, header și dashboard-uri pe toate 4 rolurile, desktop + mobil. Meniu redus/regrupat (propunere aprobată de user înainte de cod). Apoi aceeași curățare pe Sportivi, Plăți-hub, Competiții, Grupe/Prezență/Examene. Se păstrează cele 20 teme/tokeni existenți. Mockup HTML + aprobare înainte de implementare. Valuri: 1) tokeni/shell, 2) dashboard-uri, 3) pagini principale.
 **Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, UI-08, UI-09, UI-10, UI-11, UI-12, UI-13
 **Depends on:** Phase 33
-**Plans:** 6/13 plans executed
+**Plans:** 7/13 plans executed
 
 Plans:
 
@@ -484,7 +484,7 @@ Plans:
 - [x] 34-04-PLAN.md — Strip-uri de tab-uri hub (Sportivi, Examene, Competitii, Fisa mea) + restilizare ActivitateSalaTabs, AppLayout (pb bottom nav, footer ascuns mobil), wrapper-e in AppRouter (val 1)
 - [x] 34-05-PLAN.md — Dashboard-ul comun: De rezolvat (inclusiv federatie), 3 KPI, Actiuni rapide, Recente, Anunturi; AdminMasterMap fara acordeoane (val 2)
 - [x] 34-06-PLAN.md — Dashboard federatie (desktop + mobil) si dashboard admin club pe StatCard plate, acordeoane eliminate (val 2)
-- [ ] 34-07-PLAN.md — Dashboard sportiv (5 blocuri + Detalii), TrainingActionCard, VizaMedicalaCard, AccountSettings cu Notificari push (val 2)
+- [x] 34-07-PLAN.md — Dashboard sportiv (5 blocuri + Detalii), TrainingActionCard, VizaMedicalaCard, AccountSettings cu Notificari push (val 2)
 - [ ] 34-08-PLAN.md — Widget-uri comune: EvenimenteWidget, HistoryModal, FamilieWidget pe tokeni (val 2)
 - [ ] 34-09-PLAN.md — Pagina Sportivi: antet fara h1, un singur primary, filtre inline, tabel pe tokeni (val 3)
 - [ ] 34-10-PLAN.md — Plati-hub: strip de tab-uri conform contractului, tabel de facturi pe tokeni, fara atingerea logicii financiare (val 3)

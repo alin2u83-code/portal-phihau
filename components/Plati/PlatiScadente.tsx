@@ -182,8 +182,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     .filter(g => g.denumire.toLowerCase().includes('retras'))
                     .map(g => g.id)
             );
+            // Scutiții de abonament (personal club) nu se facturează și nu intră nici în numărul de membri al familiei.
             const sportiviActivi = sportiviActiviBrut.filter(
-                s => !s.grupa_id || !grupeRetrasi.has(s.grupa_id)
+                s => !s.scutit_abonament && (!s.grupa_id || !grupeRetrasi.has(s.grupa_id))
             );
 
             const today = new Date();

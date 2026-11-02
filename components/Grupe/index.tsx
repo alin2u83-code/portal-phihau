@@ -24,6 +24,7 @@ import { TourOverlay, TourButton, TOURS } from '../GhidUtilizator';
 import { mutaInGrupa, scoateDinGrupa } from '../../services/grupeIstoricService';
 import { useRegisterRefresh } from '../../contexts/RefreshContext';
 import { filtreazaTipuriSezon, gasesteTipDupaId, esteTipDinSezonArhivat } from '../../utils/abonamente';
+import { useScutitiAbonament } from '../../hooks/useScutitiAbonament';
 
 // Interfață extinsă pentru datele aduse din Supabase
 interface GrupaWithDetails extends GrupaType {
@@ -73,11 +74,12 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
     // aparține unui sezon arhivat — semnal rapid pe cardul grupei, aceeași regulă ca
     // în PlatiScadente. Simplificare: nu recalculăm cazul de familie aici (necesită
     // gruparea pe familie_id, făcută deja corect în modulul Plăți).
+    const { scutiti } = useScutitiAbonament();
     const nrFaraAbonamentValidPerGrupa = useMemo(() => {
         const map = new Map<string, number>();
         const sezonId = sezonActiv?.id ?? null;
         (sportivi || []).forEach((s: any) => {
-            if (s.status !== 'Activ' || !s.grupa_id || s.familie_id) return;
+            if (s.status !== 'Activ' || !s.grupa_id || s.familie_id || scutiti.has(s.id)) return;
             const tipuriClub = (tipuriAbonament || []).filter((t: any) => t.club_id === s.club_id);
             const tipuriSezonClub = filtreazaTipuriSezon(tipuriClub, sezonId);
             const tip = gasesteTipDupaId(tipuriAbonament || [], s.tip_abonament_id) || tipuriSezonClub.find((t: any) => t.numar_membri === 1);
@@ -85,7 +87,7 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
             if (invalid) map.set(s.grupa_id, (map.get(s.grupa_id) || 0) + 1);
         });
         return map;
-    }, [sportivi, tipuriAbonament, sezonActiv?.id]);
+    }, [sportivi, tipuriAbonament, sezonActiv?.id, scutiti]);
     const [grupaToClone, setGrupaToClone] = useState<GrupaWithDetails | null>(null);
     const [isCloning, setIsCloning] = useState(false);
 

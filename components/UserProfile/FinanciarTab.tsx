@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Sportiv, TipAbonament, Familie, Plata, Tranzactie } from '../../types';
-import { Card, Button, Modal, Select } from '../ui';
+import { Card, Button, Modal, Select, Switch } from '../ui';
+import { useScutitiAbonament } from '../../hooks/useScutitiAbonament';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
 import { useError } from '../ErrorProvider';
@@ -138,8 +139,11 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
         [tipuriAbonament, sportiv.club_id, sezonActivId]
     );
     const tipCurent = gasesteTipDupaId(tipuriAbonament, sportiv.tip_abonament_id);
-    // Membrii de familie plătesc prin planul familiei — fără tip individual e normal, nu semnalăm.
-    const necesitaReasignare = !sportiv.familie_id && (!tipCurent || esteTipDinSezonArhivat(tipCurent, sezonActivId));
+    const { scutiti, isLoading: scutitiLoading, setScutitAsync, isSaving: isSavingScutit } = useScutitiAbonament();
+    const esteScutit = scutiti.has(sportiv.id);
+    // Membrii de familie plătesc prin planul familiei, iar scutiții (personal club) nu plătesc deloc —
+    // fără tip individual e normal, nu semnalăm.
+    const necesitaReasignare = !scutitiLoading && !esteScutit && !sportiv.familie_id && (!tipCurent || esteTipDinSezonArhivat(tipCurent, sezonActivId));
 
     // Venit din bannerul "reasignare manuală": ducem utilizatorul la zona de schimbare.
     useEffect(() => {
@@ -147,6 +151,17 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
     }, [necesitaReasignare, sportiv.id]);
 
     useEffect(() => { setTipNouId(sportiv.tip_abonament_id || ''); }, [sportiv.id, sportiv.tip_abonament_id]);
+
+    const handleToggleScutit = async (scutit: boolean) => {
+        try {
+            await setScutitAsync({ sportivId: sportiv.id, scutit });
+            showSuccess(scutit ? 'Sportiv scutit de abonament' : 'Scutire eliminată', scutit
+                ? 'Nu i se vor mai genera facturi de abonament. Costurile către federație rămân neschimbate.'
+                : 'Sportivul va primi din nou abonament la următoarea generare.');
+        } catch (e: any) {
+            showError('Eroare la salvare', e.message);
+        }
+    };
 
     const handleSalveazaAbonament = async () => {
         if (!tipNouId || tipNouId === sportiv.tip_abonament_id) return;
@@ -252,7 +267,9 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                     <div ref={abonamentRef} className={necesitaReasignare ? 'p-2 -m-2 rounded-xl ring-2 ring-amber-500/60' : ''}>
                         <p className="text-xs text-slate-300 font-medium mb-1.5">Abonament activ</p>
                         <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/40 text-sm text-white">
-                            {tipCurent?.denumire || (
+                            {esteScutit ? (
+                                <span className="text-emerald-400">Scutit de abonament (personal club)</span>
+                            ) : tipCurent?.denumire || (
                                 <span className="text-slate-500 italic">Nespecificat</span>
                             )}
                             {necesitaReasignare && tipCurent && (
@@ -260,6 +277,16 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                             )}
                         </div>
                         {poateSchimbaAbonament && (
+                            <div className="mt-2">
+                                <Switch
+                                    name="scutit_abonament"
+                                    label="Scutit de abonament (personal club)"
+                                    checked={esteScutit}
+                                    onChange={e => { if (!isSavingScutit) handleToggleScutit(e.target.checked); }}
+                                />
+                            </div>
+                        )}
+                        {poateSchimbaAbonament && !esteScutit && (
                             <div className="mt-2 flex flex-col sm:flex-row gap-2 sm:items-end">
                                 <div className="flex-1">
                                     <Select label="Schimbă abonamentul" value={tipNouId} onChange={e => setTipNouId(e.target.value)}>

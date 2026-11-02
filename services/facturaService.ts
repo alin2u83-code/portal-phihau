@@ -135,6 +135,9 @@ export async function genereazaFacturaLaInscriere(
     sezonActivId: string | null | undefined
 ): Promise<{ data: Plata | null; error: any; omis?: string }> {
     if (sportiv.familie_id) return { data: null, error: null, omis: 'Sportivul face parte dintr-o familie.' };
+    // Câmpul nu e în Sportiv/view-ul listei, deci îl citim din tabel.
+    const { data: scutitRow } = await supabase.from('sportivi').select('scutit_abonament').eq('id', sportiv.id).maybeSingle();
+    if ((scutitRow as any)?.scutit_abonament) return { data: null, error: null, omis: 'Sportivul este scutit de abonament.' };
     const tip = gasesteTipDupaId(tipuriAbonament, sportiv.tip_abonament_id)
         || filtreazaTipuriSezon(tipuriAbonament, sezonActivId).find(t => t.numar_membri === 1 && (!t.club_id || t.club_id === sportiv.club_id));
     if (!tip) return { data: null, error: null, omis: 'Nu exista tip de abonament Individual pentru sezonul activ.' };

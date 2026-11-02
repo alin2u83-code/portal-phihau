@@ -42,7 +42,8 @@ export const VIEW_TITLES: Partial<Record<View, string>> = {
     'template-probe': 'Template Probe',
     'user-management': 'Administrare Staff',
     'vanzari-produse': 'Vânzări Echipamente',
-    'dashboard': 'Dashboard',
+    'dashboard': 'Acasă',
+    'anunturi-federatie': 'Anunțuri Federație',
     'my-portal': 'Portalul Meu',
     'federation-dashboard': 'Dashboard Federație',
     'admin-dashboard': 'Admin Dashboard',
@@ -95,7 +96,6 @@ export const Header: React.FC<HeaderProps> = ({
     onOpenThemeEditor,
 }) => {
     const { activeView, setActiveView, canGoBack, history, goBack, jumpToHistory } = useNavigation();
-    const isRootView = ROOT_VIEWS.includes(activeView);
     const isMobile = useIsMobile();
     const { refresh, isRefreshing } = useRefresh();
 
@@ -121,16 +121,16 @@ export const Header: React.FC<HeaderProps> = ({
     return (
         <header
             data-tutorial="header"
-            className={`fixed top-0 right-0 h-16 flex items-center justify-between px-4 backdrop-blur-md transition-all duration-300 ${isSidebarExpanded ? 'lg:left-64' : 'lg:left-20'} left-0 z-40`}
-            style={{ background: 'var(--t-header-bg)', borderBottom: '1px solid var(--t-header-border)', boxShadow: '0 1px 20px rgba(0,0,0,0.3)' }}
+            className={`fixed top-0 right-0 h-16 flex items-center justify-between px-4 transition-all duration-300 ${isSidebarExpanded ? 'lg:left-64' : 'lg:left-20'} left-0 z-40`}
+            style={{ background: 'var(--t-header-bg)', borderBottom: '1px solid var(--t-header-border)' }}
         >
             {/* Left: Hamburger (mobile) + Back Button + Breadcrumb */}
             <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
                 {onOpenMobileSidebar && (
                     <button
-                        className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+                        className="lg:hidden flex items-center justify-center w-11 h-11 rounded-lg transition-colors shrink-0 text-[var(--t-text-muted)] hover:bg-[var(--t-surface-2)] hover:text-[var(--t-text)]"
                         onClick={onOpenMobileSidebar}
-                        aria-label="Deschide meniu"
+                        aria-label="Deschide meniul"
                     >
                         <Bars3Icon className="w-5 h-5" />
                     </button>
@@ -141,8 +141,10 @@ export const Header: React.FC<HeaderProps> = ({
                         onClick={goBack}
                         variant="secondary"
                         size="sm"
-                        className="!px-2.5 !py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow-sm flex items-center shrink-0"
+                        ghost
+                        className="min-h-11 lg:min-h-9 !shadow-none shrink-0"
                         title="Înapoi"
+                        aria-label="Înapoi"
                     >
                         <ArrowLeftIcon className="w-4 h-4" />
                     </Button>
@@ -154,40 +156,33 @@ export const Header: React.FC<HeaderProps> = ({
                             {crumb.idx >= 0 ? (
                                 <button
                                     onClick={() => jumpToHistory(crumb.idx)}
-                                    className="text-xs text-slate-400 hover:text-slate-200 transition-colors px-1 py-0.5 rounded hover:bg-slate-800 whitespace-nowrap shrink-0 hidden sm:block"
+                                    className="text-xs font-normal text-[var(--t-text-muted)] hover:text-[var(--t-text)] transition-colors px-1 py-1 rounded whitespace-nowrap shrink-0 hidden sm:block"
                                     title={`Înapoi la ${crumb.title}`}
                                 >
                                     {crumb.title}
                                 </button>
                             ) : (
-                                <span className="text-xs text-slate-600 shrink-0 hidden sm:block">…</span>
+                                <span className="text-xs text-[var(--t-text-muted)] shrink-0 hidden sm:block">…</span>
                             )}
-                            <span className="text-slate-600 text-xs shrink-0 hidden sm:block">›</span>
+                            <span className="text-[var(--t-text-muted)] text-xs shrink-0 hidden sm:block">›</span>
                         </React.Fragment>
                     ))}
 
-                    <h1 className="font-bold text-white tracking-tight text-sm md:text-base truncate">
+                    <h1 className="text-base font-semibold leading-tight text-[var(--t-text)] truncate">
                         {pageTitle}
                     </h1>
-
-                    {isRootView && (
-                        <span className="hidden md:inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full shrink-0 ml-1">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                            Online
-                        </span>
-                    )}
                 </nav>
             </div>
 
             {/* Right: Notifications & User Menu */}
-            <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
                 <button
                     onClick={refresh}
                     disabled={isRefreshing}
                     title="Reîncarcă datele"
-                    aria-label="Refresh"
+                    aria-label="Reîncarcă datele"
                     style={{ touchAction: 'manipulation' }}
-                    className="h-9 w-9 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-40 shrink-0"
+                    className="h-11 w-11 lg:h-9 lg:w-9 flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 shrink-0 text-[var(--t-text-muted)] hover:bg-[var(--t-surface-2)] hover:text-[var(--t-text)]"
                 >
                     <svg className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -197,8 +192,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <ThemeDropdown onOpenAdvanced={onOpenThemeEditor} />
 
                 {currentUser && <NotificationBell currentUser={currentUser} />}
-
-                <div className="h-6 w-px bg-slate-800 hidden md:block" />
 
                 <UserMenu
                     currentUser={currentUser}

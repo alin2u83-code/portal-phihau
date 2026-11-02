@@ -1,25 +1,25 @@
 import React from 'react';
-import { Card } from '../ui';
+import { Card, Badge } from '../ui';
 import { ShieldCheckIcon } from '../icons';
 import { Plata } from '../../types';
 
+// Logica simplificata: viza e valida daca exista o plata de tip viza Achitata.
+export const areVizaValida = (plati: Plata[], sportivId: string): boolean =>
+    plati.some(p => p.sportiv_id === sportivId && p.tip.toLowerCase().includes('viza') && p.status === 'Achitat');
+
 export const VizaMedicalaCard: React.FC<{ plati: Plata[], sportivId: string }> = ({ plati, sportivId }) => {
-    const vizaPlati = plati.filter(p => p.sportiv_id === sportivId && p.tip.toLowerCase().includes('viza') && p.status === 'Achitat');
-    const hasValidViza = vizaPlati.length > 0; // Simplified logic
+    if (areVizaValida(plati, sportivId)) return null;
 
     return (
-        <Card>
-            <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-full ${hasValidViza ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                    <ShieldCheckIcon className="w-8 h-8" />
-                </div>
-                <div>
-                    <h3 className="text-lg font-bold text-white">Viza Medicală</h3>
-                    <p className={`text-sm font-medium ${hasValidViza ? 'text-green-400' : 'text-red-400'}`}>
-                        {hasValidViza ? 'Valabilă' : 'Expirată sau Inexistentă'}
-                    </p>
-                </div>
+        <Card className="md:p-6">
+            <div className="flex items-center justify-between gap-2 mb-2">
+                <h3 className="text-base font-semibold text-[var(--t-text)] flex items-center gap-2">
+                    <ShieldCheckIcon className="w-5 h-5 text-[var(--t-text-muted)]" />
+                    Viză medicală
+                </h3>
+                <Badge variant="red">Expirată sau inexistentă</Badge>
             </div>
+            <p className="text-sm text-[var(--t-text-muted)]">Nu există o viză medicală achitată pentru acest sportiv.</p>
         </Card>
     );
 };

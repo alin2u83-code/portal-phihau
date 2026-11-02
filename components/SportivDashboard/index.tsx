@@ -261,28 +261,22 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     return (
         <div className="space-y-6 pb-28 md:pb-24">
 
-            {/* ── MINI TABS ───────────────────────────────────────────── */}
-            <div className="flex gap-1 bg-[var(--t-surface-2)] p-1 rounded-xl border border-[var(--t-border)]">
-                <button
-                    onClick={() => setActiveTab('dashboard')}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
-                        activeTab === 'dashboard'
-                            ? 'bg-[var(--accent)] text-white shadow'
-                            : 'text-slate-400 hover:text-white hover:bg-slate-700/40'
-                    }`}
-                >
-                    Dashboard
-                </button>
-                <button
-                    onClick={() => setActiveTab('echipamente')}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
-                        activeTab === 'echipamente'
-                            ? 'bg-[var(--accent)] text-white shadow'
-                            : 'text-slate-400 hover:text-white hover:bg-slate-700/40'
-                    }`}
-                >
-                    Echipamente
-                </button>
+            {/* ── TABS ────────────────────────────────────────────────── */}
+            <div className="flex border-b border-[var(--t-border)] min-h-11">
+                {([['dashboard', 'Dashboard'], ['echipamente', 'Echipamente']] as const).map(([id, label]) => (
+                    <button
+                        key={id}
+                        onClick={() => setActiveTab(id)}
+                        aria-current={activeTab === id ? 'page' : undefined}
+                        className={`px-4 min-h-11 text-sm -mb-px border-b-2 transition-colors ${
+                            activeTab === id
+                                ? 'font-semibold text-[var(--t-text)] border-[var(--t-primary)]'
+                                : 'font-normal text-[var(--t-text-muted)] border-transparent hover:text-[var(--t-text)]'
+                        }`}
+                    >
+                        {label}
+                    </button>
+                ))}
             </div>
 
             {/* ── TAB ECHIPAMENTE ─────────────────────────────────────── */}
@@ -292,7 +286,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                     {/* ── COMENZILE MELE (CMD-02) ─────────────────────── */}
                     <div>
                         <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-base font-bold text-white">Comenzile mele</h3>
+                            <h3 className="text-base font-semibold text-[var(--t-text)]">Comenzile mele</h3>
                             {isViewingOwnProfile && viewedUser.club_id && (
                                 <Button
                                     variant="primary"
@@ -304,7 +298,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                             )}
                         </div>
                         {cereriMele.length === 0 ? (
-                            <div className="text-slate-400 text-sm py-4 text-center bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl">
+                            <div className="text-[var(--t-text-muted)] text-sm py-4 text-center bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl">
                                 Nicio cerere plasată
                             </div>
                         ) : (
@@ -313,28 +307,25 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                                     <div key={c.id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                                         <div className="flex justify-between items-start gap-2">
                                             <div className="min-w-0">
-                                                <div className="text-white font-medium text-sm truncate">
+                                                <div className="text-[var(--t-text)] font-semibold text-sm truncate">
                                                     {c.varianta?.produs?.denumire ?? 'Produs necunoscut'}
                                                 </div>
-                                                <div className="text-slate-400 text-xs mt-0.5">
+                                                <div className="text-[var(--t-text-muted)] text-xs mt-0.5">
                                                     {[c.varianta?.culoare, c.varianta?.marime].filter(Boolean).join(' · ') || 'Variantă standard'}
                                                     {' · '}Cant. {c.cantitate}
                                                 </div>
-                                                <div className="text-slate-500 text-xs mt-0.5">
+                                                <div className="text-[var(--t-text-muted)] text-xs mt-0.5">
                                                     {new Date(c.created_at).toLocaleDateString('ro-RO')}
                                                 </div>
                                             </div>
-                                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                                                c.stare_cerere === 'SOLICITATA' ? 'bg-amber-500/15 text-amber-400' :
-                                                c.stare_cerere === 'CONFIRMATA' ? 'bg-sky-500/15 text-sky-400' :
-                                                c.stare_cerere === 'PLASATA' ? 'bg-indigo-500/15 text-indigo-400' :
-                                                c.stare_cerere === 'SOSITA' ? 'bg-emerald-500/15 text-emerald-400' :
-                                                c.stare_cerere === 'PREDATA' ? 'bg-green-500/15 text-green-400' :
-                                                c.stare_cerere === 'PLATITA' ? 'bg-green-600/15 text-green-300' :
-                                                'bg-rose-500/15 text-rose-400'
-                                            }`}>
+                                            <Badge className="shrink-0" variant={
+                                                c.stare_cerere === 'SOLICITATA' ? 'amber' :
+                                                c.stare_cerere === 'CONFIRMATA' || c.stare_cerere === 'PLASATA' ? 'blue' :
+                                                c.stare_cerere === 'SOSITA' || c.stare_cerere === 'PREDATA' || c.stare_cerere === 'PLATITA' ? 'green' :
+                                                'red'
+                                            }>
                                                 {c.stare_cerere}
-                                            </span>
+                                            </Badge>
                                         </div>
                                     </div>
                                 ))}
@@ -384,7 +375,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                                 </Select>
                             )}
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1 uppercase tracking-wide">Cantitate</label>
+                                <label className="block text-xs font-semibold text-[var(--t-text-muted)] mb-1.5 ml-1">Cantitate</label>
                                 <input
                                     type="number"
                                     min="1"
@@ -415,25 +406,25 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
 
                     {/* Istoricul achizițiilor */}
                     <div>
-                        <h3 className="text-base font-bold text-white mb-3">Achizițiile mele</h3>
+                        <h3 className="text-base font-semibold text-[var(--t-text)] mb-3">Achizițiile mele</h3>
                         {loadingProduse ? (
-                            <div className="text-slate-400 text-sm">Se încarcă...</div>
+                            <div className="text-[var(--t-text-muted)] text-sm">Se încarcă...</div>
                         ) : vanzariMele.length === 0 ? (
-                            <div className="text-slate-400 text-sm py-4 text-center">Nicio achiziție înregistrată</div>
+                            <div className="text-[var(--t-text-muted)] text-sm py-4 text-center">Nicio achiziție înregistrată</div>
                         ) : (
                             <div className="space-y-2">
                                 {vanzariMele.map(v => (
                                     <div key={v.id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <div className="text-white font-medium text-sm">
+                                                <div className="text-[var(--t-text)] font-semibold text-sm">
                                                     {v.detalii.map(d => d.denumire_snapshot).join(', ')}
                                                 </div>
-                                                <div className="text-slate-400 text-xs mt-1">
+                                                <div className="text-[var(--t-text-muted)] text-xs mt-1">
                                                     {new Date(v.data_vanzare).toLocaleDateString('ro-RO')} · {v.detalii.length} produse
                                                 </div>
                                             </div>
-                                            <span className="text-white font-bold text-sm shrink-0">{v.total_vanzare.toFixed(2)} RON</span>
+                                            <span className="text-[var(--t-text)] font-semibold text-sm shrink-0">{v.total_vanzare.toFixed(2)} RON</span>
                                         </div>
                                     </div>
                                 ))}
@@ -443,11 +434,11 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
 
                     {/* Catalog produse disponibile */}
                     <div>
-                        <h3 className="text-base font-bold text-white mb-3">Produse disponibile</h3>
+                        <h3 className="text-base font-semibold text-[var(--t-text)] mb-3">Produse disponibile</h3>
                         {loadingProduse ? (
-                            <div className="text-slate-400 text-sm">Se încarcă...</div>
+                            <div className="text-[var(--t-text-muted)] text-sm">Se încarcă...</div>
                         ) : produseCatalog.length === 0 ? (
-                            <div className="text-slate-400 text-sm py-4 text-center">Niciun produs în catalog</div>
+                            <div className="text-[var(--t-text-muted)] text-sm py-4 text-center">Niciun produs în catalog</div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {produseCatalog.map(p => {
@@ -457,9 +448,9 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                                     const pretMax = preturi.length > 0 ? Math.max(...preturi) : 0;
                                     return (
                                         <div key={p.id} className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl px-4 py-3">
-                                            <div className="text-white font-medium text-sm">{p.denumire}</div>
-                                            <div className="text-slate-400 text-xs mt-1">{p.categorie?.denumire}</div>
-                                            <div className="text-slate-300 text-sm font-bold mt-2">
+                                            <div className="text-[var(--t-text)] font-semibold text-sm">{p.denumire}</div>
+                                            <div className="text-[var(--t-text-muted)] text-xs mt-1">{p.categorie?.denumire}</div>
+                                            <div className="text-[var(--t-text)] text-sm font-semibold mt-2">
                                                 {varianteActive.length === 0 ? 'Indisponibil' :
                                                     pretMin === pretMax ? `${pretMin.toFixed(2)} RON` :
                                                     `${pretMin.toFixed(2)} – ${pretMax.toFixed(2)} RON`
@@ -468,7 +459,7 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                                             {varianteActive.length > 0 && (
                                                 <div className="flex flex-wrap gap-1 mt-2">
                                                     {varianteActive.map(v => (
-                                                        <span key={v.id} className="text-xs bg-slate-700 text-slate-300 rounded px-2 py-0.5">
+                                                        <span key={v.id} className="text-xs bg-[var(--t-surface-2)] text-[var(--t-text-muted)] rounded px-2 py-0.5">
                                                             {[v.culoare, v.marime].filter(Boolean).join(' ') || 'Standard'}
                                                         </span>
                                                     ))}

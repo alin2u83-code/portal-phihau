@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { User, Sportiv, Familie, TipAbonament, Grad } from '../../types';
-import { Card, Button, Modal } from '../ui';
+import { Card, Button, Modal, Badge } from '../ui';
 import { UsersIcon, WalletIcon, ChevronRightIcon, CheckCircleIcon, ExclamationTriangleIcon } from '../icons';
 import { GradBadge } from '../../utils/grades';
 import { useError } from '../ErrorProvider';
@@ -103,11 +103,11 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
 
     if (!currentUser.familie_id) return null;
     if (loading) return (
-        <Card className="border border-slate-800 bg-slate-900/50 animate-pulse">
-            <div className="h-4 w-32 bg-slate-700 rounded mb-3" />
+        <Card className="animate-pulse md:p-6">
+            <div className="h-4 w-32 bg-[var(--t-surface-2)] rounded mb-3" />
             <div className="space-y-2">
-                <div className="h-10 bg-slate-800 rounded-xl" />
-                <div className="h-10 bg-slate-800 rounded-xl" />
+                <div className="h-10 bg-[var(--t-surface-2)] rounded-xl" />
+                <div className="h-10 bg-[var(--t-surface-2)] rounded-xl" />
             </div>
         </Card>
     );
@@ -122,22 +122,17 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
 
     return (
         <>
-            <Card className="border border-slate-800 bg-slate-900/50">
+            <Card className="md:p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                        <UsersIcon className="w-4 h-4 text-violet-400" />
+                    <h3 className="text-base font-semibold text-[var(--t-text)] flex items-center gap-2">
+                        <UsersIcon className="w-4 h-4 text-[var(--t-text-muted)]" />
                         Familia {familie?.nume ?? ''}
                     </h3>
                     {arePlanFamilie && planFamilie ? (
-                        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300">
-                            <CheckCircleIcon className="w-3 h-3" />
-                            {planFamilie.denumire}
-                        </span>
+                        <Badge variant="blue">{planFamilie.denumire}</Badge>
                     ) : (
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400">
-                            Abonamente individuale
-                        </span>
+                        <Badge variant="slate">Abonamente individuale</Badge>
                     )}
                 </div>
 
@@ -151,14 +146,14 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                             <div
                                 key={member.id}
                                 onClick={() => !isSelf && handleOpenSibling(member)}
-                                className={`flex items-center gap-3 p-2.5 rounded-xl border transition-colors ${
+                                className={`flex items-center gap-3 p-3 rounded-xl border border-[var(--t-border)] transition-colors ${
                                     isSelf
-                                        ? 'border-sky-500/30 bg-sky-500/5 cursor-default'
-                                        : 'border-slate-700/40 bg-slate-800/30 cursor-pointer hover:bg-slate-700/40 active:scale-[0.99]'
+                                        ? 'bg-[var(--t-surface-2)] cursor-default'
+                                        : 'cursor-pointer hover:bg-[var(--t-surface-2)]'
                                 }`}
                             >
                                 {/* Avatar */}
-                                <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center shrink-0 overflow-hidden text-xs font-bold text-slate-300 ring-2 ring-slate-600/50">
+                                <div className="w-9 h-9 rounded-full bg-[var(--t-surface-2)] flex items-center justify-center shrink-0 overflow-hidden text-xs font-semibold text-[var(--t-text-muted)]">
                                     {member.foto_url ? (
                                         <img src={member.foto_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                     ) : (
@@ -168,15 +163,15 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
 
                                 {/* Info */}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                        <p className="text-sm font-semibold text-white truncate">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <p className="text-sm font-semibold text-[var(--t-text)] truncate">
                                             {member.nume} {member.prenume}
                                         </p>
                                         {isSelf && (
-                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400">Tu</span>
+                                            <span className="text-xs text-[var(--t-text-muted)]">(tu)</span>
                                         )}
                                         {isRep && (
-                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">Reprezentant</span>
+                                            <Badge variant="slate">Reprezentant</Badge>
                                         )}
                                     </div>
                                     {gradMember && (
@@ -187,7 +182,7 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                                 </div>
 
                                 {!isSelf && (
-                                    <ChevronRightIcon className="w-4 h-4 text-slate-500 shrink-0" />
+                                    <ChevronRightIcon className="w-4 h-4 text-[var(--t-text-muted)] shrink-0" />
                                 )}
                             </div>
                         );
@@ -196,10 +191,10 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
 
                 {/* Banner upgrade la plan familie */}
                 {isViewingOwnProfile && areAbonamenteIndividuale && tipuriFamilie.length > 0 && (
-                    <div className="mt-4 p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
+                    <div className="mt-4 p-3 rounded-xl border border-[var(--t-border)] bg-[var(--t-surface-2)]">
                         <div className="flex items-start gap-2 mb-2">
-                            <ExclamationTriangleIcon className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
-                            <p className="text-xs text-violet-300">
+                            <ExclamationTriangleIcon className="w-4 h-4 text-[var(--t-text-muted)] shrink-0 mt-0.5" />
+                            <p className="text-xs text-[var(--t-text-muted)]">
                                 Familia are {membri.length} membri cu abonamente individuale.
                                 Abonamentul de familie poate fi mai avantajos financiar.
                             </p>
@@ -208,14 +203,14 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                             <Button
                                 size="sm"
                                 variant="primary"
-                                className="w-full bg-violet-600 hover:bg-violet-700 border-none text-white"
+                                className="w-full"
                                 onClick={() => setShowUpgradeModal(true)}
                             >
-                                <WalletIcon className="w-3.5 h-3.5 mr-1.5" />
+                                <WalletIcon className="w-4 h-4 mr-2" />
                                 Configurează Abonament Familie
                             </Button>
                         ) : (
-                            <p className="text-[11px] text-slate-400 italic">
+                            <p className="text-xs text-[var(--t-text-muted)]">
                                 Reprezentantul familiei sau administratorul clubului poate schimba abonamentul.
                             </p>
                         )}
@@ -227,7 +222,7 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                     <Button
                         size="sm"
                         variant="secondary"
-                        className="w-full mt-4 text-slate-300"
+                        className="w-full mt-4"
                         onClick={() => {
                             setSelectedPlanId(familie?.tip_abonament_id ?? '');
                             setShowUpgradeModal(true);
@@ -248,7 +243,7 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                     <div className="space-y-4">
                         {/* Avatar + Info */}
                         <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center text-xl font-bold text-slate-300 shrink-0 overflow-hidden">
+                            <div className="w-16 h-16 rounded-full bg-[var(--t-surface-2)] flex items-center justify-center text-xl font-semibold text-[var(--t-text-muted)] shrink-0 overflow-hidden">
                                 {selectedSibling.foto_url ? (
                                     <img src={selectedSibling.foto_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                 ) : (
@@ -256,10 +251,10 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                                 )}
                             </div>
                             <div>
-                                <p className="text-lg font-bold text-white">
+                                <p className="text-base font-semibold text-[var(--t-text)]">
                                     {selectedSibling.nume} {selectedSibling.prenume}
                                 </p>
-                                <p className="text-sm text-slate-400">Membru familia {familie?.nume}</p>
+                                <p className="text-sm text-[var(--t-text-muted)]">Membru familia {familie?.nume}</p>
                                 {(() => {
                                     const g = grade.find(gr => gr.id === selectedSibling.grad_actual_id) ?? null;
                                     return g ? (
@@ -274,25 +269,21 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                         {/* Stats */}
                         {loadingSibling ? (
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="h-16 bg-slate-800 rounded-xl animate-pulse" />
-                                <div className="h-16 bg-slate-800 rounded-xl animate-pulse" />
+                                <div className="h-16 bg-[var(--t-surface-2)] rounded-xl animate-pulse" />
+                                <div className="h-16 bg-[var(--t-surface-2)] rounded-xl animate-pulse" />
                             </div>
                         ) : (
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="flex flex-col items-center p-3 bg-slate-800/50 rounded-xl border border-slate-700/40">
-                                    <span className="text-xs text-slate-500 mb-1">Prezențe</span>
-                                    <span className="text-2xl font-black text-sky-400">
+                                <div className="flex flex-col items-center p-3 rounded-xl border border-[var(--t-border)]">
+                                    <span className="text-xs text-[var(--t-text-muted)] mb-1">Prezențe</span>
+                                    <span className="text-2xl font-semibold text-[var(--t-text)]">
                                         {selectedSibling.prezente_total ?? '—'}
                                     </span>
                                 </div>
-                                <div className={`flex flex-col items-center p-3 rounded-xl border ${
-                                    (selectedSibling.plati_restante ?? 0) > 0
-                                        ? 'bg-rose-950/30 border-rose-500/30'
-                                        : 'bg-emerald-950/20 border-emerald-500/20'
-                                }`}>
-                                    <span className="text-xs text-slate-500 mb-1">Plăți</span>
-                                    <span className={`text-sm font-bold ${
-                                        (selectedSibling.plati_restante ?? 0) > 0 ? 'text-rose-400' : 'text-emerald-400'
+                                <div className="flex flex-col items-center p-3 rounded-xl border border-[var(--t-border)]">
+                                    <span className="text-xs text-[var(--t-text-muted)] mb-1">Plăți</span>
+                                    <span className={`text-sm font-semibold ${
+                                        (selectedSibling.plati_restante ?? 0) > 0 ? 'text-[var(--t-status-danger)]' : 'text-[var(--t-status-success)]'
                                     }`}>
                                         {selectedSibling.plati_restante === undefined
                                             ? '—'
@@ -306,7 +297,7 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                         )}
 
                         {familie?.reprezentant_id === selectedSibling.id && (
-                            <p className="text-xs text-amber-400 text-center">
+                            <p className="text-xs text-[var(--t-text-muted)] text-center">
                                 Reprezentant familie
                             </p>
                         )}
@@ -326,8 +317,8 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                     title="Abonament Familie"
                 >
                     <div className="space-y-4">
-                        <p className="text-sm text-slate-400">
-                            Selectați tipul de abonament pentru familia <span className="text-white font-semibold">{familie?.nume}</span>:
+                        <p className="text-sm text-[var(--t-text-muted)]">
+                            Selectați tipul de abonament pentru familia <span className="text-[var(--t-text)] font-semibold">{familie?.nume}</span>:
                         </p>
 
                         <div className="space-y-2">
@@ -335,21 +326,21 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                                 <div
                                     key={tip.id}
                                     onClick={() => setSelectedPlanId(tip.id)}
-                                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                                    className={`p-3 rounded-xl border cursor-pointer transition-colors ${
                                         selectedPlanId === tip.id
-                                            ? 'border-violet-500 bg-violet-500/10'
-                                            : 'border-slate-700/40 bg-slate-800/30 hover:border-slate-500/60'
+                                            ? 'border-[var(--t-primary)] bg-[var(--t-surface-2)]'
+                                            : 'border-[var(--t-border)] hover:bg-[var(--t-surface-2)]'
                                     }`}
                                 >
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <p className="text-sm font-semibold text-white">{tip.denumire}</p>
-                                            <p className="text-xs text-slate-500 mt-0.5">
+                                            <p className="text-sm font-semibold text-[var(--t-text)]">{tip.denumire}</p>
+                                            <p className="text-xs text-[var(--t-text-muted)] mt-0.5">
                                                 {tip.numar_membri} membri • {tip.pret} RON / lună
                                             </p>
                                         </div>
                                         {selectedPlanId === tip.id && (
-                                            <CheckCircleIcon className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
+                                            <CheckCircleIcon className="w-4 h-4 text-[var(--t-primary)] shrink-0 mt-0.5" />
                                         )}
                                     </div>
                                 </div>
@@ -366,7 +357,7 @@ export const FamilieWidget: React.FC<FamilieWidgetProps> = ({ currentUser, isVie
                             </Button>
                             <Button
                                 variant="primary"
-                                className="flex-1 bg-violet-600 hover:bg-violet-700 border-none"
+                                className="flex-1"
                                 disabled={!selectedPlanId || saving}
                                 onClick={handleUpgradeAbonament}
                             >

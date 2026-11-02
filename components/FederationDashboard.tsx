@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View } from '../types';
-import { Card } from './ui';
-import { TrophyIcon, UsersIcon } from './icons';
+import { Card, Button, Skeleton } from './ui';
+import { UsersIcon } from './icons';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { FederationDashboardMobile } from './FederationDashboardMobile';
 import { useData } from '../contexts/DataContext';
@@ -47,30 +47,12 @@ interface EvenimentViitor {
 }
 
 // --- Skeleton ---
-const SkeletonBlock: React.FC<{ className?: string }> = ({ className }) => (
-    <div className={`animate-pulse bg-slate-700/60 rounded-lg ${className ?? ''}`} />
-);
-
 const KpiCardSkeleton: React.FC = () => (
-    <Card className="p-5 space-y-3">
-        <SkeletonBlock className="h-4 w-1/2" />
-        <SkeletonBlock className="h-8 w-1/3" />
-        <SkeletonBlock className="h-3 w-2/3" />
+    <Card className="md:p-6 space-y-4">
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-4 w-2/3" />
     </Card>
-);
-
-// --- NavCard (mutat jos, Acces rapid) ---
-const NavCard: React.FC<{ title: string; view: View; icon: React.ElementType; onNavigate: (view: View) => void; }> = ({ title, view, icon: Icon, onNavigate }) => (
-    <div
-        onClick={() => onNavigate(view)}
-        style={{ touchAction: 'manipulation' }}
-        className="bg-[var(--t-surface-2)] p-5 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-[var(--t-surface)] transition-all border border-[var(--t-border)] hover:shadow-lg group"
-    >
-        <div className="p-3 rounded-full bg-[var(--t-surface)] group-hover:bg-[var(--t-surface-2)] transition-colors shrink-0">
-            <Icon className="w-6 h-6 text-brand-light group-hover:text-white transition-colors" />
-        </div>
-        <span className="font-semibold text-slate-200 group-hover:text-white transition-colors">{title}</span>
-    </div>
 );
 
 // --- Componenta principală ---
@@ -244,28 +226,26 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             <header>
-                <h1 className="text-3xl font-bold text-white">Panou de Control Federație</h1>
-                <p className="text-slate-400">Vedere de ansamblu la nivel național — date în timp real.</p>
+                <h2 className="text-2xl font-semibold leading-tight text-[var(--t-text)]">Panou de control federație</h2>
+                <p className="text-sm text-[var(--t-text-muted)]">Vedere de ansamblu la nivel național — date în timp real.</p>
             </header>
 
             {/* --- Rând KPI Cards --- */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* KPI: Total sportivi */}
-                <Card className="p-5">
-                    <div className="flex items-start justify-between">
+                <Card className="md:p-6">
+                    <div className="flex items-start justify-between gap-3">
                         <div>
-                            <p className="text-sm text-slate-400 font-medium">Total Sportivi</p>
-                            <p className="text-4xl font-bold text-white mt-1">{totalSportivi}</p>
-                            <p className="text-sm text-emerald-400 mt-1">{totalActivi} activi &middot; {totalSportivi - totalActivi} inactivi</p>
+                            <p className="text-xs font-semibold text-[var(--t-text-muted)]">Total sportivi</p>
+                            <p className="text-2xl font-semibold text-[var(--t-text)] mt-1">{totalSportivi}</p>
+                            <p className="text-sm text-[var(--t-text-muted)] mt-1">{totalActivi} activi &middot; {totalSportivi - totalActivi} inactivi</p>
                         </div>
-                        <div className="p-3 rounded-full bg-blue-500/15">
-                            <UsersIcon className="w-6 h-6 text-blue-400" />
-                        </div>
+                        <UsersIcon className="w-5 h-5 shrink-0 text-[var(--t-primary)]" />
                     </div>
-                    <div className="mt-3 pt-3 border-t border-slate-700/50">
-                        <p className="text-xs text-slate-500">{clubs.length} cluburi înregistrate</p>
+                    <div className="mt-4 pt-4 border-t border-[var(--t-border)]">
+                        <p className="text-xs text-[var(--t-text-muted)]">{clubs.length} cluburi înregistrate</p>
                     </div>
                 </Card>
 
@@ -273,25 +253,26 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                 {loadingTaxe ? (
                     <KpiCardSkeleton />
                 ) : (
-                    <Card className="p-5">
-                        <div className="flex items-start justify-between">
+                    <Card className="md:p-6">
+                        <div className="flex items-start justify-between gap-3">
                             <div>
-                                <p className="text-sm text-slate-400 font-medium">Taxe Anuale Restante</p>
-                                <p className="text-4xl font-bold text-amber-400 mt-1">
+                                <p className="text-xs font-semibold text-[var(--t-text-muted)]">Taxe anuale restante</p>
+                                <p
+                                    className="text-2xl font-semibold text-[var(--t-text)] mt-1"
+                                    style={taxeRestante && taxeRestante.nrSportiviRestanti > 0 ? { color: 'var(--t-status-danger)' } : undefined}
+                                >
                                     {taxeRestante?.nrSportiviRestanti ?? '—'}
                                 </p>
-                                <p className="text-sm text-slate-400 mt-1">
+                                <p className="text-sm text-[var(--t-text-muted)] mt-1">
                                     {taxeRestante && taxeRestante.valoareEstimata > 0
                                         ? `≈ ${formatCurrency(taxeRestante.valoareEstimata)} neîncasat`
                                         : 'sportivi fără taxă achitată'}
                                 </p>
                             </div>
-                            <div className="p-3 rounded-full bg-amber-500/15">
-                                <AlertCircleIcon className="w-6 h-6 text-amber-400" />
-                            </div>
+                            <AlertCircleIcon className="w-5 h-5 shrink-0 text-[var(--t-primary)]" />
                         </div>
-                        <div className="mt-3 pt-3 border-t border-slate-700/50">
-                            <p className="text-xs text-slate-500">
+                        <div className="mt-4 pt-4 border-t border-[var(--t-border)]">
+                            <p className="text-xs text-[var(--t-text-muted)]">
                                 {taxeRestante?.taxaUnitara
                                     ? `Taxă unitară: ${formatCurrency(taxeRestante.taxaUnitara)}/sportiv`
                                     : 'Fără configurație taxă activă'}
@@ -304,21 +285,19 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                 {loadingEvenimente ? (
                     <KpiCardSkeleton />
                 ) : (
-                    <Card className="p-5">
-                        <div className="flex items-start justify-between">
+                    <Card className="md:p-6">
+                        <div className="flex items-start justify-between gap-3">
                             <div>
-                                <p className="text-sm text-slate-400 font-medium">Evenimente (30 zile)</p>
-                                <p className="text-4xl font-bold text-purple-400 mt-1">{evenimente.length}</p>
-                                <p className="text-sm text-slate-400 mt-1">
+                                <p className="text-xs font-semibold text-[var(--t-text-muted)]">Evenimente (30 zile)</p>
+                                <p className="text-2xl font-semibold text-[var(--t-text)] mt-1">{evenimente.length}</p>
+                                <p className="text-sm text-[var(--t-text-muted)] mt-1">
                                     {evenimente.filter(e => e.tip === 'examen').length} examene &middot; {evenimente.filter(e => e.tip === 'competitie').length} competiții
                                 </p>
                             </div>
-                            <div className="p-3 rounded-full bg-purple-500/15">
-                                <CalendarIcon className="w-6 h-6 text-purple-400" />
-                            </div>
+                            <CalendarIcon className="w-5 h-5 shrink-0 text-[var(--t-primary)]" />
                         </div>
-                        <div className="mt-3 pt-3 border-t border-slate-700/50">
-                            <p className="text-xs text-slate-500">
+                        <div className="mt-4 pt-4 border-t border-[var(--t-border)]">
+                            <p className="text-xs text-[var(--t-text-muted)]">
                                 {evenimente.length > 0
                                     ? `Următor: ${formatDate(evenimente[0].data)}`
                                     : 'Niciun eveniment programat'}
@@ -333,28 +312,28 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
 
                 {/* Sportivi per club — 2/3 lățime */}
                 <div className="lg:col-span-2">
-                    <Card className="overflow-hidden">
-                        <div className="px-5 py-4 border-b border-[var(--t-border)] flex items-center gap-3">
+                    <Card className="overflow-hidden !p-0">
+                        <div className="px-4 py-4 border-b border-[var(--t-border)] flex items-center gap-3">
                             <BuildingIcon className="w-5 h-5 text-[var(--t-text-muted)]" />
-                            <h2 className="font-semibold text-[var(--t-text)]">Sportivi per Club</h2>
+                            <h3 className="text-base font-semibold text-[var(--t-text)]">Sportivi per club</h3>
                         </div>
                         {loadingCluburi ? (
-                            <div className="p-5 space-y-3">
+                            <div className="p-4 space-y-4">
                                 {Array.from({ length: 4 }).map((_, i) => (
-                                    <SkeletonBlock key={i} className="h-9 w-full" />
+                                    <Skeleton key={i} className="h-8 w-full" />
                                 ))}
                             </div>
                         ) : clubRows.length === 0 ? (
-                            <div className="p-8 text-center text-slate-500">Niciun club înregistrat.</div>
+                            <div className="p-8 text-center text-sm text-[var(--t-text-muted)]">Niciun club înregistrat.</div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
                                         <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
-                                            <th className="text-left px-5 py-3 font-medium">Club</th>
-                                            <th className="text-right px-5 py-3 font-medium">Total</th>
-                                            <th className="text-right px-5 py-3 font-medium">Activi</th>
-                                            <th className="px-5 py-3 font-medium text-right">Activi %</th>
+                                            <th className="text-left px-4 py-2 text-xs font-semibold">Club</th>
+                                            <th className="text-right px-4 py-2 text-xs font-semibold">Total</th>
+                                            <th className="text-right px-4 py-2 text-xs font-semibold">Activi</th>
+                                            <th className="px-4 py-2 text-xs font-semibold text-right">Activi %</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -365,18 +344,18 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                                                     key={row.club_id}
                                                     className={`border-t border-[var(--t-border)] hover:bg-[var(--t-table-row-hover)] transition-colors ${idx === 0 ? 'border-t-0' : ''}`}
                                                 >
-                                                    <td className="px-5 py-3 text-slate-200">{row.club_nume}</td>
-                                                    <td className="px-5 py-3 text-right font-semibold text-white">{row.total}</td>
-                                                    <td className="px-5 py-3 text-right text-emerald-400">{row.activi}</td>
-                                                    <td className="px-5 py-3 text-right">
+                                                    <td className="px-4 py-2 text-sm text-[var(--t-text)]">{row.club_nume}</td>
+                                                    <td className="px-4 py-2 text-right text-sm font-semibold text-[var(--t-text)]">{row.total}</td>
+                                                    <td className="px-4 py-2 text-right text-sm text-[var(--t-text)]">{row.activi}</td>
+                                                    <td className="px-4 py-2 text-right">
                                                         <div className="flex items-center justify-end gap-2">
-                                                            <div className="w-20 h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                                                            <div className="w-20 h-2 rounded-full bg-[var(--t-border)] overflow-hidden">
                                                                 <div
-                                                                    className="h-full rounded-full bg-emerald-500"
+                                                                    className="h-full rounded-full bg-[var(--t-status-success)]"
                                                                     style={{ width: `${pct}%` }}
                                                                 />
                                                             </div>
-                                                            <span className="text-slate-400 text-xs w-8 text-right">{pct}%</span>
+                                                            <span className="text-[var(--t-text-muted)] text-xs w-8 text-right">{pct}%</span>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -385,10 +364,10 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                                     </tbody>
                                     <tfoot>
                                         <tr className="border-t border-[var(--t-border)] bg-[var(--t-surface-2)]">
-                                            <td className="px-5 py-3 font-semibold text-[var(--t-text-muted)]">Total federație</td>
-                                            <td className="px-5 py-3 text-right font-bold text-white">{totalSportivi}</td>
-                                            <td className="px-5 py-3 text-right font-bold text-emerald-400">{totalActivi}</td>
-                                            <td className="px-5 py-3 text-right text-slate-400 text-xs">
+                                            <td className="px-4 py-2 text-sm font-semibold text-[var(--t-text-muted)]">Total federație</td>
+                                            <td className="px-4 py-2 text-right text-sm font-semibold text-[var(--t-text)]">{totalSportivi}</td>
+                                            <td className="px-4 py-2 text-right text-sm font-semibold text-[var(--t-text)]">{totalActivi}</td>
+                                            <td className="px-4 py-2 text-right text-[var(--t-text-muted)] text-xs">
                                                 {totalSportivi > 0 ? Math.round((totalActivi / totalSportivi) * 100) : 0}%
                                             </td>
                                         </tr>
@@ -401,22 +380,22 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
 
                 {/* Timeline evenimente — 1/3 lățime */}
                 <div className="lg:col-span-1">
-                    <Card className="overflow-hidden">
-                        <div className="px-5 py-4 border-b border-[var(--t-border)] flex items-center gap-3">
+                    <Card className="overflow-hidden !p-0">
+                        <div className="px-4 py-4 border-b border-[var(--t-border)] flex items-center gap-3">
                             <CalendarIcon className="w-5 h-5 text-[var(--t-text-muted)]" />
-                            <h2 className="font-semibold text-[var(--t-text)]">Următori 30 zile</h2>
+                            <h3 className="text-base font-semibold text-[var(--t-text)]">Următoarele 30 zile</h3>
                         </div>
                         {loadingEvenimente ? (
-                            <div className="p-5 space-y-4">
+                            <div className="p-4 space-y-4">
                                 {Array.from({ length: 3 }).map((_, i) => (
                                     <div key={i} className="space-y-2">
-                                        <SkeletonBlock className="h-3 w-1/3" />
-                                        <SkeletonBlock className="h-5 w-3/4" />
+                                        <Skeleton className="h-4 w-1/3" />
+                                        <Skeleton className="h-4 w-3/4" />
                                     </div>
                                 ))}
                             </div>
                         ) : evenimente.length === 0 ? (
-                            <div className="p-8 text-center text-slate-500 text-sm">
+                            <div className="p-8 text-center text-sm text-[var(--t-text-muted)]">
                                 Niciun eveniment programat în următoarele 30 zile.
                             </div>
                         ) : (
@@ -425,24 +404,17 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                                     const zile = getDaysUntil(ev.data);
                                     const isExamen = ev.tip === 'examen';
                                     return (
-                                        <div key={ev.id} className="px-5 py-4 hover:bg-[var(--t-table-row-hover)] transition-colors">
-                                            <div className="flex items-start gap-3">
-                                                <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${isExamen ? 'bg-purple-400' : 'bg-orange-400'}`} />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs text-slate-500 mb-0.5">
-                                                        <span className={`font-medium ${isExamen ? 'text-purple-400' : 'text-orange-400'}`}>
-                                                            {isExamen ? 'Examen' : 'Competiție'}
-                                                        </span>
-                                                        {' · '}
-                                                        {zile === 0 ? 'azi' : zile === 1 ? 'mâine' : `în ${zile} zile`}
-                                                    </p>
-                                                    <p className="text-sm font-medium text-slate-200 truncate">{ev.denumire}</p>
-                                                    {ev.locatie && (
-                                                        <p className="text-xs text-slate-500 mt-0.5 truncate">{ev.locatie}</p>
-                                                    )}
-                                                    <p className="text-xs text-slate-500 mt-0.5">{formatDate(ev.data)}</p>
-                                                </div>
-                                            </div>
+                                        <div key={ev.id} className="px-4 py-4 hover:bg-[var(--t-table-row-hover)] transition-colors">
+                                            <p className="text-xs text-[var(--t-text-muted)] mb-1">
+                                                <span className="font-semibold">{isExamen ? 'Examen' : 'Competiție'}</span>
+                                                {' · '}
+                                                {zile === 0 ? 'azi' : zile === 1 ? 'mâine' : `în ${zile} zile`}
+                                            </p>
+                                            <p className="text-sm font-semibold text-[var(--t-text)] truncate">{ev.denumire}</p>
+                                            {ev.locatie && (
+                                                <p className="text-xs text-[var(--t-text-muted)] mt-1 truncate">{ev.locatie}</p>
+                                            )}
+                                            <p className="text-xs text-[var(--t-text-muted)] mt-1">{formatDate(ev.data)}</p>
                                         </div>
                                     );
                                 })}
@@ -452,23 +424,10 @@ export const FederationDashboard: React.FC<FederationDashboardProps> = ({ onNavi
                 </div>
             </div>
 
-            {/* --- Acces rapid (fostele NavCard-uri, mutate jos) --- */}
-            <div>
-                <h2 className="text-lg font-semibold text-slate-300 mb-3">Acces rapid</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <NavCard
-                        title="Creează Eveniment Național"
-                        view="stagii"
-                        icon={TrophyIcon}
-                        onNavigate={onNavigate}
-                    />
-                    <NavCard
-                        title="Management Cluburi"
-                        view="cluburi"
-                        icon={UsersIcon}
-                        onNavigate={onNavigate}
-                    />
-                </div>
+            {/* --- Acces rapid --- */}
+            <div className="flex flex-wrap gap-2">
+                <Button variant="primary" size="sm" onClick={() => onNavigate('cluburi')}>Management Cluburi</Button>
+                <Button variant="secondary" size="sm" onClick={() => onNavigate('stagii')}>Creează Eveniment Național</Button>
             </div>
         </div>
     );

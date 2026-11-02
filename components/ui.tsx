@@ -643,7 +643,7 @@ export const Stepper: React.FC<{ value: number; onChange: (newValue: number) => 
 };
 
 export const Skeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={`animate-pulse motion-reduce:animate-none bg-[var(--t-border)] rounded-lg${className ?? ''}`}></div>
+  <div className={`animate-pulse motion-reduce:animate-none bg-[var(--t-border)] rounded-lg ${className ?? ''}`}></div>
 );
 
 export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {

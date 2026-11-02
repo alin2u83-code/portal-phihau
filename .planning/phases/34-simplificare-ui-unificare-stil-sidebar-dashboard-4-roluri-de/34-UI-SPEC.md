@@ -1,7 +1,7 @@
 ---
 phase: 34
 slug: simplificare-ui-unificare-stil-sidebar-dashboard-4-roluri-de
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-11-02
@@ -62,6 +62,10 @@ Exceptions:
 - **Țintă tactilă 44px** pe mobil: itemi nav, tab-uri hub, bottom nav (`min-h-11`). Pe desktop itemi nav = 40px (`h-10`).
 - **Lățimi sidebar**: expandat 256px (`w-64`), restrâns 80px (`w-20`), sertar mobil 288px (`w-72`) — toate multipli de 4, păstrate.
 - **Bottom nav**: 64px înălțime (`h-16`) + `pb-[env(safe-area-inset-bottom)]`.
+- **12px** (`px-3`, `gap-3`) = inset orizontal al itemilor de navigare și distanța iconiță-etichetă: 20px iconiță + 12px gap + 12px inset = 44px, ceea ce aliniază submeniul (`ml-8` + `px-3`) exact sub eticheta părintelui.
+- **36px** (`h-9`, `lg:h-9`) = nivelul compact desktop: butoanele din Header, itemii de submeniu, bara `TraseuMobil` existentă.
+- **40px** (`h-10`) = nivelul standard desktop: itemi nav nivel 1 și inputuri de filtru; pe mobil = 44px (țintă tactilă).
+- Toate sunt multipli de 4 și formează trei trepte: 44 tactil mobil / 40 standard desktop / 36 compact desktop.
 - Se ELIMINĂ valorile non-multiple de 4 din shell: `p-2.5`, `gap-2.5`, `py-0.5`, `px-1.5`, `h-2.5`, `w-1.5`, `left-[15.2rem]` etc. (înlocuite cu cele din tabel; butonul de restrângere se repoziționează pe marginea sidebar-ului folosind `-right-3` relativ la `aside`).
 
 ---
@@ -186,7 +190,7 @@ Ordinea blocurilor (toate rolurile de club/federație): 1) Salut, 2) De rezolvat
 | Bloc | Specificație |
 |------|--------------|
 | Salut | `h2` 24/600 "Bună ziua, {prenume}" + linie 14/400 muted cu data ("luni, 2 noiembrie") — înlocuiește "Ce facem azi?" |
-| De rezolvat | `DeRezolvatCard` existent (ADMIN_CLUB), restilizat: `Card` neutru, titlu 16/600 în `--t-text` (nu `text-amber-400`), fiecare problemă = rând cu text + buton ghost "Rezolvă"; se afișează DOAR dacă există probleme. Pentru SUPER_ADMIN: același card cu deconturi în așteptare și cereri de înscriere noi (date deja calculate în `AdminMasterMap`) |
+| De rezolvat | `DeRezolvatCard` existent (ADMIN_CLUB), restilizat: `Card` neutru, titlu 16/600 în `--t-text` (nu `text-amber-400`), fiecare problemă = rând cu text + buton ghost "Rezolvă problema" (textul specific al acțiunii, ex. "Alocă în grupe", rămâne ca atribut `title` pe buton); se afișează DOAR dacă există probleme. Pentru SUPER_ADMIN: același card cu deconturi în așteptare și cereri de înscriere noi (date deja calculate în `AdminMasterMap`) |
 | KPI | `StatCard` ×3 (mobil: scroll orizontal sau 1 coloană; desktop: 3 coloane). Doar date deja disponibile: vezi tabelul de mai jos |
 | Acțiuni rapide | Rând de 2–4 `Button` (primar + secundare), nu carduri; vezi tabelul de mai jos |
 | Anunțuri | `NewsfeedWidget` într-un `Card`, max 3 elemente + "Vezi toate"; ultimul bloc |
@@ -328,6 +332,7 @@ Mutate în `UserMenu`: Setări Cont, Protecția datelor.
 | Primary CTA (dashboard admin/club/instructor) | "Începe prezența" |
 | Primary CTA (dashboard federație) | "Gestiune cluburi" |
 | Primary CTA (dashboard sportiv) | "Vezi antrenamentul" |
+| Buton rând problemă (De rezolvat) | "Rezolvă problema" (textul specific al acțiunii, ex. "Alocă în grupe", rămâne ca atribut `title`) |
 | Salut | "Bună ziua, {prenume}" + dată completă în română sub el (ex. "luni, 2 noiembrie") |
 | Empty state — De rezolvat (heading) | "Totul e la zi" |
 | Empty state — De rezolvat (body) | "Nu ai nimic de rezolvat acum. Verifică din nou după următoarea prezență." |
@@ -366,10 +371,24 @@ Diacriticele corecte (ă, â, î, ș, ț) obligatorii în toate textele noi (cf.
 
 ## Decizii deschise (de confirmat la aprobarea meniului, NU blochează spec-ul)
 
-1. **Preferate / Cele mai folosite**: eliminate din dashboard (steaua trăia pe `ItemCard`-urile scoase). Păstrăm un rând "Recente" (max 4 chip-uri, `trackView` mutat în `Sidebar.handleNavigate`) sau renunțăm complet? Implicit în spec: renunțăm.
-2. **Tab-urile de hub** (Sportivi, Examene, Competiții, Fișa mea) adaugă 4 wrappers mici de navigare în `AppRouter`. Dacă userul preferă zero componente noi, fallback: se păstrează submeniurile în sidebar (aceleași grupuri, fără tab-uri) — numărul de intrări de nivel 1 rămâne 7, dar elementele vizibile deschise rămân ~25.
-3. **Import Sportivi / Deduplicare / Cereri GDPR**: în propunere sunt tab-uri în hub-ul Sportivi. Variantă mai agresivă: butoane "Instrumente" în antetul paginii Sportivi (fără tab-uri).
-4. **Admin Dashboard / Button Catalog** (federație): mutate în "Administrare > Sistem"; `Button Catalog` doar `isSuperAdmin`.
+1. **Preferate / Cele mai folosite**: eliminate din dashboard (steaua trăia pe `ItemCard`-urile scoase). Păstrăm un rând "Recente" (max 4 chip-uri, `trackView` mutat în `Sidebar.handleNavigate`) sau renunțăm complet? Implicit în spec: renunțăm. **Rezolvat 2026-11-02 conform 34-CONTEXT.md > Aprobari meniu**: se păstrează rândul "Recente".
+2. **Tab-urile de hub** (Sportivi, Examene, Competiții, Fișa mea) adaugă 4 wrappers mici de navigare în `AppRouter`. Dacă userul preferă zero componente noi, fallback: se păstrează submeniurile în sidebar (aceleași grupuri, fără tab-uri) — numărul de intrări de nivel 1 rămâne 7, dar elementele vizibile deschise rămân ~25. **Rezolvat 2026-11-02 conform 34-CONTEXT.md > Aprobari meniu**: wrappers de hub.
+3. **Import Sportivi / Deduplicare / Cereri GDPR**: în propunere sunt tab-uri în hub-ul Sportivi. Variantă mai agresivă: butoane "Instrumente" în antetul paginii Sportivi (fără tab-uri). **Rezolvat 2026-11-02 conform 34-CONTEXT.md > Aprobari meniu**: tab-uri în hub Sportivi.
+4. **Admin Dashboard / Button Catalog** (federație): mutate în "Administrare > Sistem"; `Button Catalog` doar `isSuperAdmin`. **Rezolvat 2026-11-02 conform 34-CONTEXT.md > Aprobari meniu**: Administrare > Sistem.
+
+---
+
+## Deviații de implementare (plan Faza 34)
+
+1. `Card` își păstrează padding-ul implicit `p-4`; `md:p-6` se pasează local pe cardurile de dashboard (22 utilizări `Card` cu `p-0` ar fi sparte).
+2. `Badge` devine global `text-xs font-semibold`.
+3. Tab-urile de hub sunt un singur `HubTabs` generic în `components/layout/HubTabs.tsx` cu 4 wrappers numite `SportiviTabs` / `ExameneTabs` / `CompetitiiTabs` / `FisaTabs`.
+4. `SportiviTabs` și `ExameneTabs` apar doar pentru ADMIN_CLUB/federație (instructorul are intrări plate Sportivi/Examene conform meniului aprobat).
+5. "Administrare > Federație" include și "Anunțuri Federație" (`anunturi-federatie`), iar grupul "Prezențe & Antrenamente" din `ActivitateSalaTabs` primește tab-ul "Generator Program" (`activitati`), altfel aceste două view-uri ar deveni inaccesibile după eliminarea acordeoanelor din `AdminMasterMap`.
+6. Cardul "De rezolvat" afișează starea goală "Totul e la zi" (copy din contract) în loc să se ascundă.
+7. Dashboard sportiv: widgeturile neacoperite explicit (Prezențe recente, Prezențe pe intervale de grad, Pașaport virtual, Antrenamente viitoare) rămân sub un acordeon "Detalii" închis implicit; CTA-ul "Vezi antrenamentul" este un buton ghost către `calendar`.
+8. `VizaMedicalaCard` se afișează doar când viza nu este validă (datele nu conțin data de expirare, deci condiția "<=30 zile" nu poate fi calculată fără query nou).
+9. "Recente" = ultimele 4 view-uri distincte vizitate din meniu (cheie localStorage `qkd_nav_recent_<userId>`), nu cele mai folosite.
 
 ---
 
@@ -391,4 +410,4 @@ Diacriticele corecte (ă, â, î, ș, ț) obligatorii în toate textele noi (cf.
 - [ ] Dimension 5 Spacing: PASS
 - [ ] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (user, mockup aprobat 2026-11-02)

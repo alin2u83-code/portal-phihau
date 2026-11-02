@@ -7,7 +7,6 @@ import { MandatoryPasswordChange } from './MandatoryPasswordChange';
 import { OnboardingCompletare } from './OnboardingCompletare';
 import { SetupMFAPage } from './SetupMFAPage';
 import { Card } from './ui';
-import { DeRezolvatCard } from './DeRezolvatCard';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { ActivitateSalaTabs } from './ActivitateSalaTabs';
 import { SportiviTabs, ExameneTabs, CompetitiiTabs, FisaTabs } from './layout/HubTabs';
@@ -221,20 +220,9 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'my-portal':
                                 if (permissions.hasAdminAccess && activeRole !== 'SPORTIV') {
                                     if (sportivi.length === 0 && !isEmergencyAdmin && !loading) {
-                                        return <Card className="text-center p-8"><p className="text-slate-400 italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p></Card>
+                                        return <Card className="text-center p-8"><p className="text-[var(--t-text-muted)] italic">Așteptare autorizare date sau nu există date pentru contextul selectat...</p></Card>
                                     }
-                                    return (
-                                        <div className="space-y-6 animate-fade-in-down">
-                                            <header>
-                                                <h1 className="text-2xl font-bold text-white">Bună ziua{currentUser?.nume ? `, ${currentUser.nume}` : ''}!</h1>
-                                                <p className="text-slate-400 text-sm">Ce facem azi?</p>
-                                            </header>
-                                            {permissions.isAdminClub && !permissions.isFederationAdmin && (
-                                                <DeRezolvatCard sportivi={filteredData.sportivi} grupe={filteredData.grupe} plati={filteredData.plati} tipuriAbonament={filteredData.tipuriAbonament} grade={grade} onNavigate={setActiveView} />
-                                            )}
-                                            <Lazy.AdminMasterMap onNavigate={setActiveView} deconturiFederatie={filteredData.deconturiFederatie} inscrieriExamene={filteredData.inscrieriExamene} plati={filteredData.plati} currentUser={currentUser ?? null} />
-                                        </div>
-                                    );
+                                    return <Lazy.AdminMasterMap onNavigate={setActiveView} deconturiFederatie={filteredData.deconturiFederatie} inscrieriExamene={filteredData.inscrieriExamene} plati={filteredData.plati} currentUser={currentUser ?? null} />;
                                 }
                                 return <Lazy.SportivDashboard currentUser={currentUser!} viewedUser={currentUser!} participari={filteredData.inscrieriExamene} examene={sesiuniExamene} grade={grade} istoricGrade={filteredData.istoricGrade} grupe={filteredData.grupe} plati={filteredData.plati} onNavigate={(view) => setActiveView(view)} antrenamente={filteredData.antrenamente} anunturi={anunturiPrezenta} setAnunturi={setAnunturiPrezenta} sportivi={filteredData.sportivi} permissions={permissions} canSwitchRoles={canSwitchRoles} activeRole={activeRole!} onSwitchRole={handleSwitchRole} isSwitchingRole={isSwitchingRole} />;
                             

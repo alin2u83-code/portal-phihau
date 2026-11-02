@@ -556,19 +556,20 @@ export function generateTemplateCVD(): TemplateCategorieInput[] {
   }
 
   // Song Luyen pe echipe - Grade
+  const armeSongGrade = 'Bong / Song Cot / Moc Can / Long Gian';
   const songGrade: Array<{ vmin: number; vmax: number | null; gen: 'Feminin' | 'Masculin' | 'Mixt'; arma: string }> = [
-    { vmin: 13, vmax: 15, gen: 'Feminin', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 13, vmax: 15, gen: 'Masculin', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 13, vmax: 15, gen: 'Mixt', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 16, vmax: 17, gen: 'Feminin', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 16, vmax: 17, gen: 'Masculin', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 16, vmax: 17, gen: 'Mixt', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 18, vmax: 39, gen: 'Feminin', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 18, vmax: 39, gen: 'Masculin', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 18, vmax: 39, gen: 'Mixt', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 40, vmax: null, gen: 'Feminin', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 40, vmax: null, gen: 'Masculin', arma: 'Bong / Song Cot / Moc Can' },
-    { vmin: 40, vmax: null, gen: 'Mixt', arma: 'Bong / Song Cot / Moc Can' },
+    { vmin: 13, vmax: 15, gen: 'Feminin', arma: armeSongGrade },
+    { vmin: 13, vmax: 15, gen: 'Masculin', arma: armeSongGrade },
+    { vmin: 13, vmax: 15, gen: 'Mixt', arma: armeSongGrade },
+    { vmin: 16, vmax: 17, gen: 'Feminin', arma: armeSongGrade },
+    { vmin: 16, vmax: 17, gen: 'Masculin', arma: armeSongGrade },
+    { vmin: 16, vmax: 17, gen: 'Mixt', arma: armeSongGrade },
+    { vmin: 18, vmax: 39, gen: 'Feminin', arma: armeSongGrade },
+    { vmin: 18, vmax: 39, gen: 'Masculin', arma: armeSongGrade },
+    { vmin: 18, vmax: 39, gen: 'Mixt', arma: armeSongGrade },
+    { vmin: 40, vmax: null, gen: 'Feminin', arma: armeSongGrade },
+    { vmin: 40, vmax: null, gen: 'Masculin', arma: armeSongGrade },
+    { vmin: 40, vmax: null, gen: 'Mixt', arma: armeSongGrade },
   ];
 
   for (const g of songGrade) {
@@ -613,8 +614,8 @@ export function generateTemplateCVD(): TemplateCategorieInput[] {
     { vmin: 40, vmax: 49, gen: 'Feminin', gmin: 5, gmax: 10, arma: 'Arme cu lamă și articulate' },
     { vmin: 40, vmax: 49, gen: 'Masculin', gmin: 5, gmax: 10, arma: 'Arme cu lamă și articulate' },
     // Peste 50 ani
-    { vmin: 50, vmax: null, gen: 'Feminin', gmin: 5, gmax: 10, arma: 'Bong / Long Gian / Song Cot / Moc Guom' },
-    { vmin: 50, vmax: null, gen: 'Masculin', gmin: 5, gmax: 10, arma: 'Bong / Long Gian / Song Cot / Moc Guom' },
+    { vmin: 50, vmax: null, gen: 'Feminin', gmin: 5, gmax: 10, arma: 'Bong / Long Gian / Song Cot / Moc Can / Moc Guom' },
+    { vmin: 50, vmax: null, gen: 'Masculin', gmin: 5, gmax: 10, arma: 'Bong / Long Gian / Song Cot / Moc Can / Moc Guom' },
     { vmin: 50, vmax: null, gen: 'Feminin', gmin: 5, gmax: 10, arma: 'Arme cu lamă și articulate' },
     { vmin: 50, vmax: null, gen: 'Masculin', gmin: 5, gmax: 10, arma: 'Arme cu lamă și articulate' },
   ];
@@ -632,9 +633,9 @@ export function generateTemplateCVD(): TemplateCategorieInput[] {
 
   // Song Luyen pe echipe - CN
   const songCN = [
-    { vmin: 18, vmax: 39, gmin: 5, gmax: 9, arma: 'Bong / Song Cot / Moc Can' },
+    { vmin: 18, vmax: 39, gmin: 5, gmax: 9, arma: 'Bong / Song Cot / Moc Can / Moc Guom / Long Gian' },
     { vmin: 18, vmax: 39, gmin: 5, gmax: 9, arma: 'Arme cu lamă și articulate' },
-    { vmin: 40, vmax: null, gmin: 5, gmax: 10, arma: 'Bong / Song Cot / Moc Can' },
+    { vmin: 40, vmax: null, gmin: 5, gmax: 10, arma: 'Bong / Song Cot / Moc Can / Moc Guom / Long Gian' },
     { vmin: 40, vmax: null, gmin: 5, gmax: 10, arma: 'Arme cu lamă și articulate' },
   ];
   for (const g of songCN) {
@@ -652,7 +653,8 @@ export function generateTemplateCVD(): TemplateCategorieInput[] {
 
   // Giao Dau individual - Grade
   const giaoDauGrade = [
-    [13, 14, 'Feminin', 2, 4], [13, 14, 'Masculin', 2, 4],
+    [13, 13, 'Feminin', 1, 4], [13, 13, 'Masculin', 1, 4],
+    [14, 14, 'Feminin', 1, 4], [14, 14, 'Masculin', 1, 4],
     [15, 15, 'Feminin', 2, 4], [15, 15, 'Masculin', 2, 4],
     [16, 16, 'Feminin', 2, 4], [16, 16, 'Masculin', 2, 4],
     [17, 17, 'Feminin', 2, 4], [17, 17, 'Masculin', 2, 4],
@@ -676,7 +678,6 @@ export function generateTemplateCVD(): TemplateCategorieInput[] {
     [18, 24, 'Feminin', 5, 7], [18, 24, 'Masculin', 5, 7],
     [25, 39, 'Feminin', 5, 9], [25, 39, 'Masculin', 5, 9],
     [40, 49, 'Feminin', 5, 10], [40, 49, 'Masculin', 5, 10],
-    [50, 59, 'Feminin', 5, 10], [50, 59, 'Masculin', 5, 10],
   ] as const;
 
   for (const [vmin, vmax, gen, gmin, gmax] of giaoDauCN) {

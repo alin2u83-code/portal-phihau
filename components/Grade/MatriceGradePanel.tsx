@@ -18,7 +18,7 @@ const TAB_CONFIG: Record<TabMatrice, TabConfig> = {
   thao_quyen: { tipProba: 'thao_quyen_individual', categoriiInlantuiri: ['quyen'] },
   sincron:    { tipProba: 'sincron',               categoriiInlantuiri: ['quyen'] },
   song_luyen: { tipProba: 'song_luyen',            categoriiInlantuiri: ['song_luyen'] },
-  thao_lo:    { tipProba: 'thao_lo_individual',    categoriiInlantuiri: ['thao_lo_bong', 'thao_lo_dao', 'thao_lo_guom'] },
+  thao_lo:    { tipProba: 'thao_lo_individual',    categoriiInlantuiri: ['thao_lo_bong', 'thao_lo_dao', 'thao_lo_guom', 'thao_lo_alte'] },
   arme_cvd:   { tipProba: 'thao_lo_individual',    categoriiInlantuiri: ['arma_cvd'] },
 };
 
@@ -68,6 +68,7 @@ const CATEGORII_ARMA = [
   { value: 'thao_lo_bong', label: 'Bong' },
   { value: 'thao_lo_dao',  label: 'Dao' },
   { value: 'thao_lo_guom', label: 'Guom' },
+  { value: 'thao_lo_alte', label: 'Alte arme' },
 ];
 
 // ---------------------------------------------------------------------------

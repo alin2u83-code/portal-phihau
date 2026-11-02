@@ -269,8 +269,9 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
+// Padding implicit p-4 ramane: multe utilizari suprascriu cu p-0/p-5/p-8; dashboard-urile paseaza md:p-6 local.
 export const Card: React.FC<CardProps> = ({ children, className, ...props }) => (
-  <div className={`bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl p-4 shadow-lg backdrop-blur-sm ${className ?? ''}`} {...props}>
+  <div className={`bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl p-4 shadow-none ${className ?? ''}`} {...props}>
     {children}
   </div>
 );
@@ -305,37 +306,31 @@ interface StatCardProps {
   onClick?: () => void;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({ label, value, icon: Icon, accentColor = 'amber', trend, className = '', onClick }) => {
-  const colorMap: Record<string, { bg: string; text: string; border: string; iconBg: string }> = {
-    amber: { bg: 'from-amber-500/5', text: 'text-amber-400', border: 'border-amber-500/20', iconBg: 'bg-amber-500/10' },
-    emerald: { bg: 'from-emerald-500/5', text: 'text-emerald-400', border: 'border-emerald-500/20', iconBg: 'bg-emerald-500/10' },
-    sky: { bg: 'from-sky-500/5', text: 'text-sky-400', border: 'border-sky-500/20', iconBg: 'bg-sky-500/10' },
-    indigo: { bg: 'from-indigo-500/5', text: 'text-indigo-400', border: 'border-indigo-500/20', iconBg: 'bg-indigo-500/10' },
-    rose: { bg: 'from-rose-500/5', text: 'text-rose-400', border: 'border-rose-500/20', iconBg: 'bg-rose-500/10' },
-    slate: { bg: 'from-slate-700/20', text: 'text-slate-400', border: 'border-slate-700/50', iconBg: 'bg-slate-700/50' },
-  };
-  const c = colorMap[accentColor] || colorMap.amber;
+export const StatCard: React.FC<StatCardProps> = ({ label, value, icon: Icon, accentColor, trend, className = '', onClick }) => {
+  // Doar rose/emerald poarta stare (danger/success); restul accentelor sunt neutre.
+  const valueColor = accentColor === 'rose' ? 'var(--t-status-danger)' : accentColor === 'emerald' ? 'var(--t-status-success)' : 'var(--t-text)';
 
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-xl border ${c.border} bg-gradient-to-br ${c.bg} to-slate-800/80 p-4 shadow-lg backdrop-blur-sm transition-all duration-200 ${onClick ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : ''} ${className ?? ''}`}
+      {...(onClick ? {
+        role: 'button',
+        tabIndex: 0,
+        onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } },
+      } : {})}
+      className={`bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl p-4 shadow-none transition-colors ${onClick ? 'cursor-pointer hover:border-[var(--t-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--t-input-focus-ring)]' : ''} ${className ?? ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{label}</p>
-          <p className={`text-2xl font-black ${c.text} leading-none`}>{value}</p>
+          <p className="text-xs font-semibold text-[var(--t-text-muted)] mb-1">{label}</p>
+          <p className="text-2xl font-semibold leading-tight" style={{ color: valueColor }}>{value}</p>
           {trend && (
-            <p className={`text-xs mt-1.5 ${trend.value >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+            <p className="text-xs mt-2" style={{ color: trend.value >= 0 ? 'var(--t-status-success)' : 'var(--t-status-danger)' }}>
               {trend.value >= 0 ? '▲' : '▼'} {Math.abs(trend.value)}% {trend.label}
             </p>
           )}
         </div>
-        {Icon && (
-          <div className={`p-2.5 rounded-lg ${c.iconBg} shrink-0`}>
-            <Icon className={`w-5 h-5 ${c.text}`} />
-          </div>
-        )}
+        {Icon && <Icon className="w-5 h-5 shrink-0 text-[var(--t-primary)]" />}
       </div>
     </div>
   );
@@ -648,7 +643,7 @@ export const Stepper: React.FC<{ value: number; onChange: (newValue: number) => 
 };
 
 export const Skeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={`animate-pulse bg-slate-700 rounded ${className ?? ''}`}></div>
+  <div className={`animate-pulse motion-reduce:animate-none bg-[var(--t-border)] rounded-lg${className ?? ''}`}></div>
 );
 
 export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
@@ -700,13 +695,13 @@ export const Badge: React.FC<{ children: React.ReactNode, variant?: 'green' | 'r
       borderColor: 'color-mix(in srgb, var(--t-status-info) 35%, transparent)',
     },
     slate: {
-      background: 'rgba(100,116,139,0.15)',
-      color: '#94a3b8',
-      borderColor: 'rgba(100,116,139,0.3)',
+      background: 'color-mix(in srgb, var(--t-text-muted) 15%, transparent)',
+      color: 'var(--t-text-muted)',
+      borderColor: 'color-mix(in srgb, var(--t-text-muted) 30%, transparent)',
     },
   };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${className ?? ''}`} style={variantStyles[variant]}>
+    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${className ?? ''}`} style={variantStyles[variant]}>
       {children}
     </span>
   );
@@ -1208,16 +1203,17 @@ export const AccordionItem: React.FC<AccordionItemProps> = ({ id, title, icon: I
   <div className="border border-[var(--t-border)] rounded-lg overflow-hidden">
     <button
       onClick={() => onToggle(id)}
-      className="w-full flex items-center justify-between px-4 py-3 bg-[var(--t-surface-2)] hover:bg-[var(--t-surface)] transition-colors text-left"
+      aria-expanded={isOpen}
+      className="w-full flex items-center justify-between px-4 py-3 bg-[var(--t-surface-2)] hover:bg-[var(--t-surface)] transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--t-input-focus-ring)]"
     >
       <div className="flex items-center gap-3">
-        {Icon && <Icon className="w-4 h-4 text-amber-400 shrink-0" />}
-        <span className="font-semibold text-slate-200 text-sm uppercase tracking-wider">{title}</span>
+        {Icon && <Icon className="w-4 h-4 text-[var(--t-text-muted)] shrink-0" />}
+        <span className="font-semibold text-[var(--t-text)] text-sm">{title}</span>
       </div>
-      <ChevronDownIcon className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      <ChevronDownIcon className={`w-4 h-4 text-[var(--t-text-muted)] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
     </button>
     {isOpen && (
-      <div className="p-3 bg-slate-900/40">
+      <div className="p-3 bg-[var(--t-surface)]">
         {children}
       </div>
     )}

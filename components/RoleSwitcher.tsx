@@ -13,34 +13,38 @@ interface RoleSwitcherProps {
   onSwitchRole: (role: any) => void;
   contextName: string;
   HeaderIcon: React.ElementType;
-  iconColorClass: string;
+  /** nefolosit: iconița preia culoarea sidebar-ului */
+  iconColorClass?: string;
+  roleLabel?: string;
 }
 
-
 export const RoleSwitcher: React.FC<RoleSwitcherProps> = (props) => {
-  const { isExpanded, canSwitchRoles, isSwitchingRole, isRoleSwitcherOpen, setIsRoleSwitcherOpen, userRoles, activeRoleContext, onSwitchRole, contextName, HeaderIcon, iconColorClass } = props;
+  const { isExpanded, canSwitchRoles, isSwitchingRole, isRoleSwitcherOpen, setIsRoleSwitcherOpen, userRoles, activeRoleContext, onSwitchRole, contextName, HeaderIcon, roleLabel } = props;
 
   return (
     <div className="relative p-2">
       <button
-        className={`w-full p-3 bg-slate-800/50 rounded-lg border border-slate-700/50 hover:border-amber-500/50 flex items-center text-left transition-all duration-300 group ${!canSwitchRoles ? 'cursor-default' : 'cursor-pointer'}`}
+        type="button"
+        className={`w-full flex items-center gap-3 px-3 min-h-11 lg:min-h-10 rounded-lg text-left transition-colors hover:bg-[color-mix(in_srgb,var(--t-sidebar-text)_10%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--t-input-focus-ring)] ${!isExpanded ? 'justify-center' : ''} ${!canSwitchRoles ? 'cursor-default' : 'cursor-pointer'}`}
+        style={{ color: 'var(--t-sidebar-text)' }}
         onClick={() => canSwitchRoles && setIsRoleSwitcherOpen(!isRoleSwitcherOpen)}
         disabled={!canSwitchRoles || isSwitchingRole}
+        aria-expanded={canSwitchRoles ? isRoleSwitcherOpen : undefined}
+        aria-label={!isExpanded ? contextName : undefined}
+        title={!isExpanded ? contextName : undefined}
       >
-        <div className={`p-1.5 rounded-md bg-slate-900/80 border border-slate-800 shadow-inner transition-colors ${isRoleSwitcherOpen ? 'border-amber-500/50' : 'group-hover:border-amber-500/30'}`}>
-            <HeaderIcon className={`w-6 h-6 shrink-0 ${iconColorClass}`} />
-        </div>
+        <HeaderIcon className="w-5 h-5 shrink-0" />
         {isExpanded && (
-          <div className="flex-grow ml-3 overflow-hidden">
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Context Activ</p>
-            <p className="text-sm font-bold text-white truncate w-full">{contextName}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold truncate">{contextName}</p>
+            {roleLabel && <p className="text-xs font-semibold truncate opacity-70">{roleLabel}</p>}
           </div>
         )}
-        {isExpanded && canSwitchRoles && <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform shrink-0 ${isRoleSwitcherOpen ? 'rotate-180' : ''}`} />}
+        {isExpanded && canSwitchRoles && <ChevronDownIcon className={`w-4 h-4 shrink-0 transition-transform ${isRoleSwitcherOpen ? 'rotate-180' : ''}`} />}
       </button>
       {isRoleSwitcherOpen && canSwitchRoles && (
-        <div className="absolute top-full left-2 right-2 z-10 mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-lg p-2 animate-fade-in-down">
-          <p className="text-xs font-bold text-slate-500 px-2 pb-1">Alege context</p>
+        <div className="absolute top-full left-2 right-2 z-10 mt-1 bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl shadow-lg p-2 animate-fade-in-down">
+          <p className="text-xs font-semibold px-2 pb-1 text-[var(--t-text-muted)]">Alege context</p>
           <div className="space-y-1">
             {(userRoles || [])
               .filter(role => role.id !== activeRoleContext?.id)
@@ -48,14 +52,13 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = (props) => {
                 const Icon = getRoleIcon(role.roluri?.nume);
                 return (
                   <button
+                    type="button"
                     key={role.id}
                     onClick={() => { onSwitchRole(role); setIsRoleSwitcherOpen(false); }}
-                    className="w-full flex items-center p-2 rounded-md text-sm text-left hover:bg-slate-700 min-h-[60px]"
+                    className="w-full flex items-center gap-3 px-2 min-h-11 rounded-lg text-sm text-left text-[var(--t-text)] hover:bg-[var(--t-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--t-input-focus-ring)]"
                   >
-                                    <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center mr-3">
-                                        <Icon className="w-5 h-5 text-indigo-400" />
-                                    </div>
-                                    <span className="text-white truncate font-medium">{getRoleDisplayName(role)}</span>
+                    <Icon className="w-5 h-5 shrink-0 text-[var(--t-text-muted)]" />
+                    <span className="truncate">{getRoleDisplayName(role)}</span>
                   </button>
                 );
               })

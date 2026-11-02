@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Permissions } from '../types';
 import { useNavigation } from '../contexts/NavigationContext';
-import { adminMenu, instructorMenu, sportivMenu, MenuItem } from './menuConfig';
-import { ShieldCheckIcon, ChevronDownIcon, PaletteIcon } from './icons';
+import { MenuItem, SubMenuItem } from './menuConfig';
+import { ChevronDownIcon } from './icons';
 import { useNotifications } from '../contexts/NotificationContext';
 
 interface NavMenuProps {
@@ -10,77 +10,108 @@ interface NavMenuProps {
   permissions?: Permissions;
   menuToDisplay: MenuItem[];
   onNavigate: (view: View) => void;
+  /** apelat când se apasă un grup în modul restrâns, ca sidebar-ul să se extindă */
+  onExpandSidebar?: () => void;
 }
 
-const VIEW_TO_NOTIF_TYPE: Record<string, string> = {
-    'examene': 'examen',
-    'plati-scadente': 'plata',
-    'istoric-plati': 'plata',
-    'plati-hub': 'plata',
-    'prezenta': 'antrenament',
-    'prezenta-instructor': 'antrenament',
-    'notificari': 'system'
-};
+const ITEM_BASE = 'flex items-center w-full gap-3 px-3 min-h-11 lg:min-h-10 rounded-lg text-sm text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--t-input-focus-ring)]';
+const SUB_BASE = 'flex items-center w-full px-3 min-h-11 lg:min-h-9 rounded-lg text-sm text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--t-input-focus-ring)]';
+const HOVER = 'hover:bg-[color-mix(in_srgb,var(--t-sidebar-text)_10%,transparent)]';
+const ACTIVE_STYLE: React.CSSProperties = { background: 'var(--t-sidebar-active)', color: 'var(--t-sidebar-active-fg)' };
+const IDLE_STYLE: React.CSSProperties = { color: 'var(--t-sidebar-text)' };
+
+const isViewActive = (entry: { view?: View; aliases?: View[] }, activeView: View | string) =>
+    entry.view === activeView || !!entry.aliases?.includes(activeView as View);
+
+const NotifPill: React.FC<{ count: number }> = ({ count }) => (
+    <span className="bg-[var(--t-status-danger)] text-white text-xs font-semibold px-2 rounded-full min-w-[20px] text-center">
+        {count > 9 ? '9+' : count}
+    </span>
+);
+
+const NotifDot: React.FC<{ className?: string }> = ({ className = '' }) => (
+    <span className={`w-2 h-2 rounded-full bg-[var(--t-status-danger)] ${className}`} aria-hidden="true" />
+);
 
 const NavItem: React.FC<{
     item: MenuItem;
     isExpanded: boolean;
-    isActive: boolean;
+    permissions?: Permissions;
     onNavigate: (view: View) => void;
-    badgeCount?: number;
+    onExpandSidebar?: () => void;
+    unreadCount: number;
     activeView: View | string;
     openSubmenu: string | null;
     setOpenSubmenu: (label: string | null) => void;
-}> = ({ item, isExpanded, isActive, onNavigate, badgeCount, activeView, openSubmenu, setOpenSubmenu }) => {
-    const isSubmenuOpen = openSubmenu === item.label;
+}> = ({ item, isExpanded, permissions, onNavigate, onExpandSidebar, unreadCount, activeView, openSubmenu, setOpenSubmenu }) => {
+    const badgeFor = (view?: View) => (view === 'notificari' ? unreadCount : 0);
+    const titleAttr = !isExpanded ? item.label : undefined;
 
-    // Item cu submeniu
+    // Grup cu submeniu
     if (item.submenu && item.submenu.length > 0) {
-        const hasActiveChild = item.submenu.some(s => s.view === activeView || s.aliases?.includes(activeView as View));
+        const visibleSub: SubMenuItem[] = item.submenu.filter(s => !s.requires || permissions?.[s.requires]);
+        if (visibleSub.length === 0) return null;
+
+        const isOpen = openSubmenu === item.label;
+        const hasActiveChild = visibleSub.some(s => isViewActive(s, activeView));
+        const groupHasNotif = visibleSub.some(s => badgeFor(s.view) > 0);
+        const showCaptions = visibleSub.length > 5;
+        const tutorialAttr = visibleSub.some(s => s.view === 'plati-hub') ? 'nav-plati' : undefined;
+        // Restrâns: copiii nu se văd, deci antetul poartă starea activă
+        const highlightHeader = hasActiveChild && !isExpanded;
+
         return (
             <div>
-                {/* Group header — același stil ca în AdminMasterMap */}
-                <div
-                    onClick={() => isExpanded && setOpenSubmenu(isSubmenuOpen ? null : item.label)}
-                    className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-all duration-200 w-full relative group border ${
-                        hasActiveChild
-                        ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                        : "bg-slate-800/40 text-slate-400 border-slate-700/50 hover:bg-slate-800/70 hover:text-slate-200 hover:border-amber-400/20"
-                    }`}
-                    title={!isExpanded ? item.label : ''}
+                <button
+                    type="button"
+                    data-tutorial={tutorialAttr}
+                    aria-expanded={isExpanded ? isOpen : undefined}
+                    aria-label={titleAttr}
+                    title={titleAttr}
+                    onClick={() => {
+                        if (!isExpanded) {
+                            onExpandSidebar?.();
+                            setOpenSubmenu(item.label);
+                        } else {
+                            setOpenSubmenu(isOpen ? null : item.label);
+                        }
+                    }}
+                    className={`${ITEM_BASE} ${isExpanded ? '' : 'justify-center'} ${hasActiveChild ? 'font-semibold' : 'font-normal'} ${HOVER}`}
+                    style={highlightHeader ? ACTIVE_STYLE : IDLE_STYLE}
                 >
-                    <item.icon className={`h-5 w-5 shrink-0 text-amber-400 ${isExpanded ? 'mr-3' : 'mx-auto'}`} />
-                    {isExpanded && <>
-                        <span className="flex-1 font-semibold text-sm">{item.label}</span>
-                        <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isSubmenuOpen ? 'rotate-180' : ''}`} />
-                    </>}
-                </div>
+                    <span className="relative shrink-0">
+                        <item.icon className="w-5 h-5" />
+                        {!isExpanded && groupHasNotif && <NotifDot className="absolute -top-1 -right-1" />}
+                    </span>
+                    {isExpanded && (
+                        <>
+                            <span className="flex-1 truncate">{item.label}</span>
+                            {groupHasNotif && !isOpen && <NotifDot />}
+                            <ChevronDownIcon className={`w-4 h-4 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        </>
+                    )}
+                </button>
 
-                {/* Submeniu — indentate cu linie verticală de legătură */}
-                {isExpanded && isSubmenuOpen && (
-                    <div className="mt-1 ml-4 pl-3 border-l-2 border-amber-500/25 space-y-0.5">
-                        {item.submenu.map(sub => {
-                            const isSubActive = activeView === sub.view || !!sub.aliases?.includes(activeView as View);
+                {isExpanded && isOpen && (
+                    <div className="mt-1 ml-8 space-y-1">
+                        {visibleSub.map(sub => {
+                            const isSubActive = isViewActive(sub, activeView);
+                            const subBadge = badgeFor(sub.view);
                             return (
                                 <React.Fragment key={sub.view}>
-                                {sub.section && (
-                                    <div className="px-2.5 pt-2 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">{sub.section}</div>
-                                )}
-                                <div
-                                    onClick={() => onNavigate(sub.view)}
-                                    className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-150 text-sm ${
-                                        isSubActive
-                                        ? "bg-amber-500/15 text-amber-300 font-semibold"
-                                        : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
-                                    }`}
-                                    style={isSubActive ? {
-                                        background: 'var(--t-sidebar-active)',
-                                        color: 'var(--t-sidebar-active-fg)',
-                                    } : undefined}
-                                >
-                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-amber-400' : 'bg-slate-600'}`} />
-                                    {sub.label}
-                                </div>
+                                    {showCaptions && sub.section && (
+                                        <div className="px-3 pt-2 text-xs font-semibold opacity-70" style={IDLE_STYLE}>{sub.section}</div>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => onNavigate(sub.view)}
+                                        aria-current={isSubActive ? 'page' : undefined}
+                                        className={`${SUB_BASE} gap-2 ${isSubActive ? 'font-semibold' : `font-normal ${HOVER}`}`}
+                                        style={isSubActive ? ACTIVE_STYLE : IDLE_STYLE}
+                                    >
+                                        <span className="flex-1 truncate">{sub.label}</span>
+                                        {subBadge > 0 && <NotifPill count={subBadge} />}
+                                    </button>
                                 </React.Fragment>
                             );
                         })}
@@ -91,141 +122,68 @@ const NavItem: React.FC<{
     }
 
     if (!item.view) return null;
+
+    const isActive = isViewActive(item, activeView);
+    const badgeCount = badgeFor(item.view);
     const tutorialAttr = item.view === 'sportivi' ? 'nav-sportivi'
-      : item.view === 'examene' ? 'nav-examene'
-      : item.view === 'prezenta' || item.view === 'prezenta-instructor' ? 'nav-prezenta'
-      : item.view === 'plati-scadente' || item.view === 'plati-hub' ? 'nav-plati'
-      : undefined;
+        : item.view === 'examene' ? 'nav-examene'
+        : (item.view === 'prezenta' || item.view === 'prezenta-instructor' || item.aliases?.includes('prezenta') || item.aliases?.includes('prezenta-instructor')) ? 'nav-prezenta'
+        : item.view === 'plati-hub' ? 'nav-plati'
+        : undefined;
 
     return (
-        <div
+        <button
+            type="button"
             data-tutorial={tutorialAttr}
             onClick={() => onNavigate(item.view!)}
-            className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-all duration-200 w-full relative group border ${
-                isActive
-                ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
-                : "bg-slate-800/40 text-slate-400 border-slate-700/50 hover:bg-slate-800/70 hover:text-slate-200 hover:border-amber-400/20"
-            }`}
-            style={isActive ? {
-                background: 'var(--t-sidebar-active)',
-                color: 'var(--t-sidebar-active-fg)',
-            } : undefined}
-            title={!isExpanded ? item.label : ''}
+            aria-current={isActive ? 'page' : undefined}
+            aria-label={titleAttr}
+            title={titleAttr}
+            className={`${ITEM_BASE} ${isExpanded ? '' : 'justify-center'} ${isActive ? 'font-semibold' : `font-normal ${HOVER}`}`}
+            style={isActive ? ACTIVE_STYLE : IDLE_STYLE}
         >
-            <div className="relative">
-                <item.icon className={`h-5 w-5 shrink-0 text-amber-400 transition-transform duration-200 ${isExpanded ? 'mr-3' : 'mx-auto'} ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
-                {badgeCount !== undefined && badgeCount > 0 && !isExpanded && (
-                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                    </span>
-                )}
-            </div>
-            {isExpanded && <span className="flex-1 font-semibold text-sm">{item.label}</span>}
-            {isExpanded && badgeCount !== undefined && badgeCount > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                    {badgeCount > 9 ? '9+' : badgeCount}
-                </span>
-            )}
-        </div>
+            <span className="relative shrink-0">
+                <item.icon className="w-5 h-5" />
+                {!isExpanded && badgeCount > 0 && <NotifDot className="absolute -top-1 -right-1" />}
+            </span>
+            {isExpanded && <span className="flex-1 truncate">{item.label}</span>}
+            {isExpanded && badgeCount > 0 && <NotifPill count={badgeCount} />}
+        </button>
     );
 };
 
 export const NavMenu: React.FC<NavMenuProps> = (props) => {
-  const { isExpanded, permissions, menuToDisplay, onNavigate } = props;
-  const { activeView } = useNavigation();
-  const { unreadCount } = useNotifications();
+    const { isExpanded, permissions, menuToDisplay, onNavigate, onExpandSidebar } = props;
+    const { activeView } = useNavigation();
+    const { unreadCount } = useNotifications();
 
-  const initialOpen = menuToDisplay.find(item => item.submenu?.some(s => s.view === activeView || s.aliases?.includes(activeView as View)))?.label ?? null;
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(initialOpen);
+    const groupOfActive = () =>
+        menuToDisplay.find(item => item.submenu?.some(s => isViewActive(s, activeView)))?.label ?? null;
 
-  const navRef = useRef<HTMLElement>(null);
-  const [canScrollUp, setCanScrollUp] = useState(false);
-  const [canScrollDown, setCanScrollDown] = useState(false);
+    const [openSubmenu, setOpenSubmenu] = useState<string | null>(groupOfActive);
 
-  const updateScrollState = useCallback(() => {
-    const el = navRef.current;
-    if (!el) return;
-    setCanScrollUp(el.scrollTop > 4);
-    setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
-  }, []);
+    // La navigare, grupul cu view-ul activ se redeschide
+    useEffect(() => {
+        const label = groupOfActive();
+        if (label) setOpenSubmenu(label);
+    }, [activeView, menuToDisplay]);
 
-  useEffect(() => {
-    const el = navRef.current;
-    if (!el) return;
-    updateScrollState();
-    el.addEventListener('scroll', updateScrollState, { passive: true });
-    const ro = new ResizeObserver(updateScrollState);
-    ro.observe(el);
-    return () => { el.removeEventListener('scroll', updateScrollState); ro.disconnect(); };
-  }, [updateScrollState, menuToDisplay]);
-
-  const scrollBy = (direction: 'up' | 'down') => {
-    navRef.current?.scrollBy({ top: direction === 'up' ? -120 : 120, behavior: 'smooth' });
-  };
-
-  return (
-    <div className="relative flex-1 min-h-0 flex flex-col">
-      {/* Scroll up button */}
-      <button
-        onClick={() => scrollBy('up')}
-        className={`absolute top-0 left-0 right-0 z-10 flex items-center justify-center h-6 bg-gradient-to-b from-slate-900 to-transparent transition-opacity duration-200 ${canScrollUp ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-        aria-label="Scroll sus"
-      >
-        <ChevronDownIcon className="w-4 h-4 text-amber-400 rotate-180" />
-      </button>
-
-    <nav ref={navRef} className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-      {menuToDisplay.map(item => {
-        const badgeCount = item.view === 'notificari' ? unreadCount : undefined;
-        const isActive = item.view ? item.view === activeView : false;
-
-        return (
-            <NavItem
-                key={item.label}
-                item={item}
-                isExpanded={isExpanded}
-                isActive={isActive}
-                onNavigate={onNavigate}
-                badgeCount={badgeCount}
-                activeView={activeView}
-                openSubmenu={openSubmenu}
-                setOpenSubmenu={setOpenSubmenu}
-            />
-        );
-      })}
-      {permissions?.isFederationAdmin && (
-        <>
-          <NavItem
-              item={{ label: 'Admin Dashboard', view: 'admin-dashboard', icon: ShieldCheckIcon }}
-              isExpanded={isExpanded}
-              isActive={'admin-dashboard' === activeView}
-              onNavigate={onNavigate}
-              activeView={activeView}
-              openSubmenu={openSubmenu}
-              setOpenSubmenu={setOpenSubmenu}
-          />
-          <NavItem
-              item={{ label: 'Button Catalog', view: 'button-catalog', icon: PaletteIcon }}
-              isExpanded={isExpanded}
-              isActive={'button-catalog' === activeView}
-              onNavigate={onNavigate}
-              activeView={activeView}
-              openSubmenu={openSubmenu}
-              setOpenSubmenu={setOpenSubmenu}
-          />
-        </>
-      )}
-    </nav>
-
-      {/* Scroll down button */}
-      <button
-        onClick={() => scrollBy('down')}
-        className={`absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center h-6 bg-gradient-to-t from-slate-900 to-transparent transition-opacity duration-200 ${canScrollDown ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-        aria-label="Scroll jos"
-      >
-        <ChevronDownIcon className="w-4 h-4 text-amber-400" />
-      </button>
-    </div>
-  );
+    return (
+        <nav aria-label="Navigare principală" className="flex-1 min-h-0 overflow-y-auto px-2 py-2 space-y-1">
+            {menuToDisplay.map(item => (
+                <NavItem
+                    key={item.label}
+                    item={item}
+                    isExpanded={isExpanded}
+                    permissions={permissions}
+                    onNavigate={onNavigate}
+                    onExpandSidebar={onExpandSidebar}
+                    unreadCount={unreadCount}
+                    activeView={activeView}
+                    openSubmenu={openSubmenu}
+                    setOpenSubmenu={setOpenSubmenu}
+                />
+            ))}
+        </nav>
+    );
 };

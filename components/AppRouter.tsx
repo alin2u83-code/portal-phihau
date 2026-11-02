@@ -351,11 +351,13 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'button-catalog':
                                 return renderProtected(<Lazy.ButtonCatalog />, isFederationAdmin);
                             case 'produse':
+                            case 'vanzari-produse':
                                 return renderProtected(
                                     <Lazy.ProduseManagement
                                         currentUser={currentUser!}
                                         permissions={permissions}
                                         onBack={handleBackToDashboard}
+                                        initialTab={activeView === 'vanzari-produse' ? 'vanzari' : 'catalog'}
                                     />,
                                     isAtLeastClubAdmin
                                 );

@@ -22,9 +22,10 @@ interface ProduseManagementProps {
   currentUser: User;
   permissions: Permissions;
   onBack: () => void;
+  initialTab?: ActiveTab;
 }
 
-type ActiveTab = 'catalog' | 'intrari' | 'vanzari' | 'comenzi' | 'raport';
+type ActiveTab ='catalog' | 'intrari' | 'vanzari' | 'comenzi' | 'raport';
 
 function hasStocRedus(produs: Produs): boolean {
   return produs.variante.some(
@@ -64,6 +65,7 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
   currentUser,
   permissions,
   onBack,
+  initialTab,
 }) => {
   const { sportivi, tipuriPlati, clubs, activeRoleContext } = useData();
 
@@ -75,6 +77,8 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useStareVizualizare<ActiveTab>('produse-tab', 'catalog');
+  // intrarea din meniu "Vânzări" deschide direct tabul respectiv (starea memorată ar fi altfel ignorată)
+  useEffect(() => { if (initialTab) setActiveTab(initialTab); }, [initialTab]);
   const [showForm, setShowForm] = useState(false);
   const [showIntrareModal, setShowIntrareModal] = useState(false);
   const [showVanzareModal, setShowVanzareModal] = useState(false);

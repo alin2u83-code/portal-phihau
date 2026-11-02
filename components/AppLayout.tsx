@@ -65,7 +65,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 userRoles={userRoles}
                 isMobileOpen={isMobileSidebarOpen}
                 setIsMobileOpen={setIsMobileSidebarOpen}
-                onOpenThemeEditor={() => setIsThemeEditorOpen(true)}
             />
 
             <Header
@@ -82,7 +81,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
             <main className={`flex-1 min-w-0 overflow-x-hidden transition-all duration-300 pt-16 ${isSidebarExpanded ? 'lg:ml-64' : 'lg:ml-20'} min-h-screen`} style={{ background: 'var(--t-content-bg)' }}>
                 <TraseuMobil />
-                <div className="p-4 pb-32 md:p-6 md:pb-28 lg:p-8 lg:pb-28 max-w-7xl mx-auto animate-fade-in">
+                <div className="p-4 pb-24 md:p-6 md:pb-24 lg:p-8 lg:pb-28 max-w-7xl mx-auto animate-fade-in motion-reduce:animate-none">
                     <ErrorBoundary onNavigate={setActiveView}>
                         <>
                         {permissions?.isSuperAdmin && <MonitorEmailuriAuth mod="alerta" />}
@@ -112,9 +111,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             </main>
 
             {/* Footer fix desktop — bara de jos cu AI assistant integrat */}
-            <footer className={`hidden md:flex fixed bottom-0 right-0 z-[7999] h-12 items-center justify-between px-4 backdrop-blur border-t border-[var(--t-header-border)] transition-all duration-300 ${isSidebarExpanded ? 'left-64' : 'left-20'}`} style={{ background: 'var(--t-footer-bg)' }}>
-                <p className="text-[10px] text-slate-700 tracking-wide select-none">
-                    Realizat cu <span className="text-amber-800">AI</span> de <span className="text-slate-600 font-semibold">Alin Lungu</span>
+            <footer className={`hidden lg:flex fixed bottom-0 right-0 z-[7999] h-12 items-center justify-between px-4 border-t border-[var(--t-header-border)] transition-all duration-300 ${isSidebarExpanded ? 'left-64' : 'left-20'}`} style={{ background: 'var(--t-footer-bg)' }}>
+                <p className="text-xs text-[var(--t-text-muted)] select-none">
+                    Realizat cu AI de <span className="font-semibold">Alin Lungu</span>
                 </p>
 
                 {/* Buton AI dezactivat temporar — vezi task GSD "reactivare-asistent-ai" */}

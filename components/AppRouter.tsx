@@ -10,6 +10,7 @@ import { Card } from './ui';
 import { DeRezolvatCard } from './DeRezolvatCard';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { ActivitateSalaTabs } from './ActivitateSalaTabs';
+import { SportiviTabs, ExameneTabs, CompetitiiTabs, FisaTabs } from './layout/HubTabs';
 import { useData } from '../contexts/DataContext';
 import { useNavigation } from '../contexts/NavigationContext';
 
@@ -151,6 +152,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
 
     const isAtLeastInstructor = permissions.isFederationAdmin || permissions.isAdminClub || permissions.isInstructor;
     const isAtLeastClubAdmin = permissions.isAdminClub || permissions.isFederationAdmin;
+    const hubProps = { activeView, onNavigate: replaceView, isAtLeastInstructor, isAtLeastClubAdmin };
     const isFederationAdmin = permissions.isFederationAdmin;
     const canManageFinances = permissions.canManageFinances;
     const onViewSportiv = (s: Sportiv, tab?: 'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric') => {
@@ -189,6 +191,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                 <ScrollRestorer view={activeView} />
                 <Suspense fallback={<MartialArtsSkeleton count={5} />}>
                     <ActivitateSalaTabs activeView={activeView} onNavigate={replaceView} isAdminClub={isAtLeastClubAdmin} isInstructorOnly={permissions.isInstructor && !isAtLeastClubAdmin} enabled={isAtLeastInstructor}>
+                    <SportiviTabs {...hubProps}><ExameneTabs {...hubProps}><CompetitiiTabs {...hubProps}><FisaTabs {...hubProps}>
                     {(() => {
                         switch (activeView) {
                             case 'legitimatii':
@@ -367,6 +370,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return <div>Lipsește Vizualizarea</div>;
                         }
                     })()}
+                    </FisaTabs></CompetitiiTabs></ExameneTabs></SportiviTabs>
                     </ActivitateSalaTabs>
                 </Suspense>
             </motion.div>

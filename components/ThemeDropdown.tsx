@@ -49,11 +49,9 @@ export const ThemeDropdown: React.FC<ThemeDropdownProps> = ({ onOpenAdvanced }) 
       <button
         onClick={() => setIsOpen(v => !v)}
         title="Personalizare temă"
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-          isOpen
-            ? 'bg-slate-700 border-slate-600 text-white'
-            : 'text-slate-400 border-slate-700/60 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-800/60'
-        }`}
+        className={`flex items-center gap-2 min-h-11 lg:min-h-9 px-3 py-2 rounded-lg text-xs font-semibold transition-colors border border-[var(--t-border)] text-[var(--t-text-muted)] hover:text-[var(--t-text)] hover:bg-[var(--t-surface-2)] ${isOpen ? 'bg-[var(--t-surface-2)] text-[var(--t-text)]' : ''}`}
+        aria-label="Personalizare temă"
+        aria-expanded={isOpen}
       >
         <Palette className="w-3.5 h-3.5 shrink-0" />
         <span className="hidden sm:inline">Temă</span>
@@ -61,7 +59,7 @@ export const ThemeDropdown: React.FC<ThemeDropdownProps> = ({ onOpenAdvanced }) 
 
       {isOpen && (
         <div
-          className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-slate-700/80 shadow-2xl z-[9999] overflow-hidden"
+          className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-[var(--t-border)] shadow-lg z-[9999] overflow-hidden"
           style={{ background: 'var(--t-surface)' }}
         >
           <div
@@ -73,7 +71,7 @@ export const ThemeDropdown: React.FC<ThemeDropdownProps> = ({ onOpenAdvanced }) 
             </span>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-slate-500 hover:text-slate-300 text-sm leading-none px-1"
+              className="text-[var(--t-text-muted)] hover:text-[var(--t-text)] text-sm leading-none px-1"
             >
               ×
             </button>
@@ -90,8 +88,8 @@ export const ThemeDropdown: React.FC<ThemeDropdownProps> = ({ onOpenAdvanced }) 
                     title={theme.name}
                     className={`flex flex-col gap-1 p-1 rounded-lg border transition-all ${
                       isActive
-                        ? 'border-sky-400 ring-1 ring-sky-400/40'
-                        : 'border-transparent hover:border-slate-600'
+                        ? 'border-[var(--t-primary)]'
+                        : 'border-transparent hover:border-[var(--t-border)]'
                     }`}
                   >
                     <div
@@ -102,7 +100,7 @@ export const ThemeDropdown: React.FC<ThemeDropdownProps> = ({ onOpenAdvanced }) 
                       <div style={{ flex: 1, background: theme.bg }} />
                     </div>
                     <span
-                      className="text-[8px] text-center leading-tight truncate w-full"
+                      className="text-xs text-center leading-tight truncate w-full"
                       style={{ color: isActive ? 'var(--t-primary)' : 'var(--t-text-muted)' }}
                     >
                       {theme.name.split(' ')[0]}
@@ -141,7 +139,7 @@ export const ThemeDropdown: React.FC<ThemeDropdownProps> = ({ onOpenAdvanced }) 
             </button>
             <button
               onClick={() => { setIsOpen(false); onOpenAdvanced(); }}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-all"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all"
               style={{
                 borderColor: 'var(--t-border)',
                 color: 'var(--t-text-muted)',

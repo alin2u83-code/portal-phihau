@@ -26,23 +26,23 @@ export const TraseuMobil: React.FC = () => {
         <div className="lg:hidden h-9" aria-hidden="true" />
         <nav
             aria-label="Traseu"
-            className="lg:hidden fixed top-16 left-0 right-0 z-30 h-9 border-b border-slate-800 backdrop-blur-md"
-            style={{ background: 'var(--t-header-bg)' }}
+            className="lg:hidden fixed top-16 left-0 right-0 z-30 h-9 border-b"
+            style={{ background: 'var(--t-header-bg)', borderColor: 'var(--t-header-border)' }}
         >
             <div ref={ref} className="flex items-center gap-1.5 overflow-x-auto px-4 h-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {pasi.map(p => (
                     <React.Fragment key={p.idx}>
                         <button
                             onClick={() => jumpToHistory(p.idx)}
-                            className="shrink-0 whitespace-nowrap text-xs text-indigo-300 border border-slate-700 bg-slate-800/60 rounded-full px-3 py-1 hover:bg-slate-700 transition-colors"
+                            className="shrink-0 whitespace-nowrap text-xs font-semibold text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-lg px-3 py-1 hover:bg-[var(--t-surface-2)] transition-colors"
                             title={`Înapoi la ${p.title}`}
                         >
                             {p.title}
                         </button>
-                        <span className="text-slate-600 text-xs shrink-0" aria-hidden="true">›</span>
+                        <span className="text-[var(--t-text-muted)] text-xs shrink-0" aria-hidden="true">›</span>
                     </React.Fragment>
                 ))}
-                <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-white">{VIEW_TITLES[activeView] || activeView}</span>
+                <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-[var(--t-text)]">{VIEW_TITLES[activeView] || activeView}</span>
             </div>
         </nav>
         </>

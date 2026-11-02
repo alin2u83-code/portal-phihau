@@ -49,33 +49,33 @@ export const NotificationBell: React.FC<{ currentUser: User }> = ({ currentUser 
 
     return (
         <div className="relative" ref={dropdownRef}>
-            <button onClick={handleOpen} className="relative p-2 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-slate-700">
-                <BellIcon className="w-6 h-6" />
+            <button onClick={handleOpen} aria-label="Notificări" className="relative flex items-center justify-center h-11 w-11 lg:h-9 lg:w-9 rounded-lg transition-colors text-[var(--t-text-muted)] hover:text-[var(--t-text)] hover:bg-[var(--t-surface-2)]">
+                <BellIcon className="w-5 h-5" />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 justify-center items-center text-[9px] text-white font-bold">
-                            {unreadCount > 9 ? '9+' : unreadCount}
-                        </span>
+                    <span
+                        className="absolute -top-1 -right-1 rounded-full min-w-4 h-4 px-1 text-center text-white text-xs font-semibold leading-4"
+                        style={{ background: 'var(--t-status-danger)' }}
+                    >
+                        {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-card)] rounded-xl shadow-2xl border border-[var(--border-color)] z-50 animate-fade-in-down overflow-hidden">
+                <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-card)] rounded-xl shadow-lg border border-[var(--border-color)] z-50 animate-fade-in-down overflow-hidden">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-color)] bg-slate-800/50">
-                        <h3 className="font-bold text-white text-sm">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-color)] bg-[var(--t-surface-2)]">
+                        <h3 className="font-semibold text-[var(--t-text)] text-sm">
                             Notificări
                             {unreadCount > 0 && (
-                                <span className="ml-2 px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full">{unreadCount}</span>
+                                <span className="ml-2 px-1.5 py-0.5 text-white text-xs font-semibold rounded-full" style={{ background: 'var(--t-status-danger)' }}>{unreadCount}</span>
                             )}
                         </h3>
                         <div className="flex items-center gap-2">
                             {unreadCount > 0 && (
                                 <button
                                     onClick={handleMarkAll}
-                                    className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+                                    className="text-xs text-[var(--t-primary)] hover:opacity-80 transition-opacity font-semibold"
                                 >
                                     Marchează toate citite
                                 </button>
@@ -84,33 +84,33 @@ export const NotificationBell: React.FC<{ currentUser: User }> = ({ currentUser 
                     </div>
 
                     {/* Notification list */}
-                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-700/50">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-[var(--t-border)]">
                         {notifications.length > 0 ? (
                             notifications.map(n => (
                                 <div
                                     key={n.id}
-                                    className={`px-4 py-3 transition-colors ${!n.is_read ? 'bg-indigo-500/5' : 'hover:bg-slate-800/30'}`}
+                                    className={`px-4 py-3 transition-colors ${!n.is_read ? 'bg-[var(--t-surface-2)]' : 'hover:bg-[var(--t-surface-2)]'}`}
                                 >
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex-1 min-w-0">
                                             {!n.is_read && (
-                                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 mr-1.5 mb-0.5 align-middle" />
+                                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--t-primary)] mr-1.5 mb-0.5 align-middle" />
                                             )}
-                                            <span className="text-sm font-bold text-slate-200">{n.title || (n as any).titlu || 'Notificare'}</span>
-                                            <p className="text-sm text-slate-300 mt-0.5 leading-snug">{n.body || (n as any).message}</p>
+                                            <span className="text-sm font-semibold text-[var(--t-text)]">{n.title || (n as any).titlu || 'Notificare'}</span>
+                                            <p className="text-sm text-[var(--t-text-muted)] mt-0.5 leading-snug">{n.body || (n as any).message}</p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 {(n as any).metadata?.sender_name && (
-                                                    <span className="text-[10px] text-slate-500">
-                                                        De la: <span className="text-slate-400 font-medium">{(n as any).metadata.sender_name}</span>
+                                                    <span className="text-xs text-[var(--t-text-muted)]">
+                                                        De la: <span className="text-[var(--t-text)] font-semibold">{(n as any).metadata.sender_name}</span>
                                                     </span>
                                                 )}
-                                                <span className="text-[10px] text-slate-600">{timeAgo(n.created_at)}</span>
+                                                <span className="text-xs text-[var(--t-text-muted)]">{timeAgo(n.created_at)}</span>
                                             </div>
                                         </div>
                                         {!n.is_read && (
                                             <button
                                                 onClick={() => markAsRead(n.id)}
-                                                className="shrink-0 p-1 text-slate-500 hover:text-indigo-400 transition-colors mt-0.5"
+                                                className="shrink-0 p-1 text-[var(--t-text-muted)] hover:text-[var(--t-primary)] transition-colors mt-0.5"
                                                 title="Marchează ca citit"
                                             >
                                                 <CheckCircleIcon className="w-4 h-4" />
@@ -120,15 +120,15 @@ export const NotificationBell: React.FC<{ currentUser: User }> = ({ currentUser 
                                 </div>
                             ))
                         ) : (
-                            <p className="p-6 text-center text-sm text-slate-400">Nicio notificare.</p>
+                            <p className="p-6 text-center text-sm text-[var(--t-text-muted)]">Nicio notificare.</p>
                         )}
                     </div>
 
                     {/* Footer */}
-                    <div className="px-4 py-2.5 border-t border-[var(--border-color)] bg-slate-800/30">
+                    <div className="px-4 py-2.5 border-t border-[var(--border-color)] bg-[var(--t-surface-2)]">
                         <button
                             onClick={handleOpenNotificari}
-                            className="w-full text-xs text-indigo-400 hover:text-indigo-300 transition-colors font-medium text-center"
+                            className="w-full text-xs text-[var(--t-primary)] hover:opacity-80 transition-opacity font-semibold text-center"
                         >
                             Trimite anunț →
                         </button>

@@ -1,20 +1,12 @@
 import React from 'react';
 import { View, Sportiv, Grupa, Plata, TipAbonament, Grad } from '../types';
-import { ExclamationTriangleIcon, CheckCircleIcon } from './icons';
+import { Card, Button } from './ui';
+import { ExclamationTriangleIcon } from './icons';
 import { useSezonActivCurent } from '../hooks/useSezoane';
 import { filtreazaTipuriSezon } from '../utils/abonamente';
 import { calculeazaVarstaLaData, gradTintaLaVarsta } from '../utils/eligibilitateCompetitie';
 
-interface DeRezolvatCardProps {
-    sportivi: Sportiv[];
-    grupe: Grupa[];
-    plati: Plata[];
-    tipuriAbonament: TipAbonament[];
-    grade: Grad[];
-    onNavigate: (view: View) => void;
-}
-
-interface Problema {
+export interface ProblemaDeRezolvat {
     id: string;
     titlu: string;
     detaliu: string;
@@ -22,13 +14,24 @@ interface Problema {
     view: View;
 }
 
-// Card "De rezolvat" pentru ADMIN_CLUB: setup lipsa + sportivi activi fara grupa / factura pe luna curenta.
+interface DeRezolvatCardProps {
+    sportivi?: Sportiv[];
+    grupe?: Grupa[];
+    plati?: Plata[];
+    tipuriAbonament?: TipAbonament[];
+    grade?: Grad[];
+    // Cand e furnizat, inlocuieste lista calculata intern (calea SUPER_ADMIN_FEDERATIE).
+    probleme?: ProblemaDeRezolvat[];
+    onNavigate: (view: View) => void;
+}
+
+// Card "De rezolvat": setup lipsa + sportivi activi fara grupa / factura pe luna curenta.
 // Calcul client-side pe datele deja incarcate (fara query-uri noi).
-export const DeRezolvatCard: React.FC<DeRezolvatCardProps> = ({ sportivi, grupe, plati, tipuriAbonament, grade, onNavigate }) => {
+export const DeRezolvatCard: React.FC<DeRezolvatCardProps> = ({ sportivi, grupe, plati, tipuriAbonament, grade, probleme: problemeExterne, onNavigate }) => {
     const { sezonActivId } = useSezonActivCurent();
 
-    const probleme = React.useMemo<Problema[]>(() => {
-        const rez: Problema[] = [];
+    const problemeCalculate = React.useMemo<ProblemaDeRezolvat[]>(() => {
+        const rez: ProblemaDeRezolvat[] = [];
         const acum = new Date();
         const luna = acum.getMonth() + 1;
         const an = acum.getFullYear();
@@ -90,7 +93,7 @@ export const DeRezolvatCard: React.FC<DeRezolvatCardProps> = ({ sportivi, grupe,
         const laExamen = activi.filter(s => {
             const curent = (grade || []).find(g => g.id === s.grad_actual_id);
             if (!curent || !s.data_nasterii) return false;
-            return !!gradTintaLaVarsta(curent, calculeazaVarstaLaData(s.data_nasterii, acum.toISOString().slice(0, 10)), grade);
+            return !!gradTintaLaVarsta(curent, calculeazaVarstaLaData(s.data_nasterii, acum.toISOString().slice(0, 10)), grade || []);
         });
         if (laExamen.length > 0) {
             rez.push({
@@ -104,36 +107,45 @@ export const DeRezolvatCard: React.FC<DeRezolvatCardProps> = ({ sportivi, grupe,
         return rez;
     }, [sportivi, grupe, plati, tipuriAbonament, grade, sezonActivId]);
 
+    const probleme = problemeExterne ?? problemeCalculate;
+
     if (probleme.length === 0) {
         return (
-            <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
-                <CheckCircleIcon className="w-4 h-4 shrink-0" /> Clubul e configurat, nimic de rezolvat.
-            </div>
+            <Card role="status" className="md:p-6">
+                <p className="text-base font-semibold text-[var(--t-text)]">Totul e la zi</p>
+                <p className="text-sm text-[var(--t-text-muted)] mt-1">Nu ai nimic de rezolvat acum. Verifică din nou după următoarea prezență.</p>
+            </Card>
         );
     }
 
     return (
-        <section aria-label="De rezolvat" className="rounded-xl border border-amber-600/40 bg-amber-950/20 p-4 space-y-3">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-amber-400">
-                <ExclamationTriangleIcon className="w-5 h-5" /> De rezolvat ({probleme.length})
-            </h2>
-            <ul className="space-y-2">
-                {probleme.map(p => (
-                    <li key={p.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg bg-slate-800/60 border border-slate-700/50 px-3 py-2">
-                        <div className="min-w-0">
-                            <p className="text-sm font-medium text-slate-100">{p.titlu}</p>
-                            <p className="text-xs text-slate-400 truncate">{p.detaliu}</p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => onNavigate(p.view)}
-                            className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-md bg-amber-500 text-slate-900 hover:bg-amber-400 transition-colors"
-                        >
-                            {p.actiune}
-                        </button>
-                    </li>
-                ))}
-            </ul>
-        </section>
+        <Card className="md:p-6">
+            <section aria-label="De rezolvat">
+                <h2 className="flex items-center gap-2 text-base font-semibold text-[var(--t-text)]">
+                    <ExclamationTriangleIcon className="w-5 h-5 text-[var(--t-text-muted)]" /> De rezolvat ({probleme.length})
+                </h2>
+                <ul className="mt-3 divide-y divide-[var(--t-border)]">
+                    {probleme.map(p => (
+                        <li key={p.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-2">
+                            <div className="min-w-0">
+                                <p className="text-sm font-semibold text-[var(--t-text)]">{p.titlu}</p>
+                                <p className="text-xs text-[var(--t-text-muted)] truncate">{p.detaliu}</p>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                ghost
+                                size="sm"
+                                title={p.actiune}
+                                onClick={() => onNavigate(p.view)}
+                                className="shrink-0"
+                            >
+                                Rezolvă problema
+                            </Button>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+        </Card>
     );
 };

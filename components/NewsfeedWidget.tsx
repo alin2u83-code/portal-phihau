@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from '../types';
-import { Card } from './ui';
+import { Card, Button, Skeleton } from './ui';
 import { CalendarDaysIcon, TrophyIcon, BookMarkedIcon, BellIcon, ChevronRightIcon } from './icons';
 import { useNewsfeed } from '../hooks/useNewsfeed';
 
@@ -15,6 +15,8 @@ const TIP_ICON: Record<string, React.ElementType> = {
   competitie: TrophyIcon,
 };
 
+const MAX_VIZIBILE = 3;
+
 function countdownLabel(dataISO: string): string {
   const azi = new Date(); azi.setHours(0, 0, 0, 0);
   const target = new Date(dataISO); target.setHours(0, 0, 0, 0);
@@ -26,62 +28,76 @@ function countdownLabel(dataISO: string): string {
 
 export const NewsfeedWidget: React.FC<NewsfeedWidgetProps> = ({ clubId, onNavigate }) => {
   const { data, isLoading } = useNewsfeed(clubId);
+  const [arataTot, setArataTot] = React.useState(false);
   const items = data?.items ?? [];
   const anunturi = data?.anunturi ?? [];
 
   if (isLoading) {
     return (
-      <Card className="p-4">
-        <p className="text-slate-500 text-sm italic">Se încarcă noutățile...</p>
+      <Card className="md:p-6 space-y-3">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
       </Card>
     );
   }
 
+  // Anunturile primele, apoi evenimentele; lista combinata e limitata la 3 pana la "Vezi toate".
+  const lista = [
+    ...anunturi.map(a => ({ kind: 'anunt' as const, key: `a-${a.id}`, anunt: a })),
+    ...items.map(i => ({ kind: 'eveniment' as const, key: `${i.tip}-${i.id}`, item: i })),
+  ];
+  const vizibile = arataTot ? lista : lista.slice(0, MAX_VIZIBILE);
+
   return (
-    <Card className="p-4 space-y-4">
-      <h3 className="text-base font-bold text-white flex items-center gap-2">
-        <CalendarDaysIcon className="w-5 h-5 text-amber-400" /> Ce urmează
-      </h3>
+    <Card className="md:p-6 space-y-3">
+      <h2 className="text-base font-semibold text-[var(--t-text)]">Anunțuri</h2>
 
-      {anunturi.length > 0 && (
-        <div className="space-y-2">
-          {anunturi.map(a => (
-            <div key={a.id} className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
-              <BellIcon className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-amber-200">{a.titlu}</p>
-                <p className="text-xs text-slate-300 mt-0.5">{a.continut}</p>
-              </div>
-            </div>
-          ))}
+      {lista.length === 0 ? (
+        <div className="py-2">
+          <p className="text-base font-semibold text-[var(--t-text)]">Niciun anunț</p>
+          <p className="text-sm text-[var(--t-text-muted)] mt-1">Anunțurile clubului vor apărea aici.</p>
         </div>
-      )}
-
-      {items.length === 0 ? (
-        <p className="text-slate-500 text-sm italic py-2 text-center">Niciun eveniment programat.</p>
       ) : (
         <div className="space-y-2">
-          {items.map(item => {
-            const Icon = TIP_ICON[item.tip] || CalendarDaysIcon;
+          {vizibile.map(el => {
+            if (el.kind === 'anunt') {
+              return (
+                <div key={el.key} className="flex items-start gap-2 border border-[var(--t-border)] rounded-lg p-3">
+                  <BellIcon className="w-4 h-4 text-[var(--t-text-muted)] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--t-text)]">{el.anunt.titlu}</p>
+                    <p className="text-xs text-[var(--t-text-muted)] mt-0.5">{el.anunt.continut}</p>
+                  </div>
+                </div>
+              );
+            }
+            const Icon = TIP_ICON[el.item.tip] || CalendarDaysIcon;
             return (
               <button
-                key={`${item.tip}-${item.id}`}
+                key={el.key}
                 type="button"
-                onClick={() => onNavigate(item.view)}
-                className="w-full flex items-center justify-between gap-3 bg-slate-800/50 hover:bg-slate-700/60 rounded-lg p-3 border border-slate-700/30 hover:border-amber-400/40 transition-colors text-left"
+                onClick={() => onNavigate(el.item.view)}
+                className="w-full flex items-center justify-between gap-3 rounded-lg border border-[var(--t-border)] p-3 hover:border-[var(--t-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--t-input-focus-ring)] transition-colors text-left"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <Icon className="w-4 h-4 text-slate-400 shrink-0" />
-                  <span className="text-sm text-slate-200 truncate">{item.titlu}</span>
+                  <Icon className="w-4 h-4 text-[var(--t-text-muted)] shrink-0" />
+                  <span className="text-sm text-[var(--t-text)] truncate">{el.item.titlu}</span>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-xs font-semibold text-amber-400">{countdownLabel(item.data)}</span>
-                  <ChevronRightIcon className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-xs font-semibold text-[var(--t-text-muted)]">{countdownLabel(el.item.data)}</span>
+                  <ChevronRightIcon className="w-3.5 h-3.5 text-[var(--t-text-muted)]" />
                 </div>
               </button>
             );
           })}
         </div>
+      )}
+
+      {lista.length > MAX_VIZIBILE && (
+        <Button type="button" variant="secondary" ghost size="sm" onClick={() => setArataTot(v => !v)}>
+          {arataTot ? 'Arată mai puține' : 'Vezi toate'}
+        </Button>
       )}
     </Card>
   );

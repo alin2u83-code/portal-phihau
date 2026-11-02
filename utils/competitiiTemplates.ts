@@ -691,7 +691,12 @@ export function generateTemplateCVD(): TemplateCategorieInput[] {
     });
   }
 
-  return categories;
+  // Intervalele de mai sus: 1=1 CAP ... 4=4 CAP, 5=C.N., 6..10=1..5 Dang. Eligibilitatea compara cu grade.ordine din DB (15..24).
+  return categories.map(c => ({
+    ...c,
+    grad_min_ordine: c.grad_min_ordine === null ? null : c.grad_min_ordine + 14,
+    grad_max_ordine: c.grad_max_ordine === null ? null : c.grad_max_ordine + 14,
+  }));
 }
 
 export const TIP_PROBA_LABELS: Record<TipProba, string> = {

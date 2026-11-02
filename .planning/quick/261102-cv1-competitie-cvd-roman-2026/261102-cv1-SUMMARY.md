@@ -14,6 +14,11 @@ Executat inline (fara subagenti). Commit af2dfbb pe main. Inainte: a9a408e + 84f
 ## Verificat
 tsc OK; counts DB; competitia apare in Competitii ca Schita (UI). Categoriile din UI si wizard-ul de inscriere NETESTATE.
 
+## Test local (2.11.2026) + fix scara grade
+- Wizard arata 0 sportivi: categoriile foloseau scara 1..10, iar verificaEligibilitate compara cu grade.ordine DB (15..24). Fix: sablon +14 (generateTemplateCVD) + UPDATE live pe cele 88 categorii. Dupa fix: 4 eligibili in Phi Hau, auto-categorie corecta (BORS -> 18-39 F 1-4 CAP Bong; LUNGU -> 40-49 M CN2-5 Dang Bong). Categorii (88) OK in UI.
+- Pas2Quyen: optiunile Q1.. vin din thao_quyen_individual (cat.proba nu e join-at in Competitii/index.tsx) => formele CVD noi (thao_lo_individual / song_luyen) NU apar in wizard. Preexistent, wizard neatins.
+- Competitia 2025 CVD (finalizata) ramane pe scara 1..10.
+
 ## Ramas / de stiut
 - Cele 12 arme (categorie arma_cvd) nelegate de grade: Pas2Quyen nu filtreaza dupa categorie, ar apare ca forme in dropdown.
 - Tam Thiet Gian/Nhuyen Tien legate de la 1 Dang (tabel arme permise); programa zice CN-5 Dang.

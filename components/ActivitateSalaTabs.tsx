@@ -42,6 +42,7 @@ const GRUPURI: GrupDef[] = [
             { view: 'prezenta-instructor', label: 'Înregistrare Prezențe', instructorOnly: true },
             { view: 'program-antrenamente', label: 'Program Antrenamente' },
             { view: 'calendar', label: 'Calendar' },
+            { view: 'activitati', label: 'Generator Program' },
         ],
     },
     {
@@ -53,6 +54,8 @@ const GRUPURI: GrupDef[] = [
         ],
     },
 ];
+
+export const ACTIVITATE_SALA_GRUPURI = GRUPURI;
 
 export const ActivitateSalaTabs: React.FC<{
     activeView: View;
@@ -84,18 +87,19 @@ export const ActivitateSalaTabs: React.FC<{
     return (
         <div>
             {/* Rând 1: secțiunile — legături între submeniurile din sidebar */}
-            <nav className="flex flex-wrap gap-x-5 gap-y-1 mb-3 border-b border-slate-700/60" aria-label="Activitate Sală">
+            <nav className="flex overflow-x-auto border-b border-[var(--t-border)] mb-3 min-h-11 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Antrenamente">
                 {GRUPURI.map(g => {
                     const activ = g === grupCurent;
                     return (
                         <button
                             key={g.label}
+                            type="button"
                             onClick={() => { if (!activ) onNavigate(g.intrare(isInstructorOnly)); }}
                             aria-current={activ ? 'page' : undefined}
-                            className={`pb-2 -mb-px text-sm font-semibold border-b-2 transition-colors ${
+                            className={`shrink-0 px-4 min-h-11 text-sm -mb-px border-b-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--t-input-focus-ring)] ${
                                 activ
-                                    ? 'border-indigo-500 text-indigo-400'
-                                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                                    ? 'font-semibold text-[var(--t-text)] border-[var(--t-primary)]'
+                                    : 'font-normal border-transparent text-[var(--t-text-muted)] hover:text-[var(--t-text)]'
                             }`}
                         >
                             {g.label}
@@ -115,8 +119,10 @@ export const ActivitateSalaTabs: React.FC<{
                                 role="tab"
                                 aria-selected={activ}
                                 onClick={() => { if (!activ) onNavigate(t.view); }}
-                                className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                                    activ ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                className={`rounded-lg min-h-11 lg:min-h-9 px-4 text-sm transition-colors ${
+                                    activ
+                                        ? 'font-semibold text-[var(--t-text)] bg-[var(--t-surface)] border border-[var(--t-border)]'
+                                        : 'font-normal text-[var(--t-text-muted)] border border-transparent hover:text-[var(--t-text)]'
                                 }`}
                             >
                                 {t.label}

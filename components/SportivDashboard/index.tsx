@@ -2,14 +2,13 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Sportiv, InscriereExamen, Grad, Grupa, Plata, User, View, AnuntPrezenta, SesiuneExamen, Antrenament, Permissions, Rol, IstoricGrade, Produs, ProdusVanzare, ProdusVariantaDB, CerereProdusFull } from '../../types';
 import { fetchProduse, fetchVanzariSportiv } from '../../services/produseService';
 import { fetchCereriSportiv, createCerere, fetchAdminClubUserIds } from '../../services/comenziService';
-import { Card, Button, Skeleton, Modal, Select } from '../ui';
+import { Card, Button, Modal, Select, Badge, Accordion, AccordionItem } from '../ui';
 import toast from 'react-hot-toast';
-import { NotificationPermissionWidget } from '../NotificationPermissionWidget';
 import { useError } from '../ErrorProvider';
 import { supabase } from '../../supabaseClient';
-import { TrophyIcon, CalendarDaysIcon, ChartBarIcon, WalletIcon, UsersIcon, CheckCircleIcon, ExclamationTriangleIcon } from '../icons';
+import { TrophyIcon, CalendarDaysIcon, ChartBarIcon } from '../icons';
 import { Loader2 } from 'lucide-react';
-import { GradBadge } from '../../utils/grades';
+import { restDePlata } from '../../utils/paymentStatus';
 import { AntrenamenteViitoare } from '../AntrenamenteViitoare';
 import { UpcomingTrainingsWidget } from '../UpcomingTrainingsWidget';
 import { SportivProgressChart } from '../Sportivi/SportivProgressChart';
@@ -17,7 +16,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTo
 import { useDataProvider } from '../../hooks/useDataProvider';
 import { useAttendanceStats } from '../../hooks/useAttendanceStats';
 import { useDashboardPermissions } from '../../hooks/useDashboardPermissions';
-import { VizaMedicalaCard } from './VizaMedicalaCard';
+import { VizaMedicalaCard, areVizaValida } from './VizaMedicalaCard';
 import { TrainingActionCard, AnuntStatus } from './TrainingActionCard';
 import { HistoryModal } from './HistoryModal';
 import { FamilieWidget } from './FamilieWidget';
@@ -59,6 +58,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useDataProvider();
     const { isViewingOwnProfile } = useDashboardPermissions(currentUser, viewedUser, permissions);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [openSection, setOpenSection] = useState<string>('');
+    const toggleSection = (id: string) => setOpenSection(prev => prev === id ? '' : id);
 
     // Echipamente state
     const [produseCatalog, setProduseCatalog] = useState<Produs[]>([]);
@@ -252,13 +253,13 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
         [plati, viewedUser.id]
     );
     const statusPlati: 'RESTANTA' | 'LA ZI' = neachitate.length > 0 ? 'RESTANTA' : 'LA ZI';
+    const sumaRestanta = neachitate.reduce((acc, p) => acc + restDePlata(p), 0);
+    const vizaValida = areVizaValida(plati || [], viewedUser.id);
 
     const { attendanceStats, gradeStats } = useAttendanceStats(istoricPrezenta, istoricGrade, grade);
 
-    const initials = `${viewedUser.nume?.[0] ?? ''}${viewedUser.prenume?.[0] ?? ''}`;
-
     return (
-        <div className="space-y-4 md:space-y-5 pb-28 md:pb-24">
+        <div className="space-y-6 pb-28 md:pb-24">
 
             {/* ── MINI TABS ───────────────────────────────────────────── */}
             <div className="flex gap-1 bg-[var(--t-surface-2)] p-1 rounded-xl border border-[var(--t-border)]">
@@ -485,126 +486,19 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
             {/* ── CONȚINUT DASHBOARD ──────────────────────────────────── */}
             {activeTab === 'dashboard' && <>
 
-            {/* ── HEADER CARD ─────────────────────────────────────────── */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/60 shadow-xl">
-                {/* decorative top line */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-amber-500" />
-
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 p-5 sm:p-6">
-                    {/* Avatar */}
-                    <div className="relative shrink-0">
-                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-700 border-4 border-slate-800 shadow-xl flex items-center justify-center overflow-hidden ring-2 ring-sky-500/30">
-                            {viewedUser.foto_url ? (
-                                <img src={viewedUser.foto_url} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                            ) : (
-                                <span className="text-2xl sm:text-3xl font-bold text-slate-300">{initials}</span>
-                            )}
-                        </div>
-                        {/* online indicator */}
-                        <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full" />
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0 text-center sm:text-left">
-                        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">
-                            {viewedUser.nume} {viewedUser.prenume}
-                        </h1>
-
-                        {/* Grupă */}
-                        <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-1">
-                            <UsersIcon className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                            {grupaLoading ? (
-                                <span className="text-xs text-slate-500 animate-pulse">Se încarcă...</span>
-                            ) : (
-                                <span className="text-sm text-sky-400 font-medium">{grupaName}</span>
-                            )}
-                        </div>
-
-                        {/* Grad */}
-                        <div className="mt-2 flex justify-center sm:justify-start">
-                            <GradBadge grad={currentGrad} gradName={currentGrad?.nume} />
-                        </div>
-                    </div>
-
-                    {/* Quick stats — vizibile pe desktop (sm+) în dreapta header-ului */}
-                    <div className="hidden sm:flex flex-col gap-2 items-end shrink-0">
-                        <div className="flex items-center gap-2 text-sm">
-                            <span className="text-slate-400">Prezențe</span>
-                            <span className={`font-black text-lg ${loadingIstoric ? 'text-slate-600' : 'text-sky-400'}`}>
-                                {loadingIstoric ? '...' : totalPrezente}
-                            </span>
-                        </div>
-                        <div className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${
-                            statusPlati === 'RESTANTA'
-                                ? 'bg-rose-500/15 text-rose-400'
-                                : 'bg-emerald-500/15 text-emerald-400'
-                        }`}>
-                            {statusPlati === 'RESTANTA'
-                                ? <ExclamationTriangleIcon className="w-3 h-3" />
-                                : <CheckCircleIcon className="w-3 h-3" />
-                            }
-                            {statusPlati === 'RESTANTA' ? `${neachitate.length} restanță` : 'Plăți la zi'}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                            <span className="text-slate-400">Examene</span>
-                            <span className="font-black text-lg text-amber-400">
-                                {(participari || []).filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis').length}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Quick stats — aceleași date, layout bară orizontală pe mobil (<640px) */}
-                <div className="flex sm:hidden items-center divide-x divide-slate-700/60 border-t border-slate-700/60">
-                    <div className="flex-1 flex flex-col items-center py-3">
-                        <span className="text-xs text-slate-500">Prezențe</span>
-                        <span className={`text-lg font-black ${loadingIstoric ? 'text-slate-600' : 'text-sky-400'}`}>
-                            {loadingIstoric ? '...' : totalPrezente}
-                        </span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center py-3">
-                        <span className="text-xs text-slate-500">Plăți</span>
-                        <div className={`flex items-center gap-1 text-xs font-bold ${statusPlati === 'RESTANTA' ? 'text-rose-400' : 'text-emerald-400'}`}>
-                            {statusPlati === 'RESTANTA'
-                                ? <ExclamationTriangleIcon className="w-3 h-3" />
-                                : <CheckCircleIcon className="w-3 h-3" />
-                            }
-                            <span>{statusPlati === 'RESTANTA' ? `${neachitate.length} rest.` : 'La zi'}</span>
-                        </div>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center py-3">
-                        <span className="text-xs text-slate-500">Examene</span>
-                        <span className="text-lg font-black text-amber-400">
-                            {(participari || []).filter(p => p.sportiv_id === viewedUser.id && p.rezultat === 'Admis').length}
-                        </span>
-                    </div>
-                </div>
-
-                {/* CTA buttons */}
-                {isViewingOwnProfile && (
-                    <div className="px-5 pb-5 sm:px-6 sm:pb-6 flex flex-col sm:flex-row gap-2">
-                        <Button
-                            variant="primary"
-                            onClick={() => onNavigate('istoric-plati')}
-                            className="flex-1 sm:flex-none bg-sky-500 hover:bg-sky-600 border-none shadow-lg shadow-sky-500/20"
-                        >
-                            <WalletIcon className="w-4 h-4 mr-2" /> Istoric Plăți
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            onClick={() => setIsHistoryOpen(true)}
-                            className="flex-1 sm:flex-none"
-                        >
-                            <CalendarDaysIcon className="w-4 h-4 mr-2" /> Istoric Prezențe
-                        </Button>
-                    </div>
-                )}
+            {/* ── 1. SALUT ────────────────────────────────────────────── */}
+            <div>
+                <h2 className="text-2xl font-semibold leading-tight text-[var(--t-text)]">
+                    {isViewingOwnProfile ? `Bună ziua, ${viewedUser.prenume}` : `${viewedUser.nume} ${viewedUser.prenume}`}
+                </h2>
+                <p className="text-sm text-[var(--t-text-muted)] mt-1">
+                    {currentGrad?.nume ?? 'Fără grad'} · {grupaLoading ? 'Se încarcă…' : grupaName}
+                </p>
             </div>
 
-            {/* ── ANTRENAMENTE AZI ────────────────────────────────────── */}
-            {isViewingOwnProfile && todaysTrainings.length > 0 && (
-                <div className="space-y-3">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">Astăzi</p>
+            {/* ── 2. ANTRENAMENT ──────────────────────────────────────── */}
+            {isViewingOwnProfile && (todaysTrainings.length > 0 ? (
+                <div className="space-y-4">
                     {todaysTrainings.map(training => (
                         <TrainingActionCard
                             key={training.id}
@@ -612,153 +506,61 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                             anunt={(anunturi || []).find(a => a.antrenament_id === training.id && a.sportiv_id === currentUser.id)}
                             onStatusChange={handleStatusChange}
                             currentUser={currentUser}
+                            onNavigate={onNavigate}
                         />
                     ))}
                 </div>
-            )}
-
-            {/* ── STATS GRID ──────────────────────────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-
-                {/* Prezențe Recente */}
-                <Card className="border border-slate-800 bg-slate-900/50">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                            <ChartBarIcon className="w-4 h-4 text-sky-400" />
-                            Prezențe Recente
-                        </h3>
-                        <span className="text-xl font-black text-sky-400">{loadingIstoric ? '...' : totalPrezente}</span>
-                    </div>
-                    {loadingIstoric ? (
-                        <div className="h-40 flex items-center justify-center">
-                            <Loader2 className="w-5 h-5 animate-spin text-slate-600" />
-                        </div>
-                    ) : totalPrezente === 0 ? (
-                        <div className="h-40 flex flex-col items-center justify-center text-slate-600 bg-slate-800/30 rounded-xl border border-slate-700/40">
-                            <CalendarDaysIcon className="w-7 h-7 mb-2 opacity-40" />
-                            <p className="text-xs">Nicio prezență înregistrată.</p>
-                        </div>
-                    ) : (
-                        <div className="h-40 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={attendanceStats.recent} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
-                                    <XAxis dataKey="month" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
-                                    <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} allowDecimals={false} />
-                                    <RechartsTooltip
-                                        cursor={{ fill: 'rgba(255,255,255,0.04)' }}
-                                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', color: '#fff', fontSize: 12 }}
-                                        formatter={(value: number) => [`${value} prezențe`, '']}
-                                    />
-                                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                                        {attendanceStats.recent.map((_, i) => (
-                                            <Cell key={i} fill={i === attendanceStats.recent.length - 1 ? '#0ea5e9' : '#1e293b'} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
+            ) : (
+                <Card className="md:p-6">
+                    <h3 className="text-base font-semibold text-[var(--t-text)]">Niciun antrenament programat</h3>
+                    <p className="text-sm text-[var(--t-text-muted)] mt-1">Când instructorul adaugă un orar, îl vei vedea aici.</p>
                 </Card>
+            ))}
 
-                {/* Evoluție Grade */}
-                <Card className="border border-slate-800 bg-slate-900/50 overflow-hidden">
-                    <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                        <TrophyIcon className="w-4 h-4 text-amber-400" />
-                        Evoluție Grade
-                    </h3>
-                    <div className="h-44">
-                        <SportivProgressChart data={gradeHistoryData} themeColor="#fbbf24" />
+            {/* ── 3. PLĂȚI + VIZĂ MEDICALĂ ────────────────────────────── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <Card className={`md:p-6 ${vizaValida ? 'md:col-span-2' : ''}`}>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                        <h3 className="text-base font-semibold text-[var(--t-text)]">Plăți</h3>
+                        <Badge variant={statusPlati === 'RESTANTA' ? 'red' : 'green'}>
+                            {statusPlati === 'RESTANTA' ? `${neachitate.length} restante` : 'La zi'}
+                        </Badge>
                     </div>
-                </Card>
-
-                {/* Status Plăți */}
-                <Card className={`border ${statusPlati === 'RESTANTA' ? 'border-rose-500/40 bg-rose-950/30' : 'border-emerald-500/20 bg-emerald-950/20'}`}>
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-2">
-                                <WalletIcon className={`w-4 h-4 ${statusPlati === 'RESTANTA' ? 'text-rose-400' : 'text-emerald-400'}`} />
-                                Status Plăți
-                            </h3>
-                            <p className={`text-2xl font-black ${statusPlati === 'RESTANTA' ? 'text-rose-400' : 'text-emerald-400'}`}>
-                                {statusPlati === 'RESTANTA' ? 'RESTANȚĂ' : 'LA ZI'}
-                            </p>
-                            {statusPlati === 'RESTANTA' && (
-                                <p className="text-xs text-slate-400 mt-1">{neachitate.length} factură{neachitate.length !== 1 ? 'i' : ''} neachitată{neachitate.length !== 1 ? 'i' : ''}</p>
-                            )}
-                        </div>
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${statusPlati === 'RESTANTA' ? 'bg-rose-500/10' : 'bg-emerald-500/10'}`}>
-                            {statusPlati === 'RESTANTA'
-                                ? <ExclamationTriangleIcon className="w-6 h-6 text-rose-400" />
-                                : <CheckCircleIcon className="w-6 h-6 text-emerald-400" />
-                            }
-                        </div>
-                    </div>
+                    <p
+                        className="text-2xl font-semibold text-[var(--t-text)]"
+                        style={statusPlati === 'RESTANTA' ? { color: 'var(--t-status-danger)' } : undefined}
+                    >
+                        {sumaRestanta.toFixed(2)} RON
+                    </p>
                     {isViewingOwnProfile && (
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => onNavigate('istoric-plati')}
-                            className="w-full mt-4 bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300"
-                        >
-                            Vezi Detalii Plăți
+                        <Button variant="secondary" ghost size="sm" className="mt-3" onClick={() => onNavigate('istoric-plati')}>
+                            Vezi detalii plăți
                         </Button>
                     )}
                 </Card>
+                <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
+            </div>
 
-                {/* Evenimente */}
+            {/* ── 4. EVENIMENTE + PROGRES ─────────────────────────────── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <EvenimenteWidget sportivId={viewedUser.id} clubId={viewedUser.club_id} />
-            </div>
-
-            {/* ── EVOLUȚIE PREZENȚE PE GRADE ──────────────────────────── */}
-            {gradeStats.length > 0 && (
-                <Card className="border border-slate-800 bg-slate-900/50">
-                    <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                        <ChartBarIcon className="w-4 h-4 text-emerald-400" />
-                        Prezențe pe Intervale de Grad
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {gradeStats.map((stat, idx) => (
-                            <div key={`${stat.period}-${idx}`} className="flex flex-col p-3 bg-slate-800/50 rounded-xl border border-slate-700/40">
-                                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 truncate">{stat.period}</span>
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-xl font-black text-emerald-400">{stat.count}</span>
-                                    <span className="text-xs text-slate-500">prez.</span>
-                                </div>
-                                <span className="text-[10px] text-slate-600 mt-1">până la {new Date(stat.date).toLocaleDateString('ro-RO')}</span>
-                            </div>
-                        ))}
+                <Card className="md:p-6 overflow-hidden">
+                    <h3 className="text-base font-semibold text-[var(--t-text)] mb-3">Progres</h3>
+                    <div className="h-44">
+                        <SportivProgressChart
+                            data={gradeHistoryData}
+                            themeColor={getComputedStyle(document.documentElement).getPropertyValue('--t-primary').trim() || '#3b82f6'}
+                        />
                     </div>
-                </Card>
-            )}
-
-            {/* ── PAȘAPORT VIRTUAL ────────────────────────────────────── */}
-            <SportivPassport
-                viewedUser={viewedUser}
-                grade={grade}
-                participari={participari}
-                examene={examene}
-                istoricGrade={istoricGrade}
-                plati={plati}
-            />
-
-            {/* ── WIDGETS SECUNDARE ───────────────────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                <AntrenamenteViitoare currentUser={viewedUser} antrenamente={antrenamente} grupe={grupe} anunturi={anunturi} />
-
-                <div className="space-y-4">
-                    <UpcomingTrainingsWidget currentUser={viewedUser} grupe={grupe} />
-                    <VizaMedicalaCard plati={plati} sportivId={viewedUser.id} />
-
                     {isViewingOwnProfile && (
-                        <Card className="border border-slate-800 bg-slate-900/50">
-                            <h3 className="text-sm font-bold text-white mb-3">Notificări Push</h3>
-                            <NotificationPermissionWidget />
-                        </Card>
+                        <Button variant="secondary" ghost size="sm" className="mt-3" onClick={() => setIsHistoryOpen(true)}>
+                            Istoric prezențe
+                        </Button>
                     )}
-                </div>
+                </Card>
             </div>
 
-            {/* ── FAMILIE & FRAȚI ─────────────────────────────────────── */}
+            {/* ── 5. FAMILIE ──────────────────────────────────────────── */}
             {viewedUser.familie_id && (
                 <FamilieWidget
                     currentUser={viewedUser}
@@ -767,25 +569,84 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
                 />
             )}
 
-            {/* ── SWITCH ROL ──────────────────────────────────────────── */}
-            {canSwitchRoles && (
-                <Card className="border border-slate-800 bg-slate-900/50">
-                    <h3 className="text-sm font-bold text-white mb-3">Comută Rol Activ</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {(currentUser.roluri || []).map((rol, idx) => (
-                            <Button
-                                key={rol.id || rol.nume || idx}
-                                variant={activeRole === rol.nume ? 'primary' : 'secondary'}
-                                size="sm"
-                                onClick={() => onSwitchRole(rol.nume)}
-                                disabled={isSwitchingRole}
-                            >
-                                {rol.nume}
-                            </Button>
-                        ))}
+            {/* ── DETALII (acordeon, închis implicit) ─────────────────── */}
+            <Accordion>
+                <AccordionItem id="prezente" title="Prezențe" icon={ChartBarIcon} isOpen={openSection === 'prezente'} onToggle={toggleSection}>
+                    <div className="space-y-4">
+                        <div>
+                            <div className="flex justify-between items-center mb-3">
+                                <h3 className="text-sm font-semibold text-[var(--t-text)]">Prezențe recente</h3>
+                                <span className="text-base font-semibold text-[var(--t-text)]">{loadingIstoric ? '...' : totalPrezente}</span>
+                            </div>
+                            {loadingIstoric ? (
+                                <div className="h-40 flex items-center justify-center">
+                                    <Loader2 className="w-5 h-5 animate-spin text-[var(--t-text-muted)]" />
+                                </div>
+                            ) : totalPrezente === 0 ? (
+                                <div className="h-40 flex flex-col items-center justify-center text-[var(--t-text-muted)] bg-[var(--t-surface-2)] rounded-xl border border-[var(--t-border)]">
+                                    <CalendarDaysIcon className="w-5 h-5 mb-2" />
+                                    <p className="text-xs">Nicio prezență înregistrată.</p>
+                                </div>
+                            ) : (
+                                <div className="h-40 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={attendanceStats.recent} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
+                                            <XAxis dataKey="month" stroke="var(--t-text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                                            <YAxis stroke="var(--t-text-muted)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                                            <RechartsTooltip
+                                                cursor={{ fill: 'var(--t-surface-2)' }}
+                                                contentStyle={{ background: 'var(--t-surface)', border: '1px solid var(--t-border)', borderRadius: '8px', color: 'var(--t-text)', fontSize: 12 }}
+                                                formatter={(value: number) => [`${value} prezențe`, '']}
+                                            />
+                                            <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                                                {attendanceStats.recent.map((_, i) => (
+                                                    <Cell key={i} fill={i === attendanceStats.recent.length - 1 ? 'var(--t-primary)' : 'var(--t-border)'} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
+                        </div>
+
+                        {gradeStats.length > 0 && (
+                            <div>
+                                <h3 className="text-sm font-semibold text-[var(--t-text)] mb-3">Prezențe pe intervale de grad</h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                    {gradeStats.map((stat, idx) => (
+                                        <div key={`${stat.period}-${idx}`} className="flex flex-col p-3 bg-[var(--t-surface-2)] rounded-xl border border-[var(--t-border)]">
+                                            <span className="text-xs text-[var(--t-text-muted)] mb-1 truncate">{stat.period}</span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-base font-semibold text-[var(--t-text)]">{stat.count}</span>
+                                                <span className="text-xs text-[var(--t-text-muted)]">prez.</span>
+                                            </div>
+                                            <span className="text-xs text-[var(--t-text-muted)] mt-1">până la {new Date(stat.date).toLocaleDateString('ro-RO')}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                </Card>
-            )}
+                </AccordionItem>
+
+                <AccordionItem id="pasaport" title="Pașaport virtual" icon={TrophyIcon} isOpen={openSection === 'pasaport'} onToggle={toggleSection}>
+                    <SportivPassport
+                        viewedUser={viewedUser}
+                        grade={grade}
+                        participari={participari}
+                        examene={examene}
+                        istoricGrade={istoricGrade}
+                        plati={plati}
+                    />
+                </AccordionItem>
+
+                <AccordionItem id="antrenamente" title="Antrenamente viitoare" icon={CalendarDaysIcon} isOpen={openSection === 'antrenamente'} onToggle={toggleSection}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                        <AntrenamenteViitoare currentUser={viewedUser} antrenamente={antrenamente} grupe={grupe} anunturi={anunturi} />
+                        <UpcomingTrainingsWidget currentUser={viewedUser} grupe={grupe} />
+                    </div>
+                </AccordionItem>
+            </Accordion>
 
             <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} istoric={istoricPrezenta} />
 

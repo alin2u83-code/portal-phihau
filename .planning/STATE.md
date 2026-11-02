@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: verifying
-stopped_at: Quick task 260929-0hf (alerte securitate admin) — cod+DB complete, blocat pe autentificare SMTP Hostinger (mailbox posibil neexistent)
-last_updated: "2026-11-02T22:07:33.668Z"
-last_activity: 2026-09-26 -- Phase 31 execution started
+status: executing
+stopped_at: Completed 34-05-PLAN.md
+last_updated: "2026-11-02T22:33:59.449Z"
+last_activity: 2026-11-03 -- Phase 34 Wave 1 (34-01..34-04) executed and browser-checked
 progress:
   total_phases: 26
   completed_phases: 15
   total_plans: 95
-  completed_plans: 83
+  completed_plans: 84
   percent: 58
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 31 — hub-plati-si-facturi-consolidare-14-view-uri-in-4-tab-uri-fa
+**Current focus:** Phase 34 — simplificare UI (unificare sidebar + dashboard)
 
 ## Current Position
 
-Phase: 31 (hub-plati-si-facturi-consolidare-14-view-uri-in-4-tab-uri-fa) — EXECUTING
-Plan: 9 of 9
-Status: Phase complete — ready for verification
-Last activity: 2026-09-26 -- Phase 31 execution started
+Phase: 34 (simplificare-ui-unificare-stil-sidebar-dashboard-4-roluri-de) — EXECUTING
+Plan: 5 of 13 complete (Wave 1 done; next: Wave 2 = 34-05..34-08)
+Status: Ready to execute
+Last activity: 2026-11-03 -- Phase 34 Wave 1 (34-01..34-04) executed and browser-checked
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -224,6 +224,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-11-02T21:57:29.011Z
-Stopped at: Quick task 260929-0hf (alerte securitate admin) — cod+DB complete, blocat pe autentificare SMTP Hostinger (mailbox posibil neexistent)
+Last session: 2026-11-02T22:33:59.430Z
+Stopped at: Completed 34-05-PLAN.md
 Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md

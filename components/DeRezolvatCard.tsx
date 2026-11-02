@@ -1,14 +1,16 @@
 import React from 'react';
-import { View, Sportiv, Grupa, Plata, TipAbonament } from '../types';
+import { View, Sportiv, Grupa, Plata, TipAbonament, Grad } from '../types';
 import { ExclamationTriangleIcon, CheckCircleIcon } from './icons';
 import { useSezonActivCurent } from '../hooks/useSezoane';
 import { filtreazaTipuriSezon } from '../utils/abonamente';
+import { calculeazaVarstaLaData, gradTintaLaVarsta } from '../utils/eligibilitateCompetitie';
 
 interface DeRezolvatCardProps {
     sportivi: Sportiv[];
     grupe: Grupa[];
     plati: Plata[];
     tipuriAbonament: TipAbonament[];
+    grade: Grad[];
     onNavigate: (view: View) => void;
 }
 
@@ -22,7 +24,7 @@ interface Problema {
 
 // Card "De rezolvat" pentru ADMIN_CLUB: setup lipsa + sportivi activi fara grupa / factura pe luna curenta.
 // Calcul client-side pe datele deja incarcate (fara query-uri noi).
-export const DeRezolvatCard: React.FC<DeRezolvatCardProps> = ({ sportivi, grupe, plati, tipuriAbonament, onNavigate }) => {
+export const DeRezolvatCard: React.FC<DeRezolvatCardProps> = ({ sportivi, grupe, plati, tipuriAbonament, grade, onNavigate }) => {
     const { sezonActivId } = useSezonActivCurent();
 
     const probleme = React.useMemo<Problema[]>(() => {
@@ -83,8 +85,24 @@ export const DeRezolvatCard: React.FC<DeRezolvatCardProps> = ({ sportivi, grupe,
                 view: 'plati-hub',
             });
         }
+
+        // Minor care a implinit 7 ani (galben -> rosu) sau 13 ani (rosu/violet -> 1 Cap Albastru) si inca nu a promovat
+        const laExamen = activi.filter(s => {
+            const curent = (grade || []).find(g => g.id === s.grad_actual_id);
+            if (!curent || !s.data_nasterii) return false;
+            return !!gradTintaLaVarsta(curent, calculeazaVarstaLaData(s.data_nasterii, acum.toISOString().slice(0, 10)), grade);
+        });
+        if (laExamen.length > 0) {
+            rez.push({
+                id: 'varsta-examen',
+                titlu: `${laExamen.length} sportivi au împlinit vârsta pentru schimbarea gradului (7/13 ani)`,
+                detaliu: laExamen.slice(0, 3).map(s => `${s.nume} ${s.prenume}`).join(', ') + (laExamen.length > 3 ? '…' : ''),
+                actiune: 'Programează examen',
+                view: 'examene',
+            });
+        }
         return rez;
-    }, [sportivi, grupe, plati, tipuriAbonament, sezonActivId]);
+    }, [sportivi, grupe, plati, tipuriAbonament, grade, sezonActivId]);
 
     if (probleme.length === 0) {
         return (

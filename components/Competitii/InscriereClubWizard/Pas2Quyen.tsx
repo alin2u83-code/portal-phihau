@@ -3,7 +3,7 @@ import {
   Competitie, CategorieCompetitie, Sportiv, Grad, Inlantuire,
 } from '../../../types';
 import { supabase } from '../../../supabaseClient';
-import { calculeazaVarstaLaData } from '../../../utils/eligibilitateCompetitie';
+import { calculeazaVarstaLaData, gradEfectivLaData } from '../../../utils/eligibilitateCompetitie';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
@@ -77,7 +77,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
     sportivi
       .filter(s => selectedSportivi.has(s.id) && autoCategorie.has(s.id))
       .map(s => {
-        const grad = grade.find(g => g.id === s.grad_actual_id) ?? null;
+        const grad = gradEfectivLaData(s, grade, competitie.data_inceput) ?? null;
         const autoCat = autoCategorie.get(s.id)!;
         // Co Vo Dao: se aleg doar forme de arme (inlantuiri thao_lo_individual), nu quyen Qwan Ki Do
         const tipProba = competitie.tip === 'cvd'
@@ -86,7 +86,7 @@ const Pas2SelectieQuyen: React.FC<Pas2QuyenProps> = ({
         const opts = grad ? (dreptMap.get(tipProba)?.get(grad.id) ?? []) : [];
         return { sportiv: s, grad, autoCat, opts };
       }),
-    [sportivi, selectedSportivi, autoCategorie, grade, dreptMap, competitie.tip]
+    [sportivi, selectedSportivi, autoCategorie, grade, dreptMap, competitie.tip, competitie.data_inceput]
   );
 
   /**

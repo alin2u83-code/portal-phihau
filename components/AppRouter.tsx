@@ -227,7 +227,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                                 <p className="text-slate-400 text-sm">Ce facem azi?</p>
                                             </header>
                                             {permissions.isAdminClub && !permissions.isFederationAdmin && (
-                                                <DeRezolvatCard sportivi={filteredData.sportivi} grupe={filteredData.grupe} plati={filteredData.plati} tipuriAbonament={filteredData.tipuriAbonament} onNavigate={setActiveView} />
+                                                <DeRezolvatCard sportivi={filteredData.sportivi} grupe={filteredData.grupe} plati={filteredData.plati} tipuriAbonament={filteredData.tipuriAbonament} grade={grade} onNavigate={setActiveView} />
                                             )}
                                             <Lazy.AdminMasterMap onNavigate={setActiveView} deconturiFederatie={filteredData.deconturiFederatie} inscrieriExamene={filteredData.inscrieriExamene} plati={filteredData.plati} currentUser={currentUser ?? null} />
                                         </div>

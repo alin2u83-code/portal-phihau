@@ -23,6 +23,31 @@ export interface EligibilitateResult {
 }
 
 /**
+ * Gradul cu care sportivul se prezinta la competitie: daca (minor) implineste pana la data competitiei
+ * varsta minima a gradului urmator (si nu o avea azi), se considera gradul urmator.
+ */
+export function gradEfectivLaData(sportiv: Sportiv, grade: Grad[], dataCompetitie: string): Grad | undefined {
+  const curent = grade.find(g => g.id === sportiv.grad_actual_id);
+  if (!curent || !sportiv.data_nasterii || sportiv.status !== 'Activ') return curent;
+  const azi = calculeazaVarstaLaData(sportiv.data_nasterii, new Date().toISOString().slice(0, 10));
+  const laComp = calculeazaVarstaLaData(sportiv.data_nasterii, dataCompetitie);
+  const tinta = gradTintaLaVarsta(curent, laComp, grade);
+  return tinta && !gradTintaLaVarsta(curent, azi, grade) ? tinta : curent;
+}
+
+/**
+ * Regula de varsta: grad galben (ordine 2-5) la 7 ani -> 1 Cap Rosu; grad rosu / centura violet (6-14) la 13 ani -> 1 Cap Albastru.
+ * Returneaza gradul tinta daca varsta a fost atinsa (minori), altfel undefined.
+ */
+export function gradTintaLaVarsta(curent: Grad, varsta: number, grade: Grad[]): Grad | undefined {
+  if (varsta >= 18) return undefined;
+  const ordineTinta = curent.ordine >= 2 && curent.ordine <= 5 && varsta >= 7 ? 6
+    : curent.ordine >= 6 && curent.ordine <= 14 && varsta >= 13 ? 15
+    : null;
+  return ordineTinta === null ? undefined : grade.find(g => g.ordine === ordineTinta);
+}
+
+/**
  * Verifică dacă un sportiv este eligibil pentru o categorie
  */
 export function verificaEligibilitate(
@@ -56,7 +81,7 @@ export function verificaEligibilitate(
 
   // Verificare grad
   if (sportiv.grad_actual_id) {
-    const gradSportiv = grade.find(g => g.id === sportiv.grad_actual_id);
+    const gradSportiv = gradEfectivLaData(sportiv, grade, dataCompetitie);
     if (gradSportiv) {
       if (categorie.grad_min_ordine !== null && gradSportiv.ordine < categorie.grad_min_ordine) {
         motive.push(`Grad insuficient (${gradSportiv.nume})`);

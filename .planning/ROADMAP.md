@@ -469,6 +469,31 @@ Plans:
 
 **Structura valurilor:** val 1 = {33-01} (audit + schema + activare, atomic: constrangerile noi rup functia veche); val 2 = {33-02 dupa 01, 33-03 dupa 01, 33-04 dupa 01}; val 3 = {33-05, 33-06, 33-07, 33-08 dupa 04; 33-10 dupa 02+03}; val 4 = {33-09 dupa 05+06+07+08+10}. Toate planurile sunt autonome (human_verify_mode = end-of-phase; lista de verificare umana in 33-09).
 
+### Phase 34: Simplificare UI — unificare sidebar + dashboard
+
+**Goal:** Stil vizual unic (minimalist, aerisit) pentru sidebar, header și dashboard-uri pe toate 4 rolurile, desktop + mobil. Meniu redus/regrupat (propunere aprobată de user înainte de cod). Apoi aceeași curățare pe Sportivi, Plăți-hub, Competiții, Grupe/Prezență/Examene. Se păstrează cele 20 teme/tokeni existenți. Mockup HTML + aprobare înainte de implementare. Valuri: 1) tokeni/shell, 2) dashboard-uri, 3) pagini principale.
+**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, UI-08, UI-09, UI-10, UI-11, UI-12, UI-13
+**Depends on:** Phase 33
+**Plans:** 13 plans
+
+Plans:
+
+- [ ] 34-01-PLAN.md — Tokeni si baza ui.tsx: Card/StatCard plate (fara umbra/blur), AccordionItem/Badge/Skeleton pe tokeni, baseline tsc, corectii UI-SPEC (Rezolva problema, exceptii 12/36/40px) (val 1)
+- [ ] 34-02-PLAN.md — Meniu 7/7/7/4 (menuConfig + Recente), NavMenu, RoleSwitcher, Sidebar fara buton Tema, BottomNav nou mobil (val 1)
+- [ ] 34-03-PLAN.md — Header + UserMenu (Protectia datelor, Istoric Activitate), TraseuMobil, NotificationBell, ThemeDropdown fara ping/pulse/umbre (val 1)
+- [ ] 34-04-PLAN.md — Strip-uri de tab-uri hub (Sportivi, Examene, Competitii, Fisa mea) + restilizare ActivitateSalaTabs, AppLayout (pb bottom nav, footer ascuns mobil), wrapper-e in AppRouter (val 1)
+- [ ] 34-05-PLAN.md — Dashboard-ul comun: De rezolvat (inclusiv federatie), 3 KPI, Actiuni rapide, Recente, Anunturi; AdminMasterMap fara acordeoane (val 2)
+- [ ] 34-06-PLAN.md — Dashboard federatie (desktop + mobil) si dashboard admin club pe StatCard plate, acordeoane eliminate (val 2)
+- [ ] 34-07-PLAN.md — Dashboard sportiv (5 blocuri + Detalii), TrainingActionCard, VizaMedicalaCard, AccountSettings cu Notificari push (val 2)
+- [ ] 34-08-PLAN.md — Widget-uri comune: EvenimenteWidget, HistoryModal, FamilieWidget pe tokeni (val 2)
+- [ ] 34-09-PLAN.md — Pagina Sportivi: antet fara h1, un singur primary, filtre inline, tabel pe tokeni (val 3)
+- [ ] 34-10-PLAN.md — Plati-hub: strip de tab-uri conform contractului, tabel de facturi pe tokeni, fara atingerea logicii financiare (val 3)
+- [ ] 34-11-PLAN.md — Competitii: lista si CompetitieFilterBar pe tokeni, filtrarea unificata AND neatinsa (val 3)
+- [ ] 34-12-PLAN.md — Grupe, Examene, Prezenta: antete fara h1, un primary, containere pe tokeni (val 3)
+- [ ] 34-13-PLAN.md — Poarta fazei: paritate meniu/hub + accesibilitate view-uri + contrast 20 teme, spec Playwright shell pe build, tsc vs baseline, lista de acceptare umana (val 4)
+
+**Structura valurilor:** val 1 = {34-01, 34-02, 34-03, 34-04} (fisiere disjuncte, independente); val 2 = {34-05 dupa 01+02+04; 34-06, 34-07, 34-08 dupa 01}; val 3 = {34-09, 34-10, 34-11, 34-12 dupa 01+04+05}; val 4 = {34-13 dupa toate}. Toate planurile sunt autonome (human_verify_mode = end-of-phase; lista de verificare umana in 34-13). Verificarile de browser se fac pe `vite build` + `preview`, nu pe dev (StrictMode).
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

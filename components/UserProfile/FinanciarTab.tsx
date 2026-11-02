@@ -1,6 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Sportiv, TipAbonament, Familie, Plata, Tranzactie } from '../../types';
-import { Card, Button, Modal } from '../ui';
+import { Card, Button, Modal, Select } from '../ui';
+import { supabase } from '../../supabaseClient';
+import { useData } from '../../contexts/DataContext';
+import { useError } from '../ErrorProvider';
+import { usePermissions } from '../../hooks/usePermissions';
+import { useSezonActiv } from '../../hooks/useSezoane';
+import { filtreazaTipuriSezon, gasesteTipDupaId, esteTipDinSezonArhivat } from '../../utils/abonamente';
 import { UsersIcon, ExclamationTriangleIcon, CalendarDaysIcon, EditIcon, TrashIcon, BanknotesIcon, CheckCircleIcon, WalletIcon, ChevronDownIcon, ChevronUpIcon, XCircleIcon, ClipboardListIcon } from '../icons';
 import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
 import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare';
@@ -117,6 +123,41 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
     const [selectedFactura, setSelectedFactura] = useState<FacturaEntry | null>(null);
     const [filter, setFilter] = useState<'toate' | 'neachitate' | 'achitate'>('toate');
 
+    const { setSportivi, activeRoleContext } = useData();
+    const { showError, showSuccess } = useError();
+    const permissions = usePermissions(activeRoleContext);
+    const { sezonActivId } = useSezonActiv(sportiv.club_id ?? null);
+    const poateSchimbaAbonament = (permissions.isAdminClub || permissions.isFederationAdmin) && !sportiv.familie_id;
+    const abonamentRef = useRef<HTMLDivElement>(null);
+    const [tipNouId, setTipNouId] = useState<string>(sportiv.tip_abonament_id || '');
+    const [isSavingAbonament, setIsSavingAbonament] = useState(false);
+
+    // Doar tipuri individuale din sezonul activ (sau valabile în orice sezon) ale clubului sportivului.
+    const tipuriDisponibile = useMemo(
+        () => filtreazaTipuriSezon(tipuriAbonament.filter(t => t.club_id === sportiv.club_id && t.numar_membri === 1), sezonActivId),
+        [tipuriAbonament, sportiv.club_id, sezonActivId]
+    );
+    const tipCurent = gasesteTipDupaId(tipuriAbonament, sportiv.tip_abonament_id);
+    // Membrii de familie plătesc prin planul familiei — fără tip individual e normal, nu semnalăm.
+    const necesitaReasignare = !sportiv.familie_id && (!tipCurent || esteTipDinSezonArhivat(tipCurent, sezonActivId));
+
+    // Venit din bannerul "reasignare manuală": ducem utilizatorul la zona de schimbare.
+    useEffect(() => {
+        if (necesitaReasignare) abonamentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, [necesitaReasignare, sportiv.id]);
+
+    useEffect(() => { setTipNouId(sportiv.tip_abonament_id || ''); }, [sportiv.id, sportiv.tip_abonament_id]);
+
+    const handleSalveazaAbonament = async () => {
+        if (!tipNouId || tipNouId === sportiv.tip_abonament_id) return;
+        setIsSavingAbonament(true);
+        const { error } = await supabase.from('sportivi').update({ tip_abonament_id: tipNouId }).eq('id', sportiv.id);
+        setIsSavingAbonament(false);
+        if (error) { showError('Eroare la schimbarea abonamentului', error.message); return; }
+        setSportivi(prev => prev.map(s => s.id === sportiv.id ? { ...s, tip_abonament_id: tipNouId } : s));
+        showSuccess('Abonament schimbat', 'Noul abonament a fost salvat. Facturile existente nu au fost modificate.');
+    };
+
     // Lunile facturilor de Abonament individuale din istoricFacturi — un singur
     // usePrezenteLunare la nivelul componentei (nu per card, ar produce N interogări).
     // Factura din listă nu poartă coloanele luna/an, deci căutăm plata originală în
@@ -208,13 +249,35 @@ export const FinanciarTab: React.FC<FinanciarTabProps> = ({
                     </div>
 
                     {/* Abonament */}
-                    <div>
+                    <div ref={abonamentRef} className={necesitaReasignare ? 'p-2 -m-2 rounded-xl ring-2 ring-amber-500/60' : ''}>
                         <p className="text-xs text-slate-300 font-medium mb-1.5">Abonament activ</p>
                         <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/40 text-sm text-white">
-                            {tipuriAbonament.find(t => t.id === sportiv.tip_abonament_id)?.denumire || (
+                            {tipCurent?.denumire || (
                                 <span className="text-slate-500 italic">Nespecificat</span>
                             )}
+                            {necesitaReasignare && tipCurent && (
+                                <span className="block text-xs text-amber-400 mt-1">Tip din sezon arhivat — alege un abonament nou mai jos.</span>
+                            )}
                         </div>
+                        {poateSchimbaAbonament && (
+                            <div className="mt-2 flex flex-col sm:flex-row gap-2 sm:items-end">
+                                <div className="flex-1">
+                                    <Select label="Schimbă abonamentul" value={tipNouId} onChange={e => setTipNouId(e.target.value)}>
+                                        <option value="">Alege abonament...</option>
+                                        {tipuriDisponibile.map(t => (
+                                            <option key={t.id} value={t.id}>{t.denumire}</option>
+                                        ))}
+                                    </Select>
+                                </div>
+                                <Button
+                                    onClick={handleSalveazaAbonament}
+                                    isLoading={isSavingAbonament}
+                                    disabled={!tipNouId || tipNouId === sportiv.tip_abonament_id}
+                                >
+                                    Salvează
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Familie */}

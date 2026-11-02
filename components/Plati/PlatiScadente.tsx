@@ -27,7 +27,7 @@ import { getPoliticiLoialitate } from '../../services/loialitateService';
 interface PlatiScadenteProps {
     onIncaseazaMultiple: (plati: Plata[]) => void;
     onBack: () => void;
-    onViewSportiv: (sportiv: Sportiv) => void;
+    onViewSportiv: (sportiv: Sportiv, tab?: 'financiar') => void;
     permissions: Permissions;
     // Faza 31 — setate de hub-ul Plăți & Facturi
     hideBackButton?: boolean;
@@ -901,7 +901,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                     <button
                                         key={s.id}
                                         type="button"
-                                        onClick={() => onViewSportiv(s)}
+                                        onClick={() => onViewSportiv(s, 'financiar')}
                                         className="text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-200 hover:border-amber-500 hover:text-amber-300 transition-colors"
                                     >
                                         {s.nume} {s.prenume}
@@ -927,7 +927,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                     <button
                                         key={s.id}
                                         type="button"
-                                        onClick={() => onViewSportiv(s)}
+                                        onClick={() => onViewSportiv(s, 'financiar')}
                                         className="text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-200 hover:border-amber-500 hover:text-amber-300 transition-colors"
                                     >
                                         {s.nume} {s.prenume}

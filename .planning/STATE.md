@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 34-12-PLAN.md
-last_updated: "2026-11-03T11:09:51.397Z"
+stopped_at: Completed 34-13-PLAN.md (faza 34 asteapta verificare umana)
+last_updated: "2026-11-03T11:18:17.973Z"
 last_activity: 2026-11-03 -- Phase 34 Wave 1 (34-01..34-04) executed and browser-checked
 progress:
   total_phases: 26
-  completed_phases: 15
+  completed_phases: 16
   total_plans: 95
-  completed_plans: 91
-  percent: 58
+  completed_plans: 92
+  percent: 62
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 34 (simplificare-ui-unificare-stil-sidebar-dashboard-4-roluri-de) — EXECUTING
-Plan: 12 of 13 complete (Wave 1 done; next: Wave 2 = 34-05..34-08)
+Plan: 13 of 13 complete (Wave 1 done; next: Wave 2 = 34-05..34-08)
 Status: Ready to execute
 Last activity: 2026-11-03 -- Phase 34 Wave 1 (34-01..34-04) executed and browser-checked
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 34 P09 | 15min | 2 tasks | 4 files |
 | Phase 34 P10 | 15min | 2 tasks | 2 files |
 | Phase 34 P11 | 12min | 2 tasks | 2 files |
+| Phase 34 P13 | 25min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,7 @@ Recent decisions affecting current work:
 - [Phase 31]: [31-09] Verificare live D-09: politici SELECT pe plati confirmate ca includ INSTRUCTOR via has_access_to_club (citire factura OK); politica UPDATE ramane neconfirmata, ramasa in lista de verificare umana end-of-phase pas 10
 - [Phase 34]: [Phase 34] [34-10] Singurul Button primary in PlatiScadente = Incaseaza N facturi selectate; restul actiunilor secondary
 - [Phase 34]: [34-11] Competitii: toggle colapsibil CompetitieFilterBar pastrat, doar panoul inline pe tokeni; STATUS_BADGE local, statusLabel.color/tipBadge raman pentru detaliu
+- [Phase 34]: 34-13: spec shell tema se aplica si dupa login (tema din DB suprascrie localStorage); capturile screens/ necomise
 
 ### Pending Todos
 
@@ -231,6 +233,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-11-03T11:09:51.383Z
-Stopped at: Completed 34-12-PLAN.md
+Last session: 2026-11-03T11:18:17.956Z
+Stopped at: Completed 34-13-PLAN.md (faza 34 asteapta verificare umana)
 Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md

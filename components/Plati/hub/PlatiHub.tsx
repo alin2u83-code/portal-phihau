@@ -2,7 +2,7 @@ import React, { useMemo, useEffect } from 'react';
 import type { User, Permissions, Plata, Sportiv } from '../../../types';
 import { useNavigation } from '../../../contexts/NavigationContext';
 import { Button } from '../../ui';
-import { ArrowLeftIcon, FileTextIcon, BanknotesIcon, ChartBarIcon, CogIcon } from '../../icons';
+import { ArrowLeftIcon } from '../../icons';
 import { MartialArtsSkeleton } from '../../MartialArtsSkeleton';
 import { TabFacturi } from './TabFacturi';
 import { TabRapoarte } from './TabRapoarte';
@@ -20,7 +20,7 @@ import {
 } from './platiHubConfig';
 
 /**
- * Shell-ul hub-ului "Plăți & Facturi" (Faza 31, D-01..D-05).
+ * Shell-ul hub-ului Plati (Faza 31, D-01..D-05).
  *
  * Cele 12 vederi financiare vechi (plati-scadente, gestiune-facturi,
  * facturi-fara-prezenta, jurnal-incasari, istoric-plati, raport-financiar,
@@ -49,12 +49,6 @@ export interface PlatiHubProps {
   platiPentruIncasare: Plata[];
   setPlatiPentruIncasare: (plati: Plata[]) => void;
 }
-
-const ICONITE_TABURI: Record<TabHub, React.ComponentType<{ className?: string }>> = {
-  facturi: FileTextIcon,
-  rapoarte: ChartBarIcon,
-  configurare: CogIcon,
-};
 
 export const PlatiHub: React.FC<PlatiHubProps> = ({
   currentUser,
@@ -142,60 +136,56 @@ export const PlatiHub: React.FC<PlatiHubProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <Button onClick={handleBack} variant="secondary" size="sm">
+      {/* Intoarcere (titlul paginii e in Header) */}
+      <div>
+        <Button onClick={handleBack} variant="secondary" ghost size="sm" className="min-h-11 lg:min-h-9">
           <ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu
         </Button>
-        <h1 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">
-          Plăți &amp; Facturi
-        </h1>
       </div>
 
-      {/* Bara de tab-uri */}
-      <div className="overflow-x-hidden -mx-4">
-        <div
-          role="tablist"
-          className="flex gap-1.5 overflow-x-auto pb-1 px-4 scroll-smooth scrollbar-hide"
-        >
-          {TABURI_HUB.map(tab => {
-            const IconitaTab = ICONITE_TABURI[tab];
-            const activ = pozitie.tab === tab;
-            return (
-              <button
-                key={tab}
-                role="tab"
-                aria-selected={activ}
-                onClick={() => schimbaPozitie(tab)}
-                style={{ touchAction: 'manipulation' }}
-                className={`shrink-0 h-9 flex items-center gap-1.5 px-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                  activ
-                    ? 'bg-brand-primary text-white shadow-md'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
-                }`}
-              >
-                <IconitaTab className="w-4 h-4 shrink-0" />
-                {ETICHETE_TABURI[tab]}
-              </button>
-            );
-          })}
-        </div>
+      {/* Strip de tab-uri (contractul HubTabs) */}
+      <div
+        role="tablist"
+        className="flex overflow-x-auto border-b border-[var(--t-border)] min-h-11 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {TABURI_HUB.map(tab => {
+          const activ = pozitie.tab === tab;
+          return (
+            <button
+              key={tab}
+              type="button"
+              role="tab"
+              aria-selected={activ}
+              aria-current={activ ? 'page' : undefined}
+              onClick={() => schimbaPozitie(tab)}
+              style={{ touchAction: 'manipulation' }}
+              className={`shrink-0 px-4 min-h-11 text-sm -mb-px border-b-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--t-input-focus-ring)] ${
+                activ
+                  ? 'font-semibold text-[var(--t-text)] border-[var(--t-primary)]'
+                  : 'font-normal border-transparent text-[var(--t-text-muted)] hover:text-[var(--t-text)]'
+              }`}
+            >
+              {ETICHETE_TABURI[tab]}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Pastile de secțiune — doar dacă tab-ul curent are mai mult de o secțiune */}
+      {/* Chip-uri de secțiune — doar dacă tab-ul curent are mai mult de o secțiune */}
       {sectiuniVizibile.length > 1 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {sectiuniVizibile.map(s => {
             const activ = pozitie.sectiune === s;
             return (
               <button
                 key={s}
+                type="button"
                 onClick={() => schimbaPozitie(pozitie.tab, s)}
                 style={{ touchAction: 'manipulation' }}
-                className={`h-8 px-3 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+                className={`rounded-lg min-h-11 lg:min-h-9 px-3 text-sm transition-colors whitespace-nowrap border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--t-input-focus-ring)] ${
                   activ
-                    ? 'bg-slate-600 text-white'
-                    : 'bg-slate-800/60 text-slate-400 hover:text-white border border-slate-700'
+                    ? 'font-semibold text-[var(--t-text)] bg-[var(--t-surface)] border-[var(--t-border)]'
+                    : 'font-normal text-[var(--t-text-muted)] border-transparent hover:text-[var(--t-text)]'
                 }`}
               >
                 {ETICHETE_SECTIUNI[s]}

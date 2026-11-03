@@ -71,7 +71,7 @@ const PrezenteFacturaRow: React.FC<{
                         <span className="text-xs text-slate-500 italic">Nicio prezență înregistrată în această lună.</span>
                     ) : (
                         datePrezente!.map(d => (
-                            <span key={d} className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600/40">
+                            <span key={d} className="text-xs font-normal px-1.5 py-0.5 rounded text-[var(--t-text-muted)] border border-[var(--t-border)]">
                                 {new Date(d).toLocaleDateString('ro-RO')}
                             </span>
                         ))
@@ -813,9 +813,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             {!hideBackButton && (
                 <Button onClick={onBack} variant="secondary"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
             )}
-            <h1 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Management Facturi & Plăți</h1>
-
-             <Card className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+             <Card className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                 {permissions.isSuperAdmin && (
                     <ClubSelect
                         clubs={clubs || []}
@@ -855,22 +853,22 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
             <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap gap-2">
-                    {permissions.isAdminClub && <Button onClick={handleGenerateSubscriptions} variant="info" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">Generează Abonamente</Button>}
+                    {permissions.isAdminClub && <Button onClick={handleGenerateSubscriptions} variant="secondary" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">Generează Abonamente</Button>}
                     {permissions.canManageFinances && (
-                        <Button onClick={() => setIsNotificariRestantieriOpen(true)} variant="primary" size="sm" className="flex-1 sm:flex-none justify-center">
+                        <Button onClick={() => setIsNotificariRestantieriOpen(true)} variant="secondary" size="sm" className="flex-1 sm:flex-none justify-center">
                             <ChatBubbleLeftEllipsisIcon className="w-4 h-4 mr-1" />
                             Trimite notificări restanțieri
                         </Button>
                     )}
                     {permissions.canManageFinances && selectedIds.size > 0 && (
-                        <Button onClick={handleNotifyOverdue} variant="warning" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">
+                        <Button onClick={handleNotifyOverdue} variant="secondary" size="sm" isLoading={isGenerating} className="flex-1 sm:flex-none justify-center">
                             <BellIcon className="w-4 h-4 mr-1"/>
                             Notifică {selectedIds.size} debitori
                         </Button>
                     )}
                 </div>
                 {permissions.canManageFinances && selectedIds.size > 0 && (
-                    <Button onClick={handleIncasareClick} variant="success" className="w-full sm:w-auto justify-center font-bold bg-green-800 hover:bg-green-700">
+                    <Button onClick={handleIncasareClick} variant="primary" className="w-full sm:w-auto justify-center">
                         <BanknotesIcon className="w-5 h-5 mr-2"/>
                         Încasează {selectedIds.size} facturi selectate
                     </Button>
@@ -946,12 +944,12 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     <table className="w-full text-left text-sm">
                         <thead>
                             <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
-                                <th className="p-3"><input type="checkbox" onChange={handleSelectAll} className="h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary" /></th>
-                                <th className="p-3">Data</th><th className="p-3">Plătitor</th><th className="p-3">Descriere</th>
-                                <th className="p-3 text-right">Sumă</th><th className="p-3 text-center">Status</th><th className="p-3 text-right">Acțiuni</th>
+                                <th className="p-3 text-xs font-semibold"><input type="checkbox" onChange={handleSelectAll} className="h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary" /></th>
+                                <th className="p-3 text-xs font-semibold">Data</th><th className="p-3 text-xs font-semibold">Plătitor</th><th className="p-3 text-xs font-semibold">Descriere</th>
+                                <th className="p-3 text-xs font-semibold text-right">Sumă</th><th className="p-3 text-xs font-semibold text-center">Status</th><th className="p-3 text-xs font-semibold text-right">Acțiuni</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[var(--t-border)]">
+                        <tbody className="divide-y divide-[var(--t-table-border)] text-[var(--t-text)]">
                             {platiCuDetalii.map(p => {
                                 const isExpanded = expandedId === p.id;
                                 const showPrezente = !!p.sportiv_id && !p.familie_id && p.tip === 'Abonament';
@@ -964,20 +962,20 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                 const inLucru = idInLucru === p.id;
                                 return (
                                     <React.Fragment key={p.id}>
-                                        <tr className={`${selectedIds.has(p.id) ? 'bg-brand-primary/20' : ''}`}>
+                                        <tr className={`hover:bg-[var(--t-table-row-hover)] ${selectedIds.has(p.id) ? 'bg-[var(--t-table-row-hover)]' : ''}`}>
                                             <td className="p-3"><input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => handleSelectRow(p.id)} disabled={esteAnulata(p)} title={esteAnulata(p) ? 'Factură anulată — nu poate fi selectată pentru încasare' : undefined} className="h-4 w-4 rounded border-[var(--t-border)] bg-[var(--t-surface)] text-brand-secondary focus:ring-brand-secondary disabled:opacity-30 disabled:cursor-not-allowed" /></td>
                                             <td className="p-3">{new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}</td>
-                                            <td className="p-3 font-medium text-white hover:text-brand-primary hover:underline cursor-pointer" style={{ touchAction: 'manipulation' }} onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!) }}>{getEntityName(p)}</td>
+                                            <td className="p-3 font-normal text-[var(--t-text)] hover:underline cursor-pointer" style={{ touchAction: 'manipulation' }} onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!) }}>{getEntityName(p)}</td>
                                             <td className="p-3">
                                                 <div className="flex items-center gap-2">
                                                     <div>
-                                                        <div className="font-medium text-white">{p.descriereDetaliata}</div>
-                                                        {p.reducereDetalii && <div className="text-xs text-slate-400">Aplicat: {p.reducereDetalii.nume}</div>}
+                                                        <div className="font-normal text-[var(--t-text)]">{p.descriereDetaliata}</div>
+                                                        {p.reducereDetalii && <div className="text-xs text-[var(--t-text-muted)]">Aplicat: {p.reducereDetalii.nume}</div>}
                                                     </div>
                                                     {showPrezente && luna && an && (
                                                         <button
                                                             onClick={() => setExpandedId(isExpanded ? null : p.id)}
-                                                            className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-sky-900/40 text-sky-400 border border-sky-700/40 hover:bg-sky-800/40 transition-colors shrink-0"
+                                                            className="flex items-center gap-1 text-xs font-normal px-1.5 py-0.5 rounded text-[var(--t-text-muted)] border border-[var(--t-border)] hover:text-[var(--t-text)] transition-colors shrink-0"
                                                             title="Prezențe în luna facturii"
                                                         >
                                                             <CalendarDaysIcon className="w-3 h-3" />
@@ -986,7 +984,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                     )}
                                                     {faraPrezenta && (
                                                         <span
-                                                            className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-900/30 text-amber-400 border border-amber-700/40 shrink-0"
+                                                            className="flex items-center gap-1 text-xs font-normal text-amber-500 shrink-0"
                                                             title="Sportivul nu are nicio prezență înregistrată în luna facturii"
                                                         >
                                                             <ExclamationTriangleIcon className="w-3 h-3" /> 0 prezențe
@@ -995,15 +993,15 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                 </div>
                                             </td>
                                             <td className="p-3 text-right">
-                                                <div className="font-bold text-white">{restDePlata(p).toFixed(2)} RON</div>
+                                                <div className="font-semibold text-[var(--t-text)]">{restDePlata(p).toFixed(2)} RON</div>
                                                 {p.reducereDetalii && p.suma_initiala && (
-                                                    <div className="text-xs text-slate-400">
+                                                    <div className="text-xs text-[var(--t-text-muted)]">
                                                         <span className="line-through">{p.suma_initiala.toFixed(2)}</span>
                                                         <span className="text-red-400 ml-1">(-{p.reducereDetalii.valoare.toFixed(2)})</span>
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="p-3 text-center">{(() => { const ds = getDisplayStatus(p); const cfg = STATUS_DISPLAY_CONFIG[ds]; return <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.cls}`}>{cfg.label}</span>; })()}</td>
+                                            <td className="p-3 text-center">{(() => { const ds = getDisplayStatus(p); const cfg = STATUS_DISPLAY_CONFIG[ds]; return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${cfg.cls}`}>{cfg.label}</span>; })()}</td>
                                             <td className="p-3 text-right">
                                                 <div className="flex justify-end gap-2">
                                                     {esteDeIncasat(p) && (
@@ -1056,7 +1054,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                         </tbody>
                     </table>
                     {platiCuDetalii.length === 0 && (
-                        <div className="p-12 text-center text-slate-500 italic">
+                        <div className="p-12 text-center text-[var(--t-text-muted)]">
                             <p>Nicio factură de afișat conform filtrelor.</p>
                             {(plati || []).length > 0 && <p className="text-xs mt-2">Există {(plati || []).length} plăți în total, dar sunt ascunse de filtre.</p>}
                         </div>
@@ -1068,8 +1066,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             <div className="md:hidden space-y-2">
                 {platiCuDetalii.length === 0 && (
                     <div className="bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl p-8 text-center">
-                        <p className="text-slate-500 italic">Nicio factură de afișat conform filtrelor.</p>
-                        {(plati || []).length > 0 && <p className="text-xs mt-2 text-slate-600">Există {(plati || []).length} plăți în total, dar sunt ascunse de filtre.</p>}
+                        <p className="text-[var(--t-text-muted)]">Nicio factură de afișat conform filtrelor.</p>
+                        {(plati || []).length > 0 && <p className="text-xs mt-2 text-[var(--t-text-muted)]">Există {(plati || []).length} plăți în total, dar sunt ascunse de filtre.</p>}
                     </div>
                 )}
                 {platiCuDetalii.map(p => {
@@ -1083,7 +1081,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                         && !prezenteSet.data?.has(cheiePrezenta(p.sportiv_id as string, luna, an));
                     const inLucru = idInLucru === p.id;
                     return (
-                        <div key={p.id} className={`bg-[var(--t-bg)] border rounded-xl overflow-hidden ${selectedIds.has(p.id) ? 'border-indigo-500/60' : 'border-[var(--t-border)]'}`}>
+                        <div key={p.id} className={`bg-[var(--t-bg)] border rounded-xl overflow-hidden ${selectedIds.has(p.id) ? 'border-[var(--t-primary)]' : 'border-[var(--t-border)]'}`}>
                             <div className="px-4 py-3">
                                 <div className="flex items-start gap-3">
                                     <input
@@ -1098,20 +1096,20 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0">
                                                 <p
-                                                    className="text-white font-semibold text-sm truncate cursor-pointer hover:text-indigo-300"
+                                                    className="text-[var(--t-text)] font-semibold text-sm truncate cursor-pointer hover:underline"
                                                     onClick={() => { if(p.sportiv_id) onViewSportiv(sportivi.find(s=>s.id === p.sportiv_id)!); }}
                                                 >
                                                     {getEntityName(p)}
                                                 </p>
-                                                <p className="text-slate-400 text-xs mt-0.5 truncate">{p.descriereDetaliata}</p>
+                                                <p className="text-[var(--t-text-muted)] text-xs mt-0.5 truncate">{p.descriereDetaliata}</p>
                                                 {p.reducereDetalii && (
-                                                    <p className="text-xs text-slate-500 mt-0.5">Reducere: {p.reducereDetalii.nume}</p>
+                                                    <p className="text-xs text-[var(--t-text-muted)] mt-0.5">Reducere: {p.reducereDetalii.nume}</p>
                                                 )}
                                             </div>
                                             <div className="shrink-0 text-right">
-                                                <p className="text-white font-bold text-sm whitespace-nowrap">{restDePlata(p).toFixed(2)} RON</p>
+                                                <p className="text-[var(--t-text)] font-semibold text-sm whitespace-nowrap">{restDePlata(p).toFixed(2)} RON</p>
                                                 {p.reducereDetalii && p.suma_initiala && (
-                                                    <p className="text-xs text-slate-500">
+                                                    <p className="text-xs text-[var(--t-text-muted)]">
                                                         <span className="line-through">{p.suma_initiala.toFixed(2)}</span>
                                                     </p>
                                                 )}
@@ -1119,15 +1117,15 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                         </div>
                                         <div className="flex items-center justify-between mt-2">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-xs text-slate-500">
+                                                <span className="text-xs text-[var(--t-text-muted)]">
                                                     {new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}
                                                 </span>
-                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${cfg.cls}`}>{cfg.label}</span>
+                                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full border ${cfg.cls}`}>{cfg.label}</span>
                                                 {/* PLF-01: buton expandare prezențe pe mobile */}
                                                 {showPrezente && luna && an && (
                                                     <button
                                                         onClick={() => setExpandedId(isExpanded ? null : p.id)}
-                                                        className="flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-sky-900/40 text-sky-400 border border-sky-700/40"
+                                                        className="flex items-center gap-0.5 text-xs font-normal px-1.5 py-0.5 rounded text-[var(--t-text-muted)] border border-[var(--t-border)]"
                                                         title="Prezențe"
                                                     >
                                                         <CalendarDaysIcon className="w-3 h-3" />
@@ -1136,7 +1134,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                 )}
                                                 {faraPrezenta && (
                                                     <span
-                                                        className="flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-900/30 text-amber-400 border border-amber-700/40"
+                                                        className="flex items-center gap-0.5 text-xs font-normal text-amber-500"
                                                         title="Sportivul nu are nicio prezență înregistrată în luna facturii"
                                                     >
                                                         <ExclamationTriangleIcon className="w-3 h-3" /> 0 prezențe

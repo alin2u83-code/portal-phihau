@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Permissions, Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, SolicitareEchipaIncompleta, Sportiv, Grad, TipProba } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
-import { Button, Card, ConfirmModal } from '../ui';
+import { Button, Card, Badge, ConfirmModal } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { TIP_PROBA_LABELS, TIP_COMPETITIE_LABELS } from '../../utils/competitiiTemplates';
@@ -36,6 +36,10 @@ interface CompetitiiProps {
 }
 
 type View = 'list' | 'detail' | 'inscrieri';
+
+const STATUS_BADGE: Record<string, 'green' | 'amber' | 'blue' | 'slate'> = {
+  draft: 'slate', inscrieri_deschise: 'green', inscrieri_inchise: 'amber', finalizata: 'blue',
+};
 
 // -----------------------------------------------
 // COMPETITION DETAIL (categories + registrations view)
@@ -158,7 +162,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           <ArrowLeftIcon className="w-4 h-4" />
         </Button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-bold text-white">{competitie.denumire}</h2>
+          <h2 className="text-base font-semibold text-[var(--t-text)]">{competitie.denumire}</h2>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${tipBadge[competitie.tip]}`}>
               {tipuriLabelsCtx.get(competitie.tip) ?? TIP_COMPETITIE_LABELS[competitie.tip as keyof typeof TIP_COMPETITIE_LABELS] ?? competitie.tip}
@@ -255,7 +259,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
       </div>
 
       {loading ? (
-        <div className="text-center text-slate-400 py-12">Se încarcă...</div>
+        <div className="text-center text-sm text-[var(--t-text-muted)] py-12">Se încarcă...</div>
       ) : (
         <>
           {/* CATEGORII TAB */}
@@ -739,10 +743,9 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
           <Button variant="secondary" size="sm" onClick={onBack} className="!p-2">
             <ArrowLeftIcon className="w-4 h-4" />
           </Button>
-          <h2 className="text-xl font-bold text-white">Competiții Qwan Ki Do</h2>
         </div>
         {isAdmin && (
-          <Button variant="success" onClick={() => { setEditComp(null); setFormOpen(true); }}>
+          <Button variant="primary" className="min-h-11 lg:min-h-10" onClick={() => { setEditComp(null); setFormOpen(true); }}>
             <PlusIcon className="w-4 h-4 mr-1" /> Adaugă Competiție
           </Button>
         )}
@@ -755,50 +758,48 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Caută competiție..."
-          className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-sm text-white placeholder-slate-500"
+          className="w-full bg-[var(--t-input-bg)] border border-[var(--t-border)] text-[var(--t-text)] placeholder:text-[var(--t-text-muted)] rounded-lg h-11 lg:h-10 px-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--t-input-focus-ring)]"
         />
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {Object.entries(statusLabel).map(([k, { label, color }]) => (
-          <div key={k} className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-            <div className="text-xl font-bold text-white">{competitii.filter(c => c.status === k).length}</div>
-            <div className={`text-xs mt-0.5 px-1.5 py-0.5 rounded-full inline-block ${color}`}>{label}</div>
-          </div>
+        {Object.entries(statusLabel).map(([k, { label }]) => (
+          <Card key={k} className="md:p-6">
+            <div className="text-2xl font-semibold text-[var(--t-text)]">{competitii.filter(c => c.status === k).length}</div>
+            <div className="text-xs font-semibold text-[var(--t-text-muted)] mt-0.5">{label}</div>
+          </Card>
         ))}
         {legacyEvents.length > 0 && (
-          <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-            <div className="text-xl font-bold text-white">{legacyEvents.length}</div>
-            <div className="text-xs mt-0.5 px-1.5 py-0.5 rounded-full inline-block bg-slate-700 text-slate-300">Legacy</div>
-          </div>
+          <Card className="md:p-6">
+            <div className="text-2xl font-semibold text-[var(--t-text)]">{legacyEvents.length}</div>
+            <div className="text-xs font-semibold text-[var(--t-text-muted)] mt-0.5">Legacy</div>
+          </Card>
         )}
       </div>
 
       {/* List */}
       {loading ? (
-        <div className="text-center text-slate-400 py-12">Se încarcă...</div>
+        <div className="text-center text-sm text-[var(--t-text-muted)] py-12">Se încarcă...</div>
       ) : (
         <div className="space-y-2">
           {filteredCompetitii.map(comp => (
             <Card
               key={comp.id}
-              className="p-4 cursor-pointer hover:border-brand-primary/50 transition-colors"
+              className="p-4 cursor-pointer hover:border-[var(--t-primary)] transition-colors"
               style={{ touchAction: 'manipulation' }}
               onClick={() => { savedScrollRef.current = window.scrollY; setSelectedComp(comp); ssSet(SS_KEY_COMP_ID, comp.id); setView('detail'); }}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-bold text-white">{comp.denumire}</h3>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${tipBadge[comp.tip]}`}>
+                    <h3 className="text-base font-semibold text-[var(--t-text)]">{comp.denumire}</h3>
+                    <Badge variant={STATUS_BADGE[comp.status] ?? 'slate'}>{statusLabel[comp.status]?.label}</Badge>
+                    <span className="text-xs text-[var(--t-text-muted)]">
                       {tipuriLabels.get(comp.tip) ?? TIP_COMPETITIE_LABELS[comp.tip as keyof typeof TIP_COMPETITIE_LABELS] ?? comp.tip}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${statusLabel[comp.status]?.color}`}>
-                      {statusLabel[comp.status]?.label}
-                    </span>
                   </div>
-                  <div className="text-sm text-slate-400 mt-1">
+                  <div className="text-sm text-[var(--t-text-muted)] mt-1">
                     {fmtDate(comp.data_inceput)} – {fmtDate(comp.data_sfarsit)}
                     {comp.locatie && ` · ${comp.locatie}`}
                     {comp.deadline_inscrieri && ` · Deadline: ${fmtDate(comp.deadline_inscrieri)}`}

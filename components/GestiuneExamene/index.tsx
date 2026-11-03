@@ -265,8 +265,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
   return ( 
     <div>
       <Button onClick={onBack} variant="secondary" className="mb-6"><ArrowLeftIcon className="w-5 h-5 mr-2" /> Meniu</Button>
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">Gestiune Sesiuni Examen</h1>
+      <div className="flex flex-wrap items-center justify-end mb-6 gap-2">
         {!isReadOnly && (
             <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
                 {canGenerateInvoice && (
@@ -277,7 +276,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                 <Button onClick={() => setShowImportTutorial(true)} variant="secondary" className="w-full sm:w-auto justify-center">
                     <BookOpenIcon className="w-4 h-4 mr-2" /> Ghid Import
                 </Button>
-                 <Button onClick={() => setIsBulkImportModalOpen(true)} variant="info" className="w-full sm:w-auto justify-center">
+                 <Button onClick={() => setIsBulkImportModalOpen(true)} variant="secondary"className="w-full sm:w-auto justify-center">
                     <UploadCloudIcon className="w-5 h-5 mr-2" /> Import Bulk Examen
                 </Button>
                 <Button onClick={() => { setSesiuneToEdit(null); setIsFormOpen(true); }} variant="primary" className="w-full sm:w-auto justify-center">
@@ -287,12 +286,12 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
         )}
       </div>
       {/* Bloc filtre perioadă */}
-      <div className="mb-4 bg-[var(--t-surface-2)] border border-[var(--t-border)] rounded-xl p-4 space-y-3">
+      <div className="mb-4 bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl p-4 space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-end gap-4">
           {/* De la: Lună + An */}
           <div className="flex flex-col sm:flex-row gap-2 flex-1">
             <div className="flex-1">
-              <label className="block text-xs font-medium text-slate-400 mb-1">De la — Lună</label>
+              <label className="block text-xs font-semibold text-[var(--t-text-muted)] mb-1">De la — Lună</label>
               <SearchableSelect
                 value={monthFrom}
                 onChange={val => setMonthFrom(val)}
@@ -302,7 +301,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               />
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-medium text-slate-400 mb-1">De la — An</label>
+              <label className="block text-xs font-semibold text-[var(--t-text-muted)] mb-1">De la — An</label>
               <SearchableSelect
                 value={yearFrom}
                 onChange={val => setYearFrom(val)}
@@ -315,13 +314,13 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
 
           {/* Separator vizual */}
           <div className="hidden lg:flex items-end pb-[10px]">
-            <span className="text-slate-500 text-sm font-medium px-1">—</span>
+            <span className="text-[var(--t-text-muted)] text-sm font-semibold px-1">—</span>
           </div>
 
           {/* Până la: Lună + An */}
           <div className="flex flex-col sm:flex-row gap-2 flex-1">
             <div className="flex-1">
-              <label className="block text-xs font-medium text-slate-400 mb-1">Până la — Lună</label>
+              <label className="block text-xs font-semibold text-[var(--t-text-muted)] mb-1">Până la — Lună</label>
               <SearchableSelect
                 value={monthTo}
                 onChange={val => setMonthTo(val)}
@@ -331,7 +330,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               />
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-medium text-slate-400 mb-1">Până la — An</label>
+              <label className="block text-xs font-semibold text-[var(--t-text-muted)] mb-1">Până la — An</label>
               <SearchableSelect
                 value={yearTo}
                 onChange={val => setYearTo(val)}
@@ -348,7 +347,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               <button
                 type="button"
                 onClick={clearDateFilter}
-                className="w-full lg:w-auto px-4 py-2 text-xs font-medium text-[var(--t-text-muted)] bg-[var(--t-surface)] hover:bg-[var(--t-table-row-hover)] border border-[var(--t-border)] rounded-lg transition-colors whitespace-nowrap"
+                className="w-full lg:w-auto px-4 h-11 lg:h-10 text-xs font-semibold text-[var(--t-text-muted)] bg-[var(--t-surface)] hover:bg-[var(--t-table-row-hover)] border border-[var(--t-border)] rounded-lg transition-colors whitespace-nowrap"
               >
                 Resetează filtrele de perioadă
               </button>
@@ -358,7 +357,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
 
         {/* Rezumat interval activ */}
         {hasDateFilter && (yearFrom || yearTo) && (
-          <div className="text-xs text-amber-400/80 font-medium">
+          <div className="text-xs text-[var(--t-primary)] font-semibold">
             Interval activ:{' '}
             {yearFrom
               ? `${monthFrom ? LUNI[Number(monthFrom) - 1] : 'Ianuarie'} ${yearFrom}`
@@ -372,7 +371,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
 
         {/* Shortcut-uri perioadă */}
         <div className="flex flex-nowrap overflow-x-auto gap-2 pb-1 scrollbar-none">
-          <span className="shrink-0 text-xs text-slate-400 self-center pr-1">Rapid:</span>
+          <span className="shrink-0 text-xs text-[var(--t-text-muted)] self-center pr-1">Rapid:</span>
           {[
             { label: 'Ultimele 6 luni', value: 'last6months' as const },
             { label: 'Anul acesta', value: 'thisYear' as const },
@@ -382,7 +381,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
               key={sc.value}
               type="button"
               onClick={() => applyShortcut(sc.value)}
-              className="shrink-0 px-3 py-1 text-xs font-medium rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] bg-[var(--t-surface-2)] hover:bg-amber-400/20 hover:border-amber-400 hover:text-amber-400 transition-colors"
+              className="shrink-0 px-3 h-11 lg:h-10 text-xs font-semibold rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] bg-[var(--t-surface-2)] hover:border-[var(--t-primary)] hover:text-[var(--t-primary)] transition-colors"
             >
               {sc.label}
             </button>
@@ -421,29 +420,29 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                 return (
                     <Card
                         key={s.id}
-                        className="sesiune-card flex flex-col group bg-slate-800/60 border border-slate-700/50 hover:border-amber-400/40 transition-colors rounded-lg"
+                        className="sesiune-card flex flex-col group bg-[var(--t-surface)] border border-[var(--t-border)] hover:border-[var(--t-primary)] transition-colors rounded-lg"
                         style={cardStyle}
                     >
                         <div className="flex-grow">
                             <div className="flex justify-between items-start">
-                                <span className={`px-2 py-1 text-xs font-bold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-300' : 'bg-sky-600/30 text-sky-300'}`}>
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-600' : 'bg-[var(--t-primary)]/20 text-[var(--t-primary)]'}`}>
                                     {s.status || 'Programat'}
                                 </span>
-                                <span className="text-sm font-bold text-slate-300">{new Date((s.data || s.data_examen || '').toString().slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO')}</span>
+                                <span className="text-sm font-semibold text-[var(--t-text-muted)]">{new Date((s.data || s.data_examen || '').toString().slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO')}</span>
                             </div>
-                            <h3 className="text-lg font-bold text-white mt-3 group-hover:text-amber-400 transition-colors">{s.locatie_nume || (locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
-                            <p className="text-xs text-slate-400">{s.club_nume || (s.club_id ? (((clubs || []).find(c => c.id === s.club_id))?.nume || 'Club Necunoscut') : 'Eveniment Federație')}</p>
+                            <h3 className="text-base font-semibold text-[var(--t-text)] mt-3 group-hover:text-[var(--t-primary)] transition-colors">{s.locatie_nume || (locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>
+                            <p className="text-xs text-[var(--t-text-muted)]">{s.club_nume || (s.club_id ? (((clubs || []).find(c => c.id === s.club_id))?.nume || 'Club Necunoscut') : 'Eveniment Federație')}</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-[var(--border-color)] flex justify-between items-center">
                             <div className="text-sm">
-                                <span className="font-bold text-white">{(inscrieri || []).filter(i => i.sesiune_id === s.id).length || s.nr_inscrisi || 0}</span>
-                                <span className="text-slate-400"> participanți</span>
+                                <span className="font-semibold text-[var(--t-text)]">{(inscrieri || []).filter(i => i.sesiune_id === s.id).length || s.nr_inscrisi || 0}</span>
+                                <span className="text-[var(--t-text-muted)]"> participanți</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Button size="sm" variant="info" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
+                                <Button size="sm" variant="secondary" onClick={() => setSelectedSesiuneId(s.id)}>Vezi Detalii</Button>
                                 {!isReadOnly && (
                                     <>
-                                        <Button size="sm" variant="warning" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
+                                        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSesiuneToEdit(s); setIsFormOpen(true); }}><EditIcon className="w-4 h-4" /></Button>
                                         <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setSesiuneToDelete(s); }}><TrashIcon className="w-4 h-4" /></Button>
                                     </>
                                 )}
@@ -453,7 +452,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                 )
             })}
             {(sortedSesiuni || []).length === 0 && (
-              <p className="col-span-full p-6 text-center text-slate-400">
+              <p className="col-span-full p-6 text-center text-[var(--t-text-muted)]">
                 {hasDateFilter || locationFilter || statusFilter || (isFederationAdmin && clubFilter)
                   ? 'Nicio sesiune în intervalul și filtrele selectate.'
                   : 'Nicio sesiune programată.'}

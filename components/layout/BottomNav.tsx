@@ -16,7 +16,7 @@ interface Slot { label: string; view: View; icon: React.ElementType }
 const SLOTS_FEDERATIE: Slot[] = [
     { label: 'Acasă', view: 'dashboard', icon: HomeIcon },
     { label: 'Sportivi', view: 'sportivi', icon: UsersIcon },
-    { label: 'Financiar', view: 'plati-hub', icon: BanknotesIcon },
+    { label: 'Plăți', view: 'plati-hub', icon: BanknotesIcon },
 ];
 const SLOTS_CLUB: Slot[] = [
     { label: 'Acasă', view: 'dashboard', icon: HomeIcon },

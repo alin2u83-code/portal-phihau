@@ -51,7 +51,6 @@ export const COMPETITII_HUB: HubDef = {
     enabledFor: 'instructor',
     tabs: [
         { view: 'competitii', label: 'Competiții' },
-        { view: 'stagii', label: 'Stagii' },
         { view: 'activitati-nationale', label: 'Activități Naționale' },
         { view: 'template-probe', label: 'Template Probe', minRole: 'clubAdmin' },
     ],

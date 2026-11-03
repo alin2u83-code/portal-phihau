@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { adminMenu, adminClubMenu, instructorMenu, sportivMenu, type MenuItem } from '../components/menuConfig';
 import { SPORTIVI_HUB, EXAMENE_HUB, COMPETITII_HUB, FISA_HUB, type HubDef } from '../components/layout/HubTabs';
 import { ACTIVITATE_SALA_GRUPURI } from '../components/ActivitateSalaTabs';
+import { SECTIUNI_PE_TAB } from '../components/Plati/hub/platiHubConfig';
 import { PREDEFINED_THEMES, QWANKIDO_BLUE } from '../lib/themes';
 
 const root = process.cwd(); // se ruleaza din radacina repo
@@ -32,10 +33,10 @@ const viewuriItem = (i: MenuItem) => viewuriDinMeniu([i]);
 
 const MENIURI: Record<string, MenuItem[]> = { adminMenu, adminClubMenu, instructorMenu, sportivMenu };
 
-// Test 1: 7/7/7/4
+// Test 1: 8/8/8/4
 {
-    const asteptat: Record<string, number> = { adminMenu: 7, adminClubMenu: 7, instructorMenu: 7, sportivMenu: 4 };
-    rezultat('1. numar intrari nivel 1 (7/7/7/4)',
+    const asteptat: Record<string, number> = { adminMenu: 8, adminClubMenu: 8, instructorMenu: 8, sportivMenu: 4 };
+    rezultat('1. numar intrari nivel 1 (8/8/8/4)',
         Object.entries(MENIURI).filter(([k, m]) => m.length !== asteptat[k]).map(([k, m]) => `${k}: ${m.length} != ${asteptat[k]}`));
 }
 
@@ -44,6 +45,29 @@ const MENIURI: Record<string, MenuItem[]> = { adminMenu, adminClubMenu, instruct
     const erori: string[] = [];
     for (const [k, m] of Object.entries(MENIURI)) for (const v of viewuriDinMeniu(m)) if (!VIEW.has(v)) erori.push(`${k}: '${v}' nu e in uniunea View`);
     rezultat('2. view/aliases valide in types.ts View', erori);
+}
+
+// Test 3b: Stagii separat + Plati simplu + hub Plati acoperit (UAT 34)
+{
+    const erori: string[] = [];
+    for (const nume of ['adminMenu', 'adminClubMenu', 'instructorMenu']) {
+        const menu = MENIURI[nume];
+        if (!menu.some(i => i.view === 'stagii')) erori.push(`${nume}: lipseste intrarea de nivel 1 'stagii'`);
+        const comp = menu.find(i => i.view === 'competitii');
+        if (comp && viewuriItem(comp).has('stagii')) erori.push(`${nume}: Competitii acopera inca 'stagii'`);
+    }
+    if (COMPETITII_HUB.tabs.some(t => t.view === 'stagii')) erori.push("COMPETITII_HUB contine inca tab 'stagii'");
+    const sectiuniView = Object.values(SECTIUNI_PE_TAB).flat().filter(s => s !== 'sumar-incasari');
+    for (const nume of ['adminMenu', 'adminClubMenu']) {
+        const plati = MENIURI[nume].find(i => i.view === 'plati-hub');
+        if (!plati) { erori.push(`${nume}: lipseste intrarea de nivel 1 'plati-hub'`); continue; }
+        if (plati.submenu?.length) erori.push(`${nume}: intrarea Plati are inca submeniu`);
+        const acoperite = viewuriItem(plati);
+        for (const s of sectiuniView) if (!acoperite.has(s)) erori.push(`${nume}: Plati nu acopera '${s}'`);
+    }
+    for (const [nume, menu] of Object.entries(MENIURI))
+        if (menu.some(i => i.label === 'Financiar')) erori.push(`${nume}: mai are intrare 'Financiar'`);
+    rezultat('3b. Stagii separat + Plati simplu + hub Plati acoperit', erori);
 }
 
 // Test 3: paritate hub <-> meniu

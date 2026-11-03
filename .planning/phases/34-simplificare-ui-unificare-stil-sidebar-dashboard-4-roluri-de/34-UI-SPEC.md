@@ -411,3 +411,12 @@ Diacriticele corecte (ă, â, î, ș, ț) obligatorii în toate textele noi (cf.
 - [ ] Dimension 6 Registry Safety: PASS
 
 **Approval:** approved (user, mockup aprobat 2026-11-02)
+
+## Corectii post-UAT (2026-11-03)
+
+Aceasta sectiune are prioritate asupra tabelelor de mai sus.
+
+- Card "De rezolvat" -> titlu si aria-label "Necesită atenție" (UAT-2).
+- Stagii = intrare separata de nivel 1 in meniurile de staff; hub Competitii = Competiții | Activități Naționale | Template Probe (UAT-1).
+- "Financiar" (submeniu) -> intrare simpla "Plăți" catre plati-hub in adminMenu/adminClubMenu; Deconturi Federație / Vacanțe Antrenamente / Echipamente / Vânzări sunt tab-uri in hub (Echipamente si Vânzări doar ADMIN_CLUB) (UAT-3).
+- Bilant meniu: 8/8/8/4 in loc de 7/7/7/4; slotul bottom nav federatie se numeste "Plăți".

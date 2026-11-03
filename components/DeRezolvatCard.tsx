@@ -25,7 +25,7 @@ interface DeRezolvatCardProps {
     onNavigate: (view: View) => void;
 }
 
-// Card "De rezolvat": setup lipsa + sportivi activi fara grupa / factura pe luna curenta.
+// Card "Necesită atenție": setup lipsa + sportivi activi fara grupa / factura pe luna curenta.
 // Calcul client-side pe datele deja incarcate (fara query-uri noi).
 export const DeRezolvatCard: React.FC<DeRezolvatCardProps> = ({ sportivi, grupe, plati, tipuriAbonament, grade, probleme: problemeExterne, onNavigate }) => {
     const { sezonActivId } = useSezonActivCurent();
@@ -120,9 +120,9 @@ export const DeRezolvatCard: React.FC<DeRezolvatCardProps> = ({ sportivi, grupe,
 
     return (
         <Card className="md:p-6">
-            <section aria-label="De rezolvat">
+            <section aria-label="Necesită atenție">
                 <h2 className="flex items-center gap-2 text-base font-semibold text-[var(--t-text)]">
-                    <ExclamationTriangleIcon className="w-5 h-5 text-[var(--t-text-muted)]" /> De rezolvat ({probleme.length})
+                    <ExclamationTriangleIcon className="w-5 h-5 text-[var(--t-text-muted)]" /> Necesită atenție ({probleme.length})
                 </h2>
                 <ul className="mt-3 divide-y divide-[var(--t-border)]">
                     {probleme.map(p => (

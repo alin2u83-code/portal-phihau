@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from '../types';
 import {
     HomeIcon, UsersIcon, TrophyIcon, BanknotesIcon, CalendarDaysIcon,
-    ClipboardCheckIcon, CogIcon, FileTextIcon, ChartBarIcon, BellIcon,
+    ClipboardCheckIcon, CogIcon, FileTextIcon, ChartBarIcon, BellIcon, BookOpenIcon,
 } from './icons';
 
 export interface MenuItem {
@@ -28,29 +28,25 @@ export interface SubMenuItem {
 // Aliasuri comune hub-urilor (view-urile tab-urilor lor)
 const ALIASES_SPORTIVI: View[] = ['familii', 'legitimatii', 'cereri-inscriere', 'cereri-gdpr', 'import-sportivi', 'deduplicare-sportivi'];
 const ALIASES_EXAMENE: View[] = ['rapoarte-examen', 'audit-grade'];
-const ALIASES_COMPETITII: View[] = ['stagii', 'activitati-nationale', 'template-probe'];
+const ALIASES_COMPETITII: View[] = ['activitati-nationale', 'template-probe'];
 const ALIASES_ANTRENAMENTE: View[] = ['sezoane', 'prezenta', 'prezenta-instructor', 'program-antrenamente', 'calendar', 'activitati', 'raport-prezenta', 'raport-lunar-prezenta'];
 const ALIASES_PLATI: View[] = [
     'plati-scadente', 'gestiune-facturi', 'facturi-fara-prezenta', 'jurnal-incasari', 'raport-financiar',
     'financial-dashboard', 'tipuri-abonament', 'configurare-preturi', 'reduceri', 'taxe-anuale', 'nomenclatoare',
+    'deconturi-federatie', 'perioade-vacanta', 'produse', 'vanzari-produse',
 ];
 
 const acasa: MenuItem = { label: 'Acasă', icon: HomeIcon, view: 'dashboard' };
+const stagii: MenuItem = { label: 'Stagii', icon: BookOpenIcon, view: 'stagii' };
 
-// Meniu pentru Adminii de Federație (7 intrări)
+// Meniu pentru Adminii de Federație (8 intrări)
 export const adminMenu: MenuItem[] = [
     acasa,
     { label: 'Sportivi', icon: UsersIcon, view: 'sportivi', aliases: ALIASES_SPORTIVI },
     { label: 'Examene', icon: ClipboardCheckIcon, view: 'examene', aliases: ALIASES_EXAMENE },
     { label: 'Competiții', icon: TrophyIcon, view: 'competitii', aliases: ALIASES_COMPETITII },
-    {
-        label: 'Financiar', icon: BanknotesIcon,
-        submenu: [
-            { label: 'Plăți & Facturi', view: 'plati-hub', aliases: ALIASES_PLATI },
-            { label: 'Deconturi Federație', view: 'deconturi-federatie' },
-            { label: 'Vacanțe Antrenamente', view: 'perioade-vacanta' },
-        ]
-    },
+    stagii,
+    { label: 'Plăți', icon: BanknotesIcon, view: 'plati-hub', aliases: ALIASES_PLATI },
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
     {
         label: 'Administrare', icon: CogIcon,
@@ -72,23 +68,15 @@ export const adminMenu: MenuItem[] = [
     },
 ];
 
-// Meniu pentru Admin Club (7 intrări)
+// Meniu pentru Admin Club (8 intrări)
 export const adminClubMenu: MenuItem[] = [
     acasa,
     { label: 'Sportivi', icon: UsersIcon, view: 'sportivi', aliases: ALIASES_SPORTIVI },
     { label: 'Antrenamente', icon: CalendarDaysIcon, view: 'grupe', aliases: ALIASES_ANTRENAMENTE },
     { label: 'Examene', icon: ClipboardCheckIcon, view: 'examene', aliases: ALIASES_EXAMENE },
     { label: 'Competiții', icon: TrophyIcon, view: 'competitii', aliases: ALIASES_COMPETITII },
-    {
-        label: 'Financiar', icon: BanknotesIcon,
-        submenu: [
-            { label: 'Plăți & Facturi', view: 'plati-hub', aliases: ALIASES_PLATI },
-            { label: 'Deconturi Federație', view: 'deconturi-federatie' },
-            { label: 'Vacanțe Antrenamente', view: 'perioade-vacanta' },
-            { label: 'Echipamente', view: 'produse' },
-            { label: 'Vânzări', view: 'vanzari-produse' },
-        ]
-    },
+    stagii,
+    { label: 'Plăți', icon: BanknotesIcon, view: 'plati-hub', aliases: ALIASES_PLATI },
     {
         label: 'Administrare', icon: CogIcon,
         submenu: [
@@ -101,13 +89,14 @@ export const adminClubMenu: MenuItem[] = [
     },
 ];
 
-// Meniu pentru Instructori (7 intrări)
+// Meniu pentru Instructori (8 intrări)
 export const instructorMenu: MenuItem[] = [
     acasa,
     { label: 'Sportivi', icon: UsersIcon, view: 'sportivi' },
     { label: 'Antrenamente', icon: CalendarDaysIcon, view: 'grupe', aliases: ALIASES_ANTRENAMENTE },
     { label: 'Examene', icon: ClipboardCheckIcon, view: 'examene' },
-    { label: 'Competiții', icon: TrophyIcon, view: 'competitii', aliases: ['stagii', 'activitati-nationale'] },
+    { label: 'Competiții', icon: TrophyIcon, view: 'competitii', aliases: ['activitati-nationale'] },
+    stagii,
     { label: 'Rapoarte', icon: ChartBarIcon, view: 'rapoarte' },
     { label: 'Notificări', icon: BellIcon, view: 'notificari' },
 ];

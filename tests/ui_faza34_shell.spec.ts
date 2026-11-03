@@ -83,12 +83,12 @@ for (const vp of VIEWPORTS) for (const tema of TEME) {
             await bottom.getByRole('button', { name: 'Meniu' }).click();
         }
 
-        // (3) 7 intrari de nivel 1 (admin/instructor) sau 4 (sportiv)
+        // (3) 8 intrari de nivel 1 (admin/instructor) sau 4 (sportiv)
         const nav = page.locator('nav[aria-label="Navigare principală"]:visible').first();
         await expect(nav).toBeVisible();
         const sportiv = await nav.getByText('Portalul Meu').count() > 0;
         const intrari = await nav.locator(':scope > *').count();
-        expect(intrari, `intrari nivel 1 (${sportiv ? 'rol SPORTIV' : 'rol admin/instructor'})`).toBe(sportiv ? 4 : 7);
+        expect(intrari, `intrari nivel 1 (${sportiv ? 'rol SPORTIV' : 'rol admin/instructor'})`).toBe(sportiv ? 4 : 8);
 
         // (5) fara pageerror
         expect(erori, 'pageerror').toEqual([]);

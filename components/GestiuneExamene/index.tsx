@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SesiuneExamen, InscriereExamen, Sportiv, Grad, Locatie, Plata, PretConfig, User, Club, DecontFederatie, View, IstoricGrade } from '../../types';
-import { Button, Modal, Input, Select, Card, ClubSelect, SearchableSelect } from '../ui';
+import { Button, Modal, Input, Select, Card, ClubSelect, SearchableSelect, Badge } from '../ui';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, FileTextIcon, UploadCloudIcon, BookOpenIcon } from '../icons';
 import { MartialArtsSkeleton } from '../MartialArtsSkeleton';
 import { supabase } from '../../supabaseClient';
@@ -425,9 +425,7 @@ export const GestiuneExamene: React.FC<GestiuneExameneProps> = ({ onBack, onNavi
                     >
                         <div className="flex-grow">
                             <div className="flex justify-between items-start">
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${s.status === 'Finalizat' ? 'bg-green-600/30 text-green-600' : 'bg-[var(--t-primary)]/20 text-[var(--t-primary)]'}`}>
-                                    {s.status || 'Programat'}
-                                </span>
+                                <Badge variant={s.status === 'Finalizat' ? 'green' : 'blue'}>{s.status || 'Programat'}</Badge>
                                 <span className="text-sm font-semibold text-[var(--t-text-muted)]">{new Date((s.data || s.data_examen || '').toString().slice(0, 10) + 'T00:00:00').toLocaleDateString('ro-RO')}</span>
                             </div>
                             <h3 className="text-base font-semibold text-[var(--t-text)] mt-3 group-hover:text-[var(--t-primary)] transition-colors">{s.locatie_nume || (locatii || []).find(l => l.id === s.locatie_id)?.nume || 'Locație Nespecificată'}</h3>

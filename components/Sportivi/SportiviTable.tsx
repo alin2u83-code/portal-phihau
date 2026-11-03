@@ -118,10 +118,10 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
                 title={s.status === 'Activ' ? 'Click pentru a marca Inactiv' : 'Click pentru a marca Activ'}
                 className="cursor-pointer hover:opacity-75 transition-opacity"
             >
-                <Badge variant={s.status === 'Activ' ? 'green' : 'slate'}>{s.status}</Badge>
+                <Badge variant={s.status === 'Activ' ? 'green' : s.status === 'Inactiv' ? 'red' : 'slate'}>{s.status}</Badge>
             </button>
         ) : (
-            <Badge variant={s.status === 'Activ' ? 'green' : 'slate'}>{s.status}</Badge>
+            <Badge variant={s.status === 'Activ' ? 'green' : s.status === 'Inactiv' ? 'red' : 'slate'}>{s.status}</Badge>
         )
     },
     { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament.", render: (s) => {
@@ -174,7 +174,7 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
                 <p className="font-semibold text-[var(--t-text)] text-base mb-1">{formatNume(sportiv)}</p>
                 <div className="flex items-center gap-2 mb-2">
                     <GradBadge grad={grad} />
-                    <Badge variant={sportiv.status === 'Activ' ? 'green' : 'slate'}>{sportiv.status}</Badge>
+                    <Badge variant={sportiv.status === 'Activ' ? 'green' : sportiv.status === 'Inactiv' ? 'red' : 'slate'}>{sportiv.status}</Badge>
                 </div>
                 <p className="text-sm text-[var(--t-text-muted)]">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
               </div>

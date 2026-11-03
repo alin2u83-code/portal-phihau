@@ -43,7 +43,12 @@ for (const vp of VIEWPORTS) for (const tema of TEME) {
         await expect(header.or(rol).or(page.getByText(/cod|MFA|verificare/i).first())).toBeVisible({ timeout: 30_000 });
         if (await rol.isVisible()) await page.locator('button:has(p.font-semibold)').first().click();
         const ajuns = await header.waitFor({ timeout: 20_000 }).then(() => true, () => false);
-        test.skip(!ajuns, 'Header-ul nu apare (MFA / rol indisponibil): MFA nu se ocoleste');
+        if (!ajuns) {
+            // Skip doar cand MFA e vizibil; orice alt motiv (login esuat, atribut redenumit, crash) pica testul.
+            const mfa = await page.getByText(/cod de verificare|autentificare în doi pași|MFA/i).first().isVisible().catch(() => false);
+            test.skip(mfa, 'MFA cerut: MFA nu se ocoleste');
+            await expect(header, 'Header-ul nu apare dupa login (nu e MFA)').toBeVisible({ timeout: 1_000 });
+        }
 
         await aplicaTema(page, tema as any);
         await page.waitForTimeout(500);

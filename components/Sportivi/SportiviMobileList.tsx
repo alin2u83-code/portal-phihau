@@ -56,7 +56,7 @@ export const SportiviMobileList: React.FC<SportiviMobileListProps> = (props) => 
                   <p className="font-semibold text-[var(--t-text)] text-base mb-1">{formatNume(sportiv)}</p>
                   <div className="flex items-center gap-2">
                     <GradBadge grad={grad} />
-                    <Badge variant={sportiv.status === 'Activ' ? 'green' : 'slate'}>{sportiv.status}</Badge>
+                    <Badge variant={sportiv.status === 'Activ' ? 'green' : sportiv.status === 'Inactiv' ? 'red' : 'slate'}>{sportiv.status}</Badge>
                   </div>
                   <p className="text-sm text-[var(--t-text-muted)] mt-2">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
                 </div>

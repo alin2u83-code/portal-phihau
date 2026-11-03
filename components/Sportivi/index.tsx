@@ -917,7 +917,7 @@ export const Sportivi: React.FC<{
                         <Button variant="secondary" size="sm" onClick={() => handleBulkStatusUpdate('Activ')} disabled={bulkLoading}>
                             Marchează Activ
                         </Button>
-                        <Button variant="secondary" size="sm" onClick={() => handleBulkStatusUpdate('Inactiv')} disabled={bulkLoading}>
+                        <Button variant="danger" size="sm" onClick={() => openConfirm(`Marchezi ${selectedSportivIds.size} sportivi ca Inactiv? Abonamentele lor neachitate vor fi anulate.`, () => handleBulkStatusUpdate('Inactiv'), { title: 'Marchează Inactiv', confirmLabel: 'Marchează Inactiv', variant: 'danger' })} disabled={bulkLoading}>
                             Marchează Inactiv
                         </Button>
                         <Button variant="secondary" size="sm" onClick={() => setSelectedSportivIds(new Set())} disabled={bulkLoading}>

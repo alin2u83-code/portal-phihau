@@ -474,7 +474,7 @@ Plans:
 **Goal:** Stil vizual unic (minimalist, aerisit) pentru sidebar, header și dashboard-uri pe toate 4 rolurile, desktop + mobil. Meniu redus/regrupat (propunere aprobată de user înainte de cod). Apoi aceeași curățare pe Sportivi, Plăți-hub, Competiții, Grupe/Prezență/Examene. Se păstrează cele 20 teme/tokeni existenți. Mockup HTML + aprobare înainte de implementare. Valuri: 1) tokeni/shell, 2) dashboard-uri, 3) pagini principale.
 **Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, UI-08, UI-09, UI-10, UI-11, UI-12, UI-13
 **Depends on:** Phase 33
-**Plans:** 13/15 plans complete
+**Plans:** 15/15 plans complete
 
 Plans:
 
@@ -491,8 +491,8 @@ Plans:
 - [x] 34-11-PLAN.md — Competitii: lista si CompetitieFilterBar pe tokeni, filtrarea unificata AND neatinsa (val 3)
 - [x] 34-12-PLAN.md — Grupe, Examene, Prezenta: antete fara h1, un primary, containere pe tokeni (val 3)
 - [x] 34-13-PLAN.md — Poarta fazei: paritate meniu/hub + accesibilitate view-uri + contrast 20 teme, spec Playwright shell pe build, tsc vs baseline, lista de acceptare umana (val 4)
-- [ ] 34-14-PLAN.md — Gap closure UAT: Deconturi Federatie, Vacante Antrenamente, Echipamente, Vanzari devin tab-uri in hub-ul plati-hub (platiHubConfig extins + teste, TabDeconturiEchipamente, AppRouter) (val 1 gap)
-- [ ] 34-15-PLAN.md — Gap closure UAT: Stagii intrare separata, Financiar -> Plati simplu (meniu 8/8/8/4), card "Necesita atentie", teste de paritate/shell actualizate (val 2 gap, dupa 34-14)
+- [x] 34-14-PLAN.md — Gap closure UAT: Deconturi Federatie, Vacante Antrenamente, Echipamente, Vanzari devin tab-uri in hub-ul plati-hub (platiHubConfig extins + teste, TabDeconturiEchipamente, AppRouter) (val 1 gap)
+- [x] 34-15-PLAN.md — Gap closure UAT: Stagii intrare separata, Financiar -> Plati simplu (meniu 8/8/8/4), card "Necesita atentie", teste de paritate/shell actualizate (val 2 gap, dupa 34-14)
 
 **Structura valurilor:** val 1 = {34-01, 34-02, 34-03, 34-04} (fisiere disjuncte, independente); val 2 = {34-05 dupa 01+02+04; 34-06, 34-07, 34-08 dupa 01}; val 3 = {34-09, 34-10, 34-11, 34-12 dupa 01+04+05}; val 4 = {34-13 dupa toate}. Toate planurile sunt autonome (human_verify_mode = end-of-phase; lista de verificare umana in 34-13). Verificarile de browser se fac pe `vite build` + `preview`, nu pe dev (StrictMode).
 

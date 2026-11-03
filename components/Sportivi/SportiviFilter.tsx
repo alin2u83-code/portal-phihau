@@ -34,7 +34,7 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
   ].filter(Boolean).length;
 
   const filterContent = (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 items-end gap-2">
       <div data-tour="sportivi-search">
         <Input
           label="Caută sportiv"
@@ -90,25 +90,25 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
 
   if (isMobile) {
     return (
-      <div data-tutorial="sportivi-filter" className="rounded-lg bg-slate-800/50 overflow-hidden">
+      <div data-tutorial="sportivi-filter" className="rounded-xl border border-[var(--t-border)] bg-[var(--t-surface)] overflow-hidden">
         {/* Toggle bar */}
         <button
           onClick={() => setIsExpanded(prev => !prev)}
-          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-white"
+          className="w-full flex items-center justify-between px-4 min-h-11 text-sm font-semibold text-[var(--t-text)]"
         >
           <span className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-[var(--t-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
             </svg>
             Filtre
             {activeCount > 0 && (
-              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-amber-500 text-black">
+              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold rounded-full bg-[var(--t-primary)] text-[var(--t-primary-fg)]">
                 {activeCount}
               </span>
             )}
           </span>
           <svg
-            className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-[var(--t-text-muted)] transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
             fill="none" stroke="currentColor" viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -117,13 +117,13 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
 
         {/* Expandable content */}
         {isExpanded && (
-          <div className="px-4 pb-4 border-t border-slate-700">
+          <div className="px-4 pb-4 border-t border-[var(--t-border)]">
             <div className="pt-3">
               {filterContent}
             </div>
             <button
               onClick={() => setIsExpanded(false)}
-              className="mt-3 w-full py-2 rounded-lg bg-amber-500 text-black text-sm font-bold"
+              className="mt-3 w-full min-h-11 rounded-lg border border-[var(--t-border)] bg-[var(--t-surface-2)] text-[var(--t-text)] text-sm font-semibold"
             >
               Aplică filtre →
             </button>
@@ -134,7 +134,7 @@ export const SportiviFilter: React.FC<SportiviFilterProps> = ({ filters, onFilte
   }
 
   return (
-    <div data-tutorial="sportivi-filter" className="rounded-lg bg-slate-800/50 p-4">
+    <div data-tutorial="sportivi-filter" className="py-2">
       {filterContent}
     </div>
   );

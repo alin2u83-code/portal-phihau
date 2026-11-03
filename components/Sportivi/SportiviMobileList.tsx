@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sportiv, Familie, Grupa, Grad } from '../../types';
-import { Card, Button, RoleBadge } from '../ui';
+import { Card, Button, RoleBadge, Badge } from '../ui';
 import { GradBadge } from '../../utils/grades';
 import { formatNume } from '../../utils/formatareSportiv';
 import { RestanteButton } from './RestanteSportiv';
@@ -36,7 +36,7 @@ export const SportiviMobileList: React.FC<SportiviMobileListProps> = (props) => 
     <div>
       <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
         {['nume', 'grad_actual_id', 'status'].map(key => (
-          <Button key={key} size="sm" variant={sortConfig.some(s => s.key === key) ? 'primary' : 'secondary'} onClick={() => requestSort(key)}>
+          <Button key={key} size="sm" className="min-h-11" variant="secondary" onClick={() => requestSort(key)}>
             {key === 'nume' ? 'Nume' : key === 'grad_actual_id' ? 'Grad' : 'Status'}
             {sortConfig.find(s => s.key === key)?.direction === 'asc' ? ' ▲' : sortConfig.find(s => s.key === key)?.direction === 'desc' ? ' ▼' : ''}
           </Button>
@@ -50,20 +50,23 @@ export const SportiviMobileList: React.FC<SportiviMobileListProps> = (props) => 
           const grad = grade.find(g => g.id === sportiv.grad_actual_id);
 
           return (
-            <Card key={sportiv.id} id={`row-${sportiv.id}`} onClick={() => onRowClick(sportiv)} className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
+            <Card key={sportiv.id} id={`row-${sportiv.id}`} onClick={() => onRowClick(sportiv)} className="p-4 min-h-11">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-bold text-white text-lg mb-1">{formatNume(sportiv)}</p>
-                  <GradBadge grad={grad} />
-                  <p className="text-sm text-slate-400 mt-2">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
+                  <p className="font-semibold text-[var(--t-text)] text-base mb-1">{formatNume(sportiv)}</p>
+                  <div className="flex items-center gap-2">
+                    <GradBadge grad={grad} />
+                    <Badge variant={sportiv.status === 'Activ' ? 'green' : 'slate'}>{sportiv.status}</Badge>
+                  </div>
+                  <p className="text-sm text-[var(--t-text-muted)] mt-2">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
                 </div>
                 <div className="flex flex-wrap gap-1 justify-end">
                   {(sportiv.roluri || []).map(r => <RoleBadge key={r.id} role={r} />)}
                 </div>
               </div>
               {(familie || restante.length > 0) && (
-                <div className="mt-4 pt-4 border-t border-slate-700 flex flex-wrap items-center justify-between gap-2">
-                  {familie && <p className="text-xs text-slate-300">Familia {familie.nume}</p>}
+                <div className="mt-4 pt-4 border-t border-[var(--t-table-border)] flex flex-wrap items-center justify-between gap-2">
+                  {familie && <p className="text-xs font-semibold text-[var(--t-text-muted)]">Familia {familie.nume}</p>}
                   <RestanteButton facturi={restante} onDeschideFactura={onDeschideFactura} className="ml-auto" />
                 </div>
               )}

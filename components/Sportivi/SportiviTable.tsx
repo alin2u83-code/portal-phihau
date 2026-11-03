@@ -3,7 +3,7 @@ import { Sportiv, Grupa, Grad } from '../../types';
 import type { SortConfigEntry } from '../../hooks/useSortConfig';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { GradBadge } from '../../utils/grades';
-import { Button, Card, RoleBadge } from '../ui';
+import { Button, Card, RoleBadge, Badge } from '../ui';
 import { EditIcon, ShieldCheckIcon, TrashIcon, LockIcon } from '../icons';
 import { getAge } from '../../utils/date';
 import { formatNume } from '../../utils/formatareSportiv';
@@ -61,13 +61,13 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
         stopRowClick: true,
         renderHeader: () => (
             <input type="checkbox" checked={allSelected} onChange={toggleAll}
-                className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-brand-primary cursor-pointer" />
+                className="w-4 h-4 rounded border-[var(--t-border)] bg-[var(--t-input-bg)] accent-[var(--t-primary)] cursor-pointer" />
         ),
         render: (s: Sportiv) => (
             <div onClick={e => e.stopPropagation()}>
                 <input type="checkbox" checked={selectedIds?.has(s.id) ?? false}
                     onChange={e => toggleOne(s.id, e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-brand-primary cursor-pointer" />
+                    className="w-4 h-4 rounded border-[var(--t-border)] bg-[var(--t-input-bg)] accent-[var(--t-primary)] cursor-pointer" />
             </div>
         ),
     } as Column<Sportiv>] : []),
@@ -77,11 +77,11 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
         tooltip: "Numele complet al sportivului.",
         render: (s) => (
             <div className="flex flex-col">
-                <div className="font-bold text-white hover:text-brand-primary">
+                <div className="font-semibold text-[var(--t-text)]">
                     {formatNume(s)}
-                    <span className="ml-2 text-slate-400 font-normal">({getAge(s.data_nasterii)} ani)</span>
+                    <span className="ml-2 text-[var(--t-text-muted)] font-normal">({getAge(s.data_nasterii)} ani)</span>
                 </div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-mono">
+                <div className="text-xs font-semibold text-[var(--t-text-muted)]">
                     {s.username || s.email || 'Fără cont'}
                 </div>
             </div>
@@ -116,14 +116,12 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
             <button
                 onClick={(e) => { e.stopPropagation(); onToggleStatus(s); }}
                 title={s.status === 'Activ' ? 'Click pentru a marca Inactiv' : 'Click pentru a marca Activ'}
-                className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer hover:opacity-75 transition-opacity ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                className="cursor-pointer hover:opacity-75 transition-opacity"
             >
-                {s.status}
+                <Badge variant={s.status === 'Activ' ? 'green' : 'slate'}>{s.status}</Badge>
             </button>
         ) : (
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                {s.status}
-            </span>
+            <Badge variant={s.status === 'Activ' ? 'green' : 'slate'}>{s.status}</Badge>
         )
     },
     { key: 'grupa_id', label: 'Grupă', tooltip: "Grupa de antrenament.", render: (s) => {
@@ -170,17 +168,15 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
       const grupa = grupe.find(g => g.id === sportiv.grupa_id);
 
       return (
-          <Card className={`border-l-4 ${sportiv.status === 'Activ' ? 'border-green-500' : 'border-slate-600'}`}>
+          <Card className="p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-bold text-white text-lg mb-1">{formatNume(sportiv)}</p>
+                <p className="font-semibold text-[var(--t-text)] text-base mb-1">{formatNume(sportiv)}</p>
                 <div className="flex items-center gap-2 mb-2">
                     <GradBadge grad={grad} />
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${sportiv.status === 'Activ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {sportiv.status}
-                    </span>
+                    <Badge variant={sportiv.status === 'Activ' ? 'green' : 'slate'}>{sportiv.status}</Badge>
                 </div>
-                <p className="text-sm text-slate-400">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
+                <p className="text-sm text-[var(--t-text-muted)]">{getAge(sportiv.data_nasterii)} ani - {grupa?.denumire || 'Fără grupă'}</p>
               </div>
               <div className="flex flex-wrap gap-1 justify-end max-w-[100px]">
                 {(sportiv.roluri || []).map(r => <RoleBadge key={r.id} role={r} />)}
@@ -191,7 +187,7 @@ export const SportiviTable: React.FC<SportiviTableProps> = (props) => {
                     <RestanteButton facturi={restanteDe(sportiv)} onDeschideFactura={onDeschideFactura} />
                 </div>
             )}
-            <div className="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center">
+            <div className="mt-4 pt-4 border-t border-[var(--t-table-border)] flex justify-between items-center">
                 <div className="flex gap-2">
                      <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); onEdit(sportiv); }} className="!p-2">
                         <EditIcon className="w-4 h-4" />

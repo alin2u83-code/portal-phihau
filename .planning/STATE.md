@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: milestone
 status: executing
 stopped_at: Completed 34-09-PLAN.md
-last_updated: "2026-11-03T10:57:46.816Z"
+last_updated: "2026-11-03T11:01:56.780Z"
 last_activity: 2026-11-03 -- Phase 34 Wave 1 (34-01..34-04) executed and browser-checked
 progress:
   total_phases: 26
   completed_phases: 15
   total_plans: 95
-  completed_plans: 88
+  completed_plans: 89
   percent: 58
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 34 (simplificare-ui-unificare-stil-sidebar-dashboard-4-roluri-de) — EXECUTING
-Plan: 9 of 13 complete (Wave 1 done; next: Wave 2 = 34-05..34-08)
+Plan: 10 of 13 complete (Wave 1 done; next: Wave 2 = 34-05..34-08)
 Status: Ready to execute
 Last activity: 2026-11-03 -- Phase 34 Wave 1 (34-01..34-04) executed and browser-checked
 
@@ -72,6 +72,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 34 P06 | 20min | 2 tasks | 4 files |
 | Phase 34 P07 | 20min | 3 tasks | 4 files |
 | Phase 34 P09 | 15min | 2 tasks | 4 files |
+| Phase 34 P10 | 15min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,7 @@ Recent decisions affecting current work:
 - [Phase 31]: [31-08] istoric-plati exclus din grupul de 12 case-uri aliasate - ramura ternara canManageFinances ? platiHubElement : IstoricPlati standalone, singura vedere financiara fara guard folosita de SPORTIV
 - [Phase 31]: [31-09] Punct unic de intrare 'Plati & Facturi' livrat pe AdminMasterMap/menuConfig/UnifiedDashboard/ReportsDashboard; icons neutilizate (TrendingUpIcon/MinusCircleIcon/ExclamationTriangleIcon) eliminate din AdminMasterMap dupa consolidare
 - [Phase 31]: [31-09] Verificare live D-09: politici SELECT pe plati confirmate ca includ INSTRUCTOR via has_access_to_club (citire factura OK); politica UPDATE ramane neconfirmata, ramasa in lista de verificare umana end-of-phase pas 10
+- [Phase 34]: [Phase 34] [34-10] Singurul Button primary in PlatiScadente = Incaseaza N facturi selectate; restul actiunilor secondary
 
 ### Pending Todos
 
@@ -227,6 +229,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-11-03T10:57:46.801Z
+Last session: 2026-11-03T11:01:52.047Z
 Stopped at: Completed 34-09-PLAN.md
 Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md

@@ -221,8 +221,9 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          {!hideBackButton && (
+        {/* În hub-ul Plăți (hideBackButton) tab-ul hub-ului dă deja titlul — fără h1 duplicat */}
+        {!hideBackButton && (
+          <div className="flex items-center gap-3">
             <button
               onClick={onBack}
               className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl transition-colors"
@@ -230,14 +231,14 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
             >
               <ArrowLeftIcon className="w-5 h-5" />
             </button>
-          )}
-          <div>
-            <h1 className="text-xl font-bold text-white">Echipamente</h1>
-            <p className="text-slate-400 text-sm">Catalog produse club</p>
+            <div>
+              <h1 className="text-xl font-bold text-white">Echipamente</h1>
+              <p className="text-slate-400 text-sm">Catalog produse club</p>
+            </div>
           </div>
-        </div>
+        )}
         {canManage && activeTab === 'catalog' && (
-          <Button onClick={openNew} leftIcon={<PlusIcon className="w-4 h-4" />}>
+          <Button className="ml-auto" onClick={openNew} leftIcon={<PlusIcon className="w-4 h-4" />}>
             Produs Nou
           </Button>
         )}
@@ -513,9 +514,9 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
       {activeTab === 'vanzari' && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-white">Vânzări Echipamente</h2>
+            {!hideBackButton && <h2 className="text-lg font-bold text-white">Vânzări Echipamente</h2>}
             {canManage && (
-              <Button onClick={() => setShowVanzareModal(true)}>+ Vânzare Nouă</Button>
+              <Button className="ml-auto" onClick={() => setShowVanzareModal(true)}>+ Vânzare Nouă</Button>
             )}
           </div>
 

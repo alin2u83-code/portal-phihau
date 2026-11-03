@@ -27,6 +27,13 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
   const { showError, showSuccess } = useError();
   const isSuperAdmin = useMemo(() => currentUser.roluri.some(r => r.nume === 'SUPER_ADMIN_FEDERATIE' || r.nume === 'ADMIN'), [currentUser]);
 
+  // Clubul utilizatorului primul (implicit), apoi restul alfabetic
+  const cluburiOrdonate = useMemo(() => [...(clubs || [])].sort((a, b) => {
+      if (a.id === currentUser.club_id) return -1;
+      if (b.id === currentUser.club_id) return 1;
+      return (a.nume || '').localeCompare(b.nume || '', 'ro');
+  }), [clubs, currentUser.club_id]);
+
   useEffect(() => {
       if (isOpen) {
           if (sesiuneToEdit) {
@@ -54,7 +61,7 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
                   locatie_id: '',
                   comisia: [],
                   nume: 'Vara',
-                  club_id: isSuperAdmin ? '' : currentUser.club_id
+                  club_id: currentUser.club_id || ''
               });
               setComisieEntries([]);
           }
@@ -87,8 +94,8 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
     };
 
   return ( <>
-  <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "Editează Sesiune Examen" : "Adaugă Sesiune Nouă"}>
-    <form onSubmit={handleSubmit} className="space-y-4">
+  <Modal isOpen={isOpen} onClose={onClose} title={sesiuneToEdit ? "Editează Sesiune Examen" : "Adaugă Sesiune Nouă"} headerActions={<Button variant="success" type="submit" form="sesiune-examen-form" isLoading={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button>}>
+    <form id="sesiune-examen-form" onSubmit={handleSubmit} className="space-y-4">
         <Input label="Data Examenului" name="data" type="date" value={formState.data} onChange={handleChange} required />
         <Select label="Sesiunea" name="nume" value={formState.nume || 'Vara'} onChange={handleChange} required>
             <option value="Vara">Vara</option>
@@ -96,8 +103,13 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
         </Select>
         {isSuperAdmin && (
             <Select label="Club Organizator" name="club_id" value={formState.club_id || ''} onChange={handleChange}>
-                <option value="">Federație (eveniment central)</option>
-                {(clubs || []).map(c => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                {cluburiOrdonate.map((c, i) => (
+                    <React.Fragment key={c.id}>
+                        <option value={c.id}>{c.nume}</option>
+                        {i === (cluburiOrdonate[0]?.id === currentUser.club_id ? 0 : -1) && <option value="">Federație (eveniment central)</option>}
+                    </React.Fragment>
+                ))}
+                {cluburiOrdonate[0]?.id !== currentUser.club_id && <option value="">Federație (eveniment central)</option>}
             </Select>
         )}
         <div className="flex items-end gap-2">
@@ -110,7 +122,6 @@ export const SesiuneForm: React.FC<SesiuneFormProps> = ({ isOpen, onClose, onSav
             <Button type="button" variant="secondary" onClick={() => setIsLocatieModalOpen(true)} className="h-[50px] w-[50px] !p-0 flex items-center justify-center flex-shrink-0" title="Adaugă locație nouă"><PlusIcon className="w-6 h-6"/></Button>
         </div>
         <ComisieMembriEditor entries={comisieEntries} setEntries={setComisieEntries} />
-        <div className="flex justify-end pt-4 space-x-2"><Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Anulează</Button><Button variant="success" type="submit" isLoading={loading}>{loading ? 'Se salvează...' : 'Salvează'}</Button></div>
     </form>
   </Modal>
   <LocatieFormModal isOpen={isLocatieModalOpen} onClose={() => setIsLocatieModalOpen(false)} onSave={handleSaveLocatie} />

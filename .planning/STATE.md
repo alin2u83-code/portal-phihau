@@ -4,7 +4,7 @@ milestone: v1.1
 milestone_name: milestone
 status: executing
 stopped_at: Completed 34-09-PLAN.md
-last_updated: "2026-11-03T11:05:37.807Z"
+last_updated: "2026-11-03T11:05:46.435Z"
 last_activity: 2026-11-03 -- Phase 34 Wave 1 (34-01..34-04) executed and browser-checked
 progress:
   total_phases: 26
@@ -73,6 +73,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 34 P07 | 20min | 3 tasks | 4 files |
 | Phase 34 P09 | 15min | 2 tasks | 4 files |
 | Phase 34 P10 | 15min | 2 tasks | 2 files |
+| Phase 34 P11 | 12min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,7 @@ Recent decisions affecting current work:
 - [Phase 31]: [31-09] Punct unic de intrare 'Plati & Facturi' livrat pe AdminMasterMap/menuConfig/UnifiedDashboard/ReportsDashboard; icons neutilizate (TrendingUpIcon/MinusCircleIcon/ExclamationTriangleIcon) eliminate din AdminMasterMap dupa consolidare
 - [Phase 31]: [31-09] Verificare live D-09: politici SELECT pe plati confirmate ca includ INSTRUCTOR via has_access_to_club (citire factura OK); politica UPDATE ramane neconfirmata, ramasa in lista de verificare umana end-of-phase pas 10
 - [Phase 34]: [Phase 34] [34-10] Singurul Button primary in PlatiScadente = Incaseaza N facturi selectate; restul actiunilor secondary
+- [Phase 34]: [34-11] Competitii: toggle colapsibil CompetitieFilterBar pastrat, doar panoul inline pe tokeni; STATUS_BADGE local, statusLabel.color/tipBadge raman pentru detaliu
 
 ### Pending Todos
 

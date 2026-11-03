@@ -849,38 +849,35 @@ export const Sportivi: React.FC<{
                     numeSportiv={credentialeModal.numeSportiv}
                 />
             )}
-            {/* Header */}
-            <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                    <Button variant="secondary" size="sm" onClick={onBack}>
-                        <ArrowLeftIcon className="w-4 h-4 mr-1" />
-                        Înapoi
-                    </Button>
-                    <h1 className="text-lg md:text-2xl font-bold text-white uppercase tracking-tight">Management Sportivi</h1>
-                </div>
+            {/* Header: titlul vine din Header-ul aplicatiei (D-05) */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <Button variant="secondary" size="sm" onClick={onBack} className="min-h-11 lg:min-h-10">
+                    <ArrowLeftIcon className="w-4 h-4 mr-1" />
+                    Înapoi
+                </Button>
                 {permissions.hasAdminAccess && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="ml-auto flex flex-wrap gap-2">
                         <Button
                             variant="secondary"
                             size="sm"
                             onClick={() => setIsExportTableOpen(true)}
-                            className="touch-manipulation min-h-[40px]"
+                            className="touch-manipulation min-h-11 lg:min-h-10"
                         >
                             Export / Editare
                         </Button>
                         <Button
-                            variant="info"
+                            variant="secondary"
                             size="sm"
                             onClick={() => navigateTo('import-sportivi')}
-                            className="touch-manipulation min-h-[40px]"
+                            className="touch-manipulation min-h-11 lg:min-h-10"
                         >
                             <UploadCloudIcon className="w-4 h-4 mr-1"/> Import
                         </Button>
                         <Button
-                            variant="warning"
+                            variant="secondary"
                             size="sm"
                             onClick={handleDeschideBulkLinkuri}
-                            className="touch-manipulation min-h-[40px] flex items-center gap-1"
+                            className="touch-manipulation min-h-11 lg:min-h-10 flex items-center gap-1"
                             title="Generează magic link-uri pentru sportivii fără cont"
                         >
                             <Wand2 className="w-4 h-4" /> Link-uri Magic
@@ -890,7 +887,7 @@ export const Sportivi: React.FC<{
                             size="sm"
                             onClick={handleOpenAddSportiv}
                             data-tour="sportivi-adauga"
-                            className="touch-manipulation min-h-[40px]"
+                            className="touch-manipulation min-h-11 lg:min-h-10"
                         >
                             <PlusIcon className="w-4 h-4 mr-1"/> Adaugă Sportiv
                         </Button>
@@ -909,19 +906,19 @@ export const Sportivi: React.FC<{
             />
 
             {selectedSportivIds.size > 0 && (
-                <div className="flex flex-col sm:flex-row items-center gap-3 p-3 bg-brand-primary/10 border border-brand-primary/30 rounded-lg">
-                    <span className="text-sm font-semibold text-brand-primary shrink-0">
+                <div className="flex flex-col sm:flex-row items-center gap-3 p-3 bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl">
+                    <span className="text-sm font-semibold text-[var(--t-text)] shrink-0">
                         {selectedSportivIds.size} {selectedSportivIds.size === 1 ? 'sportiv selectat' : 'sportivi selectați'}
                     </span>
                     <div className="flex flex-wrap gap-2 ml-auto">
-                        <Button variant="primary" size="sm" onClick={() => setShowMutaGrupaModal(true)} disabled={bulkLoading}>
+                        <Button variant="secondary" size="sm" onClick={() => setShowMutaGrupaModal(true)} disabled={bulkLoading}>
                             Mută în grupă
                         </Button>
-                        <Button variant="secondary" size="sm" onClick={() => handleBulkStatusUpdate('Activ')} disabled={bulkLoading} className="!bg-green-700 hover:!bg-green-600 !border-green-600 !text-white">
-                            ✓ Marchează Activ
+                        <Button variant="secondary" size="sm" onClick={() => handleBulkStatusUpdate('Activ')} disabled={bulkLoading}>
+                            Marchează Activ
                         </Button>
-                        <Button variant="secondary" size="sm" onClick={() => handleBulkStatusUpdate('Inactiv')} disabled={bulkLoading} className="!bg-red-900/60 hover:!bg-red-800/60 !border-red-700 !text-red-300">
-                            ✗ Marchează Inactiv
+                        <Button variant="secondary" size="sm" onClick={() => handleBulkStatusUpdate('Inactiv')} disabled={bulkLoading}>
+                            Marchează Inactiv
                         </Button>
                         <Button variant="secondary" size="sm" onClick={() => setSelectedSportivIds(new Set())} disabled={bulkLoading}>
                             Anulează selecția
@@ -977,19 +974,19 @@ export const Sportivi: React.FC<{
             {!loadAll ? (
                 <div data-tour="sportivi-paginare" className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-[var(--t-border)]">
                     {/* Stânga: info + selector per pagina + incarca toti */}
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--t-text-muted)]">
                         <span>
                             {totalSportivi === 0
                                 ? 'Niciun sportiv'
                                 : `${Math.min((page - 1) * pageSize + 1, totalSportivi)}–${Math.min(page * pageSize, totalSportivi)} din ${totalSportivi}`}
                         </span>
-                        <span className="text-slate-600">|</span>
-                        <label className="flex items-center gap-1 text-slate-400 text-sm">
+                        <span className="text-[var(--t-text-muted)]">|</span>
+                        <label className="flex items-center gap-1 text-[var(--t-text-muted)] text-sm">
                             Afișează
                             <select
                                 value={pageSize}
                                 onChange={e => handlePageSizeChange(Number(e.target.value))}
-                                className="bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                                className="bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--t-input-focus-ring)]"
                             >
                                 {PAGE_SIZE_OPTIONS.map(n => (
                                     <option key={n} value={n}>{n}</option>
@@ -1007,7 +1004,7 @@ export const Sportivi: React.FC<{
                             <button
                                 onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                 disabled={page <= 1}
-                                className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-colors ${
+                                className={`px-3 py-1.5 rounded-md border text-sm font-semibold transition-colors ${
                                     page <= 1
                                         ? 'border-[var(--t-border)] text-[var(--t-text-muted)] opacity-50 cursor-not-allowed bg-[var(--t-surface-2)]'
                                         : 'border-[var(--t-border)] text-[var(--t-text-muted)] hover:border-[var(--t-border)] hover:text-[var(--t-text)] bg-[var(--t-surface)] cursor-pointer'
@@ -1015,13 +1012,13 @@ export const Sportivi: React.FC<{
                             >
                                 Anterior
                             </button>
-                            <span className="text-sm text-slate-400 select-none px-1">
+                            <span className="text-sm text-[var(--t-text-muted)] select-none px-1">
                                 Pagina {page} din {totalPages}
                             </span>
                             <button
                                 onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                 disabled={page >= totalPages}
-                                className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-colors ${
+                                className={`px-3 py-1.5 rounded-md border text-sm font-semibold transition-colors ${
                                     page >= totalPages
                                         ? 'border-[var(--t-border)] text-[var(--t-text-muted)] opacity-50 cursor-not-allowed bg-[var(--t-surface-2)]'
                                         : 'border-[var(--t-border)] text-[var(--t-text-muted)] hover:border-[var(--t-border)] hover:text-[var(--t-text)] bg-[var(--t-surface)] cursor-pointer'
@@ -1034,19 +1031,19 @@ export const Sportivi: React.FC<{
                 </div>
             ) : (
                 <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-[var(--t-border)]">
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--t-text-muted)]">
                         <span>
                             {sportiviLoading
                                 ? 'Se încarcă toți sportivii...'
                                 : `Afișând toți ${totalSportivi} sportivii`}
                         </span>
-                        <span className="text-slate-600">|</span>
+                        <span className="text-[var(--t-text-muted)]">|</span>
                         <label className="flex items-center gap-1 text-sm">
                             Afișează
                             <select
                                 value={0}
                                 onChange={e => handlePageSizeChange(Number(e.target.value))}
-                                className="bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                                className="bg-[var(--t-surface)] border border-[var(--t-border)] text-[var(--t-text)] rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--t-input-focus-ring)]"
                             >
                                 {PAGE_SIZE_OPTIONS.map(n => (
                                     <option key={n} value={n}>{n}</option>

@@ -67,23 +67,23 @@ const SediintaAziModal: React.FC<{
 
     return (
         <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-[100] p-4" onClick={onClose}>
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center justify-between p-4 border-b border-slate-800">
+            <div className="bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl w-full max-w-sm shadow-lg" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between p-4 border-b border-[var(--t-border)]">
                     <div>
-                        <h3 className="font-bold text-white text-sm">Ședință azi</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">{today}</p>
+                        <h3 className="font-semibold text-[var(--t-text)] text-sm">Ședință azi</h3>
+                        <p className="text-xs text-[var(--t-text-muted)] mt-1">{today}</p>
                     </div>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-[var(--t-text-muted)] hover:text-[var(--t-text)] transition-colors">
                         <XIcon className="w-4 h-4" />
                     </button>
                 </div>
                 <div className="p-4 space-y-4">
                     <div>
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Grupă</label>
+                        <label className="text-xs font-semibold text-[var(--t-text-muted)] block mb-2">Grupă</label>
                         <select
                             value={grupaId}
                             onChange={e => setGrupaId(e.target.value)}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full bg-[var(--t-input-bg)] border border-[var(--t-border)] text-[var(--t-text)] rounded-lg h-11 lg:h-10 px-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--t-input-focus-ring)]"
                         >
                             <option value="">Alege grupă...</option>
                             {grupe.map(g => <option key={g.id} value={g.id}>{g.denumire}</option>)}
@@ -91,35 +91,35 @@ const SediintaAziModal: React.FC<{
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Oră start</label>
+                            <label className="text-xs font-semibold text-[var(--t-text-muted)] block mb-2">Oră start</label>
                             <input
                                 type="time"
                                 value={oraStart}
                                 onChange={e => setOraStart(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full bg-[var(--t-input-bg)] border border-[var(--t-border)] text-[var(--t-text)] rounded-lg h-11 lg:h-10 px-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--t-input-focus-ring)]"
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Oră stop</label>
+                            <label className="text-xs font-semibold text-[var(--t-text-muted)] block mb-2">Oră stop</label>
                             <input
                                 type="time"
                                 value={oraSfarsit}
                                 onChange={e => setOraSfarsit(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full bg-[var(--t-input-bg)] border border-[var(--t-border)] text-[var(--t-text)] rounded-lg h-11 lg:h-10 px-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--t-input-focus-ring)]"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Tip</label>
+                        <label className="text-xs font-semibold text-[var(--t-text-muted)] block mb-2">Tip</label>
                         <div className="flex gap-2">
                             {(['regular', 'stagiu'] as const).map(t => (
                                 <button
                                     key={t}
                                     onClick={() => setTip(t)}
-                                    className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors border ${
+                                    className={`flex-1 h-11 lg:h-10 rounded-lg text-sm font-semibold transition-colors border ${
                                         tip === t
-                                            ? 'bg-indigo-600 border-indigo-500 text-white'
-                                            : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                                            ? 'bg-[var(--t-surface-2)] border-[var(--t-primary)] text-[var(--t-text)]'
+                                            : 'border-[var(--t-border)] text-[var(--t-text-muted)] hover:text-[var(--t-text)]'
                                     }`}
                                 >
                                     {t === 'regular' ? 'Regular' : 'Special'}
@@ -129,19 +129,17 @@ const SediintaAziModal: React.FC<{
                     </div>
                 </div>
                 <div className="p-4 pt-0 flex gap-2">
-                    <button
-                        onClick={onClose}
-                        className="flex-1 py-2.5 text-sm text-slate-400 border border-slate-700 rounded-xl hover:border-slate-600 transition-colors"
-                    >
+                    <Button variant="secondary" onClick={onClose} className="flex-1 min-h-11 lg:min-h-10">
                         Anulează
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                        variant="primary"
                         onClick={handleSave}
                         disabled={!grupaId || saving}
-                        className="flex-1 py-2.5 text-sm font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
+                        className="flex-1 min-h-11 lg:min-h-10"
                     >
                         {saving ? 'Se salvează...' : 'Adaugă ședință'}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>
@@ -157,7 +155,7 @@ const ShortcutBar: React.FC<{
             <button
                 key={i}
                 onClick={s.onClick}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/60 border border-slate-700/50 text-xs text-slate-400 hover:text-white hover:border-slate-600 hover:bg-slate-800 transition-colors whitespace-nowrap"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--t-border)] text-xs text-[var(--t-text-muted)] hover:text-[var(--t-text)] hover:bg-[var(--t-surface-2)] transition-colors whitespace-nowrap"
             >
                 {s.icon}
                 {s.label}
@@ -332,25 +330,25 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
             case 'orar':
                 return selectedGrupa
                     ? <OrarEditor grupa={selectedGrupa} onNavigate={id => navigateTo('calendar', id)} onBack={navigateBack} setGrupe={setGrupe as any} />
-                    : <p className="text-slate-400 p-8">Grupă negăsită.</p>;
+                    : <p className="text-[var(--t-text-muted)] p-8">Grupă negăsită.</p>;
             case 'calendar':
                 return selectedGrupa
                     ? <CalendarActivitati grupa={selectedGrupa} onSelect={handleSelectAntrenament} onBack={navigateBack} grupe={grupe} />
-                    : <p className="text-slate-400 p-8">Grupă negăsită.</p>;
+                    : <p className="text-[var(--t-text-muted)] p-8">Grupă negăsită.</p>;
             case 'calendar-all':
                 return <CalendarActivitatiMultiGrupa grupe={grupe} onSelect={handleSelectAntrenament} onSelectMultiple={handleSelectMultipleAntrenamente} onBack={navigateBack} />;
             case 'prezenta-multi':
                 return antrenamenteMulti.length > 0
                     ? <FormularPrezentaMultiGrupa antrenamente={antrenamenteMulti} onBack={navigateBack} saveAttendance={saveAttendance} onViewSportiv={onViewSportiv} />
-                    : <p className="text-slate-400 p-8">Niciun antrenament selectat.</p>;
+                    : <p className="text-[var(--t-text-muted)] p-8">Niciun antrenament selectat.</p>;
             case 'prezenta':
                 return antrenamentDetaliu
                     ? <FormularPrezenta antrenament={antrenamentDetaliu} onBack={navigateBack} saveAttendance={saveAttendance} onViewSportiv={onViewSportiv} />
-                    : <p className="text-slate-400 p-8">Antrenament negăsit.</p>;
+                    : <p className="text-[var(--t-text-muted)] p-8">Antrenament negăsit.</p>;
             case 'prezenta-grupe':
                 return selectedGrupa
                     ? <ListaPrezentaAntrenament grupa={selectedGrupa} onBack={navigateBack} onViewSportiv={onViewSportiv} />
-                    : <p className="text-slate-400 p-8">Grupă negăsită.</p>;
+                    : <p className="text-[var(--t-text-muted)] p-8">Grupă negăsită.</p>;
             case 'istoric':
                 return (
                     <div className="space-y-3">
@@ -377,7 +375,7 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                 {!isAtRoot ? (
                     <button
                         onClick={navigateBack}
-                        className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors px-2 py-1.5 rounded-md hover:bg-slate-800 shrink-0"
+                        className="flex items-center gap-2 text-sm text-[var(--t-text-muted)] hover:text-[var(--t-text)] transition-colors px-2 py-2 rounded-md hover:bg-[var(--t-surface-2)] shrink-0"
                     >
                         <ArrowLeftIcon className="w-4 h-4" />
                         <span className="hidden sm:inline">Înapoi</span>
@@ -385,15 +383,15 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                 ) : null}
 
                 {/* Tab bar */}
-                <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 flex-1 sm:flex-none" style={{minWidth:0}}>
+                <div className="flex border border-[var(--t-border)] rounded-lg p-1 gap-1 flex-1 sm:flex-none" style={{minWidth:0}}>
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => switchTab(tab.id)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all flex-1 sm:flex-none justify-center sm:justify-start whitespace-nowrap ${
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all flex-1 sm:flex-none justify-center sm:justify-start whitespace-nowrap ${
                                 activeTab === tab.id
-                                    ? 'bg-indigo-600 text-white shadow-sm'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                    ? 'bg-[var(--t-surface-2)] text-[var(--t-text)] font-semibold'
+                                    : 'text-[var(--t-text-muted)] hover:text-[var(--t-text)]'
                             }`}
                         >
                             {tab.icon}
@@ -406,35 +404,32 @@ export const Prezenta: React.FC<{ onBack: () => void; onViewSportiv?: (s: Sporti
                 {/* Buton adaugare — doar ADMIN/INSTRUCTOR */}
                 {canAdd && isAtRoot && activeTab === 'rapid' && (
                     <div className="relative ml-auto shrink-0" ref={addMenuRef}>
-                        <button
-                            onClick={() => setShowAddMenu(v => !v)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-colors"
-                        >
+                        <Button variant="primary" onClick={() => setShowAddMenu(v => !v)} className="min-h-11 lg:min-h-10">
                             <PlusIcon className="w-4 h-4" />
-                            <span className="hidden sm:inline">Adaugă</span>
-                            <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${showAddMenu ? 'rotate-180' : ''}`} />
-                        </button>
+                            <span className="hidden sm:inline ml-2">Adaugă</span>
+                            <ChevronDownIcon className={`w-4 h-4 ml-2 transition-transform ${showAddMenu ? 'rotate-180' : ''}`} />
+                        </Button>
                         {showAddMenu && (
-                            <div className="absolute right-0 top-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-30 min-w-[180px] overflow-hidden">
+                            <div className="absolute right-0 top-full mt-2 bg-[var(--t-surface)] border border-[var(--t-border)] rounded-xl shadow-lg z-30 min-w-[180px] overflow-hidden">
                                 <button
                                     onClick={() => { setShowAddMenu(false); setShowSediintaModal(true); }}
-                                    className="w-full text-left flex items-center gap-2.5 px-4 py-3 text-sm text-slate-200 hover:bg-slate-800 transition-colors"
+                                    className="w-full text-left flex items-center gap-2 px-4 min-h-11 text-sm text-[var(--t-text)] hover:bg-[var(--t-surface-2)] transition-colors"
                                 >
-                                    <SparklesIcon className="w-4 h-4 text-amber-400 shrink-0" />
+                                    <SparklesIcon className="w-4 h-4 text-[var(--t-primary)] shrink-0" />
                                     <div>
                                         <div className="font-semibold">Ședință azi</div>
-                                        <div className="text-xs text-slate-500">Sesiune ad-hoc, acum</div>
+                                        <div className="text-xs text-[var(--t-text-muted)]">Sesiune ad-hoc, acum</div>
                                     </div>
                                 </button>
-                                <div className="h-px bg-slate-800" />
+                                <div className="h-px bg-[var(--t-border)]" />
                                 <button
                                     onClick={() => { setShowAddMenu(false); switchTab('grupe'); }}
-                                    className="w-full text-left flex items-center gap-2.5 px-4 py-3 text-sm text-slate-200 hover:bg-slate-800 transition-colors"
+                                    className="w-full text-left flex items-center gap-2 px-4 min-h-11 text-sm text-[var(--t-text)] hover:bg-[var(--t-surface-2)] transition-colors"
                                 >
-                                    <CalendarDaysIcon className="w-4 h-4 text-indigo-400 shrink-0" />
+                                    <CalendarDaysIcon className="w-4 h-4 text-[var(--t-primary)] shrink-0" />
                                     <div>
                                         <div className="font-semibold">Adaugă la orar</div>
-                                        <div className="text-xs text-slate-500">Configurare program grupă</div>
+                                        <div className="text-xs text-[var(--t-text-muted)]">Configurare program grupă</div>
                                     </div>
                                 </button>
                             </div>

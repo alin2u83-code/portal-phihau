@@ -148,23 +148,18 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
 
     return (
         <div className="space-y-4">
-            {/* Header */}
-            <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-white flex-1">Prezență Zilnică</h1>
-            </div>
-
             {/* Date selector */}
             <div className="flex items-center gap-2">
-                <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
+                <div className="flex border border-[var(--t-border)] rounded-lg p-1 gap-1">
                     <button
                         onClick={() => setSelectedDate(yesterday)}
-                        className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${selectedDateString === yesterdayString ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedDateString === yesterdayString ? 'bg-[var(--t-surface-2)] text-[var(--t-text)] font-semibold' : 'text-[var(--t-text-muted)] hover:text-[var(--t-text)]'}`}
                     >
                         Ieri
                     </button>
                     <button
                         onClick={() => setSelectedDate(today)}
-                        className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${selectedDateString === todayString ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedDateString === todayString ? 'bg-[var(--t-surface-2)] text-[var(--t-text)] font-semibold' : 'text-[var(--t-text-muted)] hover:text-[var(--t-text)]'}`}
                     >
                         Azi
                     </button>
@@ -172,16 +167,16 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
 
                 {/* Mode toggle — only for today */}
                 {isToday && (
-                    <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 ml-auto">
+                    <div className="flex border border-[var(--t-border)] rounded-lg p-1 gap-1 ml-auto">
                         <button
                             onClick={() => setMode('rapid')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${mode === 'rapid' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'rapid' ? 'bg-[var(--t-surface-2)] text-[var(--t-text)] font-semibold' : 'text-[var(--t-text-muted)] hover:text-[var(--t-text)]'}`}
                         >
                             <SparklesIcon className="w-3.5 h-3.5" /> Rapid
                         </button>
                         <button
                             onClick={() => setMode('lista')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${mode === 'lista' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'lista' ? 'bg-[var(--t-surface-2)] text-[var(--t-text)] font-semibold' : 'text-[var(--t-text-muted)] hover:text-[var(--t-text)]'}`}
                         >
                             <CalendarDaysIcon className="w-3.5 h-3.5" /> Listă
                         </button>
@@ -194,23 +189,23 @@ export const InstructorPrezentaPage: React.FC<InstructorPrezentaPageProps> = ({ 
                 <PrezentaRapida onSelectFull={handleSelectFull} />
             ) : loading ? (
                 <div className="flex justify-center py-16">
-                    <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-indigo-500" />
+                    <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-[var(--t-primary)]" />
                 </div>
             ) : trainings.length === 0 ? (
                 <Card className="text-center py-12">
-                    <p className="text-slate-400 italic">Niciun antrenament programat pentru data selectată.</p>
+                    <p className="text-[var(--t-text-muted)] italic">Niciun antrenament programat pentru data selectată.</p>
                 </Card>
             ) : (
                 <div className="space-y-3">
                     {trainings.map(t => (
-                        <div key={t.id} className="group p-4 bg-slate-800/30 hover:bg-slate-800/50 rounded-2xl border border-slate-700/50 hover:border-indigo-500/30 transition-all flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div key={t.id} className="group p-4 bg-[var(--t-surface)] rounded-xl border border-[var(--t-border)] hover:border-[var(--t-primary)] transition-colors flex flex-col sm:flex-row justify-between items-center gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex flex-col items-center justify-center text-indigo-400 border border-indigo-500/20">
-                                    <span className="text-xs font-black">{t.ora_start?.slice(0, 5)}</span>
+                                <div className="w-12 h-12 rounded-lg bg-[var(--t-surface-2)] flex flex-col items-center justify-center text-[var(--t-primary)] border border-[var(--t-border)]">
+                                    <span className="text-xs font-semibold">{t.ora_start?.slice(0, 5)}</span>
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-white">{t.grupe?.denumire || 'Antrenament Liber'}</h3>
-                                    <p className="text-sm text-slate-400">{formatTime(t.ora_start)} - {formatTime(t.ora_sfarsit)} • {t.grupe?.sportivi.length || 0} sportivi</p>
+                                    <h3 className="text-base font-semibold text-[var(--t-text)]">{t.grupe?.denumire || 'Antrenament Liber'}</h3>
+                                    <p className="text-sm text-[var(--t-text-muted)]">{formatTime(t.ora_start)} - {formatTime(t.ora_sfarsit)} • {t.grupe?.sportivi.length || 0} sportivi</p>
                                 </div>
                             </div>
                             <Button size="sm" onClick={() => setSelectedTraining(t)} className="w-full sm:w-auto">

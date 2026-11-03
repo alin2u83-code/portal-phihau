@@ -13,7 +13,7 @@
  * | financial-dashboard  | 228-229   | FinancialDashboard       | onBack=handleBackToDashboard, plati=filteredData.plati, tranzactii=filteredData.tranzactii, sportivi=filteredData.sportivi, familii=filteredData.familii | isAtLeastClubAdmin |
  * | gestiune-facturi     | 230-231   | GestiuneFacturi          | onBack=(canGoBack ? goBack : handleBackToDashboard), currentUser=currentUser!, sportivi=filteredData.sportivi, plati=filteredData.plati, setPlati, setTranzactii, tipuriPlati (nefiltrat), familii=filteredData.familii, onViewSportiv, initialSportivId=viewParams?.sportivId | canManageFinances |
  * | facturi-fara-prezenta| 232-233   | FacturiFaraPrezenta      | onBack=handleBackToDashboard, onViewSportiv | canManageFinances |
- * | deconturi-federatie  | 234-235   | FederationInvoices       | NESCHIMBAT — ramane in afara hub-ului (D-05) | isAtLeastClubAdmin |
+ * | deconturi-federatie  | 234-235   | FederationInvoices       | Tab 'deconturi' in hub din UAT 34 (UAT-3; D-05 revizuit doar pentru acest view) — props neschimbate | isAtLeastClubAdmin |
  * | plati-scadente       | 236-237   | PlatiScadente            | onIncaseazaMultiple=handleIncaseazaMultiple, onViewSportiv, permissions, onBack=handleBackToDashboard | canManageFinances |
  * | jurnal-incasari      | 238-239   | JurnalIncasari           | currentUser!, permissions, plati=filteredData.plati, setPlati, sportivi=filteredData.sportivi, familii=filteredData.familii, preturiConfig (nefiltrat), tipuriAbonament=filteredData.tipuriAbonament, tipuriPlati (nefiltrat), setTipuriPlati, tranzactii=filteredData.tranzactii, setTranzactii, platiInitiale=platiPentruIncasare, onIncasareProcesata=handleIncasareProcesata, onBack=handleJurnalBack, reduceri (nefiltrat), onViewSportiv | canManageFinances |
  * | raport-financiar     | 240-241   | RaportFinanciar          | onBack=handleBackToDashboard, istoricPlatiDetaliat=filteredData.istoricPlatiDetaliat, sportivi=filteredData.sportivi, familii=filteredData.familii, plati=filteredData.plati, setPlati, setTranzactii, onViewSportiv | isAtLeastClubAdmin |
@@ -66,16 +66,17 @@
 
 import type { View, User, Permissions, Plata, Sportiv } from '../../../types';
 
-/** Cele 4 tab-uri interne ale hub-ului "Plăți & Facturi" (D-01..D-04). */
-export type TabHub = 'facturi' | 'rapoarte' | 'configurare';
+/** Cele 7 tab-uri interne ale hub-ului "Plăți & Facturi" (D-01..D-04 + 4 adaugate prin UAT-3, faza 34). */
+export type TabHub = 'facturi' | 'rapoarte' | 'configurare' | 'deconturi' | 'vacante' | 'echipamente' | 'vanzari';
 
-/** Cele 12 vederi (literale View vechi) + sumar-incasari (sectiune noua, nu View) care intra in hub — familii si deconturi-federatie
- * raman in afara hub-ului (D-05), NU apar aici. */
+/** Cele 16 vederi (literale View vechi) + sumar-incasari (sectiune noua, nu View) care intra in hub — familii
+ * ramane in afara hub-ului (D-05), NU apare aici. deconturi-federatie a intrat prin UAT-3. */
 export type SectiuneHub =
   | 'plati-scadente' | 'gestiune-facturi' | 'facturi-fara-prezenta'
   | 'jurnal-incasari' | 'sumar-incasari'
   | 'raport-financiar' | 'financial-dashboard'
-  | 'tipuri-abonament' | 'configurare-preturi' | 'reduceri' | 'taxe-anuale' | 'nomenclatoare';
+  | 'tipuri-abonament' | 'configurare-preturi' | 'reduceri' | 'taxe-anuale' | 'nomenclatoare'
+  | 'deconturi-federatie' | 'perioade-vacanta' | 'produse' | 'vanzari-produse';
 
 /** Pozitia curenta in hub: tab activ + sectiunea (view-ul vechi) afisata in el. */
 export interface PozitieHub {
@@ -105,12 +106,19 @@ export interface PlatiHubTabProps {
 // ─────────────────────────────────────────────────────────────────────────
 
 /** Ordinea tab-urilor in UI (pastilele hub-ului). */
-export const TABURI_HUB: readonly TabHub[] = ['facturi', 'rapoarte', 'configurare'];
+export const TABURI_HUB: readonly TabHub[] = ['facturi', 'rapoarte', 'configurare', 'deconturi', 'vacante', 'echipamente', 'vanzari'];
+
+/** Tab-uri vizibile doar pentru ADMIN_CLUB — paritate cu adminClubMenu (adminMenu nu avea Echipamente/Vanzari). */
+export const TABURI_ECHIPAMENTE: readonly TabHub[] = ['echipamente', 'vanzari'];
 
 export const ETICHETE_TABURI: Record<TabHub, string> = {
   facturi: 'Facturi & Încasări',
   rapoarte: 'Rapoarte',
   configurare: 'Configurare',
+  deconturi: 'Deconturi Federație',
+  vacante: 'Vacanțe Antrenamente',
+  echipamente: 'Echipamente',
+  vanzari: 'Vânzări',
 };
 
 /** Gruparea LOCKED D-01..D-04. Ordinea din fiecare lista e ordinea pastilelor in UI. */
@@ -120,6 +128,11 @@ export const SECTIUNI_PE_TAB: Record<TabHub, readonly SectiuneHub[]> = {
   facturi: ['plati-scadente', 'gestiune-facturi', 'facturi-fara-prezenta', 'jurnal-incasari', 'sumar-incasari'],
   rapoarte: ['raport-financiar', 'financial-dashboard'], // D-03
   configurare: ['tipuri-abonament', 'configurare-preturi', 'reduceri', 'taxe-anuale', 'nomenclatoare'], // D-04
+  // UAT-3 (faza 34): o singura sectiune per tab → PlatiHub nu randeaza chip-uri pentru ele.
+  deconturi: ['deconturi-federatie'],
+  vacante: ['perioade-vacanta'],
+  echipamente: ['produse'],
+  vanzari: ['vanzari-produse'],
 };
 
 export const ETICHETE_SECTIUNI: Record<SectiuneHub, string> = {
@@ -135,6 +148,10 @@ export const ETICHETE_SECTIUNI: Record<SectiuneHub, string> = {
   'reduceri': 'Reduceri',
   'taxe-anuale': 'Taxe Anuale',
   'nomenclatoare': 'Nomenclatoare (Tipuri Plăți)',
+  'deconturi-federatie': 'Deconturi Federație',
+  'perioade-vacanta': 'Vacanțe Antrenamente',
+  'produse': 'Echipamente',
+  'vanzari-produse': 'Vânzări',
 };
 
 /** Prima sectiune din lista fiecarui tab — folosita ca implicita cand doar tab-ul e cunoscut. */
@@ -159,8 +176,8 @@ const TOATE_SECTIUNILE_HUB: readonly SectiuneCuView[] = TABURI_HUB
   .flatMap(tab => SECTIUNI_PE_TAB[tab])
   .filter((s): s is SectiuneCuView => s !== 'sumar-incasari');
 
-/** Vederile (literale View) care intra in hub: 'plati-hub' + cele 12 sectiuni (13 total).
- * NU include 'familii' si 'deconturi-federatie' (D-05 — raman ecrane separate). */
+/** Vederile (literale View) care intra in hub: 'plati-hub' + cele 15 sectiuni (16 total).
+ * NU include 'familii' (D-05 — ramane ecran separat). */
 export const VEDERI_HUB: readonly View[] = ['plati-hub' as View, ...TOATE_SECTIUNILE_HUB];
 
 export function esteTabHub(x: unknown): x is TabHub {
@@ -171,8 +188,8 @@ export function esteSectiuneHub(x: unknown): x is SectiuneHub {
   return typeof x === 'string' && Object.prototype.hasOwnProperty.call(TAB_PENTRU_SECTIUNE, x);
 }
 
-/** True daca `view` e una dintre cele 13 vederi ale hub-ului (D-05: familii si
- * deconturi-federatie raman in afara hub-ului, deci returneaza false pentru ele). */
+/** True daca `view` e una dintre cele 16 vederi ale hub-ului (D-05: familii
+ * ramane in afara hub-ului, deci returneaza false pentru ea). */
 export function esteVedereHub(view: string): boolean {
   return (VEDERI_HUB as readonly string[]).includes(view);
 }
@@ -193,8 +210,10 @@ export function esteVedereHub(view: string): boolean {
  * La final: daca sectiunea rezultata e 'taxe-anuale' si `poateVedeaTaxeAnuale` e false,
  * cade pe 'tipuri-abonament' — pastreaza guard-ul vechi al vederii taxe-anuale
  * (`permissions.isSuperAdmin || permissions.isAdminClub`, AppRouter.tsx:271).
+ * Similar: daca tab-ul rezultat e in TABURI_ECHIPAMENTE si `poateVedeaEchipamente` e false
+ * (implicit true), cade pe pozitia implicita facturi/plati-scadente.
  */
-export function rezolvaPozitieHub(activeView: View, viewParams: unknown, poateVedeaTaxeAnuale: boolean): PozitieHub {
+export function rezolvaPozitieHub(activeView: View, viewParams: unknown, poateVedeaTaxeAnuale: boolean, poateVedeaEchipamente = true): PozitieHub {
   const vp = (viewParams && typeof viewParams === 'object') ? (viewParams as Record<string, unknown>) : null;
   const sectiuneDinParams = vp ? vp.sectiune : undefined;
   const tabDinParams = vp ? vp.tab : undefined;
@@ -215,6 +234,10 @@ export function rezolvaPozitieHub(activeView: View, viewParams: unknown, poateVe
 
   if (rezultat.sectiune === 'taxe-anuale' && !poateVedeaTaxeAnuale) {
     return { tab: 'configurare', sectiune: 'tipuri-abonament' };
+  }
+
+  if (!poateVedeaEchipamente && TABURI_ECHIPAMENTE.includes(rezultat.tab)) {
+    return { tab: 'facturi', sectiune: 'plati-scadente' };
   }
 
   return rezultat;

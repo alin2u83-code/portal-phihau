@@ -50,6 +50,10 @@ const HARTA_ASTEPTATA_SECTIUNE_TAB: Record<SectiuneHub, string> = {
     'reduceri': 'configurare',
     'taxe-anuale': 'configurare',
     'nomenclatoare': 'configurare',
+    'deconturi-federatie': 'deconturi',
+    'perioade-vacanta': 'vacante',
+    'produse': 'echipamente',
+    'vanzari-produse': 'vanzari',
 };
 
 /**
@@ -137,9 +141,9 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
         assertPozitie(r, { tab: 'facturi', sectiune: 'plati-scadente' }, 'T12');
     });
 
-    run('T13: TAB_PENTRU_SECTIUNE respecta gruparea D-01..D-04 pentru toate cele 12 sectiuni', () => {
+    run('T13: TAB_PENTRU_SECTIUNE respecta gruparea D-01..D-04 pentru toate cele 16 sectiuni', () => {
         const chei = Object.keys(HARTA_ASTEPTATA_SECTIUNE_TAB) as SectiuneHub[];
-        assert(chei.length === 12, `asteptate 12 sectiuni in harta de test, gasite ${chei.length}`);
+        assert(chei.length === 16, `asteptate 16 sectiuni in harta de test, gasite ${chei.length}`);
         for (const sectiune of chei) {
             const tabAsteptat = HARTA_ASTEPTATA_SECTIUNE_TAB[sectiune];
             const tabReal = TAB_PENTRU_SECTIUNE[sectiune];
@@ -147,14 +151,16 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
         }
     });
 
-    run('T14: VEDERI_HUB are exact 12 elemente si include plati-hub', () => {
-        assert(VEDERI_HUB.length === 12, `asteptate 12 elemente in VEDERI_HUB, gasite ${VEDERI_HUB.length}`);
+    run('T14: VEDERI_HUB are exact 16 elemente si include plati-hub', () => {
+        assert(VEDERI_HUB.length === 16, `asteptate 16 elemente in VEDERI_HUB, gasite ${VEDERI_HUB.length}`);
         assert((VEDERI_HUB as readonly string[]).includes('plati-hub'), 'VEDERI_HUB trebuie sa contina plati-hub');
     });
 
-    run('T15: esteVedereHub respinge familii si deconturi-federatie (D-05), accepta plati-hub', () => {
+    run('T15: esteVedereHub respinge familii (D-05), accepta plati-hub si cele 4 view-uri intrate prin UAT-3', () => {
         assert(esteVedereHub('familii') === false, "esteVedereHub('familii') trebuie sa fie false");
-        assert(esteVedereHub('deconturi-federatie') === false, "esteVedereHub('deconturi-federatie') trebuie sa fie false");
+        for (const v of ['deconturi-federatie', 'perioade-vacanta', 'produse', 'vanzari-produse']) {
+            assert(esteVedereHub(v) === true, `esteVedereHub('${v}') trebuie sa fie true`);
+        }
         assert(esteVedereHub('plati-hub') === true, "esteVedereHub('plati-hub') trebuie sa fie true");
     });
 
@@ -165,9 +171,9 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
         assert(esteSectiuneHub('familii') === false, "esteSectiuneHub('familii') trebuie sa fie false");
     });
 
-    run('T17: TABURI_HUB are exact 3 tab-uri, in ordinea Facturi/Rapoarte/Configurare', () => {
+    run('T17: TABURI_HUB are exact 7 tab-uri, in ordinea din UAT-3', () => {
         assert(
-            JSON.stringify(TABURI_HUB) === JSON.stringify(['facturi', 'rapoarte', 'configurare']),
+            JSON.stringify(TABURI_HUB) === JSON.stringify(['facturi', 'rapoarte', 'configurare', 'deconturi', 'vacante', 'echipamente', 'vanzari']),
             `ordine neasteptata TABURI_HUB: ${JSON.stringify(TABURI_HUB)}`
         );
     });
@@ -188,6 +194,26 @@ export function runTests(): { passed: number; failed: number; errors: string[] }
         for (const sectiune of Object.keys(TAB_PENTRU_SECTIUNE) as SectiuneHub[]) {
             assert(!!ETICHETE_SECTIUNI[sectiune], `ETICHETE_SECTIUNI['${sectiune}'] nu trebuie sa fie gol`);
         }
+    });
+
+    run('T20: cele 4 literale vechi → tab/sectiune corecte', () => {
+        assertPozitie(rezolvaPozitieHub('deconturi-federatie' as any, null, true), { tab: 'deconturi', sectiune: 'deconturi-federatie' }, 'T20a');
+        assertPozitie(rezolvaPozitieHub('perioade-vacanta' as any, null, true), { tab: 'vacante', sectiune: 'perioade-vacanta' }, 'T20b');
+        assertPozitie(rezolvaPozitieHub('produse' as any, null, true), { tab: 'echipamente', sectiune: 'produse' }, 'T20c');
+        assertPozitie(rezolvaPozitieHub('vanzari-produse' as any, null, true), { tab: 'vanzari', sectiune: 'vanzari-produse' }, 'T20d');
+    });
+
+    run('T21: plati-hub + { tab: vanzari } → vanzari/vanzari-produse', () => {
+        assertPozitie(rezolvaPozitieHub('plati-hub' as any, { tab: 'vanzari' }, true), { tab: 'vanzari', sectiune: 'vanzari-produse' }, 'T21');
+    });
+
+    run('T22: poateVedeaEchipamente=false → echipamente/vanzari cad pe implicit; deconturi/vacante neafectate', () => {
+        const implicit = { tab: 'facturi', sectiune: 'plati-scadente' };
+        assertPozitie(rezolvaPozitieHub('produse' as any, null, true, false), implicit, 'T22a');
+        assertPozitie(rezolvaPozitieHub('vanzari-produse' as any, null, true, false), implicit, 'T22b');
+        assertPozitie(rezolvaPozitieHub('plati-hub' as any, { tab: 'echipamente' }, true, false), implicit, 'T22c');
+        assertPozitie(rezolvaPozitieHub('deconturi-federatie' as any, null, true, false), { tab: 'deconturi', sectiune: 'deconturi-federatie' }, 'T22d');
+        assertPozitie(rezolvaPozitieHub('perioade-vacanta' as any, null, true, false), { tab: 'vacante', sectiune: 'perioade-vacanta' }, 'T22e');
     });
 
     return { passed, failed, errors };

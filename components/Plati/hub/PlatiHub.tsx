@@ -7,8 +7,10 @@ import { MartialArtsSkeleton } from '../../MartialArtsSkeleton';
 import { TabFacturi } from './TabFacturi';
 import { TabRapoarte } from './TabRapoarte';
 import { TabConfigurare } from './TabConfigurare';
+import { TabDeconturiEchipamente } from './TabDeconturiEchipamente';
 import {
   TABURI_HUB,
+  TABURI_ECHIPAMENTE,
   ETICHETE_TABURI,
   SECTIUNI_PE_TAB,
   ETICHETE_SECTIUNI,
@@ -22,12 +24,10 @@ import {
 /**
  * Shell-ul hub-ului Plati (Faza 31, D-01..D-05).
  *
- * Cele 12 vederi financiare vechi (plati-scadente, gestiune-facturi,
- * facturi-fara-prezenta, jurnal-incasari, istoric-plati, raport-financiar,
- * financial-dashboard, tipuri-abonament, configurare-preturi, reduceri,
- * taxe-anuale, nomenclatoare) devin secțiuni în interiorul a 4 tab-uri
- * (Facturi / Încasări / Rapoarte / Configurare — D-01..D-04). `familii` și
- * `deconturi-federatie` NU intră aici (D-05), rămân neatinse în AppRouter.
+ * Hub-ul are 7 tab-uri: Facturi & Încasări / Rapoarte / Configurare (D-01..D-04) +
+ * Deconturi Federație / Vacanțe Antrenamente / Echipamente / Vânzări (UAT-3, faza 34:
+ * `deconturi-federatie` a intrat în hub, D-05 revizuit). `familii` rămâne în afara
+ * hub-ului, neatinsă în AppRouter. Echipamente/Vânzări sunt vizibile doar ADMIN_CLUB.
  *
  * Poziția curentă (tab + secțiune) e citită din `NavigationContext.viewParams`
  * prin `rezolvaPozitieHub` (31-01) — NU e un `useState` local. Motiv: schimbarea
@@ -63,9 +63,12 @@ export const PlatiHub: React.FC<PlatiHubProps> = ({
 
   const poateVedeaTaxeAnuale = permissions.isSuperAdmin || permissions.isAdminClub;
 
+  // Paritate cu fostul adminClubMenu: adminMenu (federatie) nu avea Echipamente/Vanzari.
+  const poateVedeaEchipamente = permissions.isAdminClub;
+
   const pozitie = useMemo(
-    () => rezolvaPozitieHub(activeView, viewParams, poateVedeaTaxeAnuale),
-    [activeView, viewParams, poateVedeaTaxeAnuale]
+    () => rezolvaPozitieHub(activeView, viewParams, poateVedeaTaxeAnuale, poateVedeaEchipamente),
+    [activeView, viewParams, poateVedeaTaxeAnuale, poateVedeaEchipamente]
   );
 
   // Schimbare de tab/secțiune FĂRĂ intrare în history — goBack() din alte ecrane
@@ -148,7 +151,7 @@ export const PlatiHub: React.FC<PlatiHubProps> = ({
         role="tablist"
         className="flex overflow-x-auto border-b border-[var(--t-border)] min-h-11 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {TABURI_HUB.map(tab => {
+        {TABURI_HUB.filter(tab => poateVedeaEchipamente || !TABURI_ECHIPAMENTE.includes(tab)).map(tab => {
           const activ = pozitie.tab === tab;
           return (
             <button
@@ -209,6 +212,9 @@ export const PlatiHub: React.FC<PlatiHubProps> = ({
         )}
         {pozitie.tab === 'rapoarte' && <TabRapoarte {...propsComune} />}
         {pozitie.tab === 'configurare' && <TabConfigurare {...propsComune} />}
+        {(pozitie.tab === 'deconturi' || pozitie.tab === 'vacante' || pozitie.tab === 'echipamente' || pozitie.tab === 'vanzari') && (
+          <TabDeconturiEchipamente {...propsComune} />
+        )}
       </React.Suspense>
     </div>
   );

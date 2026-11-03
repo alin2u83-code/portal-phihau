@@ -277,7 +277,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.RaportIntervalExamen onViewSportiv={onViewSportiv} onBack={handleBackToDashboard} />, isAtLeastInstructor);
                             case 'calendar':
                                 return <Lazy.CalendarView onBack={handleBackToDashboard} onNavigate={(view) => setActiveView(view)} permissions={permissions} onViewSportiv={onViewSportiv} />;
-                            // Faza 31 (D-01..D-04): un singur hub înlocuiește cele 12 vederi
+                            // Faza 31 (D-01..D-04): un singur hub înlocuiește cele 16 vederi
                             // financiare de mai jos; literalele vechi rămân alias-uri (localStorage
                             // `phi-hau-active-view`, favorite, link-uri adânci) — toate deschid
                             // același `PlatiHub`, care citește tab-ul/secțiunea din viewParams.
@@ -295,9 +295,12 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'reduceri':
                             case 'taxe-anuale':
                             case 'nomenclatoare':
-                                return renderProtected(platiHubElement, canManageFinances);
+                            // UAT-3 (faza 34): tab-uri in hub; garda canManageFinances == fostul isAtLeastClubAdmin al lor.
                             case 'deconturi-federatie':
-                                return renderProtected(<Lazy.FederationInvoices onBack={handleBackToDashboard} deconturi={filteredData.deconturiFederatie} setDeconturi={setDeconturiFederatie} decontSportivi={decontSportivi} currentUser={currentUser!} permissions={permissions} sportivi={filteredData.sportivi} plati={filteredData.plati} clubs={clubs} />, isAtLeastClubAdmin);
+                            case 'perioade-vacanta':
+                            case 'produse':
+                            case 'vanzari-produse':
+                                return renderProtected(platiHubElement, canManageFinances);
                             case 'user-management':
                                 return renderProtected(<Lazy.UserManagement onBack={handleBackToDashboard} sportivi={filteredData.sportivi} setSportivi={setSportivi} currentUser={currentUser!} allRoles={allRoles} setAllRoles={setAllRoles} clubs={clubs} permissions={permissions} />, isAtLeastClubAdmin);
                             case 'cluburi':
@@ -318,11 +321,6 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.FamiliiManagement onBack={handleBackToDashboard} familii={filteredData.familii} setFamilii={setFamilii} sportivi={filteredData.sportivi} setSportivi={setSportivi} tipuriAbonament={filteredData.tipuriAbonament} grupe={filteredData.grupe} currentUser={currentUser!} onViewSportiv={onViewSportiv} />, isAtLeastInstructor);
                             case 'notificari':
                                 return renderProtected(<Lazy.Notificari onBack={handleBackToDashboard} currentUser={currentUser!} clubs={clubs} grupe={filteredData.grupe} permissions={permissions} />, isAtLeastInstructor);
-                            case 'perioade-vacanta':
-                                return renderProtected(
-                                    <Lazy.PerioadaVacantaView onBack={handleBackToDashboard} />,
-                                    isAtLeastClubAdmin
-                                );
                             case 'sezoane':
                                 return renderProtected(
                                     <Lazy.SezoaneView onBack={handleBackToDashboard} />,
@@ -341,17 +339,6 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return <Lazy.FisaCompetitie onBack={handleBackToDashboard} currentUser={currentUser!} grade={grade} participari={inscrieriExamene} examene={sesiuniExamene} />;
                             case 'button-catalog':
                                 return renderProtected(<Lazy.ButtonCatalog />, isFederationAdmin);
-                            case 'produse':
-                            case 'vanzari-produse':
-                                return renderProtected(
-                                    <Lazy.ProduseManagement
-                                        currentUser={currentUser!}
-                                        permissions={permissions}
-                                        onBack={handleBackToDashboard}
-                                        initialTab={activeView === 'vanzari-produse' ? 'vanzari' : 'catalog'}
-                                    />,
-                                    isAtLeastClubAdmin
-                                );
                             case 'setup-mfa':
                                 return <SetupMFAPage />;
                             default:

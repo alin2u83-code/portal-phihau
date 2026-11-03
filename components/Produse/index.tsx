@@ -22,6 +22,8 @@ interface ProduseManagementProps {
   currentUser: User;
   permissions: Permissions;
   onBack: () => void;
+  /** True cand e embedded in hub-ul Plati (hub-ul are propriul buton Meniu). */
+  hideBackButton?: boolean;
   initialTab?: ActiveTab;
 }
 
@@ -65,6 +67,7 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
   currentUser,
   permissions,
   onBack,
+  hideBackButton,
   initialTab,
 }) => {
   const { sportivi, tipuriPlati, clubs, activeRoleContext } = useData();
@@ -219,13 +222,15 @@ export const ProduseManagement: React.FC<ProduseManagementProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl transition-colors"
-            title="Înapoi"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-          </button>
+          {!hideBackButton && (
+            <button
+              onClick={onBack}
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl transition-colors"
+              title="Înapoi"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+          )}
           <div>
             <h1 className="text-xl font-bold text-white">Echipamente</h1>
             <p className="text-slate-400 text-sm">Catalog produse club</p>

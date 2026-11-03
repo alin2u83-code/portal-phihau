@@ -21,6 +21,8 @@ function formatDataRo(dateStr: string): string {
 
 interface PerioadaVacantaViewProps {
     onBack: () => void;
+    /** True cand e embedded in hub-ul Plati (hub-ul are propriul buton Meniu). */
+    hideBackButton?: boolean;
 }
 
 // ─── Modal CRUD Perioadă ──────────────────────────────────────────────────────
@@ -373,7 +375,7 @@ const CreeazaAbonamenteModal: React.FC<CreeazaAbonamenteModalProps> = ({
 
 // ─── View Principal ───────────────────────────────────────────────────────────
 
-export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack }) => {
+export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack, hideBackButton }) => {
     const { filteredData, activeRoleContext } = useData();
     const { showError } = useError();
     const permissions = usePermissions(activeRoleContext);
@@ -575,9 +577,11 @@ export const PerioadaVacantaView: React.FC<PerioadaVacantaViewProps> = ({ onBack
         <div className="p-4 md:p-6">
             {/* Header */}
             <div className="flex flex-wrap items-center gap-3 mb-6">
-                <Button variant="secondary" size="sm" onClick={onBack} ghost>
-                    <ArrowLeftIcon className="h-4 w-4" />
-                </Button>
+                {!hideBackButton && (
+                    <Button variant="secondary" size="sm" onClick={onBack} ghost>
+                        <ArrowLeftIcon className="h-4 w-4" />
+                    </Button>
+                )}
                 <h1 className="text-xl font-semibold text-white flex-1">Vacanțe Antrenamente</h1>
                 {isAdmin && (
                     <Button

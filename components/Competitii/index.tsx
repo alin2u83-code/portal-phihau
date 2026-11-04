@@ -691,6 +691,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
   const savedScrollRef = useRef(0);
   // ID-ul competiției salvat la mount — restaurat după ce lista se încarcă
   const pendingRestoreId = useRef<string | null>(ssGet(SS_KEY_COMP_ID));
+  const autoEnteredRef = useRef(false);
   const { labels: tipuriLabels } = useTipuriCompetitie();
 
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
@@ -717,6 +718,16 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
         setView('detail');
       }
       pendingRestoreId.current = null;
+    } else if (!autoEnteredRef.current && !error) {
+      // O singură competiție cu înscrieri deschise -> intrăm direct în ea (o singură dată pe mount, doar după fetch reușit)
+      const deschise = competitiiData.filter(c => c.status === 'inscrieri_deschise');
+      if (deschise.length === 1) {
+        setSelectedComp(deschise[0]);
+        ssDel(SS_KEY_TAB); // tab rămas de la altă competiție nu trebuie aplicat
+        ssSet(SS_KEY_COMP_ID, deschise[0].id);
+        setView('detail');
+      }
+      autoEnteredRef.current = true;
     }
   }, [showError]);
 

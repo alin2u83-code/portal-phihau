@@ -520,6 +520,17 @@ Plans:
 - [ ] 35-08 — Song Luyen CVD: echipa doar cu aceeasi arma
 - [ ] 35-09 — Verificare finala, review separat, actualizare spec
 
+### Phase 36: Acces extern competitie prin link: login email+OTP, doar zona competitie, cerere cont la federatie, RLS izolat per club+competitie
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 35
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 36 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

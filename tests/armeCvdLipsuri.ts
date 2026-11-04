@@ -17,10 +17,14 @@ assert.deepEqual(tipuri([ok]), ['fara-arma']);
 assert.deepEqual(tipuri([ok], { armeAlese: new Map([['a', new Set(['bong'])]]) }), ['fara-categorie']);
 // categorie ok, forma lipsa
 const cat = new Map([['a', new Map([['bong', {}]])]]);
-assert.deepEqual(tipuri([ok], { armeAlese: new Map([['a', new Set(['bong'])]]), categoriePerArma: cat }), ['fara-forma']);
+assert.deepEqual(tipuri([ok], { armeAlese: new Map([['a', new Set(['bong'])]]), categoriePerArma: cat, verificaForme: true }), ['fara-forma']);
+// forma nu se semnaleaza pana la vizita in Pas2
+assert.deepEqual(tipuri([ok], { armeAlese: new Map([['a', new Set(['bong'])]]), categoriePerArma: cat }), []);
 // totul setat
 const forma = new Map([['a', new Map([['bong', 'f1']])]]);
-assert.deepEqual(tipuri([ok], { armeAlese: new Map([['a', new Set(['bong'])]]), categoriePerArma: cat, formaPerArma: forma }), []);
+assert.deepEqual(tipuri([ok], { armeAlese: new Map([['a', new Set(['bong'])]]), categoriePerArma: cat, formaPerArma: forma, verificaForme: true }), []);
 // echipa fara arma
-assert.deepEqual(tipuri([], { echipeFaraArma: [{ id: 'e1', denumire: 'E' }] }), ['echipa-fara-arma']);
+assert.deepEqual(tipuri([], { echipeFaraArma: [{ id: 'e1', denumire: 'E', categorieArma: 'Bong' }] }), ['echipa-fara-arma']);
+// categorie fara arma -> nu se semnaleaza
+assert.deepEqual(tipuri([], { echipeFaraArma: [{ id: 'e1', denumire: 'E', categorieArma: null }] }), []);
 console.log('OK');

@@ -12,8 +12,10 @@ interface Intrare {
   formaPerArma: Map<string, Map<string, string>>;
   denumireArma: (armaId: string) => string;
   nume: (s: any) => string;
-  /** echipe Song Luyen active ale clubului, fara arma */
-  echipeFaraArma?: Array<{ id: string; denumire: string; categorieId?: string; probaId?: string }>;
+  /** false pana la prima vizita in Pas2: formele se aleg/auto-aleg acolo (optiunile se incarca async), deci nu se semnaleaza mai devreme */
+  verificaForme?: boolean;
+  /** echipe Song Luyen active ale clubului, fara arma; se semnaleaza doar daca categoria are arma (`categorieArma`) */
+  echipeFaraArma?: Array<{ id: string; denumire: string; categorieId?: string; probaId?: string; categorieArma?: string | null }>;
 }
 
 /** Lipsurile CVD care blocheaza inscrierea corecta; fiecare tine cont ca fara grad/data nasterii categoria nu se poate calcula. */
@@ -35,12 +37,13 @@ export function calculeazaLipsuriCvd(i: Intrare): Lipsa[] {
       const a = i.denumireArma(armaId);
       if (!i.categoriePerArma.get(s.id)?.has(armaId)) {
         out.push({ id: `cat-${s.id}-${armaId}`, tip: 'fara-categorie', sportivId: s.id, text: `${n} · ${a}: nicio categorie potrivită` });
-      } else if (!i.formaPerArma.get(s.id)?.get(armaId)) {
+      } else if (i.verificaForme && !i.formaPerArma.get(s.id)?.get(armaId)) {
         out.push({ id: `forma-${s.id}-${armaId}`, tip: 'fara-forma', sportivId: s.id, text: `${n} · ${a}: formă nealeasă` });
       }
     }
   }
   for (const e of i.echipeFaraArma ?? []) {
+    if (!e.categorieArma) continue;
     out.push({ id: `echipa-${e.id}`, tip: 'echipa-fara-arma', categorieId: e.categorieId, probaId: e.probaId, text: `Echipa ${e.denumire}: armă neselectată` });
   }
   return out;

@@ -1,7 +1,7 @@
 import type { useArmeCvd } from '../../../hooks/useArmeCvd';
 import {
   Competitie, ProbaCompetitie, CategorieCompetitie,
-  Sportiv, Grad, InscriereCompetitie, EchipaCompetitie, VizaSportiv, Inlantuire,
+  Sportiv, Grad, InscriereCompetitie, EchipaCompetitie, VizaSportiv, Inlantuire, Arma,
 } from '../../../types';
 
 // -----------------------------------------------
@@ -92,6 +92,25 @@ export interface InscriereClubWizardProps {
 
 /** sportivId -> set de armaId alese pe competitie */
 export type ArmeAlese = Map<string, Set<string>>;
+
+/** CVD: sportivId -> armaId -> inlantuireId (forma aleasa; o singura forma per arma) */
+export type FormaPerArma = Map<string, Map<string, string>>;
+/** CVD: sportivId -> armaId -> categoria potrivita */
+export type CategoriePerArma = Map<string, Map<string, CategorieCompetitie>>;
+
+export interface Pas2ArmeProps {
+  competitie: Competitie;
+  sportivi: Sportiv[];
+  grade: Grad[];
+  categorii: CategorieCompetitie[];
+  arme: Arma[];
+  armeAlese: ArmeAlese;
+  categoriePerArma: CategoriePerArma;
+  formaPerArma: FormaPerArma;
+  onChange: (next: FormaPerArma) => void;
+  onContinua: () => void;
+  onBack: () => void;
+}
 
 export interface PasArmeProps {
   competitie: Competitie;

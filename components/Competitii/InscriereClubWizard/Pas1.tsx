@@ -9,7 +9,7 @@ import { calculeazaVarstaLaData, verificaEligibilitate } from '../../../utils/el
 import { formatNume } from '../../../utils/formatareSportiv';
 import { areVizaFRAM } from '../constants';
 import { BadgeEligibilitateGenerala } from './shared';
-import { EligibilitateGenerala } from './types';
+import { EligibilitateGenerala, ArmeAlese } from './types';
 
 // -----------------------------------------------
 // HELPERS INTERNI
@@ -275,11 +275,16 @@ export interface Pas1Props {
   onRetrage?: (sportivId: string) => Promise<void>;
   onContinua: () => void;
   onBack: () => void;
+  /** CVD: blocheaza Continua cat timp sportivii selectati nu au arme alese */
+  cvd?: boolean;
+  armeAlese?: ArmeAlese;
+  onMergiLaArme?: () => void;
 }
 
 const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   competitie, sportivi, grade, categorii, inscrieri, vizeSportivi,
   selected, myClubId, varsteCompetitie, onToggle, onRetrage, onContinua, onBack,
+  cvd, armeAlese, onMergiLaArme,
 }) => {
   const [confirmRetrageId, setConfirmRetrageId] = useState<string | null>(null);
   const [retragereInCurs, setRetragereInCurs] = useState<string | null>(null);
@@ -293,6 +298,11 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   const { sortConfig, requestSort: requestSortPas1 } = useSortConfig();
 
   const anComp = new Date(competitie.data_inceput).getFullYear();
+
+  const faraArme = useMemo(
+    () => cvd ? [...selected].filter(id => !(armeAlese?.get(id)?.size)).length : 0,
+    [cvd, selected, armeAlese]
+  );
 
   // "Deja înscris" = înscris la ACEASTĂ probă (categoriile primite) și în clubul curent — nu la alte probe/cluburi
   const dejaInscrisiSet = useMemo(() => {
@@ -803,9 +813,14 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
               ? `${selected.size} sportiv${selected.size !== 1 ? 'i' : ''} selectat${selected.size !== 1 ? 'i' : ''}`
               : 'Niciun sportiv selectat'}
           </span>
+          {faraArme > 0 && (
+            <button type="button" onClick={onMergiLaArme} className="text-xs text-yellow-400 underline text-left">
+              {faraArme} sportivi nu au arme alese — mergi la Arme
+            </button>
+          )}
           <Button
             variant="success"
-            disabled={selected.size === 0}
+            disabled={selected.size === 0 || faraArme > 0}
             onClick={onContinua}
             className="min-w-[140px]"
           >

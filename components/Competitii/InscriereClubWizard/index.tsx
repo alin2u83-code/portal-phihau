@@ -1,7 +1,10 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { supabase } from '../../../supabaseClient';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
-import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap, ArmeAlese } from './types';
+import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap, ArmeAlese, FormaPerArma, CategoriePerArma } from './types';
+import { categoriePentruArma } from '../../../utils/armeCvd';
+import { gradEfectivLaData } from '../../../utils/eligibilitateCompetitie';
+import Pas2Arme from './Pas2Arme';
 import PasArme from './PasArme';
 import Pas1SelectareSportivi from './Pas1';
 import Pas2SelectieQuyen from './Pas2Quyen';
@@ -28,6 +31,18 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   useEffect(() => {
     if (arme && !arme.loading && armeAlese.size === 0 && arme.competitieArme.size > 0) setArmeAlese(new Map(arme.competitieArme));
   }, [arme, armeAlese.size]);
+  // CVD: forma aleasa per (sportiv, arma), semanata din inscrieri (nu suprascrie editarile)
+  const [formaPerArma, setFormaPerArma] = useState<FormaPerArma>(new Map());
+  useEffect(() => {
+    if (competitie.tip !== 'cvd') return;
+    const seed: FormaPerArma = new Map();
+    for (const i of inscrieri) {
+      if (i.club_id !== clubId || !i.arma_id || !i.inlantuire_id || !esteInscrisActiv(i)) continue;
+      if (!seed.has(i.sportiv_id)) seed.set(i.sportiv_id, new Map());
+      seed.get(i.sportiv_id)!.set(i.arma_id, i.inlantuire_id);
+    }
+    if (seed.size > 0) setFormaPerArma(prev => prev.size > 0 ? prev : seed);
+  }, [inscrieri, clubId, competitie.tip]);
   // Proba deschisă din hub (pentru Pas2 / Pas3)
   const [probaDeschisFocusId, setProbaDeschisFocusId] = useState<string | null>(null);
   // Selecție per probă — fiecare probă individuală își ține propriul Set<sportiviId>
@@ -176,6 +191,26 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   // Doar sportivii activi pentru pașii 2-4 și hub; Pas1 primește și inactivii deja înscriși (ca să-i poată retrage)
   const sportiviActivi = useMemo(() => sportivi.filter(s => s.status === 'Activ'), [sportivi]);
 
+  // CVD: categoria potrivita pentru fiecare (sportiv, arma aleasa)
+  const categoriePerArma = useMemo<CategoriePerArma>(() => {
+    const out: CategoriePerArma = new Map();
+    if (competitie.tip !== 'cvd' || !arme || armeAlese.size === 0) return out;
+    const armePeId = new Map(arme.arme.map(a => [a.id, a]));
+    for (const s of sportiviActivi) {
+      const alese = armeAlese.get(s.id);
+      if (!alese || alese.size === 0) continue;
+      const ordine = gradEfectivLaData(s, grade, competitie.data_inceput)?.ordine ?? 0;
+      const m = new Map<string, import('../../../types').CategorieCompetitie>();
+      for (const armaId of alese) {
+        const arma = armePeId.get(armaId);
+        const cat = arma && categoriePentruArma(arma, s, ordine, competitie.data_inceput, categorii, arme.arme);
+        if (cat) m.set(armaId, cat);
+      }
+      out.set(s.id, m);
+    }
+    return out;
+  }, [competitie.tip, competitie.data_inceput, arme, armeAlese, sportiviActivi, grade, categorii]);
+
   const handleToggle = (id: string) => {
     if (!probaDeschisFocusId) return;
     const probaId = probaDeschisFocusId;
@@ -255,6 +290,9 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onRetrage={handleRetrageInscriere}
         onContinua={handlePas1Continua}
         onBack={() => setStep('hub')}
+        cvd={competitie.tip === 'cvd' && !!arme}
+        armeAlese={armeAlese}
+        onMergiLaArme={() => setStep('arme')}
       />
     );
   }
@@ -329,6 +367,25 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
           });
           setStep(4);
         }}
+      />
+    );
+  }
+
+  if (step === 2 && competitie.tip === 'cvd' && arme) {
+    const selectate = selectedSportiviMap.get(probaDeschisFocusId ?? '') ?? new Set<string>();
+    return (
+      <Pas2Arme
+        competitie={competitie}
+        sportivi={sportiviActivi.filter(s => selectate.has(s.id))}
+        grade={grade}
+        categorii={categorii}
+        arme={arme.arme}
+        armeAlese={armeAlese}
+        categoriePerArma={categoriePerArma}
+        formaPerArma={formaPerArma}
+        onChange={setFormaPerArma}
+        onContinua={() => setStep('hub')}
+        onBack={() => setStep('hub')}
       />
     );
   }

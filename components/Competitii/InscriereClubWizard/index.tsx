@@ -173,6 +173,18 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
    * - thao_quyen_individual / thao_lo_individual → Pas1 (selectare sportivi) → Pas2 (quyen)
    * - orice altceva (song_luyen, sincron, giao_dau) → Pas3 direct (toți sportivii activi, per categorie)
    */
+  // Probe în care clubul are deja înscrieri în DB — nu se marchează "skipped" automat la finalizare
+  const probeCuInscrieriDB = useMemo(() => {
+    const catProba = new Map(categorii.map(c => [c.id, c.proba_id]));
+    const ids = new Set<string>();
+    for (const i of inscrieri) {
+      if (i.club_id !== clubId || i.status === 'retras') continue;
+      const pid = catProba.get(i.categorie_id);
+      if (pid) ids.add(pid);
+    }
+    return ids;
+  }, [inscrieri, categorii, clubId]);
+
   const handleDeschideProba = useCallback((probaId: string) => {
     setProbaDeschisFocusId(probaId);
     const proba = probe.find(p => p.id === probaId);
@@ -237,6 +249,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onFinalizare={() => {
           const activeProbeIds = new Set<string>();
           autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });
+          probeCuInscrieriDB.forEach(id => activeProbeIds.add(id));
           const probeIndividuale = probe.filter(p =>
             p.tip_proba === 'thao_quyen_individual' || p.tip_proba === 'thao_lo_individual'
           );
@@ -268,6 +281,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onContinua={() => {
           const activeProbeIds = new Set<string>();
           autoCategorie.forEach((cat) => { if (cat.proba_id) activeProbeIds.add(cat.proba_id); });
+          probeCuInscrieriDB.forEach(id => activeProbeIds.add(id));
           const probeIndividuale = probe.filter(p =>
             p.tip_proba === 'thao_quyen_individual' || p.tip_proba === 'thao_lo_individual'
           );
@@ -293,6 +307,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         dataCompetitie={competitie.data_inceput}
         competitieId={competitie.id}
         clubSolicitantId={clubId}
+        inscrieri={inscrieri}
         skippedCategorii={skippedCategorii}
         onToggleSkipCategorie={(catId) => setSkippedCategorii(prev => {
           const next = new Set(prev);
@@ -321,6 +336,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       excludedFromIndividual={excludedFromIndividual}
       clubId={clubId}
       numeClub={numeClub}
+      inscrieri={inscrieri}
       onBack={() => setStep('hub')}
       onSaved={onSaved}
     />

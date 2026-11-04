@@ -25,6 +25,23 @@ interface CardProba {
   categoriiExcluse: number;
   /** probă marcată explicit cu "Nu participăm" de utilizator */
   isExplicitSkip: boolean;
+  /** sportivi deja înscriși în DB pe această probă (pentru afișare "deja completat") */
+  nrInscrisi?: number;
+  /** categorii cu cel puțin o înscriere în DB */
+  nrCategoriiInscrise?: number;
+}
+
+/** Înscrierile individuale ale clubului deja salvate în DB pentru o probă. */
+function inscrieriProba(proba: ProbaCompetitie, props: InscriereClubCardsProps) {
+  const catIds = new Set(props.categorii.filter(c => c.proba_id === proba.id).map(c => c.id));
+  const rows = props.inscrieri.filter(i =>
+    i.club_id === props.clubId && i.status !== 'retras' && catIds.has(i.categorie_id)
+  );
+  return {
+    nrInscrieri: rows.length,
+    nrSportivi: new Set(rows.map(r => r.sportiv_id)).size,
+    nrCategorii: new Set(rows.map(r => r.categorie_id)).size,
+  };
 }
 
 // -----------------------------------------------
@@ -75,7 +92,15 @@ function calculeazaStatusCard(
 
   // Probe individuale (thao_quyen, thao_lo)
   const tipIndiv = proba.tip_proba === 'thao_quyen_individual' || proba.tip_proba === 'thao_lo_individual';
+  const db = inscrieriProba(proba, props);
+  // Înscrieri deja salvate în DB, fără modificări în curs → proba apare completată, nu "de luat de la capăt"
+  const dejaCompletat: CardProba = {
+    proba, status: 'completat', nrSportivi: db.nrSportivi,
+    nrComplet: db.nrCategorii, nrTotal: db.nrCategorii, categoriiExcluse: 0, isExplicitSkip: false,
+    nrInscrisi: db.nrSportivi, nrCategoriiInscrise: db.nrCategorii,
+  };
   if (tipIndiv) {
+    if (db.nrInscrieri > 0 && (selectedSportivi.size === 0 || autoCategorie.size === 0)) return dejaCompletat;
     if (selectedSportivi.size === 0 || autoCategorie.size === 0) {
       if (catProba.length === 0) {
         return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: false };
@@ -96,6 +121,7 @@ function calculeazaStatusCard(
     const nrTotal = sportiviProba.length;
 
     if (nrTotal === 0) {
+      if (db.nrInscrieri > 0) return dejaCompletat;
       return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: false };
     }
 
@@ -137,6 +163,15 @@ function calculeazaStatusCard(
   if (proba.tip_proba === 'giao_dau') {
     if (catProba.length === 0) {
       return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: false };
+    }
+    // Categorii individuale: complet când există cel puțin o înscriere a clubului
+    const catIndiv = catProba.filter(c => c.tip_participare === 'individual');
+    if (catIndiv.length === catProba.length) {
+      if (db.nrInscrieri > 0) return dejaCompletat;
+      return {
+        proba, status: 'incomplet', nrSportivi: 0, nrComplet: 0, nrTotal: 1,
+        categoriiExcluse: 0, isExplicitSkip: false,
+      };
     }
     const echipeProba = echipeFormate.filter(e => {
       const cat = categorii.find(c => c.id === e.categorieId);
@@ -223,7 +258,7 @@ const CardProbaItem: React.FC<{
   onToggleSkip?: () => void;
 }> = ({ card, onDeschide, onToggleSkip }) => {
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const { proba, status, nrComplet, nrTotal, motivBlocat, categoriiExcluse } = card;
+  const { proba, status, nrComplet, nrTotal, motivBlocat, categoriiExcluse, nrInscrisi, nrCategoriiInscrise } = card;
   const info = PROBA_INFO[proba.tip_proba];
   const colorKey = info?.color ?? 'amber';
   const colors = PROBA_COLOR_CLASSES[colorKey] ?? PROBA_COLOR_CLASSES.amber;
@@ -254,7 +289,7 @@ const CardProbaItem: React.FC<{
     : isBlocat
       ? `Blocat — ${motivBlocat}`
       : isComplet
-        ? 'Completat'
+        ? (nrInscrisi ? `Completat · ${nrInscrisi} sportiv${nrInscrisi !== 1 ? 'i' : ''} înscriși` : 'Completat')
         : `${nrComplet}/${nrTotal} completate`;
 
   return (
@@ -314,7 +349,11 @@ const CardProbaItem: React.FC<{
         {/* Contor sportivi / categorii */}
         {!isExclus && nrTotal > 0 && (
           <div className="flex items-center gap-3 text-xs text-slate-400">
-            <span>{nrTotal} categor{nrTotal === 1 ? 'ie' : 'ii'}</span>
+            <span>
+              {nrCategoriiInscrise
+                ? `în ${nrCategoriiInscrise} categor${nrCategoriiInscrise === 1 ? 'ie' : 'ii'}`
+                : `${nrTotal} categor${nrTotal === 1 ? 'ie' : 'ii'}`}
+            </span>
             {categoriiExcluse > 0 && (
               <span className="text-slate-500 italic">({categoriiExcluse} excluse auto)</span>
             )}
@@ -426,7 +465,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const cards = useMemo<CardProba[]>(
     () => probeActive.map(p => calculeazaStatusCard(p, props)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [probeActive, props.selectedSportivi, props.autoCategorie, props.quyenAles, props.echipeFormate, props.probeSkipped, props.excludedFromIndividual, props.echipe, props.sportivi, props.grade, props.categorii, props.skippedCategorii]
+    [probeActive, props.selectedSportivi, props.autoCategorie, props.quyenAles, props.echipeFormate, props.probeSkipped, props.excludedFromIndividual, props.echipe, props.sportivi, props.grade, props.categorii, props.skippedCategorii, props.inscrieri, props.clubId]
   );
 
   const cardsFiltrate = useMemo(
@@ -446,6 +485,13 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
     : '';
 
   const nrSportiviSelectati = selectedSportivi.size;
+  // Sportivi deja înscriși în DB (distincți) — hub-ul reflectă starea reală, nu doar selecția din sesiune
+  const nrSportiviInscrisi = useMemo(
+    () => new Set(props.inscrieri.filter(i => i.club_id === props.clubId && i.status !== 'retras').map(i => i.sportiv_id)).size,
+    [props.inscrieri, props.clubId]
+  );
+  const toateCompletate = cards.length > 0 && nrBlocate === 0 && nrIncomplete === 0
+    && cards.some(c => c.status === 'completat');
 
   return (
     <div className="space-y-4">
@@ -457,7 +503,8 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-white leading-tight">Înscriere club</h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            {competitie.denumire} · {nrSportiviSelectati} sportiv{nrSportiviSelectati !== 1 ? 'i' : ''} selectat{nrSportiviSelectati !== 1 ? 'i' : ''}
+            {competitie.denumire} · {nrSportiviInscrisi} sportiv{nrSportiviInscrisi !== 1 ? 'i' : ''} înscriși
+            {nrSportiviSelectati > 0 && ` · ${nrSportiviSelectati} selectați acum`}
           </p>
         </div>
         {/* Rezumat rapid */}
@@ -517,6 +564,15 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
           <p className="text-xs text-red-300">{tooltipFinalizare}</p>
         </div>
       )}
+      {/* Banner succes — tot ce se poate înscrie e deja înscris */}
+      {toateCompletate && (
+        <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/15 px-4 py-3">
+          <p className="text-xs font-semibold text-emerald-400 mb-1">Înscriere completă</p>
+          <p className="text-xs text-emerald-300">
+            {nrSportiviInscrisi} sportiv{nrSportiviInscrisi !== 1 ? 'i' : ''} înscriși. Pentru modificări deschide cardul probei dorite.
+          </p>
+        </div>
+      )}
       {/* Banner avertisment — incomplet dar poate finaliza */}
       {nrBlocate === 0 && nrIncomplete > 0 && (
         <div className="rounded-lg border border-amber-700/50 bg-amber-900/15 px-4 py-3">
@@ -540,7 +596,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
           )}
           <div className="flex items-center gap-2 flex-1 justify-end">
             <span className="text-xs text-slate-500 hidden sm:block">
-              {nrBlocate > 0 ? tooltipFinalizare : nrIncomplete > 0 ? `${nrIncomplete} probe incomplete` : 'Gata de finalizare'}
+              {nrBlocate > 0 ? tooltipFinalizare : nrIncomplete > 0 ? `${nrIncomplete} probe incomplete` : toateCompletate ? 'Toate probele sunt completate' : 'Gata de finalizare'}
             </span>
             <Button
               variant="success"

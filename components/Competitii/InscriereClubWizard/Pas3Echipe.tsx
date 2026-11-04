@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
-  CategorieCompetitie, EchipaCompetitie, Sportiv, Grad, ProbaCompetitie,
+  CategorieCompetitie, EchipaCompetitie, Sportiv, Grad, ProbaCompetitie, InscriereCompetitie,
 } from '../../../types';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
@@ -20,6 +20,8 @@ interface Pas3Props {
   dataCompetitie: string;
   competitieId: string;
   clubSolicitantId: string;
+  /** Înscrieri existente — folosite pentru categoriile individuale (Giao Dau) */
+  inscrieri?: InscriereCompetitie[];
   skippedCategorii?: Set<string>;
   onToggleSkipCategorie?: (catId: string) => void;
   onOpenInscriereModal?: (cat: CategorieCompetitie) => void;
@@ -30,13 +32,13 @@ interface Pas3Props {
 
 const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   categorii, probe, echipe, clubId, sportivi, grade, dataCompetitie,
-  competitieId, clubSolicitantId,
+  competitieId, clubSolicitantId, inscrieri = [],
   skippedCategorii, onToggleSkipCategorie,
   onOpenInscriereModal, onEchipeRefresh, onBack,
 }) => {
   const { showError } = useError();
   const [cereriInterclub, setCereriInterclub] = useState<Map<string, 'pending' | 'aprobat' | 'respins'>>(new Map());
-  const [filtruCategorii, setFiltruCategorii] = useState<'toate' | 'completate' | 'incomplete'>('toate');
+  const [filtruCategorii, setFiltruCategorii] = useState<'toate' | 'completate' | 'incomplete'>('incomplete');
   const [echipeRetraseLocal, setEchipeRetraseLocal] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -119,9 +121,10 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   };
   const categoriiEchipa = useMemo(
     () => categorii
-      .filter(esteEchipaSauPereche)
+      // Giao Dau poate avea categorii individuale (ex. CVD) — se înscriu sportivi direct, fără echipă
+      .filter(c => esteEchipaSauPereche(c) || probe.find(p => p.id === c.proba_id)?.tip_proba === 'giao_dau')
       .sort((a, b) => (a.ordine_afisare ?? 0) - (b.ordine_afisare ?? 0)),
-    [categorii]
+    [categorii, probe]
   );
 
   const firstProbaId = categoriiEchipa[0]?.proba_id;
@@ -138,14 +141,18 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     const nrTitulari = membri.filter(m => m.rol === 'titular').length;
     const nrRezervă = membri.filter(m => m.rol === 'rezerva').length;
     const titMin = cat.tip_participare === 'pereche' ? 2 : (cat.sportivi_per_echipa_min ?? 1);
-    const eCompleta = !!echipaDB && (nrTitulari >= titMin || echipaDB.echipa_incompleta);
+    const individual = cat.tip_participare === 'individual';
+    const nrInscrisi = individual
+      ? inscrieri.filter(i => i.categorie_id === cat.id && i.club_id === clubId && i.status !== 'retras').length
+      : 0;
+    const eCompleta = individual ? nrInscrisi > 0 : !!echipaDB && (nrTitulari >= titMin || echipaDB.echipa_incompleta);
     // Task 5: excludem sportivii fără data_nasterii sau gen din contorizarea eligibililor
     const eligibili = sportivi.filter(s => {
       if (!s.data_nasterii) return false;
       return verificaEligibilitate(s, cat, grade, dataCompetitie).eligibil;
     }).length;
-    return { cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili };
-  }), [categoriiEchipa, echipe, clubId, sportivi, grade, dataCompetitie, echipeRetraseLocal]);
+    return { cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili, individual, nrInscrisi };
+  }), [categoriiEchipa, echipe, inscrieri, clubId, sportivi, grade, dataCompetitie, echipeRetraseLocal]);
 
   const nrConfigurate = categoriiStare.filter(c => c.eCompleta || (skippedCategorii?.has(c.cat.id) ?? false)).length;
   const nrTotal = categoriiStare.filter(c => c.eligibili > 0).length;
@@ -165,8 +172,8 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     return categoriiStare.filter(c => !c.eCompleta && !(skippedCategorii?.has(c.cat.id) ?? false) && c.eligibili > 0);
   }, [categoriiStare, filtruCategorii, skippedCategorii]);
 
-  // Task 4: afișăm filtrul doar dacă există 3+ categorii
-  const arataBara = categoriiStare.length >= 3;
+  // Filtrul implicit e "Incomplete" — bara trebuie vizibilă mereu, altfel categoriile completate (de editat) nu mai pot fi accesate
+  const arataBara = categoriiStare.length > 0;
 
   return (
     <div className="space-y-4">
@@ -190,9 +197,9 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
         <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="flex gap-2 min-w-max md:min-w-0 md:flex-wrap">
             {([
-              { key: 'toate', label: `Toate (${nrToate})` },
-              { key: 'completate', label: `Completate (${nrCompletate})` },
               { key: 'incomplete', label: `Incomplete (${nrIncomplete})` },
+              { key: 'completate', label: `Completate (${nrCompletate})` },
+              { key: 'toate', label: `Toate (${nrToate})` },
             ] as const).map(({ key, label }) => (
               <button
                 key={key}
@@ -214,7 +221,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
 
       {/* Carduri categorii */}
       <div className="space-y-3">
-        {categoriiStareFiltrate.map(({ cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili }) => {
+        {categoriiStareFiltrate.map(({ cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili, individual, nrInscrisi }) => {
           const titMin = cat.tip_participare === 'pereche' ? 2 : (cat.sportivi_per_echipa_min ?? 1);
           const areEligibili = eligibili > 0;
           const isCatSkipped = skippedCategorii?.has(cat.id) ?? false;
@@ -262,6 +269,12 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                       {(cat.rezerve_max ?? 0) > 0 && ` + ${cat.rezerve_max} rezerv${cat.rezerve_max !== 1 ? 'e' : 'ă'}`}
                       {areEligibili && ` · ${eligibili} eligibil${eligibili !== 1 ? 'i' : ''}`}
                     </p>
+
+                    {individual && nrInscrisi > 0 && (
+                      <p className="text-xs mt-1.5 text-emerald-400 font-medium">
+                        {nrInscrisi} sportiv{nrInscrisi !== 1 ? 'i' : ''} înscris{nrInscrisi !== 1 ? 'i' : ''} ✓
+                      </p>
+                    )}
 
                     {/* Status echipă */}
                     {echipaDB && (
@@ -311,7 +324,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                         ← Participăm
                       </button>
                     )}
-                    {onToggleSkipCategorie && areEligibili && !isCatSkipped && !echipaDB && (
+                    {onToggleSkipCategorie && areEligibili && !isCatSkipped && !echipaDB && !individual && (
                       <button
                         type="button"
                         onClick={() => handleNuParticipaEchipa(cat.id, undefined)}
@@ -342,7 +355,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
               )}
 
               {/* Buton cerere inter-club — vizibil pe categorii cu eligibili, nesărite (inclusiv echipe complete) */}
-              {areEligibili && !isCatSkipped && (() => {
+              {areEligibili && !isCatSkipped && !individual && (() => {
                 const statusCerere = cereriInterclub.get(cat.id);
                 const nrLocuriLipsa = Math.max(1, titMin - nrTitulari);
 
@@ -405,13 +418,15 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
         )}
         {categoriiEchipa.length > 0 && categoriiStareFiltrate.length === 0 && (
           <div className="rounded-xl border border-slate-700 bg-slate-800/30 px-4 py-6 text-center">
-            <p className="text-sm text-slate-500 italic">Nicio categorie în filtrul curent.</p>
+            <p className="text-sm text-slate-500 italic">
+              {filtruCategorii === 'incomplete' ? 'Toate categoriile sunt configurate.' : 'Nicio categorie în filtrul curent.'}
+            </p>
             <button
               type="button"
-              onClick={() => setFiltruCategorii('toate')}
+              onClick={() => setFiltruCategorii(filtruCategorii === 'incomplete' ? 'completate' : 'toate')}
               className="mt-2 text-xs text-brand-primary hover:underline"
             >
-              Afișează toate
+              {filtruCategorii === 'incomplete' ? 'Vezi / modifică cele completate' : 'Afișează toate'}
             </button>
           </div>
         )}

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  Competitie, CategorieCompetitie, Sportiv, Grad, Inlantuire,
+  Competitie, CategorieCompetitie, Sportiv, Grad, Inlantuire, InscriereCompetitie,
 } from '../../../types';
 import { supabase } from '../../../supabaseClient';
 import { Button } from '../../ui';
@@ -30,6 +30,8 @@ export interface Pas4Props {
   excludedFromIndividual: Set<string>;
   clubId: string;
   numeClub: string;
+  /** Înscrieri existente — pentru categoriile Giao Dau individuale, salvate direct din modal */
+  inscrieri?: InscriereCompetitie[];
   onBack: () => void;
   onSaved: () => void;
 }
@@ -41,6 +43,8 @@ interface RandIndividual {
   inlantuire_id?: string;
   inlantuire_id_2?: string;
   taxa: number;
+  /** Înscriere deja salvată în DB (ex. Giao Dau individual via modal) — doar afișare/total, nu se re-salvează */
+  deja?: boolean;
 }
 
 interface RandEchipa {
@@ -55,7 +59,7 @@ interface RandEchipa {
 const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   competitie, sportivi, grade, categorii,
   selectedSportivi, autoCategorie, quyenAles, echipeFormate,
-  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, onBack, onSaved,
+  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, inscrieri = [], onBack, onSaved,
 }) => {
   const { showError, showSuccess } = useError();
   const [saving, setSaving] = useState(false);
@@ -96,8 +100,28 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         taxa: calculeazaTaxaIndividuala(competitie, cat),
       });
     }
+    // Înscrieri individuale deja salvate în DB (modal Giao Dau, sesiuni anterioare) — le includem în sumar și total
+    const chei = new Set(rezultat.map(r => `${r.sportiv.id}|${r.categorie.id}`));
+    for (const i of inscrieri) {
+      if (i.club_id !== clubId || i.status === 'retras') continue;
+      const cat = categorii.find(c => c.id === i.categorie_id);
+      if (!cat || cat.tip_participare !== 'individual') continue;
+      if (cat.proba_id && probeSkipped.has(cat.proba_id)) continue;
+      if (skippedCategorii?.has(cat.id) || chei.has(`${i.sportiv_id}|${cat.id}`)) continue;
+      const sportiv = sportivi.find(s => s.id === i.sportiv_id);
+      if (!sportiv) continue;
+      rezultat.push({
+        sportiv,
+        varsta: sportiv.data_nasterii ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput) : 0,
+        categorie: cat,
+        inlantuire_id: i.inlantuire_id ?? undefined,
+        inlantuire_id_2: i.inlantuire_id_2 ?? undefined,
+        taxa: calculeazaTaxaIndividuala(competitie, cat),
+        deja: true,
+      });
+    }
     return rezultat;
-  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped, excludedFromIndividual]);
+  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped, excludedFromIndividual, inscrieri, categorii, clubId, skippedCategorii]);
 
   const randuriEchipe = useMemo<RandEchipa[]>(() => {
     return echipeFormate.map(echipa => {
@@ -180,6 +204,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       // 1. Insert/reactivare înscrieri individuale
       let skippedCount = 0;
       for (const rand of randuriIndividuale) {
+        if (rand.deja) continue;
         const { data: existent } = await supabase
           .from('inscrieri_competitie')
           .select('id, status')

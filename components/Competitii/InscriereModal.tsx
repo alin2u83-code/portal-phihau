@@ -194,6 +194,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
           competitie_id: competitie.id,
           categorie_id: categorie.id,
           club_id: clubId,
+          borderou_club_id: clubId,
           sportiv_id: sportivId,
         }));
         const { error } = await supabase.from('inscrieri_competitie').insert(inserts);

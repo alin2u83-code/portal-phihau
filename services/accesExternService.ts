@@ -73,6 +73,9 @@ export async function trimiteCerereAcces(p: { competitieId: string; email: strin
 
 export async function incarcaCluburiPublice(): Promise<{ data: { id: string; nume: string }[]; error: any }> {
     if (!supabase) return { data: [], error: 'Supabase neinițializat' };
+    // anonimul nu poate citi tabela cluburi (RLS): lista vine din RPC public; fallback pe tabela pentru utilizatori autentificati
+    const rpc = await supabase.rpc('lista_cluburi_publice');
+    if (!rpc.error && Array.isArray(rpc.data)) return { data: rpc.data as { id: string; nume: string }[], error: null };
     const { data, error } = await supabase.from('cluburi').select('id, nume').order('nume');
     return { data: data ?? [], error };
 }

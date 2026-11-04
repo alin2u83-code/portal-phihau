@@ -36,7 +36,9 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
                 if (error) {
                     console.error('Error fetching profiles:', error.message);
                 } else {
-                    const profilesData = data || [];
+                    const toate = data || [];
+                    const interne = toate.filter((p: any) => p.roluri?.nume !== 'REPREZENTANT_COMPETITIE');
+                    const profilesData = interne.length > 0 ? interne : toate;
                     setProfiles(profilesData);
                     
                     // Auto-Select: Dacă utilizatorul are un singur rol, loghează-l direct

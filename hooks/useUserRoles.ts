@@ -12,6 +12,7 @@ export const getRoleDisplayName = (role: any): string => {
         case 'ADMIN_CLUB': return `Admin - ${role.club?.nume || 'Club Nedefinit'}`;
         case 'INSTRUCTOR': return `Instructor - ${role.club?.nume || 'Club Nedefinit'}`;
         case 'SPORTIV': return `Sportiv - ${role.nume_utilizator_cache || `${role.sportiv?.nume || ''} ${role.sportiv?.prenume || ''}`.trim() || 'Nespecificat'}`;
+        case 'REPREZENTANT_COMPETITIE': return 'Reprezentant competiție';
         default: return roleName || 'Rol Necunoscut';
     }
 };
@@ -25,6 +26,7 @@ export const getRoleDescription = (role: any): string => {
         case 'ADMIN_CLUB': return `Management complet pentru ${role.club?.nume || 'club'}.`;
         case 'INSTRUCTOR': return `Management sportivi și prezențe la ${role.club?.nume || 'club'}.`;
         case 'SPORTIV': return 'Accesează portalul personal de sportiv.';
+        case 'REPREZENTANT_COMPETITIE': return 'Acces doar la zona competiției, prin linkul primit de la federație.';
         default: return 'Selectează acest profil pentru a continua.';
     }
 };
@@ -95,10 +97,13 @@ export const useUserRoles = (userId: string | undefined) => {
                 }
             }
 
-            const roles = rolesData?.map(r => ({
+            const toateRolurile = rolesData?.map(r => ({
                 ...r,
                 sportiv: sportiviMap[r.sportiv_id] || null
             })) || [];
+            // Rolul extern nu apare in portalul principal daca utilizatorul are si roluri interne (D-10)
+            const arExtern = (r: any) => (r.roluri?.nume || r.rol_denumire) === 'REPREZENTANT_COMPETITIE';
+            const roles = toateRolurile.some(r => !arExtern(r)) ? toateRolurile.filter(r => !arExtern(r)) : toateRolurile;
 
             if (!roles || roles.length === 0) {
                 setNeedsRoleSelection(true);

@@ -440,7 +440,7 @@ export const useDataProvider = () => {
             setData(prev => ({
                 ...prev,
                 clubs: finalData.clubs?.length ? finalData.clubs : prev.clubs,
-                allRoles: finalData.allRoles?.length ? finalData.allRoles : prev.allRoles,
+                allRoles: finalData.allRoles?.length ? finalData.allRoles.filter((r: any) => r.nume !== 'REPREZENTANT_COMPETITIE') : prev.allRoles,
                 grade: finalData.grade?.length ? finalData.grade : prev.grade,
                 tipuriAbonament: finalData.tipuriAbonament?.length ? finalData.tipuriAbonament : prev.tipuriAbonament,
                 locatii: finalData.locatii || prev.locatii,
@@ -479,7 +479,10 @@ export const useDataProvider = () => {
     }, [session?.user.id, userRoles]);
 
     useEffect(() => {
-        if (activeRoleContext) {
+        if ((activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire) === 'REPREZENTANT_COMPETITIE') {
+            // Zona externa isi incarca singura datele; portalul principal nu trage setul clubului
+            setLoadingData(false);
+        } else if (activeRoleContext) {
             fetchAppData(activeRoleContext);
         } else if (!rolesLoading && !needsRoleSelection) {
             setLoadingData(false);

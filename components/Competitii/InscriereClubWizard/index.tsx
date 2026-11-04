@@ -7,6 +7,7 @@ import Pas2SelectieQuyen from './Pas2Quyen';
 import Pas3FormareEchipe from './Pas3Echipe';
 import Pas4SumarTaxe from './Pas4Sumar';
 import InscriereClubCards from './InscriereClubCards';
+import { esteInscrisActiv } from './shared';
 
 export type { InscriereClubWizardProps };
 export type { EchipaFormata, QuyenAlesMap };
@@ -57,7 +58,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     );
     const catMap = new Map(categorii.filter(c => c.tip_participare === 'individual').map(c => [c.id, c]));
     const inscrieriIndiv = inscrieri.filter(i => {
-      if (i.club_id !== clubId || i.status === 'retras') return false;
+      if (i.club_id !== clubId || !esteInscrisActiv(i)) return false;
       const cat = catMap.get(i.categorie_id);
       return cat && probeIndivIds.has(cat.proba_id ?? '');
     });
@@ -178,7 +179,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     const catProba = new Map(categorii.map(c => [c.id, c.proba_id]));
     const ids = new Set<string>();
     for (const i of inscrieri) {
-      if (i.club_id !== clubId || i.status === 'retras') continue;
+      if (i.club_id !== clubId || !esteInscrisActiv(i)) continue;
       const pid = catProba.get(i.categorie_id);
       if (pid) ids.add(pid);
     }

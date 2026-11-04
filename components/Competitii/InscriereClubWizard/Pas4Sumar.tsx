@@ -11,6 +11,7 @@ import { exportFisaParticipare, exportBorderoClub, RandIndividualPDF, RandEchipa
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../../utils/taxeCompetitie';
 import { formatNume } from '../../../utils/formatareSportiv';
 import { EchipaFormata, QuyenAlesMap } from './types';
+import { esteInscrisActiv } from './shared';
 
 // -----------------------------------------------
 // PASUL 4 — Sumar + taxe + save DB
@@ -101,13 +102,15 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       });
     }
     // Înscrieri individuale deja salvate în DB (modal Giao Dau, sesiuni anterioare) — le includem în sumar și total
+    // Rândurile locale au prioritate: același sportiv pe aceeași probă (categorie recalculată) nu se numără de două ori.
+    // Înscrierile din DB se afișează chiar dacă proba e "Nu participăm" — ele există efectiv și nu se retrag de aici.
     const chei = new Set(rezultat.map(r => `${r.sportiv.id}|${r.categorie.id}`));
+    const cheiProba = new Set(rezultat.map(r => `${r.sportiv.id}|${r.categorie.proba_id}`));
     for (const i of inscrieri) {
-      if (i.club_id !== clubId || i.status === 'retras') continue;
+      if (i.club_id !== clubId || !esteInscrisActiv(i)) continue;
       const cat = categorii.find(c => c.id === i.categorie_id);
       if (!cat || cat.tip_participare !== 'individual') continue;
-      if (cat.proba_id && probeSkipped.has(cat.proba_id)) continue;
-      if (skippedCategorii?.has(cat.id) || chei.has(`${i.sportiv_id}|${cat.id}`)) continue;
+      if (chei.has(`${i.sportiv_id}|${cat.id}`) || cheiProba.has(`${i.sportiv_id}|${cat.proba_id}`)) continue;
       const sportiv = sportivi.find(s => s.id === i.sportiv_id);
       if (!sportiv) continue;
       rezultat.push({
@@ -121,7 +124,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       });
     }
     return rezultat;
-  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped, excludedFromIndividual, inscrieri, categorii, clubId, skippedCategorii]);
+  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped, excludedFromIndividual, inscrieri, categorii, clubId]);
 
   const randuriEchipe = useMemo<RandEchipa[]>(() => {
     return echipeFormate.map(echipa => {
@@ -401,7 +404,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
               </thead>
               <tbody className="divide-y divide-slate-700/50">
                 {randuriIndividuale.map(rand => (
-                  <tr key={rand.sportiv.id} className="bg-slate-800/10 hover:bg-slate-800/40 transition-colors">
+                  <tr key={`${rand.sportiv.id}|${rand.categorie.id}`} className="bg-slate-800/10 hover:bg-slate-800/40 transition-colors">
                     <td className="px-4 py-2.5 font-medium text-white whitespace-nowrap">
                       {formatNume(rand.sportiv)}
                     </td>
@@ -431,7 +434,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           {/* MOBIL: carduri */}
           <div className="md:hidden divide-y divide-slate-700/50">
             {randuriIndividuale.map(rand => (
-              <div key={rand.sportiv.id} className="px-4 py-3 space-y-1.5">
+              <div key={`${rand.sportiv.id}|${rand.categorie.id}`} className="px-4 py-3 space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-sm text-white">
                     {formatNume(rand.sportiv)}

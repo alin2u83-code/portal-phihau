@@ -5,7 +5,7 @@ import {
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
-import { esteEchipaSauPereche, BadgeTipParticipare } from './shared';
+import { esteEchipaSauPereche, esteInscrisActiv, BadgeTipParticipare } from './shared';
 import { ProbaHeader } from './constants';
 import { supabase } from '../../../supabaseClient';
 import { useError } from '../../ErrorProvider';
@@ -141,9 +141,10 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     const nrTitulari = membri.filter(m => m.rol === 'titular').length;
     const nrRezervă = membri.filter(m => m.rol === 'rezerva').length;
     const titMin = cat.tip_participare === 'pereche' ? 2 : (cat.sportivi_per_echipa_min ?? 1);
-    const individual = cat.tip_participare === 'individual';
+    // În lista Pas3 intră doar echipă/pereche sau Giao Dau — orice altceva (individual, null) se înscrie pe sportiv
+    const individual = !esteEchipaSauPereche(cat);
     const nrInscrisi = individual
-      ? inscrieri.filter(i => i.categorie_id === cat.id && i.club_id === clubId && i.status !== 'retras').length
+      ? inscrieri.filter(i => i.categorie_id === cat.id && i.club_id === clubId && esteInscrisActiv(i)).length
       : 0;
     const eCompleta = individual ? nrInscrisi > 0 : !!echipaDB && (nrTitulari >= titMin || echipaDB.echipa_incompleta);
     // Task 5: excludem sportivii fără data_nasterii sau gen din contorizarea eligibililor

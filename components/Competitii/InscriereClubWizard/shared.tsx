@@ -226,6 +226,11 @@ export function esteEchipaSauPereche(cat: CategorieCompetitie): boolean {
   return cat.tip_participare === 'echipa' || cat.tip_participare === 'pereche';
 }
 
+/** Înscriere activă = nu e retrasă (comparație insensibilă la majuscule, ca în Pas4/Competitii index). */
+export function esteInscrisActiv(i: { status?: string | null }): boolean {
+  return i.status?.toLowerCase() !== 'retras';
+}
+
 export function grupeazaDupaProba(
   categorii: CategorieCompetitie[]
 ): Array<{ proba: ProbaCompetitie | null; probaDenumire: string; categorii: CategorieCompetitie[] }> {

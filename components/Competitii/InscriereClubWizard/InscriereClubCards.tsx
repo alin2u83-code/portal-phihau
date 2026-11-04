@@ -3,7 +3,7 @@ import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { PROBA_INFO, PROBA_COLOR_CLASSES } from './constants';
 import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap } from './types';
-import { esteEchipaSauPereche } from './shared';
+import { esteEchipaSauPereche, esteInscrisActiv } from './shared';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { ProbaCompetitie, CategorieCompetitie } from '../../../types';
 import { TIP_PROBA_LABELS } from '../../../utils/competitiiTemplates';
@@ -35,7 +35,7 @@ interface CardProba {
 function inscrieriProba(proba: ProbaCompetitie, props: InscriereClubCardsProps) {
   const catIds = new Set(props.categorii.filter(c => c.proba_id === proba.id).map(c => c.id));
   const rows = props.inscrieri.filter(i =>
-    i.club_id === props.clubId && i.status !== 'retras' && catIds.has(i.categorie_id)
+    i.club_id === props.clubId && esteInscrisActiv(i) && catIds.has(i.categorie_id)
   );
   return {
     nrInscrieri: rows.length,
@@ -83,7 +83,9 @@ function calculeazaStatusCard(
   } = props;
 
   const catProba = categorii.filter(c => c.proba_id === proba.id);
-  const isSkipped = probeSkipped.has(proba.id);
+  const db = inscrieriProba(proba, props);
+  // "Nu participăm" nu are efect cât timp clubul are înscrieri salvate pe probă (nu se retrag de aici)
+  const isSkipped = probeSkipped.has(proba.id) && db.nrInscrieri === 0;
 
   // Probă sărită explicit → exclus (cu flag isExplicitSkip)
   if (isSkipped) {
@@ -92,7 +94,6 @@ function calculeazaStatusCard(
 
   // Probe individuale (thao_quyen, thao_lo)
   const tipIndiv = proba.tip_proba === 'thao_quyen_individual' || proba.tip_proba === 'thao_lo_individual';
-  const db = inscrieriProba(proba, props);
   // Înscrieri deja salvate în DB, fără modificări în curs → proba apare completată, nu "de luat de la capăt"
   const dejaCompletat: CardProba = {
     proba, status: 'completat', nrSportivi: db.nrSportivi,
@@ -165,9 +166,11 @@ function calculeazaStatusCard(
       return { proba, status: 'exclus', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: false };
     }
     // Categorii individuale: complet când există cel puțin o înscriere a clubului
-    const catIndiv = catProba.filter(c => c.tip_participare === 'individual');
-    if (catIndiv.length === catProba.length) {
-      if (db.nrInscrieri > 0) return dejaCompletat;
+    const arePartIndiv = catProba.some(c => !esteEchipaSauPereche(c));
+    const arePartEchipa = catProba.some(esteEchipaSauPereche);
+    const indivGata = db.nrInscrieri > 0;
+    if (arePartIndiv && !arePartEchipa) {
+      if (indivGata) return dejaCompletat;
       return {
         proba, status: 'incomplet', nrSportivi: 0, nrComplet: 0, nrTotal: 1,
         categoriiExcluse: 0, isExplicitSkip: false,
@@ -178,12 +181,15 @@ function calculeazaStatusCard(
       return cat && cat.proba_id === proba.id;
     });
     const areEchipeConfigurate = echipeProba.length > 0 && echipeProba.every(e => e.echipaSkip || e.titulari.length > 0 || e.echipaIncompleta);
+    // Probă mixtă (individual + echipă): ambele părți contează
+    const nrParti = arePartIndiv ? 2 : 1;
+    const nrGata = (areEchipeConfigurate ? 1 : 0) + (arePartIndiv && indivGata ? 1 : 0);
     return {
       proba,
-      status: areEchipeConfigurate ? 'completat' : 'incomplet',
-      nrSportivi: 0,
-      nrComplet: areEchipeConfigurate ? 1 : 0,
-      nrTotal: 1,
+      status: nrGata === nrParti ? 'completat' : 'incomplet',
+      nrSportivi: arePartIndiv ? db.nrSportivi : 0,
+      nrComplet: nrGata,
+      nrTotal: nrParti,
       categoriiExcluse: 0,
       isExplicitSkip: false,
     };
@@ -487,11 +493,12 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const nrSportiviSelectati = selectedSportivi.size;
   // Sportivi deja înscriși în DB (distincți) — hub-ul reflectă starea reală, nu doar selecția din sesiune
   const nrSportiviInscrisi = useMemo(
-    () => new Set(props.inscrieri.filter(i => i.club_id === props.clubId && i.status !== 'retras').map(i => i.sportiv_id)).size,
+    () => new Set(props.inscrieri.filter(i => i.club_id === props.clubId && esteInscrisActiv(i)).map(i => i.sportiv_id)).size,
     [props.inscrieri, props.clubId]
   );
+  // Bannerul "completă" doar pentru starea salvată (fără selecții locale nesalvate)
   const toateCompletate = cards.length > 0 && nrBlocate === 0 && nrIncomplete === 0
-    && cards.some(c => c.status === 'completat');
+    && nrSportiviSelectati === 0 && cards.some(c => c.status === 'completat');
 
   return (
     <div className="space-y-4">
@@ -547,7 +554,8 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
             key={card.proba.id}
             card={card}
             onDeschide={() => onDeschideProba(card.proba.id)}
-            onToggleSkip={onToggleSkipProba ? () => onToggleSkipProba(card.proba.id) : undefined}
+            // fără "Nu participăm" cât timp clubul are înscrieri salvate pe probă (retragerea se face din modalul categoriei)
+            onToggleSkip={onToggleSkipProba && !card.nrInscrisi ? () => onToggleSkipProba(card.proba.id) : undefined}
           />
         ))}
         {cardsFiltrate.length === 0 && (
@@ -569,7 +577,10 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
         <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/15 px-4 py-3">
           <p className="text-xs font-semibold text-emerald-400 mb-1">Înscriere completă</p>
           <p className="text-xs text-emerald-300">
-            {nrSportiviInscrisi} sportiv{nrSportiviInscrisi !== 1 ? 'i' : ''} înscriși. Pentru modificări deschide cardul probei dorite.
+            {nrSportiviInscrisi > 0
+              ? `${nrSportiviInscrisi} sportiv${nrSportiviInscrisi !== 1 ? 'i' : ''} înscriși individual. `
+              : 'Toate probele sunt configurate. '}
+            Pentru modificări deschide cardul probei dorite.
           </p>
         </div>
       )}

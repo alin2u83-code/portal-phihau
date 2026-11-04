@@ -429,7 +429,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         clubSolicitantId={clubId}
         inscrieri={inscrieri}
         armeAlese={arme ? armeAlese : undefined}
-        armeDefinitii={arme?.arme}
+        armeDefinitii={arme && !arme.loading ? arme.arme : undefined}
         skippedCategorii={skippedCategorii}
         onToggleSkipCategorie={(catId) => setSkippedCategorii(prev => {
           const next = new Set(prev);

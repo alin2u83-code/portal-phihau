@@ -23,19 +23,21 @@ export interface InscriereModalProps {
   initialEditMode?: boolean;
   /** CVD: armele incarcate o singura data in CompetitieDetail */
   arme?: ReturnType<typeof useArmeCvd>;
+  /** tip_proba al categoriei (categoria din lista nu are `proba` atasat) */
+  tipProba?: string;
   onClose: () => void;
   onSaved: () => void;
 }
 
 export const InscriereModal: React.FC<InscriereModalProps> = ({
-  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, numeClub, vizeSportivi, initialEditMode, arme, onClose, onSaved
+  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, numeClub, vizeSportivi, initialEditMode, arme, tipProba, onClose, onSaved
 }) => {
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
   const { showError } = useError();
   const [loading, setLoading] = useState(false);
   const [retragereLoading, setRetragereLoading] = useState<string | null>(null);
   const isTeam = categorie.tip_participare !== 'individual';
-  const arataArmeGiaoDau = competitie.tip === 'cvd' && categorie.proba?.tip_proba === 'giao_dau' && !!arme && !arme.loading;
+  const arataArmeGiaoDau = competitie.tip === 'cvd' && (categorie.proba?.tip_proba ?? tipProba) === 'giao_dau' && !!arme && !arme.loading;
 
   // IDs sportivi retrași local în această sesiune a modalului (pentru a actualiza lista fără a închide modalul)
   const [retrasiLocal, setRetrasiLocal] = useState<Set<string>>(new Set());

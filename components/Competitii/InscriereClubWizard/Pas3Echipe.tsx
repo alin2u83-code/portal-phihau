@@ -8,6 +8,7 @@ import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { esteEchipaSauPereche, esteInscrisActiv, BadgeTipParticipare } from './shared';
 import { ProbaHeader } from './constants';
 import { ArmePermiseGiaoDau } from '../constants';
+import { formatNume } from '../../../utils/formatareSportiv';
 import type { ArmeAlese } from './types';
 import { supabase } from '../../../supabaseClient';
 import { useError } from '../../ErrorProvider';
@@ -290,7 +291,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                     {individual && armeAlese && armeDefinitii && probe.find(p => p.id === cat.proba_id)?.tip_proba === 'giao_dau' &&
                       sportiviInscrisiCat(cat.id).map(s => (
                         <div key={s.id} className="mt-1">
-                          <span className="text-[11px] text-slate-400 uppercase">{s.nume} {s.prenume}</span>
+                          <span className="text-[11px] text-slate-400 uppercase">{formatNume(s)}</span>
                           <ArmePermiseGiaoDau arme={armeDefinitii} alese={armeAlese.get(s.id)} />
                         </div>
                       ))}

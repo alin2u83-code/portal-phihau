@@ -71,6 +71,7 @@ export const TipuriLabelsContext = React.createContext<Map<string, string>>(
 
 /** Giao Dau CVD: armele de lemn permise la lupta = permise ∩ alese de sportiv. Nu blocheaza inscrierea. */
 export const ArmePermiseGiaoDau: React.FC<{ arme: Arma[]; alese?: Set<string> }> = ({ arme, alese }) => {
+  if (arme.length === 0) return null;
   const permise = armePermiseGiaoDau(arme).filter(a => alese?.has(a.id));
   if (permise.length === 0) return (
     <div className="text-[11px] text-yellow-300 bg-yellow-900/30 border border-yellow-700/50 rounded px-2 py-1 mt-1">

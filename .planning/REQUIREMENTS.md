@@ -112,7 +112,7 @@
 - [x] **ACX-08**: Zona externa nu contine sidebar, meniu, alte module sau alte competitii; un cont doar-extern care deschide portalul principal vede o pagina "Acces limitat" fara incarcarea datelor clubului
 - [ ] **ACX-09**: RLS nou izoleaza datele per club + competitie (permisive pe grant, restrictive de scope, default-deny pe celelalte tabele, protectie `taxa_achitata`/`status`), definit dupa auditul `pg_policies` LIVE
 - [ ] **ACX-10**: Politicile vechi care permiteau oricarui ADMIN_CLUB sa scrie cross-club in inscrieri/echipe/competitii sunt reparate (WITH CHECK pe club + competitie + status/deadline), federatia ramanand exceptata
-- [ ] **ACX-11**: Portalul principal pastreaza comportamentul si vizibilitatea actuala pentru rolurile existente (ADMIN_CLUB vede in continuare participantii din alte cluburi); restrictiile se aplica doar contului doar-extern
+- [x] **ACX-11**: Portalul principal pastreaza comportamentul si vizibilitatea actuala pentru rolurile existente (ADMIN_CLUB vede in continuare participantii din alte cluburi); restrictiile se aplica doar contului doar-extern
 - [ ] **ACX-12**: Verificare finala: teste live de scurgere cross-club/cross-competitie cu sweep pe toate relatiile expuse, flux de aprobare cap-coada, spec de browser pe build, documentatie si lista prerechizitelor de lansare (SMTP custom, plan 32-08)
 
 ## Future Requirements (deferred)

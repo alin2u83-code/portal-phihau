@@ -525,7 +525,7 @@ Plans:
 **Goal:** Un reprezentant de club (ADMIN_CLUB/INSTRUCTOR existent sau cont nou aprobat de federatie) deschide linkul public al unei competitii, se autentifica doar cu email + cod OTP si intra intr-o zona izolata, fara meniul portalului, unde vede datele generale ale competitiei, inscrie sportivii clubului sau prin wizardul existent (fara functiile inter-club) si vede participantii si taxele de competitie ale propriului club. Izolarea per club + competitie este garantata de RLS (audit pe `pg_policies` LIVE si repararea politicilor vechi de scriere cross-club), nu de interfata; portalul principal ramane neschimbat pentru rolurile existente.
 **Requirements**: ACX-01, ACX-02, ACX-03, ACX-04, ACX-05, ACX-06, ACX-07, ACX-08, ACX-09, ACX-10, ACX-11, ACX-12
 **Depends on:** Phase 35
-**Plans:** 6/12 plans executed
+**Plans:** 7/12 plans executed
 
 Plans:
 
@@ -535,7 +535,7 @@ Plans:
 - [x] 36-04-PLAN.md — Repararea RLS scriere cross-club (D-15): test rosu, migratie restrictiva scope + gate status/deadline, test verde
 - [x] 36-05-PLAN.md — Auth extern: tipuri, utils testate, accesExternService, LoginOtp (OTP 8 cifre), SolicitaContForm
 - [x] 36-06-PLAN.md — Endpoint federatie /api/aproba-cerere-acces (aproba/respinge, doar SUPER_ADMIN_FEDERATIE) + teste
-- [ ] 36-07-PLAN.md — Garda portal principal: pagina Acces limitat, skip fetchAppData, rolul extern ascuns din liste
+- [x] 36-07-PLAN.md — Garda portal principal: pagina Acces limitat, skip fetchAppData, rolul extern ascuns din liste
 - [ ] 36-08-PLAN.md — RLS extern: permisive pe grant, restrictive de scope, default-deny generat, trigger protectie taxa/status
 - [ ] 36-09-PLAN.md — Zona externa: ramura /competitie/ in index.tsx, ExternDataProvider, ShellExtern, pagina cu masina de stari
 - [ ] 36-10-PLAN.md — Panou federatie: tab Acces extern (link, cereri aproba/respinge, revocare granturi)

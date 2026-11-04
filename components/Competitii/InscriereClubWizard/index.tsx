@@ -13,6 +13,9 @@ import Pas3FormareEchipe from './Pas3Echipe';
 import Pas4SumarTaxe from './Pas4Sumar';
 import InscriereClubCards from './InscriereClubCards';
 import { esteInscrisActiv } from './shared';
+import type { ItemDeRezolvat } from './BannerDeRezolvat';
+import { calculeazaLipsuriCvd } from '../../../utils/armeCvdLipsuri';
+import { formatNume } from '../../../utils/formatareSportiv';
 import { useError } from '../../ErrorProvider';
 
 export type { InscriereClubWizardProps };
@@ -22,7 +25,7 @@ export type { PickCategorie, IndivPicks } from './types';
 const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   competitie, probe, categorii, sportivi, grade,
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
-  onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh, arme, canEdit = false,
+  onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh, arme, canEdit = false, onViewSportiv,
 }) => {
   const { showError } = useError();
   // step: 'hub'=carduri probe, 1=selectare sportivi (doar quyen), 2=quyen, 3=echipe/giao_dau, 4=sumar
@@ -206,6 +209,42 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     return out;
   }, [competitie.tip, competitie.data_inceput, arme, armeAlese, sportiviActivi, grade, categorii]);
 
+  // CVD: lipsurile (nesetat) cu buton de salt direct la zona de rezolvare
+  const bannerLipsuri = useMemo<ItemDeRezolvat[]>(() => {
+    if (competitie.tip !== 'cvd' || !arme || arme.loading) return [];
+    const inscrisi = new Set(inscrieri.filter(i => i.club_id === clubId && esteInscrisActiv(i)).map(i => i.sportiv_id));
+    const relevanti = sportiviActivi.filter(s => selectedSportivi.has(s.id) || inscrisi.has(s.id) || (armeAlese.get(s.id)?.size ?? 0) > 0);
+    const armePeId = new Map(arme.arme.map(a => [a.id, a]));
+    const catPeId = new Map(categorii.map(c => [c.id, c]));
+    const echipeFaraArma = echipe
+      .filter(e => e.club_id === clubId && !e.arma_id && (e.status === 'inscrisa' || e.status === 'confirmata'))
+      .map(e => ({ e, cat: catPeId.get(e.categorie_id) }))
+      .filter(x => probe.find(p => p.id === x.cat?.proba_id)?.tip_proba === 'song_luyen')
+      .map(x => ({ id: x.e.id, denumire: x.e.denumire_echipa ?? x.cat?.denumire ?? 'Song Luyen', categorieId: x.e.categorie_id, probaId: x.cat?.proba_id ?? undefined }));
+    const lipsuri = calculeazaLipsuriCvd({
+      sportivi: relevanti, grade, dataCompetitie: competitie.data_inceput, armeAlese, categoriePerArma, formaPerArma,
+      denumireArma: id => armePeId.get(id)?.denumire ?? 'armă', nume: formatNume, echipeFaraArma,
+    });
+    const sportivPeId = new Map(relevanti.map(s => [s.id, s]));
+    const probaIndiv = probe.find(p => p.tip_proba === 'thao_quyen_individual' || p.tip_proba === 'thao_lo_individual');
+    return lipsuri.map(l => {
+      const baza = { id: l.id, text: l.text };
+      if (l.tip === 'fara-arma' || l.tip === 'fara-categorie') return { ...baza, actiune: 'Mergi la Arme', onClick: () => setStep('arme') };
+      if (l.tip === 'fara-forma') return { ...baza, actiune: 'Mergi la Pas 2', onClick: () => {
+        // Pas 2 afiseaza doar sportivii selectati pe proba deschisa: il adaug daca lipseste
+        const probaId = probaDeschisFocusId ?? probaIndiv?.id ?? '';
+        setProbaDeschisFocusId(probaId || null);
+        if (l.sportivId && !(selectedSportiviMap.get(probaId)?.has(l.sportivId))) {
+          setSelectedSportiviMap(prev => { const m = new Map(prev); m.set(probaId, new Set([...(m.get(probaId) ?? []), l.sportivId!])); return m; });
+        }
+        setStep(2);
+      } };
+      if (l.tip === 'fara-date') return { ...baza, actiune: 'Deschide profilul', onClick: () => { const s = sportivPeId.get(l.sportivId!); if (s) onViewSportiv?.(s); } };
+      return { ...baza, actiune: 'Mergi la Echipe', onClick: () => { setProbaDeschisFocusId(l.probaId ?? null); setStep(3); } };
+    });
+  }, [competitie.tip, competitie.data_inceput, arme, inscrieri, clubId, sportiviActivi, selectedSportivi, armeAlese, categorii, echipe, probe, grade,
+    categoriePerArma, formaPerArma, probaDeschisFocusId, selectedSportiviMap, onViewSportiv]);
+
   const handleToggle = (id: string) => {
     if (!probaDeschisFocusId) return;
     const probaId = probaDeschisFocusId;
@@ -289,6 +328,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         armeEroare={arme?.error}
         armeAlese={armeAlese}
         onMergiLaArme={() => setStep('arme')}
+        bannerLipsuri={bannerLipsuri}
       />
     );
   }
@@ -308,6 +348,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         arme={arme}
         onContinua={() => setStep('hub')}
         onBack={() => setStep('hub')}
+        bannerLipsuri={bannerLipsuri}
       />
     );
   }
@@ -335,6 +376,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         nrSportiviClub={sportiviActivi.length}
         armeLoading={arme?.loading}
         onDeschideArme={arme ? () => setStep('arme') : undefined}
+        bannerLipsuri={bannerLipsuri}
         selectedSportivi={selectedSportivi}
         autoCategorie={autoCategorie}
         quyenAles={quyenAles}
@@ -384,6 +426,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onChange={setFormaPerArma}
         onContinua={() => setStep('hub')}
         onBack={() => setStep('hub')}
+        bannerLipsuri={bannerLipsuri}
       />
     );
   }
@@ -462,6 +505,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       categoriePerArma={categoriePerArma}
       formaPerArma={formaPerArma}
       arme={arme?.arme}
+      bannerLipsuri={bannerLipsuri}
       clubId={clubId}
       numeClub={numeClub}
       inscrieri={inscrieri}

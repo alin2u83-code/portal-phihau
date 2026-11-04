@@ -89,6 +89,8 @@ export interface InscriereClubWizardProps {
   arme?: ReturnType<typeof useArmeCvd>;
   /** CVD: armele se pot edita (inscrieri deschise + admin) */
   canEdit?: boolean;
+  /** deschide profilul sportivului (pentru lipsuri de grad / data nasterii) */
+  onViewSportiv?: (s: Sportiv) => void;
 }
 
 /** sportivId -> set de armaId alese pe competitie */
@@ -99,7 +101,11 @@ export type FormaPerArma = Map<string, Map<string, string>>;
 /** CVD: sportivId -> armaId -> categoria potrivita */
 export type CategoriePerArma = Map<string, Map<string, CategorieCompetitie>>;
 
+import type { ItemDeRezolvat } from './BannerDeRezolvat';
+
 export interface Pas2ArmeProps {
+  /** CVD: atentionari lipsuri cu salt direct */
+  bannerLipsuri?: ItemDeRezolvat[];
   competitie: Competitie;
   sportivi: Sportiv[];
   grade: Grad[];
@@ -116,6 +122,7 @@ export interface Pas2ArmeProps {
 }
 
 export interface PasArmeProps {
+  bannerLipsuri?: ItemDeRezolvat[];
   competitie: Competitie;
   sportivi: Sportiv[];
   grade: Grad[];

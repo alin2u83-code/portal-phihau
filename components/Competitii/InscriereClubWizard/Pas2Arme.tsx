@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Inlantuire } from '../../../types';
 import { incarcaFormeCvd } from '../../../services/armeCvdService';
 import { Button } from '../../ui';
+import BannerDeRezolvat from './BannerDeRezolvat';
+
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
 import { formatNume } from '../../../utils/formatareSportiv';
@@ -18,7 +20,7 @@ const seteaza = (base: FormaPerArma, sportivId: string, armaId: string, val: str
 
 // CVD Pas2: per sportiv, o sectiune per arma aleasa, cu formele armei permise gradului efectiv (o forma per arma)
 const Pas2Arme: React.FC<Pas2ArmeProps> = ({
-  competitie, sportivi, grade, arme, armeAlese, categoriePerArma, formaPerArma, inscrieri = [], onChange, onContinua, onBack,
+  competitie, sportivi, grade, arme, armeAlese, categoriePerArma, formaPerArma, inscrieri = [], onChange, onContinua, onBack, bannerLipsuri,
 }) => {
   const { showError } = useError();
   const [dreptMap, setDreptMap] = useState<Map<string, Inlantuire[]>>(new Map()); // gradId -> forme (toate armele)
@@ -105,6 +107,7 @@ const Pas2Arme: React.FC<Pas2ArmeProps> = ({
         <div className="text-right shrink-0 text-xs text-slate-500">{complet}/{total} complet</div>
       </div>
 
+      <BannerDeRezolvat items={bannerLipsuri ?? []} />
       {loading ? (
         <div className="text-center text-xs text-slate-500 py-8 animate-pulse">Se incarca formele...</div>
       ) : randuri.length === 0 ? (

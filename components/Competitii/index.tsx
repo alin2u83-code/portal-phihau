@@ -34,6 +34,7 @@ import { useRegisterRefresh } from '../../contexts/RefreshContext';
 interface CompetitiiProps {
   permissions: Permissions;
   onBack: () => void;
+  onViewSportiv?: (s: Sportiv) => void;
 }
 
 type View = 'list' | 'detail' | 'inscrieri';
@@ -50,9 +51,10 @@ interface CompetitieDetailProps {
   permissions: Permissions;
   onBack: () => void;
   onUpdated: (c: Competitie) => void;
+  onViewSportiv?: (s: Sportiv) => void;
 }
 
-const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated }) => {
+const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated, onViewSportiv }) => {
   const tipuriLabelsCtx = React.useContext(TipuriLabelsContext);
   const { filteredData, grade, currentUser, vizeSportivi, activeRoleContext } = useData();
   const { showError } = useError();
@@ -467,6 +469,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 myClubId={myClubId}
                 arme={competitie.tip === 'cvd' ? armeCvd : undefined}
                 canEdit={canEditArme}
+                onViewSportiv={onViewSportiv}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}
                 onEchipeRefresh={fetchDataSilent}
@@ -672,7 +675,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
 // MAIN COMPONENT
 // -----------------------------------------------
 
-export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, onBack }) => {
+export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, onBack, onViewSportiv }) => {
   const { showError } = useError();
   const [competitii, setCompetitii] = useState<Competitie[]>([]);
   const [legacyEvents, setLegacyEvents] = useState<EvenimentLegacy[]>([]);
@@ -742,6 +745,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
       <CompetitieDetail
         competitie={selectedComp}
         permissions={permissions}
+        onViewSportiv={onViewSportiv}
         onBack={() => {
           setView('list');
           setSelectedComp(null);

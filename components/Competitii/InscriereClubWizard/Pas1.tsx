@@ -10,6 +10,8 @@ import { formatNume } from '../../../utils/formatareSportiv';
 import { areVizaFRAM } from '../constants';
 import { BadgeEligibilitateGenerala } from './shared';
 import { EligibilitateGenerala, ArmeAlese } from './types';
+import BannerDeRezolvat from './BannerDeRezolvat';
+import type { ItemDeRezolvat } from './BannerDeRezolvat';
 
 // -----------------------------------------------
 // HELPERS INTERNI
@@ -280,12 +282,13 @@ export interface Pas1Props {
   armeEroare?: string | null;
   armeAlese?: ArmeAlese;
   onMergiLaArme?: () => void;
+  bannerLipsuri?: ItemDeRezolvat[];
 }
 
 const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   competitie, sportivi, grade, categorii, inscrieri, vizeSportivi,
   selected, myClubId, varsteCompetitie, onToggle, onRetrage, onContinua, onBack,
-  cvd, armeEroare, armeAlese, onMergiLaArme,
+  cvd, armeEroare, armeAlese, onMergiLaArme, bannerLipsuri,
 }) => {
   const [confirmRetrageId, setConfirmRetrageId] = useState<string | null>(null);
   const [retragereInCurs, setRetragereInCurs] = useState<string | null>(null);
@@ -467,6 +470,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
 
   return (
     <div className="space-y-4">
+      <BannerDeRezolvat items={bannerLipsuri ?? []} />
       {/* Header */}
       <div className="flex items-start gap-3">
         <Button variant="secondary" size="sm" onClick={onBack} className="!p-2 shrink-0 mt-0.5">

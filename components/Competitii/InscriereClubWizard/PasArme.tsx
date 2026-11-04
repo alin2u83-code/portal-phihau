@@ -7,6 +7,7 @@ import { gradEfectivLaData } from '../../../utils/eligibilitateCompetitie';
 import {
   motivCombinatieInterzisa, categoriePentruArma, conflicteCategorie, armeStale, avertismentStagii,
 } from '../../../utils/armeCvd';
+import BannerDeRezolvat from './BannerDeRezolvat';
 import { retrageInscrieri } from './retrage';
 import { salveazaArmeCompetitie, incarcaCerinteStagii } from '../../../services/armeCvdService';
 import type { useArmeCvd } from '../../../hooks/useArmeCvd';
@@ -17,7 +18,7 @@ const GOL = new Set<string>();
 const egale = (a: Set<string>, b: Set<string>) => a.size === b.size && [...a].every(x => b.has(x));
 
 const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> = ({
-  competitie, sportivi, grade, categorii, inscrieri, armeAlese, onChange, canEdit, onInscrieriRefresh, onContinua, onBack, arme,
+  competitie, sportivi, grade, categorii, inscrieri, armeAlese, onChange, canEdit, onInscrieriRefresh, onContinua, onBack, arme, bannerLipsuri,
 }) => {
   const { showError } = useError();
   const [draft, setDraft] = useState<ArmeAlese>(armeAlese);
@@ -149,6 +150,7 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
         </div>
       </div>
 
+      <BannerDeRezolvat items={bannerLipsuri ?? []} />
       {!canEdit && (
         <div className="rounded-lg border border-slate-600 bg-slate-800/40 px-4 py-3 text-xs text-slate-300">
           Armele pot fi modificate doar de administratorul clubului, cât timp înscrierile sunt deschise. Aici sunt doar în citire.

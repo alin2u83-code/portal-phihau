@@ -243,7 +243,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                             case 'stagii':
                                 return renderProtected(<Lazy.StagiiManagement onBack={handleBackToDashboard} permissions={permissions}/>, permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
                             case 'competitii':
-                                return renderProtected(<Lazy.CompetitiiManagement onBack={handleBackToDashboard} permissions={permissions}/>, permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
+                                return renderProtected(<Lazy.CompetitiiManagement onBack={handleBackToDashboard} permissions={permissions} onViewSportiv={onViewSportiv}/>, permissions.isAdminClub || permissions.isInstructor || permissions.isFederationAdmin || permissions.isSuperAdmin);
                             case 'template-probe':
                                 return renderProtected(<Lazy.CategoriiTemplateManager permissions={permissions} />, permissions.isFederationAdmin || permissions.isSuperAdmin || permissions.isAdminClub);
                             case 'activitati-nationale':

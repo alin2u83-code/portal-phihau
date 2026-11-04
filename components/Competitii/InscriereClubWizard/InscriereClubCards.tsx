@@ -3,6 +3,8 @@ import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { PROBA_INFO, PROBA_COLOR_CLASSES } from './constants';
 import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap, ArmeAlese } from './types';
+import BannerDeRezolvat from './BannerDeRezolvat';
+import type { ItemDeRezolvat } from './BannerDeRezolvat';
 import { esteEchipaSauPereche, esteInscrisActiv } from './shared';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { ProbaCompetitie, CategorieCompetitie } from '../../../types';
@@ -71,6 +73,7 @@ export interface InscriereClubCardsProps extends InscriereClubWizardProps {
   /** CVD: armele se incarca inca */
   armeLoading?: boolean;
   onDeschideArme?: () => void;
+  bannerLipsuri?: ItemDeRezolvat[];
 }
 
 // -----------------------------------------------
@@ -467,7 +470,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const {
     competitie, probe, categorii,
     onBack, onDeschideProba, onFinalizare, onPrevizualizare,
-    selectedSportivi, onToggleSkipProba, armeAlese, nrSportiviClub, onDeschideArme, armeLoading,
+    selectedSportivi, onToggleSkipProba, armeAlese, nrSportiviClub, onDeschideArme, armeLoading, bannerLipsuri,
   } = props;
   const esteCvd = competitie.tip === 'cvd' && !!onDeschideArme;
   const idsActivi = new Set(props.sportivi.map(s => s.id));
@@ -516,6 +519,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
 
   return (
     <div className="space-y-4">
+      <BannerDeRezolvat items={bannerLipsuri ?? []} />
       {/* Header */}
       <div className="flex items-start gap-3">
         <Button variant="secondary" size="sm" onClick={onBack} className="!p-2 shrink-0 mt-0.5">

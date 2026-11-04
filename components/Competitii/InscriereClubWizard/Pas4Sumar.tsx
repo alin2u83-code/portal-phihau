@@ -13,6 +13,8 @@ import { formatNume } from '../../../utils/formatareSportiv';
 import { EchipaFormata, QuyenAlesMap, FormaPerArma, CategoriePerArma } from './types';
 import { incarcaFormeCvd } from '../../../services/armeCvdService';
 import { esteInscrisActiv } from './shared';
+import BannerDeRezolvat from './BannerDeRezolvat';
+import type { ItemDeRezolvat } from './BannerDeRezolvat';
 
 // -----------------------------------------------
 // PASUL 4 — Sumar + taxe + save DB
@@ -38,6 +40,7 @@ export interface Pas4Props {
   categoriePerArma?: CategoriePerArma;
   formaPerArma?: FormaPerArma;
   arme?: Arma[];
+  bannerLipsuri?: ItemDeRezolvat[];
   onBack: () => void;
   onSaved: () => void;
 }
@@ -73,7 +76,7 @@ const cheieRand = (sportivId: string, categorieId: string, armaId?: string | nul
 const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   competitie, sportivi, grade, categorii,
   selectedSportivi, autoCategorie, quyenAles, echipeFormate,
-  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, inscrieri = [], categoriePerArma, formaPerArma, arme, onBack, onSaved,
+  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, inscrieri = [], categoriePerArma, formaPerArma, arme, bannerLipsuri, onBack, onSaved,
 }) => {
   const { showError, showSuccess } = useError();
   const [saving, setSaving] = useState(false);
@@ -450,6 +453,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
 
   return (
     <div className="space-y-4">
+      <BannerDeRezolvat items={bannerLipsuri ?? []} />
       {/* Header */}
       <div className="flex items-start gap-3">
         <Button variant="secondary" size="sm" onClick={onBack} className="!p-2 shrink-0 mt-0.5" disabled={saving}>

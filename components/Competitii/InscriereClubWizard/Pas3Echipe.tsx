@@ -146,7 +146,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
       e.categorie_id === cat.id &&
       e.club_id === clubId &&
       e.status?.toLowerCase() !== 'retrasa' &&
-      !echipeRetraseLocal.has((e as any).id)
+      !echipeRetraseLocal.has(e.id)
     );
     const membri: Array<{ rol: string }> = (echipaDB as any)?.echipa_sportivi ?? [];
     const nrTitulari = membri.filter(m => m.rol === 'titular').length;
@@ -165,7 +165,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     });
     // CVD echipa (Song Luyen): contorul tine cont de armele alese — doar sportivii care impart cel putin
     // o arma cu un alt candidat. shortcut: nu aplica categoriePentruArma (modalul o aplica la formare), upgrade daca numaratoarea difera mult
-    if (armeAlese && armeAlese.size > 0 && esteEchipaSauPereche(cat)) {
+    if (armeAlese && armeAlese.size > 0 && esteEchipaSauPereche(cat) && !!cat.arma) {
       candidati = candidati.filter(s => {
         const a = armeAlese.get(s.id);
         return !!a && candidati.some(o => o.id !== s.id && [...a].some(id => armeAlese.get(o.id)?.has(id)));
@@ -314,8 +314,8 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                           {echipaDB.echipa_incompleta && ' · incompletă acceptată'}
                         </span>
                         {eCompleta && <span className="ml-1 text-emerald-500">✓</span>}
-                        {(echipaDB as any).arma_id && armeDefinitii?.find(a => a.id === (echipaDB as any).arma_id) && (
-                          <span className="ml-2 text-orange-400">Armă: {armeDefinitii.find(a => a.id === (echipaDB as any).arma_id)!.denumire}</span>
+                        {echipaDB.arma_id && armeDefinitii?.find(a => a.id === echipaDB.arma_id) && (
+                          <span className="ml-2 text-orange-400">Armă: {armeDefinitii.find(a => a.id === echipaDB.arma_id)!.denumire}</span>
                         )}
                       </p>
                     )}
@@ -374,7 +374,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
               {areEligibili && !isCatSkipped && echipaDB && (
                 <button
                   type="button"
-                  onClick={() => handleNuParticipaEchipa(cat.id, (echipaDB as any).id)}
+                  onClick={() => handleNuParticipaEchipa(cat.id, echipaDB.id)}
                   style={{ touchAction: 'manipulation' }}
                   className="mx-4 mb-3 w-[calc(100%-2rem)] flex items-center gap-2 rounded-xl border border-dashed border-red-700/50 bg-red-950/10 px-3 py-2.5 text-left hover:bg-red-950/20 transition-colors"
                 >

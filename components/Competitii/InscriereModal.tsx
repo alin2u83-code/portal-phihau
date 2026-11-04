@@ -3,7 +3,7 @@ import { Competitie, CategorieCompetitie, ProbaCompetitie, InscriereCompetitie, 
 import { supabase } from '../../supabaseClient';
 import { Button, Modal } from '../ui';
 import { TIP_PROBA_LABELS } from '../../utils/competitiiTemplates';
-import { filtreazaSportiviEligibili, calculeazaVarstaLaData } from '../../utils/eligibilitateCompetitie';
+import { filtreazaSportiviEligibili, calculeazaVarstaLaData, gradEfectivLaData } from '../../utils/eligibilitateCompetitie';
 import { VizaSportiv } from '../../types';
 import { useError } from '../ErrorProvider';
 import { areVizaFRAM, WarningVizaFRAM, ArmePermiseGiaoDau } from './constants';
@@ -82,14 +82,12 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
 
   // Song Luyen CVD: echipa are o singura arma; candidatii = sportivii care au aleasa arma respectiva
   // la categoria curenta (categoriePentruArma)
-  const isCvdEchipa = isTeam && competitie.tip === 'cvd';
+  const isCvdEchipa = isTeam && competitie.tip === 'cvd' && !!categorie.arma; // categorie fara arma: comportament vechi
   const [armaEchipaId, setArmaEchipaId] = useState('');
   const armeLista: Arma[] = arme?.arme ?? [];
   const aArma = (s: Sportiv, a: Arma) => {
     if (!(arme?.competitieArme.get(s.id) ?? arme?.implicit.get(s.id))?.has(a.id)) return false;
-    // shortcut: categorie fara `arma` setata nu poate fi potrivita pe arma; se accepta orice sportiv eligibil cu arma aleasa
-    if (!categorie.arma) return true;
-    const ordine = grade.find(g => g.id === s.grad_actual_id)?.ordine ?? 0;
+    const ordine = gradEfectivLaData(s, grade, competitie.data_inceput)?.ordine ?? 0;
     return categoriePentruArma(a, s, ordine, competitie.data_inceput, categorii ?? [categorie], armeLista)?.id === categorie.id;
   };
   const optiuniArma = useMemo(
@@ -248,6 +246,10 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
         }
         const eIncompleta = selectedTitulari.length < categorie.sportivi_per_echipa_min;
         if (!eIncompleta) validateMixtGender(selectedTitulari);
+        const { error: updErr } = await supabase.from('echipe_competitie')
+          .update({ denumire_echipa: numeClub.trim().toUpperCase(), echipa_incompleta: eIncompleta, ...(isCvdEchipa ? { arma_id: armaEchipaId } : {}) })
+          .eq('id', (echipaDejaInscrisa as any).id);
+        if (updErr) throw updErr;
         // Ștergem membrii vechi și inserăm cei noi
         const { error: delErr } = await supabase
           .from('echipa_sportivi')
@@ -262,9 +264,6 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
           const { error: mErr } = await supabase.from('echipa_sportivi').insert(members);
           if (mErr) throw mErr;
         }
-        await supabase.from('echipe_competitie')
-          .update({ denumire_echipa: numeClub.trim().toUpperCase(), echipa_incompleta: eIncompleta, ...(isCvdEchipa ? { arma_id: armaEchipaId } : {}) })
-          .eq('id', (echipaDejaInscrisa as any).id);
       } else {
         if (selectedTitulari.length === 0) {
           throw new Error('Selectează cel puțin un titular');

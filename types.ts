@@ -876,7 +876,18 @@ export interface Inlantuire {
   ordine: number;
   activ: boolean;
   categorie?: string | null;
+  arma_id?: string | null;
   created_at?: string;
+}
+
+export type TipArma = 'lemn' | 'lama' | 'articulata';
+
+export interface Arma {
+  id: string;
+  denumire: string;
+  tip: TipArma;
+  ordine: number;
+  activ: boolean;
 }
 
 export interface InlantuireGrad {
@@ -898,6 +909,7 @@ export interface InscriereCompetitie {
   taxa_achitata: boolean;
   inlantuire_id: string | null;
   inlantuire_id_2: string | null;
+  arma_id: string | null;
   observatii: string | null;
   created_at: string;
   // joined
@@ -916,6 +928,7 @@ export interface EchipaCompetitie {
   status: 'inscrisa' | 'confirmata' | 'retrasa' | 'descalificata';
   taxa_achitata: boolean;
   echipa_incompleta: boolean;
+  arma_id: string | null;
   observatii: string | null;
   created_at: string;
   // joined

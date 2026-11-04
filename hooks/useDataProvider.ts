@@ -11,7 +11,7 @@ import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { withCleanUuidFilters } from '../utils/supabaseFilters';
 import { processSettledQueries, SettledQuery } from '../utils/supabaseHelpers';
 import { useUserRoles } from './useUserRoles';
-import { aplicaRamaneInAsteptare } from '../services/emailMfaService';
+import { aplicaRamaneInAsteptare, CHEIE_RAMANE_IN_ASTEPTARE } from '../services/emailMfaService';
 import { notificaIncercareLogin } from '../services/alertaSecuritateService';
 import { useFilteredData } from './useFilteredData';
 import { useAttendanceData } from './useAttendanceData';
@@ -525,8 +525,10 @@ export const useDataProvider = () => {
                         await supabase.auth.signOut();
                         toast.error('Acest cont Google nu are cont în portal. Cere administratorului clubului să te înregistreze cu această adresă de email.', { duration: 10000 });
                     } else {
+                        // Markerul din sessionStorage există doar după un clic real pe "Continuă cu Google" (nu la reload/recuperare sesiune).
+                        const loginNou = sessionStorage.getItem(CHEIE_RAMANE_IN_ASTEPTARE) !== null;
                         aplicaRamaneInAsteptare(); // contul există: abia acum salvăm alegerea "dispozitiv personal"
-                        notificaIncercareLogin(sess.user.email ?? '', true, uid, sess.access_token); // alerta dispozitiv nou (Google)
+                        if (loginNou) notificaIncercareLogin(sess.user.email ?? '', true, uid, sess.access_token); // alerta dispozitiv nou (Google)
                     }
                 }, 0);
             }

@@ -12,6 +12,7 @@ import { withCleanUuidFilters } from '../utils/supabaseFilters';
 import { processSettledQueries, SettledQuery } from '../utils/supabaseHelpers';
 import { useUserRoles } from './useUserRoles';
 import { aplicaRamaneInAsteptare } from '../services/emailMfaService';
+import { notificaIncercareLogin } from '../services/alertaSecuritateService';
 import { useFilteredData } from './useFilteredData';
 import { useAttendanceData } from './useAttendanceData';
 import { useSportivi } from './useSportivi';
@@ -525,6 +526,7 @@ export const useDataProvider = () => {
                         toast.error('Acest cont Google nu are cont în portal. Cere administratorului clubului să te înregistreze cu această adresă de email.', { duration: 10000 });
                     } else {
                         aplicaRamaneInAsteptare(); // contul există: abia acum salvăm alegerea "dispozitiv personal"
+                        notificaIncercareLogin(sess.user.email ?? '', true, uid, sess.access_token); // alerta dispozitiv nou (Google)
                     }
                 }, 0);
             }

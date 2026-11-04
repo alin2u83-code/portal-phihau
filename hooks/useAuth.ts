@@ -26,7 +26,7 @@ export function useAuth() {
                 password,
             });
 
-            notificaIncercareLogin(email, !authError, data?.user?.id);
+            notificaIncercareLogin(email, !authError, data?.user?.id, data?.session?.access_token);
 
             if (authError) {
                 throw new Error(getAuthErrorMessage(authError));

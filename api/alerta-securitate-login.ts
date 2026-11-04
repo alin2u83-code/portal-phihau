@@ -13,8 +13,17 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
 import { checkRateLimit, getClientIp } from './_rateLimit.js';
-import { trimiteAlertaSecuritate } from './_mailerSecuritate.js';
+import { trimiteAlertaSecuritate, trimiteEmailUtilizator } from './_mailerSecuritate.js';
 import { cautaGeoIp, formateazaGeoIp } from './_geoIp.js';
+
+// userId din body e furnizat de client: îl acceptăm doar dacă tokenul de sesiune (Bearer) aparține aceluiași utilizator.
+async function sesiuneApartineUtilizatorului(supabaseAdmin: any, req: VercelRequest, userId: string): Promise<boolean> {
+    const auth = (req.headers['authorization'] as string) || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    if (!token) return false;
+    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    return !error && data?.user?.id === userId;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
@@ -97,7 +106,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     corpText,
                 });
             }
-        } else if (userId) {
+        } else if (userId && await sesiuneApartineUtilizatorului(supabaseAdmin, req, userId)) {
             const { data: roluriRows } = await supabaseAdmin
                 .from('utilizator_roluri_multicont')
                 .select('rol_denumire')
@@ -106,24 +115,57 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const roluri = roluriRows || [];
             const esteAdmin = roluri.some((r: any) => r.rol_denumire === 'ADMIN_CLUB' || r.rol_denumire === 'SUPER_ADMIN_FEDERATIE');
 
-            if (esteAdmin) {
-                const uaHash = createHash('sha256').update(userAgent).digest('hex');
+            // Dispozitive urmărite pentru toți utilizatorii: titularul primește email la dispozitiv nou,
+            // super-adminii primesc alerta doar pentru conturi de admin.
+            const uaHash = createHash('sha256').update(userAgent).digest('hex');
 
-                const { data: dispozitivExistent } = await supabaseAdmin
+            const { data: dispozitivExistent } = await supabaseAdmin
+                .from('auth_dispozitive_cunoscute')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('ip', ip)
+                .eq('user_agent_hash', uaHash)
+                .maybeSingle();
+
+            if (dispozitivExistent) {
+                await supabaseAdmin
                     .from('auth_dispozitive_cunoscute')
-                    .select('id')
-                    .eq('user_id', userId)
-                    .eq('ip', ip)
-                    .eq('user_agent_hash', uaHash)
-                    .maybeSingle();
+                    .update({ ultima_vazut: new Date().toISOString() })
+                    .eq('id', dispozitivExistent.id);
+            } else {
+                const { count: dispozitiveAnterioare } = await supabaseAdmin
+                    .from('auth_dispozitive_cunoscute')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('user_id', userId);
 
-                if (!dispozitivExistent) {
-                    await supabaseAdmin.from('auth_dispozitive_cunoscute').insert({
-                        user_id: userId,
-                        ip,
-                        user_agent_hash: uaHash,
-                    });
+                await supabaseAdmin.from('auth_dispozitive_cunoscute').insert({
+                    user_id: userId,
+                    ip,
+                    user_agent_hash: uaHash,
+                });
 
+                // Primul dispozitiv al contului nu declanșează email către titular (nu există "obișnuit" față de care să fie nou).
+                if ((dispozitiveAnterioare || 0) > 0 && emailLower.includes('@')) {
+                    const rl = checkRateLimit(`alerta-dispozitiv-nou:user:${userId}`, { windowMs: 60 * 60 * 1000, maxRequests: 3 });
+                    if (rl.allowed) {
+                        const geo = formateazaGeoIp(await cautaGeoIp(ip));
+                        await trimiteEmailUtilizator(
+                            emailLower,
+                            'PhiHau: autentificare de pe un dispozitiv nou',
+                            `Contul tău a fost folosit de pe un dispozitiv sau o rețea pe care nu le-am mai văzut.
+
+Browser/dispozitiv: ${userAgent}
+IP: ${ip}
+${geo}
+Ora: ${acumFormatat}
+
+Dacă ai fost tu, nu trebuie să faci nimic.
+Dacă nu ai fost tu: intră în cont, deschide Setări cont → „Deconectează de pe toate dispozitivele” și schimbă parola.`
+                        );
+                    }
+                }
+
+                if (esteAdmin) {
                     const rolGasit = roluri.map((r: any) => r.rol_denumire).join(', ') || 'necunoscut';
 
                     // Nume + prenume din sportivi (fallback: emailul folosit la login).
@@ -143,7 +185,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
                     const geoText = formateazaGeoIp(await cautaGeoIp(ip));
                     const subiect = 'Alertă securitate PhiHau: login admin de pe dispozitiv necunoscut';
-                    const corpText = `Cont admin autentificat de pe o combinație IP+browser nemaivăzută.\n\nUtilizator: ${numeAfisat}\nRol: ${rolGasit}\nIP: ${ip}\n${geoText}\nBrowser/dispozitiv: ${userAgent}\nOra: ${acumFormatat}\n\nVerifică Jurnal Audit → card Alerte Securitate Admin.`;
+                    const corpText = `Cont admin autentificat de pe o combinație IP+browser nemaivăzută.
+
+Utilizator: ${numeAfisat}
+Rol: ${rolGasit}
+IP: ${ip}
+${geoText}
+Browser/dispozitiv: ${userAgent}
+Ora: ${acumFormatat}
+
+Verifică Jurnal Audit → card Alerte Securitate Admin.`;
                     await trimiteAlertaSecuritate({
                         supabaseAdmin,
                         tip: 'dispozitiv_necunoscut',
@@ -151,11 +202,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         subiect,
                         corpText,
                     });
-                } else {
-                    await supabaseAdmin
-                        .from('auth_dispozitive_cunoscute')
-                        .update({ ultima_vazut: new Date().toISOString() })
-                        .eq('id', dispozitivExistent.id);
                 }
             }
         }

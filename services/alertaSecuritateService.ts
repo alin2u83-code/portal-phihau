@@ -7,11 +7,12 @@ import type { StatisticiAlerteSecuritate } from '../types';
  * Scrierea e via fetch (nu RPC direct) — handlerul Vercel are logica de
  * detecție/trimitere email, nu poate fi mutată în frontend.
  */
-export function notificaIncercareLogin(emailFolosit: string, reusit: boolean, userId?: string): void {
+export function notificaIncercareLogin(emailFolosit: string, reusit: boolean, userId?: string, accessToken?: string): void {
     try {
         fetch('/api/alerta-securitate-login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            // accessToken: serverul verifica ca userId apartine sesiunii inainte de orice alerta/email catre utilizator.
+            headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
             body: JSON.stringify({ emailFolosit, reusit, userId }),
         }).catch(() => {});
     } catch {

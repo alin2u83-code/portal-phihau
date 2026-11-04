@@ -53,6 +53,17 @@ export async function gasesteDestinatariSuperAdmin(supabaseAdmin: SupabaseClient
     return Array.from(new Set(emails));
 }
 
+/** Email către titularul contului (alerta "dispozitiv nou"). Nu aruncă niciodată. Returnează true la succes. */
+export async function trimiteEmailUtilizator(to: string, subiect: string, corpText: string): Promise<boolean> {
+    try {
+        await transporter.sendMail({ from: process.env.SMTP_FROM || process.env.SMTP_USER, to, subject: subiect, text: corpText });
+        return true;
+    } catch (err) {
+        console.error('[alerta-securitate] email utilizator esuat', err);
+        return false;
+    }
+}
+
 export interface ParametriAlertaSecuritate {
     supabaseAdmin: SupabaseClient;
     tip: 'login_esuat_burst' | 'dispozitiv_necunoscut';

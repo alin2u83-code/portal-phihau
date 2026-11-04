@@ -10,7 +10,7 @@ import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 
 import { QwanKiDoLogo } from './Logo';
-import { revocaDispozitiveIncredere, citestePreferintaRamaneConectat, seteazaRamaneConectat, retineRamaneInAsteptare } from '../services/emailMfaService';
+import { revocaDispozitiveIncredere, citestePreferintaRamaneConectat, seteazaRamaneConectat, retineRamaneInAsteptare, anuleazaRamaneInAsteptare } from '../services/emailMfaService';
 
 export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
@@ -37,6 +37,7 @@ export const LoginPage: React.FC = () => {
             provider: 'google',
             options: { redirectTo: window.location.origin, queryParams: { prompt: 'select_account' } },
         });
+        if (error) anuleazaRamaneInAsteptare();
         if (error) setGoogleEroare('Autentificarea cu Google nu este disponibilă momentan.');
     };
 

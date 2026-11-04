@@ -87,6 +87,11 @@ export function retineRamaneInAsteptare(ramane: boolean): void {
     try { sessionStorage.setItem(CHEIE_RAMANE_IN_ASTEPTARE, ramane ? '1' : '0'); } catch {}
 }
 
+/** Alegerea retinuta pentru un login Google esuat/abandonat nu trebuie sa se aplice unui login ulterior. */
+export function anuleazaRamaneInAsteptare(): void {
+    try { sessionStorage.removeItem(CHEIE_RAMANE_IN_ASTEPTARE); } catch {}
+}
+
 export function aplicaRamaneInAsteptare(): void {
     try {
         const v = sessionStorage.getItem(CHEIE_RAMANE_IN_ASTEPTARE);

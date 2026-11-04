@@ -20,7 +20,8 @@ import { checkRateLimit, getClientIp } from './_rateLimit.js';
 import { trimiteAlertaSecuritate, trimiteEmailUtilizator } from './_mailerSecuritate.js';
 import { cautaGeoIp, formateazaGeoIp } from './_geoIp.js';
 
-const MAX_EMAILURI_DISPOZITIV_NOU_PE_ORA = 3;
+const MAX_EMAILURI_IP_NOU_PE_ORA = 3;
+const MAX_EMAILURI_BROWSER_NOU_PE_ORA = 10;
 const RETENTIE_DISPOZITIVE_ZILE = 90;
 
 /** Utilizatorul (id + email) al tokenului Bearer, doar dacă id-ul coincide cu `userId` din body. */
@@ -67,7 +68,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(429).json({ error: 'Prea multe cereri pentru acest cont. Reîncercați în câteva secunde.' });
     }
 
-    const userAgent = (req.headers['user-agent'] as string) || 'necunoscut';
+    // UA e controlat de client: hash pe valoarea brută (stabil în timp), dar în loguri/emailuri doar varianta curățată
+    // (fără caractere de control/linii noi, max 200) ca să nu se poată injecta text fals în alerte.
+    const userAgentBrut = (req.headers['user-agent'] as string) || 'necunoscut';
+    const userAgent = userAgentBrut.replace(/[\u0000-\u001f\u007f]+/g, ' ').slice(0, 200);
 
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -87,8 +91,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const utilizator = reusit && typeof userId === 'string' && userId
             ? await utilizatorDinSesiune(supabaseAdmin, req, userId)
             : null;
-        if (reusit && userId && !utilizator) {
-            console.warn('[alerta-securitate-login] sesiune neverificata pentru userId din body: se omit urmarirea dispozitivelor si alertele');
+        const sesiuneNeverificata = reusit && typeof userId === 'string' && !!userId && !utilizator;
+        if (sesiuneNeverificata) {
+            console.warn('[alerta-securitate-login] sesiune neverificata pentru userId din body: se omite urmarirea dispozitivelor');
         }
 
         await supabaseAdmin.from('auth_tentative_login').insert({
@@ -122,6 +127,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     corpText,
                 });
             }
+        } else if (sesiuneNeverificata) {
+            // Nu putem dovedi că userId e al apelantului (token lipsă/expirat/ceas decalat): nu urmărim dispozitive și nu
+            // scriem către titular, dar un cont de admin nu trebuie să treacă tăcut. Cooldown 30 min per (userId, IP din server).
+            const { data: roluriNeverificate } = await supabaseAdmin
+                .from('utilizator_roluri_multicont')
+                .select('rol_denumire')
+                .eq('user_id', userId);
+            if ((roluriNeverificate || []).some((r: any) => r.rol_denumire === 'ADMIN_CLUB' || r.rol_denumire === 'SUPER_ADMIN_FEDERATIE')) {
+                const geoText = formateazaGeoIp(await cautaGeoIp(ip));
+                await trimiteAlertaSecuritate({
+                    supabaseAdmin,
+                    tip: 'dispozitiv_necunoscut',
+                    referinta: `neverificat:${userId}:${ip}`,
+                    subiect: 'Alertă securitate PhiHau: login admin cu sesiune neverificată',
+                    corpText: `Login raportat pentru un cont admin, dar tokenul de sesiune nu a putut fi verificat (lipsă, expirat sau invalid). Poate fi o eroare de client sau o cerere falsificată.\n\nContul raportat: ${emailLower}\nIP: ${ip}\n${geoText}\nBrowser/dispozitiv: ${userAgent}\nOra: ${acumFormatat}\n\nVerifică Jurnal Audit → card Alerte Securitate Admin.`,
+                });
+            }
         } else if (utilizator) {
             const { data: roluriRows } = await supabaseAdmin
                 .from('utilizator_roluri_multicont')
@@ -130,13 +152,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             const roluri = roluriRows || [];
             const esteAdmin = roluri.some((r: any) => r.rol_denumire === 'ADMIN_CLUB' || r.rol_denumire === 'SUPER_ADMIN_FEDERATIE');
-            const uaHash = createHash('sha256').update(userAgent).digest('hex');
+            const uaHash = createHash('sha256').update(userAgentBrut).digest('hex');
 
             // Înainte de insert: câte dispozitive are contul și dacă browserul (UA) a mai fost văzut, de pe orice IP.
-            // Pe rețele mobile IP-ul se schimbă des; UA nemaivăzut e semnalul pentru email către titular.
+            // uaCunoscut nu mai decide dacă trimitem email (orice IP+browser nou alertează), doar cât de strictă e limita pe oră.
             const { data: dispozitiveCont } = await supabaseAdmin
                 .from('auth_dispozitive_cunoscute')
-                .select('user_agent_hash')
+                .select('id, user_agent_hash, ultima_vazut')
                 .eq('user_id', utilizator.id);
             const areDispozitive = (dispozitiveCont || []).length > 0;
             const uaCunoscut = (dispozitiveCont || []).some((d: any) => d.user_agent_hash === uaHash);
@@ -160,25 +182,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 // Fără rând înregistrat nu trimitem nimic (altfel alerta ar reveni la fiecare login).
                 console.error('[alerta-securitate-login] insert dispozitiv esuat', insertErr);
             } else {
-                // Dispozitiv (IP+browser) nou. Curățare: ștergem intrările vechi ale contului.
-                const limitaRetentie = new Date(Date.now() - RETENTIE_DISPOZITIVE_ZILE * 24 * 60 * 60 * 1000).toISOString();
-                await supabaseAdmin
-                    .from('auth_dispozitive_cunoscute')
-                    .delete()
-                    .eq('user_id', utilizator.id)
-                    .lt('ultima_vazut', limitaRetentie);
+                // Dispozitiv (IP+browser) nou. Curățare: ștergem intrările vechi, dar păstrăm cel mai recent rând per browser,
+                // ca un cont dormant să nu pară "fără dispozitive" (ar suprima emailul de dispozitiv nou).
+                const limitaRetentie = Date.now() - RETENTIE_DISPOZITIVE_ZILE * 24 * 60 * 60 * 1000;
+                const celMaiRecentPerUa = new Map<string, { id: string; t: number }>();
+                for (const d of (dispozitiveCont || []) as any[]) {
+                    const t = Date.parse(d.ultima_vazut);
+                    const cur = celMaiRecentPerUa.get(d.user_agent_hash);
+                    if (!cur || t > cur.t) celMaiRecentPerUa.set(d.user_agent_hash, { id: d.id, t });
+                }
+                const pastrate = new Set(Array.from(celMaiRecentPerUa.values()).map(v => v.id));
+                const deSters = ((dispozitiveCont || []) as any[])
+                    .filter(d => Date.parse(d.ultima_vazut) < limitaRetentie && !pastrate.has(d.id))
+                    .map(d => d.id);
+                if (deSters.length > 0) {
+                    await supabaseAdmin.from('auth_dispozitive_cunoscute').delete().in('id', deSters);
+                }
 
-                // Email către titular: doar pentru browser nemaivăzut și doar dacă contul avea deja dispozitive.
+                // Email către titular la orice combinație IP+browser nouă, dacă contul avea deja dispozitive.
                 // Destinatarul e emailul contului din sesiune, nu cel din body.
-                if (areDispozitive && !uaCunoscut && utilizator.email) {
-                    // Limită partajată între instanțe serverless: numărăm rândurile noi din ultima oră în DB.
+                if (areDispozitive && utilizator.email) {
+                    // Limită partajată între instanțe serverless: numărăm rândurile noi din ultima oră în DB (fiecare rând nou
+                    // = un email). Browser cunoscut pe IP nou (mobil) are plafon mic; browser nemaivăzut are plafon mai mare,
+                    // ca zgomotul de IP să nu poată epuiza alerta pentru un browser cu adevărat nou.
                     const acumMinus1h = new Date(Date.now() - 60 * 60 * 1000).toISOString();
                     const { count: noiUltimaOra } = await supabaseAdmin
                         .from('auth_dispozitive_cunoscute')
                         .select('id', { count: 'exact', head: true })
                         .eq('user_id', utilizator.id)
                         .gte('prima_vazut', acumMinus1h);
-                    if ((noiUltimaOra || 0) <= MAX_EMAILURI_DISPOZITIV_NOU_PE_ORA) {
+                    if ((noiUltimaOra || 0) <= (uaCunoscut ? MAX_EMAILURI_IP_NOU_PE_ORA : MAX_EMAILURI_BROWSER_NOU_PE_ORA)) {
                         const geo = formateazaGeoIp(await cautaGeoIp(ip));
                         const uaAfisat = userAgent.slice(0, 200);
                         await trimiteEmailUtilizator(

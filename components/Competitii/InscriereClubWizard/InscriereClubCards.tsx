@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { PROBA_INFO, PROBA_COLOR_CLASSES } from './constants';
-import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap } from './types';
+import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap, ArmeAlese } from './types';
 import { esteEchipaSauPereche, esteInscrisActiv } from './shared';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { ProbaCompetitie, CategorieCompetitie } from '../../../types';
@@ -65,6 +65,10 @@ export interface InscriereClubCardsProps extends InscriereClubWizardProps {
   onFinalizare: () => void;
   /** Previzualizare fișă PDF */
   onPrevizualizare?: () => void;
+  /** CVD: armele alese (undefined = nu e CVD / fara date) */
+  armeAlese?: ArmeAlese;
+  nrSportiviClub?: number;
+  onDeschideArme?: () => void;
 }
 
 // -----------------------------------------------
@@ -262,7 +266,9 @@ const CardProbaItem: React.FC<{
   card: CardProba;
   onDeschide: () => void;
   onToggleSkip?: () => void;
-}> = ({ card, onDeschide, onToggleSkip }) => {
+  /** CVD: mesaj neblocant (ex. "alege întâi armele") */
+  nota?: string;
+}> = ({ card, onDeschide, onToggleSkip, nota }) => {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const { proba, status, nrComplet, nrTotal, motivBlocat, categoriiExcluse, nrInscrisi, nrCategoriiInscrise } = card;
   const info = PROBA_INFO[proba.tip_proba];
@@ -309,6 +315,7 @@ const CardProbaItem: React.FC<{
         !isExclus ? 'hover:bg-slate-700/50 active:scale-[0.99] cursor-pointer' : 'cursor-default'
       }`}
     >
+      {nota && <p className="px-4 pt-2 text-[11px] text-amber-400">{nota}</p>}
       {/* Header card */}
       <div className={`px-4 py-3 rounded-t-xl border-b border-slate-700/60 ${!isExclus ? colors.bg : 'bg-slate-800/30'}`}>
         <div className="flex items-start justify-between gap-2">
@@ -458,8 +465,10 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const {
     competitie, probe, categorii,
     onBack, onDeschideProba, onFinalizare, onPrevizualizare,
-    selectedSportivi, onToggleSkipProba,
+    selectedSportivi, onToggleSkipProba, armeAlese, nrSportiviClub, onDeschideArme,
   } = props;
+  const esteCvd = competitie.tip === 'cvd' && !!onDeschideArme;
+  const nrCuArme = armeAlese ? [...armeAlese.values()].filter(set => set.size > 0).length : 0;
 
   const [filtruHub, setFiltruHub] = useState<'toate' | 'nefinalizate'>('toate');
 
@@ -549,10 +558,22 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
 
       {/* Grid carduri — 1 col mobil, 2 col tablet, 3 col desktop */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {esteCvd && (
+          <div
+            role="button" tabIndex={0} onClick={onDeschideArme}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDeschideArme?.(); } }}
+            style={{ touchAction: 'manipulation' }}
+            className="w-full text-left rounded-xl border border-slate-600 bg-slate-800/40 p-3 hover:bg-slate-700/50 active:scale-[0.99] cursor-pointer transition-all"
+          >
+            <p className="text-sm font-semibold text-white">Arme sportivi</p>
+            <p className="text-xs text-slate-400 mt-1">{nrCuArme} sportivi cu arme / {nrSportiviClub ?? 0} sportivi</p>
+          </div>
+        )}
         {cardsFiltrate.map(card => (
           <CardProbaItem
             key={card.proba.id}
             card={card}
+            nota={esteCvd && nrCuArme === 0 && (card.proba.tip_proba === 'thao_lo_individual' || card.proba.tip_proba === 'giao_dau') ? 'alege întâi armele' : undefined}
             onDeschide={() => onDeschideProba(card.proba.id)}
             // fără "Nu participăm" cât timp clubul are înscrieri salvate pe probă (retragerea se face din modalul categoriei)
             onToggleSkip={onToggleSkipProba && !card.nrInscrisi ? () => onToggleSkipProba(card.proba.id) : undefined}

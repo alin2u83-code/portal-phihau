@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { supabase } from '../../../supabaseClient';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
-import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap } from './types';
+import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap, ArmeAlese } from './types';
+import PasArme from './PasArme';
 import Pas1SelectareSportivi from './Pas1';
 import Pas2SelectieQuyen from './Pas2Quyen';
 import Pas3FormareEchipe from './Pas3Echipe';
@@ -17,11 +18,16 @@ export type { PickCategorie, IndivPicks } from './types';
 const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   competitie, probe, categorii, sportivi, grade,
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
-  onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh,
+  onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh, arme, canEdit = false,
 }) => {
   const { showError } = useError();
   // step: 'hub'=carduri probe, 1=selectare sportivi (doar quyen), 2=quyen, 3=echipe/giao_dau, 4=sumar
-  const [step, setStep] = useState<1 | 'hub' | 2 | 3 | 4>('hub');
+  const [step, setStep] = useState<'hub' | 'arme' | 1 | 2 | 3 | 4>('hub');
+  // CVD: armele alese per sportiv, semanate o singura data din useArmeCvd (nu suprascrie editarile)
+  const [armeAlese, setArmeAlese] = useState<ArmeAlese>(new Map());
+  useEffect(() => {
+    if (arme && !arme.loading && armeAlese.size === 0 && arme.competitieArme.size > 0) setArmeAlese(new Map(arme.competitieArme));
+  }, [arme, armeAlese.size]);
   // Proba deschisă din hub (pentru Pas2 / Pas3)
   const [probaDeschisFocusId, setProbaDeschisFocusId] = useState<string | null>(null);
   // Selecție per probă — fiecare probă individuală își ține propriul Set<sportiviId>
@@ -253,6 +259,24 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     );
   }
 
+  if (step === 'arme' && arme) {
+    return (
+      <PasArme
+        competitie={competitie}
+        sportivi={sportivi}
+        grade={grade}
+        categorii={categorii}
+        inscrieri={inscrieri}
+        armeAlese={armeAlese}
+        onChange={setArmeAlese}
+        canEdit={canEdit}
+        arme={arme}
+        onContinua={() => setStep('hub')}
+        onBack={() => setStep('hub')}
+      />
+    );
+  }
+
   if (step === 'hub') {
     return (
       <InscriereClubCards
@@ -272,6 +296,9 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onSaved={onSaved}
         onOpenInscriereModal={onOpenInscriereModal}
         // props suplimentare hub
+        armeAlese={arme ? armeAlese : undefined}
+        nrSportiviClub={sportiviActivi.length}
+        onDeschideArme={arme ? () => setStep('arme') : undefined}
         selectedSportivi={selectedSportivi}
         autoCategorie={autoCategorie}
         quyenAles={quyenAles}

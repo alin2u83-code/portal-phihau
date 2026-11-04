@@ -10,6 +10,7 @@ import { useTipuriCompetitie } from '../../hooks/useTipuriCompetitie';
 import CategoriiTemplateManager from './CategoriiTemplateManager';
 import { VizaSportiv } from '../../types';
 import InscriereClubWizard from './InscriereClubWizard';
+import { useArmeCvd } from '../../hooks/useArmeCvd';
 import { TipuriCompetitieAdmin } from './TipuriCompetitieAdmin';
 import { CereriInterclubAdmin } from './CereriInterclubAdmin';
 
@@ -161,6 +162,11 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     );
     return filteredData.sportivi.filter(s => s.club_id === myClubId && (s.status === 'Activ' || inscrisi.has(s.id)));
   }, [filteredData.sportivi, inscrieri, myClubId]);
+
+  // CVD: armele se incarca o singura data aici si se paseaza wizardului
+  const sportivIdsClub = useMemo(() => sportiviClubInscriere.map(s => s.id), [sportiviClubInscriere]);
+  const armeCvd = useArmeCvd(competitie, sportivIdsClub, competitie.tip === 'cvd');
+  const canEditArme = competitie.status === 'inscrieri_deschise' && (permissions.isAdminClub || permissions.isSuperAdmin || permissions.isFederationAdmin);
 
   // Modal categorie: activi + inactivii înscriși DOAR la categoria deschisă (nu apar selectabili la alte categorii)
   const sportiviModalInscriere = useMemo(() => {
@@ -459,6 +465,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 numeClub={currentUser?.cluburi?.nume ?? ''}
                 vizeSportivi={vizeSportivi}
                 myClubId={myClubId}
+                arme={competitie.tip === 'cvd' ? armeCvd : undefined}
+                canEdit={canEditArme}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}
                 onEchipeRefresh={fetchDataSilent}

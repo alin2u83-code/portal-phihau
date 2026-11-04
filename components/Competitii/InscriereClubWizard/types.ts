@@ -1,3 +1,4 @@
+import type { useArmeCvd } from '../../../hooks/useArmeCvd';
 import {
   Competitie, ProbaCompetitie, CategorieCompetitie,
   Sportiv, Grad, InscriereCompetitie, EchipaCompetitie, VizaSportiv, Inlantuire,
@@ -83,4 +84,24 @@ export interface InscriereClubWizardProps {
   onOpenInscriereModal?: (cat: CategorieCompetitie, goToHub?: () => void) => void;
   /** Refresh silențios al prop-ului `echipe` (fetchDataSilent) — NU remontează wizard-ul */
   onEchipeRefresh?: () => void | Promise<void>;
+  /** CVD: datele armelor (useArmeCvd apelat in CompetitieDetail) */
+  arme?: ReturnType<typeof useArmeCvd>;
+  /** CVD: armele se pot edita (inscrieri deschise + admin) */
+  canEdit?: boolean;
+}
+
+/** sportivId -> set de armaId alese pe competitie */
+export type ArmeAlese = Map<string, Set<string>>;
+
+export interface PasArmeProps {
+  competitie: Competitie;
+  sportivi: Sportiv[];
+  grade: Grad[];
+  categorii: CategorieCompetitie[];
+  inscrieri: InscriereCompetitie[];
+  armeAlese: ArmeAlese;
+  onChange: (next: ArmeAlese) => void;
+  canEdit: boolean;
+  onContinua: () => void;
+  onBack: () => void;
 }

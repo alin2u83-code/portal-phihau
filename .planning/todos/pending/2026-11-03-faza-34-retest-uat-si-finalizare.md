@@ -1,33 +1,30 @@
 ---
 created: 2026-11-03T13:00:00.000Z
-title: Faza 34 - re-test UAT (teste 3, 4, 6) si inchidere faza
+updated: 2026-11-04T00:00:00.000Z
+title: Faza 34 - ramase dupa finalizare (retest instructor/mobil real, curatenie)
 area: ui
 files:
   - .planning/phases/34-simplificare-ui-unificare-stil-sidebar-dashboard-4-roluri-de/34-UAT.md
-  - .planning/phases/34-simplificare-ui-unificare-stil-sidebar-dashboard-4-roluri-de/34-15-SUMMARY.md
+  - .planning/phases/34-simplificare-ui-unificare-stil-sidebar-dashboard-4-roluri-de/34-SECURITY.md
 ---
 
 ## Stare
 
-Planurile de reparatie 34-14 si 34-15 executate si comise (4c655c6, e75705b). Code review: APPROVE, fara bug critic. tsc 0 erori, build OK, paritate meniu 8/8/8/4 OK, platiHubConfig 23/23. NIMIC verificat vizual dupa reparatii.
+Faza 34 FINALIZATA 3.11.2026: UAT 8/8 (retest admin club + federatie, Playwright MCP, desktop + mobil 390), 34-SECURITY.md threats_open 0 (51/51), ROADMAP/STATE actualizate (2bbb032). Push pe main facut (ab2984d..606ee10, 58 commituri). Fixuri post-UAT comise: titlu dublu Echipamente/Vanzari (7ea11a7), Modal headerActions + SesiuneForm (606ee10).
 
-## De facut (in ordine)
+Decizii luate: federatia NU vede Echipamente/Vanzari (intentionat, PlatiHub.tsx:67 ramane `isAdminClub`); feature viitor = circuit in care federatia propune produse spre vanzare (netrimis la plan).
 
-1. Re-test manual pe `npm run dev` (localhost:5173), lista in 34-15-SUMMARY.md "Acceptare umana":
-   - Sidebar 8 intrari, "Plati" fara submeniu, "Stagii" sub "Competitii" (admin club, federatie, instructor)
-   - Plati-hub: 7 tab-uri ADMIN_CLUB / 5 federatie, fiecare tab nou se randeaza, fara dublu buton de intoarcere
-   - Competitii fara tab Stagii; card "Necesita atentie"
-   - Mobil 390x844: fara scroll orizontal, bottom nav federatie "Plati"
-2. Daca ok: marcheaza testele 3, 4, 6 pass in 34-UAT.md, `/gsd-verify-work 34` pentru inchidere, apoi `/gsd-secure-phase 34` daca security_enforcement e activ.
-3. Rulat Playwright `tests/ui_faza34_shell.spec.ts` (cere TEST_EMAIL/TEST_PASSWORD; MFA blocheaza - skip cu motiv).
+## De facut
 
-## Decizii deschise (asteapta userul)
+1. Netestat in productie/local: rol INSTRUCTOR (sidebar, Plati, Competitii/Stagii), telefon real/iOS, RLS live pe `cereri_inregistrare` (contor dashboard federatie, interogat `pg_policies`).
+2. Bara interioara (Catalog/Intrari Marfa/Vanzari/Comenzi/Raport) din Echipamente/Vanzari dubleaza tab-ul din hub — ascunde tab-ul care nu corespunde.
+3. `components/GestiuneExamene/RapoarteExamen.tsx:57` are un SesiuneForm local vechi (fara club implicit/Salveaza in antet) — aliniaza sau inlocuieste cu cel din SesiuneForm.tsx.
+4. Observat, nereprodus: dupa resize 390->1440 cu pagina deschisa, corpul a ramas pe dashboard desi header/sidebar aratau Plati (AnimatePresence mode=wait?); reload rezolva.
+5. Contrast: 8 perechi de teme sub 4,5:1 (ex. Amber sidebarActiveFg/sidebarActive 3,19:1) — raport din tests/ui_faza34_menu_parity.ts, nu pica testul.
+6. Nit: comentarii "13" in loc de 16 in platiHubConfig.ts; header "Plati & Facturi" vs sidebar "Plati".
+7. `.planning/phases/34-*/screens/` neurmarit si NU in .gitignore — nu folosi `git add -A`.
+8. Rulat Playwright `tests/ui_faza34_shell.spec.ts` cu TEST_EMAIL/TEST_PASSWORD (acum trece 4/4 dar fara sesiune reala; MFA blocheaza).
 
-- Federatia (SUPER_ADMIN) pe `produse`/`vanzari-produse` cade tacut pe Facturi. Vrei acces? Schimba `poateVedeaEchipamente` in `permissions.isAdminClub || permissions.isFederationAdmin` (PlatiHub.tsx:66).
-- Tab Echipamente + Vanzari randeaza aceeasi componenta cu strip intern propriu (duplicare "Vanzari"); h1 duplicat in PerioadaVacantaView si ProduseManagement.
-- Nit: comentarii "13" in loc de 16 in platiHubConfig.ts; header "Plati & Facturi" vs sidebar "Plati"; bottom nav "Financiar"->"Plati" facut fara cerere explicita.
+## Alte lucruri deschise (nelegate de faza 34)
 
-## Alte lucruri deschise
-
-- `components/GestiuneExamene/SesiuneForm.tsx` si `components/ui.tsx` au modificari necomise mai vechi (Modal headerActions, club implicit in sesiune examen) - nelegate de faza 34; de revizuit si comis separat.
-- Planuri vechi fara SUMMARY: 32-08 (blocat pe SMTP spatiul.ro), 18-04, 11-03.
+- Planuri vechi fara SUMMARY: 32-08 (blocat pe SMTP spatiul.ro), 18-04, 11-03. Faze 19-24 neinceputute. UAT 07 (7 scenarii) si 26-VERIFICATION (gaps_found) deschise.

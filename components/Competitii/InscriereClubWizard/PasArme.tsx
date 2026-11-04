@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Button } from '../../ui';
+import { Button, ConfirmModal } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
 import { formatNume } from '../../../utils/formatareSportiv';
@@ -24,6 +24,7 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
   const [implicit, setImplicit] = useState<Set<string>>(new Set());
   const [salveaza, setSalveaza] = useState(false);
   const [cerinte, setCerinte] = useState<Cerinte>([]);
+  const [confirmRetragere, setConfirmRetragere] = useState<string | null>(null);
 
   // sportivii ale caror salvare a esuat: la resincronizarea cu armeAlese isi pastreaza editarile nesalvate
   const esuatiRef = useRef<Set<string>>(new Set());
@@ -91,7 +92,20 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
     setDraft(next);
   };
 
+  // inscrierile ce vor fi sterse la salvare (arme debifate cu inscriere existenta), pe sportiv
+  const deRetrasPe = (sportivId: string) => {
+    const debifate = [...(armeAlese.get(sportivId) ?? GOL)].filter(id => !(draft.get(sportivId) ?? GOL).has(id));
+    return inscrieri.filter(i => i.sportiv_id === sportivId && i.arma_id && debifate.includes(i.arma_id) && i.status?.toLowerCase() !== 'retras');
+  };
+
+  const cereSalvare = () => {
+    const lista = modificati.flatMap(r => deRetrasPe(r.s.id).map(i => `${formatNume(r.s)} · ${armePeId.get(i.arma_id!)?.denumire ?? 'armă'}`));
+    if (lista.length > 0) setConfirmRetragere(`Înscrierile pe aceste arme se șterg definitiv: ${lista.join('; ')}. Continui?`);
+    else void salveazaTot();
+  };
+
   const salveazaTot = async () => {
+    setConfirmRetragere(null);
     setSalveaza(true);
     const reusite: string[] = [];
     const refuzati = new Set<string>(); // retragerea inscrierii unei arme debifate a esuat: arma ramane bifata
@@ -223,12 +237,20 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
 
       <div className="flex gap-2 justify-end flex-wrap">
         {canEdit && (
-          <Button variant="success" onClick={salveazaTot} disabled={salveaza || modificati.length === 0}>
+          <Button variant="success" onClick={cereSalvare} disabled={salveaza || modificati.length === 0}>
             {salveaza ? 'Se salvează...' : `Salvează armele${modificati.length ? ` (${modificati.length})` : ''}`}
           </Button>
         )}
         <Button variant="secondary" onClick={onContinua}>Continuă</Button>
       </div>
+      <ConfirmModal
+        isOpen={confirmRetragere !== null}
+        onClose={() => setConfirmRetragere(null)}
+        onConfirm={() => void salveazaTot()}
+        title="Retragere înscrieri"
+        message={confirmRetragere ?? ''}
+        confirmLabel="Șterge și salvează"
+      />
     </div>
   );
 };

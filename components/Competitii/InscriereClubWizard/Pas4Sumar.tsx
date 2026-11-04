@@ -54,6 +54,9 @@ interface RandIndividual {
   /** CVD: un rand per (sportiv, arma) */
   arma_id?: string;
   armaDenumire?: string;
+  /** CVD: rand nesalvabil (nu intra in total) */
+  duplicatDe?: string; // alta arma a aceluiasi sportiv are aceeasi categorie
+  faraForma?: boolean;
 }
 
 interface RandEchipa {
@@ -129,6 +132,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
     // CVD: un rând per (sportiv, armă) selectat; forma doar dacă e permisă gradului (altfel id vechi, nu se salvează)
     if (cvd) {
       const armePeId = new Map(arme!.map(a => [a.id, a]));
+      const catVazute = new Map<string, string>(); // UNIQUE(categorie_id, sportiv_id): o singura arma per (sportiv, categorie)
       for (const sportivId of Array.from(selectedSportivi)) {
         const sportiv = sportivi.find(s => s.id === sportivId);
         if (!sportiv) continue;
@@ -138,14 +142,20 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           if (cat.proba_id && probeSkipped.has(cat.proba_id)) continue;
           const formaId = formaPerArma?.get(sportivId)?.get(armaId);
           const valida = formaId && formeGrad.some(f => f.id === formaId && f.arma_id === armaId);
+          const denArma = armePeId.get(armaId)?.denumire;
+          const cheieCat = `${sportivId}|${cat.id}`;
+          const primaArma = catVazute.get(cheieCat);
+          if (primaArma === undefined) catVazute.set(cheieCat, denArma ?? '');
           rezultat.push({
             sportiv,
             varsta: sportiv.data_nasterii ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput) : 0,
             categorie: cat,
             inlantuire_id: valida ? formaId : undefined,
-            taxa: calculeazaTaxaIndividuala(competitie, cat),
+            taxa: primaArma !== undefined || !valida ? 0 : calculeazaTaxaIndividuala(competitie, cat),
             arma_id: armaId,
-            armaDenumire: armePeId.get(armaId)?.denumire,
+            armaDenumire: denArma,
+            duplicatDe: primaArma,
+            faraForma: primaArma === undefined && !valida,
           });
         }
       }
@@ -214,6 +224,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   );
 
   const totalGeneral = totalIndividual + totalEchipe;
+  const nrFaraForma = randuriIndividuale.filter(r => r.faraForma).length;
 
   const randuriFisaPDF = useMemo<RandIndividualPDF[]>(() =>
     randuriIndividuale.map(r => {
@@ -258,59 +269,71 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
     try {
       // 1. Insert/reactivare înscrieri individuale
       let skippedCount = 0;
+      const esecuri: string[] = [];
+      const note: string[] = [];
       for (const rand of randuriIndividuale) {
-        if (rand.deja) continue;
-        let q = supabase
-          .from('inscrieri_competitie')
-          .select('id, status, inlantuire_id, taxa_achitata')
-          .eq('competitie_id', competitie.id)
-          .eq('sportiv_id', rand.sportiv.id)
-          .eq('categorie_id', rand.categorie.id);
-        if (rand.arma_id) q = q.eq('arma_id', rand.arma_id);
-        const { data: existent } = await q.maybeSingle();
+        if (rand.deja || rand.duplicatDe || rand.faraForma) continue;
+        const eticheta = `${formatNume(rand.sportiv)}${rand.armaDenumire ? ' · ' + rand.armaDenumire : ''}`;
+        try {
+          // UNIQUE(categorie_id, sportiv_id): cautam dupa (sportiv, categorie), indiferent de arma
+          const { data: existent, error: selErr } = await supabase
+            .from('inscrieri_competitie')
+            .select('id, status, inlantuire_id, taxa_achitata, arma_id')
+            .eq('competitie_id', competitie.id)
+            .eq('sportiv_id', rand.sportiv.id)
+            .eq('categorie_id', rand.categorie.id)
+            .maybeSingle();
+          if (selErr) throw new Error(selErr.message);
 
-        if (existent) {
-          if (existent.status?.toLowerCase() !== 'retras') {
-            // CVD: forma se actualizează pe înscrierea existentă (nu și pe cea achitată)
-            if (rand.arma_id && rand.inlantuire_id && rand.inlantuire_id !== existent.inlantuire_id && !existent.taxa_achitata) {
-              const { error: updErr } = await supabase.from('inscrieri_competitie').update({ inlantuire_id: rand.inlantuire_id }).eq('id', existent.id);
-              if (updErr) throw updErr;
+          if (existent) {
+            const acelasiRand = !rand.arma_id || existent.arma_id === rand.arma_id;
+            if (existent.status?.toLowerCase() !== 'retras') {
+              if (rand.arma_id && !acelasiRand) {
+                note.push(`${eticheta}: există deja o înscriere în această categorie (${existent.arma_id ? 'altă armă' : 'fără armă, veche'}) — nu s-a modificat`);
+              } else if (rand.arma_id && rand.inlantuire_id && rand.inlantuire_id !== existent.inlantuire_id) {
+                if (existent.taxa_achitata) {
+                  note.push(`${eticheta}: înscriere achitată — forma nu s-a modificat`);
+                } else {
+                  const { error: updErr } = await supabase.from('inscrieri_competitie').update({ inlantuire_id: rand.inlantuire_id }).eq('id', existent.id);
+                  if (updErr) throw new Error(updErr.message);
+                }
+              } else {
+                skippedCount++;
+              }
               continue;
             }
-            skippedCount++;
+            // Re-activare sportiv retras (nu atinge taxa_achitata; pentru CVD preia si arma)
+            const { error: updErr } = await supabase
+              .from('inscrieri_competitie')
+              .update({
+                status: 'inscris',
+                inlantuire_id: rand.inlantuire_id ?? null,
+                inlantuire_id_2: rand.inlantuire_id_2 ?? null,
+                ...(rand.arma_id ? { arma_id: rand.arma_id } : {}),
+              })
+              .eq('id', existent.id);
+            if (updErr) throw new Error(updErr.message);
             continue;
           }
-          // Re-activare sportiv retras
-          const { error: updErr } = await supabase
-            .from('inscrieri_competitie')
-            .update({
-              status: 'inscris',
-              inlantuire_id: rand.inlantuire_id ?? null,
-              inlantuire_id_2: rand.inlantuire_id_2 ?? null,
-            })
-            .eq('id', existent.id);
-          if (updErr) throw updErr;
-          continue;
+
+          const { error } = await supabase.from('inscrieri_competitie').insert({
+            competitie_id: competitie.id,
+            sportiv_id: rand.sportiv.id,
+            categorie_id: rand.categorie.id,
+            club_id: clubId,
+            borderou_club_id: clubId,
+            ...(rand.arma_id ? { arma_id: rand.arma_id } : {}),
+            inlantuire_id: rand.inlantuire_id ?? null,
+            inlantuire_id_2: rand.inlantuire_id_2 ?? null,
+            status: 'inscris',
+            taxa_achitata: false,
+          });
+          if (error) throw new Error(error.message);
+        } catch (e) {
+          esecuri.push(`${eticheta}: ${e instanceof Error ? e.message : String(e)}`);
         }
-
-        const payload = {
-          inlantuire_id: rand.inlantuire_id ?? null,
-          inlantuire_id_2: rand.inlantuire_id_2 ?? null,
-          status: 'inscris',
-          taxa_achitata: false,
-        };
-
-        const { error } = await supabase.from('inscrieri_competitie').insert({
-          competitie_id: competitie.id,
-          sportiv_id: rand.sportiv.id,
-          categorie_id: rand.categorie.id,
-          club_id: clubId,
-          borderou_club_id: clubId,
-          ...(rand.arma_id ? { arma_id: rand.arma_id } : {}),
-          ...payload,
-        });
-        if (error) throw new Error(error.message);
       }
+      if (note.length > 0) showSuccess('Info', note.join('\n'));
 
       // 2. Insert/update echipe și sportivii lor
       for (const rand of randuriEchipe) {
@@ -408,6 +431,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         }
       }
 
+      if (esecuri.length > 0) throw new Error(`${esecuri.length} înscrieri nu s-au salvat (restul au fost salvate): ${esecuri.join('; ')}`);
       setSuccessMsg('Inscrierea a fost finalizata cu succes!');
       setConfirmOpen(false);
       if (skippedCount > 0) showSuccess('Info', `${skippedCount} sportivi ignorați (deja înscriși activ).`);
@@ -485,6 +509,8 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <span className="text-sm font-semibold text-green-400">{rand.taxa} lei</span>
+                      {rand.duplicatDe && <div className="text-[11px] text-amber-400">aceeași categorie ca {rand.duplicatDe} — nu se salvează</div>}
+                      {rand.faraForma && <div className="text-[11px] text-amber-400">fără formă — mergi la Pas 2</div>}
                     </td>
                   </tr>
                 ))}
@@ -516,6 +542,8 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                   {rand.categorie.proba && (
                     <div className="text-[11px] text-slate-500">{rand.categorie.proba.denumire}</div>
                   )}
+                  {rand.duplicatDe && <div className="text-[11px] text-amber-400">aceeași categorie ca {rand.duplicatDe} — nu se salvează</div>}
+                  {rand.faraForma && <div className="text-[11px] text-amber-400">fără formă — mergi la Pas 2</div>}
                 </div>
               </div>
             ))}
@@ -613,6 +641,12 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         </div>
       </div>
 
+      {nrFaraForma > 0 && (
+        <div className="rounded-lg border border-amber-700/50 bg-amber-900/20 px-4 py-3">
+          <p className="text-xs text-amber-400">{nrFaraForma} {nrFaraForma === 1 ? 'rând fără formă' : 'rânduri fără formă'} — mergi la Pas 2</p>
+        </div>
+      )}
+
       {/* Mesaje feedback */}
       {successMsg && (
         <div className="rounded-lg border border-green-600/50 bg-green-900/20 px-4 py-3">
@@ -653,7 +687,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           <Button
             variant="success"
             onClick={() => setConfirmOpen(true)}
-            disabled={saving || !!successMsg || (cvd && !dreptMap)}
+            disabled={saving || !!successMsg || (cvd && !dreptMap) || nrFaraForma > 0}
             className="w-full sm:w-auto sm:min-w-[180px] ml-auto"
           >
             Finalizeaza inscrierea

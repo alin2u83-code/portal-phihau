@@ -53,9 +53,78 @@ function citesteDispozitiv(): { userId: string; token: string } | null {
     } catch { return null; }
 }
 
+export const ZILE_DISPOZITIV_INCREDERE = 30;
+
+/** Preferința "Aceasta e un dispozitiv personal" (bifa de la login). Implicit: da. */
+export const CHEIE_RAMANE_CONECTAT = 'phi-hau-ramane-conectat';
+/** localStorage = sesiunea e temporară (bifă debifată). Markerul "încă vie" e un cookie de sesiune (fără Expires):
+ *  partajat între taburi, dispare când se închide browserul. supabaseClient.ts îl citește la pornire. */
+export const CHEIE_SESIUNE_TEMPORARA = 'phi-hau-sesiune-temporara';
+export const COOKIE_SESIUNE_VIE = 'phi-hau-sesiune-vie';
+/** sessionStorage: alegerea de dinaintea redirectului Google; se aplică abia după autentificare reușită. */
+export const CHEIE_RAMANE_IN_ASTEPTARE = 'phi-hau-ramane-in-asteptare';
+
+export function citestePreferintaRamaneConectat(): boolean {
+    try { return localStorage.getItem(CHEIE_RAMANE_CONECTAT) !== '0'; } catch { return true; }
+}
+
+/** Salvează alegerea de la login (apelat DOAR după autentificare reușită); debifat => sesiunea se închide la închiderea browserului. */
+export function seteazaRamaneConectat(ramane: boolean): void {
+    try {
+        localStorage.setItem(CHEIE_RAMANE_CONECTAT, ramane ? '1' : '0');
+        if (ramane) {
+            localStorage.removeItem(CHEIE_SESIUNE_TEMPORARA);
+            document.cookie = `${COOKIE_SESIUNE_VIE}=; path=/; max-age=0; SameSite=Lax`;
+        } else {
+            localStorage.setItem(CHEIE_SESIUNE_TEMPORARA, '1');
+            document.cookie = `${COOKIE_SESIUNE_VIE}=1; path=/; SameSite=Lax`;
+        }
+    } catch { /* storage blocat: rămâne comportamentul implicit */ }
+}
+
+/** Google: retine alegerea inainte de redirect; se aplica dupa SIGNED_IN (vezi aplicaRamaneInAsteptare). */
+export function retineRamaneInAsteptare(ramane: boolean): void {
+    try { sessionStorage.setItem(CHEIE_RAMANE_IN_ASTEPTARE, ramane ? '1' : '0'); } catch {}
+}
+
+export function aplicaRamaneInAsteptare(): void {
+    try {
+        const v = sessionStorage.getItem(CHEIE_RAMANE_IN_ASTEPTARE);
+        if (v === null) return;
+        sessionStorage.removeItem(CHEIE_RAMANE_IN_ASTEPTARE);
+        seteazaRamaneConectat(v === '1');
+    } catch {}
+}
+
+/** Etichetă scurtă pentru lista de dispozitive (ex. "Chrome pe Windows"). */
+function etichetaDispozitiv(): string {
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    const browser = /Edg(e|A|iOS)?\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Firefox\/|FxiOS\//.test(ua) ? 'Firefox'
+        : /Chrome\/|CriOS\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'Browser';
+    // iPadOS 13+ raporteaza "Macintosh"; il deosebim de Mac dupa ecranul tactil.
+    const ipadOs = /Macintosh/.test(ua) && typeof navigator !== 'undefined' && navigator.maxTouchPoints > 1;
+    const os = /Windows/.test(ua) ? 'Windows' : /Android/.test(ua) ? 'Android' : /iPhone|iPad|iPod/.test(ua) || ipadOs ? 'iOS'
+        : /Mac OS/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : 'necunoscut';
+    return `${browser} pe ${os}`;
+}
+
+export type DispozitivIncredere = { id: string; eticheta: string | null; creat_la: string; ultima_folosire: string | null; expira_la: string; curent: boolean };
+
+export async function listeazaDispozitiveIncredere(): Promise<DispozitivIncredere[]> {
+    const { data, error } = await supabase!.rpc('listeaza_dispozitive_incredere', { p_token: citesteDispozitiv()?.token ?? null });
+    if (error) throw error; // apelantul afișează eroarea (ex. migrare neaplicată), nu "nicio listă"
+    return Array.isArray(data) ? data : [];
+}
+
+export async function revocaDispozitivIncredere(id: string, eraCurent: boolean): Promise<boolean> {
+    const { error } = await supabase!.rpc('revoca_dispozitiv_incredere', { p_id: id });
+    if (!error && eraCurent) { try { localStorage.removeItem(CHEIE_DISPOZITIV); } catch {} }
+    return !error;
+}
+
 /** Marchează dispozitivul curent ca de încredere (necesită un cod MFA valid tocmai verificat). */
 export async function inregistreazaDispozitivIncredere(userId: string): Promise<boolean> {
-    const { data, error } = await supabase!.rpc('inregistreaza_dispozitiv_incredere');
+    const { data, error } = await supabase!.rpc('inregistreaza_dispozitiv_incredere', { p_eticheta: etichetaDispozitiv() });
     if (error || typeof data !== 'string') return false;
     try { localStorage.setItem(CHEIE_DISPOZITIV, JSON.stringify({ userId, token: data })); } catch { return false; }
     return true;

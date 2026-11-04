@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { listeazaDispozitiveIncredere, revocaDispozitivIncredere, revocaDispozitiveIncredere, ZILE_DISPOZITIV_INCREDERE, type DispozitivIncredere } from '../services/emailMfaService';
 import { User, Rol, Sportiv } from '../types';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
@@ -10,6 +11,77 @@ import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 import { inregistreazaEmailAuth } from '../services/authEmailAuditService';
 import { NotificationPermissionWidget } from './NotificationPermissionWidget';
+
+const DispozitiveIncredereCard: React.FC = () => {
+    const [lista, setLista] = useState<DispozitivIncredere[] | null>(null);
+    const [ocupat, setOcupat] = useState(false);
+    const [eroare, setEroare] = useState<string | null>(null);
+    const incarca = async (esteMontat: () => boolean = () => true) => {
+        try {
+            const l = await listeazaDispozitiveIncredere();
+            if (esteMontat()) setLista(l);
+        } catch {
+            if (esteMontat()) setEroare('Nu am putut încărca lista de dispozitive. Reîncearcă mai târziu.');
+        }
+    };
+    useEffect(() => {
+        let montat = true;
+        incarca(() => montat);
+        return () => { montat = false; };
+    }, []);
+
+    const revoca = async (d: DispozitivIncredere) => {
+        setOcupat(true);
+        setEroare(null);
+        try {
+            const ok = await revocaDispozitivIncredere(d.id, d.curent);
+            if (!ok) setEroare('Dispozitivul nu a putut fi eliminat. Încearcă din nou.');
+            await incarca();
+        } catch {
+            setEroare('Dispozitivul nu a putut fi eliminat. Încearcă din nou.');
+        } finally {
+            setOcupat(false);
+        }
+    };
+    const deconecteazaTot = async () => {
+        if (!window.confirm('Te deconectezi de pe toate dispozitivele (inclusiv acesta). Continui?')) return;
+        setOcupat(true);
+        setEroare(null);
+        try {
+            await revocaDispozitiveIncredere();
+            const { error } = await supabase.auth.signOut({ scope: 'global' });
+            if (error) setEroare('Deconectarea de pe toate dispozitivele a eșuat. Încearcă din nou.');
+        } catch {
+            setEroare('Deconectarea de pe toate dispozitivele a eșuat. Încearcă din nou.');
+        } finally {
+            setOcupat(false);
+        }
+    };
+    const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleDateString('ro-RO') : '—';
+
+    return (
+        <Card>
+            <h2 className="text-base font-semibold text-[var(--t-text)] mb-1">Dispozitive de încredere</h2>
+            <p className="text-xs text-[var(--t-text-muted,#94a3b8)] mb-4">
+                Pe aceste dispozitive nu ți se cere cod {ZILE_DISPOZITIV_INCREDERE} de zile de la ultima folosire.
+            </p>
+            {eroare && <p className="text-sm text-red-500 mb-2" role="alert">{eroare}</p>}
+            {lista && lista.length === 0 && !eroare && <p className="text-sm">Niciun dispozitiv de încredere.</p>}
+            <ul className="space-y-2">
+                {(lista ?? []).map(d => (
+                    <li key={d.id} className="flex items-center justify-between gap-3 text-sm">
+                        <span>
+                            {d.eticheta || 'Dispozitiv'} {d.curent && <Badge variant="blue">acesta</Badge>}
+                            <span className="block text-xs opacity-70">Ultima folosire: {fmt(d.ultima_folosire)} · valabil până: {fmt(d.expira_la)}</span>
+                        </span>
+                        <Button size="sm" variant="secondary" disabled={ocupat} onClick={() => revoca(d)}>Elimină</Button>
+                    </li>
+                ))}
+            </ul>
+            <Button className="mt-4" variant="danger" disabled={ocupat} onClick={deconecteazaTot}>Deconectează de pe toate dispozitivele</Button>
+        </Card>
+    );
+};
 
 interface AccountSettingsProps {
     currentUser: User;
@@ -183,6 +255,8 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ currentUser, o
                     })}
                 </div>
             </Card>
+
+            <DispozitiveIncredereCard />
 
             <Card>
                 <h2 className="text-base font-semibold text-[var(--t-text)] mb-4">Notificări push</h2>

@@ -11,6 +11,7 @@ import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { withCleanUuidFilters } from '../utils/supabaseFilters';
 import { processSettledQueries, SettledQuery } from '../utils/supabaseHelpers';
 import { useUserRoles } from './useUserRoles';
+import { aplicaRamaneInAsteptare } from '../services/emailMfaService';
 import { useFilteredData } from './useFilteredData';
 import { useAttendanceData } from './useAttendanceData';
 import { useSportivi } from './useSportivi';
@@ -507,7 +508,26 @@ export const useDataProvider = () => {
 
     useEffect(() => {
         initializeAndFetchData();
+        const verificatiGoogle = new Set<string>();
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
+            if (event === 'SIGNED_IN' && sess?.user?.app_metadata?.provider === 'google' && !verificatiGoogle.has(sess.user.id)) {
+                // Google nu creează conturi în portal: fără roluri alocate => delogare. O singură dată per utilizator
+                // (SIGNED_IN revine la refocus). La eroare de interogare nu delogăm; protecția reală e sign-up dezactivat în Supabase.
+                // Setat async ca să nu blocheze callback-ul auth.
+                const uid = sess.user.id;
+                verificatiGoogle.add(uid);
+                setTimeout(async () => {
+                    const { count, error: rolErr } = await supabase
+                        .from('utilizator_roluri_multicont').select('user_id', { count: 'exact', head: true }).eq('user_id', uid);
+                    if (rolErr) { verificatiGoogle.delete(uid); return; }
+                    if (!count) {
+                        await supabase.auth.signOut();
+                        toast.error('Acest cont Google nu are cont în portal. Cere administratorului clubului să te înregistreze cu această adresă de email.', { duration: 10000 });
+                    } else {
+                        aplicaRamaneInAsteptare(); // contul există: abia acum salvăm alegerea "dispozitiv personal"
+                    }
+                }, 0);
+            }
             if (event === 'SIGNED_IN') {
                 const incomingUserId = sess?.user?.id ?? null;
                 setSession(sess);

@@ -10,7 +10,7 @@ import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 
 import { QwanKiDoLogo } from './Logo';
-import { revocaDispozitiveIncredere } from '../services/emailMfaService';
+import { revocaDispozitiveIncredere, citestePreferintaRamaneConectat, seteazaRamaneConectat, retineRamaneInAsteptare } from '../services/emailMfaService';
 
 export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
@@ -25,6 +25,20 @@ export const LoginPage: React.FC = () => {
     const [resetCod, setResetCod] = useState('');
     const [resetParolaNoua, setResetParolaNoua] = useState('');
     const [resetEroare, setResetEroare] = useState('');
+
+    const [ramaneConectat, setRamaneConectat] = useState(citestePreferintaRamaneConectat());
+    const [googleEroare, setGoogleEroare] = useState('');
+
+    // Google doar pentru conturi existente: useDataProvider delogheaza utilizatorul fara cont in portal.
+    const handleGoogle = async () => {
+        setGoogleEroare('');
+        retineRamaneInAsteptare(ramaneConectat); // aplicat după SIGNED_IN (useDataProvider)
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin, queryParams: { prompt: 'select_account' } },
+        });
+        if (error) setGoogleEroare('Autentificarea cu Google nu este disponibilă momentan.');
+    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -59,6 +73,7 @@ export const LoginPage: React.FC = () => {
         try {
             const data = await login(emailToUse, formData.parola || '');
             if (data?.user) {
+                seteazaRamaneConectat(ramaneConectat); // abia după login reușit
                 navigate('/');
             }
         } catch (err: any) {
@@ -211,10 +226,12 @@ export const LoginPage: React.FC = () => {
                                     id="remember-me"
                                     name="remember-me"
                                     type="checkbox"
+                                    checked={ramaneConectat}
+                                    onChange={e => setRamaneConectat(e.target.checked)}
                                     className="h-4 w-4 text-amber-500 focus:ring-amber-500 border-slate-700 bg-slate-800 rounded"
                                 />
                                 <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-400">
-                                    Ține-mă minte
+                                    Dispozitiv personal — rămân conectat
                                 </label>
                             </div>
                             <button
@@ -233,6 +250,14 @@ export const LoginPage: React.FC = () => {
                         >
                             Intră în cont
                         </Button>
+
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                            <div className="h-px flex-1 bg-slate-700" />sau<div className="h-px flex-1 bg-slate-700" />
+                        </div>
+                        <Button type="button" variant="secondary" className="w-full" onClick={handleGoogle}>
+                            Continuă cu Google
+                        </Button>
+                        {googleEroare && <p className="text-xs text-red-400 text-center">{googleEroare}</p>}
                     </form>
 
                     {showForgotPassword && (

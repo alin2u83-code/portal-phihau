@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigation } from '../contexts/NavigationContext';
-import { trimiteCodMfaEmail, verificaCodMfaEmail, inregistreazaDispozitivIncredere } from '../services/emailMfaService';
+import { trimiteCodMfaEmail, verificaCodMfaEmail, inregistreazaDispozitivIncredere, citestePreferintaRamaneConectat, ZILE_DISPOZITIV_INCREDERE } from '../services/emailMfaService';
 import { Button, Card } from './ui';
 
 type Step = 'loading' | 'cod-trimis';
@@ -14,7 +14,7 @@ export function SetupMFAPage() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [retrimisLa, setRetrimisLa] = useState<number>(0);
-    const [dispozitivIncredere, setDispozitivIncredere] = useState(true);
+    const [dispozitivIncredere, setDispozitivIncredere] = useState(citestePreferintaRamaneConectat());
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -166,7 +166,7 @@ export function SetupMFAPage() {
                                 onChange={e => setDispozitivIncredere(e.target.checked)}
                                 className="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
                             />
-                            <span>Am încredere în acest dispozitiv — nu mai cere cod 7 zile. Nu bifa pe un calculator folosit și de alții.</span>
+                            <span>Acesta e un dispozitiv personal — nu mai cere cod {ZILE_DISPOZITIV_INCREDERE} de zile și nu mă deconecta. Nu bifa pe un calculator folosit și de alții.</span>
                         </label>
                         <Button
                             onClick={verifyCode}

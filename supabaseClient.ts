@@ -29,6 +29,16 @@ if (supabaseUrl && supabaseAnonKey) {
     });
   };
 
+  // "Dispozitiv personal" debifat la login: la o nouă pornire a browserului (cookie-ul de sesiune a dispărut)
+  // sesiunea salvată se șterge ÎNAINTE de createClient, ca să nu existe cursă cu getSession().
+  // Cookie (nu sessionStorage): e partajat între taburi, deci un tab nou nu șterge sesiunea.
+  try {
+    if (localStorage.getItem('phi-hau-sesiune-temporara') === '1' && !document.cookie.includes('phi-hau-sesiune-vie=1')) {
+      localStorage.removeItem(`sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`);
+      localStorage.removeItem('phi-hau-sesiune-temporara');
+    }
+  } catch { /* storage indisponibil */ }
+
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,

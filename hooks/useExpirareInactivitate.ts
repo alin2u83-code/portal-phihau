@@ -7,10 +7,12 @@ import {
     calculeazaUltimaActivitate,
     stareInactivitate,
 } from '../utils/inactivitate';
+import { esteDispozitivDeIncredere } from '../services/emailMfaService';
 import toast from 'react-hot-toast';
 
 const INTERVAL_VERIFICARE_MS = 30 * 1000;
 const THROTTLE_SCRIERE_MS = 15 * 1000;
+const REVALIDARE_DISPOZITIV_MS = 10 * 60 * 1000;
 const EVENIMENTE_ACTIVITATE = ['mousedown', 'keydown', 'touchstart', 'scroll', 'wheel'] as const;
 
 function citesteTimestampStocat(): number | null {
@@ -35,6 +37,10 @@ export function useExpirareInactivitate(activeRoleContext: any | null, onExpirar
 
     useEffect(() => {
         if (!activ || !supabase) return;
+        // Dispozitiv de încredere (30 zile, ales explicit de utilizator): fără delogare la inactivitate.
+        // Tokenul se validează server-side la montare și apoi periodic (revocat/expirat din altă parte => revine regula de 60 min).
+        let incredere = false;
+        let pregatit = false;
 
         let avertizareAfisata = false;
         let expirareDeclansata = false;
@@ -50,6 +56,7 @@ export function useExpirareInactivitate(activeRoleContext: any | null, onExpirar
 
         const verifica = () => {
             if (expirareDeclansata) return;
+            if (!pregatit || incredere) return;
             const stocat = citesteTimestampStocat();
             const acum = Date.now();
             const ultimaActivitate = stocat ?? acum;
@@ -73,20 +80,38 @@ export function useExpirareInactivitate(activeRoleContext: any | null, onExpirar
 
         const handlerActivitate = () => scrieActivitate();
 
+        let userIdSesiune: string | null = null;
+        let anulat = false;
+        const revalideaza = async () => {
+            if (!userIdSesiune) { incredere = false; return; }
+            try {
+                const valid = await esteDispozitivDeIncredere(userIdSesiune);
+                if (!anulat) incredere = valid;
+            } catch {
+                if (!anulat) incredere = false; // la eroare revine regula strictă
+            }
+        };
+
         (async () => {
             const { data: sessionData } = await supabase.auth.getSession();
+            userIdSesiune = sessionData?.session?.user?.id ?? null;
             const lastSignInAt = sessionData?.session?.user?.last_sign_in_at;
             const acum = Date.now();
             const ultimaActivitate = calculeazaUltimaActivitate(citesteTimestampStocat(), lastSignInAt, acum);
             localStorage.setItem(CHEIE_ULTIMA_ACTIVITATE, String(ultimaActivitate));
+            await revalideaza();
+            pregatit = true;
             verifica();
         })();
 
         EVENIMENTE_ACTIVITATE.forEach(ev => window.addEventListener(ev, handlerActivitate, { passive: true }));
         const intervalId = setInterval(verifica, INTERVAL_VERIFICARE_MS);
+        const intervalRevalidare = setInterval(revalideaza, REVALIDARE_DISPOZITIV_MS);
 
         return () => {
+            anulat = true;
             clearInterval(intervalId);
+            clearInterval(intervalRevalidare);
             EVENIMENTE_ACTIVITATE.forEach(ev => window.removeEventListener(ev, handlerActivitate));
         };
     }, [activ, rolActiv]);

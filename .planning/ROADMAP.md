@@ -498,6 +498,28 @@ Plans:
 
 **Gap closure (UAT 2026-11-03):** 34-14 (val 1) -> 34-15 (val 2, depinde de 34-14: view-urile financiare trebuie sa aiba tab-uri in hub inainte sa dispara submeniul Financiar).
 
+### Phase 35: Selectie arme CVD per sportiv - pas Arme, inscriere pe arma, Giao Dau si Song Luyen pe arma
+
+**Goal:** Adminul unui club alege la CN Co Vo Dao armele fiecarui sportiv (salvate pe sportiv si pe competitie, editabile), apoi il inscrie separat pe fiecare arma, cu formele filtrate pe arma; Giao Dau permite doar armele de lemn, Song Luyen se formeaza doar intre sportivi cu aceeasi arma, la categoria potrivita. Restrictiile din circulara (lama vs articulata, grade la Bong vs Long Gian/Song Cot/Moc Can) aplicate pe arme.
+**Requirements**: TBD (vezi spec)
+**Depends on:** Phase 34
+**Legatura cu faze vechi:** Phase 20 (retragere individuala DELETE vs UPDATE status — Task 6 reutilizeaza retragerea hard-delete existenta, extrasa in `retrage.ts`; decizia 20 ramane deschisa) si Phase 21 (Pas4Sumar insert dublu — Task 6 refoloseste `handleSave` din Pas4Sumar; fara dublare, de verificat impreuna cu 21). Continua lucrul Competitii din 5f247f6, 203c150, c747f9e (Giao Dau individual, Retrage, Pas4 cu inactivi).
+**Spec:** docs/superpowers/specs/2026-11-04-arme-cvd-design.md
+**Plan:** docs/superpowers/plans/2026-11-04-arme-cvd.md
+**Plans:** 9 tasks (plan superpowers, de convertit in PLAN.md cu /gsd-plan-phase 35 sau executat direct)
+
+Plans:
+
+- [ ] 35-01 — Migrare DB: arme, inlantuiri.arma_id, sportiv_arme, competitie_sportiv_arme, arma_id pe inscrieri si echipe, RLS (aplicare doar cu OK)
+- [ ] 35-02 — Tipuri + reguli pure utils/armeCvd.ts cu teste tsx
+- [ ] 35-03 — Serviciu si hook de date armeCvdService / useArmeCvd
+- [ ] 35-04 — Pasul Arme la nivel de competitie CVD (PasArme + card in hub)
+- [ ] 35-05 — Pas1/Pas2 CVD pe arme (Pas2Arme, categorie per arma)
+- [ ] 35-06 — Pas4 si salvare pe (sportiv, arma), editare si retragere (retrage.ts)
+- [ ] 35-07 — Giao Dau CVD: arme de lemn permise (Bong, Song Cot, Moc Can, Moc Guom, Long Gian)
+- [ ] 35-08 — Song Luyen CVD: echipa doar cu aceeasi arma
+- [ ] 35-09 — Verificare finala, review separat, actualizare spec
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

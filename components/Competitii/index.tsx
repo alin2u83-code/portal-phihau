@@ -651,6 +651,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           clubId={myClubId || ''}
           numeClub={currentUser?.cluburi?.nume ?? ''}
           vizeSportivi={vizeSportivi}
+          arme={competitie.tip === 'cvd' ? armeCvd : undefined}
           onClose={() => { setInscriereModal(null); fetchDataSilent(); }}
           onSaved={() => {
             const goToHub = goToHubAfterModalRef.current;

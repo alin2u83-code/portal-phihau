@@ -1,12 +1,14 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
-  CategorieCompetitie, EchipaCompetitie, Sportiv, Grad, ProbaCompetitie, InscriereCompetitie,
+  CategorieCompetitie, EchipaCompetitie, Sportiv, Grad, ProbaCompetitie, InscriereCompetitie, Arma,
 } from '../../../types';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { esteEchipaSauPereche, esteInscrisActiv, BadgeTipParticipare } from './shared';
 import { ProbaHeader } from './constants';
+import { ArmePermiseGiaoDau } from '../constants';
+import type { ArmeAlese } from './types';
 import { supabase } from '../../../supabaseClient';
 import { useError } from '../../ErrorProvider';
 
@@ -22,6 +24,9 @@ interface Pas3Props {
   clubSolicitantId: string;
   /** Înscrieri existente — folosite pentru categoriile individuale (Giao Dau) */
   inscrieri?: InscriereCompetitie[];
+  /** CVD: armele alese in wizard + definitiile lor (pentru eticheta Giao Dau) */
+  armeAlese?: ArmeAlese;
+  armeDefinitii?: Arma[];
   skippedCategorii?: Set<string>;
   onToggleSkipCategorie?: (catId: string) => void;
   onOpenInscriereModal?: (cat: CategorieCompetitie) => void;
@@ -32,7 +37,7 @@ interface Pas3Props {
 
 const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   categorii, probe, echipe, clubId, sportivi, grade, dataCompetitie,
-  competitieId, clubSolicitantId, inscrieri = [],
+  competitieId, clubSolicitantId, inscrieri = [], armeAlese, armeDefinitii,
   skippedCategorii, onToggleSkipCategorie,
   onOpenInscriereModal, onEchipeRefresh, onBack,
 }) => {
@@ -129,6 +134,11 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
 
   const firstProbaId = categoriiEchipa[0]?.proba_id;
   const tipProba = probe.find(p => p.id === firstProbaId)?.tip_proba ?? '';
+
+  const sportiviInscrisiCat = (catId: string) => {
+    const ids = new Set(inscrieri.filter(i => i.categorie_id === catId && i.club_id === clubId && esteInscrisActiv(i)).map(i => i.sportiv_id));
+    return sportivi.filter(s => ids.has(s.id));
+  };
 
   const categoriiStare = useMemo(() => categoriiEchipa.map(cat => {
     const echipaDB = echipe.find(e =>
@@ -276,6 +286,14 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                         {nrInscrisi} sportiv{nrInscrisi !== 1 ? 'i' : ''} înscris{nrInscrisi !== 1 ? 'i' : ''} ✓
                       </p>
                     )}
+
+                    {individual && armeAlese && armeDefinitii && probe.find(p => p.id === cat.proba_id)?.tip_proba === 'giao_dau' &&
+                      sportiviInscrisiCat(cat.id).map(s => (
+                        <div key={s.id} className="mt-1">
+                          <span className="text-[11px] text-slate-400 uppercase">{s.nume} {s.prenume}</span>
+                          <ArmePermiseGiaoDau arme={armeDefinitii} alese={armeAlese.get(s.id)} />
+                        </div>
+                      ))}
 
                     {/* Status echipă */}
                     {echipaDB && (

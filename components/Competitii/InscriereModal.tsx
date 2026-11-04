@@ -6,7 +6,8 @@ import { TIP_PROBA_LABELS } from '../../utils/competitiiTemplates';
 import { filtreazaSportiviEligibili, calculeazaVarstaLaData } from '../../utils/eligibilitateCompetitie';
 import { VizaSportiv } from '../../types';
 import { useError } from '../ErrorProvider';
-import { areVizaFRAM, WarningVizaFRAM } from './constants';
+import { areVizaFRAM, WarningVizaFRAM, ArmePermiseGiaoDau } from './constants';
+import type { useArmeCvd } from '../../hooks/useArmeCvd';
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/taxeCompetitie';
 
 export interface InscriereModalProps {
@@ -20,18 +21,21 @@ export interface InscriereModalProps {
   numeClub: string;
   vizeSportivi: VizaSportiv[];
   initialEditMode?: boolean;
+  /** CVD: armele incarcate o singura data in CompetitieDetail */
+  arme?: ReturnType<typeof useArmeCvd>;
   onClose: () => void;
   onSaved: () => void;
 }
 
 export const InscriereModal: React.FC<InscriereModalProps> = ({
-  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, numeClub, vizeSportivi, initialEditMode, onClose, onSaved
+  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, numeClub, vizeSportivi, initialEditMode, arme, onClose, onSaved
 }) => {
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
   const { showError } = useError();
   const [loading, setLoading] = useState(false);
   const [retragereLoading, setRetragereLoading] = useState<string | null>(null);
   const isTeam = categorie.tip_participare !== 'individual';
+  const arataArmeGiaoDau = competitie.tip === 'cvd' && categorie.proba?.tip_proba === 'giao_dau' && !!arme && !arme.loading;
 
   // IDs sportivi retrași local în această sesiune a modalului (pentru a actualiza lista fără a închide modalul)
   const [retrasiLocal, setRetrasiLocal] = useState<Set<string>>(new Set());
@@ -293,6 +297,9 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
           <div className="text-xs text-slate-400">
             {varsta !== null ? `${varsta} ani` : ''}{grad?.nume ? ` · ${grad.nume}` : ''}
           </div>
+          {arataArmeGiaoDau && arme && (
+            <ArmePermiseGiaoDau arme={arme.arme} alese={arme.competitieArme.get(sportiv.id) ?? arme.implicit.get(sportiv.id)} />
+          )}
         </div>
         {deja && (
           <button

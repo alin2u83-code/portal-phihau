@@ -1,6 +1,7 @@
 // components/Competitii/constants.tsx
 import React from 'react';
-import { VizaSportiv } from '../../types';
+import { VizaSportiv, Arma } from '../../types';
+import { armePermiseGiaoDau } from '../../utils/armeCvd';
 import { TIP_COMPETITIE_LABELS } from '../../utils/competitiiTemplates';
 import { areTaxaAchitata } from '../../utils/taxeAnuale';
 
@@ -67,3 +68,14 @@ export const tipBadge: Record<string, string> = {
 export const TipuriLabelsContext = React.createContext<Map<string, string>>(
   new Map(Object.entries(TIP_COMPETITIE_LABELS))
 );
+
+/** Giao Dau CVD: armele de lemn permise la lupta = permise ∩ alese de sportiv. Nu blocheaza inscrierea. */
+export const ArmePermiseGiaoDau: React.FC<{ arme: Arma[]; alese?: Set<string> }> = ({ arme, alese }) => {
+  const permise = armePermiseGiaoDau(arme).filter(a => alese?.has(a.id));
+  if (permise.length === 0) return (
+    <div className="text-[11px] text-yellow-300 bg-yellow-900/30 border border-yellow-700/50 rounded px-2 py-1 mt-1">
+      ⚠ Nicio armă permisă la luptă aleasă. Înscrierea rămâne permisă.
+    </div>
+  );
+  return <div className="text-[11px] text-slate-300 mt-1">Arme permise la luptă: {permise.map(a => a.denumire).join(', ')}</div>;
+};

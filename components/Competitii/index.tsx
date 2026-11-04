@@ -22,6 +22,7 @@ import {
 import { CompetitieForm } from './CompetitieForm';
 import { RaportInscrieri } from './RaportInscrieri';
 import { FinanciarView } from './FinanciarView';
+import { PlatiClubExtern } from './PlatiClubExtern';
 import { ProbaForm } from './ProbaForm';
 import { AdminPanel } from './AdminPanel';
 import { InscriereModal } from './InscriereModal';
@@ -49,12 +50,20 @@ const STATUS_BADGE: Record<string, 'green' | 'amber' | 'blue' | 'slate'> = {
 interface CompetitieDetailProps {
   competitie: Competitie;
   permissions: Permissions;
-  onBack: () => void;
-  onUpdated: (c: Competitie) => void;
+  onBack?: () => void;
+  onUpdated?: (c: Competitie) => void;
   onViewSportiv?: (s: Sportiv) => void;
+  /** zona externa (link + OTP): doar Inscrieri/Categorii/Taxe/Detalii, date filtrate pe clubul din context */
+  mode?: 'extern';
+  /** rol context extern: 'ADMIN_CLUB' | 'INSTRUCTOR' | 'REPREZENTANT_COMPETITIE' */
+  externRol?: string;
 }
 
-const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated, onViewSportiv }) => {
+type TabCompetitie = 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub' | 'plati' | 'detalii';
+const TABURI_EXTERN: TabCompetitie[] = ['inscrieri', 'categorii', 'plati', 'detalii'];
+
+export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated, onViewSportiv, mode, externRol }) => {
+  const extern = mode === 'extern';
   const tipuriLabelsCtx = React.useContext(TipuriLabelsContext);
   const { filteredData, grade, currentUser, vizeSportivi, activeRoleContext } = useData();
   const { showError } = useError();
@@ -63,7 +72,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const [inscrieri, setInscrieri] = useState<InscriereCompetitie[]>([]);
   const [echipe, setEchipe] = useState<EchipaCompetitie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub'>(() => {
+  const [activeTab, setActiveTab] = useState<TabCompetitie>(() => {
+    if (extern) return 'inscrieri'; // nu citim tab-ul salvat de portalul principal
     const saved = ssGet(SS_KEY_TAB);
     if (saved === 'categorii' || saved === 'inscrieri' || saved === 'raport' || saved === 'admin' || saved === 'rezultate_legacy' || saved === 'financiar' || saved === 'template' || saved === 'cereri_interclub') return saved;
     return 'inscrieri';
@@ -88,19 +98,25 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
 
   // Persistă tab-ul activ în sessionStorage la fiecare schimbare
   // INSC-03: resetFiltre() la fiecare schimbare de tab — filtrele se șterg automat
-  const handleSetActiveTab = useCallback((tab: 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub') => {
+  const handleSetActiveTab = useCallback((tab: TabCompetitie) => {
+    if (extern && !TABURI_EXTERN.includes(tab)) return;
     resetFiltre();
     setActiveTab(tab);
-    ssSet(SS_KEY_TAB, tab);
-  }, [resetFiltre]);
+    if (!extern) ssSet(SS_KEY_TAB, tab);
+  }, [resetFiltre, extern]);
+
+  const myClubId = activeRoleContext?.club_id ?? currentUser?.club_id;
+
+  // Extern: filtru club in query (defense in depth; poarta reala este RLS, D-12)
+  const doarClubul = (q: any) => (extern && myClubId ? q.eq('club_id', myClubId) : q);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     const [probeRes, catRes, inRes, echRes] = await Promise.all([
       supabase.from('probe_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
       supabase.from('categorii_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
-      supabase.from('inscrieri_competitie').select('*, sportiv:sportivi(id, nume, prenume, grad_actual_id, data_nasterii, club_id, cluburi(id, nume))').eq('competitie_id', competitie.id),
-      supabase.from('echipe_competitie').select('*, club:cluburi(id, nume), echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume, club_id, cluburi(id, nume)))').eq('competitie_id', competitie.id),
+      doarClubul(supabase.from('inscrieri_competitie').select('*, sportiv:sportivi(id, nume, prenume, grad_actual_id, data_nasterii, club_id, cluburi(id, nume))').eq('competitie_id', competitie.id)),
+      doarClubul(supabase.from('echipe_competitie').select('*, club:cluburi(id, nume), echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume, club_id, cluburi(id, nume)))').eq('competitie_id', competitie.id)),
     ]);
     setProbe((probeRes.data || []) as ProbaCompetitie[]);
     const loadedCats = (catRes.data || []) as CategorieCompetitie[];
@@ -108,27 +124,27 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     setInscrieri((inRes.data || []) as InscriereCompetitie[]);
     setEchipe((echRes.data || []) as EchipaCompetitie[]);
     setLoading(false);
-  }, [competitie.id]);
+  }, [competitie.id, extern, myClubId]);
 
   // Refresh silențios — nu setează loading=true, nu remontează wizard-ul
   const fetchDataSilent = useCallback(async () => {
     const [probeRes, catRes, inRes, echRes] = await Promise.all([
       supabase.from('probe_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
       supabase.from('categorii_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
-      supabase.from('inscrieri_competitie').select('*, sportiv:sportivi(id, nume, prenume, grad_actual_id, data_nasterii, club_id, cluburi(id, nume))').eq('competitie_id', competitie.id),
-      supabase.from('echipe_competitie').select('*, club:cluburi(id, nume), echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume, club_id, cluburi(id, nume)))').eq('competitie_id', competitie.id),
+      doarClubul(supabase.from('inscrieri_competitie').select('*, sportiv:sportivi(id, nume, prenume, grad_actual_id, data_nasterii, club_id, cluburi(id, nume))').eq('competitie_id', competitie.id)),
+      doarClubul(supabase.from('echipe_competitie').select('*, club:cluburi(id, nume), echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume, club_id, cluburi(id, nume)))').eq('competitie_id', competitie.id)),
     ]);
     setProbe((probeRes.data || []) as ProbaCompetitie[]);
     setCategorii((catRes.data || []) as CategorieCompetitie[]);
     setInscrieri((inRes.data || []) as InscriereCompetitie[]);
     setEchipe((echRes.data || []) as EchipaCompetitie[]);
-  }, [competitie.id]);
+  }, [competitie.id, extern, myClubId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useRegisterRefresh(fetchData);
 
   useEffect(() => {
-    if (!competitie.legacy_eveniment_id) return;
+    if (extern || !competitie.legacy_eveniment_id) return;
     setLoadingLegacy(true);
     supabase
       .from('rezultate')
@@ -139,7 +155,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
         setRezultateLegacy((data || []) as unknown as typeof rezultateLegacy);
         setLoadingLegacy(false);
       });
-  }, [competitie.legacy_eveniment_id]);
+  }, [competitie.legacy_eveniment_id, extern]);
 
   // TAB-02/TAB-03: filteredCategorii combină selectedProbaId (pills probă standalone)
   // cu filtrele complete din useCompetitieFilters (gen, vârstă, grad)
@@ -155,7 +171,6 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     echipe.filter(e => e.categorie_id === catId && e.status?.toLowerCase() !== 'retrasa').length;
 
   const canRegister = competitie.status === 'inscrieri_deschise';
-  const myClubId = activeRoleContext?.club_id ?? currentUser?.club_id;
 
   // Sportivii clubului pentru înscriere: doar activi; cei inactivi rămân vizibili numai dacă sunt deja înscriși aici (ca să poată fi retrași)
   const sportiviClubInscriere = useMemo(() => {
@@ -168,7 +183,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   // CVD: armele se incarca o singura data aici si se paseaza wizardului
   const sportivIdsClub = useMemo(() => sportiviClubInscriere.map(s => s.id), [sportiviClubInscriere]);
   const armeCvd = useArmeCvd(competitie, sportivIdsClub, competitie.tip === 'cvd');
-  const canEditArme = competitie.status === 'inscrieri_deschise' && (permissions.isAdminClub || permissions.isSuperAdmin || permissions.isFederationAdmin);
+  const canEditArme = competitie.status === 'inscrieri_deschise' && (permissions.isAdminClub || permissions.isSuperAdmin || permissions.isFederationAdmin) && externRol !== 'INSTRUCTOR';
 
   // Modal categorie: activi + inactivii înscriși DOAR la categoria deschisă (nu apar selectabili la alte categorii)
   const sportiviModalInscriere = useMemo(() => {
@@ -184,9 +199,11 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
-        <Button variant="secondary" size="sm" onClick={onBack} className="!p-2">
-          <ArrowLeftIcon className="w-4 h-4" />
-        </Button>
+        {!extern && (
+          <Button variant="secondary" size="sm" onClick={onBack} className="!p-2">
+            <ArrowLeftIcon className="w-4 h-4" />
+          </Button>
+        )}
         <div className="flex-1 min-w-0">
           <h2 className="text-base font-semibold text-[var(--t-text)]">{competitie.denumire}</h2>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -209,7 +226,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                   : competitie.status === 'inscrieri_inchise' ? 'finalizata' : 'draft';
               const { data, error } = await supabase.from('competitii')
                 .update({ status: newStatus }).eq('id', competitie.id).select().single();
-              if (!error && data) onUpdated(data as Competitie);
+              if (!error && data) onUpdated?.(data as Competitie);
             }}
           >
             {competitie.status === 'draft' ? 'Deschide Înscrierile' :
@@ -234,7 +251,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 + echipe.filter(e => e.club_id === myClubId && e.status?.toLowerCase() !== 'retrasa').length
           })</span>
         </button>
-        {(isAdmin || isClubAdmin) && (
+        {!extern && (isAdmin || isClubAdmin) && (
           <button onClick={() => handleSetActiveTab('raport')} style={{ touchAction: 'manipulation' }}
             className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'raport' ? 'bg-brand-primary text-white' : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'}`}>
             Raport
@@ -247,7 +264,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           </svg>
           Categorii <span className="opacity-70">({filteredCategorii.length})</span>
         </button>
-        {isAdmin && (
+        {!extern && isAdmin && (
           <button onClick={() => handleSetActiveTab('admin')} style={{ touchAction: 'manipulation' }}
             className={`shrink-0 h-9 flex items-center gap-1.5 px-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'admin' ? 'bg-yellow-600 text-white shadow-md' : 'bg-slate-800 text-yellow-400 hover:bg-slate-700 border border-slate-700'}`}>
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,25 +274,31 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
             Admin
           </button>
         )}
-        {isAdmin && (
+        {!extern && isAdmin && (
           <button onClick={() => handleSetActiveTab('financiar')} style={{ touchAction: 'manipulation' }}
             className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'financiar' ? 'bg-brand-primary text-white' : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'}`}>
             Financiar
           </button>
         )}
-        {isAdmin && (
+        {!extern && isAdmin && (
           <button onClick={() => handleSetActiveTab('template')} style={{ touchAction: 'manipulation' }}
             className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'template' ? 'bg-emerald-700 text-white' : 'bg-slate-800 border border-emerald-700/60 text-emerald-400 hover:text-white hover:bg-slate-700'}`}>
             Template-uri
           </button>
         )}
-        {permissions.isSuperAdmin && (
+        {!extern && permissions.isSuperAdmin && (
           <button onClick={() => handleSetActiveTab('cereri_interclub')} style={{ touchAction: 'manipulation' }}
             className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'cereri_interclub' ? 'bg-indigo-700 text-white' : 'bg-slate-800 border border-indigo-700/60 text-indigo-400 hover:text-white hover:bg-slate-700'}`}>
             Cereri inter-club
           </button>
         )}
-        {competitie.legacy_eveniment_id && (
+        {extern && (['plati', 'detalii'] as const).map(t => (
+          <button key={t} onClick={() => handleSetActiveTab(t)} style={{ touchAction: 'manipulation' }}
+            className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === t ? 'bg-brand-primary text-white' : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'}`}>
+            {t === 'plati' ? 'Taxe' : 'Detalii'}
+          </button>
+        ))}
+        {!extern && competitie.legacy_eveniment_id && (
           <button onClick={() => handleSetActiveTab('rezultate_legacy')} style={{ touchAction: 'manipulation' }}
             className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'rezultate_legacy' ? 'bg-amber-700 text-white' : 'bg-slate-800 text-amber-400 hover:bg-slate-700 border border-slate-700'}`}>
             Rezultate Vechi
@@ -469,7 +492,8 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 myClubId={myClubId}
                 arme={competitie.tip === 'cvd' ? armeCvd : undefined}
                 canEdit={canEditArme}
-                onViewSportiv={onViewSportiv}
+                onViewSportiv={extern ? undefined : onViewSportiv}
+                interclubDezactivat={extern}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}
                 onEchipeRefresh={fetchDataSilent}
@@ -510,6 +534,36 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 />
               </div>
             )
+          )}
+
+          {/* TAXE (extern, read-only) */}
+          {activeTab === 'plati' && extern && (
+            <PlatiClubExtern
+              competitie={competitie}
+              categorii={categorii}
+              probe={probe}
+              inscrieri={inscrieri}
+              echipe={echipe}
+              clubId={myClubId || ''}
+            />
+          )}
+
+          {/* DETALII (extern) */}
+          {activeTab === 'detalii' && extern && (
+            <Card className="space-y-2 text-sm text-[var(--t-text)]">
+              <div><span className="text-[var(--t-text-muted)]">Denumire: </span>{competitie.denumire}</div>
+              <div><span className="text-[var(--t-text-muted)]">Tip: </span>{tipuriLabelsCtx.get(competitie.tip) ?? TIP_COMPETITIE_LABELS[competitie.tip as keyof typeof TIP_COMPETITIE_LABELS] ?? competitie.tip}</div>
+              <div><span className="text-[var(--t-text-muted)]">Perioadă: </span>{fmtDate(competitie.data_inceput)} – {fmtDate(competitie.data_sfarsit)}</div>
+              {competitie.locatie && <div><span className="text-[var(--t-text-muted)]">Locație: </span>{competitie.locatie}</div>}
+              {competitie.organizator && <div><span className="text-[var(--t-text-muted)]">Organizator: </span>{competitie.organizator}</div>}
+              {competitie.deadline_inscrieri && <div><span className="text-[var(--t-text-muted)]">Termen limită înscrieri: </span>{fmtDate(competitie.deadline_inscrieri)}</div>}
+              {competitie.observatii && <div><span className="text-[var(--t-text-muted)]">Observații: </span>{competitie.observatii}</div>}
+              <div>
+                <span className="text-[var(--t-text-muted)]">Probe: </span>
+                {[...probe].sort((a, b) => (a.ordine_afisare ?? 0) - (b.ordine_afisare ?? 0)).map(p => p.denumire).join(', ') || '—'}
+              </div>
+              <div><span className="text-[var(--t-text-muted)]">Categorii: </span>{categorii.length}</div>
+            </Card>
           )}
 
           {/* RAPORT TAB */}

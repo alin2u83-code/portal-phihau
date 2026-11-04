@@ -656,7 +656,8 @@ export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
         'ADMIN': 'Admin',
         'ADMIN_CLUB': 'Admin Club',
         'INSTRUCTOR': 'Instructor',
-        'SPORTIV': 'Sportiv'
+        'SPORTIV': 'Sportiv',
+        'REPREZENTANT_COMPETITIE': 'Reprezentant competiție'
     };
     
     const colorClasses: Record<Rol['nume'], string> = {
@@ -665,6 +666,7 @@ export const RoleBadge: React.FC<{ role: Rol }> = ({ role }) => {
         'ADMIN_CLUB': 'bg-[#3D3D99] text-white font-bold',
         'INSTRUCTOR': 'bg-red-600 text-white',
         'SPORTIV': 'bg-[#4DBCE9] text-white',
+        'REPREZENTANT_COMPETITIE': 'bg-gray-600 text-white',
     };
 
     const displayName = displayNameMap[role.nume] || role.nume;

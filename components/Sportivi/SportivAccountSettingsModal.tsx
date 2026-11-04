@@ -37,6 +37,7 @@ export const SportivAccountSettingsModal: React.FC<SportivAccountSettingsModalPr
         'ADMIN_CLUB': 3,
         'INSTRUCTOR': 2,
         'SPORTIV': 1,
+        'REPREZENTANT_COMPETITIE': 0,
     }), []);
 
     const currentUserMaxWeight = useMemo(() =>

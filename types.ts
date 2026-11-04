@@ -1,7 +1,7 @@
 // --- Domain: User & Auth ---
 export interface Rol {
   id: string;
-  nume: 'SPORTIV' | 'INSTRUCTOR' | 'ADMIN' | 'SUPER_ADMIN_FEDERATIE' | 'ADMIN_CLUB';
+  nume: 'SPORTIV' | 'INSTRUCTOR' | 'ADMIN' | 'SUPER_ADMIN_FEDERATIE' | 'ADMIN_CLUB' | 'REPREZENTANT_COMPETITIE';
 }
 
 export interface User {
@@ -1272,3 +1272,48 @@ export interface StatisticiAlerteSecuritate {
   alerte_esuate_trimitere_24h: number;
   pe_tip_24h: Partial<Record<TipAlertaSecuritate, number>>;
 }
+
+// --- Domain: Acces extern competitie (Faza 36) ---
+export interface CompetitiePublica {
+  denumire: string;
+  tip: string;
+  locatie: string | null;
+  data_inceput: string | null;
+  data_sfarsit: string | null;
+  deadline_inscrieri: string | null;
+  status: string;
+  probe: string[];
+}
+
+export interface ContextAccesExtern {
+  roleRowId: string;
+  rol: 'ADMIN_CLUB' | 'INSTRUCTOR' | 'REPREZENTANT_COMPETITIE';
+  clubId: string;
+  clubNume: string;
+}
+
+export interface GrantAccesExtern {
+  id: string;
+  user_id: string;
+  competitie_id: string;
+  club_id: string;
+  email: string;
+  nume: string;
+  activ: boolean;
+  creat_la: string;
+}
+
+export interface CerereAccesCompetitie {
+  id: string;
+  competitie_id: string;
+  email: string;
+  nume: string;
+  club_id: string;
+  mesaj: string | null;
+  status: 'in_asteptare' | 'aprobata' | 'respinsa';
+  motiv_respingere: string | null;
+  created_at: string;
+  procesat_la: string | null;
+}
+
+export type CodEroareCerereAcces = 'date_invalide' | 'competitie_indisponibila' | 'club_invalid' | 'prea_multe_cereri';

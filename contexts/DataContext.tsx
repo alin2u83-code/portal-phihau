@@ -3,7 +3,7 @@ import { useDataProvider } from '../hooks/useDataProvider';
 
 type DataContextType = ReturnType<typeof useDataProvider>;
 
-const DataContext = createContext<DataContextType | undefined>(undefined);
+export const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const data = useDataProvider();

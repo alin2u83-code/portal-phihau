@@ -137,6 +137,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         program: e.inlantuire_id ?? undefined,
         echipaIncompleta: e.echipa_incompleta ?? false,
         echipaSkip: false,
+        armaId: e.arma_id ?? undefined,
       }));
       setEchipeFormate(initiale);
     })();

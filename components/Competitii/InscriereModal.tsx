@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Competitie, CategorieCompetitie, ProbaCompetitie, InscriereCompetitie, EchipaCompetitie, Sportiv, Grad } from '../../types';
+import { Competitie, CategorieCompetitie, ProbaCompetitie, InscriereCompetitie, EchipaCompetitie, Sportiv, Grad, Arma } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { Button, Modal } from '../ui';
 import { TIP_PROBA_LABELS } from '../../utils/competitiiTemplates';
@@ -8,6 +8,7 @@ import { VizaSportiv } from '../../types';
 import { useError } from '../ErrorProvider';
 import { areVizaFRAM, WarningVizaFRAM, ArmePermiseGiaoDau } from './constants';
 import type { useArmeCvd } from '../../hooks/useArmeCvd';
+import { categoriePentruArma } from '../../utils/armeCvd';
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/taxeCompetitie';
 
 export interface InscriereModalProps {
@@ -25,12 +26,14 @@ export interface InscriereModalProps {
   arme?: ReturnType<typeof useArmeCvd>;
   /** tip_proba al categoriei (categoria din lista nu are `proba` atasat) */
   tipProba?: string;
+  /** CVD echipe: toate categoriile competitiei (pentru categoriePentruArma); fara el se foloseste doar categoria curenta */
+  categorii?: CategorieCompetitie[];
   onClose: () => void;
   onSaved: () => void;
 }
 
 export const InscriereModal: React.FC<InscriereModalProps> = ({
-  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, numeClub, vizeSportivi, initialEditMode, arme, tipProba, onClose, onSaved
+  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, numeClub, vizeSportivi, initialEditMode, arme, tipProba, categorii, onClose, onSaved
 }) => {
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
   const { showError } = useError();
@@ -75,7 +78,30 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
     sportivi, categorie, grade, competitie.data_inceput
   );
 
-  const eligibili = eligibilitati.filter(e => e.eligibilitate.eligibil);
+  const eligibiliBaza = eligibilitati.filter(e => e.eligibilitate.eligibil);
+
+  // Song Luyen CVD: echipa are o singura arma; candidatii = sportivii care au aleasa arma respectiva
+  // la categoria curenta (categoriePentruArma)
+  const isCvdEchipa = isTeam && competitie.tip === 'cvd';
+  const [armaEchipaId, setArmaEchipaId] = useState('');
+  const armeLista: Arma[] = arme?.arme ?? [];
+  const aArma = (s: Sportiv, a: Arma) => {
+    if (!(arme?.competitieArme.get(s.id) ?? arme?.implicit.get(s.id))?.has(a.id)) return false;
+    // shortcut: categorie fara `arma` setata nu poate fi potrivita pe arma; se accepta orice sportiv eligibil cu arma aleasa
+    if (!categorie.arma) return true;
+    const ordine = grade.find(g => g.id === s.grad_actual_id)?.ordine ?? 0;
+    return categoriePentruArma(a, s, ordine, competitie.data_inceput, categorii ?? [categorie], armeLista)?.id === categorie.id;
+  };
+  const optiuniArma = useMemo(
+    () => !isCvdEchipa ? [] : armeLista
+      .map(a => ({ arma: a, nr: eligibiliBaza.filter(e => aArma(e.sportiv, a)).length }))
+      .filter(o => o.nr > 0),
+    [isCvdEchipa, arme, sportivi, grade, categorie, categorii, competitie.data_inceput] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const armaEchipa = armeLista.find(a => a.id === armaEchipaId);
+  const eligibili = isCvdEchipa
+    ? (armaEchipa ? eligibiliBaza.filter(e => aArma(e.sportiv, armaEchipa)) : [])
+    : eligibiliBaza;
 
   // Task 4: editMode și echipaDejaInscrisa — declarate ÎNAINTE de inscrisInEchipa
   // (inscrisInEchipa depinde de editMode și echipaDejaInscrisa)
@@ -144,6 +170,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
       const rezerve = membri.filter((m: any) => m.rol === 'rezerva').map((m: any) => m.sportiv_id);
       setSelectedTitulari(titulari);
       setSelectedRezerve(rezerve);
+      setArmaEchipaId((echipaDejaInscrisa as any).arma_id ?? '');
     }
   }, [editMode, echipaDejaInscrisa]);
 
@@ -190,9 +217,18 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
     }
   };
 
+  // schimbarea armei scoate din selectie sportivii care nu au noua arma
+  const handleArmaChange = (a: Arma) => {
+    setArmaEchipaId(a.id);
+    const ok = new Set(eligibiliBaza.filter(e => aArma(e.sportiv, a)).map(e => e.sportiv.id));
+    setSelectedTitulari(prev => prev.filter(id => ok.has(id)));
+    setSelectedRezerve(prev => prev.filter(id => ok.has(id)));
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      if (isCvdEchipa && !armaEchipaId) throw new Error('Alege arma echipei');
       if (!isTeam) {
         // Problemă 5: multi-select individual — inserăm toți sportivii selectați
         if (selectedIndividuali.length === 0) throw new Error('Selectează cel puțin un sportiv');
@@ -227,7 +263,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
           if (mErr) throw mErr;
         }
         await supabase.from('echipe_competitie')
-          .update({ denumire_echipa: numeClub.trim().toUpperCase(), echipa_incompleta: eIncompleta })
+          .update({ denumire_echipa: numeClub.trim().toUpperCase(), echipa_incompleta: eIncompleta, ...(isCvdEchipa ? { arma_id: armaEchipaId } : {}) })
           .eq('id', (echipaDejaInscrisa as any).id);
       } else {
         if (selectedTitulari.length === 0) {
@@ -241,6 +277,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
           club_id: clubId,
           denumire_echipa: numeClub.trim().toUpperCase() || null,
           echipa_incompleta: eIncompleta,
+          ...(isCvdEchipa ? { arma_id: armaEchipaId } : {}), // doar CVD: coloana arma_id exista dupa migrare
         }).select().single();
         if (ecErr) throw ecErr;
 
@@ -403,6 +440,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
                   {(echipaDejaInscrisa as any).denumire_echipa || 'Echipă fără denumire'} — {
                     ((echipaDejaInscrisa as any).echipa_sportivi || []).length
                   } membri
+                  {(echipaDejaInscrisa as any).arma_id && ` · Armă: ${armeLista.find(a => a.id === (echipaDejaInscrisa as any).arma_id)?.denumire ?? ''}`}
                 </p>
               </div>
             </div>
@@ -474,6 +512,37 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
               <div className="flex items-center gap-2 p-2 bg-blue-900/20 border border-blue-700/40 rounded-lg text-xs text-blue-300">
                 <span>Editezi componența echipei existente.</span>
                 <button onClick={() => setEditMode(false)} className="text-blue-400 hover:underline ml-auto">Anulează</button>
+              </div>
+            )}
+            {isCvdEchipa && (
+              <div>
+                <div className="text-sm text-slate-300 font-medium mb-1">Arma echipei</div>
+                {arme?.loading ? (
+                  <p className="text-xs text-slate-500 italic">Se încarcă armele...</p>
+                ) : optiuniArma.length === 0 ? (
+                  <p className="text-xs text-amber-400">Niciun sportiv din club nu are aleasă o armă potrivită pentru această categorie.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {optiuniArma.map(({ arma, nr }) => (
+                      <button
+                        key={arma.id}
+                        type="button"
+                        onClick={() => handleArmaChange(arma)}
+                        style={{ touchAction: 'manipulation' }}
+                        className={`text-xs px-3 py-2 min-h-[40px] rounded-lg border font-medium transition-colors ${
+                          armaEchipaId === arma.id
+                            ? 'border-brand-primary bg-brand-primary/20 text-white'
+                            : 'border-slate-600 text-slate-300 hover:border-slate-400'
+                        }`}
+                      >
+                        {arma.denumire} ({nr})
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!armaEchipaId && optiuniArma.length > 0 && (
+                  <p className="text-[11px] text-slate-500 mt-1">Alege arma pentru a vedea sportivii care o au.</p>
+                )}
               </div>
             )}
             <div>
@@ -650,7 +719,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
         {!(isTeam && echipaDejaInscrisa && !editMode) ? (
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <Button variant="secondary" onClick={handleClose} disabled={loading} className="w-full sm:w-auto h-11">Anulează</Button>
-            <Button variant="success" onClick={handleSubmit} disabled={loading} className="w-full sm:w-auto h-11">
+            <Button variant="success" onClick={handleSubmit} disabled={loading || (isCvdEchipa && !armaEchipaId)} className="w-full sm:w-auto h-11">
               {loading ? 'Se salvează...' : editMode ? 'Salvează Modificările' : 'Confirmă Înscrierea'}
             </Button>
           </div>

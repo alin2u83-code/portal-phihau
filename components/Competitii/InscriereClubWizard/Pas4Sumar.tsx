@@ -579,6 +579,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                     </div>
                     <div className="text-xs text-slate-400 mt-0.5">
                       {rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}
+                      {rand.echipa.armaId && arme?.find(a => a.id === rand.echipa.armaId) && ` · ${arme.find(a => a.id === rand.echipa.armaId)!.denumire}`}
                     </div>
                   </div>
                   <div className="text-right shrink-0">

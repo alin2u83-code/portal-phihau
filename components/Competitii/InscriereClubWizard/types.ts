@@ -61,6 +61,7 @@ export interface EchipaFormata {
   program?: string;    // program ales (SL/Sincron)
   echipaIncompleta?: boolean; // solicitare partener inter-club
   echipaSkip?: boolean; // nu participam la aceasta proba
+  armaId?: string; // CVD Song Luyen: arma echipei (echipe_competitie.arma_id)
 }
 
 // -----------------------------------------------

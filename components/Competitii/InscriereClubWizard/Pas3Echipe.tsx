@@ -159,12 +159,21 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
       : 0;
     const eCompleta = individual ? nrInscrisi > 0 : !!echipaDB && (nrTitulari >= titMin || echipaDB.echipa_incompleta);
     // Task 5: excludem sportivii fără data_nasterii sau gen din contorizarea eligibililor
-    const eligibili = sportivi.filter(s => {
+    let candidati = sportivi.filter(s => {
       if (!s.data_nasterii) return false;
       return verificaEligibilitate(s, cat, grade, dataCompetitie).eligibil;
-    }).length;
+    });
+    // CVD echipa (Song Luyen): contorul tine cont de armele alese — doar sportivii care impart cel putin
+    // o arma cu un alt candidat. shortcut: nu aplica categoriePentruArma (modalul o aplica la formare), upgrade daca numaratoarea difera mult
+    if (armeAlese && armeAlese.size > 0 && esteEchipaSauPereche(cat)) {
+      candidati = candidati.filter(s => {
+        const a = armeAlese.get(s.id);
+        return !!a && candidati.some(o => o.id !== s.id && [...a].some(id => armeAlese.get(o.id)?.has(id)));
+      });
+    }
+    const eligibili = candidati.length;
     return { cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili, individual, nrInscrisi };
-  }), [categoriiEchipa, echipe, inscrieri, clubId, sportivi, grade, dataCompetitie, echipeRetraseLocal]);
+  }), [categoriiEchipa, echipe, inscrieri, clubId, sportivi, grade, dataCompetitie, echipeRetraseLocal, armeAlese]);
 
   const nrConfigurate = categoriiStare.filter(c => c.eCompleta || (skippedCategorii?.has(c.cat.id) ?? false)).length;
   const nrTotal = categoriiStare.filter(c => c.eligibili > 0).length;
@@ -305,6 +314,9 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                           {echipaDB.echipa_incompleta && ' · incompletă acceptată'}
                         </span>
                         {eCompleta && <span className="ml-1 text-emerald-500">✓</span>}
+                        {(echipaDB as any).arma_id && armeDefinitii?.find(a => a.id === (echipaDB as any).arma_id) && (
+                          <span className="ml-2 text-orange-400">Armă: {armeDefinitii.find(a => a.id === (echipaDB as any).arma_id)!.denumire}</span>
+                        )}
                       </p>
                     )}
 

@@ -1,16 +1,17 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  Competitie, CategorieCompetitie, Sportiv, Grad, Inlantuire, InscriereCompetitie,
+  Competitie, CategorieCompetitie, Sportiv, Grad, Inlantuire, InscriereCompetitie, Arma,
 } from '../../../types';
 import { supabase } from '../../../supabaseClient';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
-import { calculeazaVarstaLaData } from '../../../utils/eligibilitateCompetitie';
+import { calculeazaVarstaLaData, gradEfectivLaData } from '../../../utils/eligibilitateCompetitie';
 import { exportFisaParticipare, exportBorderoClub, RandIndividualPDF, RandEchipaPDF } from '../../../utils/exportPDFCompetitie';
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../../utils/taxeCompetitie';
 import { formatNume } from '../../../utils/formatareSportiv';
-import { EchipaFormata, QuyenAlesMap } from './types';
+import { EchipaFormata, QuyenAlesMap, FormaPerArma, CategoriePerArma } from './types';
+import { incarcaFormeCvd } from '../../../services/armeCvdService';
 import { esteInscrisActiv } from './shared';
 
 // -----------------------------------------------
@@ -33,6 +34,10 @@ export interface Pas4Props {
   numeClub: string;
   /** Înscrieri existente — pentru categoriile Giao Dau individuale, salvate direct din modal */
   inscrieri?: InscriereCompetitie[];
+  /** CVD: categoria si forma per (sportiv, arma) + lista armelor (pentru denumiri) */
+  categoriePerArma?: CategoriePerArma;
+  formaPerArma?: FormaPerArma;
+  arme?: Arma[];
   onBack: () => void;
   onSaved: () => void;
 }
@@ -46,6 +51,9 @@ interface RandIndividual {
   taxa: number;
   /** Înscriere deja salvată în DB (ex. Giao Dau individual via modal) — doar afișare/total, nu se re-salvează */
   deja?: boolean;
+  /** CVD: un rand per (sportiv, arma) */
+  arma_id?: string;
+  armaDenumire?: string;
 }
 
 interface RandEchipa {
@@ -57,10 +65,12 @@ interface RandEchipa {
   rezerveNume: string[];
 }
 
+const cheieRand = (sportivId: string, categorieId: string, armaId?: string | null) => `${sportivId}|${categorieId}|${armaId ?? ''}`;
+
 const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   competitie, sportivi, grade, categorii,
   selectedSportivi, autoCategorie, quyenAles, echipeFormate,
-  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, inscrieri = [], onBack, onSaved,
+  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, inscrieri = [], categoriePerArma, formaPerArma, arme, onBack, onSaved,
 }) => {
   const { showError, showSuccess } = useError();
   const [saving, setSaving] = useState(false);
@@ -77,6 +87,20 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
     });
   }, []);
 
+  // CVD: formele permise per grad (pentru a nu salva id-uri de forma invalide pentru gradul sportivului)
+  const cvd = competitie.tip === 'cvd' && !!arme && !!categoriePerArma;
+  const [dreptMap, setDreptMap] = useState<Map<string, Inlantuire[]> | null>(null);
+  useEffect(() => {
+    if (!cvd) return;
+    let anulat = false;
+    incarcaFormeCvd().then(({ data, error }) => {
+      if (anulat) return;
+      if (error) setErrorMsg(`Formele CVD nu au putut fi încărcate: ${error}`);
+      else setDreptMap(data);
+    });
+    return () => { anulat = true; };
+  }, [cvd]);
+
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const randuriIndividuale = useMemo<RandIndividual[]>(() => {
@@ -85,6 +109,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       if (excludedFromIndividual.has(sportivId)) continue;
       const cat = autoCategorie.get(sportivId);
       if (!cat) continue;
+      if (cvd && cat.arma) continue; // CVD: categoriile cu arma se construiesc mai jos, pe (sportiv, arma)
       if (cat.proba_id && probeSkipped.has(cat.proba_id)) continue;
       const sportiv = sportivi.find(s => s.id === sportivId);
       if (!sportiv) continue;
@@ -101,16 +126,41 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         taxa: calculeazaTaxaIndividuala(competitie, cat),
       });
     }
+    // CVD: un rând per (sportiv, armă) selectat; forma doar dacă e permisă gradului (altfel id vechi, nu se salvează)
+    if (cvd) {
+      const armePeId = new Map(arme!.map(a => [a.id, a]));
+      for (const sportivId of Array.from(selectedSportivi)) {
+        const sportiv = sportivi.find(s => s.id === sportivId);
+        if (!sportiv) continue;
+        const grad = gradEfectivLaData(sportiv, grade, competitie.data_inceput);
+        const formeGrad = (grad && dreptMap?.get(grad.id)) || [];
+        for (const [armaId, cat] of categoriePerArma!.get(sportivId) ?? []) {
+          if (cat.proba_id && probeSkipped.has(cat.proba_id)) continue;
+          const formaId = formaPerArma?.get(sportivId)?.get(armaId);
+          const valida = formaId && formeGrad.some(f => f.id === formaId && f.arma_id === armaId);
+          rezultat.push({
+            sportiv,
+            varsta: sportiv.data_nasterii ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput) : 0,
+            categorie: cat,
+            inlantuire_id: valida ? formaId : undefined,
+            taxa: calculeazaTaxaIndividuala(competitie, cat),
+            arma_id: armaId,
+            armaDenumire: armePeId.get(armaId)?.denumire,
+          });
+        }
+      }
+    }
     // Înscrieri individuale deja salvate în DB (modal Giao Dau, sesiuni anterioare) — le includem în sumar și total
     // Rândurile locale au prioritate: același sportiv pe aceeași probă (categorie recalculată) nu se numără de două ori.
     // Înscrierile din DB se afișează chiar dacă proba e "Nu participăm" — ele există efectiv și nu se retrag de aici.
-    const chei = new Set(rezultat.map(r => `${r.sportiv.id}|${r.categorie.id}`));
-    const cheiProba = new Set(rezultat.map(r => `${r.sportiv.id}|${r.categorie.proba_id}`));
+    const chei = new Set(rezultat.map(r => cheieRand(r.sportiv.id, r.categorie.id, r.arma_id)));
+    // rândurile pe armă nu blochează înscrierile vechi (arma_id NULL) ale aceleiași probe: acelea rămân afișate ca atare
+    const cheiProba = new Set(rezultat.filter(r => !r.arma_id).map(r => `${r.sportiv.id}|${r.categorie.proba_id}`));
     for (const i of inscrieri) {
       if (i.club_id !== clubId || !esteInscrisActiv(i)) continue;
       const cat = categorii.find(c => c.id === i.categorie_id);
       if (!cat || cat.tip_participare !== 'individual') continue;
-      if (chei.has(`${i.sportiv_id}|${cat.id}`) || cheiProba.has(`${i.sportiv_id}|${cat.proba_id}`)) continue;
+      if (chei.has(cheieRand(i.sportiv_id, cat.id, i.arma_id)) || (!i.arma_id && cheiProba.has(`${i.sportiv_id}|${cat.proba_id}`))) continue;
       const sportiv = sportivi.find(s => s.id === i.sportiv_id);
       if (!sportiv) continue;
       rezultat.push({
@@ -121,10 +171,12 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         inlantuire_id_2: i.inlantuire_id_2 ?? undefined,
         taxa: calculeazaTaxaIndividuala(competitie, cat),
         deja: true,
+        arma_id: i.arma_id ?? undefined,
+        armaDenumire: i.arma_id ? arme?.find(a => a.id === i.arma_id)?.denumire : undefined,
       });
     }
     return rezultat;
-  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped, excludedFromIndividual, inscrieri, categorii, clubId]);
+  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped, excludedFromIndividual, inscrieri, categorii, clubId, cvd, arme, categoriePerArma, formaPerArma, grade, dreptMap]);
 
   const randuriEchipe = useMemo<RandEchipa[]>(() => {
     return echipeFormate.map(echipa => {
@@ -208,16 +260,23 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       let skippedCount = 0;
       for (const rand of randuriIndividuale) {
         if (rand.deja) continue;
-        const { data: existent } = await supabase
+        let q = supabase
           .from('inscrieri_competitie')
-          .select('id, status')
+          .select('id, status, inlantuire_id, taxa_achitata')
           .eq('competitie_id', competitie.id)
           .eq('sportiv_id', rand.sportiv.id)
-          .eq('categorie_id', rand.categorie.id)
-          .maybeSingle();
+          .eq('categorie_id', rand.categorie.id);
+        if (rand.arma_id) q = q.eq('arma_id', rand.arma_id);
+        const { data: existent } = await q.maybeSingle();
 
         if (existent) {
           if (existent.status?.toLowerCase() !== 'retras') {
+            // CVD: forma se actualizează pe înscrierea existentă (nu și pe cea achitată)
+            if (rand.arma_id && rand.inlantuire_id && rand.inlantuire_id !== existent.inlantuire_id && !existent.taxa_achitata) {
+              const { error: updErr } = await supabase.from('inscrieri_competitie').update({ inlantuire_id: rand.inlantuire_id }).eq('id', existent.id);
+              if (updErr) throw updErr;
+              continue;
+            }
             skippedCount++;
             continue;
           }
@@ -247,6 +306,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           categorie_id: rand.categorie.id,
           club_id: clubId,
           borderou_club_id: clubId,
+          ...(rand.arma_id ? { arma_id: rand.arma_id } : {}),
           ...payload,
         });
         if (error) throw new Error(error.message);
@@ -404,11 +464,12 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
               </thead>
               <tbody className="divide-y divide-slate-700/50">
                 {randuriIndividuale.map(rand => (
-                  <tr key={`${rand.sportiv.id}|${rand.categorie.id}`} className="bg-slate-800/10 hover:bg-slate-800/40 transition-colors">
+                  <tr key={cheieRand(rand.sportiv.id, rand.categorie.id, rand.arma_id)} className="bg-slate-800/10 hover:bg-slate-800/40 transition-colors">
                     <td className="px-4 py-2.5 font-medium text-white whitespace-nowrap">
                       {formatNume(rand.sportiv)}
                     </td>
                     <td className="px-4 py-2.5 text-sm text-slate-300">
+                      {rand.armaDenumire && <span className="text-slate-400">{rand.armaDenumire} · </span>}
                       {rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}
                     </td>
                     <td className="px-4 py-2.5 text-sm text-slate-400">
@@ -434,7 +495,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           {/* MOBIL: carduri */}
           <div className="md:hidden divide-y divide-slate-700/50">
             {randuriIndividuale.map(rand => (
-              <div key={`${rand.sportiv.id}|${rand.categorie.id}`} className="px-4 py-3 space-y-1.5">
+              <div key={cheieRand(rand.sportiv.id, rand.categorie.id, rand.arma_id)} className="px-4 py-3 space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-sm text-white">
                     {formatNume(rand.sportiv)}
@@ -443,6 +504,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                 </div>
                 <div className="bg-slate-800/50 rounded-lg px-3 py-2 space-y-1">
                   <div className="text-xs font-medium text-slate-300">
+                    {rand.armaDenumire && <span className="text-slate-400">{rand.armaDenumire} · </span>}
                     {rand.categorie.denumire ?? `Categoria ${rand.categorie.numar_categorie}`}
                   </div>
                   {rand.inlantuire_id && <div className="text-[11px] text-slate-400">Q1: {inlantuiriById.get(rand.inlantuire_id)?.denumire ?? rand.inlantuire_id}</div>}
@@ -591,7 +653,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
           <Button
             variant="success"
             onClick={() => setConfirmOpen(true)}
-            disabled={saving || !!successMsg}
+            disabled={saving || !!successMsg || (cvd && !dreptMap)}
             className="w-full sm:w-auto sm:min-w-[180px] ml-auto"
           >
             Finalizeaza inscrierea

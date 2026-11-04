@@ -107,6 +107,8 @@ export interface Pas2ArmeProps {
   armeAlese: ArmeAlese;
   categoriePerArma: CategoriePerArma;
   formaPerArma: FormaPerArma;
+  /** inscrierile existente: forma unei inscrieri cu taxa achitata nu se mai schimba */
+  inscrieri?: InscriereCompetitie[];
   onChange: (next: FormaPerArma) => void;
   onContinua: () => void;
   onBack: () => void;
@@ -121,6 +123,8 @@ export interface PasArmeProps {
   armeAlese: ArmeAlese;
   onChange: (next: ArmeAlese) => void;
   canEdit: boolean;
+  /** reincarca inscrierile dupa o retragere (fetchDataSilent) */
+  onInscrieriRefresh?: () => void | Promise<void>;
   onContinua: () => void;
   onBack: () => void;
 }

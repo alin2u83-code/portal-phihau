@@ -4,6 +4,7 @@ import { verificaEligibilitate, gradEfectivLaData } from '../../../utils/eligibi
 import type { CategorieCompetitie } from '../../../types';
 import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap, ArmeAlese, FormaPerArma, CategoriePerArma } from './types';
 import { categoriePentruArma } from '../../../utils/armeCvd';
+import { retrageInscrieri } from './retrage';
 import Pas2Arme from './Pas2Arme';
 import PasArme from './PasArme';
 import Pas1SelectareSportivi from './Pas1';
@@ -161,17 +162,10 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     const catIds = new Set(categorii.filter(c => c.proba_id === probaDeschisFocusId).map(c => c.id));
     const randuri = inscrieri.filter(i => i.sportiv_id === sportivId && i.club_id === clubId && esteInscrisActiv(i) && catIds.has(i.categorie_id));
     if (randuri.length === 0) return;
-    if (randuri.some(i => i.taxa_achitata)) {
-      showError('Retragere înscriere', 'Taxa este deja achitată pentru această înscriere. Anulează mai întâi plata din Financiar.');
-      return;
-    }
-    const ids = randuri.map(i => i.id);
-    const { data, error } = await supabase.from('inscrieri_competitie').delete().in('id', ids).select('id');
-    if (error) { showError('Retragere înscriere', error.message); return; }
-    // RLS poate bloca ștergerea fără eroare — verificăm câte rânduri au fost șterse efectiv
-    if ((data?.length ?? 0) !== ids.length) {
-      showError('Retragere înscriere', `Au fost șterse ${data?.length ?? 0} din ${ids.length} înscrieri (posibil lipsă permisiuni). Reîncarcă pagina.`);
-      await onEchipeRefresh?.();
+    const rez = await retrageInscrieri(randuri);
+    if (!rez.ok) {
+      showError('Retragere înscriere', rez.mesaj ?? '');
+      if (rez.partial) await onEchipeRefresh?.();
       return;
     }
     setAutoCategorie(prev => { const m = new Map(prev); m.delete(sportivId); return m; });
@@ -308,6 +302,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         armeAlese={armeAlese}
         onChange={setArmeAlese}
         canEdit={canEdit}
+        onInscrieriRefresh={onEchipeRefresh}
         arme={arme}
         onContinua={() => setStep('hub')}
         onBack={() => setStep('hub')}
@@ -383,6 +378,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         armeAlese={armeAlese}
         categoriePerArma={categoriePerArma}
         formaPerArma={formaPerArma}
+        inscrieri={inscrieri}
         onChange={setFormaPerArma}
         onContinua={() => setStep('hub')}
         onBack={() => setStep('hub')}
@@ -459,6 +455,9 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       probeSkipped={probeSkippedWizard}
       skippedCategorii={skippedCategorii}
       excludedFromIndividual={excludedFromIndividual}
+      categoriePerArma={categoriePerArma}
+      formaPerArma={formaPerArma}
+      arme={arme?.arme}
       clubId={clubId}
       numeClub={numeClub}
       inscrieri={inscrieri}

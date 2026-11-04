@@ -7,6 +7,7 @@ import { gradEfectivLaData } from '../../../utils/eligibilitateCompetitie';
 import {
   motivCombinatieInterzisa, categoriePentruArma, conflicteCategorie, armeStale, avertismentStagii,
 } from '../../../utils/armeCvd';
+import { retrageInscrieri } from './retrage';
 import { salveazaArmeCompetitie, incarcaCerinteStagii } from '../../../services/armeCvdService';
 import type { useArmeCvd } from '../../../hooks/useArmeCvd';
 import type { PasArmeProps, ArmeAlese } from './types';
@@ -16,7 +17,7 @@ const GOL = new Set<string>();
 const egale = (a: Set<string>, b: Set<string>) => a.size === b.size && [...a].every(x => b.has(x));
 
 const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> = ({
-  competitie, sportivi, grade, categorii, inscrieri, armeAlese, onChange, canEdit, onContinua, onBack, arme,
+  competitie, sportivi, grade, categorii, inscrieri, armeAlese, onChange, canEdit, onInscrieriRefresh, onContinua, onBack, arme,
 }) => {
   const { showError } = useError();
   const [draft, setDraft] = useState<ArmeAlese>(armeAlese);
@@ -93,15 +94,29 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
   const salveazaTot = async () => {
     setSalveaza(true);
     const reusite: string[] = [];
+    const refuzati = new Set<string>(); // retragerea inscrierii unei arme debifate a esuat: arma ramane bifata
     try {
       for (const r of modificati) {
+        // armele debifate cu inscriere existenta: inscrierea se retrage doar acum, la salvare
+        const debifate = [...(armeAlese.get(r.s.id) ?? GOL)].filter(id => !(draft.get(r.s.id) ?? GOL).has(id));
+        const deRetras = inscrieri.filter(i => i.sportiv_id === r.s.id && i.arma_id && debifate.includes(i.arma_id) && i.status?.toLowerCase() !== 'retras');
+        if (deRetras.length > 0) {
+          const rez = await retrageInscrieri(deRetras);
+          await onInscrieriRefresh?.();
+          if (!rez.ok) {
+            showError('Retragere înscriere', `${formatNume(r.s)}: ${rez.mesaj ?? ''}`);
+            refuzati.add(r.s.id);
+            setDraft(prev => { const n = new Map(prev); n.set(r.s.id, new Set([...(prev.get(r.s.id) ?? []), ...debifate])); return n; });
+            continue;
+          }
+        }
         const { error } = await salveazaArmeCompetitie(competitie.id, r.s.id, [...(draft.get(r.s.id) ?? [])], implicit.has(r.s.id));
         if (error) { showError('Armele nu au fost salvate', `${formatNume(r.s)}: ${error}`); break; }
         reusite.push(r.s.id);
       }
       await arme.reload();
       // doar cei salvati cu succes intra in armeAlese; esuatii isi pastreaza draftul (esuatiRef) si raman in modificati
-      esuatiRef.current = new Set(modificati.filter(r => !reusite.includes(r.s.id)).map(r => r.s.id));
+      esuatiRef.current = new Set(modificati.filter(r => !reusite.includes(r.s.id) && !refuzati.has(r.s.id)).map(r => r.s.id));
       if (reusite.length) {
         const next = new Map(armeAlese);
         for (const id of reusite) next.set(id, new Set(draft.get(id) ?? []));

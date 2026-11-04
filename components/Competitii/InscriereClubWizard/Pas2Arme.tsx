@@ -18,7 +18,7 @@ const seteaza = (base: FormaPerArma, sportivId: string, armaId: string, val: str
 
 // CVD Pas2: per sportiv, o sectiune per arma aleasa, cu formele armei permise gradului efectiv (o forma per arma)
 const Pas2Arme: React.FC<Pas2ArmeProps> = ({
-  competitie, sportivi, grade, arme, armeAlese, categoriePerArma, formaPerArma, onChange, onContinua, onBack,
+  competitie, sportivi, grade, arme, armeAlese, categoriePerArma, formaPerArma, inscrieri = [], onChange, onContinua, onBack,
 }) => {
   const { showError } = useError();
   const [dreptMap, setDreptMap] = useState<Map<string, Inlantuire[]>>(new Map()); // gradId -> forme (toate armele)
@@ -63,6 +63,7 @@ const Pas2Arme: React.FC<Pas2ArmeProps> = ({
     let next = formaPerArma;
     let schimbat = false;
     for (const r of randuri) for (const sec of r.sectiuni) {
+      if (blocata(r.s.id, sec.arma.id)) continue;
       if (sec.categorie && sec.opts.length === 1 && !next.get(r.s.id)?.get(sec.arma.id)) {
         next = seteaza(next, r.s.id, sec.arma.id, sec.opts[0].id); schimbat = true;
       }
@@ -70,9 +71,13 @@ const Pas2Arme: React.FC<Pas2ArmeProps> = ({
     if (schimbat) onChange(next);
   }, [loading, randuri, formaPerArma, onChange]);
 
+  const blocata = (sportivId: string, armaId: string) =>
+    inscrieri.some(i => i.sportiv_id === sportivId && i.arma_id === armaId && i.taxa_achitata && i.status?.toLowerCase() !== 'retras');
+
   const handleBulk = () => {
     let next = formaPerArma;
     for (const r of randuri) for (const sec of r.sectiuni) {
+      if (blocata(r.s.id, sec.arma.id)) continue;
       if (sec.categorie && sec.opts.length > 0) next = seteaza(next, r.s.id, sec.arma.id, sec.opts[0].id);
     }
     onChange(next);
@@ -117,13 +122,14 @@ const Pas2Arme: React.FC<Pas2ArmeProps> = ({
                 {sectiuni.map(({ arma, categorie, opts }) => (
                   <div key={arma.id} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
                     <div className="sm:w-1/2 min-w-0">
-                      <div className="text-sm text-slate-200">{arma.denumire}</div>
+                      <div className="text-sm text-slate-200">{blocata(s.id, arma.id) && <span aria-hidden>🔒 </span>}{arma.denumire}</div>
                       <div className="text-xs text-slate-500 truncate">{categorie ? categorie.denumire : 'Nicio categorie potrivită'}</div>
                     </div>
                     <select
                       value={opts.find(f => f.id === formaPerArma.get(s.id)?.get(arma.id))?.id ?? ''}
-                      disabled={!categorie || opts.length === 0}
-                      onChange={e => onChange(seteaza(formaPerArma, s.id, arma.id, e.target.value))}
+                      disabled={!categorie || opts.length === 0 || blocata(s.id, arma.id)}
+                      title={blocata(s.id, arma.id) ? 'Înscris și achitat — forma nu se mai poate schimba' : undefined}
+                      onChange={e => blocata(s.id, arma.id) ? undefined : onChange(seteaza(formaPerArma, s.id, arma.id, e.target.value))}
                       className="w-full sm:w-1/2 min-h-[40px] bg-slate-900 border border-slate-600 rounded-lg px-2 text-sm text-white disabled:opacity-50"
                     >
                       <option value="">{opts.length === 0 ? 'Nicio formă disponibilă' : '— alege forma —'}</option>

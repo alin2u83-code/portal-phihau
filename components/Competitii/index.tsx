@@ -13,6 +13,7 @@ import InscriereClubWizard from './InscriereClubWizard';
 import { useArmeCvd } from '../../hooks/useArmeCvd';
 import { TipuriCompetitieAdmin } from './TipuriCompetitieAdmin';
 import { CereriInterclubAdmin } from './CereriInterclubAdmin';
+import { CereriAccesAdmin } from './CereriAccesAdmin';
 
 import {
   SS_KEY_COMP_ID, SS_KEY_TAB, ssGet, ssSet, ssDel,
@@ -59,7 +60,7 @@ interface CompetitieDetailProps {
   externRol?: string;
 }
 
-type TabCompetitie = 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub' | 'plati' | 'detalii';
+type TabCompetitie = 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub' | 'acces_extern' | 'plati' | 'detalii';
 const TABURI_EXTERN: TabCompetitie[] = ['inscrieri', 'categorii', 'plati', 'detalii'];
 
 export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated, onViewSportiv, mode, externRol }) => {
@@ -75,7 +76,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
   const [activeTab, setActiveTab] = useState<TabCompetitie>(() => {
     if (extern) return 'inscrieri'; // nu citim tab-ul salvat de portalul principal
     const saved = ssGet(SS_KEY_TAB);
-    if (saved === 'categorii' || saved === 'inscrieri' || saved === 'raport' || saved === 'admin' || saved === 'rezultate_legacy' || saved === 'financiar' || saved === 'template' || saved === 'cereri_interclub') return saved;
+    if (saved === 'categorii' || saved === 'inscrieri' || saved === 'raport' || saved === 'admin' || saved === 'rezultate_legacy' || saved === 'financiar' || saved === 'template' || saved === 'cereri_interclub' || saved === 'acces_extern') return saved;
     return 'inscrieri';
   });
   const [wizardOpen, setWizardOpen] = useState(true);
@@ -104,6 +105,17 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
     setActiveTab(tab);
     if (!extern) ssSet(SS_KEY_TAB, tab);
   }, [resetFiltre, extern]);
+
+  // Contor cereri de acces extern în așteptare (doar super admin, doar portal); eroarea ascunde contorul
+  const [cereriAccesPending, setCereriAccesPending] = useState<number | null>(null);
+  useEffect(() => {
+    if (extern || !permissions.isSuperAdmin) return;
+    let anulat = false;
+    supabase.from('cereri_acces_competitie').select('id', { count: 'exact', head: true })
+      .eq('competitie_id', competitie.id).eq('status', 'in_asteptare')
+      .then(({ count, error }) => { if (!anulat) setCereriAccesPending(error ? null : count ?? 0); });
+    return () => { anulat = true; };
+  }, [extern, permissions.isSuperAdmin, competitie.id, activeTab]);
 
   const myClubId = activeRoleContext?.club_id ?? currentUser?.club_id;
 
@@ -290,6 +302,15 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
           <button onClick={() => handleSetActiveTab('cereri_interclub')} style={{ touchAction: 'manipulation' }}
             className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'cereri_interclub' ? 'bg-indigo-700 text-white' : 'bg-slate-800 border border-indigo-700/60 text-indigo-400 hover:text-white hover:bg-slate-700'}`}>
             Cereri inter-club
+          </button>
+        )}
+        {!extern && permissions.isSuperAdmin && (
+          <button onClick={() => handleSetActiveTab('acces_extern')} style={{ touchAction: 'manipulation' }}
+            className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'acces_extern' ? 'bg-indigo-700 text-white' : 'bg-slate-800 border border-indigo-700/60 text-indigo-400 hover:text-white hover:bg-slate-700'}`}>
+            Acces extern
+            {cereriAccesPending != null && cereriAccesPending > 0 && (
+              <span className="ml-1.5 rounded-full bg-amber-900/60 px-1.5 py-0.5 text-[11px] font-bold text-amber-300">({cereriAccesPending})</span>
+            )}
           </button>
         )}
         {extern && (['plati', 'detalii'] as const).map(t => (
@@ -680,6 +701,10 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
               resetFiltreHook={resetFiltre}
               nrFiltreActiveHook={nrFiltreActive}
             />
+          )}
+
+          {activeTab === 'acces_extern' && permissions.isSuperAdmin && !extern && (
+            <CereriAccesAdmin competitieId={competitie.id} />
           )}
 
           {activeTab === 'cereri_interclub' && permissions.isSuperAdmin && (

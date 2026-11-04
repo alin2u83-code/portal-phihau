@@ -45,6 +45,11 @@ where i.categorie in ('thao_lo_bong','thao_lo_guom','thao_lo_dao','thao_lo_alte'
   and i.denumire not ilike 'Phuc Su Dao%'
   and i.denumire not ilike 'Cuu Khuc%';
 
+-- Decis de utilizator (4.11.2026): Phuc Su Dao = Ma Dao; Cuu Khuc = lant (Nhuyen Tien).
+update public.inlantuiri i
+set arma_id = (select id from public.arme where denumire = case when i.denumire ilike 'Phuc Su Dao%' then 'Ma Dao' else 'Nhuyen Tien' end)
+where i.arma_id is null and (i.denumire ilike 'Phuc Su Dao%' or i.denumire ilike 'Cuu Khuc%');
+
 -- Backfill inscrieri CVD existente: arma din forma aleasa (idempotent). echipe_competitie: decizie manuala.
 update public.inscrieri_competitie ic
 set arma_id = i.arma_id

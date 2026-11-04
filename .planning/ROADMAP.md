@@ -525,11 +525,11 @@ Plans:
 **Goal:** Un reprezentant de club (ADMIN_CLUB/INSTRUCTOR existent sau cont nou aprobat de federatie) deschide linkul public al unei competitii, se autentifica doar cu email + cod OTP si intra intr-o zona izolata, fara meniul portalului, unde vede datele generale ale competitiei, inscrie sportivii clubului sau prin wizardul existent (fara functiile inter-club) si vede participantii si taxele de competitie ale propriului club. Izolarea per club + competitie este garantata de RLS (audit pe `pg_policies` LIVE si repararea politicilor vechi de scriere cross-club), nu de interfata; portalul principal ramane neschimbat pentru rolurile existente.
 **Requirements**: ACX-01, ACX-02, ACX-03, ACX-04, ACX-05, ACX-06, ACX-07, ACX-08, ACX-09, ACX-10, ACX-11, ACX-12
 **Depends on:** Phase 35
-**Plans:** 12 plans
+**Plans:** 1/12 plans executed
 
 Plans:
 
-- [ ] 36-01-PLAN.md — Wave 0: audit LIVE pg_policies (competitii, CVD, sportivi, rol/roluri, helperi, definer, storage), proba A4 OTP, decizii DEC-1..DEC-9
+- [x] 36-01-PLAN.md — Wave 0: audit LIVE pg_policies (competitii, CVD, sportivi, rol/roluri, helperi, definer, storage), proba A4 OTP, decizii DEC-1..DEC-9
 - [ ] 36-02-PLAN.md — Fundatie DB: rol REPREZENTANT_COMPETITIE, tabele acces_competitie_extern + cereri_acces_competitie, helperi RLS, RPC (teaser public, cerere cont, viza club, user_id_dupa_email)
 - [ ] 36-03-PLAN.md — UI Competitii pregatit pentru extern: wizard fara inter-club (D-14), PlatiClubExtern read-only, CompetitieDetail mode='extern'
 - [ ] 36-04-PLAN.md — Repararea RLS scriere cross-club (D-15): test rosu, migratie restrictiva scope + gate status/deadline, test verde

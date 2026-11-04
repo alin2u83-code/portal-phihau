@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: ready
-stopped_at: Faza 34 completa (UAT 8/8, SECURITY threats_open 0) - 3.11.2026
-last_updated: "2026-11-03T20:36:56.362Z"
-last_activity: 2026-11-03
+status: executing
+stopped_at: Completed 34-13-PLAN.md (faza 34 asteapta verificare umana)
+last_updated: "2026-11-04T22:05:27.633Z"
+last_activity: 2026-11-04 -- Phase 36 execution started
 progress:
-  total_phases: 26
-  completed_phases: 17
-  total_plans: 97
+  total_phases: 28
+  completed_phases: 16
+  total_plans: 109
   completed_plans: 94
-  percent: 62
+  percent: 57
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 34 COMPLETA. Ramase: 32-08 (SMTP spatiul.ro), 18-04, 11-03, faze 19-24 neinceputute
+**Current focus:** Phase 36 — acces-extern-competitie
 
 ## Current Position
 
-Phase: 34 (complete)
-Plan: 15/15 complete
-Status: Phase complete - alege urmatoarea faza
-Last activity: 2026-11-03
+Phase: 36 (acces-extern-competitie) — EXECUTING
+Plan: 1 of 12
+Status: Executing Phase 36
+Last activity: 2026-11-04 -- Phase 36 execution started
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)

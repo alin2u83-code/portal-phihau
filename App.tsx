@@ -27,6 +27,7 @@ import { useMFAGuard } from './hooks/useMFAGuard';
 import { useExpirareInactivitate } from './hooks/useExpirareInactivitate';
 import { CHEIE_MOTIV_DELOGARE } from './utils/inactivitate';
 import { AppLayout } from './components/AppLayout';
+import { AccesLimitatPage } from './components/AccesLimitatPage';
 import { AIAssistantProvider } from './contexts/AIAssistantContext';
 import { useLocalStorage } from './hooks/useLocalStorage';
 
@@ -132,6 +133,11 @@ function App() {
   const activeRoleName = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire;
   const isPrivilegedRole = ['ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE'].includes(activeRoleName);
   const blockedByMfa = isPrivilegedRole && !mfaChecked && activeView !== 'setup-mfa';
+
+  // Cont extern (REPREZENTANT_COMPETITIE): fara shell, doar pagina "Acces limitat" (D-10)
+  if (session && activeRoleName === 'REPREZENTANT_COMPETITIE') {
+      return (<><Toaster /><AccesLimitatPage onLogout={handleLogout} /></>);
+  }
 
   return (
     <SystemGuardian 

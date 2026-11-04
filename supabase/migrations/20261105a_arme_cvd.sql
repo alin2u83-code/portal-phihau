@@ -54,8 +54,8 @@ drop policy if exists arme_select on public.arme;
 drop policy if exists arme_write_federatie on public.arme;
 create policy arme_select on public.arme for select to authenticated using (true);
 create policy arme_write_federatie on public.arme for all to authenticated
-  using (exists (select 1 from public.utilizator_roluri_multicont u where u.user_id = auth.uid() and u.rol_denumire = 'SUPER_ADMIN_FEDERATIE'))
-  with check (exists (select 1 from public.utilizator_roluri_multicont u where u.user_id = auth.uid() and u.rol_denumire = 'SUPER_ADMIN_FEDERATIE'));
+  using (public.get_active_role() = 'SUPER_ADMIN_FEDERATIE')
+  with check (public.get_active_role() = 'SUPER_ADMIN_FEDERATIE');
 
 drop policy if exists sportiv_arme_select on public.sportiv_arme;
 drop policy if exists sportiv_arme_insert on public.sportiv_arme;
@@ -66,18 +66,18 @@ create policy sportiv_arme_select on public.sportiv_arme for select to authentic
 create policy sportiv_arme_insert on public.sportiv_arme for insert to authenticated
   with check (
     exists (select 1 from public.sportivi s where s.id = sportiv_id and public.has_access_to_club(s.club_id))
-    and exists (select 1 from public.utilizator_roluri_multicont u where u.user_id = auth.uid() and u.rol_denumire = any (array['SUPER_ADMIN_FEDERATIE','ADMIN_CLUB'])));
+    and public.get_active_role() in ('SUPER_ADMIN_FEDERATIE','ADMIN_CLUB'));
 create policy sportiv_arme_update on public.sportiv_arme for update to authenticated
   using (
     exists (select 1 from public.sportivi s where s.id = sportiv_id and public.has_access_to_club(s.club_id))
-    and exists (select 1 from public.utilizator_roluri_multicont u where u.user_id = auth.uid() and u.rol_denumire = any (array['SUPER_ADMIN_FEDERATIE','ADMIN_CLUB'])))
+    and public.get_active_role() in ('SUPER_ADMIN_FEDERATIE','ADMIN_CLUB'))
   with check (
     exists (select 1 from public.sportivi s where s.id = sportiv_id and public.has_access_to_club(s.club_id))
-    and exists (select 1 from public.utilizator_roluri_multicont u where u.user_id = auth.uid() and u.rol_denumire = any (array['SUPER_ADMIN_FEDERATIE','ADMIN_CLUB'])));
+    and public.get_active_role() in ('SUPER_ADMIN_FEDERATIE','ADMIN_CLUB'));
 create policy sportiv_arme_delete on public.sportiv_arme for delete to authenticated
   using (
     exists (select 1 from public.sportivi s where s.id = sportiv_id and public.has_access_to_club(s.club_id))
-    and exists (select 1 from public.utilizator_roluri_multicont u where u.user_id = auth.uid() and u.rol_denumire = any (array['SUPER_ADMIN_FEDERATIE','ADMIN_CLUB'])));
+    and public.get_active_role() in ('SUPER_ADMIN_FEDERATIE','ADMIN_CLUB'));
 
 drop policy if exists csa_select on public.competitie_sportiv_arme;
 drop policy if exists csa_insert on public.competitie_sportiv_arme;
@@ -88,19 +88,26 @@ create policy csa_select on public.competitie_sportiv_arme for select to authent
 create policy csa_insert on public.competitie_sportiv_arme for insert to authenticated
   with check (
     exists (select 1 from public.sportivi s where s.id = sportiv_id and public.has_access_to_club(s.club_id))
-    and exists (select 1 from public.utilizator_roluri_multicont u where u.user_id = auth.uid() and u.rol_denumire = any (array['SUPER_ADMIN_FEDERATIE','ADMIN_CLUB']))
+    and public.get_active_role() in ('SUPER_ADMIN_FEDERATIE','ADMIN_CLUB')
     and exists (select 1 from public.competitii c where c.id = competitie_id and c.status = 'inscrieri_deschise'));
 create policy csa_update on public.competitie_sportiv_arme for update to authenticated
   using (
     exists (select 1 from public.sportivi s where s.id = sportiv_id and public.has_access_to_club(s.club_id))
-    and exists (select 1 from public.utilizator_roluri_multicont u where u.user_id = auth.uid() and u.rol_denumire = any (array['SUPER_ADMIN_FEDERATIE','ADMIN_CLUB']))
+    and public.get_active_role() in ('SUPER_ADMIN_FEDERATIE','ADMIN_CLUB')
     and exists (select 1 from public.competitii c where c.id = competitie_id and c.status = 'inscrieri_deschise'))
   with check (
     exists (select 1 from public.sportivi s where s.id = sportiv_id and public.has_access_to_club(s.club_id))
-    and exists (select 1 from public.utilizator_roluri_multicont u where u.user_id = auth.uid() and u.rol_denumire = any (array['SUPER_ADMIN_FEDERATIE','ADMIN_CLUB']))
+    and public.get_active_role() in ('SUPER_ADMIN_FEDERATIE','ADMIN_CLUB')
     and exists (select 1 from public.competitii c where c.id = competitie_id and c.status = 'inscrieri_deschise'));
 create policy csa_delete on public.competitie_sportiv_arme for delete to authenticated
   using (
     exists (select 1 from public.sportivi s where s.id = sportiv_id and public.has_access_to_club(s.club_id))
-    and exists (select 1 from public.utilizator_roluri_multicont u where u.user_id = auth.uid() and u.rol_denumire = any (array['SUPER_ADMIN_FEDERATIE','ADMIN_CLUB']))
+    and public.get_active_role() in ('SUPER_ADMIN_FEDERATIE','ADMIN_CLUB')
     and exists (select 1 from public.competitii c where c.id = competitie_id and c.status = 'inscrieri_deschise'));
+
+-- Indexuri pe FK-urile arma_id (PK-urile acopera deja sportiv_id / competitie_id in frunte).
+create index if not exists sportiv_arme_arma_id_idx on public.sportiv_arme (arma_id);
+create index if not exists competitie_sportiv_arme_arma_id_idx on public.competitie_sportiv_arme (arma_id);
+create index if not exists inlantuiri_arma_id_idx on public.inlantuiri (arma_id);
+create index if not exists inscrieri_competitie_arma_id_idx on public.inscrieri_competitie (arma_id);
+create index if not exists echipe_competitie_arma_id_idx on public.echipe_competitie (arma_id);

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
@@ -24,7 +24,15 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
   const [salveaza, setSalveaza] = useState(false);
   const [cerinte, setCerinte] = useState<Cerinte>([]);
 
-  useEffect(() => { setDraft(armeAlese); }, [armeAlese]);
+  // sportivii ale caror salvare a esuat: la resincronizarea cu armeAlese isi pastreaza editarile nesalvate
+  const esuatiRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    setDraft(prev => {
+      const n = new Map(armeAlese);
+      for (const id of esuatiRef.current) if (prev.has(id)) n.set(id, prev.get(id)!);
+      return n;
+    });
+  }, [armeAlese]);
   useEffect(() => {
     let anulat = false;
     incarcaCerinteStagii().then(({ data }) => { if (!anulat && data) setCerinte(data); });
@@ -92,7 +100,8 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
         reusite.push(r.s.id);
       }
       await arme.reload();
-      // doar sportivii salvati cu succes devin "salvati"; ceilalti raman modificati in draft
+      // doar cei salvati cu succes intra in armeAlese; esuatii isi pastreaza draftul (esuatiRef) si raman in modificati
+      esuatiRef.current = new Set(modificati.filter(r => !reusite.includes(r.s.id)).map(r => r.s.id));
       if (reusite.length) {
         const next = new Map(armeAlese);
         for (const id of reusite) next.set(id, new Set(draft.get(id) ?? []));

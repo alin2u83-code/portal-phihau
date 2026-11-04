@@ -466,7 +466,6 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 vizeSportivi={vizeSportivi}
                 myClubId={myClubId}
                 arme={competitie.tip === 'cvd' ? armeCvd : undefined}
-          tipProba={probe.find(p => p.id === inscriereModal.proba_id)?.tip_proba}
                 canEdit={canEditArme}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}
@@ -653,6 +652,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
           numeClub={currentUser?.cluburi?.nume ?? ''}
           vizeSportivi={vizeSportivi}
           arme={competitie.tip === 'cvd' ? armeCvd : undefined}
+          tipProba={probe.find(p => p.id === inscriereModal.proba_id)?.tip_proba}
           onClose={() => { setInscriereModal(null); fetchDataSilent(); }}
           onSaved={() => {
             const goToHub = goToHubAfterModalRef.current;

@@ -91,6 +91,8 @@ export interface InscriereClubWizardProps {
   canEdit?: boolean;
   /** deschide profilul sportivului (pentru lipsuri de grad / data nasterii) */
   onViewSportiv?: (s: Sportiv) => void;
+  /** zona externa: fara coechipier din alt club / echipe inter-club (D-14) */
+  interclubDezactivat?: boolean;
 }
 
 /** sportivId -> set de armaId alese pe competitie */

@@ -26,7 +26,7 @@ export type { PickCategorie, IndivPicks } from './types';
 const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
   competitie, probe, categorii, sportivi, grade,
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
-  onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh, arme, canEdit = false, onViewSportiv,
+  onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh, arme, canEdit = false, onViewSportiv, interclubDezactivat,
 }) => {
   const { showError } = useError();
   // step: 'hub'=carduri probe, 1=selectare sportivi (doar quyen), 2=quyen, 3=echipe/giao_dau, 4=sumar
@@ -489,6 +489,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
         })}
         onOpenInscriereModal={(cat) => onOpenInscriereModal?.(cat)}
         onEchipeRefresh={onEchipeRefresh}
+        interclubDezactivat={interclubDezactivat}
         onBack={() => setStep('hub')}
       />
     );
@@ -496,6 +497,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
 
   return (
     <Pas4SumarTaxe
+      interclubDezactivat={interclubDezactivat}
       competitie={competitie}
       // lista lată: sumarul afișează și înscrierile salvate ale inactivilor (altfel dispar din total)
       sportivi={sportivi}

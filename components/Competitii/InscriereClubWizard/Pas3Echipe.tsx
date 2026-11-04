@@ -33,6 +33,8 @@ interface Pas3Props {
   onOpenInscriereModal?: (cat: CategorieCompetitie) => void;
   /** Refresh silențios al prop-ului `echipe` (fetchDataSilent) — apelat după retragere/reset echipă */
   onEchipeRefresh?: () => void;
+  /** zona externa: fara cereri inter-club (D-14) */
+  interclubDezactivat?: boolean;
   onBack: () => void;
 }
 
@@ -40,7 +42,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   categorii, probe, echipe, clubId, sportivi, grade, dataCompetitie,
   competitieId, clubSolicitantId, inscrieri = [], armeAlese, armeDefinitii,
   skippedCategorii, onToggleSkipCategorie,
-  onOpenInscriereModal, onEchipeRefresh, onBack,
+  onOpenInscriereModal, onEchipeRefresh, interclubDezactivat, onBack,
 }) => {
   const { showError } = useError();
   const [cereriInterclub, setCereriInterclub] = useState<Map<string, 'pending' | 'aprobat' | 'respins'>>(new Map());
@@ -48,7 +50,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   const [echipeRetraseLocal, setEchipeRetraseLocal] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!competitieId || !clubSolicitantId) return;
+    if (interclubDezactivat || !competitieId || !clubSolicitantId) return;
     let cancelled = false;
     (async () => {
       try {
@@ -387,7 +389,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
               )}
 
               {/* Buton cerere inter-club — vizibil pe categorii cu eligibili, nesărite (inclusiv echipe complete) */}
-              {areEligibili && !isCatSkipped && !individual && (() => {
+              {!interclubDezactivat && areEligibili && !isCatSkipped && !individual && (() => {
                 const statusCerere = cereriInterclub.get(cat.id);
                 const nrLocuriLipsa = Math.max(1, titMin - nrTitulari);
 

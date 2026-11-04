@@ -41,6 +41,8 @@ export interface Pas4Props {
   formaPerArma?: FormaPerArma;
   arme?: Arma[];
   bannerLipsuri?: ItemDeRezolvat[];
+  /** zona externa: nu se creeaza solicitari catre alte cluburi (D-14) */
+  interclubDezactivat?: boolean;
   onBack: () => void;
   onSaved: () => void;
 }
@@ -76,7 +78,7 @@ const cheieRand = (sportivId: string, categorieId: string, armaId?: string | nul
 const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   competitie, sportivi, grade, categorii,
   selectedSportivi, autoCategorie, quyenAles, echipeFormate,
-  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, inscrieri = [], categoriePerArma, formaPerArma, arme, bannerLipsuri, onBack, onSaved,
+  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, inscrieri = [], categoriePerArma, formaPerArma, arme, bannerLipsuri, interclubDezactivat, onBack, onSaved,
 }) => {
   const { showError, showSuccess } = useError();
   const [saving, setSaving] = useState(false);
@@ -363,7 +365,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             const { error: errSp } = await supabase.from('echipa_sportivi').insert(sportiviEchipa);
             if (errSp) throw new Error(errSp.message);
           }
-          if (rand.echipa.echipaIncompleta) {
+          if (rand.echipa.echipaIncompleta && !interclubDezactivat) {
             await supabase.from('solicitari_echipe_incomplete').upsert({
               competitie_id: competitie.id,
               categorie_id: rand.echipa.categorieId,
@@ -406,7 +408,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
               const { error: errSportivi } = await supabase.from('echipa_sportivi').insert(sportiviEchipa);
               if (errSportivi) throw new Error(errSportivi.message);
             }
-            if (rand.echipa.echipaIncompleta) {
+            if (rand.echipa.echipaIncompleta && !interclubDezactivat) {
               await supabase.from('solicitari_echipe_incomplete').insert({
                 competitie_id: competitie.id,
                 categorie_id: rand.echipa.categorieId,

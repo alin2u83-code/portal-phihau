@@ -76,28 +76,34 @@ export async function incarcaArmeSportivi(
   }
 }
 
-/** Inlocuieste setul pe competitie (sters + inserat) si, optional, setul implicit al sportivului. */
+/** Inlocuieste setul fara a sterge inainte: adauga noile randuri, apoi sterge doar ce a fost scos. */
+async function inlocuiesteSet(
+  tabel: 'competitie_sportiv_arme' | 'sportiv_arme',
+  scope: Record<string, string>, armaIds: string[], onConflict: string,
+): Promise<string | null> {
+  if (armaIds.length) {
+    const { error } = await supabase.from(tabel)
+      .upsert(armaIds.map(arma_id => ({ ...scope, arma_id })), { onConflict, ignoreDuplicates: true });
+    if (error) return msg(error);
+  }
+  let q = supabase.from(tabel).delete();
+  for (const [k, v] of Object.entries(scope)) q = q.eq(k, v);
+  if (armaIds.length) q = q.not('arma_id', 'in', `(${armaIds.join(',')})`);
+  const { error } = await q;
+  return error ? msg(error) : null;
+}
+
 export async function salveazaArmeCompetitie(
   competitieId: string, sportivId: string, armaIds: string[], salveazaImplicit: boolean,
 ): Rez<null> {
   try {
     const unice = [...new Set(armaIds)];
-    const { error: e1 } = await supabase.from('competitie_sportiv_arme')
-      .delete().eq('competitie_id', competitieId).eq('sportiv_id', sportivId);
-    if (e1) return { data: null, error: msg(e1) };
-    if (unice.length) {
-      const { error } = await supabase.from('competitie_sportiv_arme')
-        .insert(unice.map(arma_id => ({ competitie_id: competitieId, sportiv_id: sportivId, arma_id })));
-      if (error) return { data: null, error: `Armele pe competitie nu au fost salvate: ${msg(error)}` };
-    }
+    const e1 = await inlocuiesteSet('competitie_sportiv_arme',
+      { competitie_id: competitieId, sportiv_id: sportivId }, unice, 'competitie_id,sportiv_id,arma_id');
+    if (e1) return { data: null, error: `Armele pe competitie nu au fost salvate complet: ${e1}` };
     if (salveazaImplicit) {
-      const { error: e3 } = await supabase.from('sportiv_arme').delete().eq('sportiv_id', sportivId);
-      if (e3) return { data: null, error: `Armele implicite nu au fost salvate: ${msg(e3)}` };
-      if (unice.length) {
-        const { error } = await supabase.from('sportiv_arme')
-          .insert(unice.map(arma_id => ({ sportiv_id: sportivId, arma_id })));
-        if (error) return { data: null, error: `Armele implicite nu au fost salvate: ${msg(error)}` };
-      }
+      const e2 = await inlocuiesteSet('sportiv_arme', { sportiv_id: sportivId }, unice, 'sportiv_id,arma_id');
+      if (e2) return { data: null, error: `Armele pe competitie AU FOST salvate, dar setul implicit al sportivului nu: ${e2}` };
     }
     return { data: null, error: null };
   } catch (e) {

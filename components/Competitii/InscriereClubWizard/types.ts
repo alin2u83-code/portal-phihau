@@ -82,5 +82,5 @@ export interface InscriereClubWizardProps {
   onOpenEditEchipa?: (categorieId: string) => void;
   onOpenInscriereModal?: (cat: CategorieCompetitie, goToHub?: () => void) => void;
   /** Refresh silențios al prop-ului `echipe` (fetchDataSilent) — NU remontează wizard-ul */
-  onEchipeRefresh?: () => void;
+  onEchipeRefresh?: () => void | Promise<void>;
 }

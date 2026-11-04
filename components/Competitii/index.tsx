@@ -154,6 +154,24 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
   const canRegister = competitie.status === 'inscrieri_deschise';
   const myClubId = activeRoleContext?.club_id ?? currentUser?.club_id;
 
+  // Sportivii clubului pentru înscriere: doar activi; cei inactivi rămân vizibili numai dacă sunt deja înscriși aici (ca să poată fi retrași)
+  const sportiviClubInscriere = useMemo(() => {
+    const inscrisi = new Set(
+      inscrieri.filter(i => i.club_id === myClubId && i.status?.toLowerCase() !== 'retras').map(i => i.sportiv_id)
+    );
+    return filteredData.sportivi.filter(s => s.club_id === myClubId && (s.status === 'Activ' || inscrisi.has(s.id)));
+  }, [filteredData.sportivi, inscrieri, myClubId]);
+
+  // Modal categorie: activi + inactivii înscriși DOAR la categoria deschisă (nu apar selectabili la alte categorii)
+  const sportiviModalInscriere = useMemo(() => {
+    const inscrisiCat = new Set(
+      inscrieri
+        .filter(i => i.club_id === myClubId && i.categorie_id === inscriereModal?.id && i.status?.toLowerCase() !== 'retras')
+        .map(i => i.sportiv_id)
+    );
+    return filteredData.sportivi.filter(s => s.club_id === myClubId && (s.status === 'Activ' || inscrisiCat.has(s.id)));
+  }, [filteredData.sportivi, inscrieri, myClubId, inscriereModal?.id]);
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -433,7 +451,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
                 competitie={competitie}
                 probe={probe}
                 categorii={categorii}
-                sportivi={filteredData.sportivi.filter(s => s.club_id === myClubId)}
+                sportivi={sportiviClubInscriere}
                 grade={grade}
                 inscrieri={inscrieri}
                 echipe={echipe}
@@ -618,7 +636,7 @@ const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permiss
         <InscriereModal
           competitie={competitie}
           categorie={inscriereModal}
-          sportivi={filteredData.sportivi.filter(s => s.club_id === myClubId)}
+          sportivi={sportiviModalInscriere}
           grade={grade}
           inscrieri={inscrieri}
           echipe={echipe}

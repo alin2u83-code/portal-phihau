@@ -8,6 +8,7 @@ import Pas3FormareEchipe from './Pas3Echipe';
 import Pas4SumarTaxe from './Pas4Sumar';
 import InscriereClubCards from './InscriereClubCards';
 import { esteInscrisActiv } from './shared';
+import { useError } from '../../ErrorProvider';
 
 export type { InscriereClubWizardProps };
 export type { EchipaFormata, QuyenAlesMap };
@@ -18,6 +19,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
   onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh,
 }) => {
+  const { showError } = useError();
   // step: 'hub'=carduri probe, 1=selectare sportivi (doar quyen), 2=quyen, 3=echipe/giao_dau, 4=sumar
   const [step, setStep] = useState<1 | 'hub' | 2 | 3 | 4>('hub');
   // Proba deschisă din hub (pentru Pas2 / Pas3)
@@ -133,6 +135,41 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   // Ref pentru a urmări ultimul set de sportivi pentru care s-a calculat autoCategorie
   const lastComputedSportiviRef = React.useRef<string>('');
 
+  // Retrage (șterge) înscrierile sportivului pe proba deschisă — folosit din Pas1 (tehnică / individual)
+  const handleRetrageInscriere = async (sportivId: string) => {
+    const catIds = new Set(categorii.filter(c => c.proba_id === probaDeschisFocusId).map(c => c.id));
+    const randuri = inscrieri.filter(i => i.sportiv_id === sportivId && i.club_id === clubId && esteInscrisActiv(i) && catIds.has(i.categorie_id));
+    if (randuri.length === 0) return;
+    if (randuri.some(i => i.taxa_achitata)) {
+      showError('Retragere înscriere', 'Taxa este deja achitată pentru această înscriere. Anulează mai întâi plata din Financiar.');
+      return;
+    }
+    const ids = randuri.map(i => i.id);
+    const { data, error } = await supabase.from('inscrieri_competitie').delete().in('id', ids).select('id');
+    if (error) { showError('Retragere înscriere', error.message); return; }
+    // RLS poate bloca ștergerea fără eroare — verificăm câte rânduri au fost șterse efectiv
+    if ((data?.length ?? 0) !== ids.length) {
+      showError('Retragere înscriere', `Au fost șterse ${data?.length ?? 0} din ${ids.length} înscrieri (posibil lipsă permisiuni). Reîncarcă pagina.`);
+      await onEchipeRefresh?.();
+      return;
+    }
+    setAutoCategorie(prev => { const m = new Map(prev); m.delete(sportivId); return m; });
+    setQuyenAles(prev => { const m = new Map(prev); m.delete(sportivId); return m; });
+    // scoate sportivul și din selecția probei deschise, altfel Pas4 l-ar reînscrie
+    setSelectedSportiviMap(prev => {
+      const set = prev.get(probaDeschisFocusId ?? '');
+      if (!set?.has(sportivId)) return prev;
+      const m = new Map(prev);
+      const nou = new Set(set); nou.delete(sportivId);
+      m.set(probaDeschisFocusId ?? '', nou);
+      return m;
+    });
+    await onEchipeRefresh?.();
+  };
+
+  // Doar sportivii activi pentru pașii 2-4 și hub; Pas1 primește și inactivii deja înscriși (ca să-i poată retrage)
+  const sportiviActivi = useMemo(() => sportivi.filter(s => s.status === 'Activ'), [sportivi]);
+
   const handleToggle = (id: string) => {
     if (!probaDeschisFocusId) return;
     const probaId = probaDeschisFocusId;
@@ -209,6 +246,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         myClubId={myClubId}
         varsteCompetitie={varsteCompetitie}
         onToggle={handleToggle}
+        onRetrage={handleRetrageInscriere}
         onContinua={handlePas1Continua}
         onBack={() => setStep('hub')}
       />
@@ -222,7 +260,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         competitie={competitie}
         probe={probe}
         categorii={categorii}
-        sportivi={sportivi}
+        sportivi={sportiviActivi}
         grade={grade}
         inscrieri={inscrieri}
         echipe={echipe}
@@ -271,7 +309,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     return (
       <Pas2SelectieQuyen
         competitie={competitie}
-        sportivi={sportivi}
+        sportivi={sportiviActivi}
         grade={grade}
         categorii={categorii}
         selectedSportivi={selectedSportiviMap.get(probaDeschisFocusId ?? '') ?? new Set()}
@@ -303,7 +341,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         probe={probe}
         echipe={echipe}
         clubId={clubId}
-        sportivi={sportivi}
+        sportivi={sportiviActivi}
         grade={grade}
         dataCompetitie={competitie.data_inceput}
         competitieId={competitie.id}
@@ -325,6 +363,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   return (
     <Pas4SumarTaxe
       competitie={competitie}
+      // lista lată: sumarul afișează și înscrierile salvate ale inactivilor (altfel dispar din total)
       sportivi={sportivi}
       grade={grade}
       categorii={categorii}

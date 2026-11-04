@@ -94,6 +94,8 @@ function calculeazaEligibilitateGenerala(
 // CARD SPORTIV — mobil (< md)
 // -----------------------------------------------
 interface CardSportivProps {
+  /** acțiune "Retrage" afișată pe rândurile deja înscrise */
+  retrageUi?: React.ReactNode;
   sportiv: Sportiv;
   isSelected: boolean;
   isDisabled: boolean;
@@ -107,7 +109,7 @@ interface CardSportivProps {
 
 const CardSportiv: React.FC<CardSportivProps> = ({
   sportiv, isSelected, isDisabled, isDejaInscris,
-  eligibilitate, varsta, gradNume, gradAnomalie, onToggle,
+  eligibilitate, varsta, gradNume, gradAnomalie, onToggle, retrageUi,
 }) => {
   return (
     <label
@@ -137,6 +139,7 @@ const CardSportiv: React.FC<CardSportivProps> = ({
               Deja inscris
             </span>
           )}
+          {isDejaInscris && retrageUi}
           <BadgeEligibilitateGenerala info={eligibilitate} />
         </div>
         <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
@@ -169,6 +172,7 @@ const CardSportiv: React.FC<CardSportivProps> = ({
 // RÂND TABEL SPORTIV — desktop (>= md)
 // -----------------------------------------------
 interface RandTabelSportivProps {
+  retrageUi?: React.ReactNode;
   sportiv: Sportiv;
   isSelected: boolean;
   isDisabled: boolean;
@@ -183,7 +187,7 @@ interface RandTabelSportivProps {
 
 const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
   sportiv, isSelected, isDisabled, isDejaInscris,
-  eligibilitate, varsta, gradNume, gradAnomalie, gen, onToggle,
+  eligibilitate, varsta, gradNume, gradAnomalie, gen, onToggle, retrageUi,
 }) => {
   return (
     <tr
@@ -215,6 +219,7 @@ const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
               Deja inscris
             </span>
           )}
+          {isDejaInscris && retrageUi}
         </div>
       </td>
       <td className="p-3 text-sm text-slate-400">
@@ -266,14 +271,18 @@ export interface Pas1Props {
   myClubId?: string;
   varsteCompetitie?: number[];
   onToggle: (id: string) => void;
+  /** Șterge înscrierile sportivului pe proba deschisă (rândurile "Deja înscris") */
+  onRetrage?: (sportivId: string) => Promise<void>;
   onContinua: () => void;
   onBack: () => void;
 }
 
 const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   competitie, sportivi, grade, categorii, inscrieri, vizeSportivi,
-  selected, myClubId, varsteCompetitie, onToggle, onContinua, onBack,
+  selected, myClubId, varsteCompetitie, onToggle, onRetrage, onContinua, onBack,
 }) => {
+  const [confirmRetrageId, setConfirmRetrageId] = useState<string | null>(null);
+  const [retragereInCurs, setRetragereInCurs] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filterGen, setFilterGen] = useState<'' | 'Masculin' | 'Feminin'>('');
   const [filterGradeIds, setFilterGradeIds] = useState<Set<string>>(new Set());
@@ -285,11 +294,48 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
 
   const anComp = new Date(competitie.data_inceput).getFullYear();
 
-  const dejaInscrisiSet = useMemo(() => buildDejaInscrisiSet(inscrieri), [inscrieri]);
+  // "Deja înscris" = înscris la ACEASTĂ probă (categoriile primite) și în clubul curent — nu la alte probe/cluburi
+  const dejaInscrisiSet = useMemo(() => {
+    const catIds = new Set(categorii.map(c => c.id));
+    return buildDejaInscrisiSet(
+      inscrieri.filter(i => catIds.has(i.categorie_id) && (!myClubId || i.club_id === myClubId))
+    );
+  }, [inscrieri, categorii, myClubId]);
+
+  const renderRetrage = (sportivId: string) => {
+    if (!onRetrage) return undefined;
+    const stop = (e: React.SyntheticEvent) => { e.stopPropagation(); e.preventDefault(); };
+    if (retragereInCurs === sportivId) return <span className="text-[10px] text-slate-400">Se retrage…</span>;
+    if (confirmRetrageId === sportivId) {
+      return (
+        <span className="inline-flex items-center gap-1.5 text-[10px]" onClick={e => e.stopPropagation()}>
+          <span className="text-red-300">Ștergi înscrierea?</span>
+          <button
+            type="button"
+            onClick={async e => {
+              stop(e);
+              setRetragereInCurs(sportivId);
+              try { await onRetrage(sportivId); } finally { setRetragereInCurs(null); setConfirmRetrageId(null); }
+            }}
+            className="px-1.5 py-0.5 rounded border border-red-600/60 text-red-300 hover:bg-red-900/30"
+          >Da, retrage</button>
+          <button type="button" onClick={e => { stop(e); setConfirmRetrageId(null); }} className="px-1.5 py-0.5 rounded border border-slate-600 text-slate-300">Nu</button>
+        </span>
+      );
+    }
+    return (
+      <button
+        type="button"
+        onClick={e => { stop(e); setConfirmRetrageId(sportivId); }}
+        className="text-[10px] px-1.5 py-0.5 rounded border border-red-700/50 text-red-400 hover:bg-red-900/20"
+      >Retrage</button>
+    );
+  };
 
   const sportiviActivi = useMemo(
-    () => sportivi.filter(s => s.status === 'Activ' && (!myClubId || s.club_id === myClubId)),
-    [sportivi, myClubId]
+    // doar activi; un inactiv rămâne doar dacă e deja înscris la proba curentă (ca să poată fi retras)
+    () => sportivi.filter(s => (s.status === 'Activ' || dejaInscrisiSet.has(s.id)) && (!myClubId || s.club_id === myClubId)),
+    [sportivi, myClubId, dejaInscrisiSet]
   );
 
   const gradeDisponibile = useMemo(() => {
@@ -393,7 +439,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   );
 
   const selectableIds = useMemo(
-    () => enrichedFiltrat.filter(e => !e.isDisabled).map(e => e.sportiv.id),
+    () => enrichedFiltrat.filter(e => !e.isDisabled && !e.isDejaInscris).map(e => e.sportiv.id),
     [enrichedFiltrat]
   );
 
@@ -666,6 +712,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                 gradNume={gradNume}
                 gradAnomalie={gradAnomalie}
                 onToggle={() => !isDisabled && onToggle(sportiv.id)}
+                retrageUi={renderRetrage(sportiv.id)}
               />
             ))}
           </div>
@@ -739,6 +786,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                     gradAnomalie={gradAnomalie}
                     gen={sportiv.gen}
                     onToggle={() => !isDisabled && onToggle(sportiv.id)}
+                    retrageUi={renderRetrage(sportiv.id)}
                   />
                 ))}
               </tbody>

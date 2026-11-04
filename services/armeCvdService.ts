@@ -130,3 +130,15 @@ export async function incarcaStagiiLaArma(sportivIds: string[]): Rez<Map<string,
     return { data: null, error: msg(e) };
   }
 }
+
+export interface CerintaStagii { grad_min_ordine: number; grad_max_ordine: number; stagii_nationale: number }
+
+export async function incarcaCerinteStagii(): Rez<CerintaStagii[]> {
+  try {
+    const { data, error } = await supabase.from('cerinte_stagii_cvd').select('grad_min_ordine, grad_max_ordine, stagii_nationale');
+    if (error) return { data: null, error: msg(error) };
+    return { data: (data ?? []) as CerintaStagii[], error: null };
+  } catch (e) {
+    return { data: null, error: msg(e) };
+  }
+}

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { supabase } from '../../../supabaseClient';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
@@ -8,7 +7,7 @@ import { gradEfectivLaData } from '../../../utils/eligibilitateCompetitie';
 import {
   motivCombinatieInterzisa, categoriePentruArma, conflicteCategorie, armeStale, avertismentStagii,
 } from '../../../utils/armeCvd';
-import { salveazaArmeCompetitie } from '../../../services/armeCvdService';
+import { salveazaArmeCompetitie, incarcaCerinteStagii } from '../../../services/armeCvdService';
 import type { useArmeCvd } from '../../../hooks/useArmeCvd';
 import type { PasArmeProps, ArmeAlese } from './types';
 
@@ -28,8 +27,7 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
   useEffect(() => { setDraft(armeAlese); }, [armeAlese]);
   useEffect(() => {
     let anulat = false;
-    supabase.from('cerinte_stagii_cvd').select('grad_min_ordine, grad_max_ordine, stagii_nationale')
-      .then(({ data }) => { if (!anulat && data) setCerinte(data as Cerinte); });
+    incarcaCerinteStagii().then(({ data }) => { if (!anulat && data) setCerinte(data); });
     return () => { anulat = true; };
   }, []);
 
@@ -86,13 +84,20 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
 
   const salveazaTot = async () => {
     setSalveaza(true);
+    const reusite: string[] = [];
     try {
       for (const r of modificati) {
         const { error } = await salveazaArmeCompetitie(competitie.id, r.s.id, [...(draft.get(r.s.id) ?? [])], implicit.has(r.s.id));
         if (error) { showError('Armele nu au fost salvate', `${formatNume(r.s)}: ${error}`); break; }
+        reusite.push(r.s.id);
       }
       await arme.reload();
-      onChange(new Map(draft));
+      // doar sportivii salvati cu succes devin "salvati"; ceilalti raman modificati in draft
+      if (reusite.length) {
+        const next = new Map(armeAlese);
+        for (const id of reusite) next.set(id, new Set(draft.get(id) ?? []));
+        onChange(next);
+      }
     } finally { setSalveaza(false); }
   };
 
@@ -127,9 +132,14 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
           const stale = new Set(armeStale([...alese], disponibile.map(a => a.id)));
           const bifate = disponibile.filter(a => alese.has(a.id));
           const conflictCat = new Set(conflicteCategorie(bifate.map(a => ({ armaId: a.id, categorieId: categoriePe.get(a.id)?.id ?? null }))));
+          const perechiInvalide: string[] = [];
+          for (let i = 0; i < bifate.length; i++) for (let j = i + 1; j < bifate.length; j++) {
+            const m = motivCombinatieInterzisa(bifate[i], bifate[j], ordine);
+            if (m) perechiInvalide.push(`${bifate[i].denumire} + ${bifate[j].denumire}: ${m}`);
+          }
           const chip = (a: typeof arme.arme[number], esteStale: boolean) => {
             const bifata = alese.has(a.id);
-            const blocata = inscrieri.some(i => i.sportiv_id === s.id && i.arma_id === a.id && i.taxa_achitata && i.status !== 'retras');
+            const blocata = inscrieri.some(i => i.sportiv_id === s.id && i.arma_id === a.id && i.taxa_achitata && i.status?.toLowerCase() !== 'retras');
             let motiv: string | null = null;
             if (!bifata) {
               for (const b of bifate) {
@@ -172,6 +182,11 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
                   </label>
                 )}
               </div>
+              {perechiInvalide.length > 0 && (
+                <div className="rounded-md border border-amber-700/50 bg-amber-900/15 px-2 py-1">
+                  {perechiInvalide.map(t => <p key={t} className="text-[11px] text-amber-300">Combinație nepermisă — {t}</p>)}
+                </div>
+              )}
               <div className="flex flex-wrap gap-2">
                 {disponibile.map(a => chip(a, false))}
                 {stalePeArme.map(a => chip(a, true))}

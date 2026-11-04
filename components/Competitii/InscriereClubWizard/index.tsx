@@ -298,6 +298,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         // props suplimentare hub
         armeAlese={arme ? armeAlese : undefined}
         nrSportiviClub={sportiviActivi.length}
+        armeLoading={arme?.loading}
         onDeschideArme={arme ? () => setStep('arme') : undefined}
         selectedSportivi={selectedSportivi}
         autoCategorie={autoCategorie}

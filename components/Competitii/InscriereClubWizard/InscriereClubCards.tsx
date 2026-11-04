@@ -68,6 +68,8 @@ export interface InscriereClubCardsProps extends InscriereClubWizardProps {
   /** CVD: armele alese (undefined = nu e CVD / fara date) */
   armeAlese?: ArmeAlese;
   nrSportiviClub?: number;
+  /** CVD: armele se incarca inca */
+  armeLoading?: boolean;
   onDeschideArme?: () => void;
 }
 
@@ -465,10 +467,13 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const {
     competitie, probe, categorii,
     onBack, onDeschideProba, onFinalizare, onPrevizualizare,
-    selectedSportivi, onToggleSkipProba, armeAlese, nrSportiviClub, onDeschideArme,
+    selectedSportivi, onToggleSkipProba, armeAlese, nrSportiviClub, onDeschideArme, armeLoading,
   } = props;
   const esteCvd = competitie.tip === 'cvd' && !!onDeschideArme;
-  const nrCuArme = armeAlese ? [...armeAlese.values()].filter(set => set.size > 0).length : 0;
+  const idsActivi = new Set(props.sportivi.map(s => s.id));
+  const nrCuArme = armeAlese
+    ? Math.min([...armeAlese.entries()].filter(([id, set]) => set.size > 0 && idsActivi.has(id)).length, nrSportiviClub ?? idsActivi.size)
+    : 0;
 
   const [filtruHub, setFiltruHub] = useState<'toate' | 'nefinalizate'>('toate');
 
@@ -573,7 +578,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
           <CardProbaItem
             key={card.proba.id}
             card={card}
-            nota={esteCvd && nrCuArme === 0 && (card.proba.tip_proba === 'thao_lo_individual' || card.proba.tip_proba === 'giao_dau') ? 'alege întâi armele' : undefined}
+            nota={esteCvd && !armeLoading && nrCuArme === 0 && (card.proba.tip_proba === 'thao_lo_individual' || card.proba.tip_proba === 'giao_dau') ? 'alege întâi armele' : undefined}
             onDeschide={() => onDeschideProba(card.proba.id)}
             // fără "Nu participăm" cât timp clubul are înscrieri salvate pe probă (retragerea se face din modalul categoriei)
             onToggleSkip={onToggleSkipProba && !card.nrInscrisi ? () => onToggleSkipProba(card.proba.id) : undefined}

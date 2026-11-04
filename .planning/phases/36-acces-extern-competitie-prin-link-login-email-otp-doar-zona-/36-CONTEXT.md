@@ -36,6 +36,13 @@ Out of scope: alte module vizibile, inregistrare publica fara aprobare, plati on
 - **D-11:** Doar propriii sportivi, in competitia aleasa. RLS nou, izolat per club + competitie. Audit pe `pg_policies` LIVE, nu doar fisiere de migrare.
 - **D-12:** Backend/RLS este poarta reala; ascunderea UI nu e securitate.
 
+### Decizii dupa cercetare (4.11.2026, raspunsuri utilizator)
+- **D-13:** INSTRUCTOR poate inscrie sportivi prin link (nu doar citire). Politicile RLS trebuie sa limiteze la sportivii permisi instructorului/clubului.
+- **D-14:** Functiile cross-club (coechipier alt club, echipe inter-club) DEZACTIVATE in zona externa.
+- **D-15:** Politicile RLS vechi 20260319 (posibila scriere cross-club a oricarui ADMIN_CLUB) se repara IN aceasta faza: Wave 0 = audit live pg_policies, apoi WITH CHECK pe club + competitie + status/deadline.
+- **D-16:** Portalul principal pastreaza vizibilitatea actuala a participantilor intre cluburi pentru ADMIN_CLUB; restrictia se aplica doar rolului nou REPREZENTANT_COMPETITIE / sesiunii din link.
+- **Recomandari cercetare adoptate:** rol nou REPREZENTANT_COMPETITIE + tabela acces_competitie_extern(user_id, competitie_id, club_id, activ); tabela noua cereri_acces_competitie (nu se reutilizeaza cereri_inregistrare); aprobare prin api/aproba-cerere-acces.ts (service role, doar SUPER_ADMIN_FEDERATIE); shell separat ales in index.tsx dupa pathname /competitie/ fara DataProvider; situatia platilor = vedere read-only din taxa_achitata, fara FinanciarView.
+
 ### Claude's Discretion
 - Forma exacta a tokenului din link, modelul de rol (rol nou vs flag pe rol existent), tabela cererilor (reutilizare `cereri_inregistrare` daca se potriveste), structura rutei SPA (portalul nu are URL routing intern).
 </decisions>

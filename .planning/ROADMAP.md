@@ -522,14 +522,27 @@ Plans:
 
 ### Phase 36: Acces extern competitie prin link: login email+OTP, doar zona competitie, cerere cont la federatie, RLS izolat per club+competitie
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Un reprezentant de club (ADMIN_CLUB/INSTRUCTOR existent sau cont nou aprobat de federatie) deschide linkul public al unei competitii, se autentifica doar cu email + cod OTP si intra intr-o zona izolata, fara meniul portalului, unde vede datele generale ale competitiei, inscrie sportivii clubului sau prin wizardul existent (fara functiile inter-club) si vede participantii si taxele de competitie ale propriului club. Izolarea per club + competitie este garantata de RLS (audit pe `pg_policies` LIVE si repararea politicilor vechi de scriere cross-club), nu de interfata; portalul principal ramane neschimbat pentru rolurile existente.
+**Requirements**: ACX-01, ACX-02, ACX-03, ACX-04, ACX-05, ACX-06, ACX-07, ACX-08, ACX-09, ACX-10, ACX-11, ACX-12
 **Depends on:** Phase 35
-**Plans:** 0 plans
+**Plans:** 12 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 36 to break down)
+- [ ] 36-01-PLAN.md — Wave 0: audit LIVE pg_policies (competitii, CVD, sportivi, rol/roluri, helperi, definer, storage), proba A4 OTP, decizii DEC-1..DEC-9
+- [ ] 36-02-PLAN.md — Fundatie DB: rol REPREZENTANT_COMPETITIE, tabele acces_competitie_extern + cereri_acces_competitie, helperi RLS, RPC (teaser public, cerere cont, viza club, user_id_dupa_email)
+- [ ] 36-03-PLAN.md — UI Competitii pregatit pentru extern: wizard fara inter-club (D-14), PlatiClubExtern read-only, CompetitieDetail mode='extern'
+- [ ] 36-04-PLAN.md — Repararea RLS scriere cross-club (D-15): test rosu, migratie restrictiva scope + gate status/deadline, test verde
+- [ ] 36-05-PLAN.md — Auth extern: tipuri, utils testate, accesExternService, LoginOtp (OTP 8 cifre), SolicitaContForm
+- [ ] 36-06-PLAN.md — Endpoint federatie /api/aproba-cerere-acces (aproba/respinge, doar SUPER_ADMIN_FEDERATIE) + teste
+- [ ] 36-07-PLAN.md — Garda portal principal: pagina Acces limitat, skip fetchAppData, rolul extern ascuns din liste
+- [ ] 36-08-PLAN.md — RLS extern: permisive pe grant, restrictive de scope, default-deny generat, trigger protectie taxa/status
+- [ ] 36-09-PLAN.md — Zona externa: ramura /competitie/ in index.tsx, ExternDataProvider, ShellExtern, pagina cu masina de stari
+- [ ] 36-10-PLAN.md — Panou federatie: tab Acces extern (link, cereri aproba/respinge, revocare granturi)
+- [ ] 36-11-PLAN.md — Baterie live de scurgere/izolare cross-club si cross-competitie + sweep pe toate relatiile PostgREST
+- [ ] 36-12-PLAN.md — Verificare finala: flux aprobare live, spec Playwright pe build, docs, 36-VERIFICARE.md (prerechizit SMTP 32-08)
+
+**Structura valurilor:** val 1 = {36-01}; val 2 = {36-02, 36-03 dupa 01}; val 3 = {36-04 dupa 01+02; 36-05, 36-06 dupa 02}; val 4 = {36-07 dupa 02+05; 36-08 dupa 02+04; 36-09 dupa 03+05; 36-10 dupa 03+06}; val 5 = {36-11 dupa 08}; val 6 = {36-12 dupa 07+09+10+11}. Prerechizit de lansare: SMTP custom (plan 32-08), altfel emailurile OTP sunt limitate de Supabase.
 
 ---
 

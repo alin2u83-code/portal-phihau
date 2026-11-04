@@ -98,6 +98,23 @@
 - [ ] **ABX-05**: O politica din `politici_reducere` poate acorda automat un bonus dupa N reinnoiri consecutive (`reinnoiri_necesare`, `tip_bonus` in `zile_gratis` / `discount`), cu schema verificata live inainte de implementare si fara a fi confundata cu tabelul `reduceri`
 - [ ] **ABX-06**: Facturile generate automat de `handleGenerateSubscriptions` aplica efectiv gratia si bonusul de loialitate (suma redusa real, `suma_initiala` + `reducereDetalii` + rand in `aplicare_reduceri`), inchizand TODO-ul "Bug 4" din `components/Plati/PlatiScadente.tsx`
 
+### Acces extern competitie prin link (Faza 36 — reprezentant de club, doar zona competitiei)
+
+> ID-uri create la planificarea fazei 36, derivate 1:1 din deciziile D-01..D-16 din `36-CONTEXT.md` si din constatarile `36-RESEARCH.md`.
+
+- [ ] **ACX-01**: Fiecare competitie are un link public `/competitie/<uuid>` care deschide direct o zona izolata cu datele generale publice ale competitiei (RPC anonim), fara incarcarea portalului principal; linkul poate fi copiat de federatie din tab-ul "Acces extern"
+- [ ] **ACX-02**: Autentificarea in zona externa se face doar cu email + cod OTP de 8 cifre (fara parola, fara link de actiune in email); doar emailurile cu rol ADMIN_CLUB/INSTRUCTOR la un club sau cu acces aprobat pe competitie primesc un context eligibil
+- [ ] **ACX-03**: Un email fara cont poate trimite o cerere de acces (email, nume, club) prin RPC anonim cu plafon si fara dublare; federatia o aproba sau o respinge dintr-un endpoint rezervat SUPER_ADMIN_FEDERATIE, aprobarea creand contul si accesul limitat la competitie
+- [ ] **ACX-04**: Reprezentantul inscrie sportivii clubului sau doar in competitia din link prin wizardul existent de inscriere club, cu functiile inter-club (coechipier din alt club, echipe inter-club) dezactivate; INSTRUCTOR poate inscrie
+- [ ] **ACX-05**: Reprezentantul vede lista participantilor DOAR ai propriului club in acea competitie
+- [ ] **ACX-06**: Reprezentantul vede, doar citire, situatia taxelor de competitie ale clubului sau (total, achitat, rest), fara a putea marca plati
+- [ ] **ACX-07**: Reprezentantul vede datele generale ale competitiei (denumire, tip, perioada, locatie, termen inscrieri, probe)
+- [ ] **ACX-08**: Zona externa nu contine sidebar, meniu, alte module sau alte competitii; un cont doar-extern care deschide portalul principal vede o pagina "Acces limitat" fara incarcarea datelor clubului
+- [ ] **ACX-09**: RLS nou izoleaza datele per club + competitie (permisive pe grant, restrictive de scope, default-deny pe celelalte tabele, protectie `taxa_achitata`/`status`), definit dupa auditul `pg_policies` LIVE
+- [ ] **ACX-10**: Politicile vechi care permiteau oricarui ADMIN_CLUB sa scrie cross-club in inscrieri/echipe/competitii sunt reparate (WITH CHECK pe club + competitie + status/deadline), federatia ramanand exceptata
+- [ ] **ACX-11**: Portalul principal pastreaza comportamentul si vizibilitatea actuala pentru rolurile existente (ADMIN_CLUB vede in continuare participantii din alte cluburi); restrictiile se aplica doar contului doar-extern
+- [ ] **ACX-12**: Verificare finala: teste live de scurgere cross-club/cross-competitie cu sweep pe toate relatiile expuse, flux de aprobare cap-coada, spec de browser pe build, documentatie si lista prerechizitelor de lansare (SMTP custom, plan 32-08)
+
 ## Future Requirements (deferred)
 
 - Dashboard federație cu agregate multi-club (SUPER_ADMIN) — v2.0
@@ -178,3 +195,15 @@
 | ABX-04 | Phase 30 | 30-02-PLAN.md, 30-05-PLAN.md |
 | ABX-05 | Phase 30 | 30-04-PLAN.md, 30-05-PLAN.md |
 | ABX-06 | Phase 30 | 30-05-PLAN.md |
+| ACX-01 | Phase 36 | 36-02-PLAN.md, 36-05-PLAN.md, 36-09-PLAN.md, 36-10-PLAN.md |
+| ACX-02 | Phase 36 | 36-05-PLAN.md, 36-09-PLAN.md, 36-12-PLAN.md |
+| ACX-03 | Phase 36 | 36-02-PLAN.md, 36-05-PLAN.md, 36-06-PLAN.md, 36-10-PLAN.md, 36-12-PLAN.md |
+| ACX-04 | Phase 36 | 36-03-PLAN.md, 36-04-PLAN.md, 36-09-PLAN.md |
+| ACX-05 | Phase 36 | 36-03-PLAN.md, 36-08-PLAN.md, 36-09-PLAN.md |
+| ACX-06 | Phase 36 | 36-03-PLAN.md, 36-08-PLAN.md, 36-09-PLAN.md |
+| ACX-07 | Phase 36 | 36-03-PLAN.md, 36-09-PLAN.md |
+| ACX-08 | Phase 36 | 36-02-PLAN.md, 36-03-PLAN.md, 36-07-PLAN.md, 36-08-PLAN.md, 36-09-PLAN.md, 36-12-PLAN.md |
+| ACX-09 | Phase 36 | 36-01-PLAN.md, 36-02-PLAN.md, 36-08-PLAN.md, 36-11-PLAN.md |
+| ACX-10 | Phase 36 | 36-01-PLAN.md, 36-04-PLAN.md |
+| ACX-11 | Phase 36 | 36-01-PLAN.md, 36-04-PLAN.md, 36-07-PLAN.md, 36-08-PLAN.md, 36-11-PLAN.md, 36-12-PLAN.md |
+| ACX-12 | Phase 36 | 36-11-PLAN.md, 36-12-PLAN.md |

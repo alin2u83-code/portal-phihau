@@ -286,6 +286,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
         onContinua={handlePas1Continua}
         onBack={() => setStep('hub')}
         cvd={competitie.tip === 'cvd' && !!arme}
+        armeEroare={arme?.error}
         armeAlese={armeAlese}
         onMergiLaArme={() => setStep('arme')}
       />

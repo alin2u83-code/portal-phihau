@@ -277,6 +277,7 @@ export interface Pas1Props {
   onBack: () => void;
   /** CVD: blocheaza Continua cat timp sportivii selectati nu au arme alese */
   cvd?: boolean;
+  armeEroare?: string | null;
   armeAlese?: ArmeAlese;
   onMergiLaArme?: () => void;
 }
@@ -284,7 +285,7 @@ export interface Pas1Props {
 const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   competitie, sportivi, grade, categorii, inscrieri, vizeSportivi,
   selected, myClubId, varsteCompetitie, onToggle, onRetrage, onContinua, onBack,
-  cvd, armeAlese, onMergiLaArme,
+  cvd, armeEroare, armeAlese, onMergiLaArme,
 }) => {
   const [confirmRetrageId, setConfirmRetrageId] = useState<string | null>(null);
   const [retragereInCurs, setRetragereInCurs] = useState<string | null>(null);
@@ -815,7 +816,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
           </span>
           {faraArme > 0 && (
             <button type="button" onClick={onMergiLaArme} className="text-xs text-yellow-400 underline text-left">
-              {faraArme} sportivi nu au arme alese — mergi la Arme
+              {armeEroare ? `Armele nu au putut fi încărcate: ${armeEroare}` : `${faraArme} sportivi nu au arme alese — mergi la Arme`}
             </button>
           )}
           <Button

@@ -276,14 +276,15 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         const eticheta = `${formatNume(rand.sportiv)}${rand.armaDenumire ? ' · ' + rand.armaDenumire : ''}`;
         try {
           // UNIQUE(categorie_id, sportiv_id): cautam dupa (sportiv, categorie), indiferent de arma
-          const { data: existent, error: selErr } = await supabase
+          const { data: existentRaw, error: selErr } = await supabase
             .from('inscrieri_competitie')
-            .select('id, status, inlantuire_id, taxa_achitata, arma_id')
+            .select(cvd ? 'id, status, inlantuire_id, taxa_achitata, arma_id' : 'id, status, inlantuire_id, taxa_achitata')
             .eq('competitie_id', competitie.id)
             .eq('sportiv_id', rand.sportiv.id)
             .eq('categorie_id', rand.categorie.id)
             .maybeSingle();
           if (selErr) throw new Error(selErr.message);
+          const existent = existentRaw as { id: string; status: string; inlantuire_id: string | null; taxa_achitata: boolean; arma_id?: string | null } | null;
 
           if (existent) {
             const acelasiRand = !rand.arma_id || existent.arma_id === rand.arma_id;

@@ -45,6 +45,15 @@ where i.categorie in ('thao_lo_bong','thao_lo_guom','thao_lo_dao','thao_lo_alte'
   and i.denumire not ilike 'Phuc Su Dao%'
   and i.denumire not ilike 'Cuu Khuc%';
 
+-- Backfill inscrieri CVD existente: arma din forma aleasa (idempotent). echipe_competitie: decizie manuala.
+update public.inscrieri_competitie ic
+set arma_id = i.arma_id
+from public.inlantuiri i
+where ic.inlantuire_id = i.id
+  and ic.arma_id is null
+  and i.arma_id is not null
+  and exists (select 1 from public.competitii c where c.id = ic.competitie_id and c.tip = 'cvd');
+
 -- RLS
 alter table public.arme enable row level security;
 alter table public.sportiv_arme enable row level security;

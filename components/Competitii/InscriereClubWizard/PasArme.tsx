@@ -155,6 +155,7 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
         </div>
       )}
       {arme.loading && <p className="text-sm text-slate-400">Se încarcă armele...</p>}
+      {arme.error && <p className="text-sm text-red-400">Armele nu au putut fi încărcate: {arme.error}</p>}
 
       {avertismente.length > 0 && (
         <div className="rounded-lg border border-amber-700/50 bg-amber-900/15 px-4 py-3 space-y-1">

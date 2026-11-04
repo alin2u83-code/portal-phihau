@@ -14,6 +14,7 @@ const GOL: Stare = { arme: [], drepturi: new Map(), implicit: new Map(), competi
 export function useArmeCvd(competitie: Competitie, sportivIds: string[], enabled: boolean) {
   const [stare, setStare] = useState<Stare>(GOL);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const competitieId = competitie?.id;
   // cheie stabila: evita refetch cand parintele recreeaza array-ul cu aceleasi id-uri
   const cheie = useMemo(() => [...sportivIds].sort().join(','), [sportivIds]);
@@ -27,6 +28,7 @@ export function useArmeCvd(competitie: Competitie, sportivIds: string[], enabled
       incarcaArme(), incarcaDrepturiArme(), incarcaArmeSportivi(competitieId, ids), incarcaStagiiLaArma(ids),
     ]);
     if (esteAnulat()) return;
+    setError([a, d, s, g].map(r => r.error).filter(Boolean).join('; ') || null);
     const imp = s.data?.implicit ?? new Map();
     const comp = new Map(s.data?.competitie ?? []);
     // sportivii fara rand pe competitie primesc local setul implicit (fara scriere in DB)
@@ -48,5 +50,5 @@ export function useArmeCvd(competitie: Competitie, sportivIds: string[], enabled
     if (enabled && competitieId) await incarca(() => false);
   }, [enabled, competitieId, incarca]);
 
-  return useMemo(() => ({ ...stare, loading, reload }), [stare, loading, reload]);
+  return useMemo(() => ({ ...stare, loading, error, reload }), [stare, loading, error, reload]);
 }

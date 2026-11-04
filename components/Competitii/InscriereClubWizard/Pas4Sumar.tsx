@@ -284,7 +284,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             .eq('categorie_id', rand.categorie.id)
             .maybeSingle();
           if (selErr) throw new Error(selErr.message);
-          const existent = existentRaw as { id: string; status: string; inlantuire_id: string | null; taxa_achitata: boolean; arma_id?: string | null } | null;
+          const existent = existentRaw as unknown as { id: string; status: string; inlantuire_id: string | null; taxa_achitata: boolean; arma_id?: string | null } | null;
 
           if (existent) {
             const acelasiRand = !rand.arma_id || existent.arma_id === rand.arma_id;

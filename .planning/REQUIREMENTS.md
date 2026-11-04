@@ -104,7 +104,7 @@
 
 - [ ] **ACX-01**: Fiecare competitie are un link public `/competitie/<uuid>` care deschide direct o zona izolata cu datele generale publice ale competitiei (RPC anonim), fara incarcarea portalului principal; linkul poate fi copiat de federatie din tab-ul "Acces extern"
 - [ ] **ACX-02**: Autentificarea in zona externa se face doar cu email + cod OTP de 8 cifre (fara parola, fara link de actiune in email); doar emailurile cu rol ADMIN_CLUB/INSTRUCTOR la un club sau cu acces aprobat pe competitie primesc un context eligibil
-- [ ] **ACX-03**: Un email fara cont poate trimite o cerere de acces (email, nume, club) prin RPC anonim cu plafon si fara dublare; federatia o aproba sau o respinge dintr-un endpoint rezervat SUPER_ADMIN_FEDERATIE, aprobarea creand contul si accesul limitat la competitie
+- [x] **ACX-03**: Un email fara cont poate trimite o cerere de acces (email, nume, club) prin RPC anonim cu plafon si fara dublare; federatia o aproba sau o respinge dintr-un endpoint rezervat SUPER_ADMIN_FEDERATIE, aprobarea creand contul si accesul limitat la competitie
 - [x] **ACX-04**: Reprezentantul inscrie sportivii clubului sau doar in competitia din link prin wizardul existent de inscriere club, cu functiile inter-club (coechipier din alt club, echipe inter-club) dezactivate; INSTRUCTOR poate inscrie
 - [x] **ACX-05**: Reprezentantul vede lista participantilor DOAR ai propriului club in acea competitie
 - [x] **ACX-06**: Reprezentantul vede, doar citire, situatia taxelor de competitie ale clubului sau (total, achitat, rest), fara a putea marca plati

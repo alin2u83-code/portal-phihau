@@ -131,3 +131,38 @@ Sidebar click / buton →
 ```
 
 `goBack()` traversează history stack intern (nu browser history).
+
+## 9. Flux acces extern la competiție (Faza 36)
+
+```
+Federația copiază linkul din Competiție → tab „Acces extern": /competitie/<uuid>
+    ↓
+Reprezentantul deschide linkul (index.tsx montează o aplicație izolată, fără portal/sidebar)
+    ↓
+Teaser public (RPC get_competitie_publica): denumire, perioadă, probe. Link invalid / draft / necunoscut → același mesaj generic
+    ↓
+Login email + cod OTP (signInWithOtp, fără parolă, fără link de acțiune în email)
+    ↓
+Context eligibil (ADMIN_CLUB/INSTRUCTOR la un club sau grant REPREZENTANT_COMPETITIE) → alegere context dacă sunt mai multe
+    ↓
+Shell extern: doar filele Înscrieri / Categorii / Taxe (read-only) / Detalii; înscriere prin wizard (inter-club dezactivat, D-14)
+```
+
+**Ramura „Solicită acces"** (email fără cont):
+
+```
+Formular (email, nume, club, mesaj) → RPC trimite_cerere_acces (anon; plafon 200 în așteptare, fără dublare)
+    ↓
+Federația: tab „Acces extern" → Aprobă / Respinge  (POST /api/aproba-cerere-acces, doar SUPER_ADMIN_FEDERATIE)
+    ↓
+Aprobare: cont creat fără parolă (sau rol adăugat la cont existent, cu avertisment `cont_existent_cu_alte_roluri`),
+          rând REPREZENTANT_COMPETITIE + grant activ. Fără email de notificare: federația anunță separat.
+    ↓
+Reprezentantul se loghează cu OTP pe același link
+```
+
+- Revocarea = `activ = false` pe grant (reversibilă). Reaprobarea unei cereri procesate întoarce 409.
+- Dezactivat în zona externă: coechipier din alt club, echipe inter-club, orice funcție cross-club (D-14).
+- Portalul principal rămâne neschimbat pentru rolurile existente (D-16); un cont doar-extern care deschide `/` vede „Acces limitat".
+- Context activ: aceeași cheie localStorage (`phi-hau-active-role-context-id`) ca în portal; pe același browser, loginul extern suprascrie contextul portalului.
+- Prerechizit de lansare: SMTP custom (planul 32-08), altfel emailurile OTP sunt limitate de Supabase.

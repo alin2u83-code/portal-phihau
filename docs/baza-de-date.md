@@ -88,3 +88,24 @@
 - `vedere_prezenta_sportiv` — prezențe cu detalii grupă/club (folosit în rapoarte)
 - `vizualizare_plati` — plăți cu detalii sportiv (pentru jurnal încasări)
 - `istoricPlatiDetaliat` — plăți cu total încasat și rest de plată
+
+## Acces extern la competiții (Faza 36)
+
+| Tabel | Descriere |
+|-------|-----------|
+| `acces_competitie_extern` | Grant per `user_id` + `competitie_id` + `club_id` (`activ`, `email`, `nume`, `cerere_id`, `creat_de`). RLS: utilizatorul își vede propriile granturi; federația ALL. Nu are FORCE RLS. |
+| `cereri_acces_competitie` | Cereri anonime de acces: `competitie_id`, `email`, `nume`, `club_id`, `mesaj`, `status` (`in_asteptare`/`aprobata`/`respinsa`), `motiv_respingere`, `procesat_la`, `procesat_de`. Index unic parțial pe cererile în așteptare. Anonimul nu citește nimic; scrie doar prin RPC. |
+
+Rol nou în `roluri`: `REPREZENTANT_COMPETITIE` (rândul de rol are `club_id` și `sportiv_id` NULL).
+
+**Funcții helper (SECURITY DEFINER, STABLE, fără execuție pentru `anon`):** `este_doar_extern()`, `acces_extern_competitie(competitie, club)`, `acces_extern_la_competitie(competitie)`, `acces_extern_la_club(club)`, `acces_extern_la_sportiv(sportiv)`, `acces_extern_sportiv_competitie`, `competitie_deschisa_inscrieri(competitie)`, `sportiv_apartine_clubului(sportiv, club)`, `categorie_apartine_competitiei(categorie, competitie)`.
+
+**RPC-uri:**
+- `get_competitie_publica(p_id)` — anon; teaser (fără draft).
+- `trimite_cerere_acces(p_competitie, p_email, p_nume, p_club, p_mesaj)` — anon; întoarce `ok`/`deja_trimisa` sau excepție (`date_invalide`, `competitie_indisponibila`, `club_invalid`, `prea_multe_cereri`).
+- `vize_club_competitie(p_competitie, p_club)` — authenticated; vizele clubului din grant.
+- `user_id_dupa_email(p_email)` — doar `service_role` (folosit de endpointul de aprobare).
+
+**RLS:** migrațiile `20261106a` (fundație), `20261106b` (scriere club-scoped în inscrieri/echipe/competitii), `20261106c` (politici `ext_p_*`, `ext_r_*`, `ext_r_deny_all` pe 120 tabele, `ext_r_storage_deny`, trigger `trg_extern_protejeaza_campuri`; view-urile `vedere_prezenta_sportiv` și `vedere_istoric_grade_sportiv` trecute pe `security_invoker`).
+
+**Gap cunoscut:** `cluburi` nu poate fi citit de `anon` (listă goală); formularul „Solicită acces" are nevoie de un RPC public `lista_cluburi_publice()` (vezi `36-VERIFICARE.md`).

@@ -58,3 +58,16 @@ Funcții SQL helper cheie (în `sql/rls/`):
 - **Foto minor**: vizibilă doar staff (INSTRUCTOR+)
 - **Date medicale**: doar data expirării vizei medicale
 - **ARBITRU**: vede la competiții exclusiv nume + categorie
+
+## REPREZENTANT_COMPETITIE (Faza 36)
+
+Rol pentru reprezentanții de club care accesează **o singură competiție** printr-un link public, fără acces la portal.
+
+- **Poate:** vedea datele generale ale competiției din grant, participanții **propriului club** în acea competiție, taxele clubului (doar citire) și înscrie sportivii clubului prin wizardul existent (inter-club dezactivat). Un `ADMIN_CLUB`/`INSTRUCTOR` cu context eligibil intră pe același link, cu rolul lui.
+- **Nu poate:** vedea alte cluburi sau competiții, marca plăți, modifica competiții/probe/categorii, schimba `taxa_achitata` sau statusul unei înscrieri (decât spre retras), atribui roluri sau granturi. Nu are sidebar și nu vede alte module.
+- **Fără club pe rândul de rol:** `utilizator_roluri_multicont.club_id` și `sportiv_id` sunt NULL. Clubul și competiția trăiesc în `acces_competitie_extern` (grant per user + competiție + club, `activ`). Triggerul `fn_automatizeaza_legatura_utilizator` nu leagă acest rol de un sportiv după email.
+- **`este_doar_extern()`:** funcție SQL care întoarce true când utilizatorul are rolul extern și niciun alt rol. Folosită în politicile RLS și, pe frontend, de garda din `App.tsx` (pagina „Acces limitat" pe `/`). Un cont mixt (ex. ADMIN_CLUB + extern) nu este „doar extern" și rămâne neschimbat în portal.
+- **Politici RLS:** permisive pe grant (`ext_p_*`, per tabel, prin `acces_extern_competitie` / `acces_extern_la_club`), restrictive de scope (`ext_r_*` pe SELECT și scriere), `ext_r_deny_all` pe restul tabelelor (default-deny) și `trg_extern_protejeaza_campuri` pe inscrieri/echipe. Politicile permisive pe grant nu depind de headerul `active-role-context-id`: un cont mixt vede reuniunea (rolul intern + grantul).
+- **Nu apare** în listele de roluri atribuibile din UI și este scos din selecția de context a portalului când utilizatorul are și alte roluri.
+- **Creare:** doar prin `POST /api/aproba-cerere-acces` (Bearer, doar `SUPER_ADMIN_FEDERATIE`). Autentificare: email + cod OTP de 8 cifre, fără parolă.
+- **Limite cunoscute:** vezi `.planning/phases/36-*/36-VERIFICARE.md` (funcții RPC `SECURITY DEFINER` apelabile de orice `authenticated`, coloane `sportivi` citibile integral pentru clubul din grant).

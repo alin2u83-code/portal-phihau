@@ -27,4 +27,14 @@ assert.deepEqual(tipuri([ok], { armeAlese: new Map([['a', new Set(['bong'])]]), 
 assert.deepEqual(tipuri([], { echipeFaraArma: [{ id: 'e1', denumire: 'E', categorieArma: 'Bong' }] }), ['echipa-fara-arma']);
 // categorie fara arma -> nu se semnaleaza
 assert.deepEqual(tipuri([], { echipeFaraArma: [{ id: 'e1', denumire: 'E', categorieArma: null }] }), []);
+// completitudine hub CVD
+import { completitudineCvd } from '../utils/armeCvdLipsuri';
+const al = new Map([['a', new Set(['bong', 'guom', 'dao'])]]);
+const ct = new Map([['a', new Map<string, unknown>([['bong', {}], ['guom', {}], ['dao', {}]])]]);
+const fm = (n: number) => new Map([['a', new Map(['bong', 'guom', 'dao'].slice(0, n).map(x => [x, 'f'] as [string, string]))]]);
+assert.deepEqual(completitudineCvd(['a'], al, ct, fm(3)), { total: 3, complet: 3, faraForma: 0 });
+assert.deepEqual(completitudineCvd(['a'], al, ct, fm(1)), { total: 3, complet: 1, faraForma: 2 });
+// arma fara categorie nu conteaza in total
+assert.deepEqual(completitudineCvd(['a'], al, new Map([['a', new Map<string, unknown>([['bong', {}]])]]), fm(1)), { total: 1, complet: 1, faraForma: 0 });
+assert.deepEqual(completitudineCvd([], al, ct, fm(0)), { total: 0, complet: 0, faraForma: 0 });
 console.log('OK');

@@ -5,6 +5,8 @@ import { PROBA_INFO, PROBA_COLOR_CLASSES } from './constants';
 import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap, ArmeAlese } from './types';
 import BannerDeRezolvat from './BannerDeRezolvat';
 import type { ItemDeRezolvat } from './BannerDeRezolvat';
+import { completitudineCvd } from '../../../utils/armeCvdLipsuri';
+import type { FormaPerArma, CategoriePerArma } from './types';
 import { esteEchipaSauPereche, esteInscrisActiv } from './shared';
 import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { ProbaCompetitie, CategorieCompetitie } from '../../../types';
@@ -74,6 +76,9 @@ export interface InscriereClubCardsProps extends InscriereClubWizardProps {
   armeLoading?: boolean;
   onDeschideArme?: () => void;
   bannerLipsuri?: ItemDeRezolvat[];
+  /** CVD: completitudinea probei thao_lo se calculeaza pe perechi (sportiv, arma) */
+  categoriePerArma?: CategoriePerArma;
+  formaPerArma?: FormaPerArma;
 }
 
 // -----------------------------------------------
@@ -109,6 +114,19 @@ function calculeazaStatusCard(
     nrComplet: db.nrCategorii, nrTotal: db.nrCategorii, categoriiExcluse: 0, isExplicitSkip: false,
     nrInscrisi: db.nrSportivi, nrCategoriiInscrise: db.nrCategorii,
   };
+  // CVD thao_lo: nu exista quyen/autoCategorie; completa = fiecare pereche (sportiv, arma cu categorie) are forma aleasa
+  if (competitie.tip === 'cvd' && proba.tip_proba === 'thao_lo_individual' && props.armeAlese && props.categoriePerArma && props.formaPerArma) {
+    const ids = Array.from(selectedSportivi).filter(id => !excludedFromIndividual.has(id));
+    const { total, complet, faraForma } = completitudineCvd(ids, props.armeAlese, props.categoriePerArma, props.formaPerArma);
+    if (total === 0) {
+      if (db.nrInscrieri > 0) return dejaCompletat;
+      return { proba, status: catProba.length === 0 ? 'exclus' : 'incomplet', nrSportivi: 0, nrComplet: 0, nrTotal: 0, categoriiExcluse: 0, isExplicitSkip: false };
+    }
+    return {
+      proba, status: faraForma > 0 ? 'blocat' : 'completat', nrSportivi: ids.length, nrComplet: complet, nrTotal: total,
+      motivBlocat: faraForma > 0 ? `${faraForma} rânduri fără formă` : undefined, categoriiExcluse: 0, isExplicitSkip: false,
+    };
+  }
   if (tipIndiv) {
     if (db.nrInscrieri > 0 && (selectedSportivi.size === 0 || autoCategorie.size === 0)) return dejaCompletat;
     if (selectedSportivi.size === 0 || autoCategorie.size === 0) {
@@ -488,7 +506,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const cards = useMemo<CardProba[]>(
     () => probeActive.map(p => calculeazaStatusCard(p, props)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [probeActive, props.selectedSportivi, props.autoCategorie, props.quyenAles, props.echipeFormate, props.probeSkipped, props.excludedFromIndividual, props.echipe, props.sportivi, props.grade, props.categorii, props.skippedCategorii, props.inscrieri, props.clubId]
+    [probeActive, props.selectedSportivi, props.autoCategorie, props.quyenAles, props.armeAlese, props.categoriePerArma, props.formaPerArma, props.echipeFormate, props.probeSkipped, props.excludedFromIndividual, props.echipe, props.sportivi, props.grade, props.categorii, props.skippedCategorii, props.inscrieri, props.clubId]
   );
 
   const cardsFiltrate = useMemo(
@@ -504,7 +522,7 @@ const InscriereClubCards: React.FC<InscriereClubCardsProps> = (props) => {
   const poateFinalizare = nrBlocate === 0;
 
   const tooltipFinalizare = nrBlocate > 0
-    ? `${nrBlocate} prob${nrBlocate !== 1 ? 'e' : 'ă'} blocate (quyen lipsă)`
+    ? `${nrBlocate} prob${nrBlocate !== 1 ? 'e' : 'ă'} blocate (completează formele / quyen)`
     : '';
 
   const nrSportiviSelectati = selectedSportivi.size;

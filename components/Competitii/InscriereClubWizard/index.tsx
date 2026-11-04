@@ -381,6 +381,8 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
         armeLoading={arme?.loading}
         onDeschideArme={arme ? () => setStep('arme') : undefined}
         bannerLipsuri={bannerLipsuri}
+        categoriePerArma={categoriePerArma}
+        formaPerArma={formaPerArma}
         selectedSportivi={selectedSportivi}
         autoCategorie={autoCategorie}
         quyenAles={quyenAles}

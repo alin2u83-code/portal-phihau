@@ -48,3 +48,21 @@ export function calculeazaLipsuriCvd(i: Intrare): Lipsa[] {
   }
   return out;
 }
+
+/** Completitudine proba individuala CVD: perechi (sportiv, arma) care au categorie; completa = are forma aleasa. */
+export function completitudineCvd(
+  sportivIds: Iterable<string>,
+  armeAlese: Map<string, Set<string>>,
+  categoriePerArma: Map<string, Map<string, unknown>>,
+  formaPerArma: Map<string, Map<string, string>>,
+): { total: number; complet: number; faraForma: number } {
+  let total = 0, complet = 0;
+  for (const id of sportivIds) {
+    for (const armaId of armeAlese.get(id) ?? []) {
+      if (!categoriePerArma.get(id)?.has(armaId)) continue;
+      total++;
+      if (formaPerArma.get(id)?.get(armaId)) complet++;
+    }
+  }
+  return { total, complet, faraForma: total - complet };
+}

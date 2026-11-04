@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: milestone
 status: executing
 stopped_at: Completed 34-13-PLAN.md (faza 34 asteapta verificare umana)
-last_updated: "2026-11-04T22:05:27.633Z"
+last_updated: "2026-11-04T22:13:14.165Z"
 last_activity: 2026-11-04 -- Phase 36 execution started
 progress:
   total_phases: 28
   completed_phases: 16
   total_plans: 109
-  completed_plans: 94
+  completed_plans: 96
   percent: 57
 ---
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 36 (acces-extern-competitie) — EXECUTING
-Plan: 1 of 12
-Status: Executing Phase 36
+Plan: 2 of 12
+Status: Ready to execute
 Last activity: 2026-11-04 -- Phase 36 execution started
 
 ```
@@ -76,6 +76,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 34 P10 | 15min | 2 tasks | 2 files |
 | Phase 34 P11 | 12min | 2 tasks | 2 files |
 | Phase 34 P13 | 25min | 3 tasks | 2 files |
+| Phase 36 P03 | 15min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,7 @@ Recent decisions affecting current work:
 - [Phase 34]: [Phase 34] [34-10] Singurul Button primary in PlatiScadente = Incaseaza N facturi selectate; restul actiunilor secondary
 - [Phase 34]: [34-11] Competitii: toggle colapsibil CompetitieFilterBar pastrat, doar panoul inline pe tokeni; STATUS_BADGE local, statusLabel.color/tipBadge raman pentru detaliu
 - [Phase 34]: 34-13: spec shell tema se aplica si dupa login (tema din DB suprascrie localStorage); capturile screens/ necomise
+- [Phase 36]: 36-03: canEditArme false pentru externRol INSTRUCTOR (aliniere RLS Faza 35), de confirmat
 
 ### Pending Todos
 
@@ -236,6 +238,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-11-03T11:18:17.956Z
+Last session: 2026-11-04T22:13:06.822Z
 Stopped at: Completed 34-13-PLAN.md (faza 34 asteapta verificare umana)
 Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md

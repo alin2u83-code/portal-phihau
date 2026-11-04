@@ -105,11 +105,11 @@
 - [ ] **ACX-01**: Fiecare competitie are un link public `/competitie/<uuid>` care deschide direct o zona izolata cu datele generale publice ale competitiei (RPC anonim), fara incarcarea portalului principal; linkul poate fi copiat de federatie din tab-ul "Acces extern"
 - [ ] **ACX-02**: Autentificarea in zona externa se face doar cu email + cod OTP de 8 cifre (fara parola, fara link de actiune in email); doar emailurile cu rol ADMIN_CLUB/INSTRUCTOR la un club sau cu acces aprobat pe competitie primesc un context eligibil
 - [ ] **ACX-03**: Un email fara cont poate trimite o cerere de acces (email, nume, club) prin RPC anonim cu plafon si fara dublare; federatia o aproba sau o respinge dintr-un endpoint rezervat SUPER_ADMIN_FEDERATIE, aprobarea creand contul si accesul limitat la competitie
-- [ ] **ACX-04**: Reprezentantul inscrie sportivii clubului sau doar in competitia din link prin wizardul existent de inscriere club, cu functiile inter-club (coechipier din alt club, echipe inter-club) dezactivate; INSTRUCTOR poate inscrie
-- [ ] **ACX-05**: Reprezentantul vede lista participantilor DOAR ai propriului club in acea competitie
-- [ ] **ACX-06**: Reprezentantul vede, doar citire, situatia taxelor de competitie ale clubului sau (total, achitat, rest), fara a putea marca plati
-- [ ] **ACX-07**: Reprezentantul vede datele generale ale competitiei (denumire, tip, perioada, locatie, termen inscrieri, probe)
-- [ ] **ACX-08**: Zona externa nu contine sidebar, meniu, alte module sau alte competitii; un cont doar-extern care deschide portalul principal vede o pagina "Acces limitat" fara incarcarea datelor clubului
+- [x] **ACX-04**: Reprezentantul inscrie sportivii clubului sau doar in competitia din link prin wizardul existent de inscriere club, cu functiile inter-club (coechipier din alt club, echipe inter-club) dezactivate; INSTRUCTOR poate inscrie
+- [x] **ACX-05**: Reprezentantul vede lista participantilor DOAR ai propriului club in acea competitie
+- [x] **ACX-06**: Reprezentantul vede, doar citire, situatia taxelor de competitie ale clubului sau (total, achitat, rest), fara a putea marca plati
+- [x] **ACX-07**: Reprezentantul vede datele generale ale competitiei (denumire, tip, perioada, locatie, termen inscrieri, probe)
+- [x] **ACX-08**: Zona externa nu contine sidebar, meniu, alte module sau alte competitii; un cont doar-extern care deschide portalul principal vede o pagina "Acces limitat" fara incarcarea datelor clubului
 - [ ] **ACX-09**: RLS nou izoleaza datele per club + competitie (permisive pe grant, restrictive de scope, default-deny pe celelalte tabele, protectie `taxa_achitata`/`status`), definit dupa auditul `pg_policies` LIVE
 - [ ] **ACX-10**: Politicile vechi care permiteau oricarui ADMIN_CLUB sa scrie cross-club in inscrieri/echipe/competitii sunt reparate (WITH CHECK pe club + competitie + status/deadline), federatia ramanand exceptata
 - [ ] **ACX-11**: Portalul principal pastreaza comportamentul si vizibilitatea actuala pentru rolurile existente (ADMIN_CLUB vede in continuare participantii din alte cluburi); restrictiile se aplica doar contului doar-extern

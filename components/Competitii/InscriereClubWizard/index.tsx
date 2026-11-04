@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { supabase } from '../../../supabaseClient';
-import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
+import { verificaEligibilitate, gradEfectivLaData } from '../../../utils/eligibilitateCompetitie';
+import type { CategorieCompetitie } from '../../../types';
 import { InscriereClubWizardProps, EchipaFormata, QuyenAlesMap, ArmeAlese, FormaPerArma, CategoriePerArma } from './types';
 import { categoriePentruArma } from '../../../utils/armeCvd';
-import { gradEfectivLaData } from '../../../utils/eligibilitateCompetitie';
 import Pas2Arme from './Pas2Arme';
 import PasArme from './PasArme';
 import Pas1SelectareSportivi from './Pas1';
@@ -55,7 +55,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   }, [selectedSportiviMap]);
 
   // Pas2: categorii auto-asignate + quyen ales
-  const [autoCategorie, setAutoCategorie] = useState<Map<string, import('../../../types').CategorieCompetitie>>(new Map());
+  const [autoCategorie, setAutoCategorie] = useState<Map<string, CategorieCompetitie>>(new Map());
   const [quyenAles, setQuyenAles] = useState<QuyenAlesMap>(new Map());
 
   // Pas3: echipe formate
@@ -87,7 +87,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
     });
     if (inscrieriIndiv.length === 0) return;
     initializedFromInscrieri.current = true;
-    const newAuto = new Map<string, import('../../../types').CategorieCompetitie>();
+    const newAuto = new Map<string, CategorieCompetitie>();
     const newQuyen = new Map<string, { q1: string; q2: string }>();
     const newSelectedMap = new Map<string, Set<string>>();
     for (const ins of inscrieriIndiv) {
@@ -200,7 +200,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
       const alese = armeAlese.get(s.id);
       if (!alese || alese.size === 0) continue;
       const ordine = gradEfectivLaData(s, grade, competitie.data_inceput)?.ordine ?? 0;
-      const m = new Map<string, import('../../../types').CategorieCompetitie>();
+      const m = new Map<string, CategorieCompetitie>();
       for (const armaId of alese) {
         const arma = armePeId.get(armaId);
         const cat = arma && categoriePentruArma(arma, s, ordine, competitie.data_inceput, categorii, arme.arme);
@@ -224,7 +224,7 @@ const InscriereClubWizard: React.FC<InscriereClubWizardProps> = ({
   };
 
   const computeAutoCategorie = useCallback(() => {
-    const m = new Map<string, import('../../../types').CategorieCompetitie>();
+    const m = new Map<string, CategorieCompetitie>();
     const catIndiv = categorii
       .filter(c => c.tip_participare === 'individual')
       .sort((a, b) => (a.ordine_afisare ?? 0) - (b.ordine_afisare ?? 0));

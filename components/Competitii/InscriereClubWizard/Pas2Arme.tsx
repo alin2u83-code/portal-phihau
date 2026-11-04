@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Inlantuire } from '../../../types';
-import { supabase } from '../../../supabaseClient';
+import { incarcaFormeCvd } from '../../../services/armeCvdService';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
@@ -27,28 +27,12 @@ const Pas2Arme: React.FC<Pas2ArmeProps> = ({
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('inlantuiri_grade')
-          .select('grade_id, inlantuiri!inlantuire_id(id, denumire, ordine, activ, arma_id)')
-          .eq('tip_proba', 'thao_lo_individual');
-        if (error) throw error;
-        if (cancelled) return;
-        const m = new Map<string, Inlantuire[]>();
-        for (const row of (data ?? []) as unknown as { grade_id: string; inlantuiri: Inlantuire | null }[]) {
-          if (!row.inlantuiri?.arma_id || row.inlantuiri.activ === false) continue;
-          if (!m.has(row.grade_id)) m.set(row.grade_id, []);
-          m.get(row.grade_id)!.push(row.inlantuiri);
-        }
-        for (const l of m.values()) l.sort((a, b) => a.ordine - b.ordine);
-        setDreptMap(m);
-      } catch (err) {
-        showError('Incarcare drepturi grad', err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
+    incarcaFormeCvd().then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) showError('Incarcare drepturi grad', error);
+      else if (data) setDreptMap(data);
+      setLoading(false);
+    });
     return () => { cancelled = true; };
   }, [showError]);
 
@@ -74,7 +58,7 @@ const Pas2Arme: React.FC<Pas2ArmeProps> = ({
 
   // o singura optiune -> se alege automat, o data (nu suprascrie alegeri existente)
   useEffect(() => {
-    if (loading || autoDone.current) return;
+    if (loading || autoDone.current || randuri.length === 0) return;
     autoDone.current = true;
     let next = formaPerArma;
     let schimbat = false;
@@ -99,7 +83,7 @@ const Pas2Arme: React.FC<Pas2ArmeProps> = ({
     for (const r of randuri) for (const sec of r.sectiuni) {
       if (!sec.categorie) continue;
       t++;
-      if (formaPerArma.get(r.s.id)?.get(sec.arma.id)) c++;
+      if (sec.opts.some(f => f.id === formaPerArma.get(r.s.id)?.get(sec.arma.id))) c++;
     }
     return { total: t, complet: c };
   }, [randuri, formaPerArma]);
@@ -137,7 +121,7 @@ const Pas2Arme: React.FC<Pas2ArmeProps> = ({
                       <div className="text-xs text-slate-500 truncate">{categorie ? categorie.denumire : 'Nicio categorie potrivită'}</div>
                     </div>
                     <select
-                      value={formaPerArma.get(s.id)?.get(arma.id) ?? ''}
+                      value={opts.find(f => f.id === formaPerArma.get(s.id)?.get(arma.id))?.id ?? ''}
                       disabled={!categorie || opts.length === 0}
                       onChange={e => onChange(seteaza(formaPerArma, s.id, arma.id, e.target.value))}
                       className="w-full sm:w-1/2 min-h-[40px] bg-slate-900 border border-slate-600 rounded-lg px-2 text-sm text-white disabled:opacity-50"

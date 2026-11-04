@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient';
-import type { Arma } from '../types';
+import type { Arma, Inlantuire } from '../types';
 
 type Rez<T> = Promise<{ data: T | null; error: string | null }>;
 
@@ -47,6 +47,27 @@ export async function incarcaDrepturiArme(): Rez<Map<string, Set<string>>> {
         .order('grade_id'));
     const m = new Map<string, Set<string>>();
     for (const r of rows) if (r.inlantuiri?.arma_id) adauga(m, r.grade_id, r.inlantuiri.arma_id);
+    return { data: m, error: null };
+  } catch (e) {
+    return { data: null, error: msg(e) };
+  }
+}
+
+/** Formele CVD (thao_lo_individual) permise per grad: gradId -> forme cu arma_id, sortate dupa ordine. */
+export async function incarcaFormeCvd(): Rez<Map<string, Inlantuire[]>> {
+  try {
+    const rows = await toateRandurile<{ grade_id: string; inlantuiri: Inlantuire | null }>(() =>
+      supabase.from('inlantuiri_grade')
+        .select('grade_id, inlantuiri!inlantuire_id(id, denumire, ordine, activ, arma_id)')
+        .eq('tip_proba', 'thao_lo_individual')
+        .order('grade_id').order('inlantuire_id'));
+    const m = new Map<string, Inlantuire[]>();
+    for (const r of rows) {
+      if (!r.inlantuiri?.arma_id || r.inlantuiri.activ === false) continue;
+      if (!m.has(r.grade_id)) m.set(r.grade_id, []);
+      m.get(r.grade_id)!.push(r.inlantuiri);
+    }
+    for (const l of m.values()) l.sort((a, b) => a.ordine - b.ordine);
     return { data: m, error: null };
   } catch (e) {
     return { data: null, error: msg(e) };

@@ -40,6 +40,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
       <p>Variabilele de mediu VITE_SUPABASE_URL și/sau VITE_SUPABASE_ANON_KEY nu sunt definite.</p>
     </div>
   );
+} else if (window.location.pathname.startsWith('/competitie/')) {
+  // Zona externă (Faza 36, D-10): aplicație separată, fără DataProvider/NavigationProvider/ThemeProvider/BrowserRouter/App.
+  const CompetitieExternaPage = React.lazy(() => import('./components/CompetitieExterna'));
+  root.render(
+    <React.StrictMode>
+      <ErrorProvider>
+        <QueryClientProvider client={queryClient}>
+          <RefreshProvider>
+            <React.Suspense fallback={<div style={{ padding: 20, textAlign: 'center' }}>Se încarcă...</div>}>
+              <CompetitieExternaPage />
+            </React.Suspense>
+          </RefreshProvider>
+        </QueryClientProvider>
+      </ErrorProvider>
+    </React.StrictMode>
+  );
 } else {
   root.render(
     <React.StrictMode>

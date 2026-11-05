@@ -544,6 +544,27 @@ Plans:
 
 **Structura valurilor:** val 1 = {36-01}; val 2 = {36-02, 36-03 dupa 01}; val 3 = {36-04 dupa 01+02; 36-05, 36-06 dupa 02}; val 4 = {36-07 dupa 02+05; 36-08 dupa 02+04; 36-09 dupa 03+05; 36-10 dupa 03+06}; val 5 = {36-11 dupa 08}; val 6 = {36-12 dupa 07+09+10+11}. Prerechizit de lansare: SMTP custom (plan 32-08), altfel emailurile OTP sunt limitate de Supabase.
 
+### Phase 37: Hardening securitate DB: reducere suprafata RPC SECURITY DEFINER, garzi in functiile de bani/date, model citire sportivi fara cross-club
+
+**Goal:** Inchide suprafata de atac a bazei de date descoperita dupa faza 36 (inventar live 5.11.2026): RPC `SECURITY DEFINER` apelabile de anon/authenticated fara garda, si citirea cross-club a tabelei `sportivi` (CNP, minori). Surse: `.planning/todos/pending/2026-11-05-faza-hardening-securitate-PROPUNERE.md`, `36-SECURITY.md` (T-36-37, T-36-41).
+**Valuri:** V0 triaj 177 functii + test ACL allowlist; V1 `REVOKE` anon (cu exceptia functiilor publice intentionate) + `DEFAULT PRIVILEGES`; V2 garzi in RPC-urile de bani/date (proceseaza_incasare_normalizata, recalculare_stare_plata, generare_factura_examen, adauga_sportiv_complet, process_exam_row_v4, export_sportivi_selectati, decrypt_cnp, get_all_app_data) — V1+V2 INAINTE de invitarea reprezentantilor externi; V3 view `sportivi` cu coloane limitate, cross-club doar federatia (DUPA invitatii); V4 restul (cluburi_public_select, cheie localStorage extern, storage, plasa default-deny).
+**Decizii:** `scoala_ioncreanga_*` NU se ating (aplicatie separata, discutie separata). Cross-club la competitii: doar federatia.
+**Requirements**: SEC-37-V0, SEC-37-V1, SEC-37-V2, SEC-37-V3, SEC-37-V4
+**Depends on:** Phase 36
+**Plans:** 9 plans (waves 1-9, secvential; 37-06..37-09 = poarta post-invitatii)
+
+Plans:
+
+- [ ] 37-01-PLAN.md — Val 0a: functie snapshot ACL + test `acl_definer_faza37` (allowlist baseline) + baseline regresie
+- [ ] 37-02-PLAN.md — Val 0b: triaj `37-TRIAJ.md` (177 functii definer: A/B/C/D, apelanti, liste de executie)
+- [ ] 37-03-PLAN.md — Val 1: REVOKE anon/PUBLIC (cu GRANT explicit), C/service-only, DEFAULT PRIVILEGES, garda `cauta_utilizatori_comisie`
+- [ ] 37-04-PLAN.md — Val 2a: garzi pe functiile de bani (incasare, recalculare, factura examen x2) + test live
+- [ ] 37-05-PLAN.md — Val 2b: garzi pe functiile cu date de sportivi (adauga_sportiv_complet, process_exam_row_v4, export reparat, decrypt_cnp, get_all_app_data)
+- [ ] 37-06-PLAN.md — Val 3a [poarta post-invitatii]: view limitat sportivi pentru contul extern (T-36-41)
+- [ ] 37-07-PLAN.md — Val 3b [post-invitatii]: citire sportivi/inscrieri/echipe doar club + familie + federatie (H1)
+- [ ] 37-08-PLAN.md — Val 4a [post-invitatii]: default-deny tabele noi, cluburi (cif/setari), istoric_grade, audit storage
+- [ ] 37-09-PLAN.md — Val 4b [post-invitatii]: cheie localStorage separata pentru contextul extern
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

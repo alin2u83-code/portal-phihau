@@ -191,6 +191,8 @@ Recent decisions affecting current work:
 
 ### Roadmap Evolution
 
+- Phase 37 added: Hardening securitate DB (RPC SECURITY DEFINER, garzi bani/date, citire sportivi cross-club). V1+V2 inainte de invitatii externe, V3 dupa.
+
 - Phase 15 added: Fix RLS izolare cross-club pe tabele financiare (alocari_plati, tranzactie_plata, incasari_efective, obligatii_plata, aplicare_reduceri, detalii_decont, sesiune_activitate, staging_inscrieri)
 - Phase 16 added: Elimina politici RLS USING(true) ramase (rezultate, facturi_federale, note_examene, etc) si restrictioneaza public.users
 - Phase 17 added: Verifica aplicare live migratie deduplicare sportivi si decide MFA obligatoriu vs opțional

@@ -72,6 +72,14 @@ async function scrieBaseline() {
     authenticated: rows.filter((r) => r.definer && r.authenticated && !prefixat(r.nume, prefixe.authenticated)).map((r) => r.semnatura),
     anon_obligatoriu: existent.anon_obligatoriu ?? [],
   };
+  // Ratchet: baseline-ul nu poate CRESTE tacit (ar transforma un test rosu in verde). Cresterea cere --allow-grow.
+  const adaugate = (['anon', 'authenticated'] as Rol[]).flatMap((rol) =>
+    al[rol].filter((s) => !(existent[rol] ?? []).includes(s)).map((s) => `${rol}:${s}`));
+  if (existent.anon && adaugate.length && !process.argv.includes('--allow-grow')) {
+    console.error(`REFUZ: baseline-ul ar creste cu ${adaugate.length} functii expuse (triaj necesar): ${adaugate.join(' | ')}\nFoloseste --allow-grow doar dupa triaj.`);
+    process.exitCode = 1;
+    return;
+  }
   writeFileSync(ALLOWLIST_PATH, JSON.stringify(al, null, 2) + '\n');
   console.log(`Baseline scris: anon=${al.anon.length}, authenticated=${al.authenticated.length}, prefixe exceptie=${prefixe.anon.join(',')}`);
 }
@@ -102,10 +110,12 @@ async function main() {
   const lipsa = al.anon_obligatoriu.filter((s) => !dupaSemn.get(s)?.anon);
   record('anon_obligatoriu inca apelabile de anon', lipsa.length === 0, lipsa.length ? `lipsa=${lipsa.join(' | ')}` : `n=${al.anon_obligatoriu.length}`);
 
-  // (4) intrari invechite: doar informativ (ratchet)
+  record('anon_obligatoriu nevid (altfel verificarea trece pe gol)', al.anon_obligatoriu.length > 0);
+
+  // (4) intrari invechite = FAIL (ratchet): dupa un REVOKE, scoate intrarea din allowlist, altfel o re-expunere ar trece tacut
   for (const rol of ['anon', 'authenticated'] as Rol[]) {
     const invechite = al[rol].filter((s) => !(dupaSemn.get(s)?.definer && dupaSemn.get(s)?.[rol]));
-    if (invechite.length) info(`${rol}: intrari invechite in allowlist (pot fi scoase)`, invechite.join(' | '));
+    record(`${rol}: allowlist fara intrari invechite`, invechite.length === 0, invechite.length ? `scoate: ${invechite.join(' | ')}` : undefined);
   }
 
   // (5) proba functionala: anon nu poate apela functia de snapshot

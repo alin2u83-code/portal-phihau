@@ -168,5 +168,9 @@
     "verifica_dispozitiv_incredere(text)",
     "vize_club_competitie(uuid,uuid)"
   ],
-  "anon_obligatoriu": []
+  "anon_obligatoriu": [
+    "get_competitie_publica(uuid)",
+    "lista_cluburi_publice()",
+    "trimite_cerere_acces(uuid,text,text,uuid,text)"
+  ]
 }

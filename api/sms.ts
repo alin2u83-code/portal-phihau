@@ -1,5 +1,24 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { autentificaApelant } from './_autentificareApelant.js';
+import { greutateMaximaGlobala, greutatePerClub, GREUTATE_FEDERATIE, ROLE_WEIGHTS } from './_permisiuniCont.js';
+
+// Faza 37: endpoint-urile rulau cu service_role fara nicio verificare a apelantului (citire sms_queue,
+// trimitere prin gateway-ul oricarui club). Acum cer Bearer valid + ADMIN_CLUB(+) in clubul cerut, sau federatie.
+async function autorizeazaClub(req: VercelRequest, res: VercelResponse, supabase: SupabaseClient, clubId: string): Promise<boolean> {
+  const { data: apelant, status, error } = await autentificaApelant(supabase, req.headers.authorization);
+  if (!apelant) {
+    res.status(status!).json({ error });
+    return false;
+  }
+  const esteFederatie = greutateMaximaGlobala(apelant.callerRoles) >= GREUTATE_FEDERATIE;
+  const gClub = greutatePerClub(apelant.callerRoles).get(clubId) ?? 0;
+  if (!esteFederatie && gClub < ROLE_WEIGHTS['ADMIN_CLUB']) {
+    res.status(403).json({ error: 'Nu aveți permisiunea pentru acest club.' });
+    return false;
+  }
+  return true;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') return handleStatus(req, res);
@@ -32,6 +51,8 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
 
   const parsedLimit = parseInt(limit, 10);
   const safeLimit = (!isNaN(parsedLimit) && parsedLimit > 0) ? Math.min(parsedLimit, 200) : 50;
+
+  if (!(await autorizeazaClub(req, res, supabase, club_id))) return;
 
   let query = supabase
     .from('sms_queue')
@@ -69,6 +90,8 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
     auth: { autoRefreshToken: false, persistSession: false }
   });
 
+  if (!(await autorizeazaClub(req, res, supabase, club_id))) return;
+
   const { data, error } = await supabase.rpc('add_sms_to_queue', {
     p_club_id: club_id,
     p_sportiv_id: sportiv_id,
@@ -101,6 +124,8 @@ async function handleTest(req: VercelRequest, res: VercelResponse) {
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   });
+
+  if (!(await autorizeazaClub(req, res, supabase, club_id))) return;
 
   // Fetch config
   const { data: config, error: configErr } = await supabase

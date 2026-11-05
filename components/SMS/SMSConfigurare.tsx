@@ -4,6 +4,7 @@ import { Club } from '../../types';
 import { Button, Card, Input, Select, Switch } from '../ui';
 import { useError } from '../ErrorProvider';
 import { usePermissions } from '../../hooks/usePermissions';
+import { obtineHeadereAutentificare } from '../../services/apiAutentificat';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -223,13 +224,15 @@ export const SMSConfigurare: React.FC<SMSConfigurareProps> = ({
     setTesting(true);
     setTestResult(null);
     try {
+      const { data: headers, error: authErr } = await obtineHeadereAutentificare();
+      if (!headers) throw new Error(authErr || 'Sesiune expirată.');
       const res = await fetch('/api/sms?action=test', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ club_id: selectedClubId, test_phone: testPhone }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.message || 'Eroare server');
+      if (!res.ok) throw new Error(json.error || json.message || 'Eroare server');
       setTestResult({
         success: json.success ?? true,
         message: json.message || 'Conexiune reușită',

@@ -40,8 +40,8 @@ export const SolicitaContForm: React.FC<SolicitaContFormProps> = ({ competitieId
         setLoading(true); setEroare(null);
         const rez = await trimiteCerereAcces({ competitieId, email: email.trim(), nume: numeCurat, clubId, mesaj });
         setLoading(false);
-        // Același ecran pentru 'ok' și 'deja_trimisa': nu dezvăluim dacă există deja o cerere.
-        if (rez === 'ok' || rez === 'deja_trimisa') { setTrimis(true); onTrimis(); return; }
+        // Același ecran pentru cerere nouă și existentă: serverul întoarce 'ok' în ambele cazuri.
+        if (rez === 'ok') { setTrimis(true); onTrimis(); return; }
         setEroare(MESAJE_EROARE[rez] ?? 'Nu am putut trimite cererea. Încearcă din nou.');
     };
 

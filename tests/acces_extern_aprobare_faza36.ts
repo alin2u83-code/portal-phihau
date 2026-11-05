@@ -106,7 +106,7 @@ async function main() {
     };
 
     const FED = await mkPwdUser('fed');
-    await addRol(FED.uid, 'SUPER_ADMIN_FEDERATIE', null);
+    const fedRolId = await addRol(FED.uid, 'SUPER_ADMIN_FEDERATIE', null);
     const ADM = await mkPwdUser('adm');
     const admRolId = await addRol(ADM.uid, 'ADMIN_CLUB', CLUB_B);
     const tokFed = await loginPwd(FED.email, parola);
@@ -126,7 +126,7 @@ async function main() {
     record('RPC anonim: cerere valida -> ok', !r1.error && r1.data === 'ok', r1.error?.message ?? String(r1.data));
     const r1b = await cerereRpc(C1, E1, 'ZZ Test Unu', CLUB_A);
     const rows1 = await idCerere(E1);
-    record('RPC anonim: repetata -> deja_trimisa, un singur rand', !r1b.error && r1b.data === 'deja_trimisa' && rows1.length === 1, `rows=${rows1.length}`);
+    record('RPC anonim: repetata -> ok (identic), un singur rand', !r1b.error && r1b.data === 'ok' && rows1.length === 1, `rows=${rows1.length}`);
     const rClub = await cerereRpc(C1, `${EMAIL_PREFIX}x@example.test`, 'ZZ Test', crypto.randomUUID());
     record('RPC anonim: club inexistent -> club_invalid', !!rClub.error && /club_invalid/.test(rClub.error.message));
     const rDraft = await cerereRpc(CDRAFT, `${EMAIL_PREFIX}x@example.test`, 'ZZ Test', CLUB_A);
@@ -135,6 +135,33 @@ async function main() {
     const rNume = await cerereRpc(C1, `${EMAIL_PREFIX}y@example.test`, 'Z', CLUB_A);
     record('RPC anonim: email/nume invalide -> date_invalide', !!rEmail.error && /date_invalide/.test(rEmail.error.message)
       && !!rNume.error && /date_invalide/.test(rNume.error.message));
+    // ── 2b. Plafon per club + curatare (follow-up 261105-gax) ────────────────
+    const nPend = async (comp: string) => (await admin.from('cereri_acces_competitie')
+      .select('id', { count: 'exact', head: true }).eq('competitie_id', comp).eq('status', 'in_asteptare')).count ?? 0;
+    const burst = await Promise.all(Array.from({ length: 12 }, (_, i) =>
+      cerereRpc(C2, `${EMAIL_PREFIX}burst${i}@example.test`, 'ZZ Burst', CLUB_A)));
+    const nOk = burst.filter(x => !x.error && x.data === 'ok').length;
+    const nPlin = burst.filter(x => !!x.error && /prea_multe_cereri/.test(x.error.message)).length;
+    record('Plafon per club: 12 cereri paralele -> exact 10 ok, 2 prea_multe_cereri', nOk === 10 && nPlin === 2, `ok=${nOk} plin=${nPlin} db=${await nPend(C2)}`);
+    record('Plafon per club: randuri in DB = 10 (atomic)', (await nPend(C2)) === 10);
+    const altClub = await cerereRpc(C2, `${EMAIL_PREFIX}burstB@example.test`, 'ZZ Burst B', CLUB_B);
+    record('Plafon per club: alt club primeste in continuare cereri', !altClub.error && altClub.data === 'ok', altClub.error?.message);
+    const dupPlin = await cerereRpc(C2, `${EMAIL_PREFIX}burst0@example.test`, 'ZZ Burst', CLUB_A);
+    const nouPlin = await cerereRpc(C2, `${EMAIL_PREFIX}burst99@example.test`, 'ZZ Burst', CLUB_A);
+    record('Plafon: duplicat si email nou dau acelasi raspuns cand clubul e plin (nu dezvaluie existenta)',
+      /prea_multe_cereri/.test(dupPlin.error?.message ?? '') && /prea_multe_cereri/.test(nouPlin.error?.message ?? ''));
+
+    const clientFed = createClient(url!, anonKey!, { global: { headers: { Authorization: `Bearer ${tokFed}`, 'active-role-context-id': fedRolId } } });
+    const clientAdm = createClient(url!, anonKey!, { global: { headers: { Authorization: `Bearer ${tokAdm}`, 'active-role-context-id': admRolId } } });
+    const stAnon = await anon.rpc('sterge_cereri_in_asteptare', { p_competitie: C2 });
+    record('sterge_cereri_in_asteptare: anon respins', !!stAnon.error && (await nPend(C2)) === 11, stAnon.error?.message);
+    const stAdm = await clientAdm.rpc('sterge_cereri_in_asteptare', { p_competitie: C2 });
+    record('sterge_cereri_in_asteptare: ADMIN_CLUB respins', !!stAdm.error && (await nPend(C2)) === 11, stAdm.error?.message);
+    const stFed = await clientFed.rpc('sterge_cereri_in_asteptare', { p_competitie: C2 });
+    record('sterge_cereri_in_asteptare: federatia sterge toate cele in asteptare (11)', !stFed.error && stFed.data === 11 && (await nPend(C2)) === 0, stFed.error?.message ?? String(stFed.data));
+    const dupaCuratare = await cerereRpc(C2, `${EMAIL_PREFIX}burst0@example.test`, 'ZZ Burst', CLUB_A);
+    record('Dupa curatare clubul poate trimite din nou', !dupaCuratare.error && dupaCuratare.data === 'ok', dupaCuratare.error?.message);
+
     const selCer = await anon.from('cereri_acces_competitie').select('id');
     const selGr = await anon.from('acces_competitie_extern').select('id');
     record('Anon nu citeste cereri/granturi (zero randuri sau eroare)',

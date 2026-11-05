@@ -94,7 +94,7 @@ async function main() {
     const r1 = await anon.rpc('trimite_cerere_acces', args);
     record('trimite_cerere_acces valid = ok', !r1.error && r1.data === 'ok', r1.error?.message ?? String(r1.data));
     const r2 = await anon.rpc('trimite_cerere_acces', args);
-    record('trimite_cerere_acces repetat = deja_trimisa', !r2.error && r2.data === 'deja_trimisa', r2.error?.message ?? String(r2.data));
+    record('trimite_cerere_acces repetat = ok (nu dezvaluie existenta)', !r2.error && r2.data === 'ok', r2.error?.message ?? String(r2.data));
     const { count: nCereri } = await admin.from('cereri_acces_competitie')
       .select('id', { count: 'exact', head: true }).eq('email', emailCerere).eq('competitie_id', cDeschisa);
     record('un singur rand de cerere dupa 2 apeluri', nCereri === 1, `count=${nCereri}`);

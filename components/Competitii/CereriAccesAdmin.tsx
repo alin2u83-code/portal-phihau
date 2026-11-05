@@ -49,6 +49,7 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
   const [respinge, setRespinge] = useState<CerereAcces | null>(null);
   const [motiv, setMotiv] = useState('');
   const [confirmRevoca, setConfirmRevoca] = useState<GrantAcces | null>(null);
+  const [confirmSterge, setConfirmSterge] = useState(false);
   const linkRef = useRef<HTMLInputElement>(null);
 
   const link = `${window.location.origin}/competitie/${competitieId}`;
@@ -129,6 +130,22 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
     }
   };
 
+  const stergeInAsteptare = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc('sterge_cereri_in_asteptare', { p_competitie: competitieId });
+      if (error) throw error;
+      showSuccess('Acces extern', `${data ?? 0} cereri în așteptare au fost șterse.`);
+      setConfirmSterge(false);
+      await incarca();
+    } catch (err) {
+      showError('Acces extern', err);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const seteazaActiv = async (grant: GrantAcces, activ: boolean) => {
     if (busy) return;
     setBusy(true);
@@ -163,7 +180,14 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
       </Card>
 
       <Card className="p-4 space-y-3">
-        <h3 className="text-base font-semibold text-white">Cereri de acces</h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-base font-semibold text-white">Cereri de acces</h3>
+          {cereri.some(c => c.status === 'in_asteptare') && (
+            <Button type="button" size="sm" variant="danger" disabled={busy} onClick={() => setConfirmSterge(true)}>
+              Șterge cererile în așteptare
+            </Button>
+          )}
+        </div>
         {notaAvertisment && <div className="rounded-lg border border-amber-700/50 bg-amber-950/30 p-3 text-xs text-amber-300">{notaAvertisment}</div>}
         {cereri.length === 0 ? (
           <EmptyState title="Nu există cereri de acces." />
@@ -237,6 +261,16 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" disabled={busy} onClick={() => setRespinge(null)}>Anulează</Button>
           <Button type="button" variant="danger" isLoading={busy} disabled={busy} onClick={() => respinge && proceseaza(respinge, 'respinge', motiv.trim())}>Respinge</Button>
+        </div>
+      </Modal>
+
+      <Modal isOpen={confirmSterge} onClose={() => !busy && setConfirmSterge(false)} title="Șterge cererile în așteptare">
+        <p className="text-sm text-slate-300 mb-4">
+          Se șterg definitiv toate cererile aflate în așteptare la această competiție (inclusiv cele legitime). Cererile aprobate și respinse rămân.
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="secondary" disabled={busy} onClick={() => setConfirmSterge(false)}>Anulează</Button>
+          <Button type="button" variant="danger" isLoading={busy} disabled={busy} onClick={stergeInAsteptare}>Șterge</Button>
         </div>
       </Modal>
 

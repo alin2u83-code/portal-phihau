@@ -184,6 +184,64 @@ async function main() {
     record('SUPER_ADMIN adauga membru de alt club in echipa (flux inter-club)', reusit(r), det(r));
     r = await sup.from('competitii').update({ observatii: 'ok' }).eq('id', cX).select('id');
     record('SUPER_ADMIN modifica competitii', reusit(r), det(r));
+
+    // ── Follow-up 261105-gax: inchiderea inscrierilor (UPDATE/DELETE) ───────
+    // randuri efemere create cu service role pe competitii inchise / expirate
+    const seed = async (comp: string, cat: string, club: string, sp: string) => {
+      const { data, error } = await admin.from('inscrieri_competitie').insert({ competitie_id: comp, categorie_id: cat, club_id: club, sportiv_id: sp }).select('id').single();
+      if (error || !data) throw new Error(`seed inscriere: ${error?.message}`);
+      return data.id as string;
+    };
+    const exista = async (tbl: string, id: string) => !!(await admin.from(tbl).select('id').eq('id', id).maybeSingle()).data;
+    const obs = async (id: string) => (await admin.from('inscrieri_competitie').select('observatii').eq('id', id).maybeSingle()).data?.observatii;
+
+    // randul (cI, catI, A, sportivA) a fost inserat de SUPER_ADMIN la pasul anterior
+    const gaseste = async (comp: string, cat: string, club: string, sp: string) =>
+      (await admin.from('inscrieri_competitie').select('id').eq('competitie_id', comp).eq('categorie_id', cat).eq('club_id', club).eq('sportiv_id', sp).limit(1).single()).data!.id as string;
+    const inchisaA = await gaseste(cI, catI, CLUB_A, sportivA);
+    r = await adm.from('inscrieri_competitie').update({ observatii: 'dupa-inchidere' }).eq('id', inchisaA).select('id');
+    record('F1 ADMIN@A NU modifica inscriere dupa INCHIDERE (status)', respins(r) && (await obs(inchisaA)) !== 'dupa-inchidere', det(r));
+    r = await ins.from('inscrieri_competitie').delete().eq('id', inchisaA).select('id');
+    record('F1 INSTRUCTOR@A NU sterge/retrage dupa INCHIDERE', respins(r) && (await exista('inscrieri_competitie', inchisaA)), det(r));
+    r = await adm.from('inscrieri_competitie').delete().eq('id', inchisaA).select('id');
+    record('F1 ADMIN@A NU sterge dupa INCHIDERE', respins(r) && (await exista('inscrieri_competitie', inchisaA)), det(r));
+
+    const expirata = await seed(cE, catE, CLUB_A, sportivA);
+    r = await adm.from('inscrieri_competitie').update({ observatii: 'dupa-termen' }).eq('id', expirata).select('id');
+    record('F1 ADMIN@A NU modifica dupa TERMEN depasit', respins(r) && (await obs(expirata)) !== 'dupa-termen', det(r));
+    r = await adm.from('inscrieri_competitie').delete().eq('id', expirata).select('id');
+    record('F1 ADMIN@A NU sterge dupa TERMEN depasit', respins(r) && (await exista('inscrieri_competitie', expirata)), det(r));
+
+    r = await sup.from('inscrieri_competitie').update({ observatii: 'federatie' }).eq('id', inchisaA).select('id');
+    record('F1 SUPER_ADMIN modifica dupa inchidere', reusit(r) && (await obs(inchisaA)) === 'federatie', det(r));
+    r = await sup.from('inscrieri_competitie').delete().eq('id', expirata).select('id');
+    record('F1 SUPER_ADMIN sterge dupa termen', reusit(r) && !(await exista('inscrieri_competitie', expirata)), det(r));
+
+    // echipe + membri pe competitie inchisa
+    const { data: echI } = await admin.from('echipe_competitie').insert({ competitie_id: cI, categorie_id: catI, club_id: CLUB_A, denumire_echipa: `${PREFIX}echI_${RUN_ID}` }).select('id').single();
+    const { data: memI } = await admin.from('echipa_sportivi').insert({ echipa_id: echI!.id, sportiv_id: sportivA }).select('id').single();
+    r = await adm.from('echipe_competitie').update({ denumire_echipa: 'hack' }).eq('id', echI!.id).select('id');
+    record('F1 ADMIN@A NU modifica echipa dupa INCHIDERE', respins(r), det(r));
+    r = await adm.from('echipe_competitie').delete().eq('id', echI!.id).select('id');
+    record('F1 ADMIN@A NU sterge echipa dupa INCHIDERE', respins(r) && (await exista('echipe_competitie', echI!.id)), det(r));
+    r = await adm.from('echipa_sportivi').delete().eq('id', memI!.id).select('id');
+    record('F1 ADMIN@A NU scoate membru din echipa dupa INCHIDERE', respins(r) && (await exista('echipa_sportivi', memI!.id)), det(r));
+    r = await sup.from('echipa_sportivi').delete().eq('id', memI!.id).select('id');
+    record('F1 SUPER_ADMIN scoate membru dupa inchidere', reusit(r), det(r));
+
+    // competitie DESCHISA: clubul isi modifica / retrage liber
+    const deschisaA = await seed(cD, catD3, CLUB_A, sportivB);  // legacy inter-club (sportiv din B pe club A), creat de federatie
+    r = await adm.from('inscrieri_competitie').update({ observatii: 'ok-deschisa' }).eq('id', deschisaA).select('id');
+    record('F2 ADMIN@A modifica in timp ce e DESCHISA (si pe rand legacy inter-club)', reusit(r) && (await obs(deschisaA)) === 'ok-deschisa', det(r));
+    // randul propriu al clubului A (inserat de ADMIN@A la inceput): schimbarea sportiv_id spre alt club -> trigger
+    const catD4 = await mkCat(cD, 'catD4'); // categorie fara sportivB, ca mutarea sa nu loveasca unicitatea
+    const propriu = await seed(cD, catD4, CLUB_A, sportivA);
+    r = await adm.from('inscrieri_competitie').update({ sportiv_id: sportivB }).eq('id', propriu).select('id');
+    record('F2 ADMIN@A NU repune inscrierea pe sportiv din alt club', respins(r) && ((await admin.from('inscrieri_competitie').select('sportiv_id').eq('id', propriu).single()).data?.sportiv_id === sportivA), det(r));
+    r = await sup.from('inscrieri_competitie').update({ sportiv_id: sportivB }).eq('id', propriu).select('id');
+    record('F2 SUPER_ADMIN poate muta sportivul (flux inter-club)', reusit(r), det(r));
+    r = await adm.from('inscrieri_competitie').delete().eq('id', deschisaA).select('id');
+    record('F2 ADMIN@A retrage in timp ce e DESCHISA', reusit(r) && !(await exista('inscrieri_competitie', deschisaA)), det(r));
   } catch (e) {
     record('executie fara exceptii', false, e instanceof Error ? e.message : String(e));
   } finally {

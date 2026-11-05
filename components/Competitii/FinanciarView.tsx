@@ -101,8 +101,9 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
     setUpdatingIds(prev => new Set(prev).add(key));
     try {
       const tabel = rand.tip === 'individual' ? 'inscrieri_competitie' : 'echipe_competitie';
-      const { error } = await supabase.from(tabel).update({ taxa_achitata: !rand.taxaAchitata }).eq('id', rand.id);
+      const { data, error } = await supabase.from(tabel).update({ taxa_achitata: !rand.taxaAchitata }).eq('id', rand.id).select('id');
       if (error) throw error;
+      if (!data?.length) throw new Error('Modificarea nu a fost permisă (verifică drepturile).');
       onRefresh();
     } catch (err: any) {
       showError('Eroare', err.message);
@@ -116,10 +117,14 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
       const ins = club.randuri.filter(r => r.tip === 'individual' && !r.taxaAchitata);
       const ec = club.randuri.filter(r => r.tip === 'echipa' && !r.taxaAchitata);
       if (ins.length > 0) {
-        await supabase.from('inscrieri_competitie').update({ taxa_achitata: true }).in('id', ins.map(r => r.id));
+        const { data, error } = await supabase.from('inscrieri_competitie').update({ taxa_achitata: true }).in('id', ins.map(r => r.id)).select('id');
+        if (error) throw error;
+        if ((data?.length ?? 0) < ins.length) throw new Error(`Doar ${data?.length ?? 0} din ${ins.length} înscrieri au fost marcate achitate (verifică drepturile).`);
       }
       if (ec.length > 0) {
-        await supabase.from('echipe_competitie').update({ taxa_achitata: true }).in('id', ec.map(r => r.id));
+        const { data, error } = await supabase.from('echipe_competitie').update({ taxa_achitata: true }).in('id', ec.map(r => r.id)).select('id');
+        if (error) throw error;
+        if ((data?.length ?? 0) < ec.length) throw new Error(`Doar ${data?.length ?? 0} din ${ec.length} echipe au fost marcate achitate (verifică drepturile).`);
       }
       onRefresh();
     } catch (err: any) {

@@ -84,12 +84,15 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
         //       WHERE user_id = auth.uid() AND rol_denumire IN ('ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE')
         //     )
         //   );
-        const { error } = await supabase.from('inscrieri_competitie').delete().eq('id', id);
+        const { data: sterse, error } = await supabase.from('inscrieri_competitie').delete().eq('id', id).select('id');
         if (error) { showError("Eroare retragere", error.message); return; }
+        // RLS blochează fără eroare (0 rânduri) după închiderea înscrierilor: doar federația mai poate modifica
+        if (!sterse?.length) { showError("Eroare retragere", 'Înscrierile s-au închis; doar federația poate modifica.'); return; }
       } else {
         // Echipe rămân cu status update (nu DELETE — confirmat doar pentru inscrieri individuale)
-        const { error } = await supabase.from('echipe_competitie').update({ status: 'retrasa' }).eq('id', id);
+        const { data: modificate, error } = await supabase.from('echipe_competitie').update({ status: 'retrasa' }).eq('id', id).select('id');
         if (error) { showError("Eroare retragere echipă", error.message); return; }
+        if (!modificate?.length) { showError("Eroare retragere echipă", 'Înscrierile s-au închis; doar federația poate modifica.'); return; }
         setEchipeRetraseLocal(prev => new Set(prev).add(id));
       }
       startTransition(() => onRefresh());
@@ -180,7 +183,8 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                           {!isSuperAdmin && isAdmin && ins.status !== 'confirmat' && ins.status !== 'retras' && (
                             <Button size="sm" variant="success" className="text-xs !py-1"
                               onClick={async () => {
-                                await supabase.from('inscrieri_competitie').update({ status: 'confirmat' }).eq('id', ins.id);
+                                const { data: conf, error: errConf } = await supabase.from('inscrieri_competitie').update({ status: 'confirmat' }).eq('id', ins.id).select('id');
+                                if (errConf || !conf?.length) { showError('Eroare confirmare', errConf?.message ?? 'Înscrierile s-au închis; doar federația poate modifica.'); return; }
                                 startTransition(() => onRefresh());
                               }}>
                               Confirmă

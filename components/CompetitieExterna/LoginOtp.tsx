@@ -5,13 +5,12 @@ import { trimiteCodAcces, verificaCodAcces } from '../../services/accesExternSer
 interface LoginOtpProps {
     emailInitial?: string;
     onAutentificat: (user: any) => void;
-    onFaraCont: (email: string) => void;
     onSolicita: (email: string) => void;
 }
 
 const COOLDOWN_SECUNDE = 60; // cooldown-ul GoTrue între două coduri
 
-export const LoginOtp: React.FC<LoginOtpProps> = ({ emailInitial = '', onAutentificat, onFaraCont, onSolicita }) => {
+export const LoginOtp: React.FC<LoginOtpProps> = ({ emailInitial = '', onAutentificat, onSolicita }) => {
     const [pas, setPas] = useState<'email' | 'cod'>('email');
     const [email, setEmail] = useState(emailInitial);
     const [cod, setCod] = useState('');
@@ -31,8 +30,8 @@ export const LoginOtp: React.FC<LoginOtpProps> = ({ emailInitial = '', onAutenti
         setLoading(true); setEroare(null);
         const { tip } = await trimiteCodAcces(adresa);
         setLoading(false);
-        if (tip === 'ok') { setCod(''); setPas('cod'); setAsteptare(COOLDOWN_SECUNDE); }
-        else if (tip === 'fara_cont') onFaraCont(adresa);
+        // 'fara_cont' (email fără cont) arată identic cu 'ok': nu dezvăluim dacă emailul are acces (T-36-19/60)
+        if (tip === 'ok' || tip === 'fara_cont') { setCod(''); setPas('cod'); setAsteptare(COOLDOWN_SECUNDE); }
         else if (tip === 'limita') setEroare('Prea multe cereri de cod. Încearcă din nou mai târziu.');
         else setEroare('Nu am putut trimite codul. Încearcă din nou.');
     };
@@ -70,7 +69,7 @@ export const LoginOtp: React.FC<LoginOtpProps> = ({ emailInitial = '', onAutenti
                 <>
                     <h2 className="text-lg font-bold text-[var(--t-text)]">Introdu codul</h2>
                     <p className="text-sm text-slate-400">
-                        Am trimis un cod de 8 cifre la <strong>{email.trim()}</strong>. Emailul conține doar codul, nu un link.
+                        Dacă adresa <strong>{email.trim()}</strong> are acces, vei primi un cod de 8 cifre. Emailul conține doar codul, nu un link.
                     </p>
                     <Input id="acx-cod" label="Cod din email" inputMode="numeric" autoComplete="one-time-code" maxLength={8}
                         value={cod} onChange={e => setCod(e.target.value.replace(/\D/g, '').slice(0, 8))}

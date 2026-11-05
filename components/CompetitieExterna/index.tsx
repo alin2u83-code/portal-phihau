@@ -123,7 +123,6 @@ const CompetitieExternaPage: React.FC = () => {
                     {publica}
                     <LoginOtp
                         onAutentificat={finalizeaza}
-                        onFaraCont={email => setStare({ t: 'solicita', email })}
                         onSolicita={email => setStare({ t: 'solicita', email })}
                     />
                 </Centrat>

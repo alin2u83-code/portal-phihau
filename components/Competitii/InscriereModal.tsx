@@ -59,9 +59,12 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
     //       WHERE user_id = auth.uid() AND rol_denumire IN ('ADMIN_CLUB', 'SUPER_ADMIN_FEDERATIE')
     //     )
     //   );
-    const { error } = await supabase.from('inscrieri_competitie').delete().eq('id', ins.id);
+    const { data: sterse, error } = await supabase.from('inscrieri_competitie').delete().eq('id', ins.id).select('id');
     if (error) {
       showError('Eroare retragere', error.message);
+    } else if (!sterse?.length) {
+      // RLS blochează fără eroare (0 rânduri) după închiderea înscrierilor
+      showError('Eroare retragere', 'Înscrierile s-au închis; doar federația poate modifica.');
     } else {
       setRetrasiLocal(prev => new Set(prev).add(sportivId));
     }

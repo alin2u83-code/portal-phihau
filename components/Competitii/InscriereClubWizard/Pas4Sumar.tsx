@@ -16,6 +16,9 @@ import { esteInscrisActiv } from './shared';
 import BannerDeRezolvat from './BannerDeRezolvat';
 import type { ItemDeRezolvat } from './BannerDeRezolvat';
 
+// RLS blochează fără eroare (0 rânduri) după închiderea înscrierilor
+const MSG_INCHIS = 'Înscrierile s-au închis; doar federația poate modifica.';
+
 // -----------------------------------------------
 // PASUL 4 — Sumar + taxe + save DB
 // -----------------------------------------------
@@ -300,8 +303,9 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                 if (existent.taxa_achitata) {
                   note.push(`${eticheta}: înscriere achitată — forma nu s-a modificat`);
                 } else {
-                  const { error: updErr } = await supabase.from('inscrieri_competitie').update({ inlantuire_id: rand.inlantuire_id }).eq('id', existent.id);
+                  const { data: modif, error: updErr } = await supabase.from('inscrieri_competitie').update({ inlantuire_id: rand.inlantuire_id }).eq('id', existent.id).select('id');
                   if (updErr) throw new Error(updErr.message);
+                  if (!modif?.length) throw new Error(MSG_INCHIS);
                 }
               } else {
                 skippedCount++;
@@ -309,7 +313,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
               continue;
             }
             // Re-activare sportiv retras (nu atinge taxa_achitata; pentru CVD preia si arma)
-            const { error: updErr } = await supabase
+            const { data: reactivat, error: updErr } = await supabase
               .from('inscrieri_competitie')
               .update({
                 status: 'inscris',
@@ -317,8 +321,10 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                 inlantuire_id_2: rand.inlantuire_id_2 ?? null,
                 ...(rand.arma_id ? { arma_id: rand.arma_id } : {}),
               })
-              .eq('id', existent.id);
+              .eq('id', existent.id)
+              .select('id');
             if (updErr) throw new Error(updErr.message);
+            if (!reactivat?.length) throw new Error(MSG_INCHIS);
             continue;
           }
 
@@ -346,15 +352,17 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         const denEchipa = numeClub + (rand.echipa.numeEchipa ? ' — ' + rand.echipa.numeEchipa : '');
         if (rand.echipa.dbId) {
           // UPDATE echipă existentă
-          const { error: updErr } = await supabase
+          const { data: echModif, error: updErr } = await supabase
             .from('echipe_competitie')
             .update({
               denumire_echipa: denEchipa,
               echipa_incompleta: rand.echipa.echipaIncompleta ?? false,
               inlantuire_id: rand.echipa.program ?? null,
             })
-            .eq('id', rand.echipa.dbId);
+            .eq('id', rand.echipa.dbId)
+            .select('id');
           if (updErr) throw new Error(updErr.message);
+          if (!echModif?.length) throw new Error(MSG_INCHIS);
           // Re-sync membri
           await supabase.from('echipa_sportivi').delete().eq('echipa_id', rand.echipa.dbId);
           const sportiviEchipa = [

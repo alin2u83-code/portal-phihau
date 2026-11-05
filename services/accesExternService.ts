@@ -59,7 +59,7 @@ export function seteazaContextActiv(roleRowId: string): void {
 }
 
 export async function trimiteCerereAcces(p: { competitieId: string; email: string; nume: string; clubId: string; mesaj?: string }):
-    Promise<'ok' | 'deja_trimisa' | CodEroareCerereAcces | 'eroare'> {
+    Promise<'ok' | CodEroareCerereAcces | 'eroare'> {
     if (!supabase) return 'eroare';
     const { data, error } = await supabase.rpc('trimite_cerere_acces', {
         p_competitie: p.competitieId, p_email: p.email, p_nume: p.nume, p_club: p.clubId, p_mesaj: p.mesaj?.trim() || null,
@@ -68,7 +68,7 @@ export async function trimiteCerereAcces(p: { competitieId: string; email: strin
         const cod = CODURI_CERERE.find(c => (error.message ?? '').includes(c));
         return cod ?? 'eroare';
     }
-    return data === 'deja_trimisa' ? 'deja_trimisa' : 'ok';
+    return 'ok'; // serverul întoarce 'ok' și pentru o cerere deja existentă (nu dezvăluim existența ei)
 }
 
 export async function incarcaCluburiPublice(): Promise<{ data: { id: string; nume: string }[]; error: any }> {

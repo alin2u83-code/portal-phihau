@@ -142,19 +142,11 @@ async function main() {
     await addOk(SUP, 'okSup');
     await addOk(null, 'okSvc');
 
-    // ── 2. process_exam_row_v4 (functia e nefunctionala preexistent: istoric_examene lipseste; conteaza garda) ──
-    const examArgs = (existing: string | null, club: string | null, ses: string | null) => ({
-      p_nume: `${PREFIX}exam_${RUN_ID}`, p_prenume: 'Test', p_cnp: null, p_existing_sportiv_id: existing, p_club_id: club,
-      p_ordine_grad: 1, p_rezultat: 'Admis', p_contributie: 0, p_data_examen: TODAY, p_sesiune_id: ses, p_data_nasterii: null,
-    });
-    for (const a of [EXT, SPO_A, ADM_B, INS_B]) await rpcDenied('process_exam_row_v4 (sportiv/sesiune A)', a, 'process_exam_row_v4', examArgs(spA, CLUB_A, sesA));
-    await rpcDenied('process_exam_row_v4 (sportiv din B)', ADM_A, 'process_exam_row_v4', examArgs(spB, CLUB_A, sesA));
-    await rpcDenied('process_exam_row_v4 (sportiv nou, p_club_id B)', ADM_A, 'process_exam_row_v4', examArgs(null, CLUB_B, sesA));
-    await rpcDenied('process_exam_row_v4 (sesiune din B)', ADM_A, 'process_exam_row_v4', examArgs(spA, CLUB_A, sesB));
-    await rpcDenied('process_exam_row_v4 (fara club derivabil)', ADM_A, 'process_exam_row_v4', examArgs(null, null, sesA));
-    for (const a of [ADM_A, INS_A, SUP]) await rpcAllowed('process_exam_row_v4', a, 'process_exam_row_v4', examArgs(spA, CLUB_A, sesA));
-    await rpcAllowed('process_exam_row_v4', null, 'process_exam_row_v4', examArgs(spA, CLUB_A, sesA));
-    record('process_exam_row_v4: zero sportivi noi (exam)', (await nrNume('exam')) === 0);
+    // ── 2. process_exam_row_v4 stearsa (decizie 6.11.2026: nefunctionala, zero apelanti) ──
+    for (const [lbl, cl] of [['federatie', SUP.c], ['service_role', admin], ['ADMIN@A', ADM_A.c]] as const) {
+      const r = await (cl as SupabaseClient).rpc('process_exam_row_v4', { p_nume: 'x', p_prenume: 'x', p_cnp: null, p_existing_sportiv_id: null, p_club_id: CLUB_A, p_ordine_grad: 1, p_rezultat: 'Admis', p_contributie: 0, p_data_examen: TODAY, p_sesiune_id: null, p_data_nasterii: null });
+      record(lbl + ': process_exam_row_v4 inexistenta', r.error?.code === 'PGRST202', 'cod=' + r.error?.code);
+    }
 
     // ── 3. export_sportivi_selectati ────────────────────────────────────────
     for (const a of [EXT, SPO_A, ADM_B, INS_B]) {
@@ -189,7 +181,7 @@ async function main() {
 
     // ── 5. transfer_sportiv ────────────────────────────────────────────────
     const clubDe = async (id: string) => (await admin.from('sportivi').select('club_id').eq('id', id).single()).data?.club_id;
-    for (const a of [EXT, SPO_A, ADM_B, INS_B]) await rpcDenied('transfer_sportiv A->B (tragere din alt club)', a, 'transfer_sportiv', { p_sportiv_id: spT, p_new_club_id: CLUB_B });
+    for (const a of [EXT, SPO_A, ADM_B, INS_B, INS_A]) await rpcDenied('transfer_sportiv A->B (tragere din alt club / instructor)', a, 'transfer_sportiv', { p_sportiv_id: spT, p_new_club_id: CLUB_B });
     record('transfer respins: sportivul ramane in A', (await clubDe(spT)) === CLUB_A);
     const rNf = await ADM_B.c.rpc('transfer_sportiv', { p_sportiv_id: NIL, p_new_club_id: CLUB_B });
     record('ADMIN@B: sportiv inexistent = comportament vechi (exceptie non-42501)', !!rNf.error && !denied(rNf.error), rNf.error?.code);
@@ -199,8 +191,7 @@ async function main() {
     };
     await tOk(ADM_A, CLUB_A, CLUB_B, 'A->B (admin clubului sursa)');
     await tOk(SUP, CLUB_B, CLUB_A, 'B->A (federatie)');
-    await tOk(INS_A, CLUB_A, CLUB_B, 'A->B (instructor club sursa)');
-    await tOk(null, CLUB_B, CLUB_A, 'B->A (service_role)');
+    await tOk(null, CLUB_A, CLUB_B, 'A->B (service_role)');
 
     // ── 6. add_sms_to_queue ────────────────────────────────────────────────
     const smsArgs = (club: string, sp: string) => ({ p_club_id: club, p_sportiv_id: sp, p_tip: 'zz_tip_inexistent', p_variabile: {} });
@@ -226,7 +217,6 @@ async function main() {
       ['decrypt_cnp', { cnp_encrypted: 'AAAA' }],
       ['transfer_sportiv', { p_sportiv_id: spT, p_new_club_id: CLUB_B }],
       ['add_sms_to_queue', smsArgs(CLUB_A, spA)],
-      ['process_exam_row_v4', examArgs(spA, CLUB_A, sesA)],
     ] as const) {
       const r = await anonC.rpc(fn, args as any);
       record(`anon: ${fn} = 42501`, denied(r.error), r.error?.code);

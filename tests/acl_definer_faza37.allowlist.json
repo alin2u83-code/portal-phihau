@@ -90,7 +90,6 @@
     "poate_gestiona_taxe_club(uuid)",
     "proceseaza_incasare_normalizata(jsonb,jsonb[])",
     "proceseaza_plata_factura(uuid,numeric,text,date,text)",
-    "process_exam_row_v4(text,text,text,uuid,uuid,integer,text,numeric,date,uuid,date)",
     "raport_taxe_anuale_cluburi(text,integer)",
     "recalculare_stare_plata(uuid)",
     "revoca_dispozitiv_incredere(uuid)",

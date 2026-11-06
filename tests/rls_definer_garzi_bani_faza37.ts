@@ -68,6 +68,7 @@ async function main() {
   const userIds: string[] = [];
   const sportivIds: string[] = [];
   const plataIds: string[] = [];
+  const familieIds: string[] = [];
   const parola = `Zz!${RUN_ID}aA`;
   const inainte = await counts();
   info('numaratori inainte', JSON.stringify(inainte));
@@ -103,6 +104,24 @@ async function main() {
     const pB = await mkPlata(spB, CLUB_B, 'plataB');
     let pNoClub: string | null = null;
     try { pNoClub = await mkPlata(null, null, 'faraClub'); } catch (e: any) { info('plata fara club/sportiv nu se poate crea', e.message); }
+
+    const mkFamilie = async (club: string, sp: string, tag: string) => {
+      const { data, error } = await admin.from('familii').insert({ nume: `${PREFIX}${tag}_${RUN_ID}`, club_id: club }).select('id').single();
+      if (error || !data) throw new Error(`familie ${tag}: ${error?.message}`);
+      familieIds.push(data.id);
+      const { error: eu } = await admin.from('sportivi').update({ familie_id: data.id }).eq('id', sp);
+      if (eu) throw new Error(`familie_id sportiv ${tag}: ${eu.message}`);
+      return data.id as string;
+    };
+    const famA = await mkFamilie(CLUB_A, spA, 'famA');
+    const famB = await mkFamilie(CLUB_B, spB, 'famB');
+    const { data: pFamRow, error: pFamErr } = await admin.from('plati').insert({
+      sportiv_id: null, club_id: null, familie_id: famA, suma: 10, status: 'Neachitat', tip: 'Taxa Examen',
+      descriere: `${PREFIX}pFam_${RUN_ID}`, data: TODAY,
+    }).select('id').single();
+    if (pFamErr || !pFamRow) throw new Error(`plata familie: ${pFamErr?.message}`);
+    const pFam = pFamRow.id as string;
+    plataIds.push(pFam);
 
     const mkActor = async (tag: string, rol: string, club: string | null): Promise<Actor> => {
       const email = `${EMAIL_PREFIX}${tag.replace(/[^a-z0-9]/gi, '')}_${RUN_ID}@example.com`;
@@ -217,6 +236,21 @@ async function main() {
       record('ADMIN@B: INSERT tranzactii pe club strain respins de RLS', true, tB.error?.code);
     }
 
+    // ── 3c. familie: plata fara club/sportiv (club derivat din familie) + familie_id strain ──
+    const txFam = (fam: string | null, sp: string | null, club: string) => ({
+      sportiv_id: sp, familie_id: fam, suma: 1, data_platii: TODAY, metoda_plata: 'Cash', club_id: club,
+    });
+    const txBefore = await nrTx();
+    await rpcDenied('incasare plata de familie (alt club)', ADM_B, 'proceseaza_incasare_normalizata', { p_tranzactie: txFam(famA, null, CLUB_B), p_plati: alloc(pFam) });
+    await rpcDenied('incasare cu familie_id din alt club', ADM_A, 'proceseaza_incasare_normalizata', { p_tranzactie: txFam(famB, spA, CLUB_A), p_plati: alloc(pRej) });
+    record('familie respinsa: zero tranzactii noi', (await nrTx()) === txBefore);
+    await rpcDenied('recalculare plata de familie (alt club)', ADM_B, 'recalculare_stare_plata', { p_plata_id: pFam });
+    const rFam = await ADM_A.c.rpc('proceseaza_incasare_normalizata', { p_tranzactie: txFam(famA, null, CLUB_A), p_plati: alloc(pFam) });
+    const pf = await plata(pFam);
+    record('ADMIN@A: incaseaza plata de familie fara club/sportiv (club derivat din familie)',
+      !rFam.error && pf.status === 'Achitat Parțial' && Number(pf.suma_ramasa) === 9, rFam.error?.message ?? `${pf.status}/${pf.suma_ramasa}`);
+    await rpcAllowed('recalculare plata de familie', ADM_A, 'recalculare_stare_plata', { p_plata_id: pFam });
+
     // ── 4. generare_factura_examen(uuid,uuid) ───────────────────────────────
     for (const a of [EXT, SPO_A, ADM_B, INS_B]) await rpcDenied('generare_factura_examen', a, 'generare_factura_examen', { p_sportiv_id: spA, p_sesiune_id: null });
     for (const a of [ADM_A, INS_A, SUP]) await rpcAllowed('generare_factura_examen', a, 'generare_factura_examen', { p_sportiv_id: spA, p_sesiune_id: null });
@@ -239,6 +273,10 @@ async function main() {
       for (const p of pl ?? []) if (!plataIds.includes(p.id)) plataIds.push(p.id);
       const { data: tr } = await admin.from('tranzactii').select('id').in('sportiv_id', sportivIds);
       const trIds = (tr ?? []).map((t) => t.id);
+      if (familieIds.length) {
+        const { data: trF } = await admin.from('tranzactii').select('id').in('familie_id', familieIds);
+        for (const t of trF ?? []) if (!trIds.includes(t.id)) trIds.push(t.id);
+      }
       if (plataIds.length) await step('tranzactie_plata', admin.from('tranzactie_plata').delete().in('plata_id', plataIds));
       if (trIds.length) await step('tranzactie_plata(tx)', admin.from('tranzactie_plata').delete().in('tranzactie_id', trIds));
       if (trIds.length) await step('tranzactii', admin.from('tranzactii').delete().in('id', trIds));
@@ -247,6 +285,7 @@ async function main() {
       await step('vize_sportivi', admin.from('vize_sportivi').delete().in('sportiv_id', sportivIds));
       await step('sportivi', admin.from('sportivi').delete().in('id', sportivIds));
     }
+    if (familieIds.length) await step('familii', admin.from('familii').delete().in('id', familieIds));
     for (const id of userIds) {
       await admin.from('utilizator_roluri_multicont').delete().eq('user_id', id);
       await admin.auth.admin.deleteUser(id);
@@ -254,6 +293,7 @@ async function main() {
     const dupa = await counts();
     record('numaratori neschimbate dupa cleanup', JSON.stringify(dupa) === JSON.stringify(inainte), JSON.stringify(dupa));
     const { count: rezS } = await admin.from('sportivi').select('id', { count: 'exact', head: true }).like('nume', `${PREFIX}%`);
+    const { count: rezF } = await admin.from('familii').select('id', { count: 'exact', head: true }).like('nume', `${PREFIX}%`);
     const { count: rezP } = await admin.from('plati').select('id', { count: 'exact', head: true }).like('descriere', `${PREFIX}%`);
     let rezU = 0;
     for (let page = 1; page <= 50; page++) {
@@ -262,7 +302,7 @@ async function main() {
       rezU += us.filter((u) => u.email?.startsWith(EMAIL_PREFIX)).length;
       if (us.length < 200) break;
     }
-    record('reziduuri ZZ_TEST_FAZA37 = 0', (rezS ?? 0) + (rezP ?? 0) + rezU === 0, `sportivi=${rezS} plati=${rezP} utilizatori=${rezU}`);
+    record('reziduuri ZZ_TEST_FAZA37 = 0', (rezS ?? 0) + (rezP ?? 0) + (rezF ?? 0) + rezU === 0, `sportivi=${rezS} plati=${rezP} familii=${rezF} utilizatori=${rezU}`);
   }
 
   const esuate = results.filter((r) => !r.passed).length;

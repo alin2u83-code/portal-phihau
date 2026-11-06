@@ -22,3 +22,10 @@
 
 ## Neverificat
 Browser (incasare in Plati hub, Jurnal incasari); instructor real; flux familie fara club; audit_log.
+
+## Fix-uri review aplicate (OK utilizator 6.11.2026) — migrare live `garzi_functii_bani_familie_club`
+- MEDIUM familie fara club: clubul platii = `plati.club_id` -> clubul sportivului -> clubul familiei (familii multi-club: 0; cele 6 plati de familie fara club pot fi incasate de ADMIN_CLUB al clubului familiei). Aplicat in `proceseaza_incasare_normalizata` si `recalculare_stare_plata`.
+- MEDIUM `familie_id` din payload: cere un membru al familiei in clubul tranzactiei (29 tranzactii existente cu familie trec toate). Federatia exceptata.
+- Test: +6 verificari (familie fara club ADMIN@A OK / ADMIN@B 42501, familie_id strain 42501, recalculare familie). Rezultat 51/51, numaratori neschimbate, reziduuri 0 (inclusiv familii).
+- Incident test: tranzactia de familie (sportiv_id NULL) a ramas in `tranzactii` clubul A la prima rulare (169->170); stearsa dupa `id` (verificat: suma 1, Cash, azi, fara alocari, in fereastra rularii), cleanup-ul corectat sa prinda si `familie_id`.
+- Raman neaplicate: LOW `club_id` derivat in INSERT; LOW garda dupa verificarea gradului (functia oricum nefunctionala); MEDIUM test `audit_log`/numaratori globale; MEDIUM trigger fara header (neverificat in browser).

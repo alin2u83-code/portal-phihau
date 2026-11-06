@@ -6,7 +6,8 @@
 -- Garda: auth.uid() IS NOT NULL AND (este_doar_extern() OR NOT (is_super_admin() OR has_access_to_club(club))) => 42501.
 -- auth.uid() IS NULL (service_role, pg_cron, SQL administrativ) trece. Triggerul tranzactie_plata_change_trigger
 -- (definer) apeleaza recalculare_stare_plata cu auth.uid() al utilizatorului final: ADMIN/INSTRUCTOR al clubului trec.
--- Plati fara club derivabil (96 cu club_id NULL, 6 fara sportiv): doar federatia (is_super_admin) le poate incasa/recalcula.
+-- Club plata: plati.club_id, apoi clubul sportivului, apoi clubul familiei (nu exista familii multi-club). Fara club derivabil: doar federatia.
+-- familie_id din payload: cere un membru al familiei in clubul tranzactiei (review 37-04).
 -- Super admin federatie: fara restrictie de club (poate aloca cross-club).
 -- NU se modifica logica de calcul / date existente. Rollback: rollback/37-04-before.sql
 -- (corpurile vechi + generare_factura_examen(uuid)); dupa rollback re-aplica REVOKE ALL FROM PUBLIC, anon + GRANT authenticated, service_role.
@@ -24,6 +25,7 @@ DECLARE
     v_club UUID;
     v_club_sp UUID;
     v_club_plata UUID;
+    v_fam UUID;
     v_super BOOLEAN;
 BEGIN
     -- GARDA (37-04)
@@ -42,8 +44,16 @@ BEGIN
                OR NOT public.has_access_to_club(v_club) THEN
                 RAISE EXCEPTION 'acces_interzis' USING ERRCODE = '42501';
             END IF;
+            -- familie_id din payload: trebuie sa existe un membru al familiei in clubul tranzactiei
+            v_fam := NULLIF(p_tranzactie->>'familie_id', '')::UUID;
+            IF v_fam IS NOT NULL AND NOT EXISTS (
+                SELECT 1 FROM public.sportivi sf WHERE sf.familie_id = v_fam AND sf.club_id = v_club) THEN
+                RAISE EXCEPTION 'acces_interzis' USING ERRCODE = '42501';
+            END IF;
             FOREACH v_plata IN ARRAY p_plati LOOP
-                SELECT COALESCE(pl.club_id, sp.club_id) INTO v_club_plata
+                SELECT COALESCE(pl.club_id, sp.club_id,
+                                (SELECT sf.club_id FROM public.sportivi sf WHERE sf.familie_id = pl.familie_id ORDER BY sf.id LIMIT 1))
+                  INTO v_club_plata
                   FROM public.plati pl LEFT JOIN public.sportivi sp ON sp.id = pl.sportiv_id
                  WHERE pl.id = NULLIF(v_plata->>'plata_id', '')::UUID;
                 -- plata inexistenta: comportament vechi (eroare FK mai jos); plata fara club: doar federatia
@@ -95,7 +105,8 @@ declare
     v_status_nou    text;
     v_club          uuid;
 begin
-    select p.suma, p.status, coalesce(p.club_id, (select s.club_id from public.sportivi s where s.id = p.sportiv_id))
+    select p.suma, p.status, coalesce(p.club_id, (select s.club_id from public.sportivi s where s.id = p.sportiv_id),
+                (select sf.club_id from public.sportivi sf where sf.familie_id = p.familie_id order by sf.id limit 1))
       into v_suma_totala, v_status_curent, v_club
     from public.plati p where p.id = p_plata_id;
 

@@ -134,9 +134,94 @@ async function main() {
     record('self-check sensibilitate: mutatia e detectata', detectate.length === 1 && detectate[0] === tinta, `tinta=${tinta}`);
   }
 
+  // (7) probe functionale (37-03): D functioneaza pentru anon; cauta_utilizatori_comisie cere staff; triggere auth OK
+  await probeFunctionale();
+
   const esuate = results.filter((r) => !r.passed).length;
   console.log(`\n${results.length - esuate}/${results.length} PASS`);
   process.exit(esuate ? 1 : 0);
+}
+
+
+const CLUB_A = '83e7f771-46cf-4c4e-b70f-356d7b0bff06';
+const EMAIL_PREFIX = 'zztest_faza37x_';
+const RUN_ID = Date.now();
+const SERVICE_ONLY = ['check_user_access', 'encrypt_cnp', 'find_similar_sportivi', 'genereaza_antrenamente_din_orar',
+  'get_primary_user_context', 'get_statistici_financiare', 'get_user_context', 'get_user_contexts',
+  'inregistreaza_sportiv_v2', 'schedule_training_reminders'];
+
+async function probeFunctionale() {
+  // anon pe D: eroare/valoare din corp, NICIODATA 42501
+  const nonPerm = (e: any) => !e || e.code !== '42501';
+  const r1 = await anon.rpc('lista_cluburi_publice');
+  record('anon: lista_cluburi_publice fara 42501', nonPerm(r1.error), r1.error?.code);
+  const r2 = await anon.rpc('get_competitie_publica', { p_id: '00000000-0000-0000-0000-000000000000' });
+  record('anon: get_competitie_publica fara 42501', nonPerm(r2.error), r2.error?.code);
+  const r3 = await anon.rpc('trimite_cerere_acces', { p_competitie: '00000000-0000-0000-0000-000000000000', p_email: 'invalid', p_nume: 'x', p_club: '00000000-0000-0000-0000-000000000000', p_mesaj: 'x' });
+  record('anon: trimite_cerere_acces fara 42501 (date invalide)', nonPerm(r3.error), r3.error?.code ?? r3.error?.message);
+  const r4 = await anon.rpc('inregistreaza_email_auth', { p_tip: 'tip_invalid_zz', p_reusit: false });
+  record('anon: inregistreaza_email_auth fara 42501', nonPerm(r4.error), r4.error?.code ?? r4.error?.message);
+  const r5 = await anon.rpc('cauta_utilizatori_comisie', { p_query: 'a' });
+  record('anon: cauta_utilizatori_comisie = 42501', r5.error?.code === '42501', r5.error?.code ?? 'a primit date');
+  const r6 = await anon.rpc('transfer_sportiv', { p_sportiv_id: '00000000-0000-0000-0000-000000000000', p_new_club_id: '00000000-0000-0000-0000-000000000000' });
+  record('anon: transfer_sportiv = 42501', r6.error?.code === '42501', r6.error?.code);
+
+  const userIds: string[] = [];
+  try {
+    const parola = `Zz!${RUN_ID}aA`;
+    const mk = async (tag: string, rol: string | null) => {
+      const email = `${EMAIL_PREFIX}${tag}_${RUN_ID}@example.com`;
+      const { data, error } = await admin.auth.admin.createUser({ email, password: parola, email_confirm: true });
+      if (error || !data.user) throw new Error(`user ${tag}: ${error?.message}`);
+      userIds.push(data.user.id);
+      let ctx = '';
+      if (rol) {
+        const { data: rr, error: er } = await admin.from('utilizator_roluri_multicont')
+          .insert({ user_id: data.user.id, rol_denumire: rol, club_id: rol === 'REPREZENTANT_COMPETITIE' ? null : CLUB_A, is_primary: true }).select('id').single();
+        if (er || !rr) throw new Error(`rol ${rol}: ${er?.message}`);
+        ctx = rr.id;
+      }
+      const c = createClient(url!, anonKey!, { global: { headers: { 'active-role-context-id': ctx } } });
+      const { error: el } = await c.auth.signInWithPassword({ email, password: parola });
+      if (el) throw new Error(`login ${tag}: ${el.message}`);
+      return { c, uid: data.user.id };
+    };
+    // (4) crearea utilizatorului a reusit => triggerele de pe auth.users merg dupa REVOKE C
+    const adm = await mk('adm', 'ADMIN_CLUB');
+    record('creare utilizator efemer OK (triggere auth.users dupa REVOKE C)', !!adm.uid);
+    const spo = await mk('spo', 'SPORTIV');
+    const ext = await mk('ext', 'REPREZENTANT_COMPETITIE');
+    // UPDATE efemer pe auth.users -> triggerele sync_user_metadata / sync_email_to_sportivi
+    const { error: eUp } = await admin.auth.admin.updateUserById(adm.uid, { user_metadata: { zz_faza37: RUN_ID } });
+    record('UPDATE auth.users (triggere sync_*) fara eroare', !eUp, eUp?.message);
+
+    const q = await adm.c.rpc('cauta_utilizatori_comisie', { p_query: 'a' });
+    record('ADMIN_CLUB: cauta_utilizatori_comisie fara eroare', !q.error, q.error?.message ?? `rows=${(q.data as any[])?.length}`);
+    for (const [tag, u] of [['SPORTIV', spo], ['extern', ext]] as const) {
+      const r = await u.c.rpc('cauta_utilizatori_comisie', { p_query: 'a' });
+      record(`${tag}: cauta_utilizatori_comisie = 42501`, r.error?.code === '42501', r.error?.code ?? 'a primit date');
+    }
+    // SERVICE_ONLY: authenticated respins (42501), fara efecte (argumente inexistente)
+    const z = '00000000-0000-0000-0000-000000000000';
+    const args: Record<string, any> = {
+      check_user_access: { p_user_id: z }, get_primary_user_context: { p_user_id: z }, get_user_context: { p_user_id: z },
+      get_user_contexts: { p_user_id: z }, encrypt_cnp: { cnp_plain: '0000000000000' },
+    };
+    for (const f of ['check_user_access', 'get_primary_user_context', 'get_user_context', 'get_user_contexts', 'encrypt_cnp', 'find_similar_sportivi']) {
+      const r = await adm.c.rpc(f, args[f] ?? {});
+      record(`ADMIN_CLUB: ${f} = 42501 (service-only)`, r.error?.code === '42501', r.error?.code ?? r.error?.message ?? 'a primit date');
+    }
+    // vizibilitate catalog: toate SERVICE_ONLY fara EXECUTE pentru authenticated/anon, cu EXECUTE pentru service_role
+    const rows = await snapshot();
+    const so = rows.filter((r) => SERVICE_ONLY.includes(r.nume) && r.definer);
+    record('SERVICE_ONLY: 10 semnaturi definer prezente', so.length === 10, `n=${so.length}`);
+    record('SERVICE_ONLY: fara authenticated/anon, cu service_role', so.every((r) => !r.authenticated && !r.anon && r.service_role));
+  } finally {
+    for (const id of userIds) await admin.auth.admin.deleteUser(id);
+    const { data: left } = await admin.auth.admin.listUsers({ perPage: 200 });
+    const ramase = (left?.users ?? []).filter((u) => u.email?.startsWith(EMAIL_PREFIX)).length;
+    record('reziduuri utilizatori ZZ_TEST_FAZA37 = 0', ramase === 0, `n=${ramase}`);
+  }
 }
 
 main().catch((e) => {

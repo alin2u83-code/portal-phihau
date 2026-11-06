@@ -45,7 +45,6 @@
     "export_sportivi_selectati(uuid[])",
     "fisa_practicant_club_id(uuid)",
     "generare_factura_examen(uuid,uuid)",
-    "generare_factura_examen(uuid)",
     "genereaza_taxe_anuale(uuid,text,integer,uuid[])",
     "get_active_club_id()",
     "get_active_club_id(uuid)",

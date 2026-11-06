@@ -555,15 +555,26 @@ Plans:
 
 Plans:
 
-- [ ] 37-01-PLAN.md — Val 0a: functie snapshot ACL + test `acl_definer_faza37` (allowlist baseline) + baseline regresie
-- [ ] 37-02-PLAN.md — Val 0b: triaj `37-TRIAJ.md` (177 functii definer: A/B/C/D, apelanti, liste de executie)
-- [ ] 37-03-PLAN.md — Val 1: REVOKE anon/PUBLIC (cu GRANT explicit), C/service-only, DEFAULT PRIVILEGES, garda `cauta_utilizatori_comisie`
-- [ ] 37-04-PLAN.md — Val 2a: garzi pe functiile de bani (incasare, recalculare, factura examen x2) + test live
-- [ ] 37-05-PLAN.md — Val 2b: garzi pe functiile cu date de sportivi (adauga_sportiv_complet, process_exam_row_v4, export reparat, decrypt_cnp, get_all_app_data)
-- [ ] 37-06-PLAN.md — Val 3a [poarta post-invitatii]: view limitat sportivi pentru contul extern (T-36-41)
-- [ ] 37-07-PLAN.md — Val 3b [post-invitatii]: citire sportivi/inscrieri/echipe doar club + familie + federatie (H1)
-- [ ] 37-08-PLAN.md — Val 4a [post-invitatii]: default-deny tabele noi, cluburi (cif/setari), istoric_grade, audit storage
-- [ ] 37-09-PLAN.md — Val 4b [post-invitatii]: cheie localStorage separata pentru contextul extern
+- [x] 37-01-PLAN.md — Val 0a: functie snapshot ACL + test `acl_definer_faza37` (allowlist baseline) + baseline regresie
+- [x] 37-02-PLAN.md — Val 0b: triaj `37-TRIAJ.md` (177 functii definer: A/B/C/D, apelanti, liste de executie)
+- [x] 37-03-PLAN.md — Val 1: REVOKE anon/PUBLIC (cu GRANT explicit), C/service-only, DEFAULT PRIVILEGES, garda `cauta_utilizatori_comisie`
+- [x] 37-04-PLAN.md — Val 2a: garzi pe functiile de bani (incasare, recalculare, factura examen x2) + test live
+- [x] 37-05-PLAN.md — Val 2b: garzi pe functiile cu date de sportivi (adauga_sportiv_complet, process_exam_row_v4, export reparat, decrypt_cnp, get_all_app_data)
+- [~] 37-06-PLAN.md (SARIT: fara conturi externe) — Val 3a [poarta post-invitatii]: view limitat sportivi pentru contul extern (T-36-41)
+- [~] 37-07-PLAN.md (AMANAT: vezi .planning/todos/pending/2026-11-06-faza37-ramase.md) — Val 3b [post-invitatii]: citire sportivi/inscrieri/echipe doar club + familie + federatie (H1)
+- [~] 37-08-PLAN.md (AMANAT: vezi .planning/todos/pending/2026-11-06-faza37-ramase.md) — Val 4a [post-invitatii]: default-deny tabele noi, cluburi (cif/setari), istoric_grade, audit storage
+- [~] 37-09-PLAN.md (AMANAT: vezi .planning/todos/pending/2026-11-06-faza37-ramase.md) — Val 4b [post-invitatii]: cheie localStorage separata pentru contextul extern
+
+### Phase 38: Performanta incarcare aplicatie: eliminare statement timeouts (57014) la pornire — politici RLS mari si multe interogari concurente (vedere_*, sesiuni_examene, vize_sportivi, istoric grade); obiectiv login fara Eroare de Sistem, interogari sub 8s cu 3500 sportivi
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 37
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 38 to break down)
 
 ---
 

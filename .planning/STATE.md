@@ -192,6 +192,8 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - Phase 37 added: Hardening securitate DB (RPC SECURITY DEFINER, garzi bani/date, citire sportivi cross-club). V1+V2 inainte de invitatii externe, V3 dupa.
+- Phase 37 stare 6.11.2026: 37-01..05 + fix-uri (transfer doar ADMIN_CLUB, process_exam_row_v4 stearsa) comise; mutare sportiv ramane doar ADMIN_CLUB/super admin (migr. 20261107h). FAZA 37 FINALIZATA 6.11.2026, push. 37-06 SARIT (fara conturi externe), 37-07..09 AMANATE (regula imprumut Giao Dau FRAM cere design; vezi memory project_faza37_decizie_fara_externi_20261106).
+- Phase 38 added: Performanta incarcare aplicatie (statement timeouts 57014 la pornire; RLS mari, planning ~271ms/interogare, view-uri vedere_*). Neplanificata.
 
 - Phase 15 added: Fix RLS izolare cross-club pe tabele financiare (alocari_plati, tranzactie_plata, incasari_efective, obligatii_plata, aplicare_reduceri, detalii_decont, sesiune_activitate, staging_inscrieri)
 - Phase 16 added: Elimina politici RLS USING(true) ramase (rezultate, facturi_federale, note_examene, etc) si restrictioneaza public.users

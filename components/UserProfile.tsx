@@ -853,7 +853,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
                 {activeTab === 'contact' && (
                     <ContactTab
                         sportiv={sportiv}
-                        isSuperAdmin={isSuperAdmin}
+                        isSuperAdmin={['SUPER_ADMIN_FEDERATIE', 'ADMIN', 'ADMIN_CLUB'].includes(activeRoleName || '')}
                         setIsTransferModalOpen={setIsTransferModalOpen}
                     />
                 )}

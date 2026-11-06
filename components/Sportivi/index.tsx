@@ -666,21 +666,8 @@ export const Sportivi: React.FC<{
 
                 if (existingSportiv) {
                     if (existingSportiv.club_id !== targetClubId) {
-                        // Store pending transfer context and open confirm modal
-                        const doTransferAndContinue = async () => {
-                            try {
-                                const { error: updateError } = await supabase
-                                    .from('sportivi')
-                                    .update({ club_id: targetClubId })
-                                    .eq('id', existingSportiv.id);
-                                if (updateError) throw updateError;
-                                await handleSave(formData);
-                            } catch (err: any) {
-                                showError("Eroare la transfer", err.message);
-                            }
-                        };
-                        openConfirm("Acest sportiv este înregistrat la un alt club. Doriți să îl transferați în clubul dumneavoastră?", doTransferAndContinue, { title: 'Transfer sportiv', confirmLabel: 'Transferă', variant: 'info' });
-                        return { success: false, error: "Așteptare confirmare transfer." };
+                        // Mutarea sportivilor între cluburi nu există în aplicație (decizie 6.11.2026).
+                        throw new Error("Există deja un sportiv cu acest email într-un alt club. Sportivii nu se pot muta între cluburi din aplicație.");
                     }
                 }
 

@@ -29,6 +29,11 @@ WHERE n.nspname = 'public' AND p.prosecdef AND p.prokind IN ('f', 'p')
   AND p.proname NOT LIKE 'scoala\_ioncreanga\_%'
   AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.classid = 'pg_proc'::regclass AND d.objid = p.oid AND d.deptype = 'e');
 
+-- Snapshot ACL scoala_ioncreanga_* (exceptie documentata): comparat la final (post-conditia d).
+CREATE TEMP TABLE _scoala_inainte ON COMMIT DROP AS
+SELECT p.oid AS oid, p.proacl::text AS acl FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public' AND p.proname LIKE 'scoala\_ioncreanga\_%';
+
 -- 2-3. GRANT explicit apoi REVOKE (ordinea conteaza), pe liste transcrise din triaj.
 DO $$
 DECLARE
@@ -127,6 +132,8 @@ GRANT EXECUTE ON FUNCTION public.cauta_utilizatori_comisie(text) TO authenticate
 
 -- 5. Default privileges (functii noi). postgres obligatoriu; supabase_admin best-effort (cere apartenenta la rol).
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM anon;
+-- NOTA (review): fara IN SCHEMA => global pe toate schemele rolului postgres. Intentionat: PUBLIC e default GLOBAL, forma IN SCHEMA nu il poate revoca.
+-- Efect: functii noi create de postgres in alte scheme nu mai au EXECUTE implicit pentru PUBLIC; grant explicit unde e nevoie.
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 DO $$
 BEGIN
@@ -142,6 +149,15 @@ END $$;
 DO $$
 DECLARE
   v_d text[] := ARRAY['get_competitie_publica','inregistreaza_email_auth','lista_cluburi_publice','trimite_cerere_acces'];
+  v_pierdute text[] := ARRAY['check_user_access','encrypt_cnp','find_similar_sportivi','genereaza_antrenamente_din_orar','get_primary_user_context',
+      'get_statistici_financiare','get_user_context','get_user_contexts','inregistreaza_sportiv_v2','schedule_training_reminders',
+      'ajusteaza_debutant_la_import_examen','audit_trigger_fn','auto_set_primary_role','fn_automatizeaza_legatura_utilizator',
+      'handle_new_user_phihau','handle_sportiv_automation','handle_sportiv_insert_automation','on_tranzactie_change',
+      'on_tranzactie_plata_change','rls_auto_enable','set_cerere_gdpr_procesare','set_default_grade_for_new_sportiv',
+      'sync_email_to_sportivi','sync_grad_actual_canonical','sync_grad_actual_from_istoric_grade','sync_grad_actual_on_manual_grade',
+      'sync_istoric_grade_on_exam_result','sync_user_metadata_from_profile','sync_user_metadata','sync_user_roles_to_multicont',
+      'tr_completeaza_rol_id','trg_plata_confirmare_sms','trg_activeaza_taxa_anuala','trg_taxa_config_factureaza_asteptare',
+      'valideaza_antrenament_data_in_sezon_grupa'];
   v_n int;
 BEGIN
   -- (a) anon/PUBLIC doar pe D
@@ -158,13 +174,17 @@ BEGIN
   -- (c) authenticated pastreaza tot ce avea, minus C/SERVICE_ONLY (25 + 10 = 35 pierdute, toate cu auth=true inainte)
   SELECT count(*) INTO v_n FROM _acl_inainte i
    WHERE i.auth AND NOT has_function_privilege('authenticated', i.oid, 'EXECUTE');
-  IF v_n <> 35 - (SELECT count(*) FROM _acl_inainte i WHERE NOT i.auth AND i.nume IN (
-      'trg_activeaza_taxa_anuala','trg_taxa_config_factureaza_asteptare','valideaza_antrenament_data_in_sezon_grupa')) THEN
-    RAISE EXCEPTION 'post(c): authenticated a pierdut % functii (asteptat 35 minus C deja revocate)', v_n; END IF;
+  IF v_n <> (SELECT count(*) FROM _acl_inainte i WHERE i.auth AND i.nume = ANY (v_pierdute)) THEN
+    RAISE EXCEPTION 'post(c): authenticated a pierdut % functii (asteptat = C+SERVICE_ONLY care o aveau)', v_n; END IF;
   SELECT count(*) INTO v_n FROM _acl_inainte i
    WHERE NOT i.auth AND has_function_privilege('authenticated', i.oid, 'EXECUTE');
   IF v_n > 0 THEN RAISE EXCEPTION 'post(c): authenticated a CAPATAT EXECUTE pe % functii', v_n; END IF;
-  -- (d) scoala_ioncreanga_*: neatinse = nicio functie definer din prefix nu apare in _acl_inainte (excluse); verificare ACL identic imposibila fara snapshot -> verificata in test (acl_definer_faza37.ts, anon pe prefix)
+  -- (d) scoala_ioncreanga_*: ACL identic cu snapshot-ul de dinainte (si multimea nu e goala)
+  SELECT count(*) INTO v_n FROM _scoala_inainte;
+  IF v_n = 0 THEN RAISE EXCEPTION 'post(d): snapshot scoala_ioncreanga_* gol'; END IF;
+  SELECT count(*) INTO v_n FROM _scoala_inainte s JOIN pg_proc p ON p.oid = s.oid
+   WHERE p.proacl::text IS DISTINCT FROM s.acl;
+  IF v_n > 0 THEN RAISE EXCEPTION 'post(d): ACL modificat pe % functii scoala_ioncreanga_*', v_n; END IF;
   -- (e) service_role pe tot
   SELECT count(*) INTO v_n FROM _acl_inainte i WHERE NOT has_function_privilege('service_role', i.oid, 'EXECUTE');
   IF v_n > 0 THEN RAISE EXCEPTION 'post(e): service_role fara EXECUTE pe % functii', v_n; END IF;

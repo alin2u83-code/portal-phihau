@@ -33,3 +33,11 @@ acl_definer_faza37 30/30; rls_acces_extern 57/57; acces_extern_aprobare 36/36; r
 
 ## Neverificat
 Browser (login, Dashboard, Examene/cautare membru comisie, reset parola); instructor/sportiv real; corpul `este_staff()` (dependenta de header context).
+
+## Fix-uri review aplicate (OK utilizator 6.11.2026)
+- MEDIUM post(d): snapshot `_scoala_inainte` + comparatie proacl + garda pe gol, in fisierul de migrare. NOTA: migrarea live a rulat fara acest snapshot (nu se mai poate reconstitui "inainte"); verificat ulterior pe live: 34 functii scoala, toate anon-callable, 2 ACL distincte, ca in triaj (neatinse).
+- LOW-MEDIUM default privileges globale: pastrat intentionat (forma IN SCHEMA nu poate revoca PUBLIC), documentat in comentariu in migrare.
+- LOW post(c): numara direct C+SERVICE_ONLY care aveau authenticated (fara 35 hardcodat).
+- LOW test: cleanup sterge explicit utilizator_roluri_multicont, listUsers paginat, verifica si randuri de rol ramase.
+- Fisierul de migrare difera acum de textul rulat live doar prin post-conditii/comentarii (efect DDL identic).
+- ramas: supabase_admin default ACL (manual, dashboard).

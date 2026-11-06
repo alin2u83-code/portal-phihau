@@ -217,9 +217,19 @@ async function probeFunctionale() {
     record('SERVICE_ONLY: 10 semnaturi definer prezente', so.length === 10, `n=${so.length}`);
     record('SERVICE_ONLY: fara authenticated/anon, cu service_role', so.every((r) => !r.authenticated && !r.anon && r.service_role));
   } finally {
-    for (const id of userIds) await admin.auth.admin.deleteUser(id);
-    const { data: left } = await admin.auth.admin.listUsers({ perPage: 200 });
-    const ramase = (left?.users ?? []).filter((u) => u.email?.startsWith(EMAIL_PREFIX)).length;
+    for (const id of userIds) {
+      await admin.from('utilizator_roluri_multicont').delete().eq('user_id', id);
+      await admin.auth.admin.deleteUser(id);
+    }
+    let ramase = 0;
+    for (let page = 1; page <= 50; page++) {
+      const { data: left } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+      const us = left?.users ?? [];
+      ramase += us.filter((u) => u.email?.startsWith(EMAIL_PREFIX)).length;
+      if (us.length < 200) break;
+    }
+    const { count: roluriRamase } = await admin.from('utilizator_roluri_multicont').select('id', { count: 'exact', head: true }).in('user_id', userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000']);
+    ramase += roluriRamase ?? 0;
     record('reziduuri utilizatori ZZ_TEST_FAZA37 = 0', ramase === 0, `n=${ramase}`);
   }
 }

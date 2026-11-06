@@ -25,6 +25,7 @@ const PREFIX = 'ZZ_TEST_FAZA37_';
 const EMAIL_PREFIX = 'zztest_faza37b_';
 const RUN_ID = Date.now();
 const TODAY = new Date().toISOString().slice(0, 10);
+const NIL_ID = '00000000-0000-0000-0000-000000000000';
 const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
 const results: { name: string; passed: boolean }[] = [];
@@ -69,6 +70,8 @@ async function main() {
   const sportivIds: string[] = [];
   const plataIds: string[] = [];
   const familieIds: string[] = [];
+  const roleIds: string[] = [];
+  const auditIds: string[] = []; // rand_id-uri ale randurilor efemere (audit_log are triggere pe sportivi/plati/tranzactii/roluri)
   const parola = `Zz!${RUN_ID}aA`;
   const inainte = await counts();
   info('numaratori inainte', JSON.stringify(inainte));
@@ -131,6 +134,7 @@ async function main() {
       const { data: rr, error: er } = await admin.from('utilizator_roluri_multicont')
         .insert({ user_id: data.user.id, rol_denumire: rol, club_id: club, is_primary: true }).select('id').single();
       if (er || !rr) throw new Error(`rol ${tag}: ${er?.message}`);
+      roleIds.push(rr.id);
       const c = createClient(url!, anonKey!, { global: { headers: { 'active-role-context-id': rr.id } }, auth: { persistSession: false, autoRefreshToken: false } });
       const { error: el } = await c.auth.signInWithPassword({ email, password: parola });
       if (el) throw new Error(`login ${tag}: ${el.message}`);
@@ -191,6 +195,8 @@ async function main() {
     await okCase(SUP, pSup, CLUB_A, 'federatie');
     await okCase(null, pSvc, CLUB_A, 'service_role (auth.uid() NULL)');
     await okCase(ADM_A, pDer, null, 'ADMIN@A (club derivat din sportiv)');
+    const { count: fara_club } = await admin.from('tranzactii').select('id', { count: 'exact', head: true }).in('sportiv_id', sportivIds).is('club_id', null);
+    record('tranzactie fara club in payload: club derivat scris in INSERT (0 tranzactii cu club NULL)', fara_club === 0, `club_null=${fara_club}`);
     if (pNoClub) {
       const r = await SUP.c.rpc('proceseaza_incasare_normalizata', { p_tranzactie: tx(spA, CLUB_A), p_plati: alloc(pNoClub) });
       record('federatie: incaseaza plata fara club', !r.error, r.error?.message);
@@ -213,6 +219,7 @@ async function main() {
         record(`${a.label}: INSERT tranzactii direct ${expectOk ? 'permis' : 'respins'}`, !expectOk, t.error?.message ?? 'fara rand');
         return;
       }
+      auditIds.push(t.data.id);
       const tp = await a.c.from('tranzactie_plata').insert({ tranzactie_id: t.data.id, plata_id: pTrg, suma_alocata: 1 }).select('id').maybeSingle();
       const efect = await plata(pTrg);
       const del = await a.c.from('tranzactie_plata').delete().eq('tranzactie_id', t.data.id);
@@ -227,6 +234,7 @@ async function main() {
     // ADMIN@B pe plata din A: RLS sau garda trebuie sa opreasca; plata ramane neschimbata
     const tB = await ADM_B.c.from('tranzactii').insert({ sportiv_id: spA, club_id: CLUB_B, suma: 1, data_platii: TODAY, metoda_plata: 'Cash' }).select('id').maybeSingle();
     if (tB.data) {
+      auditIds.push(tB.data.id);
       const tpB = await ADM_B.c.from('tranzactie_plata').insert({ tranzactie_id: tB.data.id, plata_id: pTrg, suma_alocata: 1 }).select('id').maybeSingle();
       const pt = await plata(pTrg);
       record('ADMIN@B: tranzactie_plata pe plata din A nu schimba plata', pt.status === 'Neachitat', `insert=${tpB.error?.code ?? 'ok'} ${pt.status}`);
@@ -253,6 +261,9 @@ async function main() {
 
     // ── 4. generare_factura_examen(uuid,uuid) ───────────────────────────────
     for (const a of [EXT, SPO_A, ADM_B, INS_B]) await rpcDenied('generare_factura_examen', a, 'generare_factura_examen', { p_sportiv_id: spA, p_sesiune_id: null });
+    // garda inaintea verificarilor care dezvaluie date: sportiv inexistent => 42501 pentru non-federatie, eroare obisnuita pentru federatie
+    await rpcDenied('generare_factura_examen (sportiv inexistent)', ADM_B, 'generare_factura_examen', { p_sportiv_id: NIL_ID, p_sesiune_id: null });
+    await rpcAllowed('generare_factura_examen (sportiv inexistent)', SUP, 'generare_factura_examen', { p_sportiv_id: NIL_ID, p_sesiune_id: null });
     for (const a of [ADM_A, INS_A, SUP]) await rpcAllowed('generare_factura_examen', a, 'generare_factura_examen', { p_sportiv_id: spA, p_sesiune_id: null });
     await rpcAllowed('generare_factura_examen', null, 'generare_factura_examen', { p_sportiv_id: spA, p_sesiune_id: null });
 
@@ -273,9 +284,10 @@ async function main() {
       for (const p of pl ?? []) if (!plataIds.includes(p.id)) plataIds.push(p.id);
       const { data: tr } = await admin.from('tranzactii').select('id').in('sportiv_id', sportivIds);
       const trIds = (tr ?? []).map((t) => t.id);
+      auditIds.push(...trIds);
       if (familieIds.length) {
         const { data: trF } = await admin.from('tranzactii').select('id').in('familie_id', familieIds);
-        for (const t of trF ?? []) if (!trIds.includes(t.id)) trIds.push(t.id);
+        for (const t of trF ?? []) if (!trIds.includes(t.id)) { trIds.push(t.id); auditIds.push(t.id); }
       }
       if (plataIds.length) await step('tranzactie_plata', admin.from('tranzactie_plata').delete().in('plata_id', plataIds));
       if (trIds.length) await step('tranzactie_plata(tx)', admin.from('tranzactie_plata').delete().in('tranzactie_id', trIds));
@@ -290,6 +302,13 @@ async function main() {
       await admin.from('utilizator_roluri_multicont').delete().eq('user_id', id);
       await admin.auth.admin.deleteUser(id);
     }
+    // audit_log: triggerele scriu randuri pentru entitatile efemere (si pentru stergerile din cleanup) => curatate la final
+    const toateAudit = [...new Set([...auditIds, ...sportivIds, ...plataIds, ...roleIds])];
+    if (toateAudit.length) await step('audit_log', admin.from('audit_log').delete().in('rand_id', toateAudit));
+    const { count: rezAudit } = toateAudit.length
+      ? await admin.from('audit_log').select('id', { count: 'exact', head: true }).in('rand_id', toateAudit)
+      : { count: 0 };
+    record('audit_log: zero randuri ramase pentru entitatile efemere', (rezAudit ?? 0) === 0, `ramase=${rezAudit}`);
     const dupa = await counts();
     record('numaratori neschimbate dupa cleanup', JSON.stringify(dupa) === JSON.stringify(inainte), JSON.stringify(dupa));
     const { count: rezS } = await admin.from('sportivi').select('id', { count: 'exact', head: true }).like('nume', `${PREFIX}%`);

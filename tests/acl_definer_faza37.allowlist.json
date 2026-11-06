@@ -50,7 +50,6 @@
     "get_active_club_id(uuid)",
     "get_active_role_context()",
     "get_active_role()",
-    "get_all_app_data()",
     "get_competitie_publica(uuid)",
     "get_familie_id_sportiv_curent()",
     "get_my_active_clubs()",

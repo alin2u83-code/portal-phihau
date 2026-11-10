@@ -866,6 +866,11 @@ export interface CategorieCompetitie {
   min_participanti_start: number;
   ordine_afisare: number;
   doua_quyenuri: boolean;
+  /** activa | fuzionata (inclusa in alta) | impartita (inlocuita de categorii noi) | anulata */
+  status_categorie?: 'activa' | 'fuzionata' | 'impartita' | 'anulata' | null;
+  este_fuzionata?: boolean | null;
+  /** fuzionata: sursele (incl. ea insasi); impartita: categoriile rezultate */
+  categorii_fuzionate_din?: string[] | null;
   // joined
   proba?: ProbaCompetitie;
 }

@@ -221,6 +221,9 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
     });
   }, [echipeFormate, categorii, competitie, sportivi, probeSkipped, skippedCategorii]);
 
+  // Denumire echipă: numele clubului (+ " — nume dat" dacă există); numărul de ordine se afișează în liste, nu în nume
+  const denumireEchipa = (echipa: EchipaFormata) => [numeClub, echipa.numeEchipa].filter(Boolean).join(' — ');
+
   const totalIndividual = useMemo(
     () => randuriIndividuale.reduce((acc, r) => acc + r.taxa, 0),
     [randuriIndividuale]
@@ -251,7 +254,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
 
   const randuriEchipePDF = useMemo<RandEchipaPDF[]>(() =>
     randuriEchipe.map(r => ({
-      numeEchipa: numeClub + (r.echipa.numeEchipa ? ' — ' + r.echipa.numeEchipa : ''),
+      numeEchipa: denumireEchipa(r.echipa),
       categorie: r.categorie.denumire ?? `Categoria ${r.categorie.numar_categorie}`,
       titulari: r.titulariNume.join(', '),
       rezerve: r.rezerveNume.join(', '),
@@ -349,7 +352,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
 
       // 2. Insert/update echipe și sportivii lor
       for (const rand of randuriEchipe) {
-        const denEchipa = numeClub + (rand.echipa.numeEchipa ? ' — ' + rand.echipa.numeEchipa : '');
+        const denEchipa = denumireEchipa(rand.echipa);
         if (rand.echipa.dbId) {
           // UPDATE echipă existentă
           const { data: echModif, error: updErr } = await supabase
@@ -584,7 +587,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-sm text-white">
-                        {numeClub + (rand.echipa.numeEchipa ? ' — ' + rand.echipa.numeEchipa : '')}
+                        {denumireEchipa(rand.echipa)}
                       </span>
                       {rand.incompleta && (
                         <span className="text-[10px] font-bold text-amber-400 bg-amber-900/30 border border-amber-700/50 rounded-full px-1.5 py-0.5 whitespace-nowrap">

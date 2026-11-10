@@ -250,7 +250,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
         const eIncompleta = selectedTitulari.length < categorie.sportivi_per_echipa_min;
         if (!eIncompleta) validateMixtGender(selectedTitulari);
         const { error: updErr } = await supabase.from('echipe_competitie')
-          .update({ denumire_echipa: numeClub.trim().toUpperCase(), echipa_incompleta: eIncompleta, ...(isCvdEchipa ? { arma_id: armaEchipaId } : {}) })
+          .update({ denumire_echipa: ((echipaDejaInscrisa as any).denumire_echipa || numeClub.trim() || null), echipa_incompleta: eIncompleta, ...(isCvdEchipa ? { arma_id: armaEchipaId } : {}) })
           .eq('id', (echipaDejaInscrisa as any).id);
         if (updErr) throw updErr;
         // Ștergem membrii vechi și inserăm cei noi
@@ -273,11 +273,18 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
         }
         const eIncompleta = selectedTitulari.length < categorie.sportivi_per_echipa_min;
         if (!eIncompleta) validateMixtGender(selectedTitulari);
+        // Denumire automată = numele clubului (fără număr; numărul de ordine se afișează în listă); fallback din cluburi dacă lipsește
+        let numeClubEfectiv = numeClub.trim();
+        if (!numeClubEfectiv && clubId) {
+          const { data: clubRow } = await supabase.from('cluburi').select('nume').eq('id', clubId).maybeSingle();
+          numeClubEfectiv = (clubRow?.nume ?? '').trim();
+        }
+        const denumireAuto = numeClubEfectiv || null;
         const { data: ec, error: ecErr } = await supabase.from('echipe_competitie').insert({
           competitie_id: competitie.id,
           categorie_id: categorie.id,
           club_id: clubId,
-          denumire_echipa: numeClub.trim().toUpperCase() || null,
+          denumire_echipa: denumireAuto,
           echipa_incompleta: eIncompleta,
           ...(isCvdEchipa ? { arma_id: armaEchipaId } : {}), // doar CVD: coloana arma_id exista dupa migrare
         }).select().single();

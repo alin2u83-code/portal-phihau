@@ -19,6 +19,7 @@ import {
   SS_KEY_COMP_ID, SS_KEY_TAB, ssGet, ssSet, ssDel,
   areVizaFRAM, WarningVizaFRAM,
   fmtDate, statusLabel, tipBadge, TipuriLabelsContext,
+  categorieActiva, categorieEticheta,
 } from './constants';
 import { CompetitieForm } from './CompetitieForm';
 import { RaportInscrieri } from './RaportInscrieri';
@@ -177,6 +178,9 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
       : categorii;
     return aplicaFiltreCategorie(baza, filtre);
   }, [categorii, selectedProbaId, filtre]);
+
+  // Înscrieri noi (wizard / modal admin): doar categoriile active, nu cele fuzionate/împărțite/anulate
+  const categoriiActive = useMemo(() => categorii.filter(categorieActiva), [categorii]);
 
   const inscrieriCount = (catId: string) =>
     inscrieri.filter(i => i.categorie_id === catId && i.status?.toLowerCase() !== 'retras').length +
@@ -376,6 +380,10 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                             <td className="p-2 text-[var(--t-text-muted)]">{cat.numar_categorie}</td>
                             <td className="p-2">
                               <div className="font-medium text-white">{cat.denumire}</div>
+                              {(() => {
+                                const et = categorieEticheta(cat, categorii);
+                                return et ? <span className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold ${et.clasa}`}>{et.text}</span> : null;
+                              })()}
                               {cat.arma && <div className="text-xs text-orange-400">{cat.arma}</div>}
                             </td>
                             <td className="p-2 hidden md:table-cell text-xs text-slate-400">
@@ -441,12 +449,13 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                                           </div>
                                         );
                                       })}
-                                      {echipeCat.map((ec) => {
+                                      {echipeCat.map((ec, idxEc) => {
                                         const membri = (ec as any).echipa_sportivi || [];
                                         return (
                                           <div key={ec.id} className="px-3 py-2">
                                             <div className="flex items-center justify-between mb-1">
                                               <span className="text-sm text-white font-medium flex items-center gap-2 flex-wrap">
+                                                <span className="text-xs text-slate-500 shrink-0">{inscrieriCat.length + idxEc + 1}.</span>
                                                 {ec.denumire_echipa || 'Echipă fără denumire'}
                                                 {(ec as any).club?.nume && (
                                                   <span className="text-[10px] text-slate-400 font-normal normal-case">{(ec as any).club.nume}</span>
@@ -502,7 +511,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
               <InscriereClubWizard
                 competitie={competitie}
                 probe={probe}
-                categorii={categorii}
+                categorii={categoriiActive}
                 sportivi={sportiviClubInscriere}
                 grade={grade}
                 inscrieri={inscrieri}
@@ -735,7 +744,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
           vizeSportivi={vizeSportivi}
           arme={competitie.tip === 'cvd' ? armeCvd : undefined}
           tipProba={probe.find(p => p.id === inscriereModal.proba_id)?.tip_proba}
-          categorii={categorii}
+          categorii={categoriiActive}
           onClose={() => { setInscriereModal(null); fetchDataSilent(); }}
           onSaved={() => {
             const goToHub = goToHubAfterModalRef.current;

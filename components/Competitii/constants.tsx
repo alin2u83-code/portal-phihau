@@ -1,6 +1,6 @@
 // components/Competitii/constants.tsx
 import React from 'react';
-import { VizaSportiv, Arma } from '../../types';
+import { VizaSportiv, Arma, CategorieCompetitie } from '../../types';
 import { armePermiseGiaoDau } from '../../utils/armeCvd';
 import { TIP_COMPETITIE_LABELS } from '../../utils/competitiiTemplates';
 import { areTaxaAchitata } from '../../utils/taxeAnuale';
@@ -19,6 +19,33 @@ export function ssSet(key: string, value: string): void {
 }
 export function ssDel(key: string): void {
   try { sessionStorage.removeItem(key); } catch { /* ignorat */ }
+}
+
+// -----------------------------------------------
+// HELPERI categorii: fuzionate / împărțite / anulate nu mai primesc înscrieri noi
+// -----------------------------------------------
+export const categorieActiva = (c: CategorieCompetitie) => !c.status_categorie || c.status_categorie === 'activa';
+
+/** Text scurt de insignă pentru starea categoriei (null = nimic de afișat) */
+export function categorieEticheta(c: CategorieCompetitie, toate: CategorieCompetitie[]): { text: string; clasa: string } | null {
+  const nr = (id: string) => {
+    const x = toate.find(k => k.id === id);
+    return x ? `${x.numar_categorie}` : '?';
+  };
+  if (c.status_categorie === 'impartita') {
+    const copii = (c.categorii_fuzionate_din ?? []).map(nr).join(', ');
+    return { text: `Împărțită în ${copii || 'categorii noi'}`, clasa: 'bg-blue-500/20 text-blue-300' };
+  }
+  if (c.status_categorie === 'fuzionata') {
+    const tinta = toate.find(k => k.este_fuzionata && k.id !== c.id && (k.categorii_fuzionate_din ?? []).includes(c.id));
+    return { text: tinta ? `Fuzionată în ${tinta.numar_categorie}` : 'Fuzionată', clasa: 'bg-amber-500/20 text-amber-300' };
+  }
+  if (c.status_categorie === 'anulata') return { text: 'Anulată', clasa: 'bg-slate-500/30 text-slate-300' };
+  if (c.este_fuzionata) {
+    const surse = (c.categorii_fuzionate_din ?? []).filter(id => id !== c.id).map(nr).join(', ');
+    return { text: surse ? `Fuzionată cu ${surse}` : 'Fuzionată', clasa: 'bg-amber-500/20 text-amber-300' };
+  }
+  return null;
 }
 
 // -----------------------------------------------

@@ -140,3 +140,9 @@ Migrarea nu depinde de el: politica jurnal verifica direct `utilizator_roluri_mu
 ### Concluzie pentru riscul din CONTEXT (insert extern in audit_log)
 - **Nu a putut fi demonstrat live.** Rationament din dovezi: (a) etapa 1 a constatat ca proprietarul functiilor (postgres) are BYPASSRLS, deci trigger-ul definer scrie in audit_log indiferent de `ext_r_deny_all`; (b) fara EXCEPTION in functia din fisier, un insert blocat ar fi aratat o eroare in scrierile externe — iar `inscrieri_competitie` e deja auditat si contul extern scrie acolo (36). Verificare obligatorie in 39-11: insert extern (ex. `echipe_competitie`) apoi `SELECT` pe audit_log cu service role -> randul exista cu `actor_nume` completat.
 - Migrarea inlocuieste `ext_r_deny_all` pe audit_log cu 4 restrictive (sel/ins/upd/del); INSERT permis extern doar cu `user_id = auth.uid()`.
+
+## Etapa 2 — dupa aplicare (11.11.2026)
+20261111d aplicata live pe phi-hau-db dupa OK utilizator. audit_trigger_fn live inainte = simpla (header role ctx + insert), salvata in 39-11-audit_trigger_fn_LIVE_inainte.sql; migrarea pastreaza formatul.
+Catalog: 14 triggere pe audit_trigger_fn; politici audit_log: audit_log_insert_self, audit_log_select_jurnal_club, audit_log_select_super_admin, ext_r_audit_log_{sel,ins,upd,del} (ext_r_deny_all eliminata); 4 coloane noi; RLS activ pe sesiuni_actor_competitie.
+Teste: autor_modificari_faza39 32/32; cont_club_faza39 40/40; acl_definer_faza37 28/30 (2 FAIL preexistente: trg_echipe_denumire_implicita + self-check). 16 randuri audit_log de test raman (fara DELETE).
+Risc deschis pentru 39-12: cont extern poate INSERT direct in audit_log cu user_id propriu (audit_log_insert_self + ext_r_audit_log_ins) -> rand cu actor_nume/club_id arbitrar vizibil in jurnalul clubului. Netestat (ar lasa rand permanent).

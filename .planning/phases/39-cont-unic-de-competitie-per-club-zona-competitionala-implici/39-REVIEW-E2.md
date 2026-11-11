@@ -17,4 +17,14 @@ Orchestrator: coloane utilizator_roluri_multicont live = id,user_id,rol_denumire
 Browser/mobil (dialog "Cine lucreaza?", tab jurnal); triggere BEFORE INSERT pe audit_log; contradictia BYPASSRLS vs FORCE din 39-08 (rezolvata empiric de bateria live); date_noi (istoric_grade.observatii) citibil de ADMIN_CLUB al clubului prin API (datele lui proprii, nu cross-club).
 
 ## Decizie utilizator
-(in asteptare)
+Utilizator: "Toate E2-1..4" (11.11.2026).
+
+| ID | Status |
+|----|--------|
+| E2-1 | reparat: queryFn arunca la eroare (CompetitieExterna/index.tsx) |
+| E2-2 | reparat: continutul ramane montat dupa prima alegere (dialogul apare peste) + sesiune_actor_curenta reimprospata activitatea (migrare 20261111d3, APLICATA live) |
+| E2-3 | reparat mai strict: contul de club NU poate scrie pe tabelele auditate fara sesiune de autor valida (garda in audit_trigger_fn, 20261111d3). Scrierile pe tabele neauditate nu sunt acoperite |
+| E2-4 | reparat: la fiecare intrare in competitie (cont de club) se inchide sesiunea veche si se cere din nou autorul |
+| NOTA tip | amanat (fara efect la rulare) |
+
+Re-verificat: tsc 0 erori; autor_modificari_faza39 33/33 (D19 acum cere REFUZ la scriere dupa expirare); cont_club_faza39 40/40 (testul deschide acum sesiune inainte de blocul de scriere); acl_definer 28/30 (preexistent). NEverificat: browser (dialogul reapare la fiecare intrare, continut montat sub dialog), bateriile Faza 36 (modelul cu grant per competitie e inlocuit), review separat al fix-urilor (mici; garda din trigger comun acoperita de baterii).

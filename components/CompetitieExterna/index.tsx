@@ -86,19 +86,35 @@ const EcranActiv: React.FC<EcranActivProps> = ({ ctx, contexte, user, competitie
     const qc = useQueryClient();
     const cheie = ['extern', 'sesiune-actor', ctx.roleRowId];
     const [schimba, setSchimba] = useState(false);
+    // E2-4: contul de club e comun -> la fiecare intrare in competitie se inchide sesiunea veche si se cere din nou autorul
+    const [pregatit, setPregatit] = useState(!esteCont);
+    // E2-2: dupa prima alegere, continutul ramane montat (dialogul apare peste el) ca sa nu se piarda formularele
+    const [aAvutActor, setAAvutActor] = useState(false);
+    useEffect(() => {
+        if (!esteCont) return;
+        let activ = true;
+        void inchideSesiuneActor().finally(() => { if (activ) { qc.setQueryData(cheie, null); setPregatit(true); } });
+        return () => { activ = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [esteCont]);
 
     // Reapare la expirare (4h) prin refetch la revenirea în fereastră și la 5 minute (D-19).
     const { data: sesiune, isLoading } = useQuery({
         queryKey: cheie,
-        queryFn: async () => (await sesiuneActorCurenta()).data,
-        enabled: esteCont,
+        queryFn: async () => {
+            const { data, error } = await sesiuneActorCurenta();
+            if (error) throw error; // E2-1: la eroare React Query pastreaza ultimul data, nu il golește
+            return data;
+        },
+        enabled: esteCont && pregatit,
         refetchOnWindowFocus: true,
         refetchInterval: 5 * 60 * 1000,
         staleTime: 0,
     });
 
     const actor: SesiuneActor | null = esteCont && sesiune && sesiune.competitie_id === competitie.id ? sesiune : null;
-    const trebuieAlegere = esteCont && !isLoading && !actor;
+    useEffect(() => { if (actor) setAAvutActor(true); }, [actor]);
+    const trebuieAlegere = esteCont && pregatit && !isLoading && !actor;
     const onAles = (s: SesiuneActor) => { qc.setQueryData(cheie, s); setSchimba(false); };
 
     return (
@@ -114,8 +130,8 @@ const EcranActiv: React.FC<EcranActivProps> = ({ ctx, contexte, user, competitie
                 actor={actor}
                 onSchimbaActor={() => setSchimba(true)}
             >
-                {esteCont && isLoading && <p className="text-center text-sm">Se încarcă...</p>}
-                {(!esteCont || actor) && (
+                {esteCont && (!pregatit || isLoading) && !aAvutActor && <p className="text-center text-sm">Se încarcă...</p>}
+                {(!esteCont || actor || aAvutActor) && (
                     <ExternDataProvider
                         clubId={ctx.clubId}
                         clubNume={ctx.clubNume}

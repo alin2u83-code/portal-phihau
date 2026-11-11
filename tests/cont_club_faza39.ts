@@ -207,6 +207,8 @@ async function main() {
     }
 
     // ── 3. izolare scriere ──
+    // 20261111d3: contul de club scrie doar cu sesiune de autor valida -> deschide una ca testele de izolare sa masoare RLS, nu garda de autor
+    await CA.rpc('deschide_sesiune_actor', { p_competitie: ACTIVA, p_actor_user_id: null, p_actor_nume: 'ZZ Test Faza39' });
     let r: any = await CA.from('echipe_competitie').insert({ competitie_id: ACTIVA, categorie_id: catAct, club_id: CLUB_A, denumire_echipa: `${PREFIX}echA2_${RUN_ID}`, status: 'inscrisa' }).select('id');
     record('W3 A creeaza echipa pentru club A in ACTIVA (pozitiv)', ok(r), errOrRows(r));
     r = await CA.from('echipe_competitie').insert({ competitie_id: ACTIVA, categorie_id: catAct, club_id: CLUB_B, denumire_echipa: `${PREFIX}echX_${RUN_ID}`, status: 'inscrisa' }).select('id');

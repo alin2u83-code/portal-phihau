@@ -261,9 +261,9 @@ async function main() {
     const curExp = await CA.rpc('sesiune_actor_curenta');
     record('D19 sesiune_actor_curenta() -> null dupa expirare', !curExp.error && curExp.data === null, curExp.error?.message ?? String(curExp.data));
     const rExp = await CA.from('echipe_competitie').insert({ competitie_id: ACT, categorie_id: catId, club_id: CLUB_A, denumire_echipa: `${PREFIX}expirat_${RUN_ID}`, status: 'inscrisa' }).select('id');
-    record('D19 scrierea dupa expirare reuseste (auditul nu blocheaza)', ok(rExp), errOrRows(rExp));
-    const { data: audExp } = await admin.from('audit_log').select('actor_nume, actor_user_id, club_id').eq('tabel', 'echipe_competitie').eq('operatie', 'INSERT').eq('rand_id', firstId(rExp) ?? randomUUID());
-    record('D19 scrierea dupa expirare se logheaza fara actor', audExp?.length === 1 && audExp[0].actor_nume === null && audExp[0].actor_user_id === null, `randuri=${audExp?.length ?? -1}`);
+    record('D19 scrierea contului de club dupa expirare e REFUZATA (20261111d3: autor obligatoriu)', !!rExp.error && !ok(rExp), rExp.error?.message ?? 'scriere acceptata fara autor!');
+    const { data: audExp } = await admin.from('echipe_competitie').select('id').eq('competitie_id', ACT).eq('denumire_echipa', `${PREFIX}expirat_${RUN_ID}`);
+    record('D19 nicio echipa creata dupa expirare', (audExp?.length ?? 0) === 0, `randuri=${audExp?.length ?? -1}`);
 
     // ── 7. D-20: vizibilitatea jurnalului ──
     // sesiune noua cu instructorul ca actor, ca sa existe un rand cu actor_user_id = instructor

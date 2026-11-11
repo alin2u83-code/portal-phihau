@@ -158,6 +158,47 @@ export async function creeazaContClub(
     }
 }
 
+// D-15: managementul acordat (acces_management_cont_club) trece pe identitatea nouă. Ordinea insert-nou ->
+// update grant -> delete-vechi păstrează mereu cel mult un rol de management activ pe club (PK club_id).
+// Întoarce true dacă nu era nimic de mutat sau mutarea a reușit; la eșec nu aruncă (contul nou există deja).
+async function mutaManagement(supabaseAdmin: SupabaseClient, club_id: string, userNou: string): Promise<boolean> {
+    try {
+        const { data: grant, error: gErr } = await supabaseAdmin
+            .from('acces_management_cont_club').select('user_id, rol_denumire, rol_row_id').eq('club_id', club_id).maybeSingle();
+        if (gErr) return false;
+        if (!grant) return true;
+
+        const { data: rolVechi, error: rErr } = await supabaseAdmin
+            .from('utilizator_roluri_multicont')
+            .select('rol_id, rol_denumire, club_id, nume_utilizator_cache').eq('id', grant.rol_row_id).maybeSingle();
+        if (rErr || !rolVechi) return false;
+
+        const { data: rolNou, error: insErr } = await supabaseAdmin.from('utilizator_roluri_multicont').insert({
+            user_id: userNou,
+            rol_id: rolVechi.rol_id,
+            rol_denumire: grant.rol_denumire,
+            club_id,
+            sportiv_id: null,
+            is_primary: false,
+            nume_utilizator_cache: rolVechi.nume_utilizator_cache,
+        }).select('id').single();
+        if (insErr || !rolNou) return false;
+
+        const { error: updErr } = await supabaseAdmin.from('acces_management_cont_club')
+            .update({ user_id: userNou, rol_row_id: rolNou.id }).eq('club_id', club_id).eq('rol_row_id', grant.rol_row_id);
+        if (updErr) {
+            await supabaseAdmin.from('utilizator_roluri_multicont').delete().eq('id', rolNou.id);
+            return false;
+        }
+
+        const { error: delErr } = await supabaseAdmin.from('utilizator_roluri_multicont').delete().eq('id', grant.rol_row_id);
+        if (delErr) console.error('[cont-club] rolul vechi de management nu a putut fi șters');
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export async function schimbaEmailContClub(
     supabaseAdmin: SupabaseClient,
     params: { club_id: string; email: string; callerId: string }
@@ -193,13 +234,18 @@ export async function schimbaEmailContClub(
         // fără el este_doar_extern() ar deveni false și restrictivele ext_r_* n-ar mai limita un JWT încă valid.
         // shortcut: ban în loc de ștergere — ștergerea ar putea eșua pe FK și ar pierde referințe de audit;
         // de revizuit dacă emailul vechi trebuie refolosit.
-        let avertisment: string | undefined;
+        const avertismente: string[] = [];
         const { error: banErr } = await supabaseAdmin.auth.admin.updateUserById(userVechi, { ban_duration: '876000h' });
-        if (banErr) avertisment = 'ban_esuat'; // accesul RLS e deja retras
+        if (banErr) avertismente.push('ban_esuat'); // accesul RLS e deja retras
         await supabaseAdmin.from('mfa_dispozitive_incredere').delete().eq('user_id', userVechi);
         await supabaseAdmin.from('mfa_email_verificari').delete().eq('user_id', userVechi);
 
-        return { ok: true, status: 200, userId: userNou, ...(avertisment ? { avertisment } : {}) };
+        if (!(await mutaManagement(supabaseAdmin, club_id, userNou))) {
+            console.error('[cont-club] managementul nu a putut fi mutat pe identitatea nouă');
+            avertismente.push('management_nemutat'); // proprietarul poate retrage și reacorda din ecranul Conturi cluburi
+        }
+
+        return { ok: true, status: 200, userId: userNou, ...(avertismente.length ? { avertisment: avertismente.join(',') } : {}) };
     } catch {
         return eroareGenerica();
     }

@@ -576,6 +576,17 @@ Plans:
 
 - [ ] TBD (run /gsd-plan-phase 38 to break down)
 
+### Phase 39: Cont unic de competitie per club: zona competitionala implicita, lista competitii + istoric, autor modificari declarativ, buton management cu zona de test
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 38
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 39 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

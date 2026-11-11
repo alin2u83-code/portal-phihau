@@ -149,3 +149,8 @@ Risc deschis pentru 39-12: cont extern poate INSERT direct in audit_log cu user_
 
 ## Decizie 11.11.2026: extern nu modifica
 Riscul de insert direct fals in audit_log inchis: 20261111d2 (APLICATA live) - ext_r_audit_log_ins = NOT este_doar_extern(). Test nou in autor_modificari_faza39: 33/33. Efect lateral: logarea LOGIN/LOGOUT din client (auditLogService) nu mai scrie pentru conturile externe (esec silentios).
+
+## Etapa 3 — dupa aplicare (11.11.2026)
+20261111e aplicata live dupa OK utilizator: tabela acces_management_cont_club, RPC acorda/revoca/stare (doar proprietar), garda de autor din audit_trigger_fn restransa la conturi "doar extern" (cu management acordat contul lucreaza ca staff, fara sesiune de autor).
+Teste: cont_club_faza39 45/45 (sectiune M7 negativ), autor_modificari 33/33, acl_definer 28/30 (aceleasi 2 preexistente).
+Calea pozitiva (acordare/retragere) NEVERIFICATA: 0 conturi de club pilot live (nu se creeaza); de verificat manual in 39-16.

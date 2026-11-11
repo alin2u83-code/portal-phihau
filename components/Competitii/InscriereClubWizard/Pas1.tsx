@@ -11,6 +11,7 @@ import { areVizaFRAM } from '../constants';
 import { BadgeEligibilitateGenerala } from './shared';
 import { EligibilitateGenerala, ArmeAlese } from './types';
 import BannerDeRezolvat from './BannerDeRezolvat';
+import SchimbaGradModal from './SchimbaGradModal';
 import type { ItemDeRezolvat } from './BannerDeRezolvat';
 
 // -----------------------------------------------
@@ -107,11 +108,12 @@ interface CardSportivProps {
   gradNume: string | null;
   gradAnomalie?: boolean;
   onToggle: () => void;
+  gradUi?: React.ReactNode;
 }
 
 const CardSportiv: React.FC<CardSportivProps> = ({
   sportiv, isSelected, isDisabled, isDejaInscris,
-  eligibilitate, varsta, gradNume, gradAnomalie, onToggle, retrageUi,
+  eligibilitate, varsta, gradNume, gradAnomalie, onToggle, retrageUi, gradUi,
 }) => {
   return (
     <label
@@ -148,6 +150,7 @@ const CardSportiv: React.FC<CardSportivProps> = ({
           {varsta !== null && <span>{varsta} ani</span>}
           {gradNume && <span className="text-slate-500">·</span>}
           {gradNume && <span>{gradNume}</span>}
+          {gradUi}
           {gradAnomalie && (
             <span
               title="Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului"
@@ -185,11 +188,12 @@ interface RandTabelSportivProps {
   gradAnomalie?: boolean;
   gen?: string | null;
   onToggle: () => void;
+  gradUi?: React.ReactNode;
 }
 
 const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
   sportiv, isSelected, isDisabled, isDejaInscris,
-  eligibilitate, varsta, gradNume, gradAnomalie, gen, onToggle, retrageUi,
+  eligibilitate, varsta, gradNume, gradAnomalie, gen, onToggle, retrageUi, gradUi,
 }) => {
   return (
     <tr
@@ -233,6 +237,7 @@ const RandTabelSportiv: React.FC<RandTabelSportivProps> = ({
       <td className="p-3 text-sm text-slate-400">
         <div className="flex items-center gap-1.5 flex-wrap">
           {gradNume ?? <span className="text-slate-600 italic">—</span>}
+          {gradUi}
           {gradAnomalie && (
             <span
               title="Vârsta depășește limita obișnuită a gradului — solicitați actualizarea gradului"
@@ -283,13 +288,16 @@ export interface Pas1Props {
   armeAlese?: ArmeAlese;
   onMergiLaArme?: () => void;
   bannerLipsuri?: ItemDeRezolvat[];
+  /** Dupa promovarea gradului (istoric_grade scris) — parintele actualizeaza sportivii din context */
+  onGradSchimbat?: (sportivId: string, gradId: string) => void;
 }
 
 const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   competitie, sportivi, grade, categorii, inscrieri, vizeSportivi,
   selected, myClubId, varsteCompetitie, onToggle, onRetrage, onContinua, onBack,
-  cvd, armeEroare, armeAlese, onMergiLaArme, bannerLipsuri,
+  cvd, armeEroare, armeAlese, onMergiLaArme, bannerLipsuri, onGradSchimbat,
 }) => {
+  const [sportivGrad, setSportivGrad] = useState<Sportiv | null>(null);
   const [confirmRetrageId, setConfirmRetrageId] = useState<string | null>(null);
   const [retragereInCurs, setRetragereInCurs] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -315,6 +323,17 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
       inscrieri.filter(i => catIds.has(i.categorie_id) && (!myClubId || i.club_id === myClubId))
     );
   }, [inscrieri, categorii, myClubId]);
+
+  const renderSchimbaGrad = (sportiv: Sportiv) => {
+    if (!onGradSchimbat) return undefined;
+    return (
+      <button
+        type="button"
+        onClick={e => { e.stopPropagation(); e.preventDefault(); setSportivGrad(sportiv); }}
+        className="text-[10px] px-1.5 py-0.5 rounded border border-slate-600 text-slate-300 hover:bg-slate-700/50"
+      >Schimbă grad</button>
+    );
+  };
 
   const renderRetrage = (sportivId: string) => {
     if (!onRetrage) return undefined;
@@ -728,6 +747,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                 gradAnomalie={gradAnomalie}
                 onToggle={() => !isDisabled && onToggle(sportiv.id)}
                 retrageUi={renderRetrage(sportiv.id)}
+                gradUi={renderSchimbaGrad(sportiv)}
               />
             ))}
           </div>
@@ -802,6 +822,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                     gen={sportiv.gen}
                     onToggle={() => !isDisabled && onToggle(sportiv.id)}
                     retrageUi={renderRetrage(sportiv.id)}
+                gradUi={renderSchimbaGrad(sportiv)}
                   />
                 ))}
               </tbody>
@@ -833,6 +854,12 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
           </Button>
         </div>
       </div>
+      <SchimbaGradModal
+        sportiv={sportivGrad}
+        grade={grade}
+        onClose={() => setSportivGrad(null)}
+        onSaved={(id, gradId) => onGradSchimbat?.(id, gradId)}
+      />
     </div>
   );
 };

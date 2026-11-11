@@ -68,6 +68,8 @@ export interface EchipaFormata {
 // PROPS PRINCIPALE WIZARD
 // -----------------------------------------------
 export interface InscriereClubWizardProps {
+  /** Dupa promovare grad din Pas1: parintele actualizeaza grad_actual_id in contextul de date */
+  onGradSchimbat?: (sportivId: string, gradId: string) => void;
   competitie: Competitie;
   probe: ProbaCompetitie[];
   categorii: CategorieCompetitie[];

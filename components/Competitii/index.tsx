@@ -67,7 +67,7 @@ const TABURI_EXTERN: TabCompetitie[] = ['inscrieri', 'categorii', 'plati', 'deta
 export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated, onViewSportiv, mode, externRol }) => {
   const extern = mode === 'extern';
   const tipuriLabelsCtx = React.useContext(TipuriLabelsContext);
-  const { filteredData, grade, currentUser, vizeSportivi, activeRoleContext } = useData();
+  const { filteredData, grade, currentUser, vizeSportivi, activeRoleContext, setSportivi, clubs } = useData();
   const { showError } = useError();
   const [probe, setProbe] = useState<ProbaCompetitie[]>([]);
   const [categorii, setCategorii] = useState<CategorieCompetitie[]>([]);
@@ -118,7 +118,13 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
     return () => { anulat = true; };
   }, [extern, permissions.isSuperAdmin, competitie.id, activeTab]);
 
+  // Federatia alege clubul pentru care inscrie (nu are club in context); ceilalti raman pe clubul lor
+  const [clubAlesFed, setClubAlesFed] = useState('');
   const myClubId = activeRoleContext?.club_id ?? currentUser?.club_id;
+  // doar wizardul (si modalul deschis din el) lucreaza pe clubul ales; restul tab-urilor raman pe myClubId
+  const clubInscriere = (isAdmin && !extern && clubAlesFed) ? clubAlesFed : myClubId;
+  const poateInscrie = isClubAdmin || (!extern && (permissions.isInstructor || isAdmin));
+  const numeClubInscriere = (isAdmin && !extern && clubAlesFed ? clubs?.find((c: any) => c.id === clubAlesFed)?.nume : null) ?? currentUser?.cluburi?.nume ?? '';
 
   // Extern: filtru club in query (defense in depth; poarta reala este RLS, D-12)
   const doarClubul = (q: any) => (extern && myClubId ? q.eq('club_id', myClubId) : q);
@@ -191,25 +197,27 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
   // Sportivii clubului pentru înscriere: doar activi; cei inactivi rămân vizibili numai dacă sunt deja înscriși aici (ca să poată fi retrași)
   const sportiviClubInscriere = useMemo(() => {
     const inscrisi = new Set(
-      inscrieri.filter(i => i.club_id === myClubId && i.status?.toLowerCase() !== 'retras').map(i => i.sportiv_id)
+      inscrieri.filter(i => i.club_id === clubInscriere && i.status?.toLowerCase() !== 'retras').map(i => i.sportiv_id)
     );
-    return filteredData.sportivi.filter(s => s.club_id === myClubId && (s.status === 'Activ' || inscrisi.has(s.id)));
-  }, [filteredData.sportivi, inscrieri, myClubId]);
+    return filteredData.sportivi.filter(s => s.club_id === clubInscriere && (s.status === 'Activ' || inscrisi.has(s.id)));
+  }, [filteredData.sportivi, inscrieri, clubInscriere]);
 
   // CVD: armele se incarca o singura data aici si se paseaza wizardului
   const sportivIdsClub = useMemo(() => sportiviClubInscriere.map(s => s.id), [sportiviClubInscriere]);
   const armeCvd = useArmeCvd(competitie, sportivIdsClub, competitie.tip === 'cvd');
+  // schimbarea gradului: doar cine poate scrie istoric_grade (federatie, admin club, instructor); nu in modul extern
+  const canEditGrad = !extern && (permissions.canGradeStudents || isAdmin || isClubAdmin || permissions.isInstructor);
   const canEditArme = competitie.status === 'inscrieri_deschise' && (permissions.isAdminClub || permissions.isSuperAdmin || permissions.isFederationAdmin) && externRol !== 'INSTRUCTOR';
 
   // Modal categorie: activi + inactivii înscriși DOAR la categoria deschisă (nu apar selectabili la alte categorii)
   const sportiviModalInscriere = useMemo(() => {
     const inscrisiCat = new Set(
       inscrieri
-        .filter(i => i.club_id === myClubId && i.categorie_id === inscriereModal?.id && i.status?.toLowerCase() !== 'retras')
+        .filter(i => i.club_id === clubInscriere && i.categorie_id === inscriereModal?.id && i.status?.toLowerCase() !== 'retras')
         .map(i => i.sportiv_id)
     );
-    return filteredData.sportivi.filter(s => s.club_id === myClubId && (s.status === 'Activ' || inscrisiCat.has(s.id)));
-  }, [filteredData.sportivi, inscrieri, myClubId, inscriereModal?.id]);
+    return filteredData.sportivi.filter(s => s.club_id === clubInscriere && (s.status === 'Activ' || inscrisiCat.has(s.id)));
+  }, [filteredData.sportivi, inscrieri, clubInscriere, inscriereModal?.id]);
 
   return (
     <div className="space-y-4">
@@ -507,7 +515,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                 </svg>
                 Se încarcă datele competiției...
               </div>
-            ) : (wizardOpen && isClubAdmin) ? (
+            ) : (wizardOpen && poateInscrie && !(isAdmin && !extern && !clubInscriere)) ? (
               <InscriereClubWizard
                 competitie={competitie}
                 probe={probe}
@@ -516,13 +524,14 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                 grade={grade}
                 inscrieri={inscrieri}
                 echipe={echipe}
-                clubId={myClubId || ''}
-                numeClub={currentUser?.cluburi?.nume ?? ''}
+                clubId={clubInscriere || ''}
+                numeClub={numeClubInscriere}
                 vizeSportivi={vizeSportivi}
-                myClubId={myClubId}
+                myClubId={clubInscriere}
                 arme={competitie.tip === 'cvd' ? armeCvd : undefined}
                 canEdit={canEditArme}
                 onViewSportiv={extern ? undefined : onViewSportiv}
+                onGradSchimbat={canEditGrad ? (id, gradId) => setSportivi?.(prev => prev.map(s => s.id === id ? { ...s, grad_actual_id: gradId } : s)) : undefined}
                 interclubDezactivat={extern}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}
@@ -534,9 +543,20 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
               />
             ) : (
               <div className="space-y-3">
-                {canRegister && isClubAdmin && (
-                  <div className="flex justify-end">
-                    <Button variant="success" onClick={() => setWizardOpen(true)}>
+                {canRegister && poateInscrie && (
+                  <div className="flex justify-end items-center gap-2 flex-wrap">
+                    {isAdmin && !extern && (
+                      <select
+                        value={clubAlesFed}
+                        onChange={e => setClubAlesFed(e.target.value)}
+                        aria-label="Club pentru înscriere"
+                        className="h-9 rounded-lg bg-slate-800 border border-slate-600 text-sm text-slate-200 px-2"
+                      >
+                        <option value="">Alege clubul…</option>
+                        {(clubs ?? []).map((c: any) => <option key={c.id} value={c.id}>{c.nume}</option>)}
+                      </select>
+                    )}
+                    <Button variant="success" disabled={isAdmin && !extern && !clubInscriere} onClick={() => setWizardOpen(true)}>
                       + Înscrie Sportivi din Club
                     </Button>
                   </div>
@@ -739,8 +759,8 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
           grade={grade}
           inscrieri={inscrieri}
           echipe={echipe}
-          clubId={myClubId || ''}
-          numeClub={currentUser?.cluburi?.nume ?? ''}
+          clubId={clubInscriere || ''}
+          numeClub={numeClubInscriere}
           vizeSportivi={vizeSportivi}
           arme={competitie.tip === 'cvd' ? armeCvd : undefined}
           tipProba={probe.find(p => p.id === inscriereModal.proba_id)?.tip_proba}

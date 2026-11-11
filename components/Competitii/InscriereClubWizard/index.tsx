@@ -471,6 +471,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
     return (
       <Pas3FormareEchipe
         categorii={categorii.filter(c => c.proba_id === probaDeschisFocusId)}
+        categoriiToate={categorii}
         probe={probe}
         echipe={echipe}
         clubId={clubId}

@@ -4,7 +4,8 @@ import {
 } from '../../../types';
 import { Button } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
-import { verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
+import { verificaEligibilitate, gradEfectivLaData } from '../../../utils/eligibilitateCompetitie';
+import { categoriePentruArma } from '../../../utils/armeCvd';
 import { esteEchipaSauPereche, esteInscrisActiv, BadgeTipParticipare } from './shared';
 import { ProbaHeader } from './constants';
 import { ArmePermiseGiaoDau } from '../constants';
@@ -23,6 +24,8 @@ interface Pas3Props {
   dataCompetitie: string;
   competitieId: string;
   clubSolicitantId: string;
+  /** Toate categoriile competiției (nu doar ale probei curente): `categoriePentruArma` alege între categorii ca modalul de formare */
+  categoriiToate?: CategorieCompetitie[];
   /** Înscrieri existente — folosite pentru categoriile individuale (Giao Dau) */
   inscrieri?: InscriereCompetitie[];
   /** CVD: armele alese in wizard + definitiile lor (pentru eticheta Giao Dau) */
@@ -40,7 +43,7 @@ interface Pas3Props {
 
 const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   categorii, probe, echipe, clubId, sportivi, grade, dataCompetitie,
-  competitieId, clubSolicitantId, inscrieri = [], armeAlese, armeDefinitii,
+  competitieId, clubSolicitantId, categoriiToate, inscrieri = [], armeAlese, armeDefinitii,
   skippedCategorii, onToggleSkipCategorie,
   onOpenInscriereModal, onEchipeRefresh, interclubDezactivat, onBack,
 }) => {
@@ -165,17 +168,28 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
       if (!s.data_nasterii) return false;
       return verificaEligibilitate(s, cat, grade, dataCompetitie).eligibil;
     });
-    // CVD echipa (Song Luyen): contorul tine cont de armele alese — doar sportivii care impart cel putin
-    // o arma cu un alt candidat. shortcut: nu aplica categoriePentruArma (modalul o aplica la formare), upgrade daca numaratoarea difera mult
-    if (armeAlese && armeAlese.size > 0 && esteEchipaSauPereche(cat) && !!cat.arma) {
+    // CVD echipa (Song Luyen): contorul foloseste aceeasi regula ca modalul de formare (categoriePentruArma): un sportiv conteaza doar
+    // pentru armele alese care ajung exact in aceasta categorie (gen, varsta, grad), si doar daca impart o arma cu un alt candidat.
+    if (armeAlese && armeAlese.size > 0 && armeDefinitii && esteEchipaSauPereche(cat) && !!cat.arma) { // armeDefinitii lipsa (se incarca): fara filtru pe arme, ca sa nu apara 0 eligibili
+      const armePeSportiv = new Map<string, Set<string>>();
+      for (const s of candidati) {
+        const alese = armeAlese.get(s.id);
+        if (!alese) continue;
+        const ordine = gradEfectivLaData(s, grade, dataCompetitie)?.ordine ?? 0;
+        const ajung = new Set<string>();
+        for (const a of armeDefinitii) {
+          if (alese.has(a.id) && categoriePentruArma(a, s, ordine, dataCompetitie, categoriiToate ?? categorii, armeDefinitii)?.id === cat.id) ajung.add(a.id);
+        }
+        armePeSportiv.set(s.id, ajung);
+      }
       candidati = candidati.filter(s => {
-        const a = armeAlese.get(s.id);
-        return !!a && candidati.some(o => o.id !== s.id && [...a].some(id => armeAlese.get(o.id)?.has(id)));
+        const a = armePeSportiv.get(s.id);
+        return !!a && candidati.some(o => o.id !== s.id && [...a].some(id => armePeSportiv.get(o.id)?.has(id)));
       });
     }
     const eligibili = candidati.length;
     return { cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili, individual, nrInscrisi };
-  }), [categoriiEchipa, echipe, inscrieri, clubId, sportivi, grade, dataCompetitie, echipeRetraseLocal, armeAlese]);
+  }), [categoriiEchipa, categorii, categoriiToate, echipe, inscrieri, clubId, sportivi, grade, dataCompetitie, echipeRetraseLocal, armeAlese, armeDefinitii]);
 
   const nrConfigurate = categoriiStare.filter(c => c.eCompleta || (skippedCategorii?.has(c.cat.id) ?? false)).length;
   const nrTotal = categoriiStare.filter(c => c.eligibili > 0).length;

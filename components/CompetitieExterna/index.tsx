@@ -187,7 +187,13 @@ const CompetitieExternaPage: React.FC = () => {
     }, [id]);
 
     const finalizeaza = useCallback(async (user: any) => {
-        const { data: contexte, error } = await incarcaContexteEligibile(user.id);
+        // Un 500 trecător (statement timeout, pooler) nu trebuie să blocheze intrarea: 3 încercări, pauze 0,5 s / 1,5 s.
+        let { data: contexte, error } = await incarcaContexteEligibile(user.id);
+        for (const pauza of [500, 1500]) {
+            if (!error) break;
+            await new Promise(r => setTimeout(r, pauza));
+            ({ data: contexte, error } = await incarcaContexteEligibile(user.id));
+        }
         if (error) { setStare({ t: 'eroare', mesaj: 'Nu am putut verifica accesul. Încearcă din nou.' }); return; }
         if (contexte.length === 0) { setStare({ t: 'fara_acces', email: user.email ?? '' }); return; }
         if (contexte.length === 1) { await intraInZona(contexte[0], contexte, user); return; }

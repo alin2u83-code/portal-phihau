@@ -147,7 +147,7 @@ async function apelContClub(operatie: 'creeaza' | 'schimba_email', clubId: strin
 // --- Management acordat pe contul de club (D-16, D-18): RPC-uri doar proprietar (42501 altfel) ---
 
 export type RolManagementAcordabil = 'ADMIN_CLUB' | 'INSTRUCTOR';
-export interface ManagementContClub { club_id: string; rol_denumire: RolManagementAcordabil; acordat_la: string }
+export interface ManagementContClub { club_id: string; rol_denumire: RolManagementAcordabil; acordat_la: string; user_vechi?: boolean }
 
 /** Listă goală și la eroare (ex. migrarea 20261111e neaplicată): cardurile apar fără management. */
 export async function incarcaManagementConturi(): Promise<{ data: ManagementContClub[]; error: any }> {

@@ -113,6 +113,7 @@ export const ConturiCluburiProprietar: React.FC<Props> = ({ onBack }) => {
       const mesaje = [
         avert.includes('ban_esuat') && 'Accesul vechi a fost retras, dar blocarea vechiului cont a eșuat: reverifică-l manual.',
         avert.includes('management_nemutat') && 'Managementul acordat nu a putut fi mutat pe noul email: retrage-l și acordă-l din nou.',
+        avert.includes('rol_vechi_ramas') && 'Vechiul cont mai are rol de management până îi expiră sesiunea; verifică-l.',
       ].filter(Boolean);
       showSuccess(
         'Conturi cluburi',
@@ -162,6 +163,7 @@ export const ConturiCluburiProprietar: React.FC<Props> = ({ onBack }) => {
                 <div className="flex items-center gap-2 shrink-0">
                   <Badge variant={cont ? 'green' : 'slate'}>{cont ? 'Cont activ' : 'Fără cont'}</Badge>
                   {cont && mgmt && <Badge variant="amber">Management: {ETICHETA_ROL[mgmt.rol_denumire] ?? mgmt.rol_denumire}</Badge>}
+                  {cont && mgmt?.user_vechi && <Badge variant="red">Management pe email vechi: retrage și acordă din nou</Badge>}
                   {cont && (mgmt
                     ? <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => deschideMgmt({ tip: 'retrage', clubId: club.id, clubNume: club.nume })}>Retrage management</Button>
                     : <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => deschideMgmt({ tip: 'acorda', clubId: club.id, clubNume: club.nume })}>Acordă management</Button>)}

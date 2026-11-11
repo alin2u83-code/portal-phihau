@@ -45,8 +45,8 @@ const ok = (r: { data: any; error: any }) => !r.error && !!r.data && (!Array.isA
 const firstId = (r: { data: any }) => (Array.isArray(r.data) ? r.data[0]?.id : r.data?.id) as string | undefined;
 const randomPass = () => `Zz!${randomBytes(12).toString('hex')}aA`;
 
-async function clientFor(email: string, parola: string, contextId: string): Promise<SupabaseClient> {
-  const c = createClient(url!, anonKey!, { global: { headers: { 'active-role-context-id': contextId } } });
+async function clientFor(email: string, parola: string, contextId: string | null): Promise<SupabaseClient> {
+  const c = createClient(url!, anonKey!, contextId === null ? undefined : { global: { headers: { 'active-role-context-id': contextId } } });
   const { data, error } = await c.auth.signInWithPassword({ email, password: parola });
   if (error || !data.session) throw new Error(`login ${email}: ${error?.message}`);
   return c;
@@ -265,6 +265,29 @@ async function main() {
     const { data: audExp } = await admin.from('echipe_competitie').select('id').eq('competitie_id', ACT).eq('denumire_echipa', `${PREFIX}expirat_${RUN_ID}`);
     record('D19 nicio echipa creata dupa expirare', (audExp?.length ?? 0) === 0, `randuri=${audExp?.length ?? -1}`);
 
+    // ── 6b. Garda de autor fail-closed (20261111g): header lipsa / alt uuid / invalid => scrierea cere sesiune ──
+    const incearca = async (c: SupabaseClient, tag: string) => c.from('echipe_competitie').insert({
+      competitie_id: ACT, categorie_id: catId, club_id: CLUB_A, denumire_echipa: `${PREFIX}${tag}_${RUN_ID}`, status: 'inscrisa' }).select('id');
+    const rFara = await incearca(await clientFor(emailA, parolaA, null), 'fara_header');
+    record('G1 cont club fara header active-role-context-id: scriere REFUZATA fara sesiune', !!rFara.error && !ok(rFara), rFara.error?.message ?? 'scriere acceptata fara autor!');
+    const rAlt = await incearca(await clientFor(emailA, parolaA, randomUUID()), 'uuid_strain');
+    record('G2 header cu uuid strain: scriere REFUZATA fara sesiune', !!rAlt.error && !ok(rAlt), rAlt.error?.message ?? 'scriere acceptata fara autor!');
+    const rGunoi = await incearca(await clientFor(emailA, parolaA, 'nu-e-uuid'), 'header_invalid');
+    record('G3 header invalid (nu uuid): scriere REFUZATA fara sesiune', !!rGunoi.error && !ok(rGunoi), rGunoi.error?.message ?? 'scriere acceptata fara autor!');
+    const rReprez = await incearca(CA, 'reprezentant');
+    record('G4 header = rolul REPREZENTANT propriu, sesiune expirata: scriere REFUZATA', !!rReprez.error && !ok(rReprez), rReprez.error?.message ?? 'scriere acceptata fara autor!');
+    // management acordat simulat (rand ADMIN_CLUB pe clubul A pentru contul de club): header-ul ADMIN_CLUB sare garda, REPREZENTANT nu
+    const { data: rolMgmt, error: mgErr } = await admin.from('utilizator_roluri_multicont').insert({
+      user_id: uidA, rol_id: await rolIdByName('ADMIN_CLUB'), rol_denumire: 'ADMIN_CLUB', club_id: CLUB_A, is_primary: false, nume_utilizator_cache: 'ZZ Management A',
+    }).select('id').single();
+    if (mgErr || !rolMgmt) throw new Error(`rol management test: ${mgErr?.message}`);
+    roluriTestIds.push(rolMgmt.id);
+    const rMg = await incearca(await clientFor(emailA, parolaA, rolMgmt.id), 'management');
+    record('G5 header = rol ADMIN_CLUB propriu pe clubul contului: scriere acceptata fara sesiune (management)', ok(rMg), errOrRows(rMg));
+    const rMgReprez = await incearca(CA, 'reprezentant_cu_mgmt');
+    record('G6 cu management acordat, contextul REPREZENTANT cere in continuare sesiune', !!rMgReprez.error && !ok(rMgReprez), rMgReprez.error?.message ?? 'scriere acceptata fara autor!');
+
+    await admin.from('utilizator_roluri_multicont').delete().eq('id', rolMgmt.id); // revine la cont doar-extern pt J7
     // ── 7. D-20: vizibilitatea jurnalului ──
     // sesiune noua cu instructorul ca actor, ca sa existe un rand cu actor_user_id = instructor
     await CA.rpc('deschide_sesiune_actor', { p_competitie: ACT, p_actor_user_id: instrA.uid, p_actor_nume: null });

@@ -25,8 +25,17 @@ Browser/mobil (toate ecranele noi: lista competitii, "Cine lucreaza?", jurnal, C
 
 ## Decizie utilizator
 Utilizator (11.11.2026): "Toate, E3-1 prin context activ".
-Status: NEAPLICAT / NEFACUT inca.
+Status: APLICAT 11.11.2026 (vezi "Fix-uri aplicate" mai jos).
 - E3-1: garda de autor din audit_trigger_fn sa depinda de contextul activ din header (REPREZENTANT), nu de este_doar_extern() -> migrare noua (aplicare doar cu OK separat). Nefacut.
 - E3-2: avertisment/retry la esec delete rol vechi (api/_contCompetitieClub.ts:194-195). Nefacut.
 - E3-3: marcaj grant cu user_id vechi. Nefacut.
 Lipsesc si: 39-16-SUMMARY, verificare umana in browser + pilot, actualizare STATE/ROADMAP.
+
+## Fix-uri aplicate (11.11.2026)
+- E3-1: migrarea 20261111f (garda dupa contextul activ) aplicata live, apoi INLOCUITA de 20261111g dupa review: varianta f era fail-open (header lipsa/alt uuid sarea garda, H1). g: `context_activ_este_management_club()`, garda sare doar daca header-ul dovedeste rol ADMIN_CLUB/INSTRUCTOR al utilizatorului pe clubul contului; fara grant pentru authenticated; functia din f stearsa (H2); cast sigur (M1).
+- E3-2: `mutaManagement` face un retry la stergerea rolului vechi si intoarce `rolVechiRamas` -> avertisment `rol_vechi_ramas` in UI. M2 (curatare rol vechi ramas, `revoca` nu-l sterge) NEFACUT, amanat.
+- E3-3: `management_cont_club_stare()` intoarce `user_vechi`; badge in Conturi cluburi.
+- Review separat pe diff (feature-dev:code-reviewer): H1, H2, M1 reparate; M2 amanat.
+- Teste: autor_modificari_faza39 39/39 (G1-G6 noi: fara header, uuid strain, header invalid, REPREZENTANT, management ADMIN, REPREZENTANT cu management); cont_club_faza39 45/45; tsc 0 erori; acl_definer_faza37: doar PRE-1 preexistent.
+- Ramas deschis: restrictivele ext_r_* si inserarea in audit_log devin permisive pentru un cont cu management chiar in contextul REPREZENTANT (documentat in docs/roluri-permisiuni.md); decizie de design a utilizatorului.
+- Neverificat: UI in browser (badge user_vechi, mesaj rol_vechi_ramas), calea pozitiva reala acorda/revoca/mutare la schimbare email, H1..H10 verificare umana (de facut de utilizator), 39-16-SUMMARY, STATE/ROADMAP.

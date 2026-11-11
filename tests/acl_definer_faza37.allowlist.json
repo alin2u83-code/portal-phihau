@@ -1,5 +1,5 @@
 {
-  "nota": "Baseline = starea expusa la momentul 37-01 (inainte de REVOKE). Ratchet: se micsoreaza manual in 37-03/37-05 conform 37-TRIAJ.md. scoala_ioncreanga_* = aplicatie separata, exceptie documentata (decizie 5.11.2026), nu se modifica. | 37-03 aplicat: anon = D (4), authenticated = baseline minus C (25) minus SERVICE_ONLY (10). | 39-01: +3 functii cont club",
+  "nota": "Baseline = starea expusa la momentul 37-01 (inainte de REVOKE). Ratchet: se micsoreaza manual in 37-03/37-05 conform 37-TRIAJ.md. scoala_ioncreanga_* = aplicatie separata, exceptie documentata (decizie 5.11.2026), nu se modifica. | 37-03 aplicat: anon = D (4), authenticated = baseline minus C (25) minus SERVICE_ONLY (10). | 39-01: +3 functii cont club | 39-08: +3 functii actor",
   "exceptii_prefix": {
     "anon": [
       "scoala_ioncreanga_"
@@ -38,6 +38,7 @@
     "decide_cerere_locatie_grupa(uuid,boolean)",
     "decrypt_cnp(text)",
     "delete_exam_registration(uuid)",
+    "deschide_sesiune_actor(uuid,uuid,text)",
     "este_doar_extern()",
     "este_proprietar()",
     "este_sportivul_meu(uuid)",
@@ -68,6 +69,7 @@
     "has_access_to_club(uuid)",
     "has_power_role()",
     "incasare_club_id(uuid)",
+    "inchide_sesiune_actor()",
     "inregistreaza_dispozitiv_incredere(text)",
     "inregistreaza_email_auth(text,boolean)",
     "inregistreaza_plata_federatie(uuid,text,integer,uuid[],text,date,text,text)",
@@ -103,6 +105,7 @@
     "set_primary_context(text,uuid,uuid)",
     "set_primary_context(text,uuid)",
     "set_primary_context(uuid,text)",
+    "sesiune_actor_curenta()",
     "seteaza_scutire_taxa(uuid,text,integer,boolean,text)",
     "sportiv_apartine_clubului(uuid,uuid)",
     "sterge_cereri_in_asteptare(uuid)",

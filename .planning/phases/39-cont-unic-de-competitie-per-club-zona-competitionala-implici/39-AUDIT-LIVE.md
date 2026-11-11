@@ -88,3 +88,55 @@ OK explicit al utilizatorului (AskUserQuestion, "Da, aplica si verifica") dupa a
 ### Teste
 - `npx tsx tests/cont_club_faza39.ts`: 40/40 PASS, exit 0, fara reziduuri (plati/vize noi = 0).
 - `npx tsx tests/acl_definer_faza37.ts`: 28/30. 2 FAIL, ambele din aceeasi cauza, PREEXISTENTE si NEAFILIATE fazei 39: functia `trg_echipe_denumire_implicita()` (migrarea 20261110b) e SECURITY DEFINER, executabila de authenticated si lipseste din allowlist; self-check-ul de sensibilitate numara astfel 2 detectii in loc de 1. De triat de utilizator (REVOKE EXECUTE ... FROM authenticated pe o functie trigger, sau adaugare in allowlist). Nu s-a modificat nimic live.
+
+## Etapa 2 (39-08) — autorul modificarilor
+
+Data: 2026-11-11. **Acoperire partiala (fara MCP Supabase in subagent):** s-a rulat doar citirea schemei expuse de PostgREST (OpenAPI, service role, fara date): coloane + chei primare pentru tabelele din D-20. Punctele care cer catalog (`pg_proc`, `pg_policies`, `pg_trigger`) sunt **NERULAT** — interogarile sunt mai jos si se ruleaza in 39-11 INAINTE de aplicarea 20261111d. Nu s-a rulat DDL/DML.
+
+### (1) Textul LIVE al audit_trigger_fn — NERULAT
+```sql
+SELECT pg_get_functiondef('public.audit_trigger_fn'::regproc);
+```
+Migrarea 20261111d scrie functia pornind de la fisierul `sql/migrations/audit_triggers_sensibile.sql` (fara EXCEPTION pe insert, fara completare club_id, `(NEW.id)::uuid`). De comparat live: logica in plus (alt mod de completare a `club_id`, EXCEPTION) trebuie incorporata in migrare si textul live pastrat in Rollback.
+
+### (2) Coloanele audit_log — din OpenAPI (live)
+`id uuid PK, created_at, user_id, role_context_id, tabel, operatie, rand_id uuid, date_vechi jsonb, date_noi jsonb, ip_address inet, user_agent, club_id uuid, sursa`. Lipsesc inca: `actor_nume`, `actor_user_id`, `actor_din_lista`, `competitie_id` (le adauga 20261111d). Constrangerea de operatie: INSERT/UPDATE/DELETE/SELECT_SENSIBIL/LOGIN/LOGOUT/ROL_SCHIMBAT (din extend_audit_log_260705.sql, aplicata live 5.07.2026) — migrarea nu introduce operatii noi.
+
+### (3) Politici pe audit_log / relforcerowsecurity — NERULAT
+```sql
+SELECT policyname, cmd, permissive, roles, qual, with_check FROM pg_policies WHERE tablename='audit_log' ORDER BY 1;
+SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE oid='public.audit_log'::regclass;
+```
+Din repo: `audit_log_select_super_admin`, `audit_log_insert_self` (user_id = auth.uid()) si `ext_r_deny_all` (restrictiva FOR ALL, 20261106c sectiunea E — audit_log nu e in lista excluderilor, deci o are live).
+
+### (4) Triggere existente — NERULAT (cunoscut partial)
+```sql
+SELECT c.relname, t.tgname FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
+WHERE NOT t.tgisinternal AND t.tgfoid='public.audit_trigger_fn'::regproc ORDER BY 1,2;
+```
+Cunoscut: `audit_inscrieri_competitie` exista live (etapa 1, punct 9) -> migrarea NU il recreeaza; din fisiere: audit_sportivi, audit_plati, audit_facturi, audit_roluri, audit_inscrieri_examene, audit_grupe. Cele 7 triggere noi nu exista (nu sunt in nicio migrare).
+
+### (5) Scheme (OpenAPI live)
+| Tabela | Coloane relevante | Observatii |
+|---|---|---|
+| competitie_sportiv_arme | competitie_id, sportiv_id, arma_id (PK compus) | FARA `id` -> `rand_id` NULL (cast `(NEW.id)::uuid` ar fi crapat); are competitie_id, fara club_id |
+| sportiv_arme | sportiv_id, arma_id (PK compus) | FARA `id`, fara club_id/competitie_id -> club din sesiune |
+| echipa_sportivi | id, echipa_id, sportiv_id, rol | are `id`; fara club/competitie -> din sesiune; date minori -> diferenta la UPDATE |
+| istoric_grade | id, sportiv_id, grad_id, data_obtinere, sesiune_examen_id, observatii (text liber), created_at, club_id | date minori -> diferenta la UPDATE; `observatii` e text liber (pe INSERT/DELETE ramane in rand — risc acceptat, de revazut) |
+| echipe_competitie | id, competitie_id, categorie_id, club_id, denumire_echipa, status, taxa_achitata, observatii, ... | fara date personale directe |
+| solicitari_echipe_incomplete | id, competitie_id, categorie_id, club_solicitant_id, sportivi_disponibili uuid[], status, club_acceptant_id | club prin `club_solicitant_id` (acoperit in trigger) |
+| cereri_coechipier | id, competitie_id, categorie_id, club_solicitant_id, nr_locuri_solicitate, status, ... | idem |
+Nicio coloana CNP/telefon pe aceste tabele.
+
+### (6) Politici SELECT pe utilizator_roluri_multicont — NERULAT
+```sql
+SELECT policyname, cmd, permissive, qual FROM pg_policies WHERE tablename='utilizator_roluri_multicont' ORDER BY 1;
+```
+Din repo: tabela e EXCLUSA din `ext_r_deny_all` (20261106c) si are doar restrictive ext_r_*_ins/upd/del, deci o politica permisiva SELECT noua (`urm_cont_club_vede_staff`) nu e blocata de nicio restrictiva pe SELECT pentru contul extern.
+
+### (7) Helper ADMIN_CLUB fara header — NERULAT
+Migrarea nu depinde de el: politica jurnal verifica direct `utilizator_roluri_multicont` (user_id = auth.uid(), rol ADMIN_CLUB, club_id = audit_log.club_id), independent de `active-role-context-id`. `check_is_admin_of_club(uuid)` exista in allowlist ACL, corp neverificat.
+
+### Concluzie pentru riscul din CONTEXT (insert extern in audit_log)
+- **Nu a putut fi demonstrat live.** Rationament din dovezi: (a) etapa 1 a constatat ca proprietarul functiilor (postgres) are BYPASSRLS, deci trigger-ul definer scrie in audit_log indiferent de `ext_r_deny_all`; (b) fara EXCEPTION in functia din fisier, un insert blocat ar fi aratat o eroare in scrierile externe — iar `inscrieri_competitie` e deja auditat si contul extern scrie acolo (36). Verificare obligatorie in 39-11: insert extern (ex. `echipe_competitie`) apoi `SELECT` pe audit_log cu service role -> randul exista cu `actor_nume` completat.
+- Migrarea inlocuieste `ext_r_deny_all` pe audit_log cu 4 restrictive (sel/ins/upd/del); INSERT permis extern doar cu `user_id = auth.uid()`.

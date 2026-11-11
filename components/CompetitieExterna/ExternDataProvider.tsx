@@ -15,7 +15,7 @@ interface ExternDataProviderProps {
 }
 
 // Fără retry în cascadă la 401/403: RLS a refuzat deja, repetarea nu ajută.
-const faraRetryPeAuth = (count: number, err: any) => {
+export const faraRetryPeAuth =(count: number, err: any) => {
     const status = err?.status ?? err?.code;
     if (status === 401 || status === 403 || status === '42501') return false;
     return count < 2;

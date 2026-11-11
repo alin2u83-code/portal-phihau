@@ -15,6 +15,8 @@ interface ShellExternProps {
     competitieDenumire?: string;
     onSchimbaContext: (ctx: ContextAccesExtern) => void;
     onDeconecteaza: () => void;
+    /** D-05/D-11: mereu vizibil, indiferent dacă există competiții active. */
+    onManagement: () => void;
     onInapoiLaLista?: () => void;
     /** Autorul declarat în contul de club (D-19); lipsește la conturile personale. */
     actor?: SesiuneActor | null;
@@ -23,7 +25,7 @@ interface ShellExternProps {
 }
 
 /** Antet minimal (D-10): fără sidebar, meniu sau link spre alte module / competiții. */
-export const ShellExtern: React.FC<ShellExternProps> = ({ email, contexte, contextActiv, competitieDenumire, onSchimbaContext, onDeconecteaza, onInapoiLaLista, actor, onSchimbaActor, children }) => (
+export const ShellExtern: React.FC<ShellExternProps> = ({ email, contexte, contextActiv, competitieDenumire, onSchimbaContext, onDeconecteaza, onManagement, onInapoiLaLista, actor, onSchimbaActor, children }) => (
     <div className="min-h-screen bg-[var(--t-bg)] text-[var(--t-text)]">
         <header className="border-b border-[var(--t-border)] bg-[var(--t-surface)]">
             <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -56,6 +58,7 @@ export const ShellExtern: React.FC<ShellExternProps> = ({ email, contexte, conte
                         </div>
                     )}
                     {onInapoiLaLista && <Button variant="secondary" size="sm" onClick={onInapoiLaLista}>Toate competițiile</Button>}
+                    <Button variant="secondary" size="sm" onClick={onManagement}>Management club</Button>
                     <Button variant="secondary" size="sm" onClick={onDeconecteaza}>Deconectare</Button>
                 </div>
             </div>

@@ -15,6 +15,7 @@ import { AlegeActorModal } from './AlegeActorModal';
 import { LoginOtp } from './LoginOtp';
 import { SolicitaContForm } from './SolicitaContForm';
 import { ShellExtern } from './ShellExtern';
+import { ZonaTestManagement } from './ZonaTestManagement';
 import { ExternDataProvider } from './ExternDataProvider';
 import { ListaCompetitiiClub } from './ListaCompetitiiClub';
 import type { Competitie, CompetitiePublica, ContextAccesExtern, SesiuneActor } from '../../types';
@@ -34,6 +35,7 @@ type Stare =
     | { t: 'lista'; ctx: ContextAccesExtern; contexte: ContextAccesExtern[]; user: any; mesaj?: string }
     | { t: 'confirma'; sursa: 'link' | 'lista'; ctx: ContextAccesExtern; contexte: ContextAccesExtern[]; user: any; competitie: Competitie }
     | { t: 'activ'; ctx: ContextAccesExtern; contexte: ContextAccesExtern[]; user: any; competitie: Competitie }
+    | { t: 'demo'; ctx: ContextAccesExtern; contexte: ContextAccesExtern[]; user: any }
     | { t: 'eroare'; mesaj: string };
 
 const ROL_LABEL: Record<string, string> = {
@@ -78,10 +80,11 @@ interface EcranActivProps {
     competitie: Competitie;
     onSchimbaContext: (c: ContextAccesExtern) => void;
     onInapoiLaLista: () => void;
+    onManagement: () => void;
 }
 
 // D-07: o singură sesiune de actor per cont — nu există logică de sesiuni concurente.
-const EcranActiv: React.FC<EcranActivProps> = ({ ctx, contexte, user, competitie, onSchimbaContext, onInapoiLaLista }) => {
+const EcranActiv: React.FC<EcranActivProps> = ({ ctx, contexte, user, competitie, onSchimbaContext, onInapoiLaLista, onManagement }) => {
     const esteCont = ctx.rol === 'REPREZENTANT_COMPETITIE';
     const qc = useQueryClient();
     const cheie = ['extern', 'sesiune-actor', ctx.roleRowId];
@@ -127,6 +130,7 @@ const EcranActiv: React.FC<EcranActivProps> = ({ ctx, contexte, user, competitie
                 onSchimbaContext={onSchimbaContext}
                 onDeconecteaza={() => { void iesiDinZona(ctx.rol); }}
                 onInapoiLaLista={onInapoiLaLista}
+                onManagement={onManagement}
                 actor={actor}
                 onSchimbaActor={() => setSchimba(true)}
             >
@@ -214,6 +218,13 @@ const CompetitieExternaPage: React.FC = () => {
         });
         return () => { anulat = true; sub.subscription.unsubscribe(); };
     }, [id, lista, finalizeaza]);
+
+    // D-05: cu acces acordat (rol ADMIN_CLUB/INSTRUCTOR pe același club) -> managementul real; altfel zona de test cu date fictive.
+    const deschideManagement = (ctx: ContextAccesExtern, contexte: ContextAccesExtern[], user: any) => {
+        const ctxMgmt = contexte.find(c => (c.rol === 'ADMIN_CLUB' || c.rol === 'INSTRUCTOR') && c.clubId === ctx.clubId);
+        if (ctxMgmt) { seteazaContextActiv(ctxMgmt.roleRowId); window.location.assign('/'); return; }
+        setStare({ t: 'demo', ctx, contexte, user });
+    };
 
     const tipLabel = teaser ? (labels.get(teaser.tip) ?? teaser.tip) : '';
     const publica = teaser && id ? <CardPublic c={teaser} tipLabel={tipLabel} /> : null;
@@ -318,6 +329,7 @@ const CompetitieExternaPage: React.FC = () => {
                         contextActiv={ctx}
                         onSchimbaContext={c => { void intraInZona(c, contexte, user, false); }}
                         onDeconecteaza={() => { void iesiDinZona(ctx.rol); }}
+                        onManagement={() => deschideManagement(ctx, contexte, user)}
                     >
                         {stare.t === 'lista' && stare.mesaj && <Card className="mb-4"><p className="text-sm">{stare.mesaj}</p></Card>}
                         <ListaCompetitiiClub
@@ -365,7 +377,30 @@ const CompetitieExternaPage: React.FC = () => {
                         competitie={competitie}
                         onSchimbaContext={c => { void intraInZona(c, contexte, user, false); }}
                         onInapoiLaLista={inapoiLaLista}
+                        onManagement={() => deschideManagement(ctx, contexte, user)}
                     />
+                </ErrorBoundary>
+            );
+            break;
+        }
+        case 'demo': {
+            // Fără dialog de actor: în zona de test nu se scrie nimic (D-17).
+            const { ctx, contexte, user } = stare;
+            const inapoiLaLista = () => setStare({ t: 'lista', ctx, contexte, user });
+            continut = (
+                <ErrorBoundary onNavigate={() => window.location.reload()}>
+                    <ShellExtern
+                        email={user.email ?? ''}
+                        contexte={contexte}
+                        contextActiv={ctx}
+                        competitieDenumire="Management club (demonstrație)"
+                        onSchimbaContext={c => { void intraInZona(c, contexte, user, false); }}
+                        onDeconecteaza={() => { void iesiDinZona(ctx.rol); }}
+                        onManagement={() => deschideManagement(ctx, contexte, user)}
+                        onInapoiLaLista={inapoiLaLista}
+                    >
+                        <ZonaTestManagement onInapoi={inapoiLaLista} />
+                    </ShellExtern>
                 </ErrorBoundary>
             );
             break;

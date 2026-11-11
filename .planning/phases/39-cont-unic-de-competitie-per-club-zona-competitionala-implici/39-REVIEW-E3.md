@@ -24,4 +24,9 @@ Orchestrator: bateriile de mai sus.
 Browser/mobil (toate ecranele noi: lista competitii, "Cine lucreaza?", jurnal, Conturi cluburi, Management club/demo); calea pozitiva acorda/revoca si mutarea managementului la schimbare email (0 conturi pilot live); OTP real pe email, SMTP 32-08; bateriile Faza 36 (model inlocuit); `rol_id` la acorda (presupus default/trigger; testele live n-au acoperit calea pozitiva); corpul live audit_trigger_fn (confirmat de orchestrator: contine garda cu este_doar_extern()).
 
 ## Decizie utilizator
-(in asteptare)
+Utilizator (11.11.2026): "Toate, E3-1 prin context activ".
+Status: NEAPLICAT / NEFACUT inca.
+- E3-1: garda de autor din audit_trigger_fn sa depinda de contextul activ din header (REPREZENTANT), nu de este_doar_extern() -> migrare noua (aplicare doar cu OK separat). Nefacut.
+- E3-2: avertisment/retry la esec delete rol vechi (api/_contCompetitieClub.ts:194-195). Nefacut.
+- E3-3: marcaj grant cu user_id vechi. Nefacut.
+Lipsesc si: 39-16-SUMMARY, verificare umana in browser + pilot, actualizare STATE/ROADMAP.

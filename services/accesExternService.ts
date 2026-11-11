@@ -108,7 +108,6 @@ export async function incarcaCompetitiiClub(clubId: string): Promise<{ data: Com
 }
 
 // --- Cont de competiție per club (doar proprietarul aplicației; RPC/endpoint verifică server-side, UI-ul doar ascunde) ---
-// Managementul (ADMIN_CLUB/INSTRUCTOR) se acordă pe contul de club în 39-15 (D-18).
 
 /** false și când RPC-ul lipsește (migrare neaplicată) sau dă eroare: comutatorul rămâne ascuns. */
 export async function esteProprietar(): Promise<boolean> {
@@ -143,6 +142,30 @@ async function apelContClub(operatie: 'creeaza' | 'schimba_email', clubId: strin
     } catch {
         return { ok: false, status: 0, error: 'Eroare de rețea.' };
     }
+}
+
+// --- Management acordat pe contul de club (D-16, D-18): RPC-uri doar proprietar (42501 altfel) ---
+
+export type RolManagementAcordabil = 'ADMIN_CLUB' | 'INSTRUCTOR';
+export interface ManagementContClub { club_id: string; rol_denumire: RolManagementAcordabil; acordat_la: string }
+
+/** Listă goală și la eroare (ex. migrarea 20261111e neaplicată): cardurile apar fără management. */
+export async function incarcaManagementConturi(): Promise<{ data: ManagementContClub[]; error: any }> {
+    if (!supabase) return { data: [], error: 'Supabase neinițializat' };
+    const { data, error } = await supabase.rpc('management_cont_club_stare');
+    return { data: error ? [] : ((data ?? []) as ManagementContClub[]), error };
+}
+
+export async function acordaManagementContClub(clubId: string, rol: RolManagementAcordabil): Promise<{ error: any }> {
+    if (!supabase) return { error: 'Supabase neinițializat' };
+    const { error } = await supabase.rpc('acorda_management_cont_club', { p_club: clubId, p_rol: rol });
+    return { error };
+}
+
+export async function revocaManagementContClub(clubId: string): Promise<{ error: any }> {
+    if (!supabase) return { error: 'Supabase neinițializat' };
+    const { error } = await supabase.rpc('revoca_management_cont_club', { p_club: clubId });
+    return { error };
 }
 
 export const creeazaContClub = (clubId: string, email: string) => apelContClub('creeaza', clubId, email);

@@ -100,7 +100,8 @@ export async function proceseazaCerereAcces(
             : { ok: false, status: cont.status, error: cont.error };
     }
 
-    const { error: marcErr } = await marcheaza({ status: 'aprobata', motiv_respingere: null });
+    let { error: marcErr } = await marcheaza({ status: 'aprobata', motiv_respingere: null });
+    if (marcErr) ({ error: marcErr } = await marcheaza({ status: 'aprobata', motiv_respingere: null })); // E1-2: un retry
     if (marcErr) {
         // Contul a fost creat dar cererea nu s-a marcat: raportăm eroare; reîncercarea dă 409 (cont existent).
         return eroareGenerica();

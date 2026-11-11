@@ -33,7 +33,6 @@
     "check_user_is_admin()",
     "check_user_role(text)",
     "competitie_deschisa_inscrieri(uuid)",
-    "competitie_vizibila_cont_club(uuid,uuid)",
     "cont_club_curent()",
     "current_user_club_id()",
     "decide_cerere_locatie_grupa(uuid,boolean)",

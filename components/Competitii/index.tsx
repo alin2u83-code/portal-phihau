@@ -123,7 +123,10 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
   const myClubId = activeRoleContext?.club_id ?? currentUser?.club_id;
   // doar wizardul (si modalul deschis din el) lucreaza pe clubul ales; restul tab-urilor raman pe myClubId
   const clubInscriere = (isAdmin && !extern && clubAlesFed) ? clubAlesFed : myClubId;
-  const poateInscrie = isClubAdmin || (!extern && (permissions.isInstructor || isAdmin));
+  // E1-1: in zona externa, competitia terminata (istoric) e doar pentru citire; RLS 20261111c2 e garda reala
+  const istoricExtern = extern && (competitie.status === 'finalizata'
+    || (!!competitie.data_sfarsit && competitie.data_sfarsit < new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Bucharest' })));
+  const poateInscrie = !istoricExtern && (isClubAdmin || (!extern && (permissions.isInstructor || isAdmin)));
   const numeClubInscriere = (isAdmin && !extern && clubAlesFed ? clubs?.find((c: any) => c.id === clubAlesFed)?.nume : null) ?? currentUser?.cluburi?.nume ?? '';
 
   // Extern: filtru club in query (defense in depth; poarta reala este RLS, D-12)

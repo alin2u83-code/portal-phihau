@@ -61,6 +61,7 @@ export const LegitimatiiPage = lazy(() => import('./LegitimatiiPage').then(m => 
 export const ImportSportiviPage = lazy(() => import('./Sportivi/ImportSportiviPage').then(m => ({ default: m.ImportSportiviPage })));
 export const IstoricActivitate = lazy(() => import('./IstoricActivitate').then(m => ({ default: m.IstoricActivitate })));
 export const JurnalAudit = lazy(() => import('./JurnalAudit').then(m => ({ default: m.JurnalAudit })));
+export const ConturiCluburiProprietar = lazy(() => import('./ConturiCluburiProprietar').then(m => ({ default: m.ConturiCluburiProprietar })));
 export const DeduplicareSportivi = lazy(() => import('./Sportivi/DeduplicareSportivi').then(m => ({ default: m.DeduplicareSportivi })));
 export const CereriInscriere = lazy(() => import('./Sportivi/CereriInscriere').then(m => ({ default: m.CereriInscriere })));
 export const ProtectiaDatelor = lazy(() => import('./ProtectiaDatelor').then(m => ({ default: m.ProtectiaDatelor })));

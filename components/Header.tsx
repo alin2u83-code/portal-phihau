@@ -82,6 +82,7 @@ export const VIEW_TITLES: Partial<Record<View, string>> = {
     'raport-prezenta': 'Analiză Prezențe',
     'raport-lunar-prezenta': 'Raport Lunar Prezențe',
     'sezoane': 'Sezoane',
+    'conturi-cluburi': 'Conturi cluburi',
 };
 
 export const Header: React.FC<HeaderProps> = ({

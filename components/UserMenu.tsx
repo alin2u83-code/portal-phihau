@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Permissions, View } from '../types';
 import { ChevronDownIcon, CogIcon, ArrowRightOnRectangleIcon, HomeIcon, SitemapIcon, UserCircleIcon, ShieldCheckIcon, ClockIcon } from './icons';
+import { useEsteProprietar } from '../hooks/useEsteProprietar';
 
 interface UserMenuProps {
   currentUser: User;
@@ -35,6 +36,7 @@ const MenuItem: React.FC<{ label: string; icon: React.ElementType; onClick: () =
 
 export const UserMenu: React.FC<UserMenuProps> = ({ currentUser, permissions, onNavigate, onLogout, userRoles = [], onSwitchRole }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const esteProprietar = useEsteProprietar();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const initials = `${currentUser.prenume?.[0] || ''}${currentUser.nume?.[0] || ''}`.toUpperCase();
   const primaryRole = getPrimaryRoleName(permissions);
@@ -142,6 +144,9 @@ export const UserMenu: React.FC<UserMenuProps> = ({ currentUser, permissions, on
             <MenuItem label="Protecția datelor" icon={ShieldCheckIcon} onClick={() => handleNavigate('protectia-datelor')} />
             {permissions?.hasAdminAccess && (
               <MenuItem label="Istoric Activitate" icon={ClockIcon} onClick={() => handleNavigate('istoric-activitate')} />
+            )}
+            {esteProprietar && (
+              <MenuItem label="Conturi cluburi (competiție)" icon={ShieldCheckIcon} onClick={() => handleNavigate('conturi-cluburi')} />
             )}
           </div>
 

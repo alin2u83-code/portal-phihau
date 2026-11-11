@@ -201,6 +201,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return renderProtected(<Lazy.IstoricActivitate onBack={handleBackToDashboard} />, isAtLeastInstructor);
                             case 'jurnal-audit':
                                 return renderProtected(<Lazy.JurnalAudit onBack={handleBackToDashboard} />, permissions.isSuperAdmin);
+                            case 'conturi-cluburi':
+                                return renderProtected(<Lazy.ConturiCluburiProprietar onBack={handleBackToDashboard} />, permissions.isSuperAdmin);
                             case 'deduplicare-sportivi':
                                 return renderProtected(<Lazy.DeduplicareSportivi onBack={handleBackToDashboard} />, isAtLeastClubAdmin);
                             case 'cereri-inscriere':

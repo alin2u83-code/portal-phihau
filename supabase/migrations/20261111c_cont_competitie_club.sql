@@ -1,5 +1,5 @@
 -- Faza 39 (39-01): cont unic de competitie per club (D-01, D-12, D-14).
--- NEAPLICATA LIVE la scrierea fisierului (aplicarea e in 39-04, dupa OK explicit). supabase/ e gitignored -> `git add -f`.
+-- APLICATA LIVE 11.11.2026 (39-04, dupa OK explicit). supabase/ e gitignored -> `git add -f`.
 -- Depinde de 20261111b (este_proprietar) si de 20261106a/c (helperii acces_extern_*, politicile ext_p_*/ext_r_*).
 --
 -- Aditiva: o tabela noua, 2 functii noi, 5 helperi RLS rescrisi cu CREATE OR REPLACE (ACEEASI semnatura, deci politicile

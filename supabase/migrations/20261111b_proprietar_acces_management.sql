@@ -1,6 +1,6 @@
 -- Quick 261111-pza -> reproiectat Faza 39 (D-08): doar proprietarul aplicatiei.
 -- Reproiectat Faza 39 (D-08): managementul se acorda pe contul de club, vezi 20261111e.
--- NEAPLICATA LIVE la scrierea fisierului (verificat 11.11.2026: proprietari_aplicatie / este_proprietar() nu exista live).
+-- APLICATA LIVE 11.11.2026 (39-04, dupa OK explicit). Nota: event trigger ensure_rls_on_create pune FORCE RLS automat; functiile definer merg pentru ca owner-ul postgres are BYPASSRLS.
 -- supabase/ e gitignored -> `git add -f`.
 --
 -- Au fost eliminate (nu fusesera aplicate niciodata): acces_management_acordat, acorda_acces_management,

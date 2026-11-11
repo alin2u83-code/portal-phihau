@@ -65,3 +65,26 @@ SELECT c.relname, t.tgname, pg_get_triggerdef(t.oid) FROM pg_trigger t JOIN pg_c
 WHERE NOT t.tgisinternal AND c.relname IN ('inscrieri_competitie','echipe_competitie');
 ```
 Cunoscut din 36-AUDIT-LIVE (DEC-9): `trg_activeaza_taxa_anuala` pe INSERT in `inscrieri_competitie`; trigger de audit pe `inscrieri_competitie`. De verificat daca vreunul creeaza plati/facturi inainte de testul live din 39-04.
+
+## Etapa 1 — dupa aplicare (11.11.2026)
+
+OK explicit al utilizatorului (AskUserQuestion, "Da, aplica si verifica") dupa auditul catalog. Aplicate cu MCP apply_migration pe wuhidifzsutwgdfkwhmd: 20261111b, apoi 20261111c.
+
+### Audit catalog (inainte de aplicare, read-only) — punctele NERULAT din etapa 1
+- (1) Politici care folosesc helperii: doar ext_p_*, ext_r_*, ic_r_scope_*, ec_r_scope_*, es_r_scope_* (12 tabele). Nicio politica nu citeste direct acces_competitie_extern.
+- (2) Functii care citesc acces_competitie_extern: exact cele 5 helperi acces_extern_* (semnaturi confirmate).
+- (3) Toti 5 helperii SECURITY DEFINER, search_path public,pg_catalog; corpurile live = cele din 20261106a/c (rollback valid).
+- (8) pg_default_acl: tabelele noi din public primesc implicit drepturi complete pentru anon+authenticated -> REVOKE-ul explicit din migrare e necesar (verificat dupa aplicare).
+- (9) Triggere: inscrieri_competitie = audit_inscrieri_competitie, trg_taxa_anuala_inscrieri_competitie (apeleaza activeaza_taxa_anuala(sportiv)), trg_extern_protejeaza_inscrieri, trg_inscrieri_sportiv_in_club; echipe_competitie = trg_echipe_denumire_implicita, trg_extern_protejeaza_echipe. Niciunul pe echipe nu creeaza plati.
+
+### Verificari catalog dupa aplicare
+- Tabele existente: conturi_competitie_club, proprietari_aplicatie. Politici pe conturi_competitie_club: doar ccc_select_propriu, ccc_select_proprietar (SELECT, authenticated).
+- anon: 0 drepturi pe ambele tabele; authenticated: SELECT pe conturi_competitie_club, 0 pe proprietari_aplicatie; service_role: ALL.
+- anon fara EXECUTE pe toate cele 8 functii noi/rescrise; authenticated cu EXECUTE.
+- 4 din 5 helperi citesc conturi_competitie_club; al 5-lea (sportiv_competitie) deleaga catre ceilalti. 0 referinte la acces_competitie_extern in helperi.
+- proprietari_aplicatie = 1 rand. D-02: ADMIN_CLUB=41, INSTRUCTOR=2 (identic cu baza).
+- NOTA FORCE: relforcerowsecurity = true pe ambele tabele noi, desi migrarile nu il seteaza. Cauza: event trigger live `ensure_rls_on_create`. Proprietarul functiilor (postgres) are BYPASSRLS, deci SECURITY DEFINER merge: este_proprietar() = true cu JWT-ul proprietarului (verificat). Comentariul despre FORCE din 20261111b e depasit.
+
+### Teste
+- `npx tsx tests/cont_club_faza39.ts`: 40/40 PASS, exit 0, fara reziduuri (plati/vize noi = 0).
+- `npx tsx tests/acl_definer_faza37.ts`: 28/30. 2 FAIL, ambele din aceeasi cauza, PREEXISTENTE si NEAFILIATE fazei 39: functia `trg_echipe_denumire_implicita()` (migrarea 20261110b) e SECURITY DEFINER, executabila de authenticated si lipseste din allowlist; self-check-ul de sensibilitate numara astfel 2 detectii in loc de 1. De triat de utilizator (REVOKE EXECUTE ... FROM authenticated pe o functie trigger, sau adaugare in allowlist). Nu s-a modificat nimic live.

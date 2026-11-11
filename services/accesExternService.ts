@@ -1,7 +1,7 @@
 import { supabase } from '../supabaseClient';
 import { inregistreazaEmailAuth } from './authEmailAuditService';
-import { clasificaEroareOtp, construiesteContexte, type TipEroareOtp } from '../utils/accesExtern';
-import type { CompetitiePublica, ContextAccesExtern, CodEroareCerereAcces } from '../types';
+import { clasificaEroareOtp, construiesteContexte, clasificaCompetitiiClub, type TipEroareOtp } from '../utils/accesExtern';
+import type { CompetitiePublica, ContextAccesExtern, CodEroareCerereAcces, Competitie, CompetitiiClubClasificate, ContCompetitieClub } from '../types';
 
 // Aceeași cheie și același format ca portalul principal (hooks/useAppLogic.ts) — supabaseClient.ts o citește
 // și trimite headerul active-role-context-id în toate requesturile (RLS).
@@ -41,16 +41,15 @@ export async function verificaCodAcces(email: string, cod: string): Promise<{ us
 }
 
 /** Listă goală = emailul nu are acces (D-02). Accesul real e dat de RLS, nu de această listă. */
-export async function incarcaContexteEligibile(userId: string, competitieId: string): Promise<{ data: ContextAccesExtern[]; error: any }> {
+export async function incarcaContexteEligibile(userId: string): Promise<{ data: ContextAccesExtern[]; error: any }> {
     if (!supabase) return { data: [], error: 'Supabase neinițializat' };
-    const [roluri, granturi] = await Promise.all([
+    const [roluri, cont] = await Promise.all([
         supabase.from('utilizator_roluri_multicont').select('id, rol_denumire, club_id, club:club_id(id, nume)').eq('user_id', userId),
-        supabase.from('acces_competitie_extern').select('competitie_id, club_id, activ, cluburi(nume)')
-            .eq('user_id', userId).eq('competitie_id', competitieId).eq('activ', true),
+        supabase.from('conturi_competitie_club').select('club_id, cluburi(nume)').eq('user_id', userId).maybeSingle(),
     ]);
-    const error = roluri.error ?? granturi.error;
+    const error = roluri.error ?? cont.error;
     if (error) return { data: [], error };
-    return { data: construiesteContexte((roluri.data ?? []) as any, (granturi.data ?? []) as any, competitieId), error: null };
+    return { data: construiesteContexte((roluri.data ?? []) as any, (cont.data ?? null) as any), error: null };
 }
 
 /** Atenție: suprascrie contextul activ al portalului principal pe același browser (aceeași cheie localStorage). */
@@ -86,3 +85,65 @@ export async function deconecteaza(): Promise<void> {
     try { localStorage.removeItem(CHEIE_CONTEXT); } catch { /* storage blocat */ }
     window.location.assign(window.location.pathname);
 }
+
+const COLOANE_COMPETITIE = 'id, denumire, tip, status, data_inceput, data_sfarsit, deadline_inscrieri, locatie';
+
+/** Competițiile vizibile clubului (RLS: competitie_vizibila_cont_club), împărțite în active / istoric (D-03, D-12). */
+export async function incarcaCompetitiiClub(clubId: string): Promise<{ data: CompetitiiClubClasificate; error: any }> {
+    const gol: CompetitiiClubClasificate = { active: [], istoric: [] };
+    if (!supabase) return { data: gol, error: 'Supabase neinițializat' };
+    // participarea: o singură linie per competiție (limit pe tabela referită), ca limita max-rows să nu taie istoricul
+    const participare = (tabela: 'inscrieri_competitie' | 'echipe_competitie') =>
+        supabase!.from('competitii').select(`id, ${tabela}!inner(id)`).eq(`${tabela}.club_id`, clubId).limit(1, { referencedTable: tabela });
+    const [comp, insc, ech] = await Promise.all([
+        supabase.from('competitii').select(COLOANE_COMPETITIE).neq('status', 'draft').order('data_inceput'),
+        participare('inscrieri_competitie'),
+        participare('echipe_competitie'),
+    ]);
+    const error = comp.error ?? insc.error ?? ech.error;
+    if (error) return { data: gol, error };
+    const ids = new Set<string>([...(insc.data ?? []), ...(ech.data ?? [])].map((r: any) => r.id));
+    const azi = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Bucharest' });
+    return { data: clasificaCompetitiiClub((comp.data ?? []) as unknown as Competitie[], ids, azi), error: null };
+}
+
+// --- Cont de competiție per club (doar proprietarul aplicației; RPC/endpoint verifică server-side, UI-ul doar ascunde) ---
+// Managementul (ADMIN_CLUB/INSTRUCTOR) se acordă pe contul de club în 39-15 (D-18).
+
+/** false și când RPC-ul lipsește (migrare neaplicată) sau dă eroare: comutatorul rămâne ascuns. */
+export async function esteProprietar(): Promise<boolean> {
+    if (!supabase) return false;
+    const { data, error } = await supabase.rpc('este_proprietar');
+    return !error && data === true;
+}
+
+/** RLS: doar proprietarul vede toate conturile; ceilalți văd cel mult rândul propriu. */
+export async function listaConturiCluburi(): Promise<{ data: ContCompetitieClub[]; error: any }> {
+    if (!supabase) return { data: [], error: 'Supabase neinițializat' };
+    const { data, error } = await supabase.from('conturi_competitie_club').select('club_id, email, creat_la, modificat_la');
+    return { data: error ? [] : ((data ?? []) as ContCompetitieClub[]), error };
+}
+
+type RezultatContClub = { ok: boolean; status: number; error?: string; avertisment?: string };
+
+async function apelContClub(operatie: 'creeaza' | 'schimba_email', clubId: string, email: string): Promise<RezultatContClub> {
+    if (!supabase) return { ok: false, status: 0, error: 'Supabase neinițializat' };
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return { ok: false, status: 401, error: 'Sesiune expirată. Reautentifică-te.' };
+    try {
+        const res = await fetch('/api/aproba-cerere-acces?action=cont-club', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+            body: JSON.stringify({ operatie, club_id: clubId, email }),
+        });
+        const body = await res.json().catch(() => ({}));
+        return res.ok
+            ? { ok: true, status: res.status, avertisment: body?.avertisment }
+            : { ok: false, status: res.status, error: body?.error || 'Operația nu a putut fi efectuată.' };
+    } catch {
+        return { ok: false, status: 0, error: 'Eroare de rețea.' };
+    }
+}
+
+export const creeazaContClub = (clubId: string, email: string) => apelContClub('creeaza', clubId, email);
+export const schimbaEmailContClub = (clubId: string, email: string) => apelContClub('schimba_email', clubId, email);

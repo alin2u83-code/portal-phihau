@@ -21,23 +21,53 @@ export function clasificaEroareOtp(error: { status?: number; code?: string; mess
     return 'alta';
 }
 
-type RandRol = { id: string; rol_denumire: string; club_id: string | null; club?: { nume?: string } | null };
-type RandGrant = { competitie_id: string; club_id: string; activ: boolean; cluburi?: { nume?: string } | null };
+/** Zona competiției: /competitie (listă) și /competitie/<id> (un link invalid îl tratează pagina). */
+export function esteZonaCompetitie(pathname: string): boolean {
+    return pathname === '/competitie' || pathname.startsWith('/competitie/');
+}
 
-/** D-02: clubul rezultă din rolurile existente. Un email fără rol eligibil primește []. */
-export function construiesteContexte(roluri: RandRol[], granturi: RandGrant[], competitieId: string): ContextAccesExtern[] {
+export function esteListaZona(pathname: string): boolean {
+    return /^\/competitie\/?$/.test(pathname);
+}
+
+type RandRol = { id: string; rol_denumire: string; club_id: string | null; club?: { nume?: string } | null };
+export type RandContClub = { club_id: string; cluburi?: { nume?: string } | null };
+
+/** D-02: ADMIN_CLUB/INSTRUCTOR din rolurile existente; REPREZENTANT_COMPETITIE din contul de club (primul = intrarea implicită). Fără rol eligibil => []. */
+export function construiesteContexte(roluri: RandRol[], contClub: RandContClub | null): ContextAccesExtern[] {
     const rezultat: ContextAccesExtern[] = [];
+    const rep = (roluri ?? []).find(r => r.rol_denumire === 'REPREZENTANT_COMPETITIE');
+    if (rep && contClub) {
+        rezultat.push({ roleRowId: rep.id, rol: 'REPREZENTANT_COMPETITIE', clubId: contClub.club_id, clubNume: contClub.cluburi?.nume ?? '' });
+    }
     for (const r of roluri ?? []) {
         if ((r.rol_denumire === 'ADMIN_CLUB' || r.rol_denumire === 'INSTRUCTOR') && r.club_id) {
             rezultat.push({ roleRowId: r.id, rol: r.rol_denumire, clubId: r.club_id, clubNume: r.club?.nume ?? '' });
         }
     }
-    const rand = (roluri ?? []).find(r => r.rol_denumire === 'REPREZENTANT_COMPETITIE');
-    const grant = rand && (granturi ?? []).find(g => g.competitie_id === competitieId && g.activ);
-    if (rand && grant) {
-        rezultat.push({ roleRowId: rand.id, rol: 'REPREZENTANT_COMPETITIE', clubId: grant.club_id, clubNume: grant.cluburi?.nume ?? '' });
-    }
     return rezultat;
+}
+
+/**
+ * D-03/D-12, aceeași regulă ca SQL competitie_vizibila_cont_club (20261111c): draft exclus;
+ * terminată = finalizata SAU data_sfarsit < azi; activă = neterminată; istoric = terminată cu participarea clubului.
+ * `azi` = YYYY-MM-DD (Europe/Bucharest), comparație de stringuri.
+ */
+export function clasificaCompetitiiClub<T extends { id: string; status: string; data_inceput: string | null; data_sfarsit: string | null }>(
+    competitii: T[], idsParticipare: Set<string>, azi: string,
+): { active: T[]; istoric: T[] } {
+    const active: T[] = [];
+    const istoric: T[] = [];
+    for (const c of competitii ?? []) {
+        if (c.status === 'draft') continue;
+        const terminata = c.status === 'finalizata' || (!!c.data_sfarsit && c.data_sfarsit < azi);
+        if (!terminata) active.push(c);
+        else if (idsParticipare.has(c.id)) istoric.push(c);
+    }
+    const dupaInceput = (x: T, y: T) => (x.data_inceput ?? '').localeCompare(y.data_inceput ?? '');
+    active.sort(dupaInceput);
+    istoric.sort((x, y) => dupaInceput(y, x));
+    return { active, istoric };
 }
 
 /** Zona externă: admin de club pe clubul din context (și pentru INSTRUCTOR, D-13), restul false. */

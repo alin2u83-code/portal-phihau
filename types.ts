@@ -1297,6 +1297,18 @@ export interface ContextAccesExtern {
   clubNume: string;
 }
 
+export interface ContCompetitieClub {
+  club_id: string;
+  email: string;
+  creat_la: string;
+  modificat_la: string | null;
+}
+
+export interface CompetitiiClubClasificate {
+  active: Competitie[];
+  istoric: Competitie[];
+}
+
 export interface GrantAccesExtern {
   id: string;
   user_id: string;

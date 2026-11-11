@@ -61,6 +61,8 @@ Funcții SQL helper cheie (în `sql/rls/`):
 
 ## REPREZENTANT_COMPETITIE (Faza 36)
 
+> **Înlocuită pentru acces (Faza 39):** granturile per competiție (`acces_competitie_extern`) nu mai dau acces; accesul extern trece prin contul de competiție per club, descris în secțiunea următoare.
+
 Rol pentru reprezentanții de club care accesează **o singură competiție** printr-un link public, fără acces la portal.
 
 - **Poate:** vedea datele generale ale competiției din grant, participanții **propriului club** în acea competiție, taxele clubului (doar citire) și înscrie sportivii clubului prin wizardul existent (inter-club dezactivat). Un `ADMIN_CLUB`/`INSTRUCTOR` cu context eligibil intră pe același link, cu rolul lui.
@@ -71,3 +73,13 @@ Rol pentru reprezentanții de club care accesează **o singură competiție** pr
 - **Nu apare** în listele de roluri atribuibile din UI și este scos din selecția de context a portalului când utilizatorul are și alte roluri.
 - **Creare:** doar prin `POST /api/aproba-cerere-acces` (Bearer, doar `SUPER_ADMIN_FEDERATIE`). Autentificare: email + cod OTP de 8 cifre, fără parolă.
 - **Limite cunoscute:** vezi `.planning/phases/36-*/36-VERIFICARE.md` (funcții RPC `SECURITY DEFINER` apelabile de orice `authenticated`, coloane `sportivi` citibile integral pentru clubul din grant).
+
+## Cont de competiție per club (Faza 39)
+
+- **Un cont per club** (`conturi_competitie_club`), cu rol `REPREZENTANT_COMPETITIE` și `club_id` NULL pe rândul de rol. Accesul acoperă competițiile cluburilor, nu o singură competiție.
+- **Helperii `acces_extern_*`** (`acces_extern_la_club`, `acces_extern_la_competitie`, `acces_extern_la_sportiv`) se calculează din contul de club, nu din granturi per competiție.
+- **Istoric doar cu participare:** istoricul sportivului e citibil doar în competițiile în care sportivul participă, doar citire pentru contul extern.
+- **Autor declarat:** la intrarea în contul de club se declară autorul (instructor din lista clubului sau nume liber). E declarativ, neverificat, nu este probă. Se salvează în `sesiuni_actor_competitie` și apare în `audit_log` (`actor_nume`, `actor_din_lista`, `competitie_id`).
+- **Cine vede jurnalul** (tab „Jurnal cont club" în detaliul competiției, RLS `audit_log_select_jurnal_club`): proprietarul toate rândurile; `ADMIN_CLUB` doar rândurile clubului său; `INSTRUCTOR` doar rândurile în care el este autorul declarat. Contul de club nu citește jurnalul.
+- **Creare/schimbare email:** doar proprietarul aplicatiei (`proprietari_aplicatie`, `este_proprietar()`).
+- Managementul conturilor (etapa 3) se documentează în planul 39-15.

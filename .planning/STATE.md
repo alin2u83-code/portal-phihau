@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 39-01-PLAN.md
-last_updated: "2026-11-11T18:04:26.904Z"
+stopped_at: Completed 39-02-PLAN.md
+last_updated: "2026-11-11T18:07:18.468Z"
 last_activity: 2026-11-11 -- Phase 39 execution started
 progress:
   total_phases: 31
   completed_phases: 17
   total_plans: 134
-  completed_plans: 112
+  completed_plans: 113
   percent: 55
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 ## Current Position
 
 Phase: 39 (cont-unic-de-competitie-per-club-zona-competitionala-implici) — EXECUTING
-Plan: 2 of 16
+Plan: 3 of 16
 Status: Ready to execute
 Last activity: 2026-11-11 -- Phase 39 execution started
 
@@ -78,6 +78,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 34 P13 | 25min | 3 tasks | 2 files |
 | Phase 36 P03 | 15min | 2 tasks | 6 files |
 | Phase 39 P01 | 25min | 2 tasks | 4 files |
+| Phase 39 P02 | 20min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,7 @@ Recent decisions affecting current work:
 - [Phase 34]: 34-13: spec shell tema se aplica si dupa login (tema din DB suprascrie localStorage); capturile screens/ necomise
 - [Phase 36]: 36-03: canEditArme false pentru externRol INSTRUCTOR (aliniere RLS Faza 35), de confirmat
 - [Phase ?]: [Phase 39-01]: helperii acces_extern_* rescrisi pe conturi_competitie_club; proprietari_aplicatie fara FORCE RLS
+- [Phase 39]: 39-02: cont de club = identitate auth dedicata fara parola; aprobare cerere = creare cont club doar proprietar; schimbare email = mutare user_id + ban vechi
 
 ### Pending Todos
 
@@ -245,6 +247,6 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-11-11T18:04:26.889Z
-Stopped at: Completed 39-01-PLAN.md
+Last session: 2026-11-11T18:07:18.454Z
+Stopped at: Completed 39-02-PLAN.md
 Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md

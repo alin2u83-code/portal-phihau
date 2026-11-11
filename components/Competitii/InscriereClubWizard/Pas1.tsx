@@ -330,7 +330,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
       <button
         type="button"
         onClick={e => { e.stopPropagation(); e.preventDefault(); setSportivGrad(sportiv); }}
-        className="text-[10px] px-1.5 py-0.5 rounded border border-slate-600 text-slate-300 hover:bg-slate-700/50"
+        className="text-xs px-2.5 py-1.5 rounded border border-slate-600 text-slate-300 hover:bg-slate-700/50"
       >Schimbă grad</button>
     );
   };

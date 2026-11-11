@@ -191,6 +191,18 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
     return { cat, echipaDB, nrTitulari, nrRezervă, eCompleta, eligibili, individual, nrInscrisi };
   }), [categoriiEchipa, categorii, categoriiToate, echipe, inscrieri, clubId, sportivi, grade, dataCompetitie, echipeRetraseLocal, armeAlese, armeDefinitii]);
 
+  // Sportivi cu arme alese dar fara nicio categorie pentru ele (de obicei gradul e sub minimul categoriei): ii aratam explicit
+  const faraCategorie = useMemo(() => {
+    if (!armeAlese || armeAlese.size === 0 || !armeDefinitii) return [] as { nume: string; grad: string }[];
+    const toate = categoriiToate ?? categorii;
+    return sportivi.filter(s => {
+      const alese = armeAlese.get(s.id);
+      if (!alese || alese.size === 0 || !s.data_nasterii) return false;
+      const ordine = gradEfectivLaData(s, grade, dataCompetitie)?.ordine ?? 0;
+      return !armeDefinitii.some(a => alese.has(a.id) && categoriePentruArma(a, s, ordine, dataCompetitie, toate, armeDefinitii));
+    }).map(s => ({ nume: formatNume(s), grad: grade.find(g => g.id === s.grad_actual_id)?.nume ?? 'fără grad' }));
+  }, [armeAlese, armeDefinitii, sportivi, grade, dataCompetitie, categorii, categoriiToate]);
+
   const nrConfigurate = categoriiStare.filter(c => c.eCompleta || (skippedCategorii?.has(c.cat.id) ?? false)).length;
   const nrTotal = categoriiStare.filter(c => c.eligibili > 0).length;
 
@@ -467,8 +479,23 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
         {categoriiEchipa.length > 0 && categoriiStareFiltrate.length === 0 && (
           <div className="rounded-xl border border-slate-700 bg-slate-800/30 px-4 py-6 text-center">
             <p className="text-sm text-slate-500 italic">
-              {filtruCategorii === 'incomplete' ? 'Toate categoriile sunt configurate.' : 'Nicio categorie în filtrul curent.'}
+              {filtruCategorii === 'incomplete'
+                ? (nrTotal === 0 ? 'Niciun sportiv eligibil pentru categoriile de echipă ale acestei probe.' : 'Toate categoriile sunt configurate.')
+                : 'Nicio categorie în filtrul curent.'}
             </p>
+            {filtruCategorii === 'incomplete' && nrTotal === 0 && faraCategorie.length > 0 && (
+              <div className="mt-3 text-left text-xs text-amber-400/90 space-y-1">
+                <p className="font-semibold">Au arme alese, dar niciun grad potrivit pentru o categorie:</p>
+                <ul className="list-disc pl-5">
+                  {faraCategorie.slice(0, 8).map(f => <li key={f.nume}>{f.nume} — {f.grad}</li>)}
+                  {faraCategorie.length > 8 && <li>… și încă {faraCategorie.length - 8}</li>}
+                </ul>
+                <p className="text-slate-400">
+                  Dacă gradul real s-a schimbat (ex. echivalare la 13 ani), actualizează-l la pasul „Sportivi", butonul „Schimbă grad"
+                  {interclubDezactivat ? ' — din „Management club" (portalul principal), nu din această zonă.' : '.'}
+                </p>
+              </div>
+            )}
             <button
               type="button"
               onClick={() => setFiltruCategorii(filtruCategorii === 'incomplete' ? 'completate' : 'toate')}

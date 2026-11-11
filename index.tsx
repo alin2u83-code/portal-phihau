@@ -13,6 +13,7 @@ import { NavigationProvider } from './contexts/NavigationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { RefreshProvider } from './contexts/RefreshContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { esteZonaCompetitie } from './utils/accesExtern';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,8 +41,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
       <p>Variabilele de mediu VITE_SUPABASE_URL și/sau VITE_SUPABASE_ANON_KEY nu sunt definite.</p>
     </div>
   );
-} else if (window.location.pathname.startsWith('/competitie/')) {
-  // Zona externă (Faza 36, D-10): aplicație separată, fără DataProvider/NavigationProvider/ThemeProvider/BrowserRouter/App.
+} else if (esteZonaCompetitie(window.location.pathname)) {
+  // Zona externă (Faza 36, D-10; Faza 39: /competitie = lista contului de club): aplicație separată, fără DataProvider/NavigationProvider/ThemeProvider/BrowserRouter/App.
   const CompetitieExternaPage = React.lazy(() => import('./components/CompetitieExterna'));
   root.render(
     <React.StrictMode>

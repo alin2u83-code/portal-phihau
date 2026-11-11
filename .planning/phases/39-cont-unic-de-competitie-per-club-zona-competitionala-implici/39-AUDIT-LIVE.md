@@ -146,3 +146,6 @@ Migrarea nu depinde de el: politica jurnal verifica direct `utilizator_roluri_mu
 Catalog: 14 triggere pe audit_trigger_fn; politici audit_log: audit_log_insert_self, audit_log_select_jurnal_club, audit_log_select_super_admin, ext_r_audit_log_{sel,ins,upd,del} (ext_r_deny_all eliminata); 4 coloane noi; RLS activ pe sesiuni_actor_competitie.
 Teste: autor_modificari_faza39 32/32; cont_club_faza39 40/40; acl_definer_faza37 28/30 (2 FAIL preexistente: trg_echipe_denumire_implicita + self-check). 16 randuri audit_log de test raman (fara DELETE).
 Risc deschis pentru 39-12: cont extern poate INSERT direct in audit_log cu user_id propriu (audit_log_insert_self + ext_r_audit_log_ins) -> rand cu actor_nume/club_id arbitrar vizibil in jurnalul clubului. Netestat (ar lasa rand permanent).
+
+## Decizie 11.11.2026: extern nu modifica
+Riscul de insert direct fals in audit_log inchis: 20261111d2 (APLICATA live) - ext_r_audit_log_ins = NOT este_doar_extern(). Test nou in autor_modificari_faza39: 33/33. Efect lateral: logarea LOGIN/LOGOUT din client (auditLogService) nu mai scrie pentru conturile externe (esec silentios).

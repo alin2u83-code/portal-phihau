@@ -284,6 +284,10 @@ async function main() {
       jI.error?.message ?? `n=${jI.data?.length ?? 0}`);
     const jC = await CA.from('audit_log').select('id').eq('competitie_id', ACT);
     record('J7 contul de club A NU citeste audit_log (eroare sau 0 randuri)', !!jC.error || (jC.data?.length ?? 0) === 0, errOrRows(jC));
+    // contul extern nu poate falsifica jurnalul (20261111d2): INSERT direct in audit_log trebuie refuzat
+    const uidContA = (await CA.auth.getUser()).data.user?.id;
+    const fals = await CA.from('audit_log').insert({ user_id: uidContA, tabel: 'zz_test', operatie: 'INSERT', actor_nume: 'ZZ Fals', club_id: null });
+    record('J7 contul de club A NU poate insera direct in audit_log', !!fals.error, fals.error?.message ?? 'INSERT acceptat!');
 
     // ── 8b. regresie: catalogul (triggere audit_sportivi/plati/facturi, pg_get_functiondef) nu e accesibil prin PostgREST ──
     // Se verifica de orchestrator prin MCP in 39-11 Task 3; aici ramane verificarea comportamentala R8 de mai sus.

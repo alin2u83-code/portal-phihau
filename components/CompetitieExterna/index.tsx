@@ -1,21 +1,23 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
-import { Button, Card, Badge } from '../ui';
+import { Button, Card, Badge, Modal } from '../ui';
 import ErrorBoundary from '../ErrorBoundary';
 import { CompetitieDetail } from '../Competitii';
 import { fmtDate, TipuriLabelsContext } from '../Competitii/constants';
 import { useTipuriCompetitie } from '../../hooks/useTipuriCompetitie';
 import { applyTheme, DEFAULT_THEME } from '../../lib/themes';
-import { extrageCompetitieId, construiestePermisiuniExtern } from '../../utils/accesExtern';
+import { extrageCompetitieId, esteListaZona, construiestePermisiuniExtern } from '../../utils/accesExtern';
 import { incarcaCompetitiePublica, incarcaContexteEligibile, seteazaContextActiv, deconecteaza } from '../../services/accesExternService';
 import { LoginOtp } from './LoginOtp';
 import { SolicitaContForm } from './SolicitaContForm';
 import { ShellExtern } from './ShellExtern';
 import { ExternDataProvider } from './ExternDataProvider';
+import { ListaCompetitiiClub } from './ListaCompetitiiClub';
 import type { Competitie, CompetitiePublica, ContextAccesExtern } from '../../types';
 
 const CHEIE_CONTEXT = 'phi-hau-active-role-context-id';
+const CALE_LISTA = '/competitie';
 const MSG_LINK_INVALID = 'Link invalid sau competiție indisponibilă.';
 
 type Stare =
@@ -26,6 +28,8 @@ type Stare =
     | { t: 'cerere_trimisa' }
     | { t: 'fara_acces'; email: string }
     | { t: 'alege_context'; contexte: ContextAccesExtern[]; user: any }
+    | { t: 'lista'; ctx: ContextAccesExtern; contexte: ContextAccesExtern[]; user: any; mesaj?: string }
+    | { t: 'confirma'; sursa: 'link' | 'lista'; ctx: ContextAccesExtern; contexte: ContextAccesExtern[]; user: any; competitie: Competitie }
     | { t: 'activ'; ctx: ContextAccesExtern; contexte: ContextAccesExtern[]; user: any; competitie: Competitie }
     | { t: 'eroare'; mesaj: string };
 
@@ -60,43 +64,48 @@ const CardPublic: React.FC<{ c: CompetitiePublica; tipLabel: string }> = ({ c, t
 
 const CompetitieExternaPage: React.FC = () => {
     const [id] = useState(() => extrageCompetitieId(window.location.pathname));
-    const [stare, setStare] = useState<Stare>({ t: id ? 'incarcare' : 'link_invalid' });
+    const [lista] = useState(() => esteListaZona(window.location.pathname));
+    const [stare, setStare] = useState<Stare>({ t: id || lista ? 'incarcare' : 'link_invalid' });
     const [teaser, setTeaser] = useState<CompetitiePublica | null>(null);
     const { labels } = useTipuriCompetitie();
 
-    const activeaza = useCallback(async (ctx: ContextAccesExtern, contexte: ContextAccesExtern[], user: any) => {
-        if (!id) return;
+    // D-09: după login se ajunge MEREU în listă; linkul direct (D-10) doar deschide dialogul de confirmare, niciodată competiția.
+    const intraInZona = useCallback(async (ctx: ContextAccesExtern, contexte: ContextAccesExtern[], user: any, cuLink = true) => {
         seteazaContextActiv(ctx.roleRowId); // înainte de prima citire: headerul RLS se ia din localStorage
-        const { data, error } = await supabase.from('competitii').select('*').eq('id', id).maybeSingle();
-        if (error || !data) {
-            setStare({ t: 'eroare', mesaj: 'Competiția nu este disponibilă pentru contul tău.' });
+        if (!id || !cuLink) { setStare({ t: 'lista', ctx, contexte, user }); return; }
+        const { data } = await supabase.from('competitii').select('*').eq('id', id).maybeSingle();
+        if (!data) {
+            window.history.replaceState(null, '', CALE_LISTA);
+            setStare({ t: 'lista', ctx, contexte, user, mesaj: 'Competiția din link nu este disponibilă pentru clubul tău.' });
             return;
         }
-        setStare({ t: 'activ', ctx, contexte, user, competitie: data as Competitie });
+        setStare({ t: 'confirma', sursa: 'link', ctx, contexte, user, competitie: data as Competitie });
     }, [id]);
 
     const finalizeaza = useCallback(async (user: any) => {
-        if (!id) return;
-        const { data: contexte, error } = await incarcaContexteEligibile(user.id, id);
+        const { data: contexte, error } = await incarcaContexteEligibile(user.id);
         if (error) { setStare({ t: 'eroare', mesaj: 'Nu am putut verifica accesul. Încearcă din nou.' }); return; }
         if (contexte.length === 0) { setStare({ t: 'fara_acces', email: user.email ?? '' }); return; }
-        if (contexte.length === 1) { await activeaza(contexte[0], contexte, user); return; }
+        if (contexte.length === 1) { await intraInZona(contexte[0], contexte, user); return; }
         let salvat: string | null = null;
         try { salvat = JSON.parse(localStorage.getItem(CHEIE_CONTEXT) ?? 'null'); } catch { /* valoare invalidă */ }
         const potrivit = contexte.find(c => c.roleRowId === salvat);
-        if (potrivit) await activeaza(potrivit, contexte, user);
+        if (potrivit) await intraInZona(potrivit, contexte, user);
         else setStare({ t: 'alege_context', contexte, user });
-    }, [id, activeaza]);
+    }, [intraInZona]);
 
     useEffect(() => {
-        if (!id) return;
+        if (!id && !lista) return;
         applyTheme(DEFAULT_THEME); // ThemeProvider nu se montează în zona externă
         let anulat = false;
         (async () => {
-            const [{ data: pub }, { data: sesiune }] = await Promise.all([incarcaCompetitiePublica(id), supabase.auth.getSession()]);
+            const [{ data: pub }, { data: sesiune }] = await Promise.all([
+                id ? incarcaCompetitiePublica(id) : Promise.resolve({ data: null }),
+                supabase.auth.getSession(),
+            ]);
             if (anulat) return;
-            if (!pub) { setStare({ t: 'link_invalid' }); return; }
-            setTeaser(pub);
+            if (id && !pub) { setStare({ t: 'link_invalid' }); return; }
+            if (pub) setTeaser(pub);
             if (sesiune.session?.user) await finalizeaza(sesiune.session.user);
             else if (!anulat) setStare({ t: 'login' });
         })();
@@ -104,7 +113,7 @@ const CompetitieExternaPage: React.FC = () => {
             if (event === 'SIGNED_OUT') setStare(s => (s.t === 'link_invalid' || s.t === 'incarcare' ? s : { t: 'login' }));
         });
         return () => { anulat = true; sub.subscription.unsubscribe(); };
-    }, [id, finalizeaza]);
+    }, [id, lista, finalizeaza]);
 
     const tipLabel = teaser ? (labels.get(teaser.tip) ?? teaser.tip) : '';
     const publica = teaser && id ? <CardPublic c={teaser} tipLabel={tipLabel} /> : null;
@@ -157,9 +166,9 @@ const CompetitieExternaPage: React.FC = () => {
                 <Centrat>
                     {publica}
                     <Card className="space-y-3 text-center">
-                        <p>Contul tău nu are acces la această competiție. Dacă ești reprezentantul unui club, solicită acces.</p>
+                        <p>{id ? 'Contul tău nu are acces la această competiție. Dacă ești reprezentantul unui club, solicită acces.' : 'Contul tău nu are un cont de competiție pentru un club. Conturile de club se creează de administratorul aplicației.'}</p>
                         <div className="flex gap-2 justify-center">
-                            <Button onClick={() => setStare({ t: 'solicita', email: stare.email })}>Solicită acces</Button>
+                            {id && <Button onClick={() => setStare({ t: 'solicita', email: stare.email })}>Solicită acces</Button>}
                             <Button variant="secondary" onClick={() => { void deconecteaza(); }}>Deconectare</Button>
                         </div>
                     </Card>
@@ -174,7 +183,7 @@ const CompetitieExternaPage: React.FC = () => {
                     <Card className="space-y-3">
                         <p className="font-semibold">Alege contextul</p>
                         {contexte.map(c => (
-                            <Button key={c.roleRowId} variant="secondary" className="w-full justify-start" onClick={() => { void activeaza(c, contexte, user); }}>
+                            <Button key={c.roleRowId} variant="secondary" className="w-full justify-start" onClick={() => { void intraInZona(c, contexte, user); }}>
                                 {c.clubNume} · {ROL_LABEL[c.rol] ?? c.rol}
                             </Button>
                         ))}
@@ -194,18 +203,69 @@ const CompetitieExternaPage: React.FC = () => {
                 </Centrat>
             );
             break;
+        case 'lista':
+        case 'confirma': {
+            const { ctx, contexte, user } = stare;
+            const inapoiLaLista = () => {
+                window.history.replaceState(null, '', CALE_LISTA);
+                setStare({ t: 'lista', ctx, contexte, user });
+            };
+            continut = (
+                <ErrorBoundary onNavigate={() => window.location.reload()}>
+                    <ShellExtern
+                        email={user.email ?? ''}
+                        contexte={contexte}
+                        contextActiv={ctx}
+                        onSchimbaContext={c => { void intraInZona(c, contexte, user, false); }}
+                        onDeconecteaza={() => { void deconecteaza(); }}
+                    >
+                        {stare.t === 'lista' && stare.mesaj && <Card className="mb-4"><p className="text-sm">{stare.mesaj}</p></Card>}
+                        <ListaCompetitiiClub
+                            key={ctx.roleRowId}
+                            clubId={ctx.clubId}
+                            onAlege={competitie => setStare({ t: 'confirma', sursa: 'lista', ctx, contexte, user, competitie })}
+                        />
+                    </ShellExtern>
+                    {stare.t === 'confirma' && (() => {
+                        const { sursa, competitie } = stare;
+                        return (
+                            <Modal
+                                isOpen
+                                persistent
+                                onClose={inapoiLaLista}
+                                title={sursa === 'link' ? `Ai fost trimis la competiția ${competitie.denumire}` : `Intri în competiția ${competitie.denumire}?`}
+                            >
+                                <div className="flex flex-wrap gap-2 justify-end">
+                                    <Button variant="secondary" onClick={inapoiLaLista}>{sursa === 'link' ? 'Vezi toate competițiile' : 'Anulează'}</Button>
+                                    <Button onClick={() => {
+                                        if (sursa === 'lista') window.history.replaceState(null, '', `${CALE_LISTA}/${competitie.id}`);
+                                        setStare({ t: 'activ', ctx, contexte, user, competitie });
+                                    }}>Intră</Button>
+                                </div>
+                            </Modal>
+                        );
+                    })()}
+                </ErrorBoundary>
+            );
+            break;
+        }
         case 'activ': {
             const { ctx, contexte, user, competitie } = stare;
+            const inapoiLaLista = () => {
+                window.history.replaceState(null, '', CALE_LISTA);
+                setStare({ t: 'lista', ctx, contexte, user });
+            };
             continut = (
-                <TipuriLabelsContext.Provider value={labels}>
+                <>
                     <ErrorBoundary onNavigate={() => window.location.reload()}>
                         <ShellExtern
                             email={user.email ?? ''}
                             contexte={contexte}
                             contextActiv={ctx}
                             competitieDenumire={competitie.denumire}
-                            onSchimbaContext={c => { void activeaza(c, contexte, user); }}
+                            onSchimbaContext={c => { void intraInZona(c, contexte, user, false); }}
                             onDeconecteaza={() => { void deconecteaza(); }}
+                            onInapoiLaLista={inapoiLaLista}
                         >
                             <ExternDataProvider
                                 key={ctx.roleRowId}
@@ -225,13 +285,13 @@ const CompetitieExternaPage: React.FC = () => {
                             </ExternDataProvider>
                         </ShellExtern>
                     </ErrorBoundary>
-                </TipuriLabelsContext.Provider>
+                </>
             );
             break;
         }
     }
 
-    return <><Toaster />{continut}</>;
+    return <><Toaster /><TipuriLabelsContext.Provider value={labels}>{continut}</TipuriLabelsContext.Provider></>;
 };
 
 export default CompetitieExternaPage;

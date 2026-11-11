@@ -16,7 +16,6 @@ import { GrupaFormModal } from './GrupaFormModal';
 import { GrupaCard } from './GrupaCard';
 import { GrupaDetailView } from './GrupaDetailView';
 import { AdaugaSportiviModal } from './AdaugaSportiviModal';
-import { OrarEditorModal } from './OrarEditorModal';
 import { OrarModificareModal } from './OrarModificareModal';
 import { GrupeSecundareModal } from './GrupeSecundareModal';
 import { GenerareAntrenamenteModal } from './GenerareAntrenamenteModal';
@@ -67,8 +66,11 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
     const grupe = filtruSezonActiv
         ? grupeClub.filter(g => (g as any).tip_grupa === 'permanent' || (g as any).sezon_id === sezonFiltruId)
         : grupeClub;
+    // Implicit se văd doar grupele active (neîarhivate); bifa le arată și pe cele arhivate
+    const [arataArhivate, setArataArhivate] = useState(false);
+    const nrArhivate = grupe.filter(g => (g as any).arhivat).length;
     // Grupele arhivate apar ultimele, păstrând ordinea relativă existentă
-    const grupeAfisate = [...grupe].sort((a, b) => Number((a as any).arhivat ?? false) - Number((b as any).arhivat ?? false));
+    const grupeAfisate = [...grupe].filter(g => arataArhivate || !(g as any).arhivat).sort((a, b) => Number((a as any).arhivat ?? false) - Number((b as any).arhivat ?? false));
 
     // Nr. sportivi individuali (fără familie) al căror tip de abonament lipsește sau
     // aparține unui sezon arhivat — semnal rapid pe cardul grupei, aceeași regulă ca
@@ -99,7 +101,6 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
     const [grupaToDelete, setGrupaToDelete] = useState<GrupaWithDetails | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [grupaForAdaugaSportivi, setGrupaForAdaugaSportivi] = useState<GrupaWithDetails | null>(null);
-    const [grupaForOrar, setGrupaForOrar] = useState<GrupaWithDetails | null>(null);
     const [grupaForModificareOrar, setGrupaForModificareOrar] = useState<GrupaWithDetails | null>(null);
     const [grupaForSecundari, setGrupaForSecundari] = useState<GrupaWithDetails | null>(null);
     const [grupaForGenerare, setGrupaForGenerare] = useState<GrupaWithDetails | null>(null);
@@ -374,7 +375,13 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                             )}
                         </div>
                     )}
-                    {grupe.length > 0 ? (
+                    {nrArhivate > 0 && (
+                        <label className="flex items-center gap-2 text-xs text-[var(--t-text-muted)] cursor-pointer w-fit">
+                            <input type="checkbox" checked={arataArhivate} onChange={e => setArataArhivate(e.target.checked)} className="rounded border-slate-600 bg-slate-700 text-indigo-500" />
+                            Arată și grupele arhivate ({nrArhivate})
+                        </label>
+                    )}
+                    {grupeAfisate.length > 0 ? (
                         <div data-tour="grupe-lista" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {(grupeAfisate as GrupaWithDetails[]).map(grupa => (
                                 <GrupaCard key={grupa.id} grupa={grupa} onEdit={handleOpenEdit} onDelete={setGrupaToDelete} onDetalii={handleOpenGrupaDetail} onModificareOrar={setGrupaForModificareOrar} onGestionareSecundari={setGrupaForSecundari} onGenerareAntrenamente={setGrupaForGenerare} sezonActivId={sezonActiv?.id ?? null} sezonDenumire={sezoane.find(s => s.id === (grupa as any).sezon_id)?.denumire ?? null} onDubleaza={setGrupaToClone} nrFaraAbonamentValid={nrFaraAbonamentValidPerGrupa.get(grupa.id) || 0} />
@@ -405,14 +412,6 @@ export const Grupe: React.FC<GrupeManagementProps> = ({ onBack, onNavigate }) =>
                     title="Dublează în sezon nou"
                     confirmLabel="Dublează"
                     message={`Se va crea o grupă nouă '${grupaToClone.denumire}' legată de sezonul '${sezonActiv?.denumire ?? '—'}', fără sportivi asignați — sportivii se re-asignează manual după clonare.`}
-                />
-            )}
-            {grupaForOrar && (
-                <OrarEditorModal
-                    isOpen={!!grupaForOrar}
-                    onClose={() => setGrupaForOrar(null)}
-                    grupa={grupaForOrar}
-                    setGrupe={setGrupe}
                 />
             )}
             {grupaForModificareOrar && (

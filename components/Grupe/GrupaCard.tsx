@@ -206,7 +206,7 @@ export const GrupaCard: React.FC<{
                                             title="Generează antrenamente pe o perioadă din orarul săptămânal"
                                         >
                                             <SparklesIcon className="w-4 h-4 shrink-0" />
-                                            Generează Antrenamente
+                                            Generează program
                                         </button>
                                     )}
                                     {onGestionareSecundari && (

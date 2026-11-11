@@ -16,6 +16,9 @@ import { WalletIcon } from '../icons';
 import { useData } from '../../contexts/DataContext';
 import { useSortAthletes, type SortBy } from '../../hooks/useSortAthletes';
 import { LocatieGrupaPanel } from './LocatieGrupaPanel';
+import { GenerareAntrenamenteModal } from './GenerareAntrenamenteModal';
+import { SparklesIcon } from '../icons';
+import { sincronizeazaOrar } from '../../services/orarGrupaService';
 
 const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
@@ -98,7 +101,8 @@ const TabAntrenamente: React.FC<{
     grupa: GrupaWithDetails;
     isModalAdaugareOpen: boolean;
     setIsModalAdaugareOpen: (v: boolean) => void;
-}> = ({ grupa, isModalAdaugareOpen, setIsModalAdaugareOpen }) => {
+    onGenereaza: () => void;
+}> = ({ grupa, isModalAdaugareOpen, setIsModalAdaugareOpen, onGenereaza }) => {
     const { showError, showSuccess } = useError();
 
     // --- Hook calendar ---
@@ -307,6 +311,16 @@ const TabAntrenamente: React.FC<{
                 })}
             </div>
 
+            {!loading && antrenamente.length === 0 && (
+                <Card className="mt-4 text-center py-5">
+                    <p className="text-sm font-semibold text-slate-200 mb-1">Niciun antrenament în luna aceasta.</p>
+                    <p className="text-xs text-slate-400 mb-3">Generează-le automat din orarul săptămânal al grupei.</p>
+                    <Button variant="primary" size="sm" onClick={onGenereaza} className="min-h-[40px] touch-manipulation">
+                        <SparklesIcon className="w-4 h-4 mr-1" /> Generează program
+                    </Button>
+                </Card>
+            )}
+
             {/* DayPanel */}
             <div className="mt-4 border-t border-slate-700 pt-4">
                 {selectedDate === null ? (
@@ -460,43 +474,49 @@ const TabAntrenamente: React.FC<{
 };
 
 // Tab Orar — logică copiată din OrarEditorModal cu adaptări D-02/D-03/D-04
-const TabOrar: React.FC<{ grupa: GrupaWithDetails }> = ({ grupa }) => {
+const TabOrar: React.FC<{ grupa: GrupaWithDetails; onGenereaza: () => void; onDirtyChange: (dirty: boolean) => void }> = ({ grupa, onGenereaza, onDirtyChange }) => {
     const [program, setProgram] = useState<ProgramItem[]>(grupa.program || []);
+    // Copia salvată în DB — baza pentru "Resetează" și pentru detectarea modificărilor nesalvate
+    const [programSalvat, setProgramSalvat] = useState<ProgramItem[]>(grupa.program || []);
     const [loading, setLoading] = useState(false);
+    const [vedere, setVedere] = useState<'calendar' | 'lista'>('calendar');
+    const [selectedId, setSelectedId] = useState<string | null>(null);
     const { showError, showSuccess } = useError();
     const queryClient = useQueryClient();
     const zileSaptamana: ProgramItem['ziua'][] = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
-    // Reset când se schimbă grupa sau când props-ul program se actualizează după un refetch
-    // WR-03: adăugat grupa.program ca dependință pentru a re-sincroniza state-ul local
+    // Orarul se citește din DB: grupa.program din părinte e un snapshot care rămâne vechi
+    // după salvări/copieri, iar un Save ulterior ar suprascrie datele noi.
+    const incarcaOrar = React.useCallback(async () => {
+        const { data, error } = await supabase.from('orar_saptamanal').select('*').eq('grupa_id', grupa.id);
+        if (error) { showError('Eroare la citirea orarului', error.message); return; }
+        const items = (data || []) as ProgramItem[];
+        setProgram(items);
+        setProgramSalvat(items);
+    }, [grupa.id, showError]);
+
+    React.useEffect(() => { incarcaOrar(); }, [incarcaOrar]);
+
+    const modificat = JSON.stringify(program.map(({ id, ...r }) => r)) !== JSON.stringify(programSalvat.map(({ id, ...r }) => r));
+
+    // Anunță părintele ca wizardul să avertizeze înainte de a înlocui orarul peste modificări nesalvate
     React.useEffect(() => {
-        setProgram(grupa.program || []);
-    }, [grupa.id, grupa.program]);
+        onDirtyChange(modificat);
+        return () => onDirtyChange(false);
+    }, [modificat, onDirtyChange]);
 
     const handleSave = async () => {
         setLoading(true);
         try {
-            // CR-02: verificăm eroarea de delete — dacă eșuează nu pierdem datele existente
-            const { error: deleteError } = await supabase
-                .from('orar_saptamanal')
-                .delete()
-                .eq('grupa_id', grupa.id);
-            if (deleteError) throw deleteError;
-            const toInsert = program.map(({ id, ...rest }) => ({
-                ...rest,
-                grupa_id: grupa.id,
-                club_id: grupa.club_id,
-            }));
-            if (toInsert.length > 0) {
-                const { error: insertError } = await supabase.from('orar_saptamanal').insert(toInsert);
-                if (insertError) throw insertError;
-            }
+            await sincronizeazaOrar(grupa.id, grupa.club_id, program);
             // clearCache ÎNAINTE de invalidateQueries — Pitfall 3
             Object.keys(localStorage)
                 .filter(k => k.startsWith('cache_grupe_'))
                 .forEach(k => clearCache(k));
             await queryClient.invalidateQueries({ queryKey: ['grupe'] });
-            showSuccess('Succes', 'Orarul a fost salvat.');
+            await incarcaOrar();
+            setSelectedId(null);
+            showSuccess('Succes', 'Orarul a fost salvat. Poți genera acum antrenamentele din butonul „Generează program".');
             // D-04: NU apelăm onClose() — rămânem pe tab după salvare
         } catch (error: any) {
             showError('Eroare la salvare orar', error.message);
@@ -505,10 +525,34 @@ const TabOrar: React.FC<{ grupa: GrupaWithDetails }> = ({ grupa }) => {
         }
     };
 
-    const handleAddItem = (zi: ProgramItem['ziua'] = 'Luni') =>
-        setProgram(p => [...p, { id: `new-${Date.now()}`, ziua: zi, ora_start: '18:00', ora_sfarsit: '19:30', is_activ: true }]);
+    const handleAddItem = (zi: ProgramItem['ziua'] = 'Luni', start = '18:00', end = '19:30') => {
+        const id = `new-${Date.now()}`;
+        setProgram(p => [...p, { id, ziua: zi, ora_start: start, ora_sfarsit: end, is_activ: true }]);
+        setSelectedId(id);
+    };
 
-    const handleRemoveItem = (id: string) => setProgram(p => p.filter(item => item.id !== id));
+    const handleRemoveItem = (id: string) => {
+        setProgram(p => p.filter(item => item.id !== id));
+        setSelectedId(s => (s === id ? null : s));
+    };
+
+    // --- Calendar săptămânal (zile × ore) ---
+    const PX_ORA = 44;
+    const minDin = (t: string) => { const [h, m] = (t || '00:00').slice(0, 5).split(':').map(Number); return h * 60 + m; };
+    const hhmm = (min: number) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+    const oraDeschidere = Math.min(8, ...program.map(p => Math.floor(minDin(p.ora_start) / 60)));
+    const oraInchidere = Math.max(21, ...program.map(p => Math.ceil(minDin(p.ora_sfarsit) / 60)));
+    const ore = Array.from({ length: oraInchidere - oraDeschidere }, (_, i) => oraDeschidere + i);
+
+    const handleClickColoana = (e: React.MouseEvent<HTMLDivElement>, zi: ProgramItem['ziua']) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        // rotunjire la 30 min; durată implicită 90 min, limitată la sfârșitul grilei
+        const start = Math.min(
+            Math.round(((e.clientY - rect.top) / PX_ORA * 60 + oraDeschidere * 60) / 30) * 30,
+            oraInchidere * 60 - 30
+        );
+        handleAddItem(zi, hhmm(start), hhmm(Math.min(start + 90, oraInchidere * 60)));
+    };
 
     const handleItemChange = (id: string, field: keyof ProgramItem, value: any) =>
         setProgram(p => p.map(item => item.id === id ? { ...item, [field]: value } : item));
@@ -521,12 +565,92 @@ const TabOrar: React.FC<{ grupa: GrupaWithDetails }> = ({ grupa }) => {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-2 text-slate-400 text-sm">
-                <CogIcon className="w-4 h-4 text-indigo-400" />
-                <span>Definește șablonul recurent al antrenamentelor pentru această grupă.</span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-slate-400 text-sm">
+                    <CogIcon className="w-4 h-4 text-indigo-400" />
+                    <span>Șablonul săptămânal al grupei. Din el se generează antrenamentele concrete.</span>
+                </div>
+                <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5 border border-slate-700/50">
+                    {(['calendar', 'lista'] as const).map(v => (
+                        <button
+                            key={v}
+                            onClick={() => setVedere(v)}
+                            className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${vedere === v ? 'bg-indigo-500/20 text-indigo-200' : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                            {v === 'calendar' ? 'Calendar' : 'Listă'}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            <div className="space-y-6">
+            {vedere === 'calendar' && (
+                <div className="space-y-3">
+                    <p className="text-xs text-slate-500">Apasă pe o zi, în dreptul orei dorite, ca să adaugi un interval. Apasă pe un interval ca să-l editezi.</p>
+                    <div className="overflow-x-auto rounded-xl border border-slate-700/60">
+                        <div className="min-w-[560px]">
+                            <div className="grid grid-cols-[44px_repeat(7,1fr)] bg-slate-800/60 text-xs font-semibold text-slate-300">
+                                <div />
+                                {zileSaptamana.map(zi => <div key={zi} className="py-2 text-center border-l border-slate-700/50">{zi.slice(0, 3)}</div>)}
+                            </div>
+                            <div className="grid grid-cols-[44px_repeat(7,1fr)] relative">
+                                <div>
+                                    {ore.map(h => (
+                                        <div key={h} style={{ height: PX_ORA }} className="text-[10px] text-slate-500 text-right pr-1.5 relative -top-1.5">{String(h).padStart(2, '0')}:00</div>
+                                    ))}
+                                </div>
+                                {zileSaptamana.map(zi => (
+                                    <div
+                                        key={zi}
+                                        onClick={e => handleClickColoana(e, zi)}
+                                        className="relative border-l border-slate-700/50 cursor-cell hover:bg-slate-800/30"
+                                        style={{ height: ore.length * PX_ORA, backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${PX_ORA - 1}px, rgba(100,116,139,0.25) ${PX_ORA - 1}px, rgba(100,116,139,0.25) ${PX_ORA}px)` }}
+                                        role="button"
+                                        aria-label={`Adaugă interval ${zi}`}
+                                    >
+                                        {programByDay[zi].map(item => {
+                                            const top = (minDin(item.ora_start) - oraDeschidere * 60) / 60 * PX_ORA;
+                                            const h = Math.max((minDin(item.ora_sfarsit) - minDin(item.ora_start)) / 60 * PX_ORA, 22);
+                                            return (
+                                                <button
+                                                    key={item.id}
+                                                    onClick={e => { e.stopPropagation(); setSelectedId(item.id); }}
+                                                    style={{ top, height: h }}
+                                                    className={`absolute left-0.5 right-0.5 rounded-md px-1 text-[11px] leading-tight text-left overflow-hidden border ${
+                                                        selectedId === item.id
+                                                            ? 'bg-indigo-800 text-white border-indigo-950 ring-2 ring-indigo-300'
+                                                            : 'bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-700'
+                                                    }`}
+                                                >
+                                                    {formatTime(item.ora_start)}–{formatTime(item.ora_sfarsit)}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {(() => {
+                        const sel = program.find(p => p.id === selectedId);
+                        if (!sel) return null;
+                        return (
+                            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end bg-slate-800/30 p-3 rounded-xl border border-indigo-500/30">
+                                <Select label="Ziua" value={sel.ziua} onChange={e => handleItemChange(sel.id, 'ziua', e.target.value)}>
+                                    {zileSaptamana.map(z => <option key={z} value={z}>{z}</option>)}
+                                </Select>
+                                <Input label="Start" type="time" value={sel.ora_start} onChange={e => handleItemChange(sel.id, 'ora_start', e.target.value)} />
+                                <Input label="Sfârșit" type="time" value={sel.ora_sfarsit} onChange={e => handleItemChange(sel.id, 'ora_sfarsit', e.target.value)} />
+                                <Button variant="danger" size="sm" onClick={() => handleRemoveItem(sel.id)} aria-label="Șterge intervalul">
+                                    <TrashIcon className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
+
+            <div className={vedere === 'lista' ? 'space-y-6' : 'hidden'}>
                 {zileSaptamana.map(zi => (
                     <div key={zi} className="group">
                         <div className="flex items-center justify-between mb-3 border-b border-slate-700/50 pb-2">
@@ -597,11 +721,17 @@ const TabOrar: React.FC<{ grupa: GrupaWithDetails }> = ({ grupa }) => {
             </div>
 
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t border-slate-700">
-                <Button variant="secondary" onClick={() => setProgram(grupa.program || [])} disabled={loading}
+                {modificat && <span className="text-xs text-amber-400 sm:mr-auto self-center">Modificări nesalvate</span>}
+                {!modificat && program.length > 0 && (
+                    <Button variant="primary" onClick={onGenereaza} className="w-full sm:w-auto touch-manipulation sm:mr-auto">
+                        <SparklesIcon className="w-4 h-4 mr-2" /> Generează antrenamente din acest orar
+                    </Button>
+                )}
+                <Button variant="secondary" onClick={() => { setProgram(programSalvat); setSelectedId(null); }} disabled={loading || !modificat}
                     className="w-full sm:w-auto touch-manipulation">
                     Resetează
                 </Button>
-                <Button variant="success" onClick={handleSave} isLoading={loading}
+                <Button variant="success" onClick={handleSave} isLoading={loading} disabled={!modificat}
                     className="w-full sm:w-auto touch-manipulation">
                     <CheckCircleIcon className="w-4 h-4 mr-2" /> Salvează Orar
                 </Button>
@@ -885,6 +1015,11 @@ const TAB_HINTS: Record<TabId, string> = {
 export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack, onOpenAdaugaSportivi }) => {
     const [activeTab, setActiveTab] = useState<TabId>('sportivi');
     const [isModalAdaugareOpen, setIsModalAdaugareOpen] = useState(false);
+    const [isGenerareOpen, setIsGenerareOpen] = useState(false);
+    // Incrementat după generare ca să remonteze calendarul și să reîncarce antrenamentele
+    const [calendarKey, setCalendarKey] = useState(0);
+    const [orarNesalvat, setOrarNesalvat] = useState(false);
+    const [orarKey, setOrarKey] = useState(0); // remontează TabOrar după copiere orar din wizard
     const { data: istoricMembri = [] } = useIstoricMembriGrupa(grupa.id);
     const istoricCount = istoricMembri.length;
     // Aceeași queryKey ca în TabIstoricMembri (useSezoane(clubId)) — React Query dedupe, fără request suplimentar
@@ -902,6 +1037,15 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
                     Înapoi la Grupe
                 </Button>
                 <div className="flex items-center gap-3">
+                    <Button
+                        variant={activeTab === 'antrenamente' ? 'secondary' : 'primary'}
+                        size="sm"
+                        onClick={() => setIsGenerareOpen(true)}
+                        className="min-h-[40px] touch-manipulation"
+                        title="Creează antrenamentele pe o perioadă, pornind de la orarul săptămânal"
+                    >
+                        <SparklesIcon className="w-4 h-4 mr-1" /> Generează program
+                    </Button>
                     {activeTab === 'antrenamente' && (
                         <Button
                             variant="primary"
@@ -950,15 +1094,27 @@ export const GrupaDetailView: React.FC<GrupaDetailViewProps> = ({ grupa, onBack,
             <div className="py-6 overflow-y-auto">
                 {activeTab === 'antrenamente' && (
                     <TabAntrenamente
+                        key={calendarKey}
                         grupa={grupa}
                         isModalAdaugareOpen={isModalAdaugareOpen}
                         setIsModalAdaugareOpen={setIsModalAdaugareOpen}
+                        onGenereaza={() => setIsGenerareOpen(true)}
                     />
                 )}
-                {activeTab === 'orar' && <TabOrar grupa={grupa} />}
+                {activeTab === 'orar' && <TabOrar key={orarKey} grupa={grupa} onGenereaza={() => setIsGenerareOpen(true)} onDirtyChange={setOrarNesalvat} />}
                 {activeTab === 'sportivi' && <TabSportivi grupa={grupa} onOpenAdaugaSportivi={onOpenAdaugaSportivi} />}
                 {activeTab === 'istoric' && <TabIstoricMembri grupaId={grupa.id} clubId={grupa.club_id} />}
             </div>
+
+            <GenerareAntrenamenteModal
+                isOpen={isGenerareOpen}
+                onClose={() => setIsGenerareOpen(false)}
+                grupa={grupa}
+                onGenerated={() => { setCalendarKey(k => k + 1); setActiveTab('antrenamente'); }}
+                onEditOrar={() => setActiveTab('orar')}
+                onOrarChanged={() => setOrarKey(k => k + 1)}
+                orarNesalvat={orarNesalvat}
+            />
         </div>
     );
 };

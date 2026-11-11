@@ -1,14 +1,16 @@
 // api/_aprobaCerereAcces.ts
 // Logica DB pentru aprobarea/respingerea cererilor de acces extern la competiții (Faza 36, D-05).
-// Prefix `_` = nu devine funcție Vercel. Rulează cu service role: autorizarea
-// (SUPER_ADMIN_FEDERATIE) se face în handler ÎNAINTE de a apela proceseazaCerereAcces.
+// Faza 39 (D-01): aprobarea creează contul de competiție al clubului (creeazaContClub) și e permisă
+// doar proprietarului aplicației; respingerea rămâne la federație.
+// Prefix `_` = nu devine funcție Vercel. Rulează cu service role: autorizarea se face
+// în handler ÎNAINTE de a apela proceseazaCerereAcces.
 // Nu trimite niciun email (memoria feedback_email_fara_linkuri_actiune): utilizatorul
 // se autentifică ulterior cu OTP pe pagina competiției.
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { creeazaContClub } from './_contCompetitieClub.js';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ROL_EXTERN = 'REPREZENTANT_COMPETITIE';
 
 export type ActiuneCerere = 'aproba' | 'respinge';
 
@@ -87,106 +89,21 @@ export async function proceseazaCerereAcces(
         return error ? eroareGenerica() : { ok: true, status: 200 };
     }
 
-    // --- aprobare ---
-    let userId: string | null = null;
-    let userNou = false;
-    let rolInserat = false;
-    let grantNou = false;
+    // --- aprobare (Faza 39, D-01): creează contul de competiție al clubului din cerere ---
+    const cont = await creeazaContClub(supabaseAdmin, {
+        club_id: cerere.club_id, email: cerere.email, callerId,
+    });
+    if (!cont.ok) {
+        // Club cu cont existent: cererea rămâne în așteptare, proprietarul decide.
+        return cont.status === 409 && cont.error === 'Clubul are deja cont de competiție.'
+            ? { ok: false, status: 409, error: 'Clubul are deja cont de competiție. Respinge cererea sau schimbă emailul din Conturi cluburi.' }
+            : { ok: false, status: cont.status, error: cont.error };
+    }
 
-    const rollback = async () => {
-        if (userNou && userId) {
-            // cascada din auth.users curăță și rolul/grantul, dar le ștergem explicit mai jos oricum
-            await supabaseAdmin.from('acces_competitie_extern').delete().eq('user_id', userId).eq('cerere_id', cerere_id);
-            await supabaseAdmin.from('utilizator_roluri_multicont').delete().eq('user_id', userId).eq('rol_denumire', ROL_EXTERN);
-            await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => {});
-            return;
-        }
-        if (!userId) return;
-        if (grantNou) {
-            await supabaseAdmin.from('acces_competitie_extern').delete()
-                .eq('user_id', userId).eq('competitie_id', cerere.competitie_id).eq('club_id', cerere.club_id);
-        }
-        if (rolInserat) {
-            await supabaseAdmin.from('utilizator_roluri_multicont').delete()
-                .eq('user_id', userId).eq('rol_denumire', ROL_EXTERN);
-        }
-    };
-
-    try {
-        const { data: idExistent, error: rpcErr } = await supabaseAdmin.rpc('user_id_dupa_email', { p_email: cerere.email });
-        if (rpcErr) return eroareGenerica();
-
-        if (idExistent) {
-            userId = idExistent as string;
-        } else {
-            const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
-                email: cerere.email,
-                email_confirm: true,
-                user_metadata: { nume: cerere.nume, sursa: 'cerere_acces_competitie' },
-            });
-            if (authErr || !authData?.user) return eroareGenerica();
-            userId = authData.user.id;
-            userNou = true;
-        }
-
-        const { data: rolRow, error: rolErr } = await supabaseAdmin
-            .from('roluri').select('id').eq('nume', ROL_EXTERN).maybeSingle();
-        if (rolErr || !rolRow) {
-            await rollback();
-            return { ok: false, status: 500, error: `Rolul ${ROL_EXTERN} lipsește din baza de date (rulați migrația 36-02).` };
-        }
-
-        const { data: roluriUser, error: roluriErr } = await supabaseAdmin
-            .from('utilizator_roluri_multicont').select('rol_denumire').eq('user_id', userId);
-        if (roluriErr) { await rollback(); return eroareGenerica(); }
-
-        const areRolExtern = (roluriUser || []).some((r: any) => r.rol_denumire === ROL_EXTERN);
-        const areAlteRoluri = (roluriUser || []).some((r: any) => r.rol_denumire !== ROL_EXTERN);
-
-        if (!areRolExtern) {
-            // DEC-1/DEC-2/DEC-9: club_id și sportiv_id NULL; triggerul nu mai leagă sportiv pentru acest rol.
-            const { error: insRolErr } = await supabaseAdmin.from('utilizator_roluri_multicont').insert({
-                user_id: userId,
-                rol_id: rolRow.id,
-                rol_denumire: ROL_EXTERN,
-                club_id: null,
-                sportiv_id: null,
-                is_primary: !areAlteRoluri,
-                nume_utilizator_cache: cerere.nume,
-            });
-            if (insRolErr) { await rollback(); return eroareGenerica(); }
-            rolInserat = true;
-        }
-
-        const { data: grantExistent, error: grantSelErr } = await supabaseAdmin
-            .from('acces_competitie_extern').select('id')
-            .eq('user_id', userId).eq('competitie_id', cerere.competitie_id).eq('club_id', cerere.club_id)
-            .maybeSingle();
-        if (grantSelErr) { await rollback(); return eroareGenerica(); }
-
-        if (grantExistent) {
-            const { error: updErr } = await supabaseAdmin.from('acces_competitie_extern')
-                .update({ activ: true, email: cerere.email, nume: cerere.nume, cerere_id, creat_de: callerId })
-                .eq('id', grantExistent.id);
-            if (updErr) { await rollback(); return eroareGenerica(); }
-        } else {
-            const { error: insErr } = await supabaseAdmin.from('acces_competitie_extern').insert({
-                user_id: userId, competitie_id: cerere.competitie_id, club_id: cerere.club_id,
-                activ: true, email: cerere.email, nume: cerere.nume, cerere_id, creat_de: callerId,
-            });
-            if (insErr) { await rollback(); return eroareGenerica(); }
-            grantNou = true;
-        }
-
-        const { error: marcErr } = await marcheaza({ status: 'aprobata', motiv_respingere: null });
-        if (marcErr) { await rollback(); return eroareGenerica(); }
-
-        return {
-            ok: true, status: 200, userId, userNou,
-            ...(areAlteRoluri ? { avertisment: 'cont_existent_cu_alte_roluri' } : {}),
-        };
-    } catch {
-        await rollback().catch(() => {});
+    const { error: marcErr } = await marcheaza({ status: 'aprobata', motiv_respingere: null });
+    if (marcErr) {
+        // Contul a fost creat dar cererea nu s-a marcat: raportăm eroare; reîncercarea dă 409 (cont existent).
         return eroareGenerica();
     }
+    return { ok: true, status: 200, userId: cont.userId, userNou: true };
 }

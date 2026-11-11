@@ -1,6 +1,7 @@
 /**
  * Test pentru api/_aprobaCerereAcces.ts (părțile pure: validare + gardă de rol).
- * Logica DB (proceseazaCerereAcces) se testează pe live în 36-12.
+ * Logica DB (proceseazaCerereAcces) se testează pe live în 36-12; ramura de aprobare
+ * (creeazaContClub, Faza 39) este acoperită live în 39-04.
  * Rulare: `node --import tsx api/_aprobaCerereAcces.test.ts`
  */
 

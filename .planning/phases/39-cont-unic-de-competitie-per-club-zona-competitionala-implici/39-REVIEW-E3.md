@@ -39,3 +39,16 @@ Lipsesc si: 39-16-SUMMARY, verificare umana in browser + pilot, actualizare STAT
 - Teste: autor_modificari_faza39 39/39 (G1-G6 noi: fara header, uuid strain, header invalid, REPREZENTANT, management ADMIN, REPREZENTANT cu management); cont_club_faza39 45/45; tsc 0 erori; acl_definer_faza37: doar PRE-1 preexistent.
 - Ramas deschis: restrictivele ext_r_* si inserarea in audit_log devin permisive pentru un cont cu management chiar in contextul REPREZENTANT (documentat in docs/roluri-permisiuni.md); decizie de design a utilizatorului.
 - Neverificat: UI in browser (badge user_vechi, mesaj rol_vechi_ramas), calea pozitiva reala acorda/revoca/mutare la schimbare email, H1..H10 verificare umana (de facut de utilizator), 39-16-SUMMARY, STATE/ROADMAP.
+
+## Verificare umana (final de faza)
+Toate: **de facut de utilizator**. Nimic marcat ca trecut fara confirmarea ta.
+- [ ] H1 (D-01, D-13, D-14): proprietar alin2u83@gmail.com -> meniu "Conturi cluburi (competiție)" -> creezi cont pentru UN club pilot cu email dedicat; apare "Cont activ" cu emailul.
+- [ ] H2 (D-01): alt SUPER_ADMIN_FEDERATIE nu vede "Conturi cluburi"; in competitie, tab Acces extern, butonul "Aprobă" lipseste.
+- [ ] H3 (D-03, D-09, D-12, D-04, D-11): emailul pilot pe /competitie -> OTP din email -> "Competiții active" + "Istoric competiții" (doar incheiate cu participarea clubului, "Doar citire"); fara active: "Nu sunt competiții active" + istoric.
+- [ ] H4 (D-03, D-10): click competitie -> dialog "Intri în competiția ...?"; /competitie/ID in alt tab -> dupa login "Ai fost trimis la competiția ..." cu "Intră"/"Vezi toate competițiile"; nicio intrare automata.
+- [ ] H5 (D-06, D-19): la intrare "Cine lucrează?" (instructorii clubului + Altcineva, text declarativ); dupa alegere badge "Lucrează: ..." + "Schimbă".
+- [ ] H6 (D-20): inscriere de test din contul pilot; ca admin al clubului pilot, competitie -> "Jurnal cont club" arata modificarea cu autorul declarat; ca admin al altui club, randul lipseste.
+- [ ] H7 (D-05, D-17): "Management club" fara acces -> zona de test cu bannerul "Demonstrație — date fictive...", nimic nu se salveaza.
+- [ ] H8 (D-16, D-18, D-05): proprietar acorda management (Instructor) pe cardul clubului pilot -> din contul pilot "Management club" deschide portalul real (seteazaContextActiv + assign('/'), pas MFA); retragi -> din nou zona de test. Prima verificare reala a caii pozitive. De urmarit si garda de autor: in contextul de management scrierea nu cere autor; in contextul REPREZENTANT cere.
+- [ ] H9 (D-15): proprietar schimba emailul contului pilot -> pe dispozitivul vechi datele clubului nu se mai incarca; noul email intra cu cod; managementul acordat apare pe noua identitate (fara badge "email vechi").
+- [ ] H10: H3-H7 pe telefon (lista, dialoguri, badge, zona de test).

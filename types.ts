@@ -1297,6 +1297,24 @@ export interface ContextAccesExtern {
   clubNume: string;
 }
 
+// Faza 39: autor declarat (neverificat) al modificarilor din contul de club partajat.
+export interface SesiuneActor {
+  user_id: string;
+  club_id: string;
+  competitie_id: string | null;
+  actor_user_id: string | null;
+  actor_nume: string;
+  actor_din_lista: boolean;
+  deschisa_la: string;
+  ultima_activitate: string;
+}
+
+export interface InstructorClub {
+  user_id: string;
+  nume: string;
+  rol: 'INSTRUCTOR' | 'ADMIN_CLUB';
+}
+
 export interface ContCompetitieClub {
   club_id: string;
   email: string;

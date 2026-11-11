@@ -275,6 +275,23 @@ async function main() {
     const an2 = await anon.rpc('competitie_vizibila_cont_club', { p_competitie: ACTIVA, p_club: CLUB_A });
     record('N6 anon: competitie_vizibila_cont_club -> eroare de permisiune', !!an2.error, an2.error?.message ?? 'fara eroare');
 
+    // ── 7b. management (negativ), 20261111e: doar proprietarul acorda/retrage; contul de club si anon nu pot ──
+    const mgmtExista = !(await admin.from('acces_management_cont_club').select('club_id', { count: 'exact', head: true })).error;
+    if (!mgmtExista) {
+      record('INFO management: migrare 20261111e neaplicata, sectiune sarita', true, 'sarit');
+    } else {
+      const m1 = await CA.rpc('acorda_management_cont_club', { p_club: CLUB_A, p_rol: 'INSTRUCTOR' });
+      record('M7 contul de club A: acorda_management_cont_club -> 42501', m1.error?.code === '42501', m1.error?.code ?? 'fara eroare');
+      const m2 = await CA.rpc('revoca_management_cont_club', { p_club: CLUB_A });
+      record('M7 contul de club A: revoca_management_cont_club -> 42501', m2.error?.code === '42501', m2.error?.code ?? 'fara eroare');
+      const m3 = await CA.rpc('management_cont_club_stare');
+      record('M7 contul de club A: management_cont_club_stare -> 42501', m3.error?.code === '42501', m3.error?.code ?? 'fara eroare');
+      const m4 = await anon.rpc('acorda_management_cont_club', { p_club: CLUB_A, p_rol: 'ADMIN_CLUB' });
+      record('M7 anon: acorda_management_cont_club -> eroare de permisiune', !!m4.error, m4.error?.message ?? 'fara eroare');
+      const mRand = (await admin.from('acces_management_cont_club').select('club_id', { count: 'exact', head: true }).in('club_id', [CLUB_A, CLUB_B])).count ?? -1;
+      record('M7 niciun grant de management creat pentru CLUB_A/CLUB_B', mRand === 0, `randuri=${mRand}`);
+    }
+
     // ── 8. D-02 (inainte de D-15, tot cu service role) ──
     const cnt = async (rol: string) =>
       (await admin.from('utilizator_roluri_multicont').select('id', { count: 'exact', head: true }).eq('rol_denumire', rol)).count ?? -1;

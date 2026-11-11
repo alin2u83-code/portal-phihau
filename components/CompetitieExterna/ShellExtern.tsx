@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Select } from '../ui';
-import type { ContextAccesExtern } from '../../types';
+import { Badge, Button, Select } from '../ui';
+import type { ContextAccesExtern, SesiuneActor } from '../../types';
 
 const ROL_LABEL: Record<string, string> = {
     ADMIN_CLUB: 'Administrator club',
@@ -16,11 +16,14 @@ interface ShellExternProps {
     onSchimbaContext: (ctx: ContextAccesExtern) => void;
     onDeconecteaza: () => void;
     onInapoiLaLista?: () => void;
+    /** Autorul declarat în contul de club (D-19); lipsește la conturile personale. */
+    actor?: SesiuneActor | null;
+    onSchimbaActor?: () => void;
     children: React.ReactNode;
 }
 
 /** Antet minimal (D-10): fără sidebar, meniu sau link spre alte module / competiții. */
-export const ShellExtern: React.FC<ShellExternProps> = ({ email, contexte, contextActiv, competitieDenumire, onSchimbaContext, onDeconecteaza, onInapoiLaLista, children }) => (
+export const ShellExtern: React.FC<ShellExternProps> = ({ email, contexte, contextActiv, competitieDenumire, onSchimbaContext, onDeconecteaza, onInapoiLaLista, actor, onSchimbaActor, children }) => (
     <div className="min-h-screen bg-[var(--t-bg)] text-[var(--t-text)]">
         <header className="border-b border-[var(--t-border)] bg-[var(--t-surface)]">
             <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -44,6 +47,12 @@ export const ShellExtern: React.FC<ShellExternProps> = ({ email, contexte, conte
                                     <option key={c.roleRowId} value={c.roleRowId}>{c.clubNume} · {ROL_LABEL[c.rol] ?? c.rol}</option>
                                 ))}
                             </Select>
+                        </div>
+                    )}
+                    {actor && (
+                        <div className="flex items-center gap-2">
+                            <Badge variant="blue">Lucrează: {actor.actor_nume}{!actor.actor_din_lista && ' (nume liber)'}</Badge>
+                            {onSchimbaActor && <Button variant="secondary" size="sm" onClick={onSchimbaActor}>Schimbă</Button>}
                         </div>
                     )}
                     {onInapoiLaLista && <Button variant="secondary" size="sm" onClick={onInapoiLaLista}>Toate competițiile</Button>}

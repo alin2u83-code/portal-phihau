@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
 import { Button, Card, Badge, Modal } from '../ui';
@@ -9,12 +10,14 @@ import { useTipuriCompetitie } from '../../hooks/useTipuriCompetitie';
 import { applyTheme, DEFAULT_THEME } from '../../lib/themes';
 import { extrageCompetitieId, esteListaZona, construiestePermisiuniExtern } from '../../utils/accesExtern';
 import { incarcaCompetitiePublica, incarcaContexteEligibile, seteazaContextActiv, deconecteaza } from '../../services/accesExternService';
+import { sesiuneActorCurenta, inchideSesiuneActor } from '../../services/autorModificariService';
+import { AlegeActorModal } from './AlegeActorModal';
 import { LoginOtp } from './LoginOtp';
 import { SolicitaContForm } from './SolicitaContForm';
 import { ShellExtern } from './ShellExtern';
 import { ExternDataProvider } from './ExternDataProvider';
 import { ListaCompetitiiClub } from './ListaCompetitiiClub';
-import type { Competitie, CompetitiePublica, ContextAccesExtern } from '../../types';
+import type { Competitie, CompetitiePublica, ContextAccesExtern, SesiuneActor } from '../../types';
 
 const CHEIE_CONTEXT = 'phi-hau-active-role-context-id';
 const CALE_LISTA = '/competitie';
@@ -59,6 +62,87 @@ const CardPublic: React.FC<{ c: CompetitiePublica; tipLabel: string }> = ({ c, t
             <p className="text-sm">Termen înscrieri: {fmtDate(c.deadline_inscrieri)}</p>
             {c.probe?.length > 0 && <p className="text-sm">Probe: {c.probe.join(', ')}</p>}
         </Card>
+    );
+};
+
+/** Doar contul de club partajat are sesiune de actor; închiderea e best effort. */
+const iesiDinZona = async (rol: ContextAccesExtern['rol']) => {
+    if (rol === 'REPREZENTANT_COMPETITIE') { try { await inchideSesiuneActor(); } catch { /* ignorat intenționat */ } }
+    await deconecteaza();
+};
+
+interface EcranActivProps {
+    ctx: ContextAccesExtern;
+    contexte: ContextAccesExtern[];
+    user: any;
+    competitie: Competitie;
+    onSchimbaContext: (c: ContextAccesExtern) => void;
+    onInapoiLaLista: () => void;
+}
+
+// D-07: o singură sesiune de actor per cont — nu există logică de sesiuni concurente.
+const EcranActiv: React.FC<EcranActivProps> = ({ ctx, contexte, user, competitie, onSchimbaContext, onInapoiLaLista }) => {
+    const esteCont = ctx.rol === 'REPREZENTANT_COMPETITIE';
+    const qc = useQueryClient();
+    const cheie = ['extern', 'sesiune-actor', ctx.roleRowId];
+    const [schimba, setSchimba] = useState(false);
+
+    // Reapare la expirare (4h) prin refetch la revenirea în fereastră și la 5 minute (D-19).
+    const { data: sesiune, isLoading } = useQuery({
+        queryKey: cheie,
+        queryFn: async () => (await sesiuneActorCurenta()).data,
+        enabled: esteCont,
+        refetchOnWindowFocus: true,
+        refetchInterval: 5 * 60 * 1000,
+        staleTime: 0,
+    });
+
+    const actor: SesiuneActor | null = esteCont && sesiune && sesiune.competitie_id === competitie.id ? sesiune : null;
+    const trebuieAlegere = esteCont && !isLoading && !actor;
+    const onAles = (s: SesiuneActor) => { qc.setQueryData(cheie, s); setSchimba(false); };
+
+    return (
+        <>
+            <ShellExtern
+                email={user.email ?? ''}
+                contexte={contexte}
+                contextActiv={ctx}
+                competitieDenumire={competitie.denumire}
+                onSchimbaContext={onSchimbaContext}
+                onDeconecteaza={() => { void iesiDinZona(ctx.rol); }}
+                onInapoiLaLista={onInapoiLaLista}
+                actor={actor}
+                onSchimbaActor={() => setSchimba(true)}
+            >
+                {esteCont && isLoading && <p className="text-center text-sm">Se încarcă...</p>}
+                {(!esteCont || actor) && (
+                    <ExternDataProvider
+                        clubId={ctx.clubId}
+                        clubNume={ctx.clubNume}
+                        competitieId={competitie.id}
+                        userId={user.id}
+                        contextId={ctx.roleRowId}
+                        rol={ctx.rol}
+                    >
+                        <CompetitieDetail
+                            competitie={competitie}
+                            permissions={construiestePermisiuniExtern(ctx.clubId)}
+                            mode="extern"
+                            externRol={ctx.rol}
+                        />
+                    </ExternDataProvider>
+                )}
+            </ShellExtern>
+            {esteCont && (
+                <AlegeActorModal
+                    isOpen={trebuieAlegere || schimba}
+                    obligatoriu={trebuieAlegere}
+                    competitieId={competitie.id}
+                    onAles={onAles}
+                    onClose={() => setSchimba(false)}
+                />
+            )}
+        </>
     );
 };
 
@@ -217,7 +301,7 @@ const CompetitieExternaPage: React.FC = () => {
                         contexte={contexte}
                         contextActiv={ctx}
                         onSchimbaContext={c => { void intraInZona(c, contexte, user, false); }}
-                        onDeconecteaza={() => { void deconecteaza(); }}
+                        onDeconecteaza={() => { void iesiDinZona(ctx.rol); }}
                     >
                         {stare.t === 'lista' && stare.mesaj && <Card className="mb-4"><p className="text-sm">{stare.mesaj}</p></Card>}
                         <ListaCompetitiiClub
@@ -256,36 +340,17 @@ const CompetitieExternaPage: React.FC = () => {
                 setStare({ t: 'lista', ctx, contexte, user });
             };
             continut = (
-                <>
-                    <ErrorBoundary onNavigate={() => window.location.reload()}>
-                        <ShellExtern
-                            email={user.email ?? ''}
-                            contexte={contexte}
-                            contextActiv={ctx}
-                            competitieDenumire={competitie.denumire}
-                            onSchimbaContext={c => { void intraInZona(c, contexte, user, false); }}
-                            onDeconecteaza={() => { void deconecteaza(); }}
-                            onInapoiLaLista={inapoiLaLista}
-                        >
-                            <ExternDataProvider
-                                key={ctx.roleRowId}
-                                clubId={ctx.clubId}
-                                clubNume={ctx.clubNume}
-                                competitieId={competitie.id}
-                                userId={user.id}
-                                contextId={ctx.roleRowId}
-                                rol={ctx.rol}
-                            >
-                                <CompetitieDetail
-                                    competitie={competitie}
-                                    permissions={construiestePermisiuniExtern(ctx.clubId)}
-                                    mode="extern"
-                                    externRol={ctx.rol}
-                                />
-                            </ExternDataProvider>
-                        </ShellExtern>
-                    </ErrorBoundary>
-                </>
+                <ErrorBoundary onNavigate={() => window.location.reload()}>
+                    <EcranActiv
+                        key={ctx.roleRowId}
+                        ctx={ctx}
+                        contexte={contexte}
+                        user={user}
+                        competitie={competitie}
+                        onSchimbaContext={c => { void intraInZona(c, contexte, user, false); }}
+                        onInapoiLaLista={inapoiLaLista}
+                    />
+                </ErrorBoundary>
             );
             break;
         }

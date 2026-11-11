@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
 import { Button, Card, Badge, Modal, EmptyState } from '../ui';
+import { useEsteProprietar } from '../../hooks/useEsteProprietar';
 
 interface Props {
   competitieId: string;
@@ -19,15 +20,6 @@ interface CerereAcces {
   club: { nume: string } | null;
 }
 
-interface GrantAcces {
-  id: string;
-  email: string;
-  nume: string;
-  activ: boolean;
-  creat_la: string;
-  club: { nume: string } | null;
-}
-
 const MOTIV_MAX = 300;
 const STATUS_BADGE: Record<CerereAcces['status'], { label: string; variant: 'amber' | 'green' | 'red' }> = {
   in_asteptare: { label: 'În așteptare', variant: 'amber' },
@@ -39,42 +31,32 @@ const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString('ro-RO') :
 export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
   const { showError, showSuccess } = useError();
   const [cereri, setCereri] = useState<CerereAcces[]>([]);
-  const [granturi, setGranturi] = useState<GrantAcces[]>([]);
   const [loading, setLoading] = useState(true);
   const [eroare, setEroare] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copiat, setCopiat] = useState(false);
-  const [notaAvertisment, setNotaAvertisment] = useState<string | null>(null);
   const [confirmAproba, setConfirmAproba] = useState<CerereAcces | null>(null);
   const [respinge, setRespinge] = useState<CerereAcces | null>(null);
   const [motiv, setMotiv] = useState('');
-  const [confirmRevoca, setConfirmRevoca] = useState<GrantAcces | null>(null);
   const [confirmSterge, setConfirmSterge] = useState(false);
   const linkRef = useRef<HTMLInputElement>(null);
-
+  // doar afișare; endpoint-ul refuză oricum non-proprietarul
+  const esteProprietar = useEsteProprietar();
   const link = `${window.location.origin}/competitie/${competitieId}`;
 
   const incarca = useCallback(async () => {
-    const [c, g] = await Promise.all([
-      supabase
-        .from('cereri_acces_competitie')
-        .select('id, email, nume, mesaj, status, motiv_respingere, created_at, procesat_la, club:club_id(nume)')
-        .eq('competitie_id', competitieId)
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('acces_competitie_extern')
-        .select('id, email, nume, activ, creat_la, club:club_id(nume)')
-        .eq('competitie_id', competitieId)
-        .order('creat_la', { ascending: false }),
-    ]);
-    if (c.error || g.error) {
+    const c = await supabase
+      .from('cereri_acces_competitie')
+      .select('id, email, nume, mesaj, status, motiv_respingere, created_at, procesat_la, club:club_id(nume)')
+      .eq('competitie_id', competitieId)
+      .order('created_at', { ascending: false });
+    if (c.error) {
       setEroare('Nu s-au putut încărca datele de acces extern.');
     } else {
       setEroare(null);
       const lista = (c.data ?? []) as unknown as CerereAcces[];
       // în așteptare primele; sortarea e stabilă, deci ordinea după dată se păstrează
       setCereri([...lista].sort((a, b) => Number(b.status === 'in_asteptare') - Number(a.status === 'in_asteptare')));
-      setGranturi((g.data ?? []) as unknown as GrantAcces[]);
     }
     setLoading(false);
   }, [competitieId]);
@@ -107,17 +89,11 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
         body: JSON.stringify({ cerere_id: cerere.id, actiune, motiv: motivText || undefined }),
       });
       const body = await res.json().catch(() => ({}));
-      if (res.status === 409) {
-        showError('Acces extern', 'Cererea a fost deja procesată.');
-      } else if (!res.ok) {
+      if (!res.ok) {
+        // 409/403: mesajul serverului (club cu cont, email existent, cerere deja procesată, doar proprietar)
         showError('Acces extern', body?.error || 'Cererea nu a putut fi procesată.');
       } else {
         showSuccess('Acces extern', actiune === 'aproba' ? 'Cererea a fost aprobată.' : 'Cererea a fost respinsă.');
-        setNotaAvertisment(
-          body?.avertisment === 'cont_existent_cu_alte_roluri'
-            ? 'Emailul avea deja cont cu alte roluri; accesul extern s-a adăugat, nimic nu a fost înlocuit.'
-            : null
-        );
       }
       setConfirmAproba(null);
       setRespinge(null);
@@ -146,21 +122,6 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
     }
   };
 
-  const seteazaActiv = async (grant: GrantAcces, activ: boolean) => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const { error } = await supabase.from('acces_competitie_extern').update({ activ }).eq('id', grant.id);
-      if (error) throw error;
-      setConfirmRevoca(null);
-      await incarca();
-    } catch (err) {
-      showError('Acces extern', err);
-    } finally {
-      setBusy(false);
-    }
-  };
-
   if (loading) return <div className="text-center text-slate-500 py-8 text-sm animate-pulse">Se încarcă...</div>;
 
   return (
@@ -175,7 +136,7 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
           <Button type="button" variant="secondary" onClick={copiaza}>{copiat ? 'Copiat!' : 'Copiază linkul'}</Button>
         </div>
         <p className="text-xs text-slate-400">
-          Linkul nu dă acces singur. Intră doar conturile unui club (administrator/instructor) sau cele aprobate de federație. Emailul de autentificare conține un cod, nu un link.
+          Linkul nu dă acces singur. Intră contul de competiție al clubului (creat de administratorul aplicației) sau administratorii/instructorii clubului. Emailul de autentificare conține un cod, nu un link.
         </p>
       </Card>
 
@@ -188,7 +149,6 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
             </Button>
           )}
         </div>
-        {notaAvertisment && <div className="rounded-lg border border-amber-700/50 bg-amber-950/30 p-3 text-xs text-amber-300">{notaAvertisment}</div>}
         {cereri.length === 0 ? (
           <EmptyState title="Nu există cereri de acces." />
         ) : (
@@ -207,8 +167,13 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
                 <p className="text-xs text-red-300 break-words">Motiv: {c.motiv_respingere}</p>
               )}
               {c.status === 'in_asteptare' && (
-                <div className="flex gap-2">
-                  <Button type="button" size="sm" variant="success" disabled={busy} onClick={() => setConfirmAproba(c)}>Aprobă</Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {esteProprietar && (
+                    <>
+                      <Button type="button" size="sm" variant="success" disabled={busy} onClick={() => setConfirmAproba(c)}>Aprobă</Button>
+                      <span className="text-xs text-slate-400">Aprobarea creează contul de competiție al clubului.</span>
+                    </>
+                  )}
                   <Button type="button" size="sm" variant="danger" disabled={busy} onClick={() => { setMotiv(''); setRespinge(c); }}>Respinge</Button>
                 </div>
               )}
@@ -217,34 +182,9 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
         )}
       </Card>
 
-      <Card className="p-4 space-y-3">
-        <h3 className="text-base font-semibold text-white">Conturi cu acces</h3>
-        {granturi.length === 0 ? (
-          <EmptyState title="Niciun cont extern cu acces la această competiție." />
-        ) : (
-          granturi.map(g => (
-            <div key={g.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-700 bg-slate-800/50 p-3">
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-white break-words">{g.nume}</p>
-                <p className="text-xs text-slate-400 break-all">{g.email}</p>
-                <p className="text-xs text-slate-400">{g.club?.nume ?? '—'} · {fmt(g.creat_la)}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <Badge variant={g.activ ? 'green' : 'slate'}>{g.activ ? 'Activ' : 'Inactiv'}</Badge>
-                {g.activ ? (
-                  <Button type="button" size="sm" variant="danger" disabled={busy} onClick={() => setConfirmRevoca(g)}>Revocă accesul</Button>
-                ) : (
-                  <Button type="button" size="sm" variant="secondary" disabled={busy} isLoading={busy} onClick={() => seteazaActiv(g, true)}>Reactivează</Button>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </Card>
-
       <Modal isOpen={!!confirmAproba} onClose={() => !busy && setConfirmAproba(null)} title="Aprobă cererea">
         <p className="text-sm text-slate-300 mb-4">
-          Se creează contul (dacă nu există) și primește acces la această competiție pentru clubul {confirmAproba?.club?.nume ?? '—'}.
+          Se creează contul de competiție al clubului {confirmAproba?.club?.nume ?? '—'} cu emailul {confirmAproba?.email}. Clubul trebuie să nu aibă deja cont.
         </p>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" disabled={busy} onClick={() => setConfirmAproba(null)}>Anulează</Button>
@@ -274,15 +214,6 @@ export const CereriAccesAdmin: React.FC<Props> = ({ competitieId }) => {
         </div>
       </Modal>
 
-      <Modal isOpen={!!confirmRevoca} onClose={() => !busy && setConfirmRevoca(null)} title="Revocă accesul">
-        <p className="text-sm text-slate-300 mb-4">
-          Contul {confirmRevoca?.email} nu va mai avea acces la această competiție. Istoricul se păstrează și accesul poate fi reactivat.
-        </p>
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" disabled={busy} onClick={() => setConfirmRevoca(null)}>Anulează</Button>
-          <Button type="button" variant="danger" isLoading={busy} disabled={busy} onClick={() => confirmRevoca && seteazaActiv(confirmRevoca, false)}>Revocă</Button>
-        </div>
-      </Modal>
     </div>
   );
 };

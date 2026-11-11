@@ -1309,17 +1309,6 @@ export interface CompetitiiClubClasificate {
   istoric: Competitie[];
 }
 
-export interface GrantAccesExtern {
-  id: string;
-  user_id: string;
-  competitie_id: string;
-  club_id: string;
-  email: string;
-  nume: string;
-  activ: boolean;
-  creat_la: string;
-}
-
 export interface CerereAccesCompetitie {
   id: string;
   competitie_id: string;

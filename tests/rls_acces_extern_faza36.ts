@@ -1,4 +1,5 @@
 // tests/rls_acces_extern_faza36.ts
+// SUPERSEDED de Faza 39 (cont de club): granturile per competitie nu mai dau acces; vezi tests/cont_club_faza39.ts
 //
 // Faza 36 — Plan 11. Baterie live de izolare/scurgere pentru rolul REPREZENTANT_COMPETITIE.
 // Citire scoped, sweep pe toate relatiile PostgREST, scriere, escaladare, spoof header, regresii interne.

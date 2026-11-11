@@ -1,4 +1,5 @@
 // tests/acces_extern_aprobare_faza36.ts
+// SUPERSEDED de Faza 39 (cont de club): granturile per competitie nu mai dau acces; vezi tests/cont_club_faza39.ts
 //
 // Faza 36 — Plan 12, Task 1. Flux cap-coada pe DB live:
 // cerere anonima (RPC) -> aprobare prin handler (token real) -> OTP (generateLink + verifyOtp) -> acces scoped.

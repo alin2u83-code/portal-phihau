@@ -587,6 +587,17 @@ Plans:
 
 - [x] 39-01..39-16 executate, UAT 7/10 pass (39-UAT.md)
 
+### Phase 40: Competitia ca aplicatie de sine statatoare: sportivi, grade, arme, inscrieri
+
+**Goal:** Reprezentantul clubului (cont /competitie) face tot fluxul fara Management: lista sportivi, grade/arme, inscrieri; schimbarile de grad sunt oficiale, cu autor+motiv, vizibile federatiei. Design: docs/superpowers/specs/2026-11-12-competitie-aplicatie-proprie-grade-design.md
+**Requirements**: TBD
+**Depends on:** Phase 39
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 40 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

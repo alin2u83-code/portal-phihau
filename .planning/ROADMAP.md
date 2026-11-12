@@ -581,11 +581,11 @@ Plans:
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 38
-**Plans:** 5/16 plans executed
+**Plans:** 16/16 plans executed (verificare umana H6, H8, H9 amanata: vezi .planning/todos/pending/2026-11-12-faza39-verificari-amanate.md)
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 39 to break down)
+- [x] 39-01..39-16 executate, UAT 7/10 pass (39-UAT.md)
 
 ---
 

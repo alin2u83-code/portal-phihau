@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Completed 39-02-PLAN.md
+status: ready_to_plan
+stopped_at: Faza 39 finalizata 12.11.2026 (UAT 7/10; H6, H8, H9 amanate in todo)
 last_updated: "2026-11-11T18:19:48.732Z"
-last_activity: 2026-11-11 -- Phase 39 execution started
+last_activity: 2026-11-12 -- Phase 39 finalizata; verificari amanate H6/H8/H9
 progress:
   total_phases: 31
-  completed_phases: 17
+  completed_phases: 18
   total_plans: 134
-  completed_plans: 116
-  percent: 55
+  completed_plans: 134
+  percent: 58
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 39 — cont-unic-de-competitie-per-club-zona-competitionala-implici
+**Current focus:** Faza 38 (neplanificata) sau faza noua competitie-aplicatie-proprie-grade (design aprobat)
 
 ## Current Position
 
-Phase: 39 (cont-unic-de-competitie-per-club-zona-competitionala-implici) — EXECUTING
-Plan: 6 of 16
-Status: Ready to execute
-Last activity: 2026-11-11 -- Phase 39 execution started
+Phase: 39 (cont-unic-de-competitie-per-club-zona-competitionala-implici) — FINALIZATA 12.11.2026 (UAT 7/10, H6/H8/H9 amanate)
+Plan: 16 of 16 (toate cu SUMMARY)
+Status: Faza 39 inchisa; urmeaza Faza 38 (neplanificata) sau faza noua "competitie aplicatie proprie: grade" (design in docs/superpowers/specs/2026-11-12-*)
+Last activity: 2026-11-12 -- Phase 39 finalizata; verificari amanate H6/H8/H9
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)

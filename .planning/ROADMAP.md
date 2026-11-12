@@ -592,11 +592,14 @@ Plans:
 **Goal:** Reprezentantul clubului (cont /competitie) face tot fluxul fara Management: lista sportivi, grade/arme, inscrieri; schimbarile de grad sunt oficiale, cu autor+motiv, vizibile federatiei. Design: docs/superpowers/specs/2026-11-12-competitie-aplicatie-proprie-grade-design.md
 **Requirements**: TBD
 **Depends on:** Phase 39
-**Plans:** 0 plans
+**Plans:** 4 plans (v1 = doar grade; arme/sportiv nou = faze ulterioare)
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 40 to break down)
+- [ ] 40-01-PLAN.md — migrari 20261112a (deadline obligatoriu) + 20261112b (schimbari_grad_competitie + 4 RPC), tipuri, ACL
+- [ ] 40-02-PLAN.md — [BLOCKING] aplicare live dupa OK + baterie live tests/grade_competitie_faza40.ts
+- [ ] 40-03-PLAN.md — modal schimbare grad prin RPC pentru reprezentant in Pas 1 (zona externa)
+- [ ] 40-04-PLAN.md — tab federatie "Schimbari grad" (filtre, contor de achitat, marcheaza achitat), docs, verificare umana
 
 ---
 

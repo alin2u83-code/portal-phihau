@@ -454,8 +454,10 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   );
 
   const enrichedFiltrat = useMemo(
-    () => enriched.filter(e => e.eligibilitate.status !== 'neeligibil'),
-    [enriched]
+    // Faza 40: in zona de competitie raman vizibili (dezactivati) sportivii blocati DOAR de grad, ca reprezentantul sa le poata schimba gradul
+    () => enriched.filter(e => e.eligibilitate.status !== 'neeligibil'
+      || (!!gradPrinCompetitie && !!onGradSchimbat && !!e.eligibilitate.motiv?.startsWith('Grad:'))),
+    [enriched, gradPrinCompetitie, onGradSchimbat]
   );
 
   const enrichedVizibil = showDejaInscrisi

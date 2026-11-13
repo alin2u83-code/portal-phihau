@@ -38,6 +38,8 @@ interface Pas3Props {
   onEchipeRefresh?: () => void;
   /** zona externa: fara cereri inter-club (D-14) */
   interclubDezactivat?: boolean;
+  /** reprezentantul poate schimba gradul din Pas 1 (Faza 40) */
+  gradPrinCompetitie?: boolean;
   onBack: () => void;
 }
 
@@ -45,7 +47,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   categorii, probe, echipe, clubId, sportivi, grade, dataCompetitie,
   competitieId, clubSolicitantId, categoriiToate, inscrieri = [], armeAlese, armeDefinitii,
   skippedCategorii, onToggleSkipCategorie,
-  onOpenInscriereModal, onEchipeRefresh, interclubDezactivat, onBack,
+  onOpenInscriereModal, onEchipeRefresh, interclubDezactivat, gradPrinCompetitie, onBack,
 }) => {
   const { showError } = useError();
   const [cereriInterclub, setCereriInterclub] = useState<Map<string, 'pending' | 'aprobat' | 'respins'>>(new Map());
@@ -492,7 +494,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                 </ul>
                 <p className="text-slate-400">
                   Dacă gradul real s-a schimbat (ex. echivalare la 13 ani), actualizează-l la pasul „Sportivi", butonul „Schimbă grad"
-                  {interclubDezactivat ? ' — din „Management club" (portalul principal), nu din această zonă.' : '.'}
+                  {interclubDezactivat && !gradPrinCompetitie ? ' — din „Management club" (portalul principal), nu din această zonă.' : '.'}
                 </p>
               </div>
             )}

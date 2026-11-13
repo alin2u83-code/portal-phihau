@@ -26,7 +26,7 @@ export type { PickCategorie, IndivPicks } from './types';
 const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
   competitie, probe, categorii, sportivi, grade,
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
-  onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh, arme, canEdit = false, onViewSportiv, interclubDezactivat, onGradSchimbat,
+  onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh, arme, canEdit = false, onViewSportiv, interclubDezactivat, onGradSchimbat, gradPrinCompetitie,
 }) => {
   const { showError } = useError();
   // step: 'hub'=carduri probe, 1=selectare sportivi (doar quyen), 2=quyen, 3=echipe/giao_dau, 4=sumar
@@ -334,6 +334,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
         onMergiLaArme={() => setStep('arme')}
         bannerLipsuri={bannerLipsuri}
         onGradSchimbat={onGradSchimbat}
+        gradPrinCompetitie={gradPrinCompetitie}
       />
     );
   }
@@ -492,6 +493,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
         onOpenInscriereModal={(cat) => onOpenInscriereModal?.(cat)}
         onEchipeRefresh={onEchipeRefresh}
         interclubDezactivat={interclubDezactivat}
+        gradPrinCompetitie={gradPrinCompetitie}
         onBack={() => setStep('hub')}
       />
     );

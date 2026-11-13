@@ -70,6 +70,8 @@ export interface EchipaFormata {
 export interface InscriereClubWizardProps {
   /** Dupa promovare grad din Pas1: parintele actualizeaza grad_actual_id in contextul de date */
   onGradSchimbat?: (sportivId: string, gradId: string) => void;
+  /** Zona externa (reprezentant): schimbarea gradului trece prin RPC (Faza 40) */
+  gradPrinCompetitie?: boolean;
   competitie: Competitie;
   probe: ProbaCompetitie[];
   categorii: CategorieCompetitie[];

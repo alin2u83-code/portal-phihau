@@ -211,6 +211,8 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
   const armeCvd = useArmeCvd(competitie, sportivIdsClub, competitie.tip === 'cvd');
   // schimbarea gradului: doar cine poate scrie istoric_grade (federatie, admin club, instructor); nu in modul extern
   const canEditGrad = !extern && (permissions.canGradeStudents || isAdmin || isClubAdmin || permissions.isInstructor);
+  // reprezentantul poate schimba gradul prin RPC (Faza 40); instructorii externi doar vad. Garda reala e in RPC.
+  const canEditGradExtern = extern && externRol === 'REPREZENTANT_COMPETITIE' && !istoricExtern;
   const canEditArme = competitie.status === 'inscrieri_deschise' && (permissions.isAdminClub || permissions.isSuperAdmin || permissions.isFederationAdmin) && externRol !== 'INSTRUCTOR';
 
   // Modal categorie: activi + inactivii înscriși DOAR la categoria deschisă (nu apar selectabili la alte categorii)
@@ -541,8 +543,9 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                 arme={competitie.tip === 'cvd' ? armeCvd : undefined}
                 canEdit={canEditArme}
                 onViewSportiv={extern ? undefined : onViewSportiv}
-                onGradSchimbat={canEditGrad ? (id, gradId) => setSportivi?.(prev => prev.map(s => s.id === id ? { ...s, grad_actual_id: gradId } : s)) : undefined}
+                onGradSchimbat={(canEditGrad || canEditGradExtern) ? (id, gradId) => setSportivi?.(prev => prev.map(s => s.id === id ? { ...s, grad_actual_id: gradId } : s)) : undefined}
                 interclubDezactivat={extern}
+                gradPrinCompetitie={canEditGradExtern}
                 onBack={() => setWizardOpen(false)}
                 onSaved={() => { setWizardOpen(false); fetchData(); }}
                 onEchipeRefresh={fetchDataSilent}

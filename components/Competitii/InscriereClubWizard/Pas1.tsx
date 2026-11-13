@@ -12,6 +12,7 @@ import { BadgeEligibilitateGenerala } from './shared';
 import { EligibilitateGenerala, ArmeAlese } from './types';
 import BannerDeRezolvat from './BannerDeRezolvat';
 import SchimbaGradModal from './SchimbaGradModal';
+import SchimbaGradCompetitieModal from './SchimbaGradCompetitieModal';
 import type { ItemDeRezolvat } from './BannerDeRezolvat';
 
 // -----------------------------------------------
@@ -290,12 +291,14 @@ export interface Pas1Props {
   bannerLipsuri?: ItemDeRezolvat[];
   /** Dupa promovarea gradului (istoric_grade scris) — parintele actualizeaza sportivii din context */
   onGradSchimbat?: (sportivId: string, gradId: string) => void;
+  /** Zona externa (reprezentant): gradul se schimba prin RPC cu decizie server-side (Faza 40) */
+  gradPrinCompetitie?: boolean;
 }
 
 const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   competitie, sportivi, grade, categorii, inscrieri, vizeSportivi,
   selected, myClubId, varsteCompetitie, onToggle, onRetrage, onContinua, onBack,
-  cvd, armeEroare, armeAlese, onMergiLaArme, bannerLipsuri, onGradSchimbat,
+  cvd, armeEroare, armeAlese, onMergiLaArme, bannerLipsuri, onGradSchimbat, gradPrinCompetitie,
 }) => {
   const [sportivGrad, setSportivGrad] = useState<Sportiv | null>(null);
   const [confirmRetrageId, setConfirmRetrageId] = useState<string | null>(null);
@@ -854,12 +857,22 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
           </Button>
         </div>
       </div>
-      <SchimbaGradModal
-        sportiv={sportivGrad}
-        grade={grade}
-        onClose={() => setSportivGrad(null)}
-        onSaved={(id, gradId) => onGradSchimbat?.(id, gradId)}
-      />
+      {gradPrinCompetitie ? (
+        <SchimbaGradCompetitieModal
+          sportiv={sportivGrad}
+          competitieId={competitie.id}
+          grade={grade}
+          onClose={() => setSportivGrad(null)}
+          onSaved={(id, gradId) => onGradSchimbat?.(id, gradId)}
+        />
+      ) : (
+        <SchimbaGradModal
+          sportiv={sportivGrad}
+          grade={grade}
+          onClose={() => setSportivGrad(null)}
+          onSaved={(id, gradId) => onGradSchimbat?.(id, gradId)}
+        />
+      )}
     </div>
   );
 };

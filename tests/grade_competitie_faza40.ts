@@ -25,7 +25,7 @@ if (!url || !serviceKey || !anonKey) {
 }
 
 const CLUB_A = '83e7f771-46cf-4c4e-b70f-356d7b0bff06';
-const CLUB_B = 'cbb0b228-b3e0-4735-9658-70999eb256c6';
+const CLUB_B = '80c0bd76-7e60-41f4-ae3e-720ccc6d662f'; // He Pai Suceava (Phi Hau are cont real de competitie din pilot Faza 39)
 const PREFIX = 'ZZ_TEST_FAZA40_';
 const EMAIL_PREFIX = 'zztest_faza40_';
 const RUN_ID = Date.now();

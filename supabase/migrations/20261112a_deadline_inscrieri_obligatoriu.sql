@@ -1,3 +1,4 @@
+-- APLICATA LIVE 13.11.2026 (40-02, dupa OK explicit).
 -- Faza 40 (40-01, D-14): deadline_inscrieri obligatoriu si <= data_inceput.
 -- NEAPLICATA inca (se aplica in 40-02, dupa OK explicit). supabase/ e gitignored -> `git add -f`.
 -- Live (12-13.11.2026): 2 randuri cu deadline NULL + 1 cu deadline > data_inceput (clona 1551ef52: 2026-12-31 > 2026-10-31).

@@ -180,7 +180,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
         const ordine = gradEfectivLaData(s, grade, dataCompetitie)?.ordine ?? 0;
         const ajung = new Set<string>();
         for (const a of armeDefinitii) {
-          if (alese.has(a.id) && categoriePentruArma(a, s, ordine, dataCompetitie, categoriiToate ?? categorii, armeDefinitii)?.id === cat.id) ajung.add(a.id);
+          if (alese.has(a.id) && categoriePentruArma(a, s, ordine, dataCompetitie, (categoriiToate ?? categorii).filter(c => c.proba_id === cat.proba_id), armeDefinitii)?.id === cat.id) ajung.add(a.id);
         }
         armePeSportiv.set(s.id, ajung);
       }

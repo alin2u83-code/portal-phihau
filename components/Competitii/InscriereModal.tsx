@@ -84,14 +84,14 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
   const eligibiliBaza = eligibilitati.filter(e => e.eligibilitate.eligibil);
 
   // Song Luyen CVD: echipa are o singura arma; candidatii = sportivii care au aleasa arma respectiva
-  // la categoria curenta (categoriePentruArma)
+  // la categoria curenta (categoriePentruArma, doar printre categoriile aceleiasi probe: altfel Thao Lo individual, cu ordine_afisare mai mica, "fura" arma)
   const isCvdEchipa = isTeam && competitie.tip === 'cvd' && !!categorie.arma; // categorie fara arma: comportament vechi
   const [armaEchipaId, setArmaEchipaId] = useState('');
   const armeLista: Arma[] = arme?.arme ?? [];
   const aArma = (s: Sportiv, a: Arma) => {
     if (!(arme?.competitieArme.get(s.id) ?? arme?.implicit.get(s.id))?.has(a.id)) return false;
     const ordine = gradEfectivLaData(s, grade, competitie.data_inceput)?.ordine ?? 0;
-    return categoriePentruArma(a, s, ordine, competitie.data_inceput, categorii ?? [categorie], armeLista)?.id === categorie.id;
+    return categoriePentruArma(a, s, ordine, competitie.data_inceput, (categorii ?? [categorie]).filter(c => c.proba_id === categorie.proba_id), armeLista)?.id === categorie.id;
   };
   const optiuniArma = useMemo(
     () => !isCvdEchipa ? [] : armeLista

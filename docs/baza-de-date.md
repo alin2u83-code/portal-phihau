@@ -109,3 +109,20 @@ Rol nou în `roluri`: `REPREZENTANT_COMPETITIE` (rândul de rol are `club_id` ș
 **RLS:** migrațiile `20261106a` (fundație), `20261106b` (scriere club-scoped în inscrieri/echipe/competitii), `20261106c` (politici `ext_p_*`, `ext_r_*`, `ext_r_deny_all` pe 120 tabele, `ext_r_storage_deny`, trigger `trg_extern_protejeaza_campuri`; view-urile `vedere_prezenta_sportiv` și `vedere_istoric_grade_sportiv` trecute pe `security_invoker`).
 
 **Gap cunoscut:** `cluburi` nu poate fi citit de `anon` (listă goală); formularul „Solicită acces" are nevoie de un RPC public `lista_cluburi_publice()` (vezi `36-VERIFICARE.md`).
+
+## Schimbări de grad din competiție (Faza 40)
+
+- `competitii.deadline_inscrieri` este **NOT NULL** cu `CHECK (deadline_inscrieri <= data_inceput)` (migrarea `20261112a`, D-14).
+- `schimbari_grad_competitie` (migrarea `20261112b`): memento pentru federație al schimbărilor de grad făcute din conturile de competiție. Nu e contabilitate și nu atinge `sesiuni_examene` / `inscrieri_examene` / plăți.
+
+| Coloană | Rol |
+|---|---|
+| `sportiv_id`, `club_id`, `competitie_id` | cine, la ce club, din ce competiție |
+| `grad_vechi_id`, `grad_nou_id`, `tip` | `echivalare` sau `promovare` |
+| `taxa` | NULL = taxă necunoscută |
+| `achitat_la`, `achitat_de` | marcat manual de federație (doar `promovare`) |
+| `istoric_grade_id` | rândul creat în `istoric_grade` (SET NULL la ștergere) |
+| `actor_nume` | autorul declarat din sesiune (copie de afișare; sursa de adevăr e `audit_log`) |
+| `anulat_la`, `motiv` | anulare; motivul e obligatoriu după termenul de înscriere |
+
+RLS: SELECT pentru `is_super_admin()` și `has_access_to_club(club_id)`. Fără politici de scriere: se scrie doar prin cele 4 RPC `SECURITY DEFINER` (`previzualizeaza_schimbare_grad`, `schimba_grad_competitie`, `anuleaza_schimbare_grad_competitie`, `marcheaza_schimbare_grad_achitata`).

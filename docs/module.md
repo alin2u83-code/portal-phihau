@@ -102,3 +102,14 @@ Docs: [docs/sms-system/](sms-system/)
 - Import examene: `importExcelExamenService.ts`
 - Export PDF: jsPDF în multiple componente
 - Export Excel: xlsx în rapoarte financiare
+
+## Schimbare grad din competiție (Faza 40, v1 doar grade)
+
+Reprezentantul unui club (zona externă) schimbă gradul sportivilor proprii din Pas 1 al înscrierii. Gradul nou îl decide serverul, nu utilizatorul:
+
+- **Promovare (D-01):** doar +1, după `timp_asteptare` al gradului următor de la ultima modificare (D-07), cu vârsta minimă verificată la data competiției.
+- **Echivalare (D-02):** de la 13 ani, gradele cu `ordine` 6–14 (1 Câp Roșu … C.V. 4 Câp Alb) devin 1 Câp Albastru, fără cost.
+- **Anulare (D-03/D-04/D-05):** doar dacă schimbarea e ultimul grad al sportivului și nu e marcată achitată. După termenul de înscriere cere motiv (minim 5 caractere).
+- **Federația (D-15):** tab „Schimbări grad” în competiție (`SchimbariGrad.tsx`), cu filtre club/competiție, contor „De achitat” și „Marchează achitat” manual (D-12). Fără NotificationBell.
+- Componente: `InscriereClubWizard/SchimbaGradCompetitieModal.tsx` (extern), `SchimbaGradModal.tsx` (Management, neschimbat), `SchimbariGrad.tsx`.
+- Amânate: arme, sportiv nou, retrogradare reală cu motiv.

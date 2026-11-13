@@ -15,6 +15,7 @@ import { TipuriCompetitieAdmin } from './TipuriCompetitieAdmin';
 import { CereriInterclubAdmin } from './CereriInterclubAdmin';
 import { CereriAccesAdmin } from './CereriAccesAdmin';
 import { JurnalActori } from './JurnalActori';
+import { SchimbariGrad } from './SchimbariGrad';
 
 import {
   SS_KEY_COMP_ID, SS_KEY_TAB, ssGet, ssSet, ssDel,
@@ -62,7 +63,7 @@ interface CompetitieDetailProps {
   externRol?: string;
 }
 
-type TabCompetitie = 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub' | 'acces_extern' | 'jurnal_cont_club' | 'plati' | 'detalii';
+type TabCompetitie = 'categorii' | 'inscrieri' | 'raport' | 'admin' | 'rezultate_legacy' | 'financiar' | 'template' | 'cereri_interclub' | 'acces_extern' | 'jurnal_cont_club' | 'schimbari_grad' | 'plati' | 'detalii';
 const TABURI_EXTERN: TabCompetitie[] = ['inscrieri', 'categorii', 'plati', 'detalii'];
 
 export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, permissions, onBack, onUpdated, onViewSportiv, mode, externRol }) => {
@@ -78,7 +79,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
   const [activeTab, setActiveTab] = useState<TabCompetitie>(() => {
     if (extern) return 'inscrieri'; // nu citim tab-ul salvat de portalul principal
     const saved = ssGet(SS_KEY_TAB);
-    if (saved === 'categorii' || saved === 'inscrieri' || saved === 'raport' || saved === 'admin' || saved === 'rezultate_legacy' || saved === 'financiar' || saved === 'template' || saved === 'cereri_interclub' || saved === 'acces_extern' || saved === 'jurnal_cont_club') return saved;
+    if (saved === 'categorii' || saved === 'inscrieri' || saved === 'raport' || saved === 'admin' || saved === 'rezultate_legacy' || saved === 'financiar' || saved === 'template' || saved === 'cereri_interclub' || saved === 'acces_extern' || saved === 'jurnal_cont_club' || saved === 'schimbari_grad') return saved;
     return 'inscrieri';
   });
   const [wizardOpen, setWizardOpen] = useState(true);
@@ -335,6 +336,12 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
           <button onClick={() => handleSetActiveTab('jurnal_cont_club')} style={{ touchAction: 'manipulation' }}
             className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'jurnal_cont_club' ? 'bg-brand-primary text-white' : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'}`}>
             Jurnal cont club
+          </button>
+        )}
+        {!extern && permissions.isSuperAdmin && (
+          <button onClick={() => handleSetActiveTab('schimbari_grad')} style={{ touchAction: 'manipulation' }}
+            className={`shrink-0 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${activeTab === 'schimbari_grad' ? 'bg-brand-primary text-white' : 'bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700'}`}>
+            Schimbări grad
           </button>
         )}
         {extern && (['plati', 'detalii'] as const).map(t => (
@@ -751,6 +758,10 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
 
           {activeTab === 'jurnal_cont_club' && !extern && (isAdmin || isClubAdmin || permissions.isInstructor) && (
             <JurnalActori competitieId={competitie.id} />
+          )}
+
+          {activeTab === 'schimbari_grad' && !extern && permissions.isSuperAdmin && (
+            <SchimbariGrad competitieId={competitie.id} poateMarca={permissions.isSuperAdmin} />
           )}
 
           {activeTab === 'cereri_interclub' && permissions.isSuperAdmin && (

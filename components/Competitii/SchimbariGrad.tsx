@@ -43,6 +43,8 @@ export const SchimbariGrad: React.FC<Props> = ({ competitieId, poateMarca }) => 
   // fara filtrare pe rol in client: RLS (sgc_select_federatie / sgc_select_club) decide ce se vede
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['schimbari-grad', competitieId, doarCompetitia],
+    staleTime: 0,
+    refetchOnMount: 'always', // schimbarile vin din alt cont (club): fara cache vechi la reintrarea in tab
     queryFn: async (): Promise<RandSchimbare[]> => {
       let q = supabase
         .from('schimbari_grad_competitie')

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../supabaseClient';
 import { DataContext } from '../../contexts/DataContext';
 import { Button, Card } from '../ui';
@@ -26,6 +26,14 @@ export const faraRetryPeAuth =(count: number, err: any) => {
  * Expune doar câmpurile citite de CompetitieDetail și descendenții lui; sportivii vin doar cu câmpurile minime de înscriere (fără date de contact).
  */
 export const ExternDataProvider: React.FC<ExternDataProviderProps> = ({ clubId, clubNume, competitieId, userId, contextId, rol, children }) => {
+    const qc = useQueryClient();
+    // Faza 40: dupa schimbarea gradului prin RPC, wizardul actualizeaza lista locala (acelasi contract ca setSportivi din DataContext)
+    const setSportivi = React.useCallback((upd: any) => {
+        qc.setQueryData(['extern', clubId, 'sportivi'], (old: any) => {
+            const prev = old ?? [];
+            return typeof upd === 'function' ? upd(prev) : upd;
+        });
+    }, [qc, clubId]);
     const sportiviQ = useQuery({
         queryKey: ['extern', clubId, 'sportivi'],
         retry: faraRetryPeAuth,
@@ -77,6 +85,7 @@ export const ExternDataProvider: React.FC<ExternDataProviderProps> = ({ clubId, 
         }));
         return {
             sportivi,
+            setSportivi,
             filteredData: { sportivi },
             grade: gradeQ.data ?? [],
             vizeSportivi,
@@ -84,7 +93,7 @@ export const ExternDataProvider: React.FC<ExternDataProviderProps> = ({ clubId, 
             currentUser: { id: userId, club_id: clubId, cluburi, roluri: [] },
             activeRoleContext: { id: contextId, club_id: clubId, rol_denumire: rol, roluri: { nume: rol } },
         } as unknown as React.ContextType<typeof DataContext>;
-    }, [sportiviQ.data, gradeQ.data, vizeQ.data, clubId, clubNume, userId, contextId, rol]);
+    }, [sportiviQ.data, gradeQ.data, vizeQ.data, clubId, clubNume, userId, contextId, rol, setSportivi]);
 
     if (sportiviQ.isLoading || gradeQ.isLoading) {
         return <div className="p-6 text-center text-sm text-[var(--t-text)]">Se încarcă...</div>;

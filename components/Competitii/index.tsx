@@ -550,7 +550,12 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                 arme={competitie.tip === 'cvd' ? armeCvd : undefined}
                 canEdit={canEditArme}
                 onViewSportiv={extern ? undefined : onViewSportiv}
-                onGradSchimbat={(canEditGrad || canEditGradExtern) ? (id, gradId) => setSportivi?.(prev => prev.map(s => s.id === id ? { ...s, grad_actual_id: gradId } : s)) : undefined}
+                onGradSchimbat={(canEditGrad || canEditGradExtern) ? (id, gradId) => {
+                  setSportivi?.(prev => prev.map(s => s.id === id ? { ...s, grad_actual_id: gradId } : s));
+                  // gradul schimbat muta sportivul in alte categorii/arme: reincarca armele, inscrierile si echipele fara sa inchida wizardul
+                  void armeCvd.reload();
+                  void fetchDataSilent?.();
+                } : undefined}
                 interclubDezactivat={extern}
                 gradPrinCompetitie={canEditGradExtern}
                 onBack={() => setWizardOpen(false)}

@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: ready_to_plan
-stopped_at: Faza 39 finalizata 12.11.2026 (UAT 7/10; H6, H8, H9 amanate in todo)
+stopped_at: Faza 40 executata 13.11.2026 (4/4 planuri, verificare browser OK); fix review 1+2+3 aplicate
 last_updated: "2026-11-11T18:19:48.732Z"
 last_activity: 2026-11-12 -- Phase 39 finalizata; verificari amanate H6/H8/H9
 progress:
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 
 Phase: 39 (cont-unic-de-competitie-per-club-zona-competitionala-implici) — FINALIZATA 12.11.2026 (UAT 7/10, H6/H8/H9 amanate)
 Plan: 16 of 16 (toate cu SUMMARY)
-Status: Faza 39 inchisa; urmeaza Faza 38 (neplanificata) sau faza noua "competitie aplicatie proprie: grade" (design in docs/superpowers/specs/2026-11-12-*)
-Last activity: 2026-11-12 -- Phase 39 finalizata; verificari amanate H6/H8/H9
+Status: Faza 40 executata (4/4 planuri, SUMMARY toate); ramane doar verify/complete formal; urmeaza Faza 38 (neplanificata)
+Last activity: 2026-11-13 -- Phase 40 executata + verificata in browser; migrari 20261113a/b (fix review)
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)

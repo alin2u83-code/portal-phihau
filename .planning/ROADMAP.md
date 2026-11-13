@@ -596,10 +596,10 @@ Plans:
 
 Plans:
 
-- [ ] 40-01-PLAN.md — migrari 20261112a (deadline obligatoriu) + 20261112b (schimbari_grad_competitie + 4 RPC), tipuri, ACL
-- [ ] 40-02-PLAN.md — [BLOCKING] aplicare live dupa OK + baterie live tests/grade_competitie_faza40.ts
-- [ ] 40-03-PLAN.md — modal schimbare grad prin RPC pentru reprezentant in Pas 1 (zona externa)
-- [ ] 40-04-PLAN.md — tab federatie "Schimbari grad" (filtre, contor de achitat, marcheaza achitat), docs, verificare umana
+- [x] 40-01-PLAN.md — migrari 20261112a (deadline obligatoriu) + 20261112b (schimbari_grad_competitie + 4 RPC), tipuri, ACL
+- [x] 40-02-PLAN.md — [BLOCKING] aplicare live dupa OK + baterie live tests/grade_competitie_faza40.ts
+- [x] 40-03-PLAN.md — modal schimbare grad prin RPC pentru reprezentant in Pas 1 (zona externa)
+- [x] 40-04-PLAN.md — tab federatie "Schimbari grad" (filtre, contor de achitat, marcheaza achitat), docs, verificare umana
 
 ---
 

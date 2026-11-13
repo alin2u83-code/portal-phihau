@@ -1,6 +1,6 @@
 -- APLICATA LIVE 13.11.2026 (40-02, dupa OK explicit).
 -- Faza 40 (40-01): schimbarea gradului din zona de competitie (v1 = doar grad).
--- NEAPLICATA inca (se aplica in 40-02, dupa OK explicit). supabase/ e gitignored -> `git add -f`.
+-- APLICATA live 13.11.2026 (40-02). supabase/ e gitignored -> `git add -f`.
 -- Decizii: D-01 (+1 doar), D-02 (echivalare la 13 ani -> 1 Cap Albastru, ordine 15), D-03/D-04/D-05 (undo, motiv dupa deadline),
 --          D-07 (timp asteptare + varsta la data competitiei), D-10 (doar contul de club), D-11 (tabel ingust), D-12 (memento federatie),
 --          D-13 (taxa NULL = necunoscuta).

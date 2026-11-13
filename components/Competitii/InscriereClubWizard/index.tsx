@@ -8,6 +8,7 @@ import { categoriePentruArma } from '../../../utils/armeCvd';
 import { retrageInscrieri } from './retrage';
 import Pas2Arme from './Pas2Arme';
 import PasArme from './PasArme';
+import PasGrade from './PasGrade';
 import Pas1SelectareSportivi from './Pas1';
 import Pas2SelectieQuyen from './Pas2Quyen';
 import Pas3FormareEchipe from './Pas3Echipe';
@@ -30,7 +31,8 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
 }) => {
   const { showError } = useError();
   // step: 'hub'=carduri probe, 1=selectare sportivi (doar quyen), 2=quyen, 3=echipe/giao_dau, 4=sumar
-  const [step, setStep] = useState<'hub' | 'arme' | 1 | 2 | 3 | 4>('hub');
+  // reprezentantul (zona de competitie) porneste de la grade, apoi arme/probe
+  const [step, setStep] = useState<'hub' | 'grade' | 'arme' | 1 | 2 | 3 | 4>(gradPrinCompetitie && onGradSchimbat ? 'grade' : 'hub');
   // CVD: armele alese per sportiv, semanate o singura data din useArmeCvd (nu suprascrie editarile)
   const [armeAlese, setArmeAlese] = useState<ArmeAlese>(new Map());
   useEffect(() => {
@@ -335,6 +337,19 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
         bannerLipsuri={bannerLipsuri}
         onGradSchimbat={onGradSchimbat}
         gradPrinCompetitie={gradPrinCompetitie}
+      />
+    );
+  }
+
+  if (step === 'grade' && onGradSchimbat) {
+    return (
+      <PasGrade
+        competitie={competitie}
+        sportivi={sportiviActivi}
+        grade={grade}
+        onGradSchimbat={onGradSchimbat}
+        onContinua={() => setStep(arme ? 'arme' : 'hub')}
+        onBack={() => setStep('hub')}
       />
     );
   }

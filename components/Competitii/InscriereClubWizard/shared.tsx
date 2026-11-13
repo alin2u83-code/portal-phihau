@@ -182,6 +182,17 @@ export const BadgeEligibilitateGenerala: React.FC<{ info: EligibilitateGenerala 
       </span>
     );
   }
+  // doar gradul blocheaza (apare numai in zona de competitie, unde gradul se poate actualiza): nu e o eroare, e un pas de facut
+  if (info.motiv?.startsWith('Grad:')) {
+    return (
+      <span
+        title={info.motiv}
+        className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-900/30 border border-amber-700/50 rounded-full px-2 py-0.5 shrink-0"
+      >
+        Actualizează gradul
+      </span>
+    );
+  }
   return (
     <span
       title={info.motiv || 'Nu se încadrează în nicio categorie a competiției'}

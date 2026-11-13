@@ -1,5 +1,5 @@
 {
-  "nota": "Baseline = starea expusa la momentul 37-01 (inainte de REVOKE). Ratchet: se micsoreaza manual in 37-03/37-05 conform 37-TRIAJ.md. scoala_ioncreanga_* = aplicatie separata, exceptie documentata (decizie 5.11.2026), nu se modifica. | 37-03 aplicat: anon = D (4), authenticated = baseline minus C (25) minus SERVICE_ONLY (10). | 39-01: +3 functii cont club | 39-08: +3 functii actor | 39-13: +3 management",
+  "nota": "Baseline = starea expusa la momentul 37-01 (inainte de REVOKE). Ratchet: se micsoreaza manual in 37-03/37-05 conform 37-TRIAJ.md. scoala_ioncreanga_* = aplicatie separata, exceptie documentata (decizie 5.11.2026), nu se modifica. | 37-03 aplicat: anon = D (4), authenticated = baseline minus C (25) minus SERVICE_ONLY (10). | 39-01: +3 functii cont club | 39-08: +3 functii actor | 39-13: +3 management | 40-01: +4 functii schimbare grad",
   "exceptii_prefix": {
     "anon": [
       "scoala_ioncreanga_"
@@ -23,6 +23,7 @@
     "acorda_management_cont_club(uuid,text)",
     "adauga_sportiv_complet(text,text,date,text,text,uuid,text,text,text,text,uuid,uuid)",
     "add_sms_to_queue(uuid,uuid,text,jsonb)",
+    "anuleaza_schimbare_grad_competitie(uuid,text)",
     "apartine_familiei(text)",
     "apartine_familiei(uuid)",
     "categorie_apartine_competitiei(uuid,uuid)",
@@ -90,10 +91,12 @@
     "listeaza_dispozitive_incredere(text)",
     "locatie_grupa_la_data(uuid,date)",
     "management_cont_club_stare()",
+    "marcheaza_schimbare_grad_achitata(uuid)",
     "merge_sportivi(uuid,uuid)",
     "obligatie_club_id(uuid)",
     "plata_club_id(uuid)",
     "poate_gestiona_taxe_club(uuid)",
+    "previzualizeaza_schimbare_grad(uuid,uuid)",
     "proceseaza_incasare_normalizata(jsonb,jsonb[])",
     "proceseaza_plata_factura(uuid,numeric,text,date,text)",
     "raport_taxe_anuale_cluburi(text,integer)",
@@ -101,6 +104,7 @@
     "revoca_dispozitiv_incredere(uuid)",
     "revoca_dispozitive_incredere()",
     "revoca_management_cont_club(uuid)",
+    "schimba_grad_competitie(uuid,uuid,uuid)",
     "schimba_locatie_grupa(uuid,uuid,date)",
     "sesiune_actor_curenta()",
     "set_active_context(text,uuid)",

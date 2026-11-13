@@ -279,6 +279,44 @@ export interface Grad {
   grad_start_id: string | null;
 }
 
+// Faza 40: schimbare de grad din zona de competitie (tabel schimbari_grad_competitie + RPC-uri)
+export interface SchimbareGradCompetitie {
+  id: string;
+  sportiv_id: string;
+  club_id: string;
+  competitie_id: string;
+  grad_vechi_id: string | null;
+  grad_nou_id: string;
+  tip: 'echivalare' | 'promovare';
+  taxa: number | null;
+  achitat_la: string | null;
+  achitat_de: string | null;
+  istoric_grade_id: string | null;
+  actor_nume: string | null;
+  anulat_la: string | null;
+  motiv: string | null;
+  creat_de: string | null;
+  created_at: string;
+}
+
+export interface PrevizualizareSchimbareGrad {
+  tip: 'echivalare' | 'promovare' | null;
+  grad_vechi_id: string | null;
+  grad_nou_id: string | null;
+  taxa: number | null;
+  blocat: string | null;
+  ultima_data: string | null;
+  alte_competitii: string[];
+  schimbare_anulabila: {
+    id: string;
+    grad_vechi_id: string | null;
+    grad_nou_id: string;
+    tip: 'echivalare' | 'promovare';
+    in_fereastra: boolean;
+    achitat: boolean;
+  } | null;
+}
+
 export interface SesiuneExamen {
   id: string;
   data: string;

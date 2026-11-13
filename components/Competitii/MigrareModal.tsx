@@ -39,6 +39,7 @@ export const MigrareModal: React.FC<{
       denumire: ev.denumire,
       tip,
       data_inceput: ev.data,
+      deadline_inscrieri: ev.data, // NOT NULL din Faza 40 (D-14); competitia e deja finalizata
       data_sfarsit: ev.data_sfarsit || ev.data,
       locatie: ev.locatie || null,
       organizator: ev.organizator || null,

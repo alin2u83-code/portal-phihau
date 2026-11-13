@@ -70,6 +70,10 @@ export const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.deadline_inscrieri || form.deadline_inscrieri > form.data_inceput) {
+      showError("Termen înscriere", "Termenul limită de înscriere este obligatoriu și trebuie să fie cel târziu în ziua competiției.");
+      return;
+    }
     setLoading(true);
     try {
       const configTaxe = {
@@ -84,7 +88,7 @@ export const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose,
         denumire: form.denumire.trim(), tip: form.tip,
         data_inceput: form.data_inceput, data_sfarsit: form.data_sfarsit,
         locatie: form.locatie.trim() || null, organizator: form.organizator.trim() || null,
-        deadline_inscrieri: form.deadline_inscrieri || null,
+        deadline_inscrieri: form.deadline_inscrieri,
         taxa_individual: configTaxe.individual_tehnica,
         taxa_echipa: configTaxe.echipa_seniori,
         config_taxe: configTaxe,
@@ -190,7 +194,7 @@ export const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose,
           <Input label="Data Început" type="date" value={form.data_inceput} onChange={f('data_inceput')} required />
           <Input label="Data Sfârșit" type="date" value={form.data_sfarsit} onChange={f('data_sfarsit')} required />
         </div>
-        <Input label="Deadline Înscrieri" type="date" value={form.deadline_inscrieri} onChange={f('deadline_inscrieri')} />
+        <Input label="Deadline Înscrieri" type="date" value={form.deadline_inscrieri} max={form.data_inceput} onChange={f('deadline_inscrieri')} required />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Locație" value={form.locatie} onChange={f('locatie')} />
           <Input label="Organizator" value={form.organizator} onChange={f('organizator')} />

@@ -866,7 +866,7 @@ export interface Competitie {
   locatie: string | null;
   organizator: string | null;
   status: StatusCompetitie;
-  deadline_inscrieri: string | null;
+  deadline_inscrieri: string;
   club_id: string | null;
   taxa_individual: number;
   taxa_echipa: number;
@@ -1323,7 +1323,7 @@ export interface CompetitiePublica {
   locatie: string | null;
   data_inceput: string | null;
   data_sfarsit: string | null;
-  deadline_inscrieri: string | null;
+  deadline_inscrieri: string;
   status: string;
   probe: string[];
 }

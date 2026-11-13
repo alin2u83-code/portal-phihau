@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, ConfirmModal } from '../../ui';
+import { Button, ConfirmModal, Input, Select } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { useError } from '../../ErrorProvider';
 import { formatNume } from '../../../utils/formatareSportiv';
-import { gradEfectivLaData } from '../../../utils/eligibilitateCompetitie';
+import { gradEfectivLaData, calculeazaVarstaLaData } from '../../../utils/eligibilitateCompetitie';
 import {
   motivCombinatieInterzisa, categoriePentruArma, conflicteCategorie, armeStale, avertismentStagii,
 } from '../../../utils/armeCvd';
@@ -26,6 +26,11 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
   const [salveaza, setSalveaza] = useState(false);
   const [cerinte, setCerinte] = useState<Cerinte>([]);
   const [confirmRetragere, setConfirmRetragere] = useState<string | null>(null);
+  // filtre doar de afisare: nu schimba ce se salveaza (modificati/draft lucreaza pe toti sportivii)
+  const [fNume, setFNume] = useState('');
+  const [fGrad, setFGrad] = useState('');
+  const [fVarstaMin, setFVarstaMin] = useState('');
+  const [fVarstaMax, setFVarstaMax] = useState('');
 
   // sportivii ale caror salvare a esuat: la resincronizarea cu armeAlese isi pastreaza editarile nesalvate
   const esuatiRef = useRef<Set<string>>(new Set());
@@ -58,6 +63,30 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
       const disponibile = arme.arme.filter(a => categoriePe.get(a.id));
       return { s, grad, ordine, disponibile, categoriePe, doarCitire: s.status !== 'Activ' };
     }), [sportivi, grade, competitie.data_inceput, arme.arme, arme.drepturi, categorii]);
+
+  const normText = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const gradeInLista = useMemo(() => {
+    const m = new Map<string, { id: string; nume: string; ordine: number }>();
+    for (const r of randuri) if (r.grad) m.set(r.grad.id, { id: r.grad.id, nume: r.grad.nume, ordine: r.grad.ordine });
+    return [...m.values()].sort((a, b) => a.ordine - b.ordine);
+  }, [randuri]);
+  const randuriVizibile = useMemo(() => {
+    const q = normText(fNume.trim());
+    const vMin = fVarstaMin === '' ? null : Number(fVarstaMin);
+    const vMax = fVarstaMax === '' ? null : Number(fVarstaMax);
+    return randuri.filter(r => {
+      if (q && !normText(formatNume(r.s)).includes(q)) return false;
+      if (fGrad && r.grad?.id !== fGrad) return false;
+      if (vMin !== null || vMax !== null) {
+        if (!r.s.data_nasterii) return false;
+        const v = calculeazaVarstaLaData(r.s.data_nasterii, competitie.data_inceput);
+        if (vMin !== null && v < vMin) return false;
+        if (vMax !== null && v > vMax) return false;
+      }
+      return true;
+    });
+  }, [randuri, fNume, fGrad, fVarstaMin, fVarstaMax, competitie.data_inceput]);
+  const nrFiltre = (fNume ? 1 : 0) + (fGrad ? 1 : 0) + (fVarstaMin || fVarstaMax ? 1 : 0);
 
   const avertismente = useMemo(() => {
     const out: Array<{ cheie: string; text: string }> = [];
@@ -166,8 +195,27 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
         </div>
       )}
 
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 items-end">
+        <div className="col-span-2 md:col-span-1">
+          <Input label="Nume" placeholder="Caută sportiv…" value={fNume} onChange={e => setFNume(e.target.value)} />
+        </div>
+        <Select label="Grad" value={fGrad} onChange={e => setFGrad(e.target.value)}>
+          <option value="">Toate gradele</option>
+          {gradeInLista.map(g => <option key={g.id} value={g.id}>{g.nume}</option>)}
+        </Select>
+        <Input label="Vârsta min" type="number" min={0} inputMode="numeric" value={fVarstaMin} onChange={e => setFVarstaMin(e.target.value)} />
+        <Input label="Vârsta max" type="number" min={0} inputMode="numeric" value={fVarstaMax} onChange={e => setFVarstaMax(e.target.value)} />
+      </div>
+      {nrFiltre > 0 && (
+        <div className="flex items-center justify-between text-xs text-slate-400">
+          <span>{randuriVizibile.length} din {randuri.length} sportivi</span>
+          <button type="button" className="underline" onClick={() => { setFNume(''); setFGrad(''); setFVarstaMin(''); setFVarstaMax(''); }}>Șterge filtrele</button>
+        </div>
+      )}
+
       <div className="space-y-2">
-        {randuri.map(({ s, grad, ordine, disponibile, categoriePe, doarCitire }) => {
+        {randuriVizibile.length === 0 && <p className="text-sm text-slate-500 italic">Niciun sportiv nu corespunde filtrelor.</p>}
+        {randuriVizibile.map(({ s, grad, ordine, disponibile, categoriePe, doarCitire }) => {
           const alese = draft.get(s.id) ?? GOL;
           const editabil = canEdit && !doarCitire;
           const stale = new Set(armeStale([...alese], disponibile.map(a => a.id)));

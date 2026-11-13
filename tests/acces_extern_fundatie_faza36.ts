@@ -56,7 +56,7 @@ async function main() {
         data_sfarsit: '2027-06-02',
         locatie: 'Test',
         status,
-        deadline_inscrieri: deadline,
+        deadline_inscrieri: deadline ?? '2027-06-01', // NOT NULL din Faza 40 (D-14)
         club_id: CLUB_A,
       }).select('id').single();
       if (error || !data) throw new Error(`insert competitie ${suffix}: ${error?.message}`);

@@ -82,7 +82,7 @@ async function main() {
     const mkComp = async (suffix: string, status: string) => {
       const { data, error } = await admin.from('competitii').insert({
         denumire: `${PREFIX}APR_${suffix}_${RUN_ID}`, tip: 'tehnica', data_inceput: '2027-06-01', data_sfarsit: '2027-06-02',
-        locatie: 'Test', status, deadline_inscrieri: null,
+        locatie: 'Test', status, deadline_inscrieri: '2027-06-01', // NOT NULL din Faza 40 (D-14)
       }).select('id').single();
       if (error || !data) throw new Error(`competitie ${suffix}: ${error?.message}`);
       competitii.push(data.id);

@@ -104,7 +104,7 @@ async function main() {
     // ── competitie + categorie ──
     const { data: comp, error: compErr } = await admin.from('competitii').insert({
       denumire: `${PREFIX}ACTOR_${RUN_ID}`, tip: 'tehnica', data_inceput: '2027-06-01', data_sfarsit: '2027-06-02',
-      locatie: 'Test', status: 'inscrieri_deschise', deadline_inscrieri: null,
+      locatie: 'Test', status: 'inscrieri_deschise', deadline_inscrieri: '2027-06-01', // NOT NULL din Faza 40 (D-14)
     }).select('id').single();
     if (compErr || !comp) throw new Error(`competitie: ${compErr?.message}`);
     const ACT = comp.id as string;

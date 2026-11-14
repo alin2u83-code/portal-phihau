@@ -484,37 +484,29 @@ function calculeazaCategorie(
 
 ---
 
-### 7.7 Fuzionare categorii de către federație (admin)
+### 7.7 Administrare categorii de către super admin (Faza 41)
 
-După `status = inscrieri_inchise`, SUPER_ADMIN / ADMIN pot fuziona categorii cu prea puțini participanți.
+Doar **SUPER_ADMIN_FEDERATIE** administrează categoriile unei competiții, din tab-ul **Categorii** al detaliului competiției (nu în zona externă a cluburilor; ceilalți utilizatori văd tab-ul doar pentru citire). Garda reală este în baza de date (`is_super_admin()` în RPC); butoanele din UI sunt doar UX. Operațiile sunt blocate **doar** când competiția este `finalizata`. Cluburile nu primesc notificare automată.
 
-**Regulă circulare:** minim 3 echipe (din 3 cluburi diferite) pentru desfășurare. Dacă o categorie are < 3 participanți/echipe, se fuzionează cu o categorie similară.
+**Operații** (butoane pe rând, plus selecție multiplă pentru fuziune):
+- **Editare / modificare** — formularul `CategorieForm`; la categorii cu înscrieri, Probă și Tip participare sunt blocate, iar un avertisment listează sportivii care nu mai respectă criteriile noi (nu blochează).
+- **Clonare** — formular precompletat (inclusiv „Două quyenuri”) cu următorul număr de categorie.
+- **Anulare** — categoria devine `anulata`.
+- **Fuziune** (2+ categorii compatibile: aceeași probă / tip / armă) — se creează o categorie nouă `activa` cu `este_fuzionata = true` și `categorii_fuzionate_din` = ID-urile surselor; sursele devin `fuzionata`.
+- **Împărțire** după vârstă, grad sau gen (praguri alese în modal) — se creează categoriile noi; sursa devine `impartita`, cu `categorii_fuzionate_din` = ID-urile categoriilor noi.
+- **Realocare** — mută înscrierile / echipele rămase „Fără categorie” într-o categorie activă compatibilă.
 
-**Fluxul de fuzionare:**
-1. Admin accesează tab "Categorii" din detaliul competiției (după închiderea înscrierilor)
-2. Vede lista categoriilor cu numărul de participanți/echipe
-3. Categoriile cu < 3 participanți sunt marcate vizibil cu avertizare
-4. Admin selectează 2+ categorii de fuzionat (checkbox-uri)
-5. Admin introduce **noul nume** pentru categoria fuzionată (ex: "16-17 + 18-39 Feminin 1-2 CAP")
-6. Buton "Fuzionează" → confirmare modal
-7. La confirmare:
-   - Se creează o nouă înregistrare în `categorii_competitie` cu noul nume și `este_fuzionata = true`
-   - Câmpul `categorii_fuzionate_din uuid[]` stochează ID-urile categoriilor originale
-   - Toate `inscrieri_competitie` din categoriile originale primesc `categorie_id` actualizat la cea nouă
-   - Categoriile originale primesc `status = fuzionata` și nu mai apar în listele active
+**Previzualizare + confirmare:** modalul `CategorieOperatieModal` arată cine se mută unde (nume, club, grad, vârstă, gen, quyen), taxele afectate și blocajele; „Confirmă” este dezactivat cât timp există blocaje.
 
-**Pe fișa de participare:**
-- Apare **noul nume setat de admin** (ex: "16-17 + 18-39 Feminin 1-2 CAP")
-- Nu mai apar categoriile originale separate
+**RPC:** toate operațiile trec printr-un singur apel atomic, `public.categorii_aplica_operatie(p_operatie, p_competitie, p_surse, p_categorii_noi, p_mutari, p_asteptat)` (`SECURITY DEFINER`, `is_super_admin()`; refuză dacă înscrierile s-au schimbat față de previzualizare). **Categoriile nu se șterg niciodată** prin acest flux: sursele rămân cu statusul `anulata` / `fuzionata` / `impartita`. În Admin > Categorii butonul de ștergere apare doar pentru o categorie activă fără niciun rând (nici retras); vechea fuziune non-atomică (mutare + DELETE) a fost eliminată, iar Admin > Fuzionări doar sugerează perechi.
 
-**Schema DB:**
-```sql
-ALTER TABLE categorii_competitie
-  ADD COLUMN este_fuzionata boolean DEFAULT false,
-  ADD COLUMN categorii_fuzionate_din uuid[],  -- IDs categorii originale
-  ADD COLUMN status_categorie text DEFAULT 'activa'
-    CHECK (status_categorie IN ('activa', 'fuzionata', 'anulata'));
-```
+**Statusuri:** `activa` | `anulata` | `fuzionata` | `impartita`. Etichetele din listă: „Anulată”, „Fuzionată în N”, „Fuzionată cu …”, „Împărțită în …”.
+
+**„Fără categorie”:** rândurile active (ne-retrase) rămase pe o categorie ne-activă. Apar într-un panou separat („Fără categorie (de realocat)”), vizibil tuturor rolurilor; doar super adminul le poate realoca. Rândurile retrase rămân pe sursă ca istoric.
+
+**Taxe:** sunt derivate pe rând, nu stocate. Cât timp categoria nu este activă, taxa de participare apare „Anulată”; cele deja achitate rămân achitate și sunt marcate „de realocat / returnat”. Realocarea într-o categorie activă face taxa din nou datorată. Taxa anuală FRQKD / FRAM nu este atinsă.
+
+**Schema DB** (coloane pe `categorii_competitie`): `este_fuzionata boolean`, `categorii_fuzionate_din uuid[]`, `status_categorie text DEFAULT 'activa'`.
 
 ---
 

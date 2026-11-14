@@ -1,4 +1,5 @@
 import { Competitie, CategorieCompetitie, ProbaCompetitie, InscriereCompetitie, EchipaCompetitie } from '../types';
+import { categorieActiva } from '../components/Competitii/constants';
 
 export function calculeazaTaxaIndividuala(competitie: Competitie, cat?: CategorieCompetitie): number {
   const ct = competitie.config_taxe;
@@ -33,6 +34,8 @@ export interface RandPlataCompetitie {
   tipProba: string;
   taxa: number;
   taxaAchitata: boolean;
+  /** Categoria nu mai e activa: taxa nu mai e datorata; daca era achitata ramane achitata, de realocat/returnat — Faza 41 D-08. */
+  taxaAnulata: boolean;
 }
 
 export interface SituatiePlataCompetitie {
@@ -42,6 +45,10 @@ export interface SituatiePlataCompetitie {
   totalRestant: number;
   nrIndividuale: number;
   nrEchipe: number;
+  /** Suma taxelor achitate pe categorii nemaiactive (de realocat / returnat). */
+  totalAchitatAnulat: number;
+  /** Numarul liniilor cu taxa anulata (achitate sau nu). */
+  nrTaxeAnulate: number;
 }
 
 // Fiecare echipă produce EXACT UN rând de plată — nu unul per membru de echipă.
@@ -59,6 +66,8 @@ export function construiesteRanduriPlata(
   let totalAchitat = 0;
   let nrIndividuale = 0;
   let nrEchipe = 0;
+  let totalAchitatAnulat = 0;
+  let nrTaxeAnulate = 0;
 
   for (const ins of inscrieri) {
     if (ins.status?.toLowerCase() === 'retras') continue;
@@ -67,6 +76,7 @@ export function construiesteRanduriPlata(
     const sp = ins.sportiv as any;
     const taxa = calculeazaTaxaIndividuala(competitie, cat);
     const taxaAchitata = ins.taxa_achitata ?? false;
+    const taxaAnulata = !!cat && !categorieActiva(cat);
 
     randuri.push({
       id: ins.id,
@@ -79,8 +89,14 @@ export function construiesteRanduriPlata(
       tipProba: proba?.tip_proba ?? '',
       taxa,
       taxaAchitata,
+      taxaAnulata,
     });
 
+    if (taxaAnulata) {
+      nrTaxeAnulate++;
+      if (taxaAchitata) totalAchitatAnulat += taxa;
+      continue;
+    }
     totalCalculat += taxa;
     if (taxaAchitata) totalAchitat += taxa;
     nrIndividuale++;
@@ -94,6 +110,7 @@ export function construiesteRanduriPlata(
       ? calculeazaTaxaEchipa(cat, competitie)
       : (competitie.config_taxe?.echipa_seniori ?? competitie.taxa_echipa ?? 120);
     const taxaAchitata = ec.taxa_achitata ?? false;
+    const taxaAnulata = !!cat && !categorieActiva(cat);
 
     randuri.push({
       id: ec.id,
@@ -106,8 +123,14 @@ export function construiesteRanduriPlata(
       tipProba: proba?.tip_proba ?? '',
       taxa,
       taxaAchitata,
+      taxaAnulata,
     });
 
+    if (taxaAnulata) {
+      nrTaxeAnulate++;
+      if (taxaAchitata) totalAchitatAnulat += taxa;
+      continue;
+    }
     totalCalculat += taxa;
     if (taxaAchitata) totalAchitat += taxa;
     nrEchipe++;
@@ -126,5 +149,7 @@ export function construiesteRanduriPlata(
     totalRestant: totalCalculat - totalAchitat,
     nrIndividuale,
     nrEchipe,
+    totalAchitatAnulat,
+    nrTaxeAnulate,
   };
 }

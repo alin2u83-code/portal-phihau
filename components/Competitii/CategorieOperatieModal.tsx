@@ -7,6 +7,7 @@ import {
   type PlanOperatieCategorii, type CtxCategorii, type CriteriuImpartire,
 } from '../../utils/categoriiAdmin';
 import { categorieActiva, categorieEticheta } from './constants';
+import { VARSTE_OPTIONS } from './CategorieForm';
 import type {
   Competitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, Grad,
   OperatieCategorii, RezultatOperatieCategorii,
@@ -48,6 +49,9 @@ export const CategorieOperatieModal: React.FC<CategorieOperatieModalProps> = ({
   const { showError, showSuccess } = useError();
   const [alegeri, setAlegeri] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [criteriu, setCriteriu] = useState<CriteriuImpartire>('varsta');
+  const [praguri, setPraguri] = useState<number[]>([]);
+  const [pragNou, setPragNou] = useState('');
 
   const ctx: CtxCategorii = useMemo(
     () => ({ categorii, inscrieri, echipe, grade, competitie }),
@@ -58,15 +62,36 @@ export const CategorieOperatieModal: React.FC<CategorieOperatieModalProps> = ({
     if (operatie === 'anulare') return planAnulare(surse[0], ctx);
     if (operatie === 'fuziune') return planFuziune(surse, ctx);
     if (operatie === 'mutare') return planMutare(selectie ?? [], ctx);
-    if (operatie === 'impartire') return planImpartire(surse[0], 'varsta' as CriteriuImpartire, [], ctx);
+    if (operatie === 'impartire') return planImpartire(surse[0], criteriu, praguri, ctx);
     return planVid;
-  }, [operatie, surse, selectie, ctx]);
+  }, [operatie, surse, selectie, ctx, criteriu, praguri]);
 
   const rez = useMemo(
     () => (operatie === 'anulare' ? null : mutariDinPlan(plan, alegeri, ctx)),
     [operatie, plan, alegeri, ctx],
   );
   const blocaje = [...plan.blocaje, ...(rez?.blocaje ?? [])];
+
+  const gradeOptions = useMemo(
+    () => [...grade].sort((a, b) => a.ordine - b.ordine).map(g => ({ value: String(g.ordine), label: g.nume })),
+    [grade],
+  );
+  const optiuniPrag = criteriu === 'varsta' ? VARSTE_OPTIONS : gradeOptions;
+
+  const schimbaCriteriu = (c: CriteriuImpartire) => {
+    setCriteriu(c); setPraguri([]); setPragNou(''); setAlegeri({});
+  };
+  const adaugaPrag = () => {
+    const n = Number(pragNou);
+    if (pragNou === '' || Number.isNaN(n) || praguri.includes(n)) return;
+    setPraguri(p => [...p, n].sort((a, b) => a - b));
+    setAlegeri({});
+  };
+  const stergePrag = (n: number) => { setPraguri(p => p.filter(x => x !== n)); setAlegeri({}); };
+  const etichetaPrag = (n: number) =>
+    criteriu === 'grad' ? (gradeOptions.find(o => o.value === String(n))?.label ?? String(n)) : String(n);
+  const nrPeTinta = (cheie: string) =>
+    plan.randuri.filter(r => (alegeri[cheieRand(r)] ?? r.tinta) === cheie).length;
 
   const numarCategorie = (id: string) => categorii.find(c => c.id === id)?.numar_categorie ?? '?';
 
@@ -120,7 +145,7 @@ export const CategorieOperatieModal: React.FC<CategorieOperatieModalProps> = ({
           </div>
         )}
 
-        {(operatie === 'fuziune' || operatie === 'impartire') && plan.categoriiNoi.length > 0 && (
+        {operatie === 'fuziune' && plan.categoriiNoi.length > 0 && (
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Categorii noi</p>
             <ul className="space-y-0.5">
@@ -136,6 +161,49 @@ export const CategorieOperatieModal: React.FC<CategorieOperatieModalProps> = ({
               <p>{t.nrAchitate} taxe deja achitate ({t.sumaAchitata} lei) rămân marcate achitate: se reportează la realocare sau se returnează clubului.</p>
             )}
             <p>Înscrierile rămân «Fără categorie» până la realocare.</p>
+          </div>
+        )}
+
+        {operatie === 'impartire' && (
+          <div className="space-y-3 rounded-xl border border-[var(--t-border)] p-3">
+            <Select label="Criteriu" id="criteriu-impartire" value={criteriu}
+              onChange={e => schimbaCriteriu(e.target.value as CriteriuImpartire)}>
+              <option value="varsta">Vârstă</option>
+              <option value="grad">Grad</option>
+              <option value="gen">Gen</option>
+            </Select>
+            {criteriu === 'gen' ? (
+              <p className="text-xs text-slate-400">Doar pentru categorii Mixt; echipele mixte merg într-o categorie Mixt separată.</p>
+            ) : (
+              <>
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <Select label="Prag" id="prag-impartire" value={pragNou} onChange={e => setPragNou(e.target.value)}>
+                      <option value="">— alege —</option>
+                      {optiuniPrag.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </Select>
+                  </div>
+                  <Button size="sm" variant="secondary" onClick={adaugaPrag}>Adaugă prag</Button>
+                </div>
+                {praguri.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {praguri.map(n => (
+                      <Badge key={n} variant="blue">
+                        {etichetaPrag(n)}
+                        <button type="button" className="ml-1.5" aria-label={`Șterge pragul ${etichetaPrag(n)}`} onClick={() => stergePrag(n)}>✕</button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+            {plan.categoriiNoi.length > 0 && (
+              <ul className="text-sm text-[var(--t-text)] space-y-0.5">
+                {plan.categoriiNoi.map(n => (
+                  <li key={n.cheie}>{n.denumire} <span className="text-xs text-slate-400">({nrPeTinta(n.cheie)} participanți)</span></li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 

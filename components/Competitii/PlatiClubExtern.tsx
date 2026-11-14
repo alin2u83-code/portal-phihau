@@ -44,6 +44,11 @@ export const PlatiClubExtern: React.FC<PlatiClubExternProps> = ({ competitie, ca
       </div>
 
       <p className="text-xs text-[var(--t-text-muted)]">Plata taxelor se confirmă de către federație.</p>
+      {situatie.nrTaxeAnulate > 0 && (
+        <p className="text-xs text-[var(--t-text-muted)]">
+          {situatie.nrTaxeAnulate} taxe anulate (categorie anulată sau restructurată) nu se mai plătesc. Taxele deja achitate se reportează la realocare sau se returnează.
+        </p>
+      )}
 
       <div className="-mx-4 sm:mx-0 overflow-x-auto">
         <table className="w-full text-sm min-w-[320px]">
@@ -60,9 +65,11 @@ export const PlatiClubExtern: React.FC<PlatiClubExternProps> = ({ competitie, ca
               <tr key={r.id}>
                 <td className="p-2 text-[var(--t-text)]">{r.numeParticipant}</td>
                 <td className="p-2 text-[var(--t-text-muted)]">{r.categorieDenumire} · {r.probaDenumire}</td>
-                <td className="p-2 text-right text-[var(--t-text)]">{fmtRon(r.taxa)}</td>
+                <td className={`p-2 text-right text-[var(--t-text)] ${r.taxaAnulata ? 'line-through' : ''}`}>{fmtRon(r.taxa)}</td>
                 <td className="p-2 text-center">
-                  <Badge variant={r.taxaAchitata ? 'green' : 'amber'}>{r.taxaAchitata ? 'Achitat' : 'Neachitat'}</Badge>
+                  {r.taxaAnulata
+                    ? <Badge variant={r.taxaAchitata ? 'blue' : 'slate'}>{r.taxaAchitata ? 'Achitat — de realocat' : 'Anulată'}</Badge>
+                    : <Badge variant={r.taxaAchitata ? 'green' : 'amber'}>{r.taxaAchitata ? 'Achitat' : 'Neachitat'}</Badge>}
                 </td>
               </tr>
             ))}

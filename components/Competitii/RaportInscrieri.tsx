@@ -179,6 +179,9 @@ export const RaportInscrieri: React.FC<RaportInscrieriProps> = ({
               <span className="text-white font-bold">Total: {plataFiltrata.totalCalculat} lei</span>
               <span className="text-green-400 font-semibold">Achitat: {plataFiltrata.totalAchitat} lei</span>
               <span className="text-red-400 font-semibold">Restant: {plataFiltrata.totalRestant} lei</span>
+              {plataFiltrata.nrTaxeAnulate > 0 && (
+                <span className="text-slate-400 font-semibold">Anulate: {plataFiltrata.nrTaxeAnulate}</span>
+              )}
             </div>
           </div>
           {nrFiltreActive > 0 && (
@@ -233,15 +236,17 @@ export const RaportInscrieri: React.FC<RaportInscrieriProps> = ({
                     <td className="px-4 py-2">
                       <span
                         className={`text-[11px] px-2 py-0.5 rounded-full border ${
-                          r.taxaAchitata
-                            ? 'border-green-700/40 bg-green-900/20 text-green-300'
-                            : 'border-red-700/40 bg-red-900/20 text-red-300'
+                          r.taxaAnulata
+                            ? (r.taxaAchitata ? 'border-blue-700/40 bg-blue-900/20 text-blue-300' : 'border-slate-600 bg-slate-700/40 text-slate-400')
+                            : r.taxaAchitata
+                              ? 'border-green-700/40 bg-green-900/20 text-green-300'
+                              : 'border-red-700/40 bg-red-900/20 text-red-300'
                         }`}
                       >
-                        {r.taxaAchitata ? 'Achitat' : 'Neachitat'}
+                        {r.taxaAnulata ? (r.taxaAchitata ? 'Achitat — de realocat' : 'Anulată') : r.taxaAchitata ? 'Achitat' : 'Neachitat'}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-right font-semibold text-slate-200">{r.taxa} lei</td>
+                    <td className={`px-4 py-2 text-right font-semibold text-slate-200 ${r.taxaAnulata ? 'line-through' : ''}`}>{r.taxa} lei</td>
                   </tr>
                 ))}
               </tbody>

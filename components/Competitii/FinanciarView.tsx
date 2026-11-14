@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Competitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
-import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/taxeCompetitie';
+import { construiesteRanduriPlata } from '../../utils/taxeCompetitie';
 
 interface RandFinanciar {
   tip: 'individual' | 'echipa';
@@ -13,6 +13,7 @@ interface RandFinanciar {
   probaDenumire: string;
   taxa: number;
   taxaAchitata: boolean;
+  taxaAnulata: boolean;
 }
 
 interface ClubSituatie {
@@ -21,6 +22,8 @@ interface ClubSituatie {
   randuri: RandFinanciar[];
   totalCalculat: number;
   totalAchitat: number;
+  /** Achitat pe categorii anulate (de realocat / returnat). */
+  totalAchitatAnulat: number;
 }
 
 export interface FinanciarViewProps {
@@ -40,49 +43,28 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
 
   const situatie = useMemo<ClubSituatie[]>(() => {
     const map = new Map<string, ClubSituatie>();
-
-    const getOrCreate = (clubId: string, numeClub: string) => {
-      if (!map.has(clubId)) {
-        map.set(clubId, { clubId, numeClub, randuri: [], totalCalculat: 0, totalAchitat: 0 });
+    // O singură regulă de taxă (inclusiv taxa anulată, Faza 41 D-08) — aceeași ca în Raport și Taxe club
+    for (const r of construiesteRanduriPlata(competitie, categorii, [], inscrieri, echipe).randuri) {
+      if (!map.has(r.clubId)) {
+        map.set(r.clubId, { clubId: r.clubId, numeClub: r.clubNume || r.clubId, randuri: [], totalCalculat: 0, totalAchitat: 0, totalAchitatAnulat: 0 });
       }
-      return map.get(clubId)!;
-    };
-
-    for (const ins of inscrieri.filter(i => i.status?.toLowerCase() !== 'retras')) {
-      const cat = categorii.find(c => c.id === ins.categorie_id);
-      const sp = ins.sportiv as any;
-      const taxa = calculeazaTaxaIndividuala(competitie, cat);
-      const numeClub = sp?.cluburi?.nume ?? ins.club_id;
-      const club = getOrCreate(ins.club_id, numeClub);
+      const club = map.get(r.clubId)!;
       club.randuri.push({
-        tip: 'individual',
-        id: ins.id,
-        sportivNume: sp ? `${sp.nume} ${sp.prenume}` : ins.sportiv_id,
-        categorieDenumire: cat?.denumire ?? 'Categorie',
-        probaDenumire: cat?.denumire ?? '',
-        taxa,
-        taxaAchitata: ins.taxa_achitata ?? false,
+        tip: r.tip,
+        id: r.id,
+        ...(r.tip === 'individual' ? { sportivNume: r.numeParticipant } : { echipaNume: r.numeParticipant }),
+        categorieDenumire: r.categorieDenumire,
+        probaDenumire: r.probaDenumire,
+        taxa: r.taxa,
+        taxaAchitata: r.taxaAchitata,
+        taxaAnulata: r.taxaAnulata,
       });
-      club.totalCalculat += taxa;
-      if (ins.taxa_achitata) club.totalAchitat += taxa;
-    }
-
-    for (const ec of echipe.filter(e => e.status?.toLowerCase() !== 'retrasa')) {
-      const cat = categorii.find(c => c.id === ec.categorie_id);
-      const taxa = cat ? calculeazaTaxaEchipa(cat, competitie) : (competitie.config_taxe?.echipa_seniori ?? competitie.taxa_echipa ?? 120);
-      const numeClub = (ec as any).club?.nume ?? ec.club_id;
-      const club = getOrCreate(ec.club_id, numeClub);
-      club.randuri.push({
-        tip: 'echipa',
-        id: ec.id,
-        echipaNume: ec.denumire_echipa ?? 'Echipă',
-        categorieDenumire: cat?.denumire ?? 'Categorie',
-        probaDenumire: cat?.denumire ?? '',
-        taxa,
-        taxaAchitata: ec.taxa_achitata ?? false,
-      });
-      club.totalCalculat += taxa;
-      if (ec.taxa_achitata) club.totalAchitat += taxa;
+      if (r.taxaAnulata) {
+        if (r.taxaAchitata) club.totalAchitatAnulat += r.taxa;
+        continue;
+      }
+      club.totalCalculat += r.taxa;
+      if (r.taxaAchitata) club.totalAchitat += r.taxa;
     }
 
     return Array.from(map.values()).sort((a, b) => a.numeClub.localeCompare(b.numeClub));
@@ -114,8 +96,8 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
 
   const marcheazaTotAchitat = async (club: ClubSituatie) => {
     try {
-      const ins = club.randuri.filter(r => r.tip === 'individual' && !r.taxaAchitata);
-      const ec = club.randuri.filter(r => r.tip === 'echipa' && !r.taxaAchitata);
+      const ins = club.randuri.filter(r => r.tip === 'individual' && !r.taxaAchitata && !r.taxaAnulata);
+      const ec = club.randuri.filter(r => r.tip === 'echipa' && !r.taxaAchitata && !r.taxaAnulata);
       if (ins.length > 0) {
         const { data, error } = await supabase.from('inscrieri_competitie').update({ taxa_achitata: true }).in('id', ins.map(r => r.id)).select('id');
         if (error) throw error;
@@ -133,7 +115,7 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
   };
 
   const exportCSV = () => {
-    const linii = ['Club,Tip,Sportiv/Echipă,Categorie,Taxă (lei),Achitat'];
+    const linii = ['Club,Tip,Sportiv/Echipă,Categorie,Taxă (lei),Achitat,Taxă anulată'];
     for (const club of situatie) {
       for (const r of club.randuri) {
         linii.push([
@@ -143,6 +125,7 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
           r.categorieDenumire,
           String(r.taxa),
           r.taxaAchitata ? 'DA' : 'NU',
+          r.taxaAnulata ? 'DA' : 'NU',
         ].map(v => `"${v.replace(/"/g, '""')}"`).join(','));
       }
     }
@@ -157,6 +140,7 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
 
   const totalGeneral = situatie.reduce((s, c) => s + c.totalCalculat, 0);
   const totalAchitatGeneral = situatie.reduce((s, c) => s + c.totalAchitat, 0);
+  const totalAnulatAchitatGeneral = situatie.reduce((s, c) => s + c.totalAchitatAnulat, 0);
 
   return (
     <div className="space-y-4">
@@ -167,6 +151,9 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
             Total: <span className="text-white font-semibold">{totalGeneral} lei</span>
             {' · '}Achitat: <span className="text-green-400 font-semibold">{totalAchitatGeneral} lei</span>
             {' · '}Restant: <span className="text-red-400 font-semibold">{totalGeneral - totalAchitatGeneral} lei</span>
+            {totalAnulatAchitatGeneral > 0 && (
+              <>{' · '}Achitat pe categorii anulate: <span className="text-blue-300 font-semibold">{totalAnulatAchitatGeneral} lei</span> (de realocat / returnat)</>
+            )}
           </p>
         </div>
         <button
@@ -196,8 +183,8 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
           const isExpanded = expandedClubs.has(club.clubId);
           const neachitat = club.totalCalculat - club.totalAchitat;
           const status = neachitat === 0 ? 'achitat' : club.totalAchitat === 0 ? 'neachitat' : 'partial';
-          const nrSportivi = club.randuri.filter(r => r.tip === 'individual').length;
-          const nrEchipe = club.randuri.filter(r => r.tip === 'echipa').length;
+          const nrSportivi = club.randuri.filter(r => r.tip === 'individual' && !r.taxaAnulata).length;
+          const nrEchipe = club.randuri.filter(r => r.tip === 'echipa' && !r.taxaAnulata).length;
 
           return (
             <div key={club.clubId} className="border-b border-[var(--t-border)] last:border-0">
@@ -255,7 +242,10 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
                           {rand.sportivNume ?? rand.echipaNume}
                         </span>
                         <span className="text-xs text-slate-500 hidden md:block">{rand.categorieDenumire}</span>
-                        <span className="text-sm font-semibold text-slate-300 w-16 text-right">{rand.taxa} lei</span>
+                        <span className={`text-sm font-semibold text-slate-300 w-16 text-right ${rand.taxaAnulata ? 'line-through' : ''}`}>{rand.taxa} lei</span>
+                        {rand.taxaAnulata && !rand.taxaAchitata ? (
+                          <span className="text-[11px] px-2 py-1 rounded border border-slate-600 bg-slate-700/40 text-slate-400 min-w-[60px] text-center">Taxă anulată</span>
+                        ) : (
                         <button
                           onClick={() => toggleTaxaAchitata(rand)}
                           disabled={updatingIds.has(rand.id)}
@@ -266,8 +256,9 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
                               : 'border-slate-600 text-slate-500 hover:border-slate-500'
                           }`}
                         >
-                          {updatingIds.has(rand.id) ? '...' : rand.taxaAchitata ? 'Achitat' : 'Neachitat'}
+                          {updatingIds.has(rand.id) ? '...' : rand.taxaAchitata ? (rand.taxaAnulata ? 'Achitat — de realocat / returnat' : 'Achitat') : 'Neachitat'}
                         </button>
+                        )}
                       </div>
                     ))}
                   </div>

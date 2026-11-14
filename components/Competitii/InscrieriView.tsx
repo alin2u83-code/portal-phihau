@@ -4,7 +4,7 @@ import { supabase } from '../../supabaseClient';
 import { Button, Card, ConfirmModal } from '../ui';
 import { VizaSportiv } from '../../types';
 import { useError } from '../ErrorProvider';
-import { areVizaFRAM, WarningVizaFRAM } from './constants';
+import { areVizaFRAM, WarningVizaFRAM, categorieActiva } from './constants';
 import { InscriereModal } from './InscriereModal';
 import { CompetitieFilterBar } from './CompetitieFilterBar';
 import { aplicaFiltreCategorie } from '../../hooks/useCompetitieFilters';
@@ -31,6 +31,11 @@ export interface InscrieriViewProps {
   resetFiltre: () => void;
   nrFiltreActive: number;
 }
+
+// Înscrierea rămâne legată de o categorie anulată/fuzionată/împărțită până la realocare (Faza 41 D-04/D-07)
+const BadgeFaraCategorie: React.FC = () => (
+  <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-amber-900/30 text-amber-300 border border-amber-700/40">Fără categorie</span>
+);
 
 export const InscrieriView: React.FC<InscrieriViewProps> = ({
   competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, isSuperAdmin, myClubId, numeClub, vizeSportivi, sportivi, onRefresh,
@@ -146,6 +151,7 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                   const cat = categorii.find(c => c.id === ins.categorie_id);
                   const sportiv = ins.sportiv as any;
                   const faraViza = sportiv && !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
+                  const faraCategorie = !!cat && !categorieActiva(cat);
                   return (
                     <tr key={ins.id} className={faraViza ? 'bg-yellow-900/10' : ''}>
                       <td className="p-2">
@@ -161,6 +167,7 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                       </td>
                       <td className="p-2 hidden md:table-cell text-xs text-slate-400">
                         {cat?.denumire || '-'}
+                        {faraCategorie && <BadgeFaraCategorie />}
                       </td>
                       <td className="p-2 text-center">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -170,9 +177,13 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                         }`}>{ins.status}</span>
                       </td>
                       <td className="p-2 text-center hidden md:table-cell">
-                        {ins.taxa_achitata
-                          ? <span className="text-green-400 text-xs">Achitată</span>
-                          : <span className="text-red-400 text-xs">Neachitată</span>}
+                        {faraCategorie
+                          ? (ins.taxa_achitata
+                            ? <span className="text-blue-300 text-xs">Achitată (de realocat)</span>
+                            : <span className="text-slate-400 text-xs">Anulată</span>)
+                          : ins.taxa_achitata
+                            ? <span className="text-green-400 text-xs">Achitată</span>
+                            : <span className="text-red-400 text-xs">Neachitată</span>}
                       </td>
                       <td className="p-2 text-right">
                         <div className="flex flex-col sm:flex-row gap-1 items-end sm:items-center justify-end">
@@ -229,7 +240,10 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                       <div className="font-medium text-white">
                         {ec.denumire_echipa || 'Echipă fără denumire'}
                       </div>
-                      <div className="text-xs text-slate-400 mt-0.5">{cat?.denumire}</div>
+                      <div className="text-xs text-slate-400 mt-0.5">
+                        {cat?.denumire}
+                        {!!cat && !categorieActiva(cat) && <BadgeFaraCategorie />}
+                      </div>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {sportivi.map((ms: any) => {
                           const faraViza = ms.sportiv && !areVizaFRAM(ms.sportiv.id, anCompetitie, vizeSportivi);

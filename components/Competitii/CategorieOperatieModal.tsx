@@ -111,7 +111,7 @@ export const CategorieOperatieModal: React.FC<CategorieOperatieModalProps> = ({
     const { data, error } = await aplicaOperatieCategorii({
       operatie,
       competitieId: competitie.id,
-      surse: plan.surse,
+      surse: operatie === 'mutare' ? [] : plan.surse, // RPC: la mutare p_surse trebuie gol, randurile vin prin `mutari`
       categoriiNoi: plan.categoriiNoi,
       mutari: rez?.mutari ?? [],
       asteptat: plan.asteptat,

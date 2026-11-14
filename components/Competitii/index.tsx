@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import type { OperatieCategorii } from '../../types';
 import { Permissions, Competitie, ProbaCompetitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie, SolicitareEchipaIncompleta, Sportiv, Grad, TipProba } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
@@ -22,7 +23,13 @@ import {
   areVizaFRAM, WarningVizaFRAM,
   fmtDate, statusLabel, tipBadge, TipuriLabelsContext,
   categorieActiva, categorieEticheta,
+  SELECT_INSCRIERI_COMPETITIE, SELECT_ECHIPE_COMPETITIE,
 } from './constants';
+import { CategorieForm } from './CategorieForm';
+import { CategorieOperatieModal } from './CategorieOperatieModal';
+import { FaraCategoriePanel } from './FaraCategoriePanel';
+import { participanti } from '../../utils/categoriiAdmin';
+import { gradEfectivLaData } from '../../utils/eligibilitateCompetitie';
 import { CompetitieForm } from './CompetitieForm';
 import { RaportInscrieri } from './RaportInscrieri';
 import { FinanciarView } from './FinanciarView';
@@ -91,6 +98,10 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
   const [catFormOpen, setCatFormOpen] = useState(false);
   const [catToEdit, setCatToEdit] = useState<CategorieCompetitie | null>(null);
   const [probaFormOpen, setProbaFormOpen] = useState(false);
+  // Faza 41: administrare categorii (doar super admin, tab Categorii)
+  const [selectieCat, setSelectieCat] = useState<Set<string>>(new Set());
+  const [operatieCat, setOperatieCat] = useState<{ operatie: OperatieCategorii; surse: CategorieCompetitie[]; selectie?: { tip: 'inscriere' | 'echipa'; id: string }[] } | null>(null);
+  const [catCloneDin, setCatCloneDin] = useState<CategorieCompetitie | null>(null);
   // Task 1: vizualizare sportivi înscriși per categorie
   const [viewInscrieriCatId, setViewInscrieriCatId] = useState<string | null>(null);
 
@@ -99,6 +110,8 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
 
   const isAdmin = permissions.isSuperAdmin || permissions.isFederationAdmin;
   const isClubAdmin = permissions.isAdminClub;
+  // D-01, D-09: doar super admin, nu in zona externa, nu pe competitie finalizata (garda reala: RPC is_super_admin)
+  const poateAdminCategorii = !extern && permissions.isSuperAdmin && competitie.status !== 'finalizata';
 
   // Persistă tab-ul activ în sessionStorage la fiecare schimbare
   // INSC-03: resetFiltre() la fiecare schimbare de tab — filtrele se șterg automat
@@ -139,8 +152,8 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
     const [probeRes, catRes, inRes, echRes] = await Promise.all([
       supabase.from('probe_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
       supabase.from('categorii_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
-      doarClubul(supabase.from('inscrieri_competitie').select('*, sportiv:sportivi(id, nume, prenume, grad_actual_id, data_nasterii, club_id, cluburi(id, nume))').eq('competitie_id', competitie.id)),
-      doarClubul(supabase.from('echipe_competitie').select('*, club:cluburi(id, nume), echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume, club_id, cluburi(id, nume)))').eq('competitie_id', competitie.id)),
+      doarClubul(supabase.from('inscrieri_competitie').select(SELECT_INSCRIERI_COMPETITIE).eq('competitie_id', competitie.id)),
+      doarClubul(supabase.from('echipe_competitie').select(SELECT_ECHIPE_COMPETITIE).eq('competitie_id', competitie.id)),
     ]);
     setProbe((probeRes.data || []) as ProbaCompetitie[]);
     const loadedCats = (catRes.data || []) as CategorieCompetitie[];
@@ -155,8 +168,8 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
     const [probeRes, catRes, inRes, echRes] = await Promise.all([
       supabase.from('probe_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
       supabase.from('categorii_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
-      doarClubul(supabase.from('inscrieri_competitie').select('*, sportiv:sportivi(id, nume, prenume, grad_actual_id, data_nasterii, club_id, cluburi(id, nume))').eq('competitie_id', competitie.id)),
-      doarClubul(supabase.from('echipe_competitie').select('*, club:cluburi(id, nume), echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume, club_id, cluburi(id, nume)))').eq('competitie_id', competitie.id)),
+      doarClubul(supabase.from('inscrieri_competitie').select(SELECT_INSCRIERI_COMPETITIE).eq('competitie_id', competitie.id)),
+      doarClubul(supabase.from('echipe_competitie').select(SELECT_ECHIPE_COMPETITIE).eq('competitie_id', competitie.id)),
     ]);
     setProbe((probeRes.data || []) as ProbaCompetitie[]);
     setCategorii((catRes.data || []) as CategorieCompetitie[]);
@@ -225,6 +238,13 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
     );
     return filteredData.sportivi.filter(s => s.club_id === clubInscriere && (s.status === 'Activ' || inscrisiCat.has(s.id)));
   }, [filteredData.sportivi, inscrieri, clubInscriere, inscriereModal?.id]);
+
+  const inchideFormCat = () => { setCatFormOpen(false); setCatToEdit(null); setCatCloneDin(null); };
+  // sportivii inscrisi in categoria editata, pentru avertismentul de eligibilitate din formular
+  const inscrisiCatEditata = useMemo(() => {
+    if (!catFormOpen || !catToEdit) return undefined;
+    return participanti([catToEdit.id], { categorii, inscrieri, echipe, grade, competitie }).flatMap(r => (r.sportiv ? [r.sportiv] : r.membri));
+  }, [catFormOpen, catToEdit, categorii, inscrieri, echipe, grade, competitie]);
 
   return (
     <div className="space-y-4">
@@ -377,17 +397,27 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                 grade={grade}
               />
 
+              {poateAdminCategorii && selectieCat.size > 0 && (
+                <div className="flex items-center gap-2 flex-wrap rounded-lg border border-[var(--t-border)] bg-[var(--t-surface-2)] px-3 py-2">
+                  <span className="text-sm text-[var(--t-text)]">{selectieCat.size} categorii selectate</span>
+                  <Button size="sm" variant="warning" disabled={selectieCat.size < 2} onClick={() => setOperatieCat({ operatie: 'fuziune', surse: categorii.filter(c => selectieCat.has(c.id)) })}>Fuzionează</Button>
+                  <Button size="sm" variant="secondary" onClick={() => setSelectieCat(new Set())}>Golește selecția</Button>
+                </div>
+              )}
+
               {/* Category list */}
               <div className="-mx-4 sm:mx-0 overflow-x-auto">
                 <table className="w-full text-sm text-slate-300 min-w-[320px]">
                   <thead>
                     <tr style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
+                      {poateAdminCategorii && <th className="p-2 w-8"></th>}
                       <th className="p-2 text-left w-10">#</th>
                       <th className="p-2 text-left">Categorie</th>
                       <th className="p-2 text-left hidden md:table-cell">Probă</th>
                       <th className="p-2 text-left hidden md:table-cell">Participare</th>
                       <th className="p-2 text-center">Înscriși</th>
                       {canRegister && isClubAdmin && <th className="p-2 text-right">Acțiuni</th>}
+                      {poateAdminCategorii && <th className="p-2 text-right">Acțiuni</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--t-border)]">
@@ -400,10 +430,22 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                       const inscrieriCat = inscrieri.filter(i => i.categorie_id === cat.id && i.status?.toLowerCase() !== 'retras');
                       // Echipe înscrise în această categorie
                       const echipeCat = echipe.filter(e => e.categorie_id === cat.id && e.status?.toLowerCase() !== 'retrasa');
-                      const colCount = (canRegister && isClubAdmin) ? 6 : 5;
+                      const activa = categorieActiva(cat);
+                      const colCount = 5 + ((canRegister && isClubAdmin) ? 1 : 0) + (poateAdminCategorii ? 2 : 0);
                       return (
                         <React.Fragment key={cat.id}>
                           <tr className="hover:bg-[var(--t-table-row-hover)]">
+                            {poateAdminCategorii && (
+                              <td className="p-2">
+                                <input
+                                  type="checkbox"
+                                  aria-label={`Selectează ${cat.denumire}`}
+                                  disabled={!activa}
+                                  checked={activa && selectieCat.has(cat.id)}
+                                  onChange={() => setSelectieCat(prev => { const n = new Set(prev); if (n.has(cat.id)) n.delete(cat.id); else n.add(cat.id); return n; })}
+                                />
+                              </td>
+                            )}
                             <td className="p-2 text-[var(--t-text-muted)]">{cat.numar_categorie}</td>
                             <td className="p-2">
                               <div className="font-medium text-white">{cat.denumire}</div>
@@ -438,6 +480,16 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                               <td className="p-2 text-right">
                               </td>
                             )}
+                            {poateAdminCategorii && (
+                              <td className="p-2 text-right whitespace-nowrap">
+                                <div className="flex justify-end gap-1 flex-wrap">
+                                  {activa && <Button size="sm" variant="secondary" title="Editează categoria" onClick={() => { setCatCloneDin(null); setCatToEdit(cat); setCatFormOpen(true); }}>Editează</Button>}
+                                  <Button size="sm" variant="secondary" title="Creează o categorie nouă pornind de la aceasta" onClick={() => { setCatToEdit(null); setCatCloneDin(cat); setCatFormOpen(true); }}>Clonează</Button>
+                                  {activa && <Button size="sm" variant="secondary" title="Împarte categoria în două sau mai multe" onClick={() => setOperatieCat({ operatie: 'impartire', surse: [cat] })}>Împarte</Button>}
+                                  {activa && <Button size="sm" variant="danger" title="Anulează categoria" onClick={() => setOperatieCat({ operatie: 'anulare', surse: [cat] })}>Anulează</Button>}
+                                </div>
+                              </td>
+                            )}
                           </tr>
                           {/* Task 1: panou expandat cu sportivii înscriși */}
                           {isExpanded && (
@@ -459,6 +511,8 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                                       {inscrieriCat.map((ins, idx) => {
                                         const sp = ins.sportiv as any;
                                         const numeClub = sp?.cluburi?.nume || null;
+                                        const gradSp = sp ? (gradEfectivLaData(sp, grade, competitie.data_inceput)?.nume ?? '—') : '—';
+                                        const quyenSp = [(ins as any).inlantuire?.denumire, (ins as any).inlantuire_2?.denumire].filter(Boolean).join(' + ');
                                         return (
                                           <div key={ins.id} className="flex items-center gap-3 px-3 py-2">
                                             <span className="text-xs text-slate-500 w-5 shrink-0">{idx + 1}.</span>
@@ -469,6 +523,8 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                                               {numeClub && (
                                                 <span className="ml-2 text-[10px] text-slate-400 font-normal normal-case">{numeClub}</span>
                                               )}
+                                              <span className="ml-2 text-[10px] text-slate-400 font-normal normal-case">Grad: {gradSp}</span>
+                                              {quyenSp && <span className="ml-2 text-[10px] text-slate-400 font-normal normal-case">Quyen: {quyenSp}</span>}
                                             </div>
                                             <span className={`text-[10px] px-2 py-0.5 rounded-full ${ins.status === 'confirmat' ? 'bg-green-800 text-green-200' : ins.status === 'retras' ? 'bg-red-800 text-red-200' : 'bg-slate-700 text-slate-300'}`}>
                                               {ins.status}
@@ -487,6 +543,9 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                                                 {(ec as any).club?.nume && (
                                                   <span className="text-[10px] text-slate-400 font-normal normal-case">{(ec as any).club.nume}</span>
                                                 )}
+                                                {(ec as any).inlantuire?.denumire && (
+                                                  <span className="text-[10px] text-slate-400 font-normal normal-case">Quyen: {(ec as any).inlantuire.denumire}</span>
+                                                )}
                                               </span>
                                               <span className={`text-[10px] px-2 py-0.5 rounded-full ${ec.status === 'confirmata' ? 'bg-green-800 text-green-200' : 'bg-slate-700 text-slate-300'}`}>
                                                 {ec.status}
@@ -495,10 +554,12 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                                             <div className="flex flex-wrap gap-1">
                                               {membri.map((ms: any) => {
                                                 const numeClubMembru = ms.sportiv?.cluburi?.nume || null;
+                                                const gradMembru = ms.sportiv ? gradEfectivLaData(ms.sportiv, grade, competitie.data_inceput)?.nume : null;
                                                 return (
                                                 <span key={ms.sportiv_id} className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">
                                                   <span className="uppercase">{ms.sportiv ? `${ms.sportiv.nume} ${ms.sportiv.prenume}` : ms.sportiv_id}</span>
                                                   {numeClubMembru && <span className="text-slate-500 ml-1 normal-case">({numeClubMembru})</span>}
+                                                  {gradMembru && <span className="text-slate-500 ml-1 normal-case">· {gradMembru}</span>}
                                                   {ms.rol === 'rezerva' && <span className="text-slate-500 ml-1">[R]</span>}
                                                 </span>
                                                 );
@@ -521,6 +582,47 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
               </div>
               {filteredCategorii.length === 0 && (
                 <div className="text-center text-slate-500 py-8">Nicio categorie definită.</div>
+              )}
+
+              <FaraCategoriePanel
+                competitie={competitie}
+                categorii={categorii}
+                inscrieri={inscrieri}
+                echipe={echipe}
+                grade={grade}
+                poateRealoca={poateAdminCategorii}
+                onRealoca={sel => setOperatieCat({ operatie: 'mutare', surse: [], selectie: sel })}
+              />
+
+              {operatieCat && (
+                <CategorieOperatieModal
+                  operatie={operatieCat.operatie}
+                  competitie={competitie}
+                  surse={operatieCat.surse}
+                  selectie={operatieCat.selectie}
+                  categorii={categorii}
+                  inscrieri={inscrieri}
+                  echipe={echipe}
+                  grade={grade}
+                  onClose={() => setOperatieCat(null)}
+                  onDone={() => { setOperatieCat(null); setSelectieCat(new Set()); void fetchDataSilent(); }}
+                />
+              )}
+
+              {catFormOpen && (
+                <CategorieForm
+                  competitieId={competitie.id}
+                  probe={probe}
+                  grade={grade}
+                  categorie={catToEdit}
+                  cloneDin={catCloneDin}
+                  nextNumarCategorie={catToEdit ? undefined : Math.max(0, ...categorii.map(c => c.numar_categorie ?? 0)) + 1}
+                  inscrisi={inscrisiCatEditata}
+                  dataCompetitie={competitie.data_inceput}
+                  areInscrieri={catToEdit ? inscrieriCount(catToEdit.id) > 0 : false}
+                  onClose={inchideFormCat}
+                  onSaved={() => { inchideFormCat(); void fetchDataSilent(); }}
+                />
               )}
             </div>
           )}

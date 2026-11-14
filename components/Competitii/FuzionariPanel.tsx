@@ -1,9 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { CategorieCompetitie, ProbaCompetitie, InscriereCompetitie, EchipaCompetitie } from '../../types';
-import { supabase } from '../../supabaseClient';
-import { Button } from '../ui';
 import { buildCategorieDenumire } from '../../utils/competitiiTemplates';
-import { useError } from '../ErrorProvider';
+import { categorieActiva } from './constants';
 
 interface MergeSugestie {
   catA: CategorieCompetitie;
@@ -25,8 +23,8 @@ export const FuzionariPanel: React.FC<{
   probe: ProbaCompetitie[];
   onRefresh: () => void;
 }> = ({ categorii, setCategorii, inscrieri, echipe, probe, onRefresh }) => {
-  const { showError } = useError();
-  const [loading, setLoading] = useState<string | null>(null);
+  // doar categoriile active pot fi propuse pentru fuziune (cele anulate / fuzionate / impartite nu mai conteaza)
+  const categoriiActive = useMemo(() => categorii.filter(categorieActiva), [categorii]);
 
   const count = (catId: string) =>
     inscrieri.filter(i => i.categorie_id === catId && i.status?.toLowerCase() !== 'retras').length +
@@ -37,11 +35,11 @@ export const FuzionariPanel: React.FC<{
     const result: MergeSugestie[] = [];
     const seen = new Set<string>();
 
-    for (const catA of categorii) {
+    for (const catA of categoriiActive) {
       const cntA = count(catA.id);
       if (cntA >= catA.min_participanti_start) continue; // ok, skip
 
-      for (const catB of categorii) {
+      for (const catB of categoriiActive) {
         if (catA.id === catB.id) continue;
         const pairKey = [catA.id, catB.id].sort().join('::');
         if (seen.has(pairKey)) continue;
@@ -97,54 +95,13 @@ export const FuzionariPanel: React.FC<{
       const totB = b.countA + b.countB;
       return totB - totA;
     });
-  }, [categorii, inscrieri, echipe]);
+  }, [categoriiActive, inscrieri, echipe]);
 
-  const subMinim = categorii.filter(c => {
+  const subMinim = categoriiActive.filter(c => {
     const cnt = count(c.id);
     return cnt > 0 && cnt < c.min_participanti_start;
   });
-  const goale = categorii.filter(c => count(c.id) === 0);
-
-  const handleFuzioneaza = async (s: MergeSugestie) => {
-    const key = `${s.catA.id}::${s.catB.id}`;
-    setLoading(key);
-    try {
-      // 1. Mută înscrierile din B în A
-      const { error: e1 } = await supabase.from('inscrieri_competitie')
-        .update({ categorie_id: s.catA.id }).eq('categorie_id', s.catB.id);
-      if (e1) throw e1;
-      const { error: e2 } = await supabase.from('echipe_competitie')
-        .update({ categorie_id: s.catA.id }).eq('categorie_id', s.catB.id);
-      if (e2) throw e2;
-
-      // 2. Actualizează categoria A cu noul interval
-      const newDenumire = buildCategorieDenumire({
-        varsta_min: s.newVarstaMin, varsta_max: s.newVarstaMax,
-        gen: s.catA.gen, grad_min_ordine: s.newGradMin, grad_max_ordine: s.newGradMax,
-        arma: s.catA.arma, tip_participare: s.catA.tip_participare,
-        sportivi_per_echipa_min: s.catA.sportivi_per_echipa_min,
-        sportivi_per_echipa_max: s.catA.sportivi_per_echipa_max,
-        rezerve_max: s.catA.rezerve_max, max_echipe_per_club: s.catA.max_echipe_per_club,
-        min_participanti_start: s.catA.min_participanti_start, numar_categorie: s.catA.numar_categorie,
-      });
-      const { error: e3 } = await supabase.from('categorii_competitie').update({
-        varsta_min: s.newVarstaMin, varsta_max: s.newVarstaMax,
-        grad_min_ordine: s.newGradMin, grad_max_ordine: s.newGradMax,
-        denumire: newDenumire,
-      }).eq('id', s.catA.id);
-      if (e3) throw e3;
-
-      // 3. Șterge categoria B
-      const { error: e4 } = await supabase.from('categorii_competitie').delete().eq('id', s.catB.id);
-      if (e4) throw e4;
-
-      onRefresh();
-    } catch (err: any) {
-      showError('Eroare fuzionare', err.message);
-    } finally {
-      setLoading(null);
-    }
-  };
+  const goale = categoriiActive.filter(c => count(c.id) === 0);
 
   const tipLabel: Record<MergeSugestie['tip'], string> = {
     varste_adiacente: 'Vârste adiacente, același grad',
@@ -259,10 +216,7 @@ export const FuzionariPanel: React.FC<{
                       <span className="text-xs text-green-400">{total} înscriși total</span>
                     </div>
                   </div>
-                  <Button size="sm" variant="warning" disabled={loading === key}
-                    onClick={() => handleFuzioneaza(s)}>
-                    {loading === key ? 'Se fuzionează...' : 'Fuzionează'}
-                  </Button>
+                  <p className="text-xs text-slate-400">Fuzionarea se face din tab-ul Categorii: bifează cele 2 categorii și apasă «Fuzionează» (cu previzualizare).</p>
                 </div>
               );
             })}

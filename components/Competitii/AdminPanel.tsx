@@ -6,7 +6,7 @@ import { PlusIcon, EditIcon, TrashIcon } from '../icons';
 import { TIP_PROBA_LABELS } from '../../utils/competitiiTemplates';
 import { VizaSportiv } from '../../types';
 import { useError } from '../ErrorProvider';
-import { areVizaFRAM } from './constants';
+import { areVizaFRAM, categorieActiva } from './constants';
 import { ProbeEditor } from './ProbeEditor';
 import { FuzionariPanel } from './FuzionariPanel';
 import { SolicitariEchipePanel } from './SolicitariEchipePanel';
@@ -52,8 +52,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const totalInscrisi = inscrieri.filter(i => i.status?.toLowerCase() !== 'retras').length +
     echipe.filter(e => e.status?.toLowerCase() !== 'retrasa').length;
-  const categoriiActive = categorii.filter(c => inscrieriCount(c.id) >= c.min_participanti_start).length;
-  const categoriiInsuficiente = categorii.filter(c => {
+  // statistici doar pe categoriile active (cele anulate / fuzionate / impartite nu distorsioneaza cifrele)
+  const activeCats = categorii.filter(categorieActiva);
+  const categoriiActive = activeCats.filter(c => inscrieriCount(c.id) >= c.min_participanti_start).length;
+  const categoriiInsuficiente = activeCats.filter(c => {
     const cnt = inscrieriCount(c.id);
     return cnt > 0 && cnt < c.min_participanti_start;
   }).length;
@@ -64,8 +66,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     return sportiv && !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
   }).length;
 
+  // orice rand (si cele retrase) ar fi sters in cascada odata cu categoria
+  const areRanduri = (catId: string) => inscrieri.some(i => i.categorie_id === catId) || echipe.some(e => e.categorie_id === catId);
+
   const handleDeleteCategorie = (id: string) => {
-    openConfirm('Ștergi această categorie? Toate înscrierile aferente vor fi șterse.', async () => {
+    openConfirm('Ștergi această categorie? Nu are nicio înscriere (nici retrasă). Pentru categorii cu înscrieri folosește Anulează din tab-ul Categorii.', async () => {
       const { error } = await supabase.from('categorii_competitie').delete().eq('id', id);
       if (error) { showError('Eroare', error.message); return; }
       setCategorii(prev => prev.filter(c => c.id !== id));
@@ -83,7 +88,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   // Group categorii by proba for stats
   const catByProba = probe.map(p => ({
     proba: p,
-    cats: categorii.filter(c => c.proba_id === p.id),
+    cats: activeCats.filter(c => c.proba_id === p.id),
   }));
 
   return (
@@ -107,8 +112,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-              <div className="text-2xl font-bold text-white">{categorii.length}</div>
-              <div className="text-xs text-slate-400 mt-0.5">Total categorii</div>
+              <div className="text-2xl font-bold text-white">{activeCats.length}</div>
+              <div className="text-xs text-slate-400 mt-0.5">Categorii active</div>
             </div>
             <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
               <div className="text-2xl font-bold text-white">{totalInscrisi}</div>
@@ -244,7 +249,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           <Button size="sm" variant="secondary" className="!p-1.5" onClick={() => { setCatToEdit(cat); setCatFormOpen(true); }}>
                             <EditIcon className="w-3 h-3" />
                           </Button>
-                          {cnt === 0 && (
+                          {categorieActiva(cat) && !areRanduri(cat.id) && (
                             <Button size="sm" variant="danger" className="!p-1.5" onClick={() => handleDeleteCategorie(cat.id)}>
                               <TrashIcon className="w-3 h-3" />
                             </Button>

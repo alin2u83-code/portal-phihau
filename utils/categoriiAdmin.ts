@@ -149,8 +149,13 @@ export function verificaTinta(
     if (curenta && !compatibile(curenta, tinta)) blocaj = 'Categoria țintă nu este compatibilă (probă / tip / armă).';
     else if (tinta.id === rand.categorieId) blocaj = 'Categoria țintă este chiar categoria curentă.';
     else if (!categorieActiva(tinta)) blocaj = 'Categoria țintă nu este activă.';
-    else if (rand.tip === 'inscriere' && ctx.inscrieri.some(i => i.categorie_id === tinta.id && i.sportiv_id === rand.sportivId)) {
-      blocaj = 'Sportivul are deja o înscriere în categoria țintă.';
+    else if (rand.tip === 'inscriere') {
+      const existent = ctx.inscrieri.find(i => i.categorie_id === tinta.id && i.sportiv_id === rand.sportivId);
+      if (existent) {
+        blocaj = retras(existent.status)
+          ? 'Sportivul are un rând retras în categoria țintă (UNIQUE sportiv+categorie) — alege altă categorie țintă pentru acest rând.'
+          : 'Sportivul are deja o înscriere în categoria țintă.';
+      }
     }
   }
   const avertismente: string[] = [];
@@ -171,6 +176,72 @@ export function verificaTinta(
   }
   return { blocaj, avertismente };
 }
+
+/** Limitele din RPC categorii_aplica_operatie (20261114a): oglindite aici ca blocajul să apară în preview, nu la confirmare. */
+export function blocajeDefinitie(noi: CategorieNouaInput[]): string[] {
+  const out: string[] = [];
+  for (const n of noi) {
+    const e = (m: string) => out.push(`${n.denumire}: ${m}`);
+    if (n.varsta_min < 0 || n.varsta_min > 120 || (n.varsta_max !== null && (n.varsta_max < n.varsta_min || n.varsta_max > 120))) e('interval de vârstă invalid (0–120).');
+    for (const g of [n.grad_min_ordine, n.grad_max_ordine]) if (g !== null && (g < 1 || g > 100)) e(`ordinea gradului ${g} e în afara limitei 1–100.`);
+    if (n.grad_min_ordine !== null && n.grad_max_ordine !== null && n.grad_min_ordine > n.grad_max_ordine) e('grad minim peste gradul maxim.');
+  }
+  return [...new Set(out)];
+}
+
+/** Intervale de vârstă necoperite între sursele unei fuziuni (sortate după vârsta minimă). */
+export function goluriVarsta(surse: CategorieCompetitie[]): [number, number][] {
+  const gol: [number, number][] = [];
+  let acoperit: number | null = null; // null = încă nimic; Infinity = deschis
+  for (const s of [...surse].sort((a, b) => a.varsta_min - b.varsta_min)) {
+    if (acoperit !== null && s.varsta_min > acoperit + 1) gol.push([acoperit + 1, s.varsta_min - 1]);
+    const sf = s.varsta_max ?? Infinity;
+    acoperit = acoperit === null ? sf : Math.max(acoperit, sf);
+  }
+  return gol;
+}
+
+const SETARI_FUZIUNE: [keyof CategorieCompetitie, string][] = [
+  ['doua_quyenuri', 'două quyenuri'], ['min_participanti_start', 'minim participanți start'], ['max_echipe_per_club', 'max echipe/club'],
+  ['sportivi_per_echipa_min', 'sportivi/echipă min'], ['sportivi_per_echipa_max', 'sportivi/echipă max'], ['rezerve_max', 'rezerve max'],
+];
+
+/** Setările pe care categoria rezultată le preia doar de la prima sursă și la care sursele diferă. */
+export function setariDiferiteFuziune(surse: CategorieCompetitie[]): string[] {
+  return SETARI_FUZIUNE.filter(([k]) => new Set(surse.map(s => (k === 'doua_quyenuri' ? !!s[k] : (s[k] ?? null)))).size > 1).map(([, n]) => n);
+}
+
+export interface RandFaraCategorieClub {
+  tip: 'inscriere' | 'echipa'; id: string; sportivId: string | null; probaId: string | null; arma: string | null;
+  nume: string; categorieDenumire: string;
+}
+
+/** D-07: rândurile active ale unui club rămase pe o categorie ne-activă (anulată / fuzionată / împărțită). */
+export function randuriFaraCategorieClub(
+  categorii: CategorieCompetitie[], inscrieri: InscriereCompetitie[], echipe: EchipaCompetitie[], clubId: string,
+): RandFaraCategorieClub[] {
+  const inactive = new Map(categorii.filter(c => !categorieActiva(c)).map(c => [c.id, c]));
+  const out: RandFaraCategorieClub[] = [];
+  for (const i of inscrieri) {
+    const c = inactive.get(i.categorie_id);
+    if (!c || i.club_id !== clubId || retras(i.status)) continue;
+    const sp = (i.sportiv as any) ?? null;
+    out.push({
+      tip: 'inscriere', id: i.id, sportivId: i.sportiv_id, probaId: c.proba_id ?? null, arma: c.arma ?? null,
+      nume: sp ? `${String(sp.nume ?? '').toUpperCase()} ${sp.prenume ?? ''}`.trim() : i.sportiv_id, categorieDenumire: c.denumire ?? `Categoria ${c.numar_categorie}`,
+    });
+  }
+  for (const e of echipe) {
+    const c = inactive.get(e.categorie_id);
+    if (!c || e.club_id !== clubId || retras(e.status)) continue;
+    out.push({ tip: 'echipa', id: e.id, sportivId: null, probaId: c.proba_id ?? null, arma: c.arma ?? null, nume: e.denumire_echipa || 'Echipă', categorieDenumire: c.denumire ?? `Categoria ${c.numar_categorie}` });
+  }
+  return out;
+}
+
+/** Cheie `sportiv|proba|armă` pentru sportivii cu rând orfan: împiedică reînscrierea dublă la aceeași probă. */
+export const cheieOrfan = (sportivId: string, probaId: string | null | undefined, arma: string | null | undefined) =>
+  `${sportivId}|${probaId ?? ''}|${arma ?? ''}`;
 
 const planGol = (operatie: OperatieCategorii): PlanOperatieCategorii =>
   ({ operatie, surse: [], categoriiNoi: [], randuri: [], blocaje: [], avertismente: [], asteptat: null, taxe: null });
@@ -272,7 +343,12 @@ export function planFuziune(surse: CategorieCompetitie[], ctx: CtxCategorii): Pl
   rows.filter(r => r.tip === 'inscriere').forEach(r => { if (vazuti.has(r.sportivId!)) dubluri.add(r.nume); vazuti.add(r.sportivId!); });
   dubluri.forEach(nume => blocaje.push(`${nume} este înscris activ în două dintre categoriile selectate.`));
   const def = definitieFuziune(surse);
+  blocaje.push(...blocajeDefinitie([def]));
   const avertismente: string[] = [];
+  const goluri = goluriVarsta(surse);
+  if (goluri.length) avertismente.push(`Intervalele de vârstă nu sunt adiacente (lipsesc ${goluri.map(([a, b]) => (a === b ? `${a}` : `${a}–${b}`)).join(', ')} ani) — categoria rezultată le acoperă pe toate.`);
+  const diferite = setariDiferiteFuziune(surse);
+  if (diferite.length) avertismente.push(`Sursele au setări diferite (${diferite.join(', ')}); categoria rezultată le preia de la prima sursă (#${surse[0].numar_categorie}).`);
   if (new Set(surse.map(s => s.gen)).size > 1) avertismente.push('Categoriile au gen diferit — categoria rezultată va fi Mixt.');
   if (rows.length < surse[0].min_participanti_start) avertismente.push(`Categoria rezultată are ${rows.length} participanți, sub minimul de ${surse[0].min_participanti_start}.`);
   const peClub = new Map<string, { nume: string; n: number }>();
@@ -332,7 +408,7 @@ export function planImpartire(sursa: CategorieCompetitie, criteriu: CriteriuImpa
     return t.size === 1 ? [...t][0] : null;
   };
   const randuri: RandPlanCategorie[] = rows.map(r => ({ ...r, tinta: copii.length ? tintaRand(r) : null }));
-  const blocaje: string[] = [];
+  const blocaje: string[] = [...blocajeDefinitie(copii)];
   if (!categorieActiva(sursa)) blocaje.push('Categoria nu este activă.');
   if (copii.length < 2) blocaje.push(criteriu === 'gen' && sursa.gen !== 'Mixt'
     ? 'Împărțirea pe gen se face doar pentru o categorie Mixt.' : 'Alege praguri care produc cel puțin 2 categorii.');

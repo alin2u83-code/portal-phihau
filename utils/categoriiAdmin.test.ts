@@ -10,6 +10,7 @@ import {
   cheieRand, compatibile, categorieDinInput, participanti, participantiFaraCategorie, sportiviInscrisi,
   verificaTinta, planAnulare, planMutare, mutariDinPlan,
   definitieFuziune, planFuziune, copiiImpartire, planImpartire,
+  blocajeDefinitie, goluriVarsta, setariDiferiteFuziune, randuriFaraCategorieClub, cheieOrfan,
 } from './categoriiAdmin';
 import { buildCategorieDenumire } from './competitiiTemplates';
 
@@ -335,6 +336,63 @@ test('mutariDinPlan: fuziune/impartire folosesc categoria noua ca tinta', () => 
   const m = mutariDinPlan(plan, {}, ctx);
   egal(m.mutari, [{ tip: 'inscriere', id: 'i1', tinta: 'N1' }, { tip: 'inscriere', id: 'i2', tinta: 'N1' }], 'mutari N1');
   egal(m.blocaje, [], 'fara blocaje');
+});
+
+test('verificaTinta: rand retras in tinta -> mesaj dedicat; activ -> mesaj generic', () => {
+  const A = mkCat('A'), X = mkCat('X');
+  const s1 = mkSp('1');
+  const ctxR = ctxDe([A, X], [mkIns('i1', A, s1), mkIns('i9', X, s1, { status: 'retras' })]);
+  assert(verificaTinta(participanti(['A'], ctxR)[0], X, ctxR, 'mutare').blocaj!.includes('retras'), 'mesaj retras');
+  const ctxA = ctxDe([A, X], [mkIns('i1', A, s1), mkIns('i9', X, s1)]);
+  assert(verificaTinta(participanti(['A'], ctxA)[0], X, ctxA, 'mutare').blocaj === 'Sportivul are deja o înscriere în categoria țintă.', 'mesaj activ');
+});
+
+test('blocajeDefinitie: grad in 1..100, varsta, min<=max', () => {
+  const ok = { cheie: 'N1', denumire: 'x', varsta_min: 8, varsta_max: 9, gen: 'Feminin', grad_min_ordine: 1, grad_max_ordine: 100 } as any;
+  egal(blocajeDefinitie([ok]), [], 'valid');
+  assert(blocajeDefinitie([{ ...ok, grad_min_ordine: 0 }]).length === 1, 'grad 0');
+  assert(blocajeDefinitie([{ ...ok, grad_max_ordine: 101 }]).length === 1, 'grad 101');
+  assert(blocajeDefinitie([{ ...ok, grad_min_ordine: 9, grad_max_ordine: 6 }]).length === 1, 'min>max');
+  assert(blocajeDefinitie([{ ...ok, varsta_max: 5 }]).length === 1, 'varsta max<min');
+});
+
+test('planImpartire grad: prag in afara 1..100 -> blocaj in preview', () => {
+  const S = mkCat('S', { grad_min_ordine: 6, grad_max_ordine: 150 });
+  const p = planImpartire(S, 'grad', [120], ctxDe([S]));
+  assert(p.categoriiNoi.length === 2, 'doi copii');
+  assert(p.blocaje.some(b => b.includes('1–100')), 'blocaj grad');
+  const S2 = mkCat('S2', { grad_min_ordine: 6, grad_max_ordine: 14 });
+  assert(planImpartire(S2, 'grad', [10], ctxDe([S2])).blocaje.length === 0, 'fara blocaj valid');
+});
+
+test('goluriVarsta: adiacente / gol / suprapuse / deschis', () => {
+  const c = (mn: number, mx: number | null) => mkCat(`c${mn}`, { varsta_min: mn, varsta_max: mx });
+  egal(goluriVarsta([c(8, 9), c(10, 11)]), [], 'adiacente');
+  egal(goluriVarsta([c(12, 13), c(8, 9)]), [[10, 11]], 'gol, ordine inversa');
+  egal(goluriVarsta([c(8, 12), c(10, 11), c(14, 15)]), [[13, 13]], 'suprapuse + gol de un an');
+  egal(goluriVarsta([c(8, null), c(20, 25)]), [], 'deschis acopera');
+});
+
+test('planFuziune: avertisment gol de varsta + setari diferite; fara avertisment cand identice', () => {
+  const A = mkCat('A', { numar_categorie: 3 }), B = mkCat('B', { varsta_min: 12, varsta_max: 13, doua_quyenuri: true, min_participanti_start: 5 });
+  const p = planFuziune([A, B], ctxDe([A, B]));
+  assert(p.avertismente.some(a => a.includes('nu sunt adiacente') && a.includes('10–11')), 'gol varsta');
+  assert(p.avertismente.some(a => a.includes('setări diferite') && a.includes('două quyenuri') && a.includes('minim participanți start') && a.includes('#3')), 'setari diferite');
+  const B2 = mkCat('B2', { varsta_min: 10, varsta_max: 11 });
+  const q = planFuziune([A, B2], ctxDe([A, B2]));
+  assert(!q.avertismente.some(a => a.includes('nu sunt adiacente') || a.includes('setări diferite')), 'fara avertismente');
+  egal(setariDiferiteFuziune([A, mkCat('Z', { doua_quyenuri: undefined })]), [], 'undefined == false');
+});
+
+test('randuriFaraCategorieClub: doar randuri active ale clubului pe categorii ne-active', () => {
+  const A = mkCat('A', { status_categorie: 'anulata', denumire: 'Veche' }), X = mkCat('X');
+  const s1 = mkSp('1'), s2 = mkSp('2', { club_id: 'K2' });
+  const ins = [mkIns('i1', A, s1), mkIns('i2', A, s2), mkIns('i3', X, s1), mkIns('i4', A, mkSp('4'), { status: 'retras' })];
+  const ech = [mkEch('e1', A, [s1]), mkEch('e2', A, [s1], { status: 'retrasa' })];
+  const r = randuriFaraCategorieClub([A, X], ins, ech, 'K1');
+  egal(r.map(x => `${x.tip}:${x.id}`), ['inscriere:i1', 'echipa:e1'], 'randuri');
+  assert(r[0].categorieDenumire === 'Veche' && r[0].probaId === 'P1', 'categorie');
+  assert(cheieOrfan('1', 'P1', null) === '1|P1|', 'cheie');
 });
 
 if (esecuri > 0) { console.log(`\n${esecuri} teste au esuat`); process.exit(1); }

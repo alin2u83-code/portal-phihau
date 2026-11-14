@@ -286,6 +286,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               grade={grade}
               categorie={catToEdit}
               nextNumarCategorie={catToEdit ? undefined : Math.max(0, ...categorii.map(c => c.numar_categorie ?? 0)) + 1}
+              areInscrieri={catToEdit ? inscrieriCount(catToEdit.id) > 0 : false}
               onClose={() => { setCatFormOpen(false); setCatToEdit(null); }}
               onSaved={(cat) => {
                 if (catToEdit) {

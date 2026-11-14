@@ -120,6 +120,10 @@ export const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, prob
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form, categorie, inscrisi, grade, dataCompetitie]);
 
+  // taxa derivata (utils/taxeCompetitie.ts) depinde de varsta_max (<=17) si de arma: avertisment cand se schimba pe o categorie cu inscrieri
+  const schimbaTaxa = !!categorie && !!areInscrieri
+    && ((parseInt(form.varsta_max) || null) !== (categorie.varsta_max ?? null) || (form.arma.trim() || null) !== (categorie.arma ?? null));
+
   const handleSave = async () => {
     setLoading(true);
     const payload = { competitie_id: competitieId, ...valori() };
@@ -223,6 +227,11 @@ export const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, prob
           </div>
         )}
         <Input label="Max echipe/club" type="number" value={form.max_echipe_per_club} onChange={f('max_echipe_per_club')} />
+        {schimbaTaxa && (
+          <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-300">
+            Atenție: vârsta maximă și arma determină taxa derivată (echipe juniori ≤17 ani / seniori, CVD). Modificarea lor schimbă taxa înscrierilor existente; taxele deja achitate nu se recalculează, diferența se reglează manual.
+          </p>
+        )}
         {neeligibili.length > 0 && (
           <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-300 space-y-1">
             <p className="font-bold">Atenție: {neeligibili.length} sportivi înscriși nu mai respectă criteriile noi. Înscrierile rămân; mută-i din tab-ul Categorii dacă e nevoie.</p>

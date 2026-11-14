@@ -356,6 +356,19 @@ test('blocajeDefinitie: grad in 1..100, varsta, min<=max', () => {
   assert(blocajeDefinitie([{ ...ok, varsta_max: 5 }]).length === 1, 'varsta max<min');
 });
 
+test('blocajeDefinitie: denumire 1..200, gen valid, varsta_min obligatorie', () => {
+  const ok = { cheie: 'N1', denumire: 'x', varsta_min: 8, varsta_max: 9, gen: 'Feminin', grad_min_ordine: null, grad_max_ordine: null } as any;
+  assert(blocajeDefinitie([{ ...ok, denumire: '   ' }]).length === 1, 'denumire goala');
+  assert(blocajeDefinitie([{ ...ok, denumire: 'a'.repeat(201) }]).length === 1, 'denumire 201');
+  egal(blocajeDefinitie([{ ...ok, denumire: 'a'.repeat(200) }]), [], 'denumire 200 ok');
+  assert(blocajeDefinitie([{ ...ok, gen: 'X' }]).length === 1, 'gen invalid');
+  assert(blocajeDefinitie([{ ...ok, gen: null }]).length === 1, 'gen null');
+  for (const g of ['Feminin', 'Masculin', 'Mixt']) egal(blocajeDefinitie([{ ...ok, gen: g }]), [], `gen ${g}`);
+  assert(blocajeDefinitie([{ ...ok, varsta_min: null }]).length === 1, 'varsta_min null');
+  assert(blocajeDefinitie([{ ...ok, varsta_min: undefined }]).length === 1, 'varsta_min undefined');
+  egal(blocajeDefinitie([{ ...ok, varsta_min: 0 }]), [], 'varsta_min 0 ok');
+});
+
 test('planImpartire grad: prag in afara 1..100 -> blocaj in preview', () => {
   const S = mkCat('S', { grad_min_ordine: 6, grad_max_ordine: 150 });
   const p = planImpartire(S, 'grad', [120], ctxDe([S]));

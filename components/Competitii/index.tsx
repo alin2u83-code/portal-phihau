@@ -166,6 +166,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
 
   // Refresh silențios — nu setează loading=true, nu remontează wizard-ul
   // La eroare NU se suprascrie starea (altfel listele ar deveni goale) si se afiseaza eroarea; nu arunca niciodata
+  const ultimaEroareReload = useRef(0);
   const fetchDataSilent = useCallback(async () => {
     try {
       const [probeRes, catRes, inRes, echRes] = await Promise.all([
@@ -181,7 +182,9 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
       setInscrieri((inRes.data || []) as InscriereCompetitie[]);
       setEchipe((echRes.data || []) as EchipaCompetitie[]);
     } catch (e) {
-      showError('Reîncărcarea datelor competiției a eșuat', e);
+      // maxim un toast / 10 s: la o cădere persistentă fiecare apelant (onEchipeRefresh, onSaved, ...) ar afișa altfel unul
+      const acum = Date.now();
+      if (acum - ultimaEroareReload.current > 10_000) { ultimaEroareReload.current = acum; showError('Reîncărcarea datelor competiției a eșuat', e); }
     }
   }, [competitie.id, extern, myClubId, showError]);
 
@@ -622,7 +625,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                   onClose={() => setOperatieCat(null)}
                   onDone={async () => {
                     setOperatieCat(null); setSelectieCat(new Set());
-                    try { await fetchDataSilent(); } catch (e) { showError('Reîncărcarea datelor competiției a eșuat', e); }
+                    await fetchDataSilent();
                   }}
                 />
               )}
@@ -710,6 +713,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                 <InscrieriView
                   competitie={competitie}
                   categorii={categorii}
+                  categoriiToate={categorii}
                   probe={probe}
                   inscrieri={inscrieri}
                   echipe={echipe}

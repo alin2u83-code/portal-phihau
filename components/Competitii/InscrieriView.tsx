@@ -13,6 +13,8 @@ import type { CompetitieFiltre } from '../../hooks/useCompetitieFilters';
 export interface InscrieriViewProps {
   competitie: Competitie;
   categorii: CategorieCompetitie[];
+  /** Faza 41: toate categoriile (si ne-active); transmis la InscriereModal pentru garda de reinscriere. Optional = garda dezactivata. */
+  categoriiToate?: CategorieCompetitie[];
   probe: ProbaCompetitie[];
   inscrieri: InscriereCompetitie[];
   echipe: EchipaCompetitie[];
@@ -38,7 +40,7 @@ const BadgeFaraCategorie: React.FC = () => (
 );
 
 export const InscrieriView: React.FC<InscrieriViewProps> = ({
-  competitie, categorii, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, isSuperAdmin, myClubId, numeClub, vizeSportivi, sportivi, onRefresh,
+  competitie, categorii, categoriiToate, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, isSuperAdmin, myClubId, numeClub, vizeSportivi, sportivi, onRefresh,
   filtre, toggleGen, setFiltre, resetFiltre, nrFiltreActive
 }) => {
   const { showError } = useError();
@@ -309,6 +311,7 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
           grade={grade}
           inscrieri={inscrieri}
           echipe={echipe}
+          categoriiToate={categoriiToate ?? categorii}
           clubId={editEchipaClubId}
           numeClub={numeClub}
           vizeSportivi={vizeSportivi}

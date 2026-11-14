@@ -177,12 +177,16 @@ export function verificaTinta(
   return { blocaj, avertismente };
 }
 
-/** Limitele din RPC categorii_aplica_operatie (20261114a): oglindite aici ca blocajul să apară în preview, nu la confirmare. */
+/** Verificări din RPC categorii_aplica_operatie (20261114a) reproduse aici (nu partajate cu serverul), ca blocajul să apară în preview, nu la confirmare. */
 export function blocajeDefinitie(noi: CategorieNouaInput[]): string[] {
   const out: string[] = [];
   for (const n of noi) {
-    const e = (m: string) => out.push(`${n.denumire}: ${m}`);
-    if (n.varsta_min < 0 || n.varsta_min > 120 || (n.varsta_max !== null && (n.varsta_max < n.varsta_min || n.varsta_max > 120))) e('interval de vârstă invalid (0–120).');
+    const den = (n.denumire ?? '').trim();
+    const e = (m: string) => out.push(`${den || '(fără denumire)'}: ${m}`);
+    if (den.length < 1 || den.length > 200) e('denumirea trebuie să aibă 1–200 de caractere.');
+    if (!['Feminin', 'Masculin', 'Mixt'].includes(n.gen as string)) e('gen invalid (Feminin / Masculin / Mixt).');
+    if (typeof n.varsta_min !== 'number' || Number.isNaN(n.varsta_min)) e('vârsta minimă lipsește.');
+    else if (n.varsta_min < 0 || n.varsta_min > 120 || (n.varsta_max !== null && (n.varsta_max < n.varsta_min || n.varsta_max > 120))) e('interval de vârstă invalid (0–120).');
     for (const g of [n.grad_min_ordine, n.grad_max_ordine]) if (g !== null && (g < 1 || g > 100)) e(`ordinea gradului ${g} e în afara limitei 1–100.`);
     if (n.grad_min_ordine !== null && n.grad_max_ordine !== null && n.grad_min_ordine > n.grad_max_ordine) e('grad minim peste gradul maxim.');
   }

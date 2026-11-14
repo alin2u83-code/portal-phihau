@@ -29,7 +29,7 @@ export interface InscriereModalProps {
   tipProba?: string;
   /** CVD echipe: toate categoriile competitiei (pentru categoriePentruArma); fara el se foloseste doar categoria curenta */
   categorii?: CategorieCompetitie[];
-  /** Faza 41: toate categoriile (si ne-active) - doar pentru a bloca reinscrierea unui sportiv cu rand «Fara categorie» la aceeasi proba */
+  /** Faza 41: toate categoriile (si ne-active) - doar pentru a bloca reinscrierea unui sportiv cu rand «Fara categorie» la aceeasi proba. Optional pentru compatibilitate, dar FARA el garda e dezactivata silentios: orice apelant in mod individual trebuie sa-l paseze */
   categoriiToate?: CategorieCompetitie[];
   onClose: () => void;
   onSaved: () => void;

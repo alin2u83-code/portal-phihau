@@ -122,7 +122,7 @@ export const CategorieForm: React.FC<CategorieFormProps> = ({ competitieId, prob
 
   // taxa derivata (utils/taxeCompetitie.ts) depinde de varsta_max (<=17) si de arma: avertisment cand se schimba pe o categorie cu inscrieri
   const schimbaTaxa = !!categorie && !!areInscrieri
-    && ((parseInt(form.varsta_max) || null) !== (categorie.varsta_max ?? null) || (form.arma.trim() || null) !== (categorie.arma ?? null));
+    && ((parseInt(form.varsta_max) || null) !== (categorie.varsta_max ?? null) || (form.arma.trim() || null) !== (categorie.arma || null));
 
   const handleSave = async () => {
     setLoading(true);

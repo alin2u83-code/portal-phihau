@@ -3,12 +3,12 @@ import type { OperatieCategorii, CategorieNouaInput, MutareCategorie, RezultatOp
 
 const FARA_CLIENT = 'Supabase neinițializat';
 
-// Mesaj de server prea sec pentru un rând retras din categoria țintă (UNIQUE sportiv+categorie); fără schimbări pe server.
-const DUBLURA = /Sportivul (.+) ar apărea de două ori/;
+// Mesajul serverului „ar apărea de două ori” are două cauze (rând existent, poate retras, în țintă / două rânduri mutate în aceeași țintă); fără schimbări pe server.
+const DUBLURA = /^Sportivul (.+) ar apărea de două ori în categoria țintă/;
 function clarificaEroare(error: any) {
     const m = DUBLURA.exec(error?.message ?? '');
     if (!m) return error;
-    return { ...error, message: `Sportivul ${m[1]} are deja un rând în categoria țintă (probabil retras) și nu poate fi mutat acolo. Alege altă categorie țintă pentru acest sportiv și reîncearcă.` };
+    return { ...error, message: `Sportivul ${m[1]} ar apărea de două ori în categoria țintă: fie are deja acolo un rând (posibil retras), fie două dintre rândurile selectate au aceeași țintă. Alege altă categorie țintă pentru acest sportiv și reîncearcă.` };
 }
 
 /**

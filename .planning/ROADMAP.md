@@ -606,7 +606,7 @@ Plans:
 **Goal:** Super adminul federatiei administreaza categoriile unei competitii din tab-ul Categorii: editare/modificare (avertisment eligibilitate), clonare, anulare (inscrierile raman "Fara categorie", taxa lor de competitie se anuleaza, cele achitate raman de realocat/returnat), fuziune si impartire (varsta/grad/gen) cu previzualizare + confirmare si realocare; totul atomic prin RPC categorii_aplica_operatie (is_super_admin, blocat doar la competitie finalizata, fara stergeri).
 **Requirements**: D-01..D-12 (41-DECISIONS.md)
 **Depends on:** Phase 40
-**Plans:** 4/7 plans executed
+**Plans:** 5/7 plans executed
 
 Plans:
 
@@ -615,7 +615,7 @@ Plans:
 - [x] 41-03-PLAN.md — taxa anulata pe categorii ne-active (utils/taxeCompetitie + teste) in Financiar, Taxe club, Raport, Inscrieri
 - [ ] 41-04-PLAN.md — [BLOCKING] aplicare live dupa OK + baterie live tests/categorii_admin_faza41.ts + ACL
 - [x] 41-05-PLAN.md — CategorieOperatieModal: previzualizare + confirmare anulare/fuziune/impartire/realocare
-- [ ] 41-06-PLAN.md — CategorieForm (clonare, doua quyenuri, avertisment eligibilitate) + FaraCategoriePanel
+- [x] 41-06-PLAN.md — CategorieForm (clonare, doua quyenuri, avertisment eligibilitate) + FaraCategoriePanel
 - [ ] 41-07-PLAN.md — integrare tab Categorii, eliminare fuziune veche/stergere nesigura, docs 7.7, verificare umana la final
 
 ### Phase 42: Competitie: editare echipe/quyen, FRAM an calendaristic, arme dupa grad eligibil

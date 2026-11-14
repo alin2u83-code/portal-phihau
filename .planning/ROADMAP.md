@@ -601,6 +601,45 @@ Plans:
 - [x] 40-03-PLAN.md — modal schimbare grad prin RPC pentru reprezentant in Pas 1 (zona externa)
 - [x] 40-04-PLAN.md — tab federatie "Schimbari grad" (filtre, contor de achitat, marcheaza achitat), docs, verificare umana
 
+### Phase 41: Administrare categorii competitie (super admin): modificare, anulare, clonare, fuziune, split, editare
+
+**Goal:** Super adminul federatiei administreaza categoriile unei competitii din tab-ul Categorii: editare/modificare (avertisment eligibilitate), clonare, anulare (inscrierile raman "Fara categorie", taxa lor de competitie se anuleaza, cele achitate raman de realocat/returnat), fuziune si impartire (varsta/grad/gen) cu previzualizare + confirmare si realocare; totul atomic prin RPC categorii_aplica_operatie (is_super_admin, blocat doar la competitie finalizata, fara stergeri).
+**Requirements**: D-01..D-12 (41-DECISIONS.md)
+**Depends on:** Phase 40
+**Plans:** 7 plans (3 valuri)
+
+Plans:
+
+- [ ] 41-01-PLAN.md — Wave 0 verificare live (MCP, read-only) + migrare 20261114a: RPC categorii_aplica_operatie + allowlist ACL
+- [ ] 41-02-PLAN.md — contracte types.ts, serviciu RPC, SELECT-uri comune (gen/status/quyen), utils/categoriiAdmin.ts previzualizari + teste
+- [ ] 41-03-PLAN.md — taxa anulata pe categorii ne-active (utils/taxeCompetitie + teste) in Financiar, Taxe club, Raport, Inscrieri
+- [ ] 41-04-PLAN.md — [BLOCKING] aplicare live dupa OK + baterie live tests/categorii_admin_faza41.ts + ACL
+- [ ] 41-05-PLAN.md — CategorieOperatieModal: previzualizare + confirmare anulare/fuziune/impartire/realocare
+- [ ] 41-06-PLAN.md — CategorieForm (clonare, doua quyenuri, avertisment eligibilitate) + FaraCategoriePanel
+- [ ] 41-07-PLAN.md — integrare tab Categorii, eliminare fuziune veche/stergere nesigura, docs 7.7, verificare umana la final
+
+### Phase 42: Competitie: editare echipe/quyen, FRAM an calendaristic, arme dupa grad eligibil
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 41
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 42 to break down)
+
+### Phase 43: Auth: management user+parola+cod doar dispozitiv nou fara delogare inactivitate; acces extern email+parola+reset in loc de OTP
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 42
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 43 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

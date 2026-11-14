@@ -1,5 +1,5 @@
 -- Faza 41 (41-01): RPC atomic pentru operatii pe categoriile unei competitii (anulare / fuziune / impartire / mutare).
--- NEAPLICATA, se aplica in 41-04 dupa OK explicit; supabase/ e in .gitignore, deci git add -f.
+-- APLICATA LIVE 14.11.2026 (41-04, dupa OK explicit). supabase/ e in .gitignore, deci git add -f.
 -- Decizii: D-01 (doar SUPER_ADMIN_FEDERATIE, garda reala in DB: is_super_admin()), D-03 (mutare automata dupa mapare explicita din preview,
 --   refuz daca inscrierile s-au schimbat), D-04 + D-07 (anulare: randurile raman legate de categoria ne-activa = "Fara categorie", fara DROP NOT NULL),
 --   D-08 (anulare: raporteaza taxele nedatorate si cele achitate de realocat/returnat; taxele sunt derivate, nu randuri in plati),
@@ -18,22 +18,17 @@
 --     => modelul derivat din D-08 e confirmat live pe date; nu s-a atins STOP (b) la nivel de coloane/date (functii pg_proc care scriu in plati: neverificat, vezi mai jos).
 --   categorii_aplica_operatie lipseste live (nu apare in OpenAPI /rpc). is_super_admin() exista live (apare in /rpc).
 --
--- NEVERIFICAT live (necesita SELECT pe catalog; de rulat prin Supabase MCP in 41-04 inainte de apply, D-12):
---   (1) pg_roles.rolbypassrls pentru postgres (ownerul definer). Precedent: 20261112b / 20261111* scriu din definer in inscrieri_competitie fara probleme;
---       Faza 25 a notat ca FORCE ROW LEVEL SECURITY blocheaza bypass-ul definer doar fara BYPASSRLS. Daca e false -> STOP, functia nu poate scrie.
---   (2) relrowsecurity / relforcerowsecurity pe competitii, categorii_competitie, inscrieri_competitie, echipe_competitie.
---   (3) pg_policies pe categorii_competitie / inscrieri_competitie / echipe_competitie, incl. politici "fantoma" (precedent Faza 25). Nu conteaza pentru
---       definer (bypass), dar conteaza pentru UI-ul din 41-02/03 care citeste cu RLS.
---   (4) pg_get_functiondef: is_super_admin() (din migrari: citeste header-ul active-role-context-id, cu fallback orice rol SUPER_ADMIN_FEDERATIE) si
---       audit_trigger_fn (din 20261111d/f/g: garda de autor se aplica doar cand cont_club_curent() IS NOT NULL; super adminul federatiei nu are cont de club).
---   (5) Triggere nesterse pe cele 3 tabele. Din migrari: trg_extern_protejeaza_inscrieri/echipe BEFORE UPDATE (fara efect cand nu este_doar_extern()),
---       trg_inscrieri_sportiv_in_club BEFORE UPDATE OF sportiv_id (nu se declanseaza la UPDATE de categorie_id), audit_inscrieri_competitie / audit_echipe_competitie
---       (audit_trigger_fn), trg_echipe_denumire_implicita BEFORE INSERT, trg_taxa_anuala_inscrieri_competitie AFTER INSERT (nu se declanseaza la UPDATE).
---   (6) Constrangeri UNIQUE/CHECK/FK pe cele 3 tabele. Din migrari: UNIQUE(categorie_id, sportiv_id) si UNIQUE(competitie_id, sportiv_id, categorie_id) pe inscrieri,
---       CHECK status_categorie IN ('activa','fuzionata','anulata','impartita') (20261110a). Functia verifica dublurile inainte de UPDATE.
---   (7) Functii pg_proc a caror sursa scrie in plati si mentioneaza inscrieri_competitie / echipe_competitie / categorii_competitie (STOP (b)); din cod, doar
---       functiile taxei anuale FRQKD/FRAM, care nu sunt atinse de aceasta functie.
---   (8) pg_event_trigger (ensure_rls_on_create reactioneaza la CREATE TABLE; functia nu creeaza tabele).
+-- VERIFICAT live 14.11.2026 (41-04, prin Supabase MCP, inainte de apply):
+--   (1) postgres rolbypassrls = true (definer poate scrie prin FORCE RLS).
+--   (2) competitii / categorii_competitie / inscrieri_competitie / echipe_competitie / plati: RLS + FORCE.
+--   (3) politicile pe cele 3 tabele nu afecteaza functia definer (bypass).
+--   (4) is_super_admin() citeste header-ul active-role-context-id; audit_trigger_fn este SECURITY DEFINER.
+--   (5) Triggere: audit_* (audit_trigger_fn), trg_extern_protejeaza_campuri (no-op fara este_doar_extern), trg_inscrieri_sportiv_in_club (doar UPDATE OF sportiv_id),
+--       trg_taxa_anuala_inscrieri_competitie (doar AFTER INSERT, apeleaza activeaza_taxa_anuala), trg_echipe_denumire_implicita (BEFORE INSERT).
+--   (6) UNIQUE(categorie_id, sportiv_id) si UNIQUE(competitie_id, sportiv_id, categorie_id) pe inscrieri; niciuna pe echipe.
+--   (7) nicio functie care scrie in plati nu este atinsa de aceasta functie.
+--   (8) event trigger-ele nu sunt relevante (functia nu creeaza tabele).
+--   Dupa apply: prosecdef = true, argumente corecte, grant = postgres/authenticated/service_role (anon fara EXECUTE).
 
 CREATE OR REPLACE FUNCTION public.categorii_aplica_operatie(
   p_operatie       text,

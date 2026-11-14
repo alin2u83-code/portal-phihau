@@ -1,5 +1,5 @@
 {
-  "nota": "Baseline = starea expusa la momentul 37-01 (inainte de REVOKE). Ratchet: se micsoreaza manual in 37-03/37-05 conform 37-TRIAJ.md. scoala_ioncreanga_* = aplicatie separata, exceptie documentata (decizie 5.11.2026), nu se modifica. | 37-03 aplicat: anon = D (4), authenticated = baseline minus C (25) minus SERVICE_ONLY (10). | 39-01: +3 functii cont club | 39-08: +3 functii actor | 39-13: +3 management | 40-01: +4 functii schimbare grad",
+  "nota": "Baseline = starea expusa la momentul 37-01 (inainte de REVOKE). Ratchet: se micsoreaza manual in 37-03/37-05 conform 37-TRIAJ.md. scoala_ioncreanga_* = aplicatie separata, exceptie documentata (decizie 5.11.2026), nu se modifica. | 37-03 aplicat: anon = D (4), authenticated = baseline minus C (25) minus SERVICE_ONLY (10). | 39-01: +3 functii cont club | 39-08: +3 functii actor | 39-13: +3 management | 40-01: +4 functii schimbare grad | 41-01: +1 functie categorii_aplica_operatie",
   "exceptii_prefix": {
     "anon": [
       "scoala_ioncreanga_"
@@ -27,6 +27,7 @@
     "apartine_familiei(text)",
     "apartine_familiei(uuid)",
     "categorie_apartine_competitiei(uuid,uuid)",
+    "categorii_aplica_operatie(text,uuid,uuid[],jsonb,jsonb,integer)",
     "cauta_utilizatori_comisie(text)",
     "cere_schimbare_locatie_grupa(uuid,uuid,date)",
     "cerere_gdpr_sportiv_club_id(uuid)",

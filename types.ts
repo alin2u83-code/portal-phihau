@@ -977,6 +977,40 @@ export interface EchipaCompetitie {
   // joined
   sportivi?: Array<{ sportiv_id: string; rol: 'titular' | 'rezerva'; sportiv?: Sportiv }>;
   categorie?: CategorieCompetitie;
+  inlantuire_id?: string | null;
+  inlantuire?: Inlantuire;
+  echipa_sportivi?: Array<{ sportiv_id: string; rol: 'titular' | 'rezerva'; sportiv?: Sportiv }>;
+}
+
+/** Faza 41: operatiile super adminului asupra categoriilor unei competitii. */
+export type OperatieCategorii = 'anulare' | 'fuziune' | 'impartire' | 'mutare';
+
+/** Faza 41: definitia unei categorii noi (rezultat fuziune / impartire); cheie = identificator local folosit in mutari. */
+export interface CategorieNouaInput {
+  cheie: string;
+  denumire: string;
+  varsta_min: number;
+  varsta_max: number | null;
+  gen: 'Feminin' | 'Masculin' | 'Mixt';
+  grad_min_ordine: number | null;
+  grad_max_ordine: number | null;
+}
+
+/** Faza 41: mutarea unei inscrieri/echipe; tinta = id categorie existenta sau cheie a unei categorii noi. */
+export interface MutareCategorie {
+  tip: 'inscriere' | 'echipa';
+  id: string;
+  tinta: string;
+}
+
+/** Faza 41: raspunsul RPC categorii_aplica_operatie. */
+export interface RezultatOperatieCategorii {
+  operatie: OperatieCategorii;
+  categorii_noi: { cheie: string; id: string; numar_categorie: number }[];
+  inscrieri_mutate: number;
+  echipe_mutate: number;
+  taxe_anulate: number;
+  taxe_achitate_anulate: number;
 }
 
 export interface SolicitareEchipaIncompleta {

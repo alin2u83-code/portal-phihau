@@ -26,6 +26,11 @@ export function ssDel(key: string): void {
 // -----------------------------------------------
 export const categorieActiva = (c: CategorieCompetitie) => !c.status_categorie || c.status_categorie === 'activa';
 
+// Sursa unică pentru fetchData și fetchDataSilent. gen/status: necesare la împărțire și la regula gradului la competiție;
+// numele quyen-urilor pentru lista grupei (D-05); hint-ul !inlantuire_id dezambiguizează cele două FK către inlantuiri.
+export const SELECT_INSCRIERI_COMPETITIE = '*, sportiv:sportivi(id, nume, prenume, gen, status, grad_actual_id, data_nasterii, club_id, cluburi(id, nume)), inlantuire:inlantuiri!inlantuire_id(id, denumire), inlantuire_2:inlantuiri!inlantuire_id_2(id, denumire)';
+export const SELECT_ECHIPE_COMPETITIE = '*, club:cluburi(id, nume), inlantuire:inlantuiri!inlantuire_id(id, denumire), echipa_sportivi(sportiv_id, rol, sportiv:sportivi(id, nume, prenume, gen, status, grad_actual_id, data_nasterii, club_id, cluburi(id, nume)))';
+
 /** Text scurt de insignă pentru starea categoriei (null = nimic de afișat) */
 export function categorieEticheta(c: CategorieCompetitie, toate: CategorieCompetitie[]): { text: string; clasa: string } | null {
   const nr = (id: string) => {

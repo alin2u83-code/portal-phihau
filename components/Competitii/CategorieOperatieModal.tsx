@@ -44,7 +44,7 @@ const planVid: PlanOperatieCategorii = {
 };
 
 export const CategorieOperatieModal: React.FC<CategorieOperatieModalProps> = ({
-  operatie, competitie, surse, selectie, categorii, inscrieri, echipe, grade, onClose, onDone,
+  operatie, competitie, surse: surseSnapshot, selectie, categorii, inscrieri, echipe, grade, onClose, onDone,
 }) => {
   const { showError, showSuccess } = useError();
   const [alegeri, setAlegeri] = useState<Record<string, string>>({});
@@ -52,6 +52,9 @@ export const CategorieOperatieModal: React.FC<CategorieOperatieModalProps> = ({
   const [criteriu, setCriteriu] = useState<CriteriuImpartire>('varsta');
   const [praguri, setPraguri] = useState<number[]>([]);
   const [pragNou, setPragNou] = useState('');
+
+  // snapshot-ul de la deschidere poate fi vechi cat timp contextul se reincarca: sursele se rezolva live dupa id
+  const surse = useMemo(() => surseSnapshot.map(s => categorii.find(c => c.id === s.id) ?? s), [surseSnapshot, categorii]);
 
   const ctx: CtxCategorii = useMemo(
     () => ({ categorii, inscrieri, echipe, grade, competitie }),

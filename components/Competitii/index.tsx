@@ -118,6 +118,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
   const handleSetActiveTab = useCallback((tab: TabCompetitie) => {
     if (extern && !TABURI_EXTERN.includes(tab)) return;
     resetFiltre();
+    setSelectieCat(prev => (prev.size ? new Set() : prev));
     setActiveTab(tab);
     if (!extern) ssSet(SS_KEY_TAB, tab);
   }, [resetFiltre, extern]);
@@ -164,18 +165,25 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
   }, [competitie.id, extern, myClubId]);
 
   // Refresh silențios — nu setează loading=true, nu remontează wizard-ul
+  // La eroare NU se suprascrie starea (altfel listele ar deveni goale) si se afiseaza eroarea; nu arunca niciodata
   const fetchDataSilent = useCallback(async () => {
-    const [probeRes, catRes, inRes, echRes] = await Promise.all([
-      supabase.from('probe_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
-      supabase.from('categorii_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
-      doarClubul(supabase.from('inscrieri_competitie').select(SELECT_INSCRIERI_COMPETITIE).eq('competitie_id', competitie.id)),
-      doarClubul(supabase.from('echipe_competitie').select(SELECT_ECHIPE_COMPETITIE).eq('competitie_id', competitie.id)),
-    ]);
-    setProbe((probeRes.data || []) as ProbaCompetitie[]);
-    setCategorii((catRes.data || []) as CategorieCompetitie[]);
-    setInscrieri((inRes.data || []) as InscriereCompetitie[]);
-    setEchipe((echRes.data || []) as EchipaCompetitie[]);
-  }, [competitie.id, extern, myClubId]);
+    try {
+      const [probeRes, catRes, inRes, echRes] = await Promise.all([
+        supabase.from('probe_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
+        supabase.from('categorii_competitie').select().eq('competitie_id', competitie.id).order('ordine_afisare'),
+        doarClubul(supabase.from('inscrieri_competitie').select(SELECT_INSCRIERI_COMPETITIE).eq('competitie_id', competitie.id)),
+        doarClubul(supabase.from('echipe_competitie').select(SELECT_ECHIPE_COMPETITIE).eq('competitie_id', competitie.id)),
+      ]);
+      const err = probeRes.error ?? catRes.error ?? inRes.error ?? echRes.error;
+      if (err) throw err;
+      setProbe((probeRes.data || []) as ProbaCompetitie[]);
+      setCategorii((catRes.data || []) as CategorieCompetitie[]);
+      setInscrieri((inRes.data || []) as InscriereCompetitie[]);
+      setEchipe((echRes.data || []) as EchipaCompetitie[]);
+    } catch (e) {
+      showError('Reîncărcarea datelor competiției a eșuat', e);
+    }
+  }, [competitie.id, extern, myClubId, showError]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useRegisterRefresh(fetchData);
@@ -202,6 +210,13 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
       : categorii;
     return aplicaFiltreCategorie(baza, filtre);
   }, [categorii, selectedProbaId, filtre]);
+
+  // Fuzionarea actioneaza doar pe categoriile selectate care sunt si vizibile (filtrele pot ascunde selectii)
+  const selectieVizibila = useMemo(() => {
+    if (!selectieCat.size) return selectieCat;
+    const vizibile = new Set(filteredCategorii.map(c => c.id));
+    return new Set([...selectieCat].filter(id => vizibile.has(id)));
+  }, [selectieCat, filteredCategorii]);
 
   // Înscrieri noi (wizard / modal admin): doar categoriile active, nu cele fuzionate/împărțite/anulate
   const categoriiActive = useMemo(() => categorii.filter(categorieActiva), [categorii]);
@@ -397,10 +412,10 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                 grade={grade}
               />
 
-              {poateAdminCategorii && selectieCat.size > 0 && (
+              {poateAdminCategorii && selectieVizibila.size > 0 && (
                 <div className="flex items-center gap-2 flex-wrap rounded-lg border border-[var(--t-border)] bg-[var(--t-surface-2)] px-3 py-2">
-                  <span className="text-sm text-[var(--t-text)]">{selectieCat.size} categorii selectate</span>
-                  <Button size="sm" variant="warning" disabled={selectieCat.size < 2} onClick={() => setOperatieCat({ operatie: 'fuziune', surse: categorii.filter(c => selectieCat.has(c.id)) })}>Fuzionează</Button>
+                  <span className="text-sm text-[var(--t-text)]">{selectieVizibila.size} categorii selectate</span>
+                  <Button size="sm" variant="warning" disabled={selectieVizibila.size < 2} onClick={() => setOperatieCat({ operatie: 'fuziune', surse: categorii.filter(c => selectieVizibila.has(c.id)) })}>Fuzionează</Button>
                   <Button size="sm" variant="secondary" onClick={() => setSelectieCat(new Set())}>Golește selecția</Button>
                 </div>
               )}
@@ -605,7 +620,10 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                   echipe={echipe}
                   grade={grade}
                   onClose={() => setOperatieCat(null)}
-                  onDone={() => { setOperatieCat(null); setSelectieCat(new Set()); void fetchDataSilent(); }}
+                  onDone={async () => {
+                    setOperatieCat(null); setSelectieCat(new Set());
+                    try { await fetchDataSilent(); } catch (e) { showError('Reîncărcarea datelor competiției a eșuat', e); }
+                  }}
                 />
               )}
 

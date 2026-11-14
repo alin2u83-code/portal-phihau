@@ -240,7 +240,7 @@ test('planFuziune: blocaje (<2, inactiva, incompatibila, sportiv dublu)', () => 
   assert(planFuziune([A, Bp], ctxDe([A, Bp])).blocaje.length > 0, 'incompatibila');
   const s1 = mkSp('1');
   const p = planFuziune([A, B], ctxDe([A, B], [mkIns('i1', A, s1), mkIns('i2', B, s1)]));
-  assert(p.blocaje.some(b => b.includes('Nume1')), 'sportiv dublu numit');
+  assert(p.blocaje.some(b => b.includes('NUME1')), 'sportiv dublu numit');
 });
 
 test('planFuziune: tinta N1 pe toate randurile + avertismente', () => {

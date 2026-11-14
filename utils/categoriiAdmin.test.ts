@@ -9,7 +9,9 @@
 import {
   cheieRand, compatibile, categorieDinInput, participanti, participantiFaraCategorie, sportiviInscrisi,
   verificaTinta, planAnulare, planMutare, mutariDinPlan,
+  definitieFuziune, planFuziune, copiiImpartire, planImpartire,
 } from './categoriiAdmin';
+import { buildCategorieDenumire } from './competitiiTemplates';
 
 let esecuri = 0;
 function test(nume: string, fn: () => void): void {
@@ -213,6 +215,126 @@ test('categorieDinInput: copie activa cu intervalul nou', () => {
   const c = categorieDinInput(A, { cheie: 'N1', denumire: 'D', varsta_min: 10, varsta_max: null, gen: 'Mixt', grad_min_ordine: null, grad_max_ordine: 9 });
   assert(c.id === 'N1' && c.denumire === 'D' && c.varsta_max === null && c.gen === 'Mixt', 'campuri noi');
   assert(c.status_categorie === 'activa' && c.este_fuzionata === false && c.categorii_fuzionate_din === null, 'activa');
+});
+
+// ---------- definitieFuziune / planFuziune ----------
+test('definitieFuziune: interval unit, null deschis, gen Mixt', () => {
+  const A = mkCat('A'), B = mkCat('B', { varsta_min: 10, varsta_max: 11 });
+  const d = definitieFuziune([A, B]);
+  assert(d.cheie === 'N1' && d.varsta_min === 8 && d.varsta_max === 11 && d.gen === 'Feminin', 'interval + gen');
+  assert(d.grad_min_ordine === 6 && d.grad_max_ordine === 9, 'grad 6-9');
+  egal(d.denumire, buildCategorieDenumire({ ...A, varsta_min: 8, varsta_max: 11, numar_categorie: null } as any), 'denumire');
+  assert(definitieFuziune([A, mkCat('C', { varsta_max: null })]).varsta_max === null, 'varsta_max null');
+  const g = definitieFuziune([A, mkCat('C', { grad_min_ordine: null, grad_max_ordine: null })]);
+  assert(g.grad_min_ordine === null && g.grad_max_ordine === null, 'grad null');
+  assert(definitieFuziune([A, mkCat('C', { gen: 'Masculin' })]).gen === 'Mixt', 'gen diferit -> Mixt');
+});
+
+test('planFuziune: blocaje (<2, inactiva, incompatibila, sportiv dublu)', () => {
+  const A = mkCat('A'), B = mkCat('B', { varsta_min: 10, varsta_max: 11 });
+  const ctx = ctxDe([A, B]);
+  assert(planFuziune([A], ctx).blocaje.includes('Selectează cel puțin 2 categorii.'), '<2');
+  const Bi = mkCat('B', { status_categorie: 'anulata' });
+  assert(planFuziune([A, Bi], ctxDe([A, Bi])).blocaje.includes('Toate categoriile selectate trebuie să fie active.'), 'inactiva');
+  const Bp = mkCat('B', { proba_id: 'P2' });
+  assert(planFuziune([A, Bp], ctxDe([A, Bp])).blocaje.length > 0, 'incompatibila');
+  const s1 = mkSp('1');
+  const p = planFuziune([A, B], ctxDe([A, B], [mkIns('i1', A, s1), mkIns('i2', B, s1)]));
+  assert(p.blocaje.some(b => b.includes('Nume1')), 'sportiv dublu numit');
+});
+
+test('planFuziune: tinta N1 pe toate randurile + avertismente', () => {
+  const A = mkCat('A', { max_echipe_per_club: 1 }), B = mkCat('B', { varsta_min: 10, varsta_max: 11, gen: 'Masculin' });
+  const p = planFuziune([A, B], ctxDe([A, B], [mkIns('i1', A, mkSp('1')), mkIns('i2', B, mkSp('2', { gen: 'Masculin' }))]));
+  egal(p.blocaje, [], 'fara blocaje');
+  assert(p.randuri.length === 2 && p.randuri.every(r => r.tinta === 'N1'), 'tinta N1');
+  assert(p.categoriiNoi.length === 1 && p.categoriiNoi[0].gen === 'Mixt', 'categorie noua Mixt');
+  assert(p.avertismente.includes('Categoriile au gen diferit — categoria rezultată va fi Mixt.'), 'avert gen');
+  assert(p.avertismente.some(a => a.includes('sub minimul')), 'avert minim');
+  const T = mkCat('T', { tip_participare: 'echipa', max_echipe_per_club: 1 }), T2 = mkCat('T2', { tip_participare: 'echipa', varsta_min: 10, varsta_max: 11 });
+  const pe = planFuziune([T, T2], ctxDe([T, T2], [], [mkEch('e1', T, [mkSp('1')]), mkEch('e2', T2, [mkSp('2')])]));
+  assert(pe.avertismente.some(a => a.includes('peste limita')), 'avert echipe per club');
+});
+
+// ---------- copiiImpartire ----------
+test('copiiImpartire varsta: praguri, ignora in afara intervalului, deschis', () => {
+  const S = mkCat('S', { varsta_min: 8, varsta_max: 13 });
+  const c = copiiImpartire(S, 'varsta', [12, 10], false);
+  egal(c.map(x => [x.cheie, x.varsta_min, x.varsta_max]), [['N1', 8, 9], ['N2', 10, 11], ['N3', 12, 13]], 'copii');
+  egal(copiiImpartire(S, 'varsta', [8, 14, 99], false), [], 'praguri invalide -> []');
+  egal(copiiImpartire(mkCat('S', { varsta_min: 8, varsta_max: null }), 'varsta', [12], false).map(x => [x.varsta_min, x.varsta_max]), [[8, 11], [12, null]], 'ultimul deschis');
+});
+
+test('copiiImpartire grad: prag + grad_min null ramane', () => {
+  const S = mkCat('S', { grad_min_ordine: 6, grad_max_ordine: 14 });
+  egal(copiiImpartire(S, 'grad', [10], false).map(x => [x.grad_min_ordine, x.grad_max_ordine]), [[6, 9], [10, 14]], 'grad');
+  const S2 = mkCat('S', { grad_min_ordine: null, grad_max_ordine: 14 });
+  assert(copiiImpartire(S2, 'grad', [10], false)[0].grad_min_ordine === null, 'primul grad_min null');
+});
+
+test('copiiImpartire gen: Mixt -> F + M (+ Mixt); non-Mixt -> []', () => {
+  const S = mkCat('S', { gen: 'Mixt' });
+  egal(copiiImpartire(S, 'gen', [], false).map(x => x.gen), ['Feminin', 'Masculin'], 'fara echipe mixte');
+  egal(copiiImpartire(S, 'gen', [], true).map(x => x.gen), ['Feminin', 'Masculin', 'Mixt'], 'cu echipe mixte');
+  egal(copiiImpartire(mkCat('S'), 'gen', [], true), [], 'non-Mixt');
+});
+
+// ---------- planImpartire ----------
+test('planImpartire gen: indivizi pe gen, necunoscut null', () => {
+  const S = mkCat('S', { gen: 'Mixt' });
+  const ins = [mkIns('f', S, mkSp('1')), mkIns('m', S, mkSp('2', { gen: 'Masculin' })), mkIns('u', S, mkSp('3', { gen: null }))];
+  const p = planImpartire(S, 'gen', [], ctxDe([S], ins));
+  const t = (id: string) => p.randuri.find(r => r.id === id)!.tinta;
+  assert(t('f') === 'N1' && t('m') === 'N2' && t('u') === null, 'tinte gen');
+  assert(p.asteptat === null && p.taxe === null, 'asteptat/taxe null');
+  assert(p.avertismente.some(a => a.startsWith('1 participanți fără sugestie')), 'avert fara sugestie');
+});
+
+test('planImpartire gen: echipa mixta merge in copilul Mixt', () => {
+  const S = mkCat('S', { gen: 'Mixt', tip_participare: 'echipa' });
+  const ech = [
+    mkEch('eF', S, [mkSp('1'), mkSp('2')]),
+    mkEch('eMix', S, [mkSp('3'), mkSp('4', { gen: 'Masculin' })]),
+  ];
+  const p = planImpartire(S, 'gen', [], ctxDe([S], [], ech));
+  assert(p.categoriiNoi.map(c => c.gen).join() === 'Feminin,Masculin,Mixt', 'trei copii');
+  const t = (id: string) => p.randuri.find(r => r.id === id)!.tinta;
+  assert(t('eF') === 'N1' && t('eMix') === 'N3', 'echipa F -> F; mixta -> Mixt');
+  assert(p.avertismente.some(a => a.includes(p.categoriiNoi[1].denumire)), 'avert copil Masculin fara participant');
+});
+
+test('planImpartire varsta: individ eligibil pentru un singur copil; echipa doar daca toti acord', () => {
+  const S = mkCat('S', { varsta_min: 8, varsta_max: 13, grad_min_ordine: 6, grad_max_ordine: 14, tip_participare: 'echipa' });
+  const Si = { ...S, tip_participare: 'individual' };
+  const s9 = mkSp('1'), s11 = mkSp('2', { data_nasterii: '2015-06-15' }), sNull = mkSp('3', { data_nasterii: null });
+  const pi = planImpartire(Si, 'varsta', [10], ctxDe([Si], [mkIns('a', Si, s9), mkIns('b', Si, s11), mkIns('c', Si, sNull)]));
+  const t = (p: any, id: string) => p.randuri.find((r: any) => r.id === id).tinta;
+  assert(t(pi, 'a') === 'N1' && t(pi, 'b') === 'N2' && t(pi, 'c') === null, 'individ');
+  const pe = planImpartire(S, 'varsta', [10], ctxDe([S], [], [
+    mkEch('e1', S, [s9, mkSp('4')]), mkEch('e2', S, [s9, s11]),
+  ]));
+  assert(t(pe, 'e1') === 'N1' && t(pe, 'e2') === null, 'echipa: acord / dezacord');
+});
+
+test('planImpartire grad: sugestie dupa grad', () => {
+  const S = mkCat('S', { varsta_min: 8, varsta_max: 13, grad_min_ordine: 6, grad_max_ordine: 14 });
+  const p = planImpartire(S, 'grad', [10], ctxDe([S], [mkIns('a', S, mkSp('1')), mkIns('b', S, mkSp('2', { grad_actual_id: 'g10' }))]));
+  egal(p.randuri.map(r => [r.id, r.tinta]), [['a', 'N1'], ['b', 'N2']], 'grad');
+});
+
+test('planImpartire: blocaje (<2 copii)', () => {
+  const S = mkCat('S');
+  assert(planImpartire(S, 'gen', [], ctxDe([S])).blocaje.includes('Împărțirea pe gen se face doar pentru o categorie Mixt.'), 'gen non-Mixt');
+  assert(planImpartire(S, 'varsta', [], ctxDe([S])).blocaje.includes('Alege praguri care produc cel puțin 2 categorii.'), 'fara praguri');
+});
+
+test('mutariDinPlan: fuziune/impartire folosesc categoria noua ca tinta', () => {
+  const A = mkCat('A'), B = mkCat('B', { varsta_min: 10, varsta_max: 11 });
+  const ctx = ctxDe([A, B], [mkIns('i1', A, mkSp('1')), mkIns('i2', B, mkSp('2'))]);
+  const plan = planFuziune([A, B], ctx);
+  const m = mutariDinPlan(plan, {}, ctx);
+  egal(m.mutari, [{ tip: 'inscriere', id: 'i1', tinta: 'N1' }, { tip: 'inscriere', id: 'i2', tinta: 'N1' }], 'mutari N1');
+  egal(m.blocaje, [], 'fara blocaje');
 });
 
 if (esecuri > 0) { console.log(`\n${esecuri} teste au esuat`); process.exit(1); }

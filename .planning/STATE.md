@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: ready_to_plan
-stopped_at: Faza 40 executata 13.11.2026 (4/4 planuri, verificare browser OK); fix review 1+2+3 aplicate
-last_updated: "2026-11-11T18:19:48.732Z"
-last_activity: 2026-11-12 -- Phase 39 finalizata; verificari amanate H6/H8/H9
+status: executing
+stopped_at: Completed 39-02-PLAN.md
+last_updated: "2026-11-14T19:09:14.575Z"
+last_activity: 2026-11-14 -- Phase 41 execution started
 progress:
-  total_phases: 31
-  completed_phases: 18
-  total_plans: 134
-  completed_plans: 134
-  percent: 58
+  total_phases: 35
+  completed_phases: 19
+  total_plans: 145
+  completed_plans: 132
+  percent: 54
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Faza 38 (neplanificata) sau faza noua competitie-aplicatie-proprie-grade (design aprobat)
+**Current focus:** Phase 41 — administrare-categorii-competitie
 
 ## Current Position
 
-Phase: 39 (cont-unic-de-competitie-per-club-zona-competitionala-implici) — FINALIZATA 12.11.2026 (UAT 7/10, H6/H8/H9 amanate)
-Plan: 16 of 16 (toate cu SUMMARY)
-Status: Faza 40 executata (4/4 planuri, SUMMARY toate); ramane doar verify/complete formal; urmeaza Faza 38 (neplanificata)
-Last activity: 2026-11-13 -- Phase 40 executata + verificata in browser; migrari 20261113a/b (fix review)
+Phase: 41 (administrare-categorii-competitie) — EXECUTING
+Plan: 2 of 7
+Status: Ready to execute
+Last activity: 2026-11-14 -- Phase 41 execution started
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -250,6 +250,10 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-11-11T18:19:41.817Z
+Last session: 2026-11-14T19:09:14.561Z
 Stopped at: Completed 39-02-PLAN.md
 Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md
+
+- Phase 41 added: Administrare categorii competitie (super admin)
+- Phase 42 added: Competitie: editare echipe/quyen, FRAM an calendaristic, arme dupa grad
+- Phase 43 added: Auth management dispozitiv nou + acces extern email/parola/reset

@@ -10,6 +10,7 @@ import { areVizaFRAM, WarningVizaFRAM, ArmePermiseGiaoDau } from './constants';
 import type { useArmeCvd } from '../../hooks/useArmeCvd';
 import { categoriePentruArma } from '../../utils/armeCvd';
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/taxeCompetitie';
+import { randuriFaraCategorieClub, cheieOrfan } from '../../utils/categoriiAdmin';
 
 export interface InscriereModalProps {
   competitie: Competitie;
@@ -28,12 +29,14 @@ export interface InscriereModalProps {
   tipProba?: string;
   /** CVD echipe: toate categoriile competitiei (pentru categoriePentruArma); fara el se foloseste doar categoria curenta */
   categorii?: CategorieCompetitie[];
+  /** Faza 41: toate categoriile (si ne-active) - doar pentru a bloca reinscrierea unui sportiv cu rand «Fara categorie» la aceeasi proba */
+  categoriiToate?: CategorieCompetitie[];
   onClose: () => void;
   onSaved: () => void;
 }
 
 export const InscriereModal: React.FC<InscriereModalProps> = ({
-  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, numeClub, vizeSportivi, initialEditMode, arme, tipProba, categorii, onClose, onSaved
+  competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, numeClub, vizeSportivi, initialEditMode, arme, tipProba, categorii, categoriiToate, onClose, onSaved
 }) => {
   const anCompetitie = new Date(competitie.data_inceput).getFullYear();
   const { showError } = useError();
@@ -233,6 +236,10 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
       if (!isTeam) {
         // Problemă 5: multi-select individual — inserăm toți sportivii selectați
         if (selectedIndividuali.length === 0) throw new Error('Selectează cel puțin un sportiv');
+        // rand «Fara categorie» (categorie anulata/fuzionata/impartita) la aceeasi proba: realocarea il rezolva, nu o a doua inscriere
+        const orfani = new Set(randuriFaraCategorieClub(categoriiToate ?? [], inscrieri, echipe, clubId).filter(r => r.sportivId).map(r => cheieOrfan(r.sportivId!, r.probaId, r.arma)));
+        const blocati = sportivi.filter(s => selectedIndividuali.includes(s.id) && orfani.has(cheieOrfan(s.id, categorie.proba_id, categorie.arma)));
+        if (blocati.length) throw new Error(`${blocati.map(s => `${s.nume} ${s.prenume}`).join(', ')}: are deja o înscriere «Fără categorie» la această probă; federația o realocă, nu se poate înscrie din nou.`);
         const inserts = selectedIndividuali.map(sportivId => ({
           competitie_id: competitie.id,
           categorie_id: categorie.id,

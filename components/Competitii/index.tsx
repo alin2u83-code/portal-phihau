@@ -659,6 +659,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                 competitie={competitie}
                 probe={probe}
                 categorii={categoriiActive}
+                categoriiToate={categorii}
                 sportivi={sportiviClubInscriere}
                 grade={grade}
                 inscrieri={inscrieri}
@@ -918,6 +919,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
           arme={competitie.tip === 'cvd' ? armeCvd : undefined}
           tipProba={probe.find(p => p.id === inscriereModal.proba_id)?.tip_proba}
           categorii={categoriiActive}
+          categoriiToate={categorii}
           onClose={() => { setInscriereModal(null); fetchDataSilent(); }}
           onSaved={() => {
             const goToHub = goToHubAfterModalRef.current;

@@ -75,6 +75,8 @@ export interface InscriereClubWizardProps {
   competitie: Competitie;
   probe: ProbaCompetitie[];
   categorii: CategorieCompetitie[];
+  /** Faza 41: toate categoriile (si cele anulate/fuzionate/impartite) - doar pentru afisarea randurilor «Fara categorie»; selectia ramane pe `categorii` */
+  categoriiToate?: CategorieCompetitie[];
   sportivi: Sportiv[];
   grade: Grad[];
   inscrieri: InscriereCompetitie[];

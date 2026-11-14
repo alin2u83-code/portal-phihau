@@ -19,13 +19,14 @@ import type { ItemDeRezolvat } from './BannerDeRezolvat';
 import { calculeazaLipsuriCvd } from '../../../utils/armeCvdLipsuri';
 import { formatNume } from '../../../utils/formatareSportiv';
 import { useError } from '../../ErrorProvider';
+import { randuriFaraCategorieClub, cheieOrfan } from '../../../utils/categoriiAdmin';
 
 export type { InscriereClubWizardProps };
 export type { EchipaFormata, QuyenAlesMap };
 export type { PickCategorie, IndivPicks } from './types';
 
 const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
-  competitie, probe, categorii, sportivi, grade,
+  competitie, probe, categorii, categoriiToate, sportivi, grade,
   inscrieri, echipe, clubId, numeClub, vizeSportivi, myClubId, onBack, onSaved,
   onOpenEditEchipa, onOpenInscriereModal, onEchipeRefresh, arme, canEdit = false, onViewSportiv, interclubDezactivat, onGradSchimbat, gradPrinCompetitie,
 }) => {
@@ -188,6 +189,25 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
     });
     await onEchipeRefresh?.();
   };
+
+  // Faza 41 (D-07): randurile clubului ramase pe o categorie anulata/fuzionata/impartita raman vizibile si blocheaza reinscrierea dubla
+  const faraCategorie = useMemo(
+    () => randuriFaraCategorieClub(categoriiToate ?? categorii, inscrieri, echipe, clubId),
+    [categoriiToate, categorii, inscrieri, echipe, clubId],
+  );
+  const blocatiFaraCategorie = useMemo(
+    () => new Set(faraCategorie.filter(r => r.sportivId).map(r => cheieOrfan(r.sportivId!, r.probaId, r.arma))),
+    [faraCategorie],
+  );
+  const bannerFaraCategorie = faraCategorie.length > 0 && (
+    <div className="mb-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-300 space-y-1">
+      <p className="font-bold">Fără categorie – de realocat ({faraCategorie.length}): categoria lor a fost anulată, fuzionată sau împărțită. Federația le realocă; până atunci sportivii respectivi nu se pot reînscrie la aceeași probă.</p>
+      <ul className="list-disc pl-4">
+        {faraCategorie.slice(0, 10).map(r => <li key={`${r.tip}:${r.id}`}>{r.nume} — {r.categorieDenumire}</li>)}
+      </ul>
+      {faraCategorie.length > 10 && <p>… și încă {faraCategorie.length - 10}</p>}
+    </div>
+  );
 
   // Doar sportivii activi pentru pașii 2-4 și hub; Pas1 primește și inactivii deja înscriși (ca să-i poată retrage)
   const sportiviActivi = useMemo(() => sportivi.filter(s => s.status === 'Activ'), [sportivi]);
@@ -376,6 +396,8 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
 
   if (step === 'hub') {
     return (
+      <>
+      {bannerFaraCategorie}
       <InscriereClubCards
         // props InscriereClubWizardProps
         competitie={competitie}
@@ -430,6 +452,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
           setStep(4);
         }}
       />
+      </>
     );
   }
 
@@ -515,7 +538,10 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
   }
 
   return (
+    <>
+    {bannerFaraCategorie}
     <Pas4SumarTaxe
+      blocatiFaraCategorie={blocatiFaraCategorie}
       interclubDezactivat={interclubDezactivat}
       competitie={competitie}
       // lista lată: sumarul afișează și înscrierile salvate ale inactivilor (altfel dispar din total)
@@ -539,6 +565,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
       onBack={() => setStep('hub')}
       onSaved={onSaved}
     />
+    </>
   );
 };
 

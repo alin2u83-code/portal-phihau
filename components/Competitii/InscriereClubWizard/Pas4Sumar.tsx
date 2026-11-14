@@ -13,6 +13,7 @@ import { formatNume } from '../../../utils/formatareSportiv';
 import { EchipaFormata, QuyenAlesMap, FormaPerArma, CategoriePerArma } from './types';
 import { incarcaFormeCvd } from '../../../services/armeCvdService';
 import { esteInscrisActiv } from './shared';
+import { cheieOrfan } from '../../../utils/categoriiAdmin';
 import BannerDeRezolvat from './BannerDeRezolvat';
 import type { ItemDeRezolvat } from './BannerDeRezolvat';
 
@@ -46,6 +47,8 @@ export interface Pas4Props {
   bannerLipsuri?: ItemDeRezolvat[];
   /** zona externa: nu se creeaza solicitari catre alte cluburi (D-14) */
   interclubDezactivat?: boolean;
+  /** Faza 41: chei `sportiv|proba|arma` cu rand «Fara categorie» - reinscrierea la aceeasi proba se blocheaza pana la realocare */
+  blocatiFaraCategorie?: Set<string>;
   onBack: () => void;
   onSaved: () => void;
 }
@@ -65,6 +68,8 @@ interface RandIndividual {
   /** CVD: rand nesalvabil (nu intra in total) */
   duplicatDe?: string; // alta arma a aceluiasi sportiv are aceeasi categorie
   faraForma?: boolean;
+  /** sportivul are deja un rand «Fara categorie» la aceasta proba: nu se salveaza */
+  blocat?: boolean;
 }
 
 interface RandEchipa {
@@ -81,7 +86,7 @@ const cheieRand = (sportivId: string, categorieId: string, armaId?: string | nul
 const Pas4SumarTaxe: React.FC<Pas4Props> = ({
   competitie, sportivi, grade, categorii,
   selectedSportivi, autoCategorie, quyenAles, echipeFormate,
-  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, inscrieri = [], categoriePerArma, formaPerArma, arme, bannerLipsuri, interclubDezactivat, onBack, onSaved,
+  probeSkipped, skippedCategorii, excludedFromIndividual, clubId, numeClub, inscrieri = [], categoriePerArma, formaPerArma, arme, bannerLipsuri, interclubDezactivat, blocatiFaraCategorie, onBack, onSaved,
 }) => {
   const { showError, showSuccess } = useError();
   const [saving, setSaving] = useState(false);
@@ -193,8 +198,9 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
         armaDenumire: i.arma_id ? arme?.find(a => a.id === i.arma_id)?.denumire : undefined,
       });
     }
-    return rezultat;
-  }, [selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped, excludedFromIndividual, inscrieri, categorii, clubId, cvd, arme, categoriePerArma, formaPerArma, grade, dreptMap]);
+    if (!blocatiFaraCategorie?.size) return rezultat;
+    return rezultat.map(r => (!r.deja && blocatiFaraCategorie.has(cheieOrfan(r.sportiv.id, r.categorie.proba_id, r.categorie.arma)) ? { ...r, blocat: true, taxa: 0 } : r));
+  }, [blocatiFaraCategorie, selectedSportivi, autoCategorie, sportivi, quyenAles, competitie, probeSkipped, excludedFromIndividual, inscrieri, categorii, clubId, cvd, arme, categoriePerArma, formaPerArma, grade, dreptMap]);
 
   const randuriEchipe = useMemo<RandEchipa[]>(() => {
     return echipeFormate.map(echipa => {
@@ -283,7 +289,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
       const esecuri: string[] = [];
       const note: string[] = [];
       for (const rand of randuriIndividuale) {
-        if (rand.deja || rand.duplicatDe || rand.faraForma) continue;
+        if (rand.deja || rand.duplicatDe || rand.faraForma || rand.blocat) continue;
         const eticheta = `${formatNume(rand.sportiv)}${rand.armaDenumire ? ' · ' + rand.armaDenumire : ''}`;
         try {
           // UNIQUE(categorie_id, sportiv_id): cautam dupa (sportiv, categorie), indiferent de arma
@@ -529,6 +535,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                       <span className="text-sm font-semibold text-green-400">{rand.taxa} lei</span>
                       {rand.duplicatDe && <div className="text-[11px] text-amber-400">aceeași categorie ca {rand.duplicatDe} — nu se salvează</div>}
                       {rand.faraForma && <div className="text-[11px] text-amber-400">fără formă — mergi la Pas 2</div>}
+                      {rand.blocat && <div className="text-[11px] text-amber-400">are deja o înscriere «Fără categorie» la această probă — nu se salvează până la realocare</div>}
                     </td>
                   </tr>
                 ))}
@@ -562,6 +569,7 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
                   )}
                   {rand.duplicatDe && <div className="text-[11px] text-amber-400">aceeași categorie ca {rand.duplicatDe} — nu se salvează</div>}
                   {rand.faraForma && <div className="text-[11px] text-amber-400">fără formă — mergi la Pas 2</div>}
+                  {rand.blocat && <div className="text-[11px] text-amber-400">are deja o înscriere «Fără categorie» la această probă — nu se salvează până la realocare</div>}
                 </div>
               </div>
             ))}

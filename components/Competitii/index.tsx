@@ -12,6 +12,8 @@ import CategoriiTemplateManager from './CategoriiTemplateManager';
 import { VizaSportiv } from '../../types';
 import InscriereClubWizard from './InscriereClubWizard';
 import { useArmeCvd } from '../../hooks/useArmeCvd';
+import { anFramCompetitie } from '../../utils/editareCompetitie';
+import { useVizeFramClub } from '../../hooks/useVizeFramClub';
 import { TipuriCompetitieAdmin } from './TipuriCompetitieAdmin';
 import { CereriInterclubAdmin } from './CereriInterclubAdmin';
 import { CereriAccesAdmin } from './CereriAccesAdmin';
@@ -143,6 +145,8 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
   const istoricExtern = extern && (competitie.status === 'finalizata'
     || (!!competitie.data_sfarsit && competitie.data_sfarsit < new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Bucharest' })));
   const poateInscrie = !istoricExtern && (isClubAdmin || (!extern && (permissions.isInstructor || isAdmin)));
+  const anFram = anFramCompetitie(competitie);
+  const vizeFram = useVizeFramClub(competitie.id, anFram, clubInscriere);
   const numeClubInscriere = (isAdmin && !extern && clubAlesFed ? clubs?.find((c: any) => c.id === clubAlesFed)?.nume : null) ?? currentUser?.cluburi?.nume ?? '';
 
   // Extern: filtru club in query (defense in depth; poarta reala este RLS, D-12)
@@ -282,6 +286,9 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusLabel[competitie.status]?.color}`}>
               {statusLabel[competitie.status]?.label}
             </span>
+            {competitie.fram_obligatoriu && (
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-500/20 text-amber-400">Doar cu FRAM {anFram}</span>
+            )}
             <span className="text-xs text-slate-400">{fmtDate(competitie.data_inceput)} – {fmtDate(competitie.data_sfarsit)}</span>
             {competitie.locatie && <span className="text-xs text-slate-400">{competitie.locatie}</span>}
           </div>
@@ -649,6 +656,11 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
           )}
 
           {/* INSCRIERI TAB */}
+          {activeTab === 'inscrieri' && competitie.fram_obligatoriu && vizeFram.eroare && (
+            <div className="mb-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-300">
+              Vizele FRAM nu au putut fi verificate ({vizeFram.eroare}). Verificarea finală se face la salvare.
+            </div>
+          )}
           {activeTab === 'inscrieri' && (
             loading ? (
               <div className="flex items-center justify-center py-12 text-slate-500 text-sm">
@@ -669,7 +681,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                 echipe={echipe}
                 clubId={clubInscriere || ''}
                 numeClub={numeClubInscriere}
-                vizeSportivi={vizeSportivi}
+                vizeSportivi={vizeFram.vize}
                 myClubId={clubInscriere}
                 arme={competitie.tip === 'cvd' ? armeCvd : undefined}
                 canEdit={canEditArme}
@@ -758,6 +770,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
               {competitie.organizator && <div><span className="text-[var(--t-text-muted)]">Organizator: </span>{competitie.organizator}</div>}
               {competitie.deadline_inscrieri && <div><span className="text-[var(--t-text-muted)]">Termen limită înscrieri: </span>{fmtDate(competitie.deadline_inscrieri)}</div>}
               {competitie.observatii && <div><span className="text-[var(--t-text-muted)]">Observații: </span>{competitie.observatii}</div>}
+              {competitie.fram_obligatoriu && <div><span className="text-[var(--t-text-muted)]">Participare: </span>doar sportivi cu viza FRAM {anFram} achitată sau scutită</div>}
               <div>
                 <span className="text-[var(--t-text-muted)]">Probe: </span>
                 {[...probe].sort((a, b) => (a.ordine_afisare ?? 0) - (b.ordine_afisare ?? 0)).map(p => p.denumire).join(', ') || '—'}
@@ -919,7 +932,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
           echipe={echipe}
           clubId={clubInscriere || ''}
           numeClub={numeClubInscriere}
-          vizeSportivi={vizeSportivi}
+          vizeSportivi={vizeFram.vize}
           arme={competitie.tip === 'cvd' ? armeCvd : undefined}
           tipProba={probe.find(p => p.id === inscriereModal.proba_id)?.tip_proba}
           categorii={categoriiActive}

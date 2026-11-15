@@ -5,7 +5,7 @@ import { useError } from '../../ErrorProvider';
 import { formatNume } from '../../../utils/formatareSportiv';
 import { gradEfectivLaData, calculeazaVarstaLaData } from '../../../utils/eligibilitateCompetitie';
 import {
-  motivCombinatieInterzisa, categoriePentruArma, conflicteCategorie, armeStale, avertismentStagii,
+  motivCombinatieInterzisa, categoriePentruArma, armeEligibileLaGrad, motivFaraArme, conflicteCategorie, armeStale, avertismentStagii,
 } from '../../../utils/armeCvd';
 import BannerDeRezolvat from './BannerDeRezolvat';
 import { retrageInscrieri } from './retrage';
@@ -57,11 +57,12 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
       const ordine = grad?.ordine ?? 0;
       const drept = (grad && arme.drepturi.get(grad.id)) || GOL;
       const categoriePe = new Map<string, ReturnType<typeof categoriePentruArma>>();
-      for (const a of arme.arme) {
-        if (a.activ && drept.has(a.id)) categoriePe.set(a.id, categoriePentruArma(a, s, ordine, competitie.data_inceput, categorii, arme.arme));
-      }
+      const armeCuDrept = armeEligibileLaGrad(arme.arme, drept);
+      for (const a of armeCuDrept) categoriePe.set(a.id, categoriePentruArma(a, s, ordine, competitie.data_inceput, categorii, arme.arme));
       const disponibile = arme.arme.filter(a => categoriePe.get(a.id));
-      return { s, grad, ordine, disponibile, categoriePe, doarCitire: s.status !== 'Activ' };
+      const varsta = s.data_nasterii ? calculeazaVarstaLaData(s.data_nasterii, competitie.data_inceput) : null;
+      const motiv = motivFaraArme({ gradNume: grad?.nume ?? null, armeCuDrept: armeCuDrept.map(a => a.denumire), varsta, gen: s.gen ?? null });
+      return { s, grad, ordine, disponibile, categoriePe, motiv, doarCitire: s.status !== 'Activ' };
     }), [sportivi, grade, competitie.data_inceput, arme.arme, arme.drepturi, categorii]);
 
   const normText = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -215,7 +216,7 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
 
       <div className="space-y-2">
         {randuriVizibile.length === 0 && <p className="text-sm text-slate-500 italic">Niciun sportiv nu corespunde filtrelor.</p>}
-        {randuriVizibile.map(({ s, grad, ordine, disponibile, categoriePe, doarCitire }) => {
+        {randuriVizibile.map(({ s, grad, ordine, disponibile, categoriePe, motiv, doarCitire }) => {
           const alese = draft.get(s.id) ?? GOL;
           const editabil = canEdit && !doarCitire;
           const stale = new Set(armeStale([...alese], disponibile.map(a => a.id)));
@@ -279,7 +280,7 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
               <div className="flex flex-wrap gap-2">
                 {disponibile.map(a => chip(a, false))}
                 {stalePeArme.map(a => chip(a, true))}
-                {disponibile.length === 0 && stalePeArme.length === 0 && <span className="text-xs text-slate-500 italic">Nicio armă disponibilă pentru acest grad / vârstă.</span>}
+                {disponibile.length === 0 && stalePeArme.length === 0 && <span className="text-xs text-slate-500 italic">{motiv}</span>}
               </div>
             </div>
           );

@@ -31,6 +31,8 @@ interface Pas3Props {
   /** CVD: armele alese in wizard + definitiile lor (pentru eticheta Giao Dau) */
   armeAlese?: ArmeAlese;
   armeDefinitii?: Arma[];
+  /** Faza 42 D-11: arme eligibile pe gradul efectiv (gradId -> armaIds); lipsa = fara filtru */
+  drepturiArme?: Map<string, Set<string>>;
   skippedCategorii?: Set<string>;
   onToggleSkipCategorie?: (catId: string) => void;
   onOpenInscriereModal?: (cat: CategorieCompetitie) => void;
@@ -45,7 +47,7 @@ interface Pas3Props {
 
 const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   categorii, probe, echipe, clubId, sportivi, grade, dataCompetitie,
-  competitieId, clubSolicitantId, categoriiToate, inscrieri = [], armeAlese, armeDefinitii,
+  competitieId, clubSolicitantId, categoriiToate, inscrieri = [], armeAlese, armeDefinitii, drepturiArme,
   skippedCategorii, onToggleSkipCategorie,
   onOpenInscriereModal, onEchipeRefresh, interclubDezactivat, gradPrinCompetitie, onBack,
 }) => {
@@ -146,6 +148,12 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
   const sportiviInscrisiCat = (catId: string) => {
     const ids = new Set(inscrieri.filter(i => i.categorie_id === catId && i.club_id === clubId && esteInscrisActiv(i)).map(i => i.sportiv_id));
     return sportivi.filter(s => ids.has(s.id));
+  };
+
+  // Faza 42 D-11/D-12: setul de arme al gradului efectiv; undefined = fara filtru (drepturi neincarcate / sportiv fara grad)
+  const eligibileGrad = (s: Sportiv) => {
+    const g = drepturiArme && gradEfectivLaData(s, grade, dataCompetitie);
+    return g && drepturiArme ? drepturiArme.get(g.id) ?? new Set<string>() : undefined;
   };
 
   const categoriiStare = useMemo(() => categoriiEchipa.map(cat => {
@@ -331,7 +339,7 @@ const Pas3FormareEchipe: React.FC<Pas3Props> = ({
                       sportiviInscrisiCat(cat.id).map(s => (
                         <div key={s.id} className="mt-1">
                           <span className="text-[11px] text-slate-400 uppercase">{formatNume(s)}</span>
-                          <ArmePermiseGiaoDau arme={armeDefinitii} alese={armeAlese.get(s.id)} />
+                          <ArmePermiseGiaoDau arme={armeDefinitii} alese={armeAlese.get(s.id)} eligibile={eligibileGrad(s)} />
                         </div>
                       ))}
 

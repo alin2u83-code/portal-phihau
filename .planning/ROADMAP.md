@@ -623,7 +623,7 @@ Plans:
 **Goal:** Super adminul fixeaza la deschiderea competitiei regula FRAM (an calendaristic al competitiei, achitat sau scutit; blocare UI + DB, exceptii super admin confirmate si auditate); reprezentantul clubului editeaza membrii/arma echipelor, quyen-urile si categoria (compatibila) cat timp inscrierile sunt deschise, super adminul pana la finalizare, fara recalcularea taxelor si cu audit pe autor; armele se ofera doar dupa gradul efectiv la data competitiei (Thao Lo, Pas Arme, Giao Dau), cu avertismente, nu blocaje.
 **Requirements**: D-01..D-15 (42-CONTEXT.md)
 **Depends on:** Phase 41
-**Plans:** 8/9 plans executed
+**Plans:** 9/9 plans complete
 
 Plans:
 
@@ -635,7 +635,7 @@ Plans:
 - [x] 42-06-PLAN.md — wizard arme: filtru pe drepturile gradului (Thao Lo/Pas2/Pas4), explicatie Pas Arme, Giao Dau eligibile, "De rezolvat" D-14/D-15
 - [x] 42-07-PLAN.md — editare membri echipa fara stergere prealabila (serviciu sincronizeazaMembriEchipa) in modal si Pas 4; FRAM in modal
 - [x] 42-08-PLAN.md — CompetitieForm optiune FRAM (super admin, doar draft), sursa vize FRAM filtrata pe server pentru inscriere, badge
-- [ ] 42-09-PLAN.md — EditareInscriereModal (quyen + categorie compatibila), butoane in Inscrieri dupa drepturile D-07, «De rezolvat» in Financiar pentru taxe schimbate de mutari (D-09, din audit_log), docs 7.10, verificare finala + verificari umane
+- [x] 42-09-PLAN.md — EditareInscriereModal (quyen + categorie compatibila), butoane in Inscrieri dupa drepturile D-07, «De rezolvat» in Financiar pentru taxe schimbate de mutari (D-09, din audit_log), docs 7.10, verificare finala + verificari umane
 
 ### Phase 43: Auth: management user+parola+cod doar dispozitiv nou fara delogare inactivitate; acces extern email+parola+reset in loc de OTP
 

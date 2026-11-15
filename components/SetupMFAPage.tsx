@@ -16,28 +16,37 @@ export function SetupMFAPage() {
     const [retrimisLa, setRetrimisLa] = useState<number>(0);
     const [dispozitivIncredere, setDispozitivIncredere] = useState(citestePreferintaRamaneConectat());
     const inputRef = useRef<HTMLInputElement>(null);
+    const initPornit = useRef(false);
 
     useEffect(() => {
-        let mounted = true;
-
         async function init() {
+            // StrictMode (dev) rulează efectul de două ori: fără garda asta se trimit două coduri
+            if (initPornit.current) return;
+            initPornit.current = true;
             setError(null);
-            const { data, error: userErr } = await supabase!.auth.getUser();
-            if (!mounted) return;
-            if (userErr || !data.user?.email) {
-                setError(userErr?.message ?? 'Nu s-a putut identifica adresa de email a contului.');
-                return;
+            try {
+                // getSession citește sesiunea locală (fără rețea): getUser() face un apel /auth/v1/user care, cu DB-ul încărcat
+                // la pornire, depășea 5s, iar lock-ul de auth era furat => AbortError => spinner fără ieșire
+                const { data: sesiune } = await supabase!.auth.getSession();
+                const emailCont = sesiune.session?.user?.email;
+                if (!emailCont) {
+                    setError('Nu s-a putut identifica adresa de email a contului.');
+                    initPornit.current = false;
+                    return;
+                }
+                setEmail(emailCont);
+                const { error: sendErr } = await trimiteCodMfaEmail(emailCont);
+                if (sendErr) { setError(sendErr.message); initPornit.current = false; return; }
+                setRetrimisLa(Date.now());
+                setStep('cod-trimis');
+            } catch (e: any) {
+                // fără catch, o excepție (ex. lock de auth) lăsa spinnerul pe loc la nesfârșit
+                initPornit.current = false;
+                setError(e?.message || 'Nu s-a putut trimite codul. Reîncarcă pagina și încearcă din nou.');
             }
-            setEmail(data.user.email);
-            const { error: sendErr } = await trimiteCodMfaEmail(data.user.email);
-            if (!mounted) return;
-            if (sendErr) { setError(sendErr.message); return; }
-            setRetrimisLa(Date.now());
-            setStep('cod-trimis');
         }
 
-        init();
-        return () => { mounted = false; };
+        init(); // fara cleanup: garda initPornit ne apara de dubla rulare StrictMode, iar setState pe componenta demontata e inofensiv
     }, []);
 
     useEffect(() => {

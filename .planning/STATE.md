@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 41-07-PLAN.md (human-check + code review pending)
+status: executing
+stopped_at: Phase 41 closed 2026-11-15 (UAT 11/11, VERIFICATION human_needed, SECURITY hardening 856f2306); next Phase 42
 last_updated: "2026-11-14T19:38:41.893Z"
 last_activity: 2026-11-14 -- Phase 41 execution started
 progress:
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 
 ## Current Position
 
-Phase: 41 (administrare-categorii-competitie) — EXECUTING
+Phase: 41 (administrare-categorii-competitie) — COMPLETE (inchisa 2026-11-15)
 Plan: 7 of 7
-Status: Phase complete — ready for verification
+Status: Phase complete; ramase verificari umane (roluri negative UI, competitie finalizata, cai review-fixes) + decizia D-08 taxa anuala FRQKD/FRAM
 Last activity: 2026-11-14 -- Phase 41 execution started
 
 ```
@@ -257,7 +257,7 @@ at roadmap creation. De verificat înainte de Phase 9:
 ## Session Continuity
 
 Last session: 2026-11-14T19:38:41.878Z
-Stopped at: Completed 41-07-PLAN.md (human-check + code review pending)
+Stopped at: Phase 41 closed 2026-11-15; next Phase 42
 Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md
 
 - Phase 41 added: Administrare categorii competitie (super admin)

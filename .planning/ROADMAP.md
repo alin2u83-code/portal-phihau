@@ -606,7 +606,7 @@ Plans:
 **Goal:** Super adminul federatiei administreaza categoriile unei competitii din tab-ul Categorii: editare/modificare (avertisment eligibilitate), clonare, anulare (inscrierile raman "Fara categorie", taxa lor de competitie se anuleaza, cele achitate raman de realocat/returnat), fuziune si impartire (varsta/grad/gen) cu previzualizare + confirmare si realocare; totul atomic prin RPC categorii_aplica_operatie (is_super_admin, blocat doar la competitie finalizata, fara stergeri).
 **Requirements**: D-01..D-12 (41-DECISIONS.md)
 **Depends on:** Phase 40
-**Plans:** 7/7 plans complete
+**Plans:** 7/7 plans complete (faza inchisa 2026-11-15)
 
 Plans:
 

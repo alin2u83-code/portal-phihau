@@ -12,6 +12,8 @@ import { ActivitateSalaTabs } from './ActivitateSalaTabs';
 import { SportiviTabs, ExameneTabs, CompetitiiTabs, FisaTabs } from './layout/HubTabs';
 import { useData } from '../contexts/DataContext';
 import { useNavigation } from '../contexts/NavigationContext';
+import { useDateLaCerere } from '../hooks/useDateLaCerere';
+import { cheiPentruView } from '../utils/dateLaCerere';
 
 // Pozitia de scroll per view (modul-level: supravietuieste demontarii componentelor)
 const scrollPositions = new Map<View, number>();
@@ -136,6 +138,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     // render" (CR-03, 26-REVIEW.md).
     const [sportivIdPentruRaport, setSportivIdPentruRaport] = useState<string | null>(null);
     const [sportivProfilTab, setSportivProfilTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric' | undefined>(undefined);
+    // Faza 38 D-01: fiecare ecran isi cere datele grele; inainte de return-urile timpurii (Rules of Hooks, vezi CR-03).
+    useDateLaCerere(cheiPentruView(activeView, activeRole ?? null));
 
     if (currentUser && currentUser.email?.endsWith('@frqkd.ro')) {
         return <OnboardingCompletare currentUser={currentUser} onCompleted={() => window.location.reload()} />;

@@ -55,14 +55,27 @@ export function categorieEticheta(c: CategorieCompetitie, toate: CategorieCompet
 
 // -----------------------------------------------
 // HELPER: verifică taxa FRAM (an calendaristic) achitată sau scutită pentru un an dat.
-// Vizele FRQKD (sezon fiscal) sunt ignorate. Doar avertisment — nu blochează înscrierea.
+// Vizele FRQKD (sezon fiscal) sunt ignorate. Doar avertisment; blocare doar dacă competiția are regula FRAM (Faza 42, vezi statusFram).
 // -----------------------------------------------
 export function areVizaFRAM(sportivId: string, an: number, vizeSportivi: VizaSportiv[]): boolean {
   return areTaxaAchitata(vizeSportivi, sportivId, 'FRAM', an);
 }
 
-export const WarningVizaFRAM: React.FC<{ show: boolean; inline?: boolean }> = ({ show, inline }) => {
+export const WarningVizaFRAM: React.FC<{ show: boolean; inline?: boolean; blocat?: boolean; an?: number }> = ({ show, inline, blocat, an }) => {
   if (!show) return null;
+  const anTxt = an ?? 'pe anul competiției';
+  if (blocat && inline) return (
+    <span title={`Fără viză FRAM ${anTxt}: competiția acceptă doar sportivi cu FRAM`}
+      className="inline-flex items-center gap-0.5 text-[10px] font-bold text-red-300 bg-red-900/40 border border-red-700/50 rounded px-1.5 py-0.5 ml-1 shrink-0">
+      ⛔ FRAM
+    </span>
+  );
+  if (blocat) return (
+    <div className="flex items-start gap-2 bg-red-900/30 border border-red-700/50 rounded-lg p-2.5 text-xs text-red-300">
+      <span className="text-base leading-none shrink-0">⛔</span>
+      <span>Viza FRAM {anTxt} lipsă: competiția acceptă doar sportivi cu FRAM achitat sau scutit — nu se poate înscrie.</span>
+    </div>
+  );
   if (inline) return (
     <span title="Viza FRAM neachitată pentru anul curent"
       className="inline-flex items-center gap-0.5 text-[10px] font-bold text-yellow-400 bg-yellow-900/40 border border-yellow-700/50 rounded px-1.5 py-0.5 ml-1 shrink-0">
@@ -102,12 +115,13 @@ export const TipuriLabelsContext = React.createContext<Map<string, string>>(
 );
 
 /** Giao Dau CVD: armele de lemn permise la lupta = permise ∩ alese de sportiv. Nu blocheaza inscrierea. */
-export const ArmePermiseGiaoDau: React.FC<{ arme: Arma[]; alese?: Set<string> }> = ({ arme, alese }) => {
+export const ArmePermiseGiaoDau: React.FC<{ arme: Arma[]; alese?: Set<string>; eligibile?: Set<string> }> = ({ arme, alese, eligibile }) => {
   if (arme.length === 0) return null;
-  const permise = armePermiseGiaoDau(arme).filter(a => alese?.has(a.id));
+  // eligibile = armele permise la gradul efectiv al sportivului (D-11); nedefinit = fara filtru pe grad
+  const permise = armePermiseGiaoDau(arme).filter(a => alese?.has(a.id) && (!eligibile || eligibile.has(a.id)));
   if (permise.length === 0) return (
     <div className="text-[11px] text-yellow-300 bg-yellow-900/30 border border-yellow-700/50 rounded px-2 py-1 mt-1">
-      ⚠ Nicio armă permisă la luptă aleasă. Înscrierea rămâne permisă.
+      ⚠ Nicio armă de luptă aleasă care să fie permisă și eligibilă pentru grad. Înscrierea rămâne permisă.
     </div>
   );
   return <div className="text-[11px] text-slate-300 mt-1">Arme permise la luptă: {permise.map(a => a.denumire).join(', ')}</div>;

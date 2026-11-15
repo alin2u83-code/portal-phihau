@@ -12,6 +12,8 @@ import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../../utils/
 import { formatNume } from '../../../utils/formatareSportiv';
 import { EchipaFormata, QuyenAlesMap, FormaPerArma, CategoriePerArma } from './types';
 import { incarcaFormeCvd } from '../../../services/armeCvdService';
+import { sincronizeazaMembriEchipa } from '../../../services/echipeCompetitieService';
+import type { MembruEchipa } from '../../../utils/editareCompetitie';
 import { esteInscrisActiv } from './shared';
 import { cheieOrfan } from '../../../utils/categoriiAdmin';
 import BannerDeRezolvat from './BannerDeRezolvat';
@@ -372,16 +374,21 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             .select('id');
           if (updErr) throw new Error(updErr.message);
           if (!echModif?.length) throw new Error(MSG_INCHIS);
-          // Re-sync membri
-          await supabase.from('echipa_sportivi').delete().eq('echipa_id', rand.echipa.dbId);
-          const sportiviEchipa = [
-            ...rand.echipa.titulari.map(id => ({ echipa_id: rand.echipa.dbId!, sportiv_id: id, rol: 'titular' as const })),
-            ...rand.echipa.rezerve.map(id => ({ echipa_id: rand.echipa.dbId!, sportiv_id: id, rol: 'rezerva' as const })),
-          ];
-          if (sportiviEchipa.length > 0) {
-            const { error: errSp } = await supabase.from('echipa_sportivi').insert(sportiviEchipa);
-            if (errSp) throw new Error(errSp.message);
-          }
+          // Re-sync membri pe diferenta (D-08): nu sterge si reinsereaza tot
+          const { data: curenti, error: errCur } = await supabase
+            .from('echipa_sportivi')
+            .select('sportiv_id, rol')
+            .eq('echipa_id', rand.echipa.dbId);
+          if (errCur) throw new Error(errCur.message);
+          const rezSync = await sincronizeazaMembriEchipa(
+            rand.echipa.dbId,
+            (curenti ?? []) as MembruEchipa[],
+            [
+              ...rand.echipa.titulari.map(id => ({ sportiv_id: id, rol: 'titular' as const })),
+              ...rand.echipa.rezerve.map(id => ({ sportiv_id: id, rol: 'rezerva' as const })),
+            ],
+          );
+          if (!rezSync.ok) throw new Error(rezSync.mesaj ?? MSG_INCHIS);
           if (rand.echipa.echipaIncompleta && !interclubDezactivat) {
             await supabase.from('solicitari_echipe_incomplete').upsert({
               competitie_id: competitie.id,

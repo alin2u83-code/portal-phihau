@@ -3,11 +3,14 @@ import { useSortConfig, applySortConfig, SortConfigEntry } from '../../../hooks/
 import {
   Competitie, CategorieCompetitie, InscriereCompetitie, Sportiv, Grad, VizaSportiv,
 } from '../../../types';
-import { Button } from '../../ui';
+import { Button, ConfirmModal } from '../../ui';
 import { ArrowLeftIcon } from '../../icons';
 import { calculeazaVarstaLaData, verificaEligibilitate } from '../../../utils/eligibilitateCompetitie';
 import { formatNume } from '../../../utils/formatareSportiv';
-import { areVizaFRAM } from '../constants';
+import { statusFram, anFramCompetitie } from '../../../utils/editareCompetitie';
+import type { StareFram } from '../../../utils/editareCompetitie';
+import { useData } from '../../../contexts/DataContext';
+import { usePermissions } from '../../../hooks/usePermissions';
 import { BadgeEligibilitateGenerala } from './shared';
 import { EligibilitateGenerala, ArmeAlese } from './types';
 import BannerDeRezolvat from './BannerDeRezolvat';
@@ -30,8 +33,8 @@ function buildDejaInscrisiSet(inscrieri: InscriereCompetitie[]): Set<string> {
 function calculeazaEligibilitateGenerala(
   s: Sportiv,
   dataCompetitie: string,
+  stareFram: StareFram,
   anComp: number,
-  vizeSportivi: VizaSportiv[],
   categorii?: CategorieCompetitie[],
   grade?: Grad[]
 ): EligibilitateGenerala {
@@ -81,9 +84,16 @@ function calculeazaEligibilitateGenerala(
     }
   }
 
+  // Faza 42 D-04/D-05: regula FRAM a competitiei (poarta reala = trigger DB)
+  if (stareFram === 'blocat') {
+    return { status: 'blocat_fram', motiv: `Fără FRAM ${anComp}`, avertismente: [] };
+  }
+  if (stareFram === 'exceptie') {
+    return { status: 'atentionare', motiv: null, avertismente: [`Fără FRAM ${anComp} — excepție super admin`] };
+  }
+
   const avertismente: string[] = [];
-  const areViza = areVizaFRAM(s.id, anComp, vizeSportivi);
-  if (!areViza) {
+  if (stareFram === 'avertisment') {
     avertismente.push('Fără viză FRAM');
   }
 
@@ -312,7 +322,11 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   const [showDejaInscrisi, setShowDejaInscrisi] = useState(false);
   const { sortConfig, requestSort: requestSortPas1 } = useSortConfig();
 
-  const anComp = new Date(competitie.data_inceput).getFullYear();
+  const anComp = anFramCompetitie(competitie);
+  const { activeRoleContext } = useData();
+  const esteSuperAdmin = !!usePermissions(activeRoleContext).isSuperAdmin;
+  // D-05: exceptia FRAM a super adminului se confirma explicit, cate un sportiv
+  const [exceptieDeConfirmat, setExceptieDeConfirmat] = useState<{ id: string; nume: string } | null>(null);
 
   const faraArme = useMemo(
     () => cvd ? [...selected].filter(id => !(armeAlese?.get(id)?.size)).length : 0,
@@ -439,18 +453,19 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
         ? calculeazaVarstaLaData(s.data_nasterii, competitie.data_inceput)
         : null;
       const grad = grade.find(g => g.id === s.grad_actual_id);
+      const stareFram = statusFram(competitie, s.id, vizeSportivi, esteSuperAdmin);
       const eligibilitate = calculeazaEligibilitateGenerala(
-        s, competitie.data_inceput, anComp, vizeSportivi, categorii, grade
+        s, competitie.data_inceput, stareFram, anComp, categorii, grade
       );
       const isDejaInscris = dejaInscrisiSet.has(s.id);
-      const isDisabled = eligibilitate.status === 'date_incomplete' || eligibilitate.status === 'neeligibil';
+      const isDisabled = eligibilitate.status === 'date_incomplete' || eligibilitate.status === 'neeligibil' || eligibilitate.status === 'blocat_fram';
       const gradAnomalie = !!(
         s.grad_actual_id && varsta !== null &&
         varsta > (gradMaxAgeMap.get(s.grad_actual_id) ?? 99) + 2
       );
-      return { sportiv: s, varsta, gradNume: grad?.nume ?? null, eligibilitate, isDejaInscris, isDisabled, gradAnomalie };
+      return { sportiv: s, varsta, gradNume: grad?.nume ?? null, eligibilitate, isDejaInscris, isDisabled, gradAnomalie, stareFram };
     }),
-    [sportiviFiltered, grade, categorii, vizeSportivi, dejaInscrisiSet, competitie.data_inceput, anComp, gradMaxAgeMap]
+    [sportiviFiltered, grade, categorii, vizeSportivi, dejaInscrisiSet, competitie.data_inceput, competitie.fram_obligatoriu, esteSuperAdmin, anComp, gradMaxAgeMap]
   );
 
   const enrichedFiltrat = useMemo(
@@ -477,12 +492,25 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
   );
 
   const selectableIds = useMemo(
-    () => enrichedFiltrat.filter(e => !e.isDisabled && !e.isDejaInscris).map(e => e.sportiv.id),
+    // exceptiile FRAM (super admin) se aleg doar unul cate unul, cu confirmare
+    () => enrichedFiltrat.filter(e => !e.isDisabled && !e.isDejaInscris && e.stareFram !== 'exceptie').map(e => e.sportiv.id),
     [enrichedFiltrat]
   );
 
   const allSelectableSelected =
     selectableIds.length > 0 && selectableIds.every(id => selected.has(id));
+
+  const cereToggle = (id: string, stareFram: StareFram) => {
+    if (stareFram === 'exceptie' && !selected.has(id)) {
+      const sp = sportivi.find(x => x.id === id);
+      setExceptieDeConfirmat({ id, nume: sp ? formatNume(sp) : '' });
+      return;
+    }
+    onToggle(id);
+  };
+
+  const nrBlocatiFram = enrichedFiltrat.filter(e => e.eligibilitate.status === 'blocat_fram').length;
+  const nrDezactivatiAltele = enrichedFiltrat.filter(e => e.isDisabled).length - nrBlocatiFram;
 
   const handleSelectAll = () => {
     if (allSelectableSelected) {
@@ -722,9 +750,14 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
           >
             {allSelectableSelected ? 'Deselecteaza tot' : `Selecteaza toti (${selectableIds.length})`}
           </button>
-          {enrichedFiltrat.filter(e => e.isDisabled).length > 0 && (
+          {nrDezactivatiAltele > 0 && (
             <span className="text-xs text-slate-500">
-              · {enrichedFiltrat.filter(e => e.isDisabled).length} cu date incomplete (exclusi)
+              · {nrDezactivatiAltele} cu date incomplete (exclusi)
+            </span>
+          )}
+          {nrBlocatiFram > 0 && (
+            <span className="text-xs text-red-400">
+              · {nrBlocatiFram} fără FRAM {anComp} (blocați de regula competiției)
             </span>
           )}
         </div>
@@ -739,7 +772,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
         <>
           {/* MOBIL: carduri */}
           <div className="flex flex-col gap-2 md:hidden">
-            {enrichedSortat.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
+            {enrichedSortat.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie, stareFram }) => (
               <CardSportiv
                 key={sportiv.id}
                 sportiv={sportiv}
@@ -750,7 +783,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                 varsta={varsta}
                 gradNume={gradNume}
                 gradAnomalie={gradAnomalie}
-                onToggle={() => !isDisabled && onToggle(sportiv.id)}
+                onToggle={() => !isDisabled && cereToggle(sportiv.id, stareFram)}
                 retrageUi={renderRetrage(sportiv.id)}
                 gradUi={renderSchimbaGrad(sportiv)}
               />
@@ -813,7 +846,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                 </tr>
               </thead>
               <tbody className="bg-slate-800/20">
-                {enrichedSortat.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie }) => (
+                {enrichedSortat.map(({ sportiv, varsta, gradNume, eligibilitate, isDejaInscris, isDisabled, gradAnomalie, stareFram }) => (
                   <RandTabelSportiv
                     key={sportiv.id}
                     sportiv={sportiv}
@@ -825,7 +858,7 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
                     gradNume={gradNume}
                     gradAnomalie={gradAnomalie}
                     gen={sportiv.gen}
-                    onToggle={() => !isDisabled && onToggle(sportiv.id)}
+                    onToggle={() => !isDisabled && cereToggle(sportiv.id, stareFram)}
                     retrageUi={renderRetrage(sportiv.id)}
                 gradUi={renderSchimbaGrad(sportiv)}
                   />
@@ -859,6 +892,18 @@ const Pas1SelectareSportivi: React.FC<Pas1Props> = ({
           </Button>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={!!exceptieDeConfirmat}
+        onClose={() => setExceptieDeConfirmat(null)}
+        onConfirm={() => {
+          if (exceptieDeConfirmat) onToggle(exceptieDeConfirmat.id);
+          setExceptieDeConfirmat(null);
+        }}
+        title="Excepție FRAM"
+        message={`Înscrii ${exceptieDeConfirmat?.nume ?? ''} fără viza FRAM ${anComp}? Competiția acceptă doar sportivi cu FRAM; excepția se înregistrează în jurnalul de audit la salvare.`}
+        confirmLabel="Confirm excepția"
+        variant="warning"
+      />
       {gradPrinCompetitie ? (
         <SchimbaGradCompetitieModal
           sportiv={sportivGrad}

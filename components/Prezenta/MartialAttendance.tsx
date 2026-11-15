@@ -2,7 +2,7 @@
 import { User } from '../../types';
 import { Button } from '../ui';
 import { ArrowLeftIcon, CalendarDaysIcon } from '../icons';
-import { useDataProvider } from '../../hooks/useDataProvider';
+import { useData } from '../../contexts/DataContext';
 import { TabelPrezentaVedere } from './TabelPrezentaVedere';
 
 interface AttendanceRecord {
@@ -72,7 +72,8 @@ interface MartialAttendanceProps {
 }
 
 export const MartialAttendance: React.FC<MartialAttendanceProps> = ({ currentUser, onBack }) => {
-    const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useDataProvider();
+    // Faza 38: contextul comun, nu o a doua instanta a providerului (dubla toate cererile)
+    const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useData();
 
     useEffect(() => {
         if (currentUser?.id) {

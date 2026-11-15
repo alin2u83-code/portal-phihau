@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { usePermissions } from '../hooks/usePermissions';
-import { useDataProvider } from '../hooks/useDataProvider';
+import { useData } from '../contexts/DataContext';
 import { View } from '../types';
 import { Card, StatCard, Skeleton } from './ui';
 import { UsersIcon, CreditCardIcon, BuildingOfficeIcon } from './icons';
@@ -11,7 +11,8 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
-    const { activeRoleContext } = useDataProvider();
+    // Faza 38: contextul comun, nu o a doua instanta a providerului (dubla toate cererile)
+    const { activeRoleContext } = useData();
     const permissions = usePermissions(activeRoleContext);
 
     const [counts, setCounts] = useState<{ sportivi: number; plati: number; cluburi: number; utilizatori: number } | null>(null);

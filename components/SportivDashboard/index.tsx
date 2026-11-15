@@ -13,7 +13,7 @@ import { AntrenamenteViitoare } from '../AntrenamenteViitoare';
 import { UpcomingTrainingsWidget } from '../UpcomingTrainingsWidget';
 import { SportivProgressChart } from '../Sportivi/SportivProgressChart';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Cell } from 'recharts';
-import { useDataProvider } from '../../hooks/useDataProvider';
+import { useData } from '../../contexts/DataContext';
 import { useAttendanceStats } from '../../hooks/useAttendanceStats';
 import { useDashboardPermissions } from '../../hooks/useDashboardPermissions';
 import { VizaMedicalaCard, areVizaValida } from './VizaMedicalaCard';
@@ -55,7 +55,8 @@ export const SportivDashboard: React.FC<SportivDashboardProps> = ({
     isAdminView = false
 }) => {
     const { showSuccess, showError } = useError();
-    const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useDataProvider();
+    // Faza 38: contextul comun, nu o a doua instanta a providerului (dubla toate cererile)
+    const { istoricPrezenta, fetchIstoricVedere, loadingIstoric } = useData();
     const { isViewingOwnProfile } = useDashboardPermissions(currentUser, viewedUser, permissions);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [openSection, setOpenSection] = useState<string>('');

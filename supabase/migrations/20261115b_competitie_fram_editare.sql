@@ -1,0 +1,31 @@
+-- Faza 42 (42-01): regula FRAM pe competitie, blocare FRAM la inscriere/membri, compatibilitate la schimbarea categoriei,
+-- inghetare editare dupa finalizata.
+-- NEAPLICATA, se aplica in 42-04 dupa OK explicit; supabase/ e in .gitignore, deci git add -f.
+--
+-- Decizii acoperite:
+--   D-01  competitii.fram_obligatoriu boolean NOT NULL DEFAULT false (opt-in per competitie).
+--   D-02  doar super adminul poate schimba flagul, doar cat competitia e 'draft' (trg_competitii_fram_imutabil).
+--   D-03  flagul nu se mai schimba daca exista participanti activi (fara reevaluare retroactiva).
+--   D-04  INSERT / reactivare inscriere / adaugare membru fara FRAM achitat sau scutit pe anul calendaristic al data_inceput
+--         este refuzat de DB (trg_participant_fram), indiferent de UI.
+--   D-05  exceptia super adminului scrie propriul rand in audit_log (marker exceptie_fram in date_noi).
+--   D-06  exceptia exista doar pentru super admin; ceilalti primesc 23514.
+--   D-07  reprezentantul editeaza doar cat inscrierile sunt deschise = gate-urile RLS live ic_r_gate_*, ec_r_gate_*, es_r_gate_*
+--         (migrarea 20261106e; de verificat live). Super adminul editeaza "pana la finalizata": trg_participant_competitie_finalizata.
+--   D-08  schimbarea categorie_id doar spre o categorie compatibila (aceeasi competitie, proba, tip_participare, arma),
+--         in trg_participant_categorie_activa.
+--   D-10  audit cu autor = audit_trigger_fn pe inscrieri/echipe/echipa_sportivi (20261111d, 20261111g; de verificat live).
+--
+-- Verificare live 15.11.2026: NEEFECTUATA in aceasta rulare (executorul 42-01 nu a avut acces la Supabase MCP / DB live).
+-- Ramane de rulat READ-ONLY inainte de 42-04 (11 interogari din 42-01-PLAN.md, Task 1), cu rezultatele trecute aici:
+--   (1) postgres.rolbypassrls ............ DE VERIFICAT live (STOP daca false)
+--   (2) FORCE RLS pe tabelele implicate .. DE VERIFICAT live
+--   (3) coloane / fram_obligatoriu inexistenta ... DE VERIFICAT live
+--   (4) CHECK audit_log.operatie ......... DE VERIFICAT live; din migrari (create_audit_log.sql, extend_audit_log_260705.sql)
+--                                          valorile permise NU includ 'EXCEPTIE_FRAM' => se foloseste operatie = 'INSERT' + marker
+--   (5) triggere audit_inscrieri_competitie / audit_echipe_competitie / audit_echipa_sportivi, trg_taxa_anuala_inscrieri_competitie
+--       (AFTER INSERT) ................... DE VERIFICAT live
+--   (6) text live trg_participant_categorie_activa vs 20261115a ....... DE VERIFICAT live; has_access_to_club vs INSTRUCTOR
+--   (7) politici RESTRICTIVE ic_r_gate_upd/del, ec_r_gate_upd/del, es_r_gate_ins/upd/del ... DE VERIFICAT live (STOP daca lipsesc)
+--   (8) FRAM pe an, max vize / club, FRAM an+1 ..... DE VERIFICAT live
+--   (9) event triggers, (10) functii omonime, (11) taxa_achitata false pe competitii finalizate ... DE VERIFICAT live

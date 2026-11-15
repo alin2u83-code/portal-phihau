@@ -112,7 +112,7 @@ export const EditareInscriereModal: React.FC<EditareInscriereModalProps> = ({
     setSaving(true);
     try {
       const tabel = tinta.tip === 'inscriere' ? 'inscrieri_competitie' : 'echipe_competitie';
-      const { data, error } = await supabase.from(tabel).update(patch).eq('id', tinta.id).select('id');
+      const { data, error } = await supabase.from(tabel).update(patch).eq('id', tinta.id).eq('categorie_id', curenta.id).select('id'); // garda: randul a fost mutat intre timp => 0 randuri
       if (error) { showError('Modificare înscriere', error.message); return; }
       if (!data?.length) { showError('Modificare înscriere', 'Înscrierile s-au închis; doar federația poate modifica.'); return; }
       showSuccess('Modificare salvată', alesa ? `Mutat în «${etichetaCat(alesa.cat)}».` : 'Quyen actualizat.');

@@ -273,7 +273,7 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                         ec.status === 'retrasa' ? 'bg-red-800 text-red-200' :
                         'bg-slate-700 text-slate-300'
                       }`}>{ec.status}</span>
-                      {poateEdita && (isSuperAdmin || ec.club_id === myClubId) && (
+                      {poateEdita && ec.status !== 'retrasa' && (isSuperAdmin || ec.club_id === myClubId) && (
                         <Button size="sm" variant="secondary" onClick={() => setEditare({ tip: 'echipa', id: ec.id })}
                           style={{ touchAction: 'manipulation' }}>Mută categoria</Button>
                       )}

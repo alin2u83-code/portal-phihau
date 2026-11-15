@@ -86,7 +86,7 @@ export async function deconecteaza(): Promise<void> {
     window.location.assign(window.location.pathname);
 }
 
-const COLOANE_COMPETITIE = 'id, denumire, tip, status, data_inceput, data_sfarsit, deadline_inscrieri, locatie';
+const COLOANE_COMPETITIE = 'id, denumire, tip, status, data_inceput, data_sfarsit, deadline_inscrieri, locatie, fram_obligatoriu';
 
 /** Competițiile vizibile clubului (RLS: competitie_vizibila_cont_club), împărțite în active / istoric (D-03, D-12). */
 export async function incarcaCompetitiiClub(clubId: string): Promise<{ data: CompetitiiClubClasificate; error: any }> {

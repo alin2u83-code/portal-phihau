@@ -27,6 +27,32 @@ assert.deepEqual(tipuri([ok], { armeAlese: new Map([['a', new Set(['bong'])]]), 
 assert.deepEqual(tipuri([], { echipeFaraArma: [{ id: 'e1', denumire: 'E', categorieArma: 'Bong' }] }), ['echipa-fara-arma']);
 // categorie fara arma -> nu se semnaleaza
 assert.deepEqual(tipuri([], { echipeFaraArma: [{ id: 'e1', denumire: 'E', categorieArma: null }] }), []);
+// Faza 42 (D-11, D-13..D-15): arme neeligibile la grad
+const alBong = { armeAlese: new Map([['a', new Set(['bong'])]]) };
+const faraDrept = () => new Set<string>();
+const lipsuri = (extra: any) => calculeazaLipsuriCvd({ ...base, sportivi: [ok], ...extra });
+// arma aleasa nepermisa gradului -> arma-neeligibila (nu fara-categorie), avertisment care nu blocheaza
+const l1 = lipsuri({ ...alBong, drepturiSportiv: faraDrept });
+assert.deepEqual(l1.map(l => l.tip), ['arma-neeligibila']);
+assert.ok(l1[0].text.includes('nu blochează'));
+// drepturi necunoscute (undefined) -> fara filtrare, comportament de azi
+assert.deepEqual(tipuri([ok], { ...alBong, drepturiSportiv: () => undefined }), ['fara-categorie']);
+// arma cu drept -> comportament normal
+assert.deepEqual(tipuri([ok], { ...alBong, drepturiSportiv: () => new Set(['bong']) }), ['fara-categorie']);
+// inscriere existenta pe arma neeligibila -> raman + avertisment (D-14); aleasa si inscrisa = un singur lipsa
+const insc = [{ sportivId: 'a', armaId: 'bong' }];
+const l2 = lipsuri({ ...alBong, drepturiSportiv: faraDrept, inscrieriArma: insc });
+assert.deepEqual(l2.map(l => l.tip), ['arma-neeligibila']);
+assert.ok(l2[0].text.includes('înscrierea rămâne'));
+// doar inscrisa (nealeasa): avertisment neeligibila, fara crash
+assert.equal(lipsuri({ drepturiSportiv: faraDrept, inscrieriArma: insc }).filter(l => l.tip === 'arma-neeligibila').length, 1);
+// inscrisa si eligibila -> niciun avertisment de neeligibilitate
+assert.equal(lipsuri({ ...alBong, drepturiSportiv: () => new Set(['bong']), inscrieriArma: insc }).filter(l => l.tip === 'arma-neeligibila').length, 0);
+// inscriere a unui sportiv absent din i.sportivi -> ignorata
+assert.deepEqual(tipuri([ok], { ...alBong, drepturiSportiv: () => undefined, inscrieriArma: [{ sportivId: 'zz', armaId: 'bong' }] }), ['fara-categorie']);
+// fara-arma e avertisment care nu blocheaza
+assert.ok(lipsuri({})[0].text.includes('nu blochează înscrierea'));
+
 // completitudine hub CVD
 import { completitudineCvd } from '../utils/armeCvdLipsuri';
 const al = new Map([['a', new Set(['bong', 'guom', 'dao'])]]);

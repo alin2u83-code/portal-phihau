@@ -1,6 +1,6 @@
 import { gradEfectivLaData } from './eligibilitateCompetitie';
 
-export type TipLipsa = 'fara-arma' | 'fara-categorie' | 'fara-forma' | 'fara-date' | 'echipa-fara-arma';
+export type TipLipsa = 'fara-arma' | 'arma-neeligibila' | 'fara-categorie' | 'fara-forma' | 'fara-date' | 'echipa-fara-arma';
 export interface Lipsa { id: string; tip: TipLipsa; text: string; sportivId?: string; categorieId?: string; probaId?: string }
 
 interface Intrare {
@@ -16,9 +16,13 @@ interface Intrare {
   verificaForme?: boolean;
   /** echipe Song Luyen active ale clubului, fara arma; se semnaleaza doar daca categoria are arma (`categorieArma`) */
   echipeFaraArma?: Array<{ id: string; denumire: string; categorieId?: string; probaId?: string; categorieArma?: string | null }>;
+  /** Faza 42: ids armelor permise gradului efectiv al sportivului; undefined = necunoscut, fara filtrare */
+  drepturiSportiv?: (sportivId: string) => Set<string> | undefined;
+  /** Faza 42: inscrierile active ale clubului care poarta arma_id */
+  inscrieriArma?: Array<{ sportivId: string; armaId: string }>;
 }
 
-/** Lipsurile CVD care blocheaza inscrierea corecta; fiecare tine cont ca fara grad/data nasterii categoria nu se poate calcula. */
+/** Lipsurile CVD; doar fara-forma blocheaza (apelantul decide), fara-arma si arma-neeligibila sunt avertismente. Fiecare tine cont ca fara grad/data nasterii categoria nu se poate calcula. */
 export function calculeazaLipsuriCvd(i: Intrare): Lipsa[] {
   const out: Lipsa[] = [];
   for (const s of i.sportivi) {
@@ -28,13 +32,27 @@ export function calculeazaLipsuriCvd(i: Intrare): Lipsa[] {
       out.push({ id: `date-${s.id}`, tip: 'fara-date', sportivId: s.id, text: `${n}: ${!grad ? 'fără grad' : 'fără dată de naștere'}, categoria nu se poate calcula` });
       continue;
     }
+    const drept = i.drepturiSportiv?.(s.id);
+    const raportate = new Set<string>();
+    // D-14: inscrierea pe o arma devenita neeligibila ramane; doar se semnaleaza
+    if (drept) {
+      for (const { sportivId, armaId } of i.inscrieriArma ?? []) {
+        if (sportivId !== s.id || drept.has(armaId) || raportate.has(armaId)) continue;
+        raportate.add(armaId);
+        out.push({ id: `neelig-insc-${s.id}-${armaId}`, tip: 'arma-neeligibila', sportivId: s.id, text: `${n} · ${i.denumireArma(armaId)}: înscris, dar arma nu mai este permisă gradului la data competiției — înscrierea rămâne; verifică gradul sau retrage-o` });
+      }
+    }
     const alese = i.armeAlese.get(s.id);
     if (!alese || alese.size === 0) {
-      out.push({ id: `arma-${s.id}`, tip: 'fara-arma', sportivId: s.id, text: `${n}: nicio armă aleasă` });
+      out.push({ id: `arma-${s.id}`, tip: 'fara-arma', sportivId: s.id, text: `${n}: nicio armă aleasă (avertisment, nu blochează înscrierea)` });
       continue;
     }
     for (const armaId of alese) {
       const a = i.denumireArma(armaId);
+      if (drept && !drept.has(armaId)) {
+        if (!raportate.has(armaId)) out.push({ id: `neelig-${s.id}-${armaId}`, tip: 'arma-neeligibila', sportivId: s.id, text: `${n} · ${a}: armă nepermisă gradului la data competiției — nu se înscrie (avertisment, nu blochează)` });
+        continue;
+      }
       if (!i.categoriePerArma.get(s.id)?.has(armaId)) {
         out.push({ id: `cat-${s.id}-${armaId}`, tip: 'fara-categorie', sportivId: s.id, text: `${n} · ${a}: nicio categorie potrivită` });
       } else if (i.verificaForme && !i.formaPerArma.get(s.id)?.get(armaId)) {

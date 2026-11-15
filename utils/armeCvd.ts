@@ -73,6 +73,18 @@ export function armeStale(alese: string[], disponibile: string[]): string[] {
   return alese.filter(id => !disponibile.includes(id));
 }
 
+/** Faza 42 D-11: doar armele la care gradul efectiv la data competitiei (D-12, rezolvat de apelant cu gradEfectivLaData) are drept. */
+export function armeEligibileLaGrad(arme: Arma[], drept: Set<string> | null | undefined): Arma[] {
+  return arme.filter(a => a.activ !== false && !!drept?.has(a.id));
+}
+
+/** Faza 42: de ce un sportiv nu are nicio arma disponibila (fara grad / gradul nu are arme / competitia nu are categorie). */
+export function motivFaraArme(p: { gradNume: string | null; armeCuDrept: string[]; varsta: number | null; gen: string | null }): string {
+  if (!p.gradNume) return 'Fără grad la data competiției: armele se stabilesc după grad.';
+  if (p.armeCuDrept.length === 0) return `Gradul ${p.gradNume} nu are nicio armă în programa tehnică (drepturi pe grad).`;
+  return `Gradul ${p.gradNume} are în programă ${p.armeCuDrept.join(', ')}, dar competiția nu are categorie pentru ${p.varsta ?? '?'} ani${p.gen ? ', ' + p.gen : ''} la aceste arme.`;
+}
+
 export function avertismentStagii(
   gradOrdine: number, nrStagiiLaArma: number,
   cerinte: Array<{ grad_min_ordine: number; grad_max_ordine: number; stagii_nationale: number }>,

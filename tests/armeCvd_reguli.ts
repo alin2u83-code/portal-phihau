@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   ARME_GIAO_DAU_CVD, ORDINE_PRIMA_CENTURA_NEAGRA, motivCombinatieInterzisa, categoriePentruArma,
-  conflicteCategorie, armePermiseGiaoDau, armeStale, avertismentStagii,
+  conflicteCategorie, armePermiseGiaoDau, armeStale, avertismentStagii, armeEligibileLaGrad, motivFaraArme,
 } from '../utils/armeCvd';
 
 // Fixture sintetice; tipurile urmeaza migrarea 20261105a (Long Gian = articulata, Moc Guom = lemn)
@@ -65,5 +65,16 @@ const cerinte = [{ grad_min_ordine: 21, grad_max_ordine: 24, stagii_nationale: 5
 assert.notEqual(avertismentStagii(23, 1, cerinte), null);
 assert.equal(avertismentStagii(23, 5, cerinte), null);
 assert.equal(avertismentStagii(10, 0, cerinte), null);
+
+// Faza 42: arme eligibile dupa grad (D-11) + motivul lipsei lor
+assert.deepEqual(armeEligibileLaGrad([bong, songCot, maDao], new Set(['Bong', 'Ma Dao'])).map(a => a.id), ['Bong', 'Ma Dao']);
+assert.deepEqual(armeEligibileLaGrad([bong], undefined), []);
+assert.deepEqual(armeEligibileLaGrad([bong], null), []);
+assert.deepEqual(armeEligibileLaGrad([{ ...bong, activ: false }, songCot], new Set(['Bong', 'Song Cot'])).map(a => a.id), ['Song Cot']);
+assert.ok(motivFaraArme({ gradNume: null, armeCuDrept: [], varsta: 12, gen: 'Feminin' }).includes('Fără grad'));
+const m0 = motivFaraArme({ gradNume: '3 Câp Roșu', armeCuDrept: [], varsta: 12, gen: 'Feminin' });
+assert.ok(m0.includes('3 Câp Roșu') && m0.includes('nu are nicio armă'));
+const m1 = motivFaraArme({ gradNume: '1 Câp Albastru', armeCuDrept: ['Bong', 'Moc Guom'], varsta: 12, gen: 'Feminin' });
+assert.ok(m1.includes('Bong, Moc Guom') && m1.includes('12 ani') && m1.includes('Feminin'));
 
 console.log('armeCvd_reguli: OK');

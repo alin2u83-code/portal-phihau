@@ -8,6 +8,7 @@ import { useData } from '../../contexts/DataContext';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { supabase } from '../../supabaseClient';
 import { useStareVizualizare } from '../../hooks/useStareVizualizare';
+import { useDateLaCerere } from '../../hooks/useDateLaCerere';
 
 type ReportTab = 'general' | 'per-grupa';
 
@@ -37,6 +38,8 @@ const GROUP_COLORS = ['#4DBCE9', '#3D3D99', '#16a34a', '#f59e0b', '#dc2626', '#8
 
 export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSportiv, onNavigate }) => {
     const { filteredData } = useData();
+    // Faza 38 D-03: raportul cere explicit istoricul complet; la pornire e doar fereastra -90/+30 zile
+    const { seIncarca: seIncarcaIstoric } = useDateLaCerere(['antrenamenteIstoricComplet']);
     const antrenamente = filteredData.antrenamente;
     const sportivi = filteredData.sportivi;
     const grupe = filteredData.grupe;
@@ -326,6 +329,9 @@ export const RaportPrezenta: React.FC<RaportPrezentaProps> = ({ onBack, onViewSp
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-white">Analiză Prezențe</h1>
+            {seIncarcaIstoric && (
+                <p className="text-sm text-slate-400">Se încarcă istoricul complet de prezență...</p>
+            )}
 
             {/* Selector tab General / Per Grupă */}
             <div className="flex gap-2">

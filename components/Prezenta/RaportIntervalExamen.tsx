@@ -4,6 +4,7 @@ import { Card, Button, Select } from '../ui';
 import { ArrowLeftIcon, DocumentArrowDownIcon } from '../icons';
 import { useData } from '../../contexts/DataContext';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useDateLaCerere } from '../../hooks/useDateLaCerere';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -158,6 +159,8 @@ export const RaportIntervalExamen: React.FC<RaportIntervalExamenProps> = ({
     onViewSportiv,
 }) => {
     const { filteredData, grade, activeRoleContext } = useData();
+    // Faza 38 D-03: raportul cere explicit istoricul complet; la pornire e doar fereastra -90/+30 zile
+    const { seIncarca: seIncarcaIstoric } = useDateLaCerere(['antrenamenteIstoricComplet']);
     const permissions = usePermissions(activeRoleContext);
 
     const sportivi = filteredData.sportivi;
@@ -231,6 +234,9 @@ export const RaportIntervalExamen: React.FC<RaportIntervalExamenProps> = ({
     // ── Render ──────────────────────────────────────────────────────────────
     return (
         <div className="p-4 space-y-4">
+            {seIncarcaIstoric && (
+                <p className="text-sm text-slate-400">Se încarcă istoricul complet de prezență...</p>
+            )}
             {/* Header */}
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3">

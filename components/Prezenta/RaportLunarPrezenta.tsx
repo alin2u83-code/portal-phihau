@@ -5,6 +5,7 @@ import { DocumentArrowDownIcon, ExclamationTriangleIcon, ChevronDownIcon, Chevro
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useData } from '../../contexts/DataContext';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useDateLaCerere } from '../../hooks/useDateLaCerere';
 import { supabase } from '../../supabaseClient';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────â”€â”€â”€â”€
@@ -89,6 +90,8 @@ interface RaportLunarPrezentaProps {
 
 export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack, onNavigate }) => {
     const { filteredData, grade, activeRoleContext } = useData();
+    // Faza 38 D-03: raportul cere explicit istoricul complet; la pornire e doar fereastra -90/+30 zile
+    const { seIncarca: seIncarcaIstoric } = useDateLaCerere(['antrenamenteIstoricComplet']);
     const permissions = usePermissions(activeRoleContext);
     const sportivi = filteredData.sportivi;
     const grupe = filteredData.grupe;
@@ -349,6 +352,10 @@ export const RaportLunarPrezenta: React.FC<RaportLunarPrezentaProps> = ({ onBack
             <div className="flex items-center gap-3">
                 <h1 className="text-xl md:text-3xl font-bold text-white truncate">Raport Lunar Prezență</h1>
             </div>
+
+            {seIncarcaIstoric && (
+                <p className="text-sm text-slate-400">Se încarcă istoricul complet de prezență...</p>
+            )}
 
             {/* Filtre */}
             <Card className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">

@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Competitie, CategorieCompetitie, ProbaCompetitie, InscriereCompetitie, EchipaCompetitie, Sportiv, Grad, Arma } from '../../types';
 import { supabase } from '../../supabaseClient';
-import { Button, Modal } from '../ui';
+import { Button, Modal, ConfirmModal } from '../ui';
 import { TIP_PROBA_LABELS } from '../../utils/competitiiTemplates';
 import { filtreazaSportiviEligibili, calculeazaVarstaLaData, gradEfectivLaData } from '../../utils/eligibilitateCompetitie';
 import { VizaSportiv } from '../../types';
 import { useError } from '../ErrorProvider';
-import { areVizaFRAM, WarningVizaFRAM, ArmePermiseGiaoDau } from './constants';
+import { WarningVizaFRAM, ArmePermiseGiaoDau } from './constants';
+import { statusFram, anFramCompetitie } from '../../utils/editareCompetitie';
+import type { StareFram } from '../../utils/editareCompetitie';
+import { sincronizeazaMembriEchipa } from '../../services/echipeCompetitieService';
+import { useData } from '../../contexts/DataContext';
+import { usePermissions } from '../../hooks/usePermissions';
 import type { useArmeCvd } from '../../hooks/useArmeCvd';
 import { categoriePentruArma } from '../../utils/armeCvd';
 import { calculeazaTaxaIndividuala, calculeazaTaxaEchipa } from '../../utils/taxeCompetitie';
@@ -38,7 +43,11 @@ export interface InscriereModalProps {
 export const InscriereModal: React.FC<InscriereModalProps> = ({
   competitie, categorie, sportivi, grade, inscrieri, echipe, clubId, numeClub, vizeSportivi, initialEditMode, arme, tipProba, categorii, categoriiToate, onClose, onSaved
 }) => {
-  const anCompetitie = new Date(competitie.data_inceput).getFullYear();
+  const anFram = anFramCompetitie(competitie);
+  const { activeRoleContext } = useData();
+  const esteSuperAdmin = !!usePermissions(activeRoleContext).isSuperAdmin;
+  // Faza 42 D-05: excepție FRAM a super adminului, confirmată explicit înainte de a adăuga sportivul
+  const [exceptie, setExceptie] = useState<{ nume: string; aplica: () => void } | null>(null);
   const { showError } = useError();
   const [loading, setLoading] = useState(false);
   const [retragereLoading, setRetragereLoading] = useState<string | null>(null);
@@ -119,6 +128,22 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
     ) ?? null;
   }, [echipe, categorie.id, clubId, isTeam]);
 
+  // Membrii echipei editate sunt deja înscriși: DB verifică FRAM doar pentru membri noi, deci aici nu se blochează
+  const membriEchipaEditata = new Set<string>(
+    editMode && echipaDejaInscrisa ? ((echipaDejaInscrisa as any).echipa_sportivi || []).map((m: any) => m.sportiv_id) : []
+  );
+  const stareFram = (id: string): StareFram => {
+    const st = statusFram(competitie, id, vizeSportivi, esteSuperAdmin);
+    return membriEchipaEditata.has(id) && (st === 'blocat' || st === 'exceptie') ? 'avertisment' : st;
+  };
+  // adăugare cu excepție FRAM => confirmare; altfel aplică direct
+  const cuConfirmare = (id: string, adauga: boolean, aplica: () => void) => {
+    if (adauga && stareFram(id) === 'exceptie') {
+      const s = sportivi.find(x => x.id === id);
+      setExceptie({ nume: s ? `${s.nume} ${s.prenume}` : 'sportivul', aplica });
+    } else aplica();
+  };
+
   // Check already inscribed (pentru această categorie) — exclude sportivii retrași local în această sesiune
   const inscrisPrev = new Set(
     inscrieri
@@ -158,7 +183,9 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
   };
 
   // Task 3: selectare în masă
-  const allEligibiliNeinscrisi = eligibiliSortati.neinscrisi.map(e => e.sportiv.id);
+  // select-all sare peste sportivii fără FRAM (blocați sau cu excepție: excepția se confirmă per sportiv)
+  const allEligibiliNeinscrisi = eligibiliSortati.neinscrisi.map(e => e.sportiv.id)
+    .filter(id => { const st = stareFram(id); return st === 'ok' || st === 'avertisment'; });
   const allSelected = allEligibiliNeinscrisi.length > 0 &&
     allEligibiliNeinscrisi.every(id => selectedTitulari.includes(id));
   // Selectare toți individuali
@@ -256,24 +283,23 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
         }
         const eIncompleta = selectedTitulari.length < categorie.sportivi_per_echipa_min;
         if (!eIncompleta) validateMixtGender(selectedTitulari);
-        const { error: updErr } = await supabase.from('echipe_competitie')
+        // D-08: membrii se sincronizează pe diferență (adaugă -> rol -> scoate), nu delete-all + insert-all
+        const rezSync = await sincronizeazaMembriEchipa(
+          (echipaDejaInscrisa as any).id,
+          ((echipaDejaInscrisa as any).echipa_sportivi || []).map((m: any) => ({ sportiv_id: m.sportiv_id, rol: m.rol })),
+          [
+            ...selectedTitulari.map(id => ({ sportiv_id: id, rol: 'titular' as const })),
+            ...selectedRezerve.map(id => ({ sportiv_id: id, rol: 'rezerva' as const })),
+          ],
+        );
+        if (!rezSync.ok) throw new Error(rezSync.mesaj || 'Eroare la salvarea membrilor');
+        // D-09: taxele nu se ating
+        const { data: ecModif, error: updErr } = await supabase.from('echipe_competitie')
           .update({ denumire_echipa: ((echipaDejaInscrisa as any).denumire_echipa || numeClub.trim() || null), echipa_incompleta: eIncompleta, ...(isCvdEchipa ? { arma_id: armaEchipaId } : {}) })
-          .eq('id', (echipaDejaInscrisa as any).id);
+          .eq('id', (echipaDejaInscrisa as any).id)
+          .select('id');
         if (updErr) throw updErr;
-        // Ștergem membrii vechi și inserăm cei noi
-        const { error: delErr } = await supabase
-          .from('echipa_sportivi')
-          .delete()
-          .eq('echipa_id', (echipaDejaInscrisa as any).id);
-        if (delErr) throw delErr;
-        const members = [
-          ...selectedTitulari.map(id => ({ echipa_id: (echipaDejaInscrisa as any).id, sportiv_id: id, rol: 'titular' })),
-          ...selectedRezerve.map(id => ({ echipa_id: (echipaDejaInscrisa as any).id, sportiv_id: id, rol: 'rezerva' })),
-        ];
-        if (members.length > 0) {
-          const { error: mErr } = await supabase.from('echipa_sportivi').insert(members);
-          if (mErr) throw mErr;
-        }
+        if (!ecModif?.length) throw new Error('Înscrierile s-au închis; doar federația poate modifica.');
       } else {
         if (selectedTitulari.length === 0) {
           throw new Error('Selectează cel puțin un titular');
@@ -318,7 +344,8 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
       ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput)
       : null;
     const grad = grade.find(g => g.id === sportiv.grad_actual_id);
-    const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
+    const stare = stareFram(sportiv.id);
+    const faraViza = stare !== 'ok';
     const isChecked = selectedIndividuali.includes(sportiv.id);
     const isRetragandLoading = retragereLoading === sportiv.id;
     return (
@@ -333,9 +360,9 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
         <input
           type="checkbox"
           value={sportiv.id}
-          disabled={deja}
+          disabled={deja || stare === 'blocat'}
           checked={isChecked || deja}
-          onChange={() => !deja && toggleIndividual(sportiv.id)}
+          onChange={() => !deja && stare !== 'blocat' && cuConfirmare(sportiv.id, !isChecked, () => toggleIndividual(sportiv.id))}
           className="w-4 h-4 cursor-pointer"
           style={{ cursor: deja ? 'default' : 'pointer' }}
         />
@@ -347,13 +374,20 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
                 Inscris
               </span>
             )}
-            <WarningVizaFRAM show={faraViza} inline />
+            <WarningVizaFRAM show={faraViza} inline blocat={stare === 'blocat'} an={anFram} />
           </div>
           <div className="text-xs text-slate-400">
             {varsta !== null ? `${varsta} ani` : ''}{grad?.nume ? ` · ${grad.nume}` : ''}
           </div>
           {arataArmeGiaoDau && arme && (
-            <ArmePermiseGiaoDau arme={arme.arme} alese={arme.competitieArme.get(sportiv.id) ?? arme.implicit.get(sportiv.id)} />
+            <ArmePermiseGiaoDau
+              arme={arme.arme}
+              alese={arme.competitieArme.get(sportiv.id) ?? arme.implicit.get(sportiv.id)}
+              eligibile={(() => {
+                const g = gradEfectivLaData(sportiv, grade, competitie.data_inceput);
+                return g && arme.drepturi.size > 0 ? (arme.drepturi.get(g.id) ?? new Set<string>()) : undefined;
+              })()}
+            />
           )}
         </div>
         {deja && (
@@ -377,7 +411,8 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
       ? calculeazaVarstaLaData(sportiv.data_nasterii, competitie.data_inceput) : null;
     const grad = grade.find(g => g.id === sportiv.grad_actual_id);
     const isRezerva = selectedRezerve.includes(sportiv.id);
-    const faraViza = !areVizaFRAM(sportiv.id, anCompetitie, vizeSportivi);
+    const stare = stareFram(sportiv.id);
+    const faraViza = stare !== 'ok';
     const isMixtBlocked = !deja && !selectedTitulari.includes(sportiv.id) && categorie.gen === 'Mixt' && (() => {
       const newList = [...selectedTitulari, sportiv.id];
       const nM = newList.filter(sid => sportivi.find(s => s.id === sid)?.gen === 'Masculin').length;
@@ -385,7 +420,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
       const libre = (categorie.sportivi_per_echipa_max || 0) - newList.length;
       return (nM === 0 ? 1 : 0) + (nF === 0 ? 1 : 0) > libre;
     })();
-    const isDisabled = deja || isRezerva || isMixtBlocked;
+    const isDisabled = deja || isRezerva || isMixtBlocked || stare === 'blocat';
     return (
       <label key={sportiv.id} style={{ touchAction: 'manipulation' }} className={`flex items-center gap-3 p-2 rounded cursor-pointer border transition-colors ${
         isDisabled ? 'opacity-40 cursor-not-allowed border-transparent' :
@@ -396,7 +431,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
       >
         <input type="checkbox" checked={selectedTitulari.includes(sportiv.id) || deja}
           disabled={isDisabled}
-          onChange={() => !isDisabled && toggleTitular(sportiv.id)}
+          onChange={() => !isDisabled && cuConfirmare(sportiv.id, !selectedTitulari.includes(sportiv.id), () => toggleTitular(sportiv.id))}
           className="w-4 h-4" />
         <div className="flex-1">
           <div className="flex items-center gap-1 flex-wrap">
@@ -406,7 +441,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
                 In echipă
               </span>
             )}
-            <WarningVizaFRAM show={faraViza} inline />
+            <WarningVizaFRAM show={faraViza} inline blocat={stare === 'blocat'} an={anFram} />
             {!sportiv.gen && (
               <span className="text-[10px] font-bold text-amber-400 bg-amber-900/30 border border-amber-700/50 rounded-full px-1.5 py-0.5"
                 title="Genul nu este setat în profilul sportivului">
@@ -429,6 +464,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
   };
 
   return (
+    <>
     <Modal isOpen={true} onClose={handleClose} title={`Înscrie la: ${categorie.denumire}`}>
       <div className="-m-4 sm:-m-6">
       <div className="p-4 sm:p-6 space-y-4">
@@ -692,7 +728,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
                 </div>
                 <div className="max-h-32 overflow-y-auto overscroll-contain space-y-1">
                   {eligibili.map(({ sportiv }) => {
-                    const isTitular = selectedTitulari.includes(sportiv.id);
+                    const isTitular = selectedTitulari.includes(sportiv.id) || stareFram(sportiv.id) === 'blocat';
                     return (
                       <label key={sportiv.id} style={{ touchAction: 'manipulation' }} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer border text-xs ${
                         isTitular ? 'opacity-40 cursor-not-allowed border-transparent' :
@@ -701,7 +737,7 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
                       }`}>
                         <input type="checkbox" checked={selectedRezerve.includes(sportiv.id)}
                           disabled={isTitular}
-                          onChange={() => toggleRezerva(sportiv.id)}
+                          onChange={() => cuConfirmare(sportiv.id, !selectedRezerve.includes(sportiv.id), () => toggleRezerva(sportiv.id))}
                           className="w-3 h-3" />
                         <span className="text-slate-300 uppercase">{sportiv.nume} {sportiv.prenume}</span>
                       </label>
@@ -718,9 +754,9 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
           const selectedIds = isTeam
             ? [...selectedTitulari, ...selectedRezerve]
             : selectedIndividuali;
-          const faraVizaCount = selectedIds.filter(id => !areVizaFRAM(id, anCompetitie, vizeSportivi)).length;
+          const faraVizaCount = selectedIds.filter(id => stareFram(id) !== 'ok').length;
           return faraVizaCount > 0 ? (
-            <WarningVizaFRAM show={true} />
+            <WarningVizaFRAM show={true} blocat={!!competitie.fram_obligatoriu && !esteSuperAdmin} an={anFram} />
           ) : null;
         })()}
       </div>
@@ -747,5 +783,16 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
       </div>
       </div>
     </Modal>
+    {/* în afara Modal: un click pe fundalul confirmării nu trebuie să ajungă la onClose-ul modalului (portal bubbling) */}
+    <ConfirmModal
+      isOpen={!!exceptie}
+      onClose={() => setExceptie(null)}
+      onConfirm={() => { exceptie?.aplica(); setExceptie(null); }}
+      title="Excepție FRAM"
+      message={`Înscrii ${exceptie?.nume ?? ''} fără viza FRAM ${anFram}? Competiția acceptă doar sportivi cu FRAM; excepția se înregistrează în jurnalul de audit la salvare.`}
+      confirmLabel="Confirm excepția"
+      variant="warning"
+    />
+    </>
   );
 };

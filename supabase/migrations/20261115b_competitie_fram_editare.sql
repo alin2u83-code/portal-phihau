@@ -1,6 +1,6 @@
 -- Faza 42 (42-01): regula FRAM pe competitie, blocare FRAM la inscriere/membri, compatibilitate la schimbarea categoriei,
 -- inghetare editare dupa finalizata.
--- NEAPLICATA, se aplica in 42-04 dupa OK explicit; supabase/ e in .gitignore, deci git add -f.
+-- APLICATA LIVE 2026-11-15 (42-04, dupa OK explicit). supabase/ e in .gitignore, deci git add -f.
 --
 -- Decizii acoperite:
 --   D-01  competitii.fram_obligatoriu boolean NOT NULL DEFAULT false (opt-in per competitie).

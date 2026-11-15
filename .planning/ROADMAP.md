@@ -567,14 +567,24 @@ Plans:
 
 ### Phase 38: Performanta incarcare aplicatie: eliminare statement timeouts (57014) la pornire — politici RLS mari si multe interogari concurente (vedere_*, sesiuni_examene, vize_sportivi, istoric grade); obiectiv login fara Eroare de Sistem, interogari sub 8s cu 3500 sportivi
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Login si pornire fara "Eroare de Sistem" (statement timeout 8 s), inclusiv ca SUPER_ADMIN_FEDERATIE, cu 3500 sportivi; pagina MFA apare imediat. Se repara cauza (furtuna de cereri, date necritice care doboara aplicatia, view-uri cu multiplicatori per rand), fara ridicarea statement_timeout. RLS se rescrie doar daca masuratorile o cer, cu dovada de ne-largire.
+**Requirements**: D-01..D-04 (38-CONTEXT.md)
 **Depends on:** Phase 37
-**Plans:** 0 plans
+**Plans:** 11 plans (8 valuri; 38-10/38-11 conditionate de masuratori)
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 38 to break down)
+- [ ] 38-01-PLAN.md — Wave 0: masuratori live L1-L11, EXPLAIN E0-E6 (rollback), L10 eroarea SUPER_ADMIN, baseline browser (orchestrator)
+- [ ] 38-02-PLAN.md — contracte pure: limitator, retry fara timeout, fereastra prezenta, bucati .in(), processSettledQueries fara [] la eroare
+- [ ] 38-03-PLAN.md — hook-uri: enabled guards, count doar cu paginare, prezenta pe bucati; eliminare 3 instante duble useDataProvider()
+- [ ] 38-04-PLAN.md — useDataProvider: poarta MFA (D-02), attendance scos din loading/error, pornire limitata, incarcare la cerere (D-01), fereastra (D-03)
+- [ ] 38-05-PLAN.md — harta view -> date grele + AppRouter cere datele ecranului (D-01)
+- [ ] 38-06-PLAN.md — rapoarte/activitati/calendar/program cer istoricul complet de prezenta (D-03)
+- [ ] 38-07-PLAN.md — verificare pe vite build+preview vs baseline (SUPER_ADMIN, ADMIN_CLUB, MFA, lazy, timeout simulat)
+- [ ] 38-08-PLAN.md — migrari Wave 2 (count pre-agregat, @> + GIN, indexuri, unschedule cron) + script amprenta RLS
+- [ ] 38-09-PLAN.md — [BLOCKING] dovada amprenta + OK + aplicare live Wave 2 + regresie RLS
+- [ ] 38-10-PLAN.md — [BLOCKING] decizie Wave 3 pe cifre + migrare RLS (select fn()) / helperi set-based (doar la go)
+- [ ] 38-11-PLAN.md — [BLOCKING] dovada matrice + OK + aplicare Wave 3 + regresie completa (doar la go)
 
 ### Phase 39: Cont unic de competitie per club: zona competitionala implicita, lista competitii + istoric, autor modificari declarativ, buton management cu zona de test
 

@@ -6,6 +6,7 @@ import { VizaSportiv } from '../../types';
 import { useError } from '../ErrorProvider';
 import { areVizaFRAM, WarningVizaFRAM, categorieActiva } from './constants';
 import { InscriereModal } from './InscriereModal';
+import { EditareInscriereModal } from './EditareInscriereModal';
 import { CompetitieFilterBar } from './CompetitieFilterBar';
 import { aplicaFiltreCategorie } from '../../hooks/useCompetitieFilters';
 import type { CompetitieFiltre } from '../../hooks/useCompetitieFilters';
@@ -22,6 +23,8 @@ export interface InscrieriViewProps {
   isAdmin: boolean;
   isClubAdmin: boolean;
   isSuperAdmin?: boolean;
+  /** Faza 42 D-07: calculat in CompetitieDetail (canEditEchipe); doar UX, RLS e poarta. */
+  poateEdita?: boolean;
   myClubId: string | null;
   numeClub: string;
   vizeSportivi: VizaSportiv[];
@@ -40,7 +43,7 @@ const BadgeFaraCategorie: React.FC = () => (
 );
 
 export const InscrieriView: React.FC<InscrieriViewProps> = ({
-  competitie, categorii, categoriiToate, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, isSuperAdmin, myClubId, numeClub, vizeSportivi, sportivi, onRefresh,
+  competitie, categorii, categoriiToate, probe, inscrieri, echipe, grade, isAdmin, isClubAdmin, isSuperAdmin, poateEdita = false, myClubId, numeClub, vizeSportivi, sportivi, onRefresh,
   filtre, toggleGen, setFiltre, resetFiltre, nrFiltreActive
 }) => {
   const { showError } = useError();
@@ -52,6 +55,7 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
   const [expandedProbe, setExpandedProbe] = useState<Set<string>>(new Set(['__individual__', '__echipe__', ...probe.map(p => p.id)]));
   const [editEchipaCategorie, setEditEchipaCategorie] = useState<CategorieCompetitie | null>(null);
   const [editEchipaClubId, setEditEchipaClubId] = useState<string>('');
+  const [editare, setEditare] = useState<{ tip: 'inscriere' | 'echipa'; id: string } | null>(null);
   const categoriiVizibile = useMemo(() => {
     const areFiltre = filtre.gen.size > 0 || filtre.probaId || filtre.varstaMin ||
       filtre.varstaMax || filtre.gradMin || filtre.gradMax;
@@ -189,6 +193,10 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                       </td>
                       <td className="p-2 text-right">
                         <div className="flex flex-col sm:flex-row gap-1 items-end sm:items-center justify-end">
+                          {poateEdita && ins.status !== 'retras' && (isSuperAdmin || ins.club_id === myClubId) && (
+                            <Button size="sm" variant="secondary" onClick={() => setEditare({ tip: 'inscriere', id: ins.id })}
+                              className="text-xs !py-1">Editează</Button>
+                          )}
                           {!isSuperAdmin && ins.status === 'inscris' && (isAdmin || ins.club_id === myClubId) && (
                             <Button size="sm" variant="danger" onClick={() => handleRetrage(ins.id, 'inscris')}
                               className="text-xs !py-1">Retrage</Button>
@@ -265,7 +273,11 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
                         ec.status === 'retrasa' ? 'bg-red-800 text-red-200' :
                         'bg-slate-700 text-slate-300'
                       }`}>{ec.status}</span>
-                      {(isAdmin || (isClubAdmin && ec.club_id === myClubId)) && (
+                      {poateEdita && (isSuperAdmin || ec.club_id === myClubId) && (
+                        <Button size="sm" variant="secondary" onClick={() => setEditare({ tip: 'echipa', id: ec.id })}
+                          style={{ touchAction: 'manipulation' }}>Mută categoria</Button>
+                      )}
+                      {poateEdita && (isAdmin || (isClubAdmin && ec.club_id === myClubId)) && (
                         <Button
                           size="sm"
                           variant="secondary"
@@ -318,6 +330,20 @@ export const InscrieriView: React.FC<InscrieriViewProps> = ({
           initialEditMode={true}
           onClose={() => { setEditEchipaCategorie(null); setEditEchipaClubId(''); }}
           onSaved={() => { setEditEchipaCategorie(null); setEditEchipaClubId(''); onRefresh(); }}
+        />
+      )}
+
+      {editare && (
+        <EditareInscriereModal
+          competitie={competitie}
+          probe={probe}
+          categorii={categoriiToate ?? categorii}
+          inscrieri={inscrieri}
+          echipe={echipe}
+          grade={grade}
+          tinta={editare}
+          onClose={() => setEditare(null)}
+          onSaved={() => { setEditare(null); startTransition(() => onRefresh()); }}
         />
       )}
 

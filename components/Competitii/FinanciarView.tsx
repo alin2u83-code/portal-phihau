@@ -2,7 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { Competitie, CategorieCompetitie, InscriereCompetitie, EchipaCompetitie } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { useError } from '../ErrorProvider';
+import { useQuery } from '@tanstack/react-query';
 import { construiesteRanduriPlata } from '../../utils/taxeCompetitie';
+import { taxeDeReglatDupaMutari, type MutareCategorieAudit } from '../../utils/editareCompetitie';
+import BannerDeRezolvat from './InscriereClubWizard/BannerDeRezolvat';
 
 interface RandFinanciar {
   tip: 'individual' | 'echipa';
@@ -69,6 +72,31 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
 
     return Array.from(map.values()).sort((a, b) => a.numeClub.localeCompare(b.numeClub));
   }, [inscrieri, echipe, categorii, competitie]);
+
+  // D-09: mutarile de categorie se citesc din audit_log (UPDATE cu categorie_id diferit); nimic nu se scrie, nu se recalculeaza, nu se factureaza
+  const { data: mutari, error: eroareMutari } = useQuery({
+    queryKey: ['taxe-de-reglat', competitie.id],
+    staleTime: 0,
+    queryFn: async (): Promise<MutareCategorieAudit[]> => {
+      const out: MutareCategorieAudit[] = [];
+      for (let de = 0; ; de += 1000) {
+        const { data, error } = await supabase.from('audit_log')
+          .select('rand_id, tabel, created_at, cat_veche:date_vechi->>categorie_id, cat_noua:date_noi->>categorie_id')
+          .eq('competitie_id', competitie.id)
+          .in('tabel', ['inscrieri_competitie', 'echipe_competitie'])
+          .eq('operatie', 'UPDATE')
+          .order('created_at', { ascending: true })
+          .range(de, de + 999);
+        if (error) throw error;
+        for (const r of (data ?? []) as any[]) {
+          if (r.rand_id && r.cat_veche && r.cat_noua && r.cat_veche !== r.cat_noua) {
+            out.push({ tip: r.tabel === 'echipe_competitie' ? 'echipa' : 'inscriere', id: r.rand_id, categorieVeche: r.cat_veche, categorieNoua: r.cat_noua, data: r.created_at });
+          }
+        }
+        if ((data?.length ?? 0) < 1000) return out;
+      }
+    },
+  });
 
   const toggleExpand = (clubId: string) => {
     setExpandedClubs(prev => {
@@ -138,6 +166,16 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const deRezolvat = useMemo(() => taxeDeReglatDupaMutari(mutari ?? [], { competitie, categorii, inscrieri, echipe }).map(t => ({
+    id: `${t.tip}:${t.id}`,
+    text: `${t.nume} (${situatie.find(c => c.clubId === t.clubId)?.numeClub ?? '—'}): mutat din «${t.categorieInitiala}» în «${t.categorieCurenta}» — taxa calculată ${t.taxaVeche} → ${t.taxaNoua} lei${t.achitata ? '; era achitată: diferența se reglează cu clubul' : ''}`,
+    actiune: 'Vezi clubul',
+    onClick: () => {
+      setExpandedClubs(prev => new Set(prev).add(t.clubId));
+      setTimeout(() => document.getElementById(`fin-club-${t.clubId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+    },
+  })), [mutari, competitie, categorii, inscrieri, echipe, situatie]);
+
   const totalGeneral = situatie.reduce((s, c) => s + c.totalCalculat, 0);
   const totalAchitatGeneral = situatie.reduce((s, c) => s + c.totalAchitat, 0);
   const totalAnulatAchitatGeneral = situatie.reduce((s, c) => s + c.totalAchitatAnulat, 0);
@@ -165,6 +203,11 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
         </button>
       </div>
 
+      {eroareMutari && (
+        <p className="text-xs text-red-400">Mutările de categorie nu au putut fi verificate: {(eroareMutari as Error).message}</p>
+      )}
+      <BannerDeRezolvat items={deRezolvat} />
+
       <div className="border border-[var(--t-border)] rounded-xl overflow-hidden">
         {/* Header tabel */}
         <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 px-4 py-2 text-xs font-semibold border-b border-[var(--t-border)]" style={{ background: 'var(--t-table-header-bg)', color: 'var(--t-table-header-text)' }}>
@@ -187,7 +230,7 @@ export const FinanciarView: React.FC<FinanciarViewProps> = ({
           const nrEchipe = club.randuri.filter(r => r.tip === 'echipa' && !r.taxaAnulata).length;
 
           return (
-            <div key={club.clubId} className="border-b border-[var(--t-border)] last:border-0">
+            <div key={club.clubId} id={`fin-club-${club.clubId}`} className="border-b border-[var(--t-border)] last:border-0">
               {/* Rand club */}
               <div
                 className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 px-4 py-3 cursor-pointer hover:bg-[var(--t-table-row-hover)] transition-colors items-center"

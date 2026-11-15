@@ -250,6 +250,13 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
   // reprezentantul poate schimba gradul prin RPC (Faza 40); instructorii externi doar vad. Garda reala e in RPC.
   const canEditGradExtern = extern && externRol === 'REPREZENTANT_COMPETITIE' && !istoricExtern;
   const canEditArme = competitie.status === 'inscrieri_deschise' && (permissions.isAdminClub || permissions.isSuperAdmin || permissions.isFederationAdmin) && externRol !== 'INSTRUCTOR';
+  // Faza 42 D-07: editare inscrieri (quyen/categorie/componenta). Doar UX; poarta reala e RLS 20261106e + inghetul DB pe competitie finalizata.
+  // Super admin din portalul federatiei: pana la finalizare; ceilalti: inscrieri deschise si termen nedepasit (zi calendaristica Bucuresti).
+  const azi = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Bucharest' });
+  const canEditEchipe = (permissions.isSuperAdmin && !extern)
+    ? competitie.status !== 'finalizata'
+    : (competitie.status === 'inscrieri_deschise' && (!competitie.deadline_inscrieri || competitie.deadline_inscrieri >= azi) && !istoricExtern
+      && (permissions.isAdminClub || permissions.isFederationAdmin) && externRol !== 'INSTRUCTOR');
 
   // Modal categorie: activi + inactivii înscriși DOAR la categoria deschisă (nu apar selectabili la alte categorii)
   const sportiviModalInscriere = useMemo(() => {
@@ -733,6 +740,7 @@ export const CompetitieDetail: React.FC<CompetitieDetailProps> = ({ competitie, 
                   isAdmin={isAdmin}
                   isClubAdmin={isClubAdmin}
                   isSuperAdmin={permissions.isSuperAdmin}
+                  poateEdita={canEditEchipe}
                   myClubId={myClubId || null}
                   numeClub={currentUser?.cluburi?.nume ?? ''}
                   vizeSportivi={vizeSportivi}

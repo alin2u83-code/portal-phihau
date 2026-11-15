@@ -874,6 +874,8 @@ export interface Competitie {
   observatii: string | null;
   legacy_eveniment_id: string | null;
   created_at: string;
+  // Faza 42 D-01: doar sportivi cu FRAM pe anul competitiei; se seteaza doar in draft
+  fram_obligatoriu?: boolean;
 }
 
 export interface ProbaCompetitie {

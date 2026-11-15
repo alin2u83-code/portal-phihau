@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { 
     Sportiv, SesiuneExamen, Grad, InscriereExamen, Antrenament, Grupa, Plata,
     Eveniment, Rezultat, PretConfig, TipAbonament, Familie, User, Tranzactie,
     Rol, AnuntPrezenta, Reducere, TipPlata, Locatie, Club, DecontFederatie, IstoricGrade, IstoricPlataDetaliat, VederePrezentaSportiv, FilteredData,
-    TaxaAnualeConfig, VizaSportiv, DecontSportiv, TaxaAnualaFederatieConfig
+    TaxaAnualeConfig, VizaSportiv, DecontSportiv, TaxaAnualaFederatieConfig, CheieLaCerere
 } from '../types';
 import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { withCleanUuidFilters } from '../utils/supabaseFilters';
 import { processSettledQueries, SettledQuery } from '../utils/supabaseHelpers';
+import { ruleazaCuLimita, fereastraPrezenta, incarcaToatePaginile } from '../utils/incarcareDate';
 import { useUserRoles } from './useUserRoles';
 import { aplicaRamaneInAsteptare } from '../services/emailMfaService';
 import { notificaIncercareLogin } from '../services/alertaSecuritateService';
@@ -63,8 +64,64 @@ const initialData: AppData = {
     istoricPlatiDetaliat: [], istoricPrezenta: [], taxeAnualeConfig: [], taxaAnualaFederatieConfig: [], vizeSportivi: [], decontSportivi: [], allowedClubs: []
 };
 
+// Max cereri simultane la pornire: o conexiune PostgREST ramane 'aborted' ~34 s dupa un 57014 (38-01-LIVE L10).
+const LIMITA_PORNIRE = 4;
+const LIMITA_LA_CERERE = 3;
+
+// Sarcini ca thunk-uri: builder-ele supabase sunt lazy si pornesc la await, deci limitatorul decide cand pleaca fiecare.
+type Cereri = Record<string, () => PromiseLike<any>>;
+
+const infoContext = (ctx: any) => {
+    const rol = ctx.roluri?.nume || ctx.rol_denumire;
+    const nivelFederatie = rol === 'SUPER_ADMIN_FEDERATIE' || rol === 'ADMIN';
+    return { esteSportiv: rol === 'SPORTIV', clubId: (!nivelFederatie && ctx.club_id) ? ctx.club_id : null };
+};
+
+const avertizeazaDatePartiale = (chei: string[]) => {
+    console.warn(`Date neincarcate (server ocupat): ${chei.join(', ')}`);
+    toast.error('Unele date nu s-au putut încărca (server ocupat). Redeschide pagina pentru a reîncerca.', { id: 'date-partiale' });
+};
+
+// Seturile mari, incarcate doar cand un ecran le cere (D-01). 'plati' si 'antrenamenteIstoricComplet' nu sunt aici: au hook propriu.
+const construiesteCereriLaCerere = (ctx: any): Cereri => {
+    const db = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
+    const { esteSportiv, clubId } = infoContext(ctx);
+    const cereri: Cereri = {
+        reduceri: () => db.from('reduceri').select('*'),
+        rezultate: () => db.from('rezultate').select('*'),
+        tranzactii: () => db.from('tranzactii').select('*'),
+        istoricPlatiDetaliat: () => db.from('view_istoric_plati_detaliat').select('*'),
+        deconturiFederatie: () => db.from('deconturi_federatie').select('*'),
+        vizeSportivi: () => db.from('vize_sportivi').select(SELECT_VIZE_CU_PLATA),
+        decontSportivi: () => db.from('decont_sportivi').select('*'),
+        taxaAnualaFederatieConfig: () => db.from('taxa_anuala_config').select('*'),
+        preturiConfig: () => db.from('preturi_config').select('*'),
+    };
+
+    if (esteSportiv && ctx.sportiv_id) {
+        cereri.inscrieriExamene = () => db.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('sportiv_id', ctx.sportiv_id);
+        cereri.istoricGrade = () => db.from('vedere_istoric_grade_sportiv').select('*').eq('sportiv_id', ctx.sportiv_id);
+    } else {
+        cereri.inscrieriExamene = () => clubId
+            ? db.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('club_id', clubId)
+            : db.from('vedere_detalii_examen').select('*, id:inscriere_id');
+
+        // PostgREST limiteaza la 1000 de randuri/request (un club poate avea >1000 in istoric_grade): paginam cu .range().
+        // Scop dupa club_id (derivat din sportivi.club_id in view), NU .in('sportiv_id', ids): URL de 14-17KB blocheaza gateway-ul
+        // (vezi .planning/debug/resolved/loading-hang-istoric-grade.md).
+        cereri.istoricGrade = () => incarcaToatePaginile<any>((from, to) => clubId
+            ? db.from('vedere_istoric_grade_sportiv').select('*').eq('club_id', clubId).order('id', { ascending: true }).range(from, to)
+            : db.from('vedere_istoric_grade_sportiv').select('*').order('id', { ascending: true }).range(from, to));
+    }
+    return cereri;
+};
+
 export const useDataProvider = () => {
     const [data, setData] = useState<AppData>(initialData);
+    // Cererile la cerere: 'plati' porneste usePlati, prezentaCompleta scoate fereastra de prezenta (declarate sus, folosite de hook-uri)
+    const [platiCerute, setPlatiCerute] = useState(false);
+    const [prezentaCompleta, setPrezentaCompleta] = useState(false);
+    const [cheiIncarcate, setCheiIncarcate] = useState<ReadonlySet<CheieLaCerere>>(() => new Set());
     const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [session, setSession] = useState<Session | null>(null);
@@ -100,7 +157,12 @@ export const useDataProvider = () => {
     // View-ul vedere_cluburi_program_antrenamente filtrează deja prin get_active_club_id() la nivel DB,
     // dar adăugăm filtrul și la nivel de hook pentru robustețe (race condition la login).
     const attendanceClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
-    const attendanceData = useAttendanceData(attendanceClubId ?? undefined, !poatePorniDate);
+    const attendanceData = useAttendanceData(
+        attendanceClubId ?? undefined,
+        !poatePorniDate,
+        // D-03: fereastra azi-90..azi+30 la pornire; istoricul complet doar cand un ecran il cere (sirurile sunt stabile in aceeasi zi)
+        prezentaCompleta ? undefined : fereastraPrezenta(new Date())
+    );
 
     // SUPER_ADMIN_FEDERATIE și ADMIN văd toate grupele; ceilalți văd doar grupele clubului lor
     const grupeClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
@@ -114,7 +176,7 @@ export const useDataProvider = () => {
         undefined,
         poatePorniDate ? activeRoleContext?.id : undefined
     );
-    const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(poatePorniDate ? activeRoleContext?.id : undefined);
+    const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(poatePorniDate && platiCerute ? activeRoleContext?.id : undefined);
     const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(poatePorniDate ? activeRoleContext?.id : undefined, grupeClubId);
 
     // Update state when data changes de la hook-urile secundare
@@ -315,18 +377,11 @@ export const useDataProvider = () => {
         try {
             setLoadingData(true);
             setError(null);
-            
-            if (!supabase) throw new Error("Clientul Supabase nu este configurat.");
-            
-            const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
-            const activeRoleName = activeCtx.roluri?.nume || activeCtx.rol_denumire;
-            const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE';
-            const isAdmin = activeRoleName === 'ADMIN';
-            const isSportiv = activeRoleName === 'SPORTIV';
-            const isFederationLevel = isSuperAdmin || isAdmin;
 
-            // Helper: adaugă filtru club_id la query dacă utilizatorul nu e la nivel federație
-            const clubId = (!isFederationLevel && activeCtx.club_id) ? activeCtx.club_id : null;
+            if (!supabase) throw new Error("Clientul Supabase nu este configurat.");
+
+            const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
+            const { esteSportiv: isSportiv, clubId } = infoContext(activeCtx);
             const withClub = (query: any) => clubId ? query.eq('club_id', clubId) : query;
 
             const cacheKeys: Record<string, string> = {
@@ -336,31 +391,19 @@ export const useDataProvider = () => {
                 tipuriPlati: 'cache_tipuriPlati',
             };
 
-            // Critical queries — blochează UI până sunt gata
-            const criticalQueries: Record<string, any> = {
-                clubs: cleanedSupabase.from('cluburi').select('id, nume, cif, oras, theme_config, tema_config'),
-                allRoles: cleanedSupabase.from('roluri').select('id, nume'),
-                grade: cleanedSupabase.from('grade').select('*'),
-                tipuriPlati: cleanedSupabase.from('tipuri_plati').select('id, nume'),
-                tipuriAbonament: withClub(cleanedSupabase.from('tipuri_abonament').select('id, denumire, pret, club_id, numar_membri, sezon_id')),
-                sesiuniExamene: withClub(cleanedSupabase.from('sesiuni_examene').select('*')),
-                familii: withClub(cleanedSupabase.from('familii').select('*')),
-                locatii: cleanedSupabase.from('nom_locatii').select('*'),
-                evenimente: withClub(cleanedSupabase.from('evenimente').select('*')),
-                taxeAnualeConfig: cleanedSupabase.from('taxe_anuale_config').select('*'),
-            };
-
-            // Deferred queries — se încarcă în background după ce UI-ul e gata
-            const deferredQueries: Record<string, any> = {
-                reduceri: cleanedSupabase.from('reduceri').select('*'),
-                rezultate: cleanedSupabase.from('rezultate').select('*'),
-                tranzactii: cleanedSupabase.from('tranzactii').select('*'),
-                istoricPlatiDetaliat: cleanedSupabase.from('view_istoric_plati_detaliat').select('*'),
-                deconturiFederatie: cleanedSupabase.from('deconturi_federatie').select('*'),
-                vizeSportivi: cleanedSupabase.from('vize_sportivi').select(SELECT_VIZE_CU_PLATA),
-                decontSportivi: cleanedSupabase.from('decont_sportivi').select('*'),
-                taxaAnualaFederatieConfig: cleanedSupabase.from('taxa_anuala_config').select('*'),
-                preturiConfig: cleanedSupabase.from('preturi_config').select('*'),
+            // Setul de pornire: doar tabele mici de referinta/config (sportivi si grupe vin din hook-urile lor).
+            // Seturile mari (plati, istoric grade, examene etc.) se incarca la cerere — vezi construiesteCereriLaCerere.
+            const criticalQueries: Cereri = {
+                clubs: () => cleanedSupabase.from('cluburi').select('id, nume, cif, oras, theme_config, tema_config'),
+                allRoles: () => cleanedSupabase.from('roluri').select('id, nume'),
+                grade: () => cleanedSupabase.from('grade').select('*'),
+                tipuriPlati: () => cleanedSupabase.from('tipuri_plati').select('id, nume'),
+                tipuriAbonament: () => withClub(cleanedSupabase.from('tipuri_abonament').select('id, denumire, pret, club_id, numar_membri, sezon_id')),
+                sesiuniExamene: () => withClub(cleanedSupabase.from('sesiuni_examene').select('*')),
+                familii: () => withClub(cleanedSupabase.from('familii').select('*')),
+                locatii: () => cleanedSupabase.from('nom_locatii').select('*'),
+                evenimente: () => withClub(cleanedSupabase.from('evenimente').select('*')),
+                taxeAnualeConfig: () => cleanedSupabase.from('taxe_anuale_config').select('*'),
             };
 
             // Check cache for static data
@@ -373,57 +416,10 @@ export const useDataProvider = () => {
                 }
             }
 
-            // Bugfix istoric_grade: PostgREST limitează implicit orice request la 1000 rânduri.
-            // Un club mediu poate avea >1000 rânduri în istoric_grade (ex. C.S. Phi Hau are 1514),
-            // iar întreaga federație are 2000+ — un simplu `.select('*')` fără paginare pierde
-            // silențios rânduri (fără nicio eroare), afectând sportivi individuali imprevizibil
-            // (ex. BINDAC ALEXANDRU DANUT — lipseau 4 din 9 rânduri din istoric).
-            // Paginăm explicit cu `.range()` până epuizăm toate rândurile care corespund filtrului.
-            const PAGE_SIZE = 1000;
-            const fetchAllPages = async (buildQuery: (from: number, to: number) => any) => {
-                let allRows: any[] = [];
-                let from = 0;
-                while (true) {
-                    const { data, error } = await buildQuery(from, from + PAGE_SIZE - 1);
-                    if (error) return { data: allRows, error };
-                    allRows = allRows.concat(data || []);
-                    if (!data || data.length < PAGE_SIZE) break;
-                    from += PAGE_SIZE;
-                }
-                return { data: allRows, error: null };
-            };
-
-            if (isSportiv && activeCtx.sportiv_id) {
-                criticalQueries.inscrieriExamene = cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('sportiv_id', activeCtx.sportiv_id);
-                criticalQueries.istoricGrade = cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('sportiv_id', activeCtx.sportiv_id);
-            } else {
-                criticalQueries.inscrieriExamene = clubId
-                    ? cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id').eq('club_id', clubId)
-                    : cleanedSupabase.from('vedere_detalii_examen').select('*, id:inscriere_id');
-
-                if (clubId) {
-                    // Scopăm după club_id (derivat acum din sportivi.club_id în view — vezi
-                    // migrarea `vedere_istoric_grade_sportiv` / fix 260708-h7k, COALESCE(s.club_id, hg.club_id)),
-                    // simetric cu inscrieriExamene. ȘI paginăm rezultatul ca să nu pierdem
-                    // rânduri peste plafonul de 1000/request.
-                    //
-                    // BUGFIX 2026-07-12: NU mai adăugăm `.in('sportiv_id', idsInClub)` — pentru
-                    // cluburi mari (400+ sportivi) enumerarea tuturor id-urilor în URL genera un
-                    // query string de 14-17KB+, peste limita acceptată de infrastructura Supabase
-                    // (proxy/gateway), cauzând request-ul să rămână blocat indefinit (hang tacut,
-                    // fără eroare, fără timeout) — vezi .planning/debug/resolved/loading-hang-istoric-grade.md.
-                    // `.eq('club_id', clubId)` singur e suficient și corect de când club_id e derivat
-                    // corect în view (verificat: aceleași rânduri, fără pierdere de date).
-                    criticalQueries.istoricGrade = fetchAllPages((from, to) => cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').eq('club_id', clubId).order('id', { ascending: true }).range(from, to));
-                } else {
-                    criticalQueries.istoricGrade = fetchAllPages((from, to) => cleanedSupabase.from('vedere_istoric_grade_sportiv').select('*').order('id', { ascending: true }).range(from, to));
-                }
-            }
-
             const criticalKeys = Object.keys(criticalQueries);
-            const criticalSettled = await Promise.allSettled(Object.values(criticalQueries)) as SettledQuery[];
+            const criticalSettled = await ruleazaCuLimita(Object.values(criticalQueries), LIMITA_PORNIRE) as SettledQuery[];
 
-            const { data: criticalData, rlsErrors } = processSettledQueries(criticalSettled, criticalKeys);
+            const { data: criticalData, rlsErrors, erori } = processSettledQueries(criticalSettled, criticalKeys);
             const finalData = { ...criticalData, ...cachedResults };
 
             // Update cache for newly fetched static data
@@ -444,6 +440,8 @@ export const useDataProvider = () => {
             if (criticalRlsErrors.length > 0) {
                 setError(`Eroare Acces (RLS): ${criticalRlsErrors.join(', ')}`);
             }
+            // Cheile esuate lipsesc din finalData, deci datele deja incarcate raman (`|| prev.x`); doar o avertizare discreta, fara ecran de eroare.
+            if (erori.length > 0) avertizeazaDatePartiale(erori);
 
             setData(prev => ({
                 ...prev,
@@ -456,28 +454,8 @@ export const useDataProvider = () => {
                 sesiuniExamene: finalData.sesiuniExamene || prev.sesiuniExamene,
                 evenimente: finalData.evenimente || prev.evenimente,
                 familii: finalData.familii || prev.familii,
-                inscrieriExamene: finalData.inscrieriExamene || prev.inscrieriExamene,
-                istoricGrade: finalData.istoricGrade || prev.istoricGrade,
                 taxeAnualeConfig: finalData.taxeAnualeConfig || prev.taxeAnualeConfig,
             }));
-
-            // Încarcă date secundare în background — nu blochează UI
-            Promise.allSettled(Object.values(deferredQueries)).then((deferredSettled) => {
-                const deferredKeys = Object.keys(deferredQueries);
-                const { data: deferredData } = processSettledQueries(deferredSettled as SettledQuery[], deferredKeys);
-                setData(prev => ({
-                    ...prev,
-                    reduceri: deferredData.reduceri || prev.reduceri,
-                    rezultate: deferredData.rezultate || prev.rezultate,
-                    tranzactii: deferredData.tranzactii || prev.tranzactii,
-                    istoricPlatiDetaliat: deferredData.istoricPlatiDetaliat || prev.istoricPlatiDetaliat,
-                    deconturiFederatie: deferredData.deconturiFederatie || prev.deconturiFederatie,
-                    vizeSportivi: deferredData.vizeSportivi || prev.vizeSportivi,
-                    decontSportivi: deferredData.decontSportivi || prev.decontSportivi,
-                    taxaAnualaFederatieConfig: deferredData.taxaAnualaFederatieConfig || prev.taxaAnualaFederatieConfig,
-                    preturiConfig: deferredData.preturiConfig || prev.preturiConfig,
-                }));
-            });
 
         } catch (err: any) {
             setError(err.message);
@@ -485,6 +463,83 @@ export const useDataProvider = () => {
             setLoadingData(false);
         }
     }, []);
+
+    // --- Incarcare la cerere (Faza 38 D-01) ---
+    // Cererile pornesc doar dupa poarta MFA, cate o tura odata (coada seriala), max LIMITA_LA_CERERE in zbor.
+    const cheiCerute = React.useRef(new Set<CheieLaCerere>());
+    const cheiGata = React.useRef(new Set<CheieLaCerere>());
+    const coadaLaCerere = React.useRef<Promise<void>>(Promise.resolve());
+    const contextLaCerere = React.useRef<{ poate: boolean; ctx: any }>({ poate: false, ctx: null });
+    contextLaCerere.current = { poate: poatePorniDate, ctx: activeRoleContext };
+
+    const proceseazaCereri = useCallback(() => {
+        const { poate, ctx } = contextLaCerere.current;
+        if (!poate || !ctx) return;
+        coadaLaCerere.current = coadaLaCerere.current.then(async () => {
+            const contextId = ctx.id;
+            const deRulat = [...cheiCerute.current]
+                .filter(k => k !== 'plati' && k !== 'antrenamenteIstoricComplet' && !cheiGata.current.has(k));
+            if (deRulat.length === 0) return;
+
+            const cereri = construiesteCereriLaCerere(ctx);
+            const settled = await ruleazaCuLimita(deRulat.map(k => cereri[k]), LIMITA_LA_CERERE) as SettledQuery[];
+            if (contextLaCerere.current.ctx?.id !== contextId) return; // contextul s-a schimbat intre timp
+
+            const { data: rezultat, erori } = processSettledQueries(settled, deRulat);
+            // Cheia esuata iese din setul cerut: o vizita ulterioara o reia; datele anterioare raman.
+            erori.forEach(k => cheiCerute.current.delete(k as CheieLaCerere));
+            const reusite = deRulat.filter(k => !erori.includes(k));
+            if (reusite.length > 0) {
+                reusite.forEach(k => cheiGata.current.add(k));
+                setData(prev => {
+                    const next: any = { ...prev };
+                    reusite.forEach(k => { next[k] = rezultat[k] || (prev as any)[k]; });
+                    return next;
+                });
+                setCheiIncarcate(new Set(cheiGata.current));
+            }
+            if (erori.length > 0) avertizeazaDatePartiale(erori);
+        }).catch(err => console.error('Incarcare la cerere esuata:', err?.message ?? err));
+    }, []);
+
+    // Idempotent; sigur de apelat inainte sa se deschida poarta MFA (cheile asteapta in coada).
+    const incarcaLaCerere = useCallback((chei: CheieLaCerere[]) => {
+        let nou = false;
+        for (const k of chei) {
+            if (k === 'plati') setPlatiCerute(true);
+            else if (k === 'antrenamenteIstoricComplet') setPrezentaCompleta(true);
+            else if (!cheiCerute.current.has(k)) { cheiCerute.current.add(k); nou = true; }
+        }
+        if (nou) proceseazaCereri();
+    }, [proceseazaCereri]);
+
+    // Poarta s-a deschis: ruleaza ce s-a cerut intre timp.
+    useEffect(() => {
+        if (poatePorniDate) proceseazaCereri();
+    }, [poatePorniDate, proceseazaCereri]);
+
+    // Schimbarea contextului (in practica urmata de reload) goleste ce s-a cerut/incarcat; prima setare nu sterge cererile copiilor.
+    const contextAnterior = React.useRef<string | null>(null);
+    useEffect(() => {
+        const id = activeRoleContext?.id ?? null;
+        if (contextAnterior.current !== null && contextAnterior.current !== id) {
+            cheiCerute.current.clear();
+            cheiGata.current.clear();
+            setCheiIncarcate(new Set());
+            setPlatiCerute(false);
+            setPrezentaCompleta(false);
+        }
+        contextAnterior.current = id;
+    }, [activeRoleContext?.id]);
+
+    const platiIncarcate = platiCerute && platiData !== undefined;
+    const prezentaCompletaIncarcata = prezentaCompleta && attendanceData.filtreIncarcate === 'null';
+    const cheiIncarcateExpuse = useMemo<ReadonlySet<CheieLaCerere>>(() => {
+        const s = new Set<CheieLaCerere>(cheiIncarcate);
+        if (platiIncarcate) s.add('plati');
+        if (prezentaCompletaIncarcata) s.add('antrenamenteIstoricComplet');
+        return s;
+    }, [cheiIncarcate, platiIncarcate, prezentaCompletaIncarcata]);
 
     useEffect(() => {
         if ((activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire) === 'REPREZENTANT_COMPETITIE') {
@@ -582,6 +637,8 @@ export const useDataProvider = () => {
         ...attendanceData,
         attendanceLoading: attendanceData.loading,
         attendanceError: attendanceData.error,
+        incarcaLaCerere,
+        cheiIncarcate: cheiIncarcateExpuse,
         allowedClubs,
         loading, 
         error: combinedError, 

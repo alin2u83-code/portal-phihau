@@ -1,5 +1,6 @@
 // Faza 42: sursa FRAM pentru inscriere, filtrata pe server (tip FRAM + an) ca sa nu fie trunchiata la 1000 de randuri
 // ca useData().vizeSportivi; aceeasi regula "achitat" ca triggerul trg_participant_fram.
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
 import type { VizaSportiv } from '../types';
@@ -21,7 +22,8 @@ export function useVizeFramClub(
       return (data ?? []) as any[];
     },
   });
-  const vize = (q.data ?? []).map((v: any) => ({
+  // memo: referinta stabila, altfel memo-urile grele din Competitii/index.tsx si Pas1 se recalculeaza la fiecare render
+  const vize = useMemo(() => (q.data ?? []).map((v: any) => ({
     id: `${v.sportiv_id}-${v.an}-${v.tip}`,
     sportiv_id: v.sportiv_id,
     an: v.an,
@@ -32,6 +34,6 @@ export function useVizeFramClub(
     club_id: clubId,
     status_viza: 'Activ',
     data_platii: '',
-  })) as unknown as VizaSportiv[];
+  })) as unknown as VizaSportiv[], [q.data, clubId]);
   return { vize, eroare: q.error ? ((q.error as any).message || 'eroare necunoscută') : null };
 }

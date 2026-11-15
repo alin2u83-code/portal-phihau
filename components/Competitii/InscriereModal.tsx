@@ -328,7 +328,11 @@ export const InscriereModal: React.FC<InscriereModalProps> = ({
           ...selectedRezerve.map(id => ({ echipa_id: ec.id, sportiv_id: id, rol: 'rezerva' })),
         ];
         const { error: mErr } = await supabase.from('echipa_sportivi').insert(members);
-        if (mErr) throw mErr;
+        if (mErr) {
+          // fara membri echipa ramane goala: o stergem (best effort) ca sa nu ramana orfana
+          await supabase.from('echipe_competitie').delete().eq('id', ec.id);
+          throw mErr;
+        }
       }
       onSaved();
     } catch (err: any) {

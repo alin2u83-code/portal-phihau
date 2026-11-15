@@ -262,6 +262,27 @@ BEGIN
     v_comp := CASE WHEN TG_OP = 'DELETE' THEN OLD.competitie_id ELSE NEW.competitie_id END;
   END IF;
 
+  -- stergere in cascada din sportiv/club/categorie (FK ON DELETE CASCADE; ex. stergere sportiv, merge_sportivi): trece.
+  -- BEFORE DELETE pe copil ruleaza dupa stergerea parintelui, deci parintele lipseste deja.
+  IF TG_OP = 'DELETE' THEN
+    IF TG_TABLE_NAME = 'inscrieri_competitie' THEN
+      IF NOT EXISTS (SELECT 1 FROM public.sportivi s WHERE s.id = OLD.sportiv_id)
+         OR NOT EXISTS (SELECT 1 FROM public.cluburi c WHERE c.id = OLD.club_id)
+         OR NOT EXISTS (SELECT 1 FROM public.categorii_competitie k WHERE k.id = OLD.categorie_id) THEN
+        RETURN OLD;
+      END IF;
+    ELSIF TG_TABLE_NAME = 'echipe_competitie' THEN
+      IF NOT EXISTS (SELECT 1 FROM public.cluburi c WHERE c.id = OLD.club_id)
+         OR NOT EXISTS (SELECT 1 FROM public.categorii_competitie k WHERE k.id = OLD.categorie_id) THEN
+        RETURN OLD;
+      END IF;
+    ELSE -- echipa_sportivi
+      IF NOT EXISTS (SELECT 1 FROM public.sportivi s WHERE s.id = OLD.sportiv_id) THEN
+        RETURN OLD;
+      END IF;
+    END IF;
+  END IF;
+
   -- parintele a disparut (stergere in cascada a echipei/competitiei, vezi 20261115a): trece
   SELECT c.status INTO v_status FROM public.competitii c WHERE c.id = v_comp;
   IF NOT FOUND THEN
@@ -279,9 +300,11 @@ $$;
 REVOKE ALL ON FUNCTION public.trg_participant_competitie_finalizata() FROM PUBLIC, anon, authenticated;
 
 -- taxa_achitata, status, observatii nu sunt listate intentionat: FinanciarView marcheaza taxele dupa eveniment.
+-- sportiv_id nu e listat: merge_sportivi repoiteaza sportiv_id pe istoric finalizat. Limita: daca merge gaseste conflict unic pe o competitie finalizata,
+-- DELETE-ul explicit al randului secundar ramane blocat (merge esueaza intreg, nimic pierdut).
 DROP TRIGGER IF EXISTS trg_inscrieri_finalizata ON public.inscrieri_competitie;
 CREATE TRIGGER trg_inscrieri_finalizata
-  BEFORE INSERT OR DELETE OR UPDATE OF sportiv_id, categorie_id, inlantuire_id, inlantuire_id_2, arma_id ON public.inscrieri_competitie
+  BEFORE INSERT OR DELETE OR UPDATE OF categorie_id, inlantuire_id, inlantuire_id_2, arma_id ON public.inscrieri_competitie
   FOR EACH ROW EXECUTE FUNCTION public.trg_participant_competitie_finalizata();
 
 DROP TRIGGER IF EXISTS trg_echipe_finalizata ON public.echipe_competitie;
@@ -291,7 +314,7 @@ CREATE TRIGGER trg_echipe_finalizata
 
 DROP TRIGGER IF EXISTS trg_echipa_sportivi_finalizata ON public.echipa_sportivi;
 CREATE TRIGGER trg_echipa_sportivi_finalizata
-  BEFORE INSERT OR DELETE OR UPDATE OF sportiv_id, rol ON public.echipa_sportivi
+  BEFORE INSERT OR DELETE OR UPDATE OF rol ON public.echipa_sportivi
   FOR EACH ROW EXECUTE FUNCTION public.trg_participant_competitie_finalizata();
 
 -- ============================================================================================================

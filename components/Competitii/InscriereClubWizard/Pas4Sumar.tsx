@@ -430,7 +430,11 @@ const Pas4SumarTaxe: React.FC<Pas4Props> = ({
             ];
             if (sportiviEchipa.length > 0) {
               const { error: errSportivi } = await supabase.from('echipa_sportivi').insert(sportiviEchipa);
-              if (errSportivi) throw new Error(errSportivi.message);
+              if (errSportivi) {
+                // fara membri echipa ramane goala si la retry s-ar dubla: o stergem (best effort)
+                await supabase.from('echipe_competitie').delete().eq('id', echipaDB.id);
+                throw new Error(errSportivi.message);
+              }
             }
             if (rand.echipa.echipaIncompleta && !interclubDezactivat) {
               await supabase.from('solicitari_echipe_incomplete').insert({

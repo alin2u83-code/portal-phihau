@@ -623,11 +623,11 @@ Plans:
 **Goal:** Super adminul fixeaza la deschiderea competitiei regula FRAM (an calendaristic al competitiei, achitat sau scutit; blocare UI + DB, exceptii super admin confirmate si auditate); reprezentantul clubului editeaza membrii/arma echipelor, quyen-urile si categoria (compatibila) cat timp inscrierile sunt deschise, super adminul pana la finalizare, fara recalcularea taxelor si cu audit pe autor; armele se ofera doar dupa gradul efectiv la data competitiei (Thao Lo, Pas Arme, Giao Dau), cu avertismente, nu blocaje.
 **Requirements**: D-01..D-15 (42-CONTEXT.md)
 **Depends on:** Phase 41
-**Plans:** 9 plans
+**Plans:** 1/9 plans executed
 
 Plans:
 
-- [ ] 42-01-PLAN.md — Wave 0 verificare live (read-only) + migrare 20261115b: competitii.fram_obligatoriu, trigger imutabil (super admin, draft, fara participanti), trigger FRAM pe inscrieri/membri cu exceptie super admin auditata, compatibilitate la schimbarea categoriei, inghet pe competitie finalizata (inclusiv super admin; taxele raman marcabile)
+- [x] 42-01-PLAN.md — Wave 0 verificare live (read-only) + migrare 20261115b: competitii.fram_obligatoriu, trigger imutabil (super admin, draft, fara participanti), trigger FRAM pe inscrieri/membri cu exceptie super admin auditata, compatibilitate la schimbarea categoriei, inghet pe competitie finalizata (inclusiv super admin; taxele raman marcabile)
 - [ ] 42-02-PLAN.md — contracte client: Competitie.fram_obligatoriu, utils/editareCompetitie (statusFram, anFramCompetitie, diferentaMembri) + teste, WarningVizaFRAM blocat, ArmePermiseGiaoDau eligibile
 - [ ] 42-03-PLAN.md — reguli arme pure: armeEligibileLaGrad, motivFaraArme, lipsa 'arma-neeligibila' (inscrieri vechi + alese) + teste
 - [ ] 42-04-PLAN.md — [BLOCKING] aplicare live dupa OK + baterie tests/fram_editare_faza42.ts + ACL + regresie Faza 41

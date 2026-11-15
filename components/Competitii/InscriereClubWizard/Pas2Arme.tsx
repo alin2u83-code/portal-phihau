@@ -126,7 +126,7 @@ const Pas2Arme: React.FC<Pas2ArmeProps> = ({
                   <div key={arma.id} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
                     <div className="sm:w-1/2 min-w-0">
                       <div className="text-sm text-slate-200">{blocata(s.id, arma.id) && <span aria-hidden>🔒 </span>}{arma.denumire}</div>
-                      <div className="text-xs text-slate-500 truncate">{categorie ? categorie.denumire : 'Nicio categorie potrivită'}</div>
+                      <div className="text-xs text-slate-500 truncate">{categorie ? categorie.denumire : opts.length === 0 ? 'Armă nepermisă gradului la data competiției — nu se înscrie' : 'Nicio categorie potrivită'}</div>
                     </div>
                     <select
                       value={opts.find(f => f.id === formaPerArma.get(s.id)?.get(arma.id))?.id ?? ''}

@@ -212,6 +212,9 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
   // Doar sportivii activi pentru pașii 2-4 și hub; Pas1 primește și inactivii deja înscriși (ca să-i poată retrage)
   const sportiviActivi = useMemo(() => sportivi.filter(s => s.status === 'Activ'), [sportivi]);
 
+  // Faza 42 D-11: fail-open, fara drepturi incarcate (sau eroare) nu se filtreaza nimic
+  const drepturiGata = !!arme && !arme.loading && !arme.error && arme.drepturi.size > 0;
+
   // CVD: categoria potrivita pentru fiecare (sportiv, arma aleasa)
   const categoriePerArma = useMemo<CategoriePerArma>(() => {
     const out: CategoriePerArma = new Map();
@@ -220,9 +223,13 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
     for (const s of sportiviActivi) {
       const alese = armeAlese.get(s.id);
       if (!alese || alese.size === 0) continue;
-      const ordine = gradEfectivLaData(s, grade, competitie.data_inceput)?.ordine ?? 0;
+      const gradEfectiv = gradEfectivLaData(s, grade, competitie.data_inceput);
+      const ordine = gradEfectiv?.ordine ?? 0;
+      // Faza 42 D-11/D-12: arma fara drept la gradul efectiv nu produce categorie/rand Pas4 (inainte bloca Finalizeaza ca "fara forma")
+      const drept = drepturiGata && gradEfectiv ? arme.drepturi.get(gradEfectiv.id) ?? new Set<string>() : undefined;
       const m = new Map<string, CategorieCompetitie>();
       for (const armaId of alese) {
+        if (drept && !drept.has(armaId)) continue;
         const arma = armePeId.get(armaId);
         const cat = arma && categoriePentruArma(arma, s, ordine, competitie.data_inceput, categorii, arme.arme);
         if (cat) m.set(armaId, cat);
@@ -230,7 +237,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
       out.set(s.id, m);
     }
     return out;
-  }, [competitie.tip, competitie.data_inceput, arme, armeAlese, sportiviActivi, grade, categorii]);
+  }, [competitie.tip, competitie.data_inceput, arme, armeAlese, sportiviActivi, grade, categorii, drepturiGata]);
 
   // formele se semnaleaza abia dupa ce utilizatorul a vizitat Pas2 (acolo se auto-aleg optiunile unice)
   const [pas2Vizitat, setPas2Vizitat] = useState(false);
@@ -243,9 +250,11 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
     const probaLo = probe.find(p => p.tip_proba === 'thao_lo_individual');
     const selectatiLo = (probaLo && selectedSportiviMap.get(probaLo.id)) || new Set<string>();
     const catLo = new Set(categorii.filter(c => c.proba_id === probaLo?.id).map(c => c.id));
-    const inscrisi = new Set(inscrieri.filter(i => i.club_id === clubId && esteInscrisActiv(i) && i.arma_id && catLo.has(i.categorie_id)).map(i => i.sportiv_id));
+    const inscrieriLo = inscrieri.filter(i => i.club_id === clubId && esteInscrisActiv(i) && i.arma_id && catLo.has(i.categorie_id));
+    const inscrisi = new Set(inscrieriLo.map(i => i.sportiv_id));
     const relevanti = sportiviActivi.filter(s => selectatiLo.has(s.id) || inscrisi.has(s.id));
     const armePeId = new Map(arme.arme.map(a => [a.id, a]));
+    const sportivPeId = new Map(relevanti.map(s => [s.id, s]));
     const catPeId = new Map(categorii.map(c => [c.id, c]));
     const echipeFaraArma = echipe
       .filter(e => e.club_id === clubId && !e.arma_id && (e.status === 'inscrisa' || e.status === 'confirmata'))
@@ -255,11 +264,17 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
     const lipsuri = calculeazaLipsuriCvd({
       sportivi: relevanti, grade, dataCompetitie: competitie.data_inceput, armeAlese, categoriePerArma, formaPerArma, verificaForme: pas2Vizitat,
       denumireArma: id => armePeId.get(id)?.denumire ?? 'armă', nume: formatNume, echipeFaraArma,
+      // Faza 42 D-11/D-14/D-15: drepturile gradului efectiv; undefined (fara grad / drepturi neincarcate) = fara filtrare
+      drepturiSportiv: drepturiGata ? (id: string) => {
+        const s = sportivPeId.get(id);
+        const g = s && gradEfectivLaData(s, grade, competitie.data_inceput);
+        return g ? arme.drepturi.get(g.id) ?? new Set<string>() : undefined;
+      } : undefined,
+      inscrieriArma: inscrieriLo.map(i => ({ sportivId: i.sportiv_id, armaId: i.arma_id as string })),
     });
-    const sportivPeId = new Map(relevanti.map(s => [s.id, s]));
     return lipsuri.map(l => {
       const baza = { id: l.id, text: l.text };
-      if (l.tip === 'fara-arma' || l.tip === 'fara-categorie') return { ...baza, actiune: 'Mergi la Arme', onClick: () => setStep('arme') };
+      if (l.tip === 'fara-arma' || l.tip === 'fara-categorie' || l.tip === 'arma-neeligibila') return { ...baza, actiune: 'Mergi la Arme', onClick: () => setStep('arme') };
       if (l.tip === 'fara-forma') {
         // nu se adauga niciodata un sportiv in selectie: Pas2 doar pentru cei deja selectati, altfel Pas1
         const sel = !!probaLo && !!l.sportivId && selectatiLo.has(l.sportivId);
@@ -269,7 +284,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
       return { ...baza, actiune: 'Mergi la Echipe', onClick: () => { setProbaDeschisFocusId(l.probaId ?? null); setStep(3); } };
     });
   }, [competitie.tip, competitie.data_inceput, arme, inscrieri, clubId, sportiviActivi, selectedSportivi, armeAlese, categorii, echipe, probe, grade,
-    categoriePerArma, formaPerArma, selectedSportiviMap, onViewSportiv, pas2Vizitat]);
+    categoriePerArma, formaPerArma, selectedSportiviMap, onViewSportiv, pas2Vizitat, drepturiGata]);
 
   const handleToggle = (id: string) => {
     if (!probaDeschisFocusId) return;
@@ -522,6 +537,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
         inscrieri={inscrieri}
         armeAlese={arme ? armeAlese : undefined}
         armeDefinitii={arme && !arme.loading ? arme.arme : undefined}
+        drepturiArme={drepturiGata ? arme!.drepturi : undefined}
         skippedCategorii={skippedCategorii}
         onToggleSkipCategorie={(catId) => setSkippedCategorii(prev => {
           const next = new Set(prev);

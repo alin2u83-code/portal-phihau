@@ -192,7 +192,7 @@ Cap Roșu 1 → Cap Roșu 2 → Cap Roșu 3 → Cap Roșu 4
 - [x] Categorii automate generate din template (numar, denumire, vârstă, gen, grad, tip participare)
 - [x] Înscriere sportivi în categorii (cu verificare vârstă + grad)
 - [x] Echipe (sportivi_per_echipa_min/max, rezerve_max)
-- [x] Verificare viză FRAM (warning dacă lipsește)
+- [x] Verificare viză FRAM (warning implicit; blocantă când regula FRAM a competiției e activă — Faza 42)
 - [x] Vizualizare categorii per probă
 - [x] Fișă competiție (export/vizualizare)
 - [x] Stagii competiții (separat)
@@ -525,6 +525,20 @@ Doar **SUPER_ADMIN_FEDERATIE** administrează categoriile unei competiții, din 
 - Validare afișată în timp real pe pagina categoriei: "X cluburi înscrise din 3 necesare"
 - La `inscrieri_inchise`: warning explicit pentru categoriile care nu îndeplinesc condiția
 - Organizatorul decide dacă anulează categoria sau o fuzionează
+
+---
+
+### 7.10 Regula FRAM, editare după înscriere, arme după grad (Faza 42)
+
+**Regula FRAM (D-01..D-06).** Setare pe competiție (`fram_obligatoriu`), doar super adminul o poate schimba, doar cât competiția e în draft; implicit dezactivată. Devine fixă după prima înscriere: fără retragere sau reevaluare a înscrișilor (D-01..D-03). Când e activă, un sportiv fără FRAM pentru anul calendaristic al `data_inceput` nu poate fi înscris: blocare în UI (badge «Fără FRAM {an}», «Selectează toți» îl sare) și în DB prin `trg_participant_fram` (migrarea 20261115b). «Are FRAM» = viza FRAM a anului e scutită sau plata ei e Achitat (D-04/D-06). Super adminul poate face excepție cu confirmare explicită; excepția lasă un rând în `audit_log` (`operatie = 'INSERT'`, `date_noi.exceptie_fram = true`, marcat în Jurnal Audit ca EXCEPTIE_FRAM) (D-05).
+
+**Editare după înscriere (D-07..D-10).**
+- *Cine/când (D-07):* reprezentantul clubului editează cât timp înscrierile sunt deschise (status `inscrieri_deschise` și termen nedepășit; poarta reală: RLS 20261106e); super adminul până la finalizarea competiției. Pe competiție finalizată scrierea e refuzată pentru toți, inclusiv super adminul, de `trg_participant_competitie_finalizata`; marcarea taxelor achitate rămâne posibilă.
+- *Ce (D-08):* membrii și arma echipei («Editează componența», scriere în ordinea adaugă → schimbă rol → scoate, fără pierdere de membri la eșec), quyen 1 / quyen 2 (al doilea doar la categorii cu `doua_quyenuri`) și mutarea într-o categorie compatibilă (aceeași probă, tip de participare și armă; impusă și în DB de `trg_participant_categorie_activa`) pentru înscrieri individuale și echipe (`EditareInscriereModal`).
+- *Taxa (D-09):* nu se recalculează și nu se refacturează. Diferențele sunt semnalate în modal (blocaje, avertismente de eligibilitate, diferență de taxă) și, pentru super admin, în «De rezolvat» din tab-ul Financiar, calculat din `audit_log` (mutări de categorie cu `date_vechi`/`date_noi` `categorie_id` diferit; `taxeDeReglatDupaMutari`): apar mutările care schimbă taxa calculată sau numărul de taxe datorate (mutare din/în categorie neactivă).
+- *Audit (D-10):* fiecare editare e o scriere directă, auditată cu autor de triggerele existente `audit_inscrieri_competitie` / `audit_echipe_competitie`.
+
+**Arme după grad (D-11..D-15).** În Thao Lo, Pas Arme și Giao Dau se oferă doar armele eligibile pe gradul efectiv al sportivului la data competiției (D-11/D-12). Nicio armă nu e obligatorie (D-13). Înscrierile vechi cu armă neeligibilă rămân și apar în «De rezolvat» (D-14); sportivii fără nicio armă primesc un avertisment, nu un blocaj (D-15). Song Luyen rămâne neschimbat (amânat).
 
 ---
 

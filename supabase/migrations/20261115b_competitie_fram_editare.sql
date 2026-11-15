@@ -16,19 +16,20 @@
 --         in trg_participant_categorie_activa.
 --   D-10  audit cu autor = audit_trigger_fn pe inscrieri/echipe/echipa_sportivi (20261111d, 20261111g; de verificat live).
 --
--- Verificare live 15.11.2026: NEEFECTUATA in aceasta rulare (executorul 42-01 nu a avut acces la Supabase MCP / DB live).
--- Ramane de rulat READ-ONLY inainte de 42-04 (11 interogari din 42-01-PLAN.md, Task 1), cu rezultatele trecute aici:
---   (1) postgres.rolbypassrls ............ DE VERIFICAT live (STOP daca false)
---   (2) FORCE RLS pe tabelele implicate .. DE VERIFICAT live
---   (3) coloane / fram_obligatoriu inexistenta ... DE VERIFICAT live
---   (4) CHECK audit_log.operatie ......... DE VERIFICAT live; din migrari (create_audit_log.sql, extend_audit_log_260705.sql)
---                                          valorile permise NU includ 'EXCEPTIE_FRAM' => se foloseste operatie = 'INSERT' + marker
---   (5) triggere audit_inscrieri_competitie / audit_echipe_competitie / audit_echipa_sportivi, trg_taxa_anuala_inscrieri_competitie
---       (AFTER INSERT) ................... DE VERIFICAT live
---   (6) text live trg_participant_categorie_activa vs 20261115a ....... DE VERIFICAT live; has_access_to_club vs INSTRUCTOR
---   (7) politici RESTRICTIVE ic_r_gate_upd/del, ec_r_gate_upd/del, es_r_gate_ins/upd/del ... DE VERIFICAT live (STOP daca lipsesc)
---   (8) FRAM pe an, max vize / club, FRAM an+1 ..... DE VERIFICAT live
---   (9) event triggers, (10) functii omonime, (11) taxa_achitata false pe competitii finalizate ... DE VERIFICAT live
+-- Verificat live 15.11.2026: (read-only, phi-hau-db, rulat de orchestrator via Supabase MCP; doar nume obiecte si numaratori)
+--   (1) postgres.rolbypassrls = true => OK, triggerul DEFINER poate scrie in audit_log sub FORCE RLS.
+--   (2) FORCE RLS = true pe competitii, inscrieri_competitie, echipe_competitie, echipa_sportivi, audit_log, vize_sportivi, plati.
+--   (3) competitii.fram_obligatoriu: nu exista (0 coloane). Nu exista functiile trg_participant_fram / trg_competitii_fram_imutabil / trg_participant_competitie_finalizata (0).
+--   (4) CHECK audit_log.operatie permite doar INSERT, UPDATE, DELETE, SELECT_SENSIBIL, LOGIN, LOGOUT, ROL_SCHIMBAT => 'EXCEPTIE_FRAM' ar fi respins; se foloseste 'INSERT' + marker exceptie_fram in date_noi.
+--   (5) Triggere live: audit_inscrieri_competitie, audit_echipe_competitie, audit_echipa_sportivi (D-10 existent); trg_taxa_anuala_inscrieri_competitie pe inscrieri_competitie;
+--       trg_inscrieri_categorie_activa, trg_echipe_categorie_activa; fara trigger '%fram%'; pe competitii doar trg_competitii_updated_at.
+--   (6) trg_participant_categorie_activa live = doar verificare status_categorie (fara compatibilitate) => CREATE OR REPLACE din aceasta migrare il extinde; baza identica cu 20261115a.
+--       has_access_to_club(club) acorda SUPER_ADMIN_FEDERATIE/ADMIN oricarui club si ADMIN_CLUB + INSTRUCTOR propriului club.
+--   (7) RESTRICTIVE existente: ic_r_gate_upd, ic_r_gate_del, ic_r_gate_ins, ec_r_gate_ins/upd/del, es_r_gate_ins/upd/del, cu exceptie is_super_admin() si competitie_deschisa_inscrieri() (D-07 aplicat in DB).
+--       Fara STOP. Politici permissive ext_p_* / rbv_ic_* / *_w_* sunt cele din migrarile cunoscute (necomparate individual).
+--   (8) competitii: 2 inscrieri_deschise, 3 finalizata. vize_sportivi FRAM: doar an 2026, 889 randuri, 0 scutiti; niciun rand pt 2027. Max 182 vize / club (sub plafonul de 1000 PostgREST).
+--   (9) Event triggers: doar cele Supabase standard + ensure_rls_on_create.
+--   (11) Pe competitii finalizata: 953 inscrieri si 468 echipe cu taxa_achitata=false => marcarea taxei dupa finalizata ramane folosita si trebuie sa ramana scriibila.
 
 -- ============================================================================================================
 -- 1. D-01: coloana

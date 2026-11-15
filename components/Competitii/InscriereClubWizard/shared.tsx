@@ -182,6 +182,16 @@ export const BadgeEligibilitateGenerala: React.FC<{ info: EligibilitateGenerala 
       </span>
     );
   }
+  if (info.status === 'blocat_fram') {
+    return (
+      <span
+        title="Competiția acceptă doar sportivi cu viza FRAM achitată sau scutită pe anul competiției"
+        className="inline-flex items-center gap-1 text-[10px] font-bold text-red-300 bg-red-900/40 border border-red-700/50 rounded-full px-2 py-0.5 shrink-0"
+      >
+        {info.motiv || 'Fără FRAM'}
+      </span>
+    );
+  }
   // doar gradul blocheaza (apare numai in zona de competitie, unde gradul se poate actualiza): nu e o eroare, e un pas de facut
   if (info.motiv?.startsWith('Grad:')) {
     return (

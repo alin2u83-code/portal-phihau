@@ -7,7 +7,8 @@ import {
 // -----------------------------------------------
 // TIPURI ELIGIBILITATE GENERALĂ
 // -----------------------------------------------
-export type EligibilitateGeneralaStatus = 'eligibil' | 'atentionare' | 'neeligibil' | 'date_incomplete';
+// Faza 42 D-04: 'blocat_fram' = regula FRAM a competitiei; vizibil, dar neselectabil
+export type EligibilitateGeneralaStatus = 'eligibil' | 'atentionare' | 'neeligibil' | 'date_incomplete' | 'blocat_fram';
 
 export interface EligibilitateGenerala {
   status: EligibilitateGeneralaStatus;

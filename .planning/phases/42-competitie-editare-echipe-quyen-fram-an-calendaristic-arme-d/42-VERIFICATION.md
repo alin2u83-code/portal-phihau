@@ -1,8 +1,8 @@
 ---
 phase: 42-competitie-editare-echipe-quyen-fram-an-calendaristic-arme-d
 verified: 2026-11-15T00:00:00Z
-status: gaps_found
-score: 14/15 decisions verified in code (D-04 partial: DB yes, UI no on the main external path)
+status: human_needed
+score: 15/15 decisions in code (D-04 UI gap inchis in 0aa0aa1d, neverificat in browser)
 overrides_applied: 0
 gaps:
   - truth: "D-04: sportivul fara FRAM nu se poate inscrie - blocat in UI + DB (reprezentantul de club in zona externa)"
@@ -101,3 +101,10 @@ Nu am cautat exhaustiv TBD/FIXME in fisierele fazei; nicio problema vizibila in 
 
 _Verified: 2026-11-15_
 _Verifier: Claude (gsd-verifier)_
+
+## Actualizare 2026-11-15 (orchestrator)
+- Gap D-04 inchis in cod: `fram_obligatoriu` adaugat in `COLOANE_COMPETITIE` (0aa0aa1d). Neverificat in browser (cont REPREZENTANT_COMPETITIE, calea lista).
+- Review 42-09: low 3 (buton Muta categoria la echipe retrase) si low 4 (garda `.eq('categorie_id')` la salvare) reparate in 0aa0aa1d.
+- Review medium 2 confirmat live: `audit_log` are SELECT doar pentru super admin, ADMIN_CLUB (clubul propriu, cu actor_nume) si proprietar/actor. Un admin federatie care NU e super admin vede bannerul 'De rezolvat' (taxe) gol, fara eroare. Ramas de decis.
+- Review medium 1 (mutari Faza 41 apar ca schimbari de taxa in 'De rezolvat'): ramas de decis (poate fi dorit).
+- Migrare 20261115b aplicata live, corectata dupa review (freeze lasa cascade/merge sportiv); limita cunoscuta: merge_sportivi cu conflict unic pe competitie finalizata esueaza integral (nimic pierdut).

@@ -807,6 +807,9 @@ export interface VederePrezentaSportiv {
   nume_grupa: string;
 }
 
+// Faza 38 D-01: date incarcate doar cand pagina care le foloseste se deschide; antrenamenteIstoricComplet = istoricul complet de prezenta (D-03).
+export type CheieLaCerere = 'plati' | 'tranzactii' | 'istoricPlatiDetaliat' | 'reduceri' | 'preturiConfig' | 'rezultate' | 'vizeSportivi' | 'decontSportivi' | 'deconturiFederatie' | 'taxaAnualaFederatieConfig' | 'istoricGrade' | 'inscrieriExamene' | 'antrenamenteIstoricComplet';
+
 export interface FilteredData {
     sportivi: Sportiv[];
     sesiuniExamene: SesiuneExamen[];

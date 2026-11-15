@@ -627,7 +627,7 @@ Plans:
 
 Plans:
 
-- [ ] 42-01-PLAN.md — Wave 0 verificare live (read-only) + migrare 20261115b: competitii.fram_obligatoriu, trigger imutabil (super admin, draft, fara participanti), trigger FRAM pe inscrieri/membri cu exceptie super admin auditata, compatibilitate la schimbarea categoriei
+- [ ] 42-01-PLAN.md — Wave 0 verificare live (read-only) + migrare 20261115b: competitii.fram_obligatoriu, trigger imutabil (super admin, draft, fara participanti), trigger FRAM pe inscrieri/membri cu exceptie super admin auditata, compatibilitate la schimbarea categoriei, inghet pe competitie finalizata (inclusiv super admin; taxele raman marcabile)
 - [ ] 42-02-PLAN.md — contracte client: Competitie.fram_obligatoriu, utils/editareCompetitie (statusFram, anFramCompetitie, diferentaMembri) + teste, WarningVizaFRAM blocat, ArmePermiseGiaoDau eligibile
 - [ ] 42-03-PLAN.md — reguli arme pure: armeEligibileLaGrad, motivFaraArme, lipsa 'arma-neeligibila' (inscrieri vechi + alese) + teste
 - [ ] 42-04-PLAN.md — [BLOCKING] aplicare live dupa OK + baterie tests/fram_editare_faza42.ts + ACL + regresie Faza 41
@@ -635,7 +635,7 @@ Plans:
 - [ ] 42-06-PLAN.md — wizard arme: filtru pe drepturile gradului (Thao Lo/Pas2/Pas4), explicatie Pas Arme, Giao Dau eligibile, "De rezolvat" D-14/D-15
 - [ ] 42-07-PLAN.md — editare membri echipa fara stergere prealabila (serviciu sincronizeazaMembriEchipa) in modal si Pas 4; FRAM in modal
 - [ ] 42-08-PLAN.md — CompetitieForm optiune FRAM (super admin, doar draft), sursa vize FRAM filtrata pe server pentru inscriere, badge
-- [ ] 42-09-PLAN.md — EditareInscriereModal (quyen + categorie compatibila), butoane in Inscrieri dupa drepturile D-07, docs 7.10, verificare finala + verificari umane
+- [ ] 42-09-PLAN.md — EditareInscriereModal (quyen + categorie compatibila), butoane in Inscrieri dupa drepturile D-07, «De rezolvat» in Financiar pentru taxe schimbate de mutari (D-09, din audit_log), docs 7.10, verificare finala + verificari umane
 
 ### Phase 43: Auth: management user+parola+cod doar dispozitiv nou fara delogare inactivitate; acces extern email+parola+reset in loc de OTP
 

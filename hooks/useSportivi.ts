@@ -33,7 +33,7 @@ export const fetchSportiviData = async (
 
     let query = supabase
         .from('rbv_sportivi_complet')
-        .select(selectString, { count: 'exact' });
+        .select(selectString, pagination ? { count: 'exact' } : undefined);
     
     if (filters.clubId) {
         query = query.eq('club_id', filters.clubId);
@@ -80,7 +80,7 @@ export const fetchSportiviData = async (
         roluri: s.roluri ? s.roluri.map((r: any) => ({ id: r.rol_id || r.id, nume: r.rol_denumire })) : []
     }));
 
-    return { data: formattedData as Sportiv[], count: count || 0 };
+    return { data: formattedData as Sportiv[], count: count ?? formattedData.length };
 };
 
 export const useSportivi = (
@@ -93,6 +93,7 @@ export const useSportivi = (
     const queryResult = useQuery<{ data: Sportiv[], count: number }, Error>({
         queryKey: ['sportivi', filters, pagination, sort, contextId, loadAll],
         queryFn: () => fetchSportiviData(filters, loadAll ? undefined : pagination, sort),
+        enabled: !!contextId, // Faza 38: nicio cerere inainte sa se cunoasca contextul rolului
     });
 
     return {

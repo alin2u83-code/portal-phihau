@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { Antrenament, AnuntPrezenta } from '../types';
 import { useError } from '../components/ErrorProvider';
+import { imparteInBucati, ruleazaCuLimita, incarcaToatePaginile } from '../utils/incarcareDate';
 
 // Helper: fetch statuse_prezenta and return a lookup map
 const fetchStatusById = async (): Promise<Record<string, { este_prezent: boolean; denumire: string }>> => {
@@ -24,6 +25,8 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
     const [todaysTrainings, setTodaysTrainings] = useState<Antrenament[]>([]);
     const [loading, setLoading] = useState(!skipFetch);
     const [error, setError] = useState<string | null>(null);
+    // Setul de filtre al ultimei incarcari reusite (null pana la prima reusita); 38-04 il foloseste ca sa stie cand a sosit istoricul complet.
+    const [filtreIncarcate, setFiltreIncarcate] = useState<string | null>(null);
     const { showError, showSuccess } = useError();
 
     const getTodayString = () => new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
@@ -78,12 +81,26 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
             let prezentaData: any[] = [];
             if (antrenamenteData.length > 0) {
                 const antrenamentIds = antrenamenteData.map((a: any) => a.id);
-                const { data: prez, error: prezError } = await supabase
-                    .from('prezenta_antrenament')
-                    .select('antrenament_id, sportiv_id, status_id')
-                    .in('antrenament_id', antrenamentIds);
-                if (prezError) throw prezError;
-                prezentaData = prez || [];
+                // Bucati de 100 id-uri: un .in() cu sute de UUID da URL enorm care blocheaza gateway-ul
+                // (vezi .planning/debug/resolved/loading-hang-istoric-grade.md). Max 3 in zbor, fiecare paginata peste plafonul de 1000 randuri.
+                const bucati = imparteInBucati<string>(antrenamentIds, 100);
+                const rezultate = await ruleazaCuLimita(
+                    bucati.map(bucata => () => incarcaToatePaginile<any>((from, to) =>
+                        supabase
+                            .from('prezenta_antrenament')
+                            .select('antrenament_id, sportiv_id, status_id')
+                            .in('antrenament_id', bucata)
+                            .order('antrenament_id', { ascending: true })
+                            .order('sportiv_id', { ascending: true })
+                            .range(from, to)
+                    )),
+                    3,
+                );
+                for (const r of rezultate) {
+                    if (r.status === 'rejected') throw r.reason;
+                    if (r.value.error) throw r.value.error;
+                    prezentaData = prezentaData.concat(r.value.data);
+                }
             }
 
             // Join în memorie: grupăm prezenta per antrenament_id
@@ -99,6 +116,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
             }));
 
             setAntrenamente(allTrainings);
+            setFiltreIncarcate(JSON.stringify(filters ?? null));
             setAnunturiPrezenta(anunturiRes.data || []);
 
             const today = getTodayString();
@@ -161,6 +179,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
         setAnunturiPrezenta,
         loading,
         error,
+        filtreIncarcate,
         refetch: fetchAttendanceData,
         saveAttendance,
     };

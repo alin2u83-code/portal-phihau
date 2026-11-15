@@ -2,15 +2,23 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { getCachedData, setCachedData } from '../utils/cache';
 
-export const useFetchAllowedClubs = () => {
+export const useFetchAllowedClubs = (userId?: string) => {
     const [allowedClubs, setAllowedClubs] = useState<string[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!!userId);
 
     useEffect(() => {
+        // Fara sesiune nu cerem nimic (pagina de login nu trebuie sa apeleze RPC-ul).
+        if (!userId) {
+            setAllowedClubs([]);
+            setLoading(false);
+            return;
+        }
         const fetchClubs = async () => {
-            const cacheKey = 'cache_allowed_clubs';
+            setLoading(true);
+            // Cheie per utilizator: cheia comuna scurgea lista unui user catre urmatorul login pe acelasi dispozitiv.
+            const cacheKey = `cache_allowed_clubs_${userId}`;
             const cached = getCachedData<string[]>(cacheKey, 15); // Cache for 15 minutes
-            
+
             if (cached) {
                 setAllowedClubs(cached);
                 setLoading(false);
@@ -26,7 +34,7 @@ export const useFetchAllowedClubs = () => {
             setLoading(false);
         };
         fetchClubs();
-    }, []);
+    }, [userId]);
 
     return { allowedClubs, loading };
 };

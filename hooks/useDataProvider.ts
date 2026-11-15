@@ -22,6 +22,7 @@ import { usePermissions } from './usePermissions';
 import { useFetchAllowedClubs } from './useClubAccess';
 import { SELECT_VIZE_CU_PLATA } from '../services/taxeAnualeService';
 import { getCachedData, setCachedData } from '../utils/cache';
+import { useAppStore } from '../src/store/useAppStore';
 
 export interface AppData {
     sportivi: Sportiv[];
@@ -88,13 +89,18 @@ export const useDataProvider = () => {
     // Derive active role for filtering (fallback to rol_denumire if rol_id was not set)
     const activeRole = activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire || null;
     const permissions = usePermissions(activeRoleContext);
-    const { allowedClubs, loading: accessLoading } = useFetchAllowedClubs();
+    const { allowedClubs, loading: accessLoading } = useFetchAllowedClubs(session?.user?.id);
+
+    // Faza 38 D-02: nicio cerere de date (sportivi, plati, grupe, prezenta, set critic, realtime) inainte ca MFA sa fi trecut
+    // pentru contextul activ; inainte ruleaza doar rolurile, cluburile permise si verificarile MFA.
+    const mfaContextId = useAppStore(s => s.mfaContextId);
+    const poatePorniDate = !!activeRoleContext && mfaContextId === activeRoleContext.id && activeRole !== 'REPREZENTANT_COMPETITIE';
 
     // Pentru ADMIN_CLUB și INSTRUCTOR, pasăm club_id-ul activ ca filtru defensive în memorie.
     // View-ul vedere_cluburi_program_antrenamente filtrează deja prin get_active_club_id() la nivel DB,
     // dar adăugăm filtrul și la nivel de hook pentru robustețe (race condition la login).
     const attendanceClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
-    const attendanceData = useAttendanceData(attendanceClubId ?? undefined);
+    const attendanceData = useAttendanceData(attendanceClubId ?? undefined, !poatePorniDate);
 
     // SUPER_ADMIN_FEDERATIE și ADMIN văd toate grupele; ceilalți văd doar grupele clubului lor
     const grupeClubId = permissions.isFederationLevel ? null : (activeRoleContext?.club_id ?? null);
@@ -106,10 +112,10 @@ export const useDataProvider = () => {
         { clubId: sportiviClubId },
         undefined,
         undefined,
-        activeRoleContext?.id
+        poatePorniDate ? activeRoleContext?.id : undefined
     );
-    const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(activeRoleContext?.id);
-    const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(activeRoleContext?.id, grupeClubId);
+    const { data: platiData, isLoading: platiLoading, error: platiError } = usePlati(poatePorniDate ? activeRoleContext?.id : undefined);
+    const { data: grupeData, isLoading: grupeLoading, error: grupeError } = useGrupe(poatePorniDate ? activeRoleContext?.id : undefined, grupeClubId);
 
     // Update state when data changes de la hook-urile secundare
     useEffect(() => {
@@ -205,10 +211,32 @@ export const useDataProvider = () => {
         }
     }, [activeRoleContext]);
 
+    // currentUser din rolurile deja incarcate (fara date), ca pagina MFA sa poata fi randata inainte de orice cerere de date.
     useEffect(() => {
-        if (currentUser?.id) {
-            fetchIstoricVedere(currentUser.id);
+        if (!activeRoleContext || activeRole === 'REPREZENTANT_COMPETITIE') return;
+        const profile = activeRoleContext.sportiv || (userRoles || []).find((r: any) => r.sportiv)?.sportiv;
+        const currentRoles = (userRoles || []).map((r: any) => ({
+            ...r.roluri,
+            id: r.id, // Use assignment ID for uniqueness
+            assignment_id: r.id
+        })).filter((role: any) => role && role.nume);
 
+        setCurrentUser({
+            ...(profile || {
+                id: session?.user.id,
+                user_id: session?.user.id,
+                email: session?.user.email,
+                nume: 'Utilizator',
+                prenume: 'Sistem',
+            }),
+            roluri: currentRoles,
+            cluburi: activeRoleContext.cluburi
+        } as any);
+    }, [activeRoleContext, userRoles, session?.user.id]);
+
+    useEffect(() => {
+        // istoricPrezenta nu se mai incarca la pornire: MartialAttendance/SportivDashboard apeleaza fetchIstoricVedere singure (38-03)
+        if (currentUser?.id && poatePorniDate) {
             const channelId = `${currentUser.id}_${Date.now()}`;
             const subscription = supabase
                 .channel(`prezenta_antrenament_changes_${channelId}`)
@@ -281,7 +309,7 @@ export const useDataProvider = () => {
                 if (anunturiSubscription) supabase.removeChannel(anunturiSubscription);
             };
         }
-    }, [currentUser?.id, currentUser?.club_id, fetchIstoricVedere, activeRole]);
+    }, [currentUser?.id, currentUser?.club_id, fetchIstoricVedere, activeRole, poatePorniDate]);
 
     const fetchAppData = useCallback(async (activeCtx: any) => {
         try {
@@ -291,26 +319,6 @@ export const useDataProvider = () => {
             if (!supabase) throw new Error("Clientul Supabase nu este configurat.");
             
             const cleanedSupabase = withCleanUuidFilters(supabase as SupabaseClient<any, any>);
-            const profile = activeCtx.sportiv || (userRoles || []).find(r => r.sportiv)?.sportiv;
-
-            const currentRoles = (userRoles || []).map((r: any) => ({
-                ...r.roluri,
-                id: r.id, // Use assignment ID for uniqueness
-                assignment_id: r.id 
-            })).filter(role => role && role.nume);
-            
-            setCurrentUser({
-                ...(profile || {
-                    id: session?.user.id,
-                    user_id: session?.user.id,
-                    email: session?.user.email,
-                    nume: 'Utilizator',
-                    prenume: 'Sistem',
-                }),
-                roluri: currentRoles,
-                cluburi: activeCtx.cluburi
-            } as any);
-
             const activeRoleName = activeCtx.roluri?.nume || activeCtx.rol_denumire;
             const isSuperAdmin = activeRoleName === 'SUPER_ADMIN_FEDERATIE';
             const isAdmin = activeRoleName === 'ADMIN';
@@ -476,18 +484,21 @@ export const useDataProvider = () => {
         } finally {
             setLoadingData(false);
         }
-    }, [session?.user.id, userRoles]);
+    }, []);
 
     useEffect(() => {
         if ((activeRoleContext?.roluri?.nume || activeRoleContext?.rol_denumire) === 'REPREZENTANT_COMPETITIE') {
             // Zona externa isi incarca singura datele; portalul principal nu trage setul clubului
             setLoadingData(false);
-        } else if (activeRoleContext) {
+        } else if (activeRoleContext && poatePorniDate) {
             fetchAppData(activeRoleContext);
+        } else if (activeRoleContext) {
+            // Asteptam MFA: scheletul nu trebuie tinut pentru date care nu pornesc inca (D-02)
+            setLoadingData(false);
         } else if (!rolesLoading && !needsRoleSelection) {
             setLoadingData(false);
         }
-    }, [activeRoleContext, rolesLoading, needsRoleSelection, fetchAppData]);
+    }, [activeRoleContext, poatePorniDate, rolesLoading, needsRoleSelection, fetchAppData]);
 
     // Ref stabil pentru refreshRoles — previne re-rularea efectului de auth
     // când useUserRoles recreează funcția după ce rolurile sunt încărcate
@@ -561,13 +572,16 @@ export const useDataProvider = () => {
             setData(prev => ({ ...prev, [key]: typeof value === 'function' ? (value as any)(prev[key]) : value }));
         };
 
-    const loading = loadingData || rolesLoading || attendanceData.loading || accessLoading;
-    const combinedError = error || rolesError || attendanceData.error;
+    // Prezenta nu mai intra in loading/error global: un timeout acolo nu mai produce "Eroare de Sistem" (Faza 38).
+    const loading = loadingData || rolesLoading || accessLoading;
+    const combinedError = error || rolesError;
 
-    return { 
-        ...data, 
+    return {
+        ...data,
         filteredData,
         ...attendanceData,
+        attendanceLoading: attendanceData.loading,
+        attendanceError: attendanceData.error,
         allowedClubs,
         loading, 
         error: combinedError, 

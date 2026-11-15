@@ -620,14 +620,22 @@ Plans:
 
 ### Phase 42: Competitie: editare echipe/quyen, FRAM an calendaristic, arme dupa grad eligibil
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Super adminul fixeaza la deschiderea competitiei regula FRAM (an calendaristic al competitiei, achitat sau scutit; blocare UI + DB, exceptii super admin confirmate si auditate); reprezentantul clubului editeaza membrii/arma echipelor, quyen-urile si categoria (compatibila) cat timp inscrierile sunt deschise, super adminul pana la finalizare, fara recalcularea taxelor si cu audit pe autor; armele se ofera doar dupa gradul efectiv la data competitiei (Thao Lo, Pas Arme, Giao Dau), cu avertismente, nu blocaje.
+**Requirements**: D-01..D-15 (42-CONTEXT.md)
 **Depends on:** Phase 41
-**Plans:** 0 plans
+**Plans:** 9 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 42 to break down)
+- [ ] 42-01-PLAN.md — Wave 0 verificare live (read-only) + migrare 20261115b: competitii.fram_obligatoriu, trigger imutabil (super admin, draft, fara participanti), trigger FRAM pe inscrieri/membri cu exceptie super admin auditata, compatibilitate la schimbarea categoriei
+- [ ] 42-02-PLAN.md — contracte client: Competitie.fram_obligatoriu, utils/editareCompetitie (statusFram, anFramCompetitie, diferentaMembri) + teste, WarningVizaFRAM blocat, ArmePermiseGiaoDau eligibile
+- [ ] 42-03-PLAN.md — reguli arme pure: armeEligibileLaGrad, motivFaraArme, lipsa 'arma-neeligibila' (inscrieri vechi + alese) + teste
+- [ ] 42-04-PLAN.md — [BLOCKING] aplicare live dupa OK + baterie tests/fram_editare_faza42.ts + ACL + regresie Faza 41
+- [ ] 42-05-PLAN.md — wizard Pas 1: blocare FRAM pentru club, exceptie confirmata pentru super admin
+- [ ] 42-06-PLAN.md — wizard arme: filtru pe drepturile gradului (Thao Lo/Pas2/Pas4), explicatie Pas Arme, Giao Dau eligibile, "De rezolvat" D-14/D-15
+- [ ] 42-07-PLAN.md — editare membri echipa fara stergere prealabila (serviciu sincronizeazaMembriEchipa) in modal si Pas 4; FRAM in modal
+- [ ] 42-08-PLAN.md — CompetitieForm optiune FRAM (super admin, doar draft), sursa vize FRAM filtrata pe server pentru inscriere, badge
+- [ ] 42-09-PLAN.md — EditareInscriereModal (quyen + categorie compatibila), butoane in Inscrieri dupa drepturile D-07, docs 7.10, verificare finala + verificari umane
 
 ### Phase 43: Auth: management user+parola+cod doar dispozitiv nou fara delogare inactivitate; acces extern email+parola+reset in loc de OTP
 

@@ -14,12 +14,14 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { RefreshProvider } from './contexts/RefreshContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { esteZonaCompetitie } from './utils/accesExtern';
+import { trebuieReincercat } from './utils/incarcareDate';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false, // Disable refetch on window focus
       staleTime: 1000 * 60 * 5,    // Consider data fresh for 5 minutes
+      retry: trebuieReincercat,    // Faza 38 D-04: fara reincercare pe statement timeout; o singura reincercare in rest
     },
   },
 });

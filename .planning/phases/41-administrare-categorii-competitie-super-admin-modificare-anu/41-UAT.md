@@ -1,5 +1,5 @@
 ---
-status: partial
+status: complete
 phase: 41-administrare-categorii-competitie-super-admin-modificare-anu
 source: [41-01-SUMMARY.md, 41-02-SUMMARY.md, 41-03-SUMMARY.md, 41-04-SUMMARY.md, 41-05-SUMMARY.md, 41-06-SUMMARY.md, 41-07-SUMMARY.md]
 started: 2026-11-14T22:30:00Z
@@ -8,7 +8,7 @@ updated: 2026-11-14T22:30:00Z
 
 ## Current Test
 
-[paused - ramane test 11 (stergere categorie), butonul nu a fost gasit]
+[testing complete]
 
 ## Tests
 
@@ -64,14 +64,24 @@ note: Financiar: 5 inscrisi dar 4 sportivi / 320 lei, taxa anulata (80 lei) excl
 
 ### 11. Stergere categorie doar fara randuri
 expected: Stergerea unei categorii e permisa doar daca nu are niciun rand de inscriere/echipa; altfel e refuzata.
-result: [pending]
+result: pass
+
+## Teste la volum pe clona (182 inscrieri copiate din 1551ef52, prod, 14.11.2026)
+
+- A. Fuziune 2 categorii (20 participanti) -> pass, total ramane 182
+- B. Impartire dupa grad (13 participanti) -> pass
+- C. Anulare #18 (11 inscrisi, 1100 lei taxe anulate) -> status anulata, 11 randuri pastrate; Realoca toti 11 -> #75 (toast "11 inscrieri si 0 echipe mutate"), #18 = 0, #75 = 31, total 182, 0 plati noi -> pass
+- D. Echipe: anulare #29 (3 echipe, 450 lei) -> Realoca la #28 (toast "0 inscrieri si 3 echipe mutate"), #28 = 7, total 145 echipe / 321 membri neschimbat -> pass. Lista tinta exclude categorii cu alta proba (ex. #34), corect.
+- E. Financiar pe clona: total 39950 lei, fara crash, 0 randuri pe categorii neactive dupa realocare (taxele anulate nu se mai pot vedea la volum dupa realocare; vazute la test 10) -> pass
+- Test 11 (stergere): in Admin > Categorii butonul Sterge apare doar la categorii active fara randuri; #2 (0 randuri) sters cu confirmare, 77->76, inscrieri neatinse; la categorii cu randuri butonul nu exista -> pass
+- Clona stearsa la final (competitie + categorii + inscrieri + echipe + membri), original 1551ef52 intact (182 inscrieri)
 
 ## Summary
 
 total: 11
-passed: 10
+passed: 11
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 
 ## Gaps

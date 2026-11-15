@@ -1183,6 +1183,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
         comp={editComp}
+        poateSetaFram={permissions.isSuperAdmin}
         onSaved={(comp) => {
           if (editComp) {
             setCompetitii(prev => prev.map(c => c.id === comp.id ? comp : c));

@@ -8,6 +8,7 @@ import {
   buildCategorieDenumire, DEFAULT_PROBE_PER_TIP, TemplateCategorieInput
 } from '../../utils/competitiiTemplates';
 import { TipuriLabelsContext, statusLabel } from './constants';
+import { anFramCompetitie } from '../../utils/editareCompetitie';
 
 // -----------------------------------------------
 // CREATE / EDIT COMPETITION MODAL
@@ -17,9 +18,10 @@ export interface CompetitieFormProps {
   onClose: () => void;
   onSaved: (c: Competitie) => void;
   comp: Competitie | null;
+  poateSetaFram?: boolean;
 }
 
-export const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSaved, comp }) => {
+export const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose, onSaved, comp, poateSetaFram }) => {
   const tipuriLabelsCtx = React.useContext(TipuriLabelsContext);
   const [form, setForm] = useState({
     denumire: '', tip: 'tehnica' as Competitie['tip'],
@@ -30,6 +32,7 @@ export const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose,
     echipa_seniori: '120', echipa_juniori: '150', cvd_echipa: '80',
     observatii: '',
     status: 'draft' as Competitie['status'],
+    fram_obligatoriu: false,
   });
   const [loading, setLoading] = useState(false);
   const [seedCategories, setSeedCategories] = useState(true);
@@ -51,6 +54,7 @@ export const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose,
           cvd_echipa: String(ct?.cvd_echipa ?? 80),
           observatii: comp.observatii || '',
           status: comp.status,
+          fram_obligatoriu: comp.fram_obligatoriu ?? false,
         });
       } else {
         setForm({
@@ -62,11 +66,15 @@ export const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose,
           echipa_seniori: '120', echipa_juniori: '150', cvd_echipa: '80',
           observatii: '',
           status: 'draft',
+          fram_obligatoriu: false,
         });
         setSeedCategories(true);
       }
     }
   }, [isOpen, comp]);
+
+  // D-02: doar super admin, doar cat timp randul salvat e draft
+  const framEditabil = !!poateSetaFram && (!comp || comp.status === 'draft');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +102,8 @@ export const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose,
         config_taxe: configTaxe,
         observatii: form.observatii.trim() || null,
         status: form.status,
+        // Trimis doar la schimbare: salvarile obisnuite nu ating coloana (sigur si inainte de migrarea 20261115b)
+        ...(form.fram_obligatoriu !== (comp?.fram_obligatoriu ?? false) ? { fram_obligatoriu: form.fram_obligatoriu } : {}),
       };
 
       let competitieId: string;
@@ -195,6 +205,22 @@ export const CompetitieForm: React.FC<CompetitieFormProps> = ({ isOpen, onClose,
           <Input label="Data Sfârșit" type="date" value={form.data_sfarsit} onChange={f('data_sfarsit')} required />
         </div>
         <Input label="Deadline Înscrieri" type="date" value={form.deadline_inscrieri} max={form.data_inceput} onChange={f('deadline_inscrieri')} required />
+        <div>
+          <label className={`flex items-center gap-2 ${framEditabil ? 'cursor-pointer' : 'opacity-70'}`}>
+            <input type="checkbox" checked={form.fram_obligatoriu} disabled={!framEditabil}
+              onChange={e => setForm(p => ({ ...p, fram_obligatoriu: e.target.checked }))} className="w-4 h-4 rounded" />
+            <span className="text-sm text-slate-300">
+              Doar sportivi cu viza FRAM {anFramCompetitie({ data_inceput: form.data_inceput })} achitată sau scutită
+            </span>
+          </label>
+          <p className="text-xs text-slate-400 mt-1">
+            {framEditabil
+              ? 'Se stabilește la deschiderea competiției; după deschiderea înscrierilor nu se mai poate modifica. Super adminul poate face excepții, cu confirmare.'
+              : !poateSetaFram
+                ? 'Doar super adminul federației setează regula FRAM.'
+                : 'Regula FRAM nu se mai modifică după deschiderea înscrierilor.'}
+          </p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Locație" value={form.locatie} onChange={f('locatie')} />
           <Input label="Organizator" value={form.organizator} onChange={f('organizator')} />

@@ -9,6 +9,7 @@ import { useData } from '../contexts/DataContext';
 import { FormularPrezenta } from './Prezenta/ListaPrezentaAntrenament';
 import { useAttendance } from '../hooks/useAttendance';
 import { useStatusePrezenta } from '../hooks/useStatusePrezenta';
+import { useDateLaCerere } from '../hooks/useDateLaCerere';
 
 interface CalendarEvent {
   id: string;
@@ -144,6 +145,8 @@ interface CalendarViewProps {
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, permissions, onViewSportiv }) => {
     const { filteredData, locatii, currentUser, setRezultate, setPlati, preturiConfig } = useData();
+    // Faza 38 D-03: calendarul poate naviga luni in afara ferestrei de pornire (-90/+30 zile)
+    useDateLaCerere(['antrenamenteIstoricComplet']);
     const antrenamente = filteredData.antrenamente;
     const sesiuniExamene = filteredData.sesiuniExamene;
     const evenimente = filteredData.evenimente;

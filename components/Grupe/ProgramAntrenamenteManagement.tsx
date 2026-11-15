@@ -8,6 +8,7 @@ import { useError } from '../ErrorProvider';
 import { MartialArtsSkeleton } from '../MartialArtsSkeleton';
 import { formatTime } from '../../utils/date';
 import { useSezonActiv } from '../../hooks/useSezoane';
+import { useDateLaCerere } from '../../hooks/useDateLaCerere';
 
 interface ProgramAntrenamenteManagementProps {
     onBack: () => void;
@@ -15,7 +16,9 @@ interface ProgramAntrenamenteManagementProps {
 }
 
 export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManagementProps> = ({ onBack, onNavigate }) => {
-    const { filteredData, setAntrenamente, loading, refetch, clubs, activeRoleContext } = useData();
+    const { filteredData, setAntrenamente, attendanceLoading, refetch, clubs, activeRoleContext } = useData();
+    // Faza 38 D-03: tab-urile Viitor/Arhiva depasesc fereastra de pornire; lista asteapta istoricul complet
+    const { seIncarca } = useDateLaCerere(['antrenamenteIstoricComplet']);
     const grupe = filteredData.grupe || [];
     const grupaMap = useMemo(() => new Map(grupe.map(g => [g.id, g])), [grupe]);
     const { showError, showSuccess } = useError();
@@ -262,7 +265,7 @@ export const ProgramAntrenamenteManagement: React.FC<ProgramAntrenamenteManageme
                 ))}
             </div>
 
-            {loading ? (
+            {attendanceLoading || seIncarca ? (
                 <MartialArtsSkeleton count={6} />
             ) : antrenamenteTabActiv.length === 0 ? (
                 <div className="text-center py-20 bg-slate-900/20 rounded-3xl border border-dashed border-slate-800">

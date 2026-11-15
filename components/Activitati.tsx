@@ -7,6 +7,7 @@ import { useError } from './ErrorProvider';
 import { useData } from '../contexts/DataContext';
 import { sendBulkNotifications } from '../utils/notifications';
 import { formatTime } from '../utils/date';
+import { useDateLaCerere } from '../hooks/useDateLaCerere';
 
 interface ProgramareActivitatiProps {
     onBack: () => void;
@@ -29,6 +30,9 @@ interface PreviewInstance {
 
 export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBack }) => {
     const { filteredData, setAntrenamente } = useData();
+    // Faza 38 D-03 - verificarea conflictelor are nevoie de tot programul, nu doar fereastra de pornire.
+    const { seIncarca } = useDateLaCerere(['antrenamenteIstoricComplet']);
+    const MSG_ASTEAPTA = "Programul complet se încarcă încă; reîncearcă în câteva secunde.";
     const grupe = filteredData.grupe;
     const antrenamente = filteredData.antrenamente;
     
@@ -102,6 +106,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
     };
 
     const handlePreview = () => {
+        if (seIncarca) { showError("Așteaptă", MSG_ASTEAPTA); return; }
         // 1. Validări câmpuri necesare
         if (!formState.grupaId || !formState.programId || !formState.dataStart || !formState.dataSfarsit) {
             showError("Date Incomplete", "Vă rugăm să completați toate câmpurile: grupă, orar, data de început și data de sfârșit.");
@@ -241,6 +246,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
     };
 
     const handleSaveEdit = async () => {
+        if (seIncarca) { showError("Așteaptă", MSG_ASTEAPTA); return; }
         if (!editingId || !editForm) return;
         try {
             const { error } = await supabase
@@ -289,6 +295,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
     };
     
     const handleGenerate = () => {
+        if (seIncarca) { showError("Așteaptă", MSG_ASTEAPTA); return; }
         if (!preview) return;
 
         const newTrainingsToInsert = preview
@@ -369,7 +376,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                     </div>
                 </div>
                 <div className="flex justify-end mt-6">
-                    <Button onClick={handlePreview} variant="primary">
+                    <Button onClick={handlePreview} variant="primary" disabled={seIncarca} title={seIncarca ? 'Se încarcă programul complet...' : undefined}>
                         <CalendarDaysIcon className="w-5 h-5 mr-2" />
                         Previzualizează Antrenamentele
                     </Button>
@@ -393,7 +400,8 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                                 onClick={handleGenerate} 
                                 variant="success" 
                                 isLoading={loading}
-                                disabled={preview.filter(p => !p.isConflict).length === 0}
+                                disabled={seIncarca || preview.filter(p => !p.isConflict).length === 0}
+                                title={seIncarca ? 'Se încarcă programul complet...' : undefined}
                                 className="shadow-lg shadow-emerald-900/20"
                             >
                                 Confirmă Generarea
@@ -517,7 +525,7 @@ export const ProgramareActivitati: React.FC<ProgramareActivitatiProps> = ({ onBa
                                     <div className="flex gap-1">
                                         {editingId === a.id ? (
                                             <>
-                                                <Button size="sm" variant="success" className="h-8 w-8 p-0" onClick={handleSaveEdit}>
+                                                <Button size="sm" variant="success" className="h-8 w-8 p-0" onClick={handleSaveEdit} disabled={seIncarca} title={seIncarca ? 'Se încarcă programul complet...' : undefined}>
                                                     <ArrowLeftIcon className="w-4 h-4 rotate-180" />
                                                 </Button>
                                                 <Button size="sm" variant="secondary" className="h-8 w-8 p-0" onClick={() => setEditingId(null)}>

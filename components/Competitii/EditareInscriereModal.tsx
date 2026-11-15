@@ -46,8 +46,9 @@ export const EditareInscriereModal: React.FC<EditareInscriereModalProps> = ({
   const [saving, setSaving] = useState(false);
 
   // quyen-urile se aleg doar la individual fara arma (formele pe arme CVD raman in pasul "Forme pe arme" al wizardului)
-  const arataQuyen = tinta.tip === 'inscriere' && !!curenta && !curenta.arma;
   const tipProba = probe.find(p => p.id === curenta?.proba_id)?.tip_proba ?? 'thao_quyen_individual';
+  // doar Thao Quyen individual: Giao Dau (arma null) nu are quyen, altfel modalul arata un camp Quyen gol pe categoriile de lupte
+  const arataQuyen = tinta.tip === 'inscriere' && !!curenta && !curenta.arma && tipProba === 'thao_quyen_individual';
   const grad = useMemo(() => (rand?.sportiv ? gradEfectivLaData(rand.sportiv, grade, competitie.data_inceput) : null), [rand, grade, competitie.data_inceput]);
 
   useEffect(() => {

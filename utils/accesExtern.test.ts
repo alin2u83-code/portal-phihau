@@ -2,7 +2,7 @@
  * Test colocat pentru utils/accesExtern.ts (fără framework, ca utils/parola.test.ts).
  * Rulare: `node --import tsx utils/accesExtern.test.ts`
  */
-import { extrageCompetitieId, clasificaEroareAuth, construiesteContexte, construiestePermisiuniExtern, clasificaCompetitiiClub, esteZonaCompetitie, esteListaZona } from './accesExtern';
+import { extrageCompetitieId, clasificaEroareAuth, construiesteContexte, separaContexteDupaMfa,construiestePermisiuniExtern, clasificaCompetitiiClub, esteZonaCompetitie, esteListaZona } from './accesExtern';
 
 function assert(condition: boolean, message: string): void {
     if (!condition) throw new Error(`FAIL: ${message}`);
@@ -52,6 +52,20 @@ assert(construiesteContexte([REP], null).length === 0, 'reprezentant fara cont d
 const dublu = construiesteContexte([{ id: 'r1', rol_denumire: 'ADMIN_CLUB', club_id: 'X', club: { nume: 'Xenon' } }, REP], { club_id: 'X', cluburi: { nume: 'Xenon' } });
 assert(dublu.length === 2 && dublu[0].rol === 'REPREZENTANT_COMPETITIE' && dublu[1].rol === 'ADMIN_CLUB', 'REPREZENTANT primul, ADMIN_CLUB pastrat');
 assert(construiesteContexte([], null).length === 0, 'lista goala -> []');
+
+const cx = (id: string, rol: 'ADMIN_CLUB' | 'INSTRUCTOR' | 'REPREZENTANT_COMPETITIE') => ({ roleRowId: id, rol, clubId: 'X', clubNume: 'Xenon' });
+const ids = (l: { roleRowId: string }[]) => l.map(x => x.roleRowId).join(',');
+const toate = [cx('rep', 'REPREZENTANT_COMPETITIE'), cx('adm', 'ADMIN_CLUB'), cx('ins', 'INSTRUCTOR')];
+const s1 = separaContexteDupaMfa(toate, true);
+assert(ids(s1.vizibile) === 'rep,adm,ins' && s1.ascunse.length === 0, 'Q2: MFA valid -> toate vizibile, ordinea pastrata');
+const s2 = separaContexteDupaMfa(toate, false);
+assert(ids(s2.vizibile) === 'rep' && ids(s2.ascunse) === 'adm,ins', 'Q2: fara MFA -> doar reprezentant vizibil, ascunse in ordine');
+const s3 = separaContexteDupaMfa([cx('adm', 'ADMIN_CLUB')], false);
+assert(s3.vizibile.length === 0 && ids(s3.ascunse) === 'adm', 'Q2: doar ADMIN_CLUB fara MFA -> vizibile gol');
+const s4 = separaContexteDupaMfa([cx('rep', 'REPREZENTANT_COMPETITIE')], false);
+assert(ids(s4.vizibile) === 'rep' && s4.ascunse.length === 0, 'Q2: doar reprezentant fara MFA -> vizibil');
+const s5 = separaContexteDupaMfa([], false);
+assert(s5.vizibile.length === 0 && s5.ascunse.length === 0, 'Q2: lista goala -> ambele goale');
 
 const AZI = '2026-11-11';
 const c = (id: string, status: string, di: string, ds: string) => ({ id, status, data_inceput: di, data_sfarsit: ds });

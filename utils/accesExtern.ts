@@ -48,6 +48,13 @@ export function construiesteContexte(roluri: RandRol[], contClub: RandContClub |
     return rezultat;
 }
 
+// Faza 43 Q2: fara MFA valid (12h sau dispozitiv de incredere) rolurile ADMIN_CLUB/INSTRUCTOR nu se deschid din zona externa; parola nu dovedeste posesia emailului.
+export function separaContexteDupaMfa(contexte: ContextAccesExtern[], mfaValid: boolean): { vizibile: ContextAccesExtern[]; ascunse: ContextAccesExtern[] } {
+    if (mfaValid) return { vizibile: [...contexte], ascunse: [] };
+    const esteRep = (c: ContextAccesExtern) => c.rol === 'REPREZENTANT_COMPETITIE';
+    return { vizibile: contexte.filter(esteRep), ascunse: contexte.filter(c => !esteRep(c)) };
+}
+
 /**
  * D-03/D-12, aceeași regulă ca SQL competitie_vizibila_cont_club (20261111c): draft exclus;
  * terminată = finalizata SAU data_sfarsit < azi; activă = neterminată; istoric = terminată cu participarea clubului.

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { User } from '../types';
+import { useAppStore } from '../src/store/useAppStore';
 
 export interface Notification {
     id: string;
@@ -23,35 +24,38 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode; currentUser: User | null }> = ({ children, currentUser }) => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    // CR-02: nicio cerere/canal realtime inainte ca MFA sa treaca (Faza 38 D-02)
+    const mfaTrecut = useAppStore(s => s.mfaContextId !== null);
+    const userId = mfaTrecut ? currentUser?.user_id : undefined;
 
     const fetchNotifications = useCallback(async () => {
-        if (!currentUser?.user_id || !supabase) return;
+        if (!userId || !supabase) return;
 
         const { data, error } = await supabase
             .from('notificari')
             .select('*')
-            .eq('recipient_user_id', currentUser.user_id)
+            .eq('recipient_user_id', userId)
             .order('created_at', { ascending: false })
             .limit(50);
 
         if (!error && data) {
             setNotifications(data);
         }
-    }, [currentUser?.user_id]);
+    }, [userId]);
 
     useEffect(() => {
         fetchNotifications();
 
-        if (!currentUser?.user_id || !supabase) return;
+        if (!userId || !supabase) return;
 
-        const channel = supabase.channel(`user-notifications-${currentUser.user_id}`)
+        const channel = supabase.channel(`user-notifications-${userId}`)
             .on(
                 'postgres_changes',
                 { 
                     event: 'INSERT', 
                     schema: 'public', 
                     table: 'notificari', 
-                    filter: `recipient_user_id=eq.${currentUser.user_id}` 
+                    filter: `recipient_user_id=eq.${userId}` 
                 },
                 (payload) => {
                     const newNotif = payload.new as Notification;
@@ -69,7 +73,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode; current
                     event: 'UPDATE', 
                     schema: 'public', 
                     table: 'notificari', 
-                    filter: `recipient_user_id=eq.${currentUser.user_id}` 
+                    filter: `recipient_user_id=eq.${userId}` 
                 },
                 (payload) => {
                     const updatedNotif = payload.new as Notification;
@@ -81,7 +85,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode; current
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [currentUser?.user_id, fetchNotifications]);
+    }, [userId, fetchNotifications]);
 
     const markAsRead = async (id: string) => {
         if (!supabase) return;

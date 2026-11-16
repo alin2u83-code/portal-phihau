@@ -148,6 +148,26 @@ export async function esteDispozitivDeIncredere(userId: string): Promise<boolean
     return true;
 }
 
+/** Stare MFA cu 3 valori: 'eroare' = nu s-a putut verifica (retea/DB), distinct de 'invalid' (verificat, nu e valid). */
+export async function stareMfa(userId: string): Promise<'valid' | 'invalid' | 'eroare'> {
+    const { data, error } = await supabase!
+        .from('mfa_email_verificari')
+        .select('verificat_pana')
+        .eq('user_id', userId)
+        .maybeSingle();
+    if (error) return 'eroare';
+    if (data && new Date(data.verificat_pana).getTime() > Date.now()) return 'valid';
+    const salvat = citesteDispozitiv();
+    if (!salvat || salvat.userId !== userId) return 'invalid';
+    const { data: ok, error: eroareRpc } = await supabase!.rpc('verifica_dispozitiv_incredere', { p_token: salvat.token });
+    if (eroareRpc) return 'eroare';
+    if (ok !== true) {
+        try { localStorage.removeItem(CHEIE_DISPOZITIV); } catch {}
+        return 'invalid';
+    }
+    return 'valid';
+}
+
 /** Revocă toate dispozitivele de încredere (ex. după schimbarea parolei) și uită tokenul local. */
 export async function revocaDispozitiveIncredere(): Promise<void> {
     try { localStorage.removeItem(CHEIE_DISPOZITIV); } catch {}

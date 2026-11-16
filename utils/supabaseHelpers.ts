@@ -22,7 +22,10 @@ export const processSettledQueries = (results: SettledQuery[], queryKeys: string
         if (res.status === 'fulfilled') {
             const resultValue = res.value;
 
-            if (!resultValue || resultValue.error?.code === '42501') {
+            if (!resultValue) {
+                // Raspuns lipsa = cerere esuata, NU RLS: nu golim datele (WR-05)
+                erori.push(key);
+            } else if (resultValue.error?.code === '42501') {
                 // RLS error or permission denied
                 rlsErrors.push(key);
                 data[key] = [];

@@ -21,6 +21,7 @@ import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { GradBadge } from '../utils/grades';
 import { SportivAvatarEditor } from './Sportivi/SportivAvatarEditor';
 import { useData } from '../contexts/DataContext';
+import { useDateLaCerere } from '../hooks/useDateLaCerere';
 
 import { AttendanceIndicator } from './UserProfile/AttendanceIndicator';
 import { TransferModal } from './UserProfile/TransferModal';
@@ -68,6 +69,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const examene = filteredData.sesiuniExamene;
     const grade = useData().grade;
     const istoricGrade = filteredData.istoricGrade;
+    // Faza 38 WR-01: statisticile de prezenta (total, procent, grafic 6 luni) au nevoie de tot istoricul, nu doar de fereastra de pornire.
+    useDateLaCerere(['antrenamenteIstoricComplet']);
     const antrenamente = filteredData.antrenamente;
     const plati = filteredData.plati;
     const tranzactii = filteredData.tranzactii;

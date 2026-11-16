@@ -6,14 +6,15 @@ import AccessDenied from './AccessDenied';
 import { MandatoryPasswordChange } from './MandatoryPasswordChange';
 import { OnboardingCompletare } from './OnboardingCompletare';
 import { SetupMFAPage } from './SetupMFAPage';
-import { Card } from './ui';
+import { Card, Button } from './ui';
+import { useQueryClient } from '@tanstack/react-query';
 import { MartialArtsSkeleton } from './MartialArtsSkeleton';
 import { ActivitateSalaTabs } from './ActivitateSalaTabs';
 import { SportiviTabs, ExameneTabs, CompetitiiTabs, FisaTabs } from './layout/HubTabs';
 import { useData } from '../contexts/DataContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useDateLaCerere } from '../hooks/useDateLaCerere';
-import { cheiPentruView } from '../utils/dateLaCerere';
+import { cheiPentruView, TOATE_CHEILE_LA_CERERE } from '../utils/dateLaCerere';
 
 // Pozitia de scroll per view (modul-level: supravietuieste demontarii componentelor)
 const scrollPositions = new Map<View, number>();
@@ -123,7 +124,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
         setAllRoles, setReduceri, setTipuriPlati, setLocatii, setClubs,
         setGrade, setTipuriAbonament, setDeconturiFederatie, setIstoricGrade,
         decontSportivi, setDecontSportivi,
-        filteredData, antrenamente, setAntrenamente, anunturiPrezenta, setAnunturiPrezenta, setCurrentUser
+        filteredData, antrenamente, setAntrenamente, anunturiPrezenta, setAnunturiPrezenta, setCurrentUser, incarcaLaCerere
     } = useData();
 
     // Faza 31 (31-08): logica fluxului de încasare multiplă (F1-F4) și a
@@ -139,7 +140,16 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     const [sportivIdPentruRaport, setSportivIdPentruRaport] = useState<string | null>(null);
     const [sportivProfilTab, setSportivProfilTab] = useState<'profil' | 'contact' | 'grade' | 'financiar' | 'familie' | 'grupe-istoric' | undefined>(undefined);
     // Faza 38 D-01: fiecare ecran isi cere datele grele; inainte de return-urile timpurii (Rules of Hooks, vezi CR-03).
-    useDateLaCerere(cheiPentruView(activeView, activeRole ?? null));
+    const cheiView = cheiPentruView(activeView, activeRole ?? null);
+    const { seIncarca: seIncarcaView, esuat: esuatView } = useDateLaCerere(cheiView);
+    const queryClient = useQueryClient();
+    const [seReincearca, setSeReincearca] = useState(false);
+    const reincearcaView = () => {
+        setSeReincearca(true);
+        setTimeout(() => setSeReincearca(false), 2500);
+        incarcaLaCerere(cheiView); // cheile esuate din coada la cerere pornesc de la zero
+        queryClient.invalidateQueries({ queryKey: ['plati'] }); // 'plati' vine din react-query
+    };
 
     if (currentUser && currentUser.email?.endsWith('@frqkd.ro')) {
         return <OnboardingCompletare currentUser={currentUser} onCompleted={() => window.location.reload()} />;
@@ -195,6 +205,22 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                 <Suspense fallback={<MartialArtsSkeleton count={5} />}>
                     <ActivitateSalaTabs activeView={activeView} onNavigate={replaceView} isAdminClub={isAtLeastClubAdmin} isInstructorOnly={permissions.isInstructor && !isAtLeastClubAdmin} enabled={isAtLeastInstructor}>
                     <SportiviTabs {...hubProps}><ExameneTabs {...hubProps}><CompetitiiTabs {...hubProps}><FisaTabs {...hubProps}>
+                    {/* WR-02: cat seturile ecranului nu au sosit, skeleton (nu liste goale/0 care pot induce actiuni pe date lipsa); setup-mfa nu cere nimic */}
+                    {seIncarcaView ? <MartialArtsSkeleton count={5} /> : (esuatView && cheiView.length < TOATE_CHEILE_LA_CERERE.length) ? (
+                        // WR-A: dupa reincercari esuate NU randam view-ul cu liste goale (ar induce actiuni pe date lipsa)
+                        <Card className="m-4 p-6 text-center">
+                            <p className="font-semibold mb-1">Nu s-au putut încărca datele acestui ecran.</p>
+                            <p className="text-sm text-slate-500 mb-4">Serverul e ocupat sau conexiunea a căzut. Încearcă din nou.</p>
+                            <Button onClick={reincearcaView} disabled={seReincearca}>{seReincearca ? 'Se reîncearcă…' : 'Reîncearcă'}</Button>
+                        </Card>
+                    ) : (<>
+                    {/* W1: view-urile pe plasa de siguranta (toate cheile) nu se blocheaza pentru o cheie nefolosita; doar banner */}
+                    {esuatView && (
+                        <div className="m-4 p-3 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 text-sm flex items-center justify-between gap-3">
+                            <span>Unele date nu s-au putut încărca; ecranul poate fi incomplet.</span>
+                            <Button onClick={reincearcaView} disabled={seReincearca}>{seReincearca ? 'Se reîncearcă…' : 'Reîncearcă'}</Button>
+                        </div>
+                    )}
                     {(() => {
                         switch (activeView) {
                             case 'legitimatii':
@@ -351,6 +377,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                                 return <div>Lipsește Vizualizarea</div>;
                         }
                     })()}
+                    </>)}
                     </FisaTabs></CompetitiiTabs></ExameneTabs></SportiviTabs>
                     </ActivitateSalaTabs>
                 </Suspense>

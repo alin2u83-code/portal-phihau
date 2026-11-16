@@ -79,7 +79,7 @@ const infoContext = (ctx: any) => {
 
 const avertizeazaDatePartiale = (chei: string[]) => {
     console.warn(`Date neincarcate (server ocupat): ${chei.join(', ')}`);
-    toast.error('Unele date nu s-au putut încărca (server ocupat). Redeschide pagina pentru a reîncerca.', { id: 'date-partiale' });
+    toast.error('Unele date nu s-au putut încărca (server ocupat). Se reîncearcă automat; dacă persistă, apasă Reîncearcă pe ecran.', { id: 'date-partiale' });
 };
 
 // Seturile mari, incarcate doar cand un ecran le cere (D-01). 'plati' si 'antrenamenteIstoricComplet' nu sunt aici: au hook propriu.
@@ -122,6 +122,8 @@ export const useDataProvider = () => {
     const [platiCerute, setPlatiCerute] = useState(false);
     const [prezentaCompleta, setPrezentaCompleta] = useState(false);
     const [cheiIncarcate, setCheiIncarcate] = useState<ReadonlySet<CheieLaCerere>>(() => new Set());
+    // WR-03: cheile care au esuat si dupa reincercari (altfel seIncarca ar ramane true la nesfarsit)
+    const [cheiEsuate, setCheiEsuate] = useState<ReadonlySet<CheieLaCerere>>(() => new Set());
     const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [session, setSession] = useState<Session | null>(null);
@@ -469,17 +471,22 @@ export const useDataProvider = () => {
     const cheiCerute = React.useRef(new Set<CheieLaCerere>());
     const cheiGata = React.useRef(new Set<CheieLaCerere>());
     const coadaLaCerere = React.useRef<Promise<void>>(Promise.resolve());
+    const incercariCheie = React.useRef(new Map<CheieLaCerere, number>());
+    const timereReincercare = React.useRef(new Map<CheieLaCerere, ReturnType<typeof setTimeout>>()); // WR-D: un singur timer pe cheie
+    const MAX_INCERCARI_CHEIE = 3;
     const contextLaCerere = React.useRef<{ poate: boolean; ctx: any }>({ poate: false, ctx: null });
     contextLaCerere.current = { poate: poatePorniDate, ctx: activeRoleContext };
 
     const proceseazaCereri = useCallback(() => {
         const { poate, ctx } = contextLaCerere.current;
         if (!poate || !ctx) return;
+        let curent: CheieLaCerere[] = [];
         coadaLaCerere.current = coadaLaCerere.current.then(async () => {
             const contextId = ctx.id;
             const deRulat = [...cheiCerute.current]
                 .filter(k => k !== 'plati' && k !== 'antrenamenteIstoricComplet' && !cheiGata.current.has(k));
             if (deRulat.length === 0) return;
+            curent = deRulat;
 
             const cereri = construiesteCereriLaCerere(ctx);
             const settled = await ruleazaCuLimita(deRulat.map(k => cereri[k]), LIMITA_LA_CERERE) as SettledQuery[];
@@ -488,9 +495,31 @@ export const useDataProvider = () => {
             const { data: rezultat, erori } = processSettledQueries(settled, deRulat);
             // Cheia esuata iese din setul cerut: o vizita ulterioara o reia; datele anterioare raman.
             erori.forEach(k => cheiCerute.current.delete(k as CheieLaCerere));
+            // WR-03: reincercare automata (3 s, 6 s) cat ecranul ramane deschis; dupa MAX_INCERCARI_CHEIE cheia devine "esuata".
+            const definitiv: CheieLaCerere[] = [];
+            const dePlanificat: CheieLaCerere[] = [];
+            erori.forEach(e => {
+                const k = e as CheieLaCerere;
+                const n = (incercariCheie.current.get(k) ?? 0) + 1;
+                incercariCheie.current.set(k, n);
+                (n < MAX_INCERCARI_CHEIE ? dePlanificat : definitiv).push(k);
+            });
+            if (definitiv.length > 0) setCheiEsuate(prev => new Set([...prev, ...definitiv]));
+            dePlanificat.forEach(k => {
+                const n = incercariCheie.current.get(k) ?? 1;
+                const vechi = timereReincercare.current.get(k);
+                if (vechi) clearTimeout(vechi);
+                timereReincercare.current.set(k, setTimeout(() => {
+                    timereReincercare.current.delete(k);
+                    if (contextLaCerere.current.ctx?.id !== contextId) return;
+                    cheiCerute.current.add(k);
+                    proceseazaCereri();
+                }, 3000 * n));
+            });
             const reusite = deRulat.filter(k => !erori.includes(k));
             if (reusite.length > 0) {
-                reusite.forEach(k => cheiGata.current.add(k));
+                reusite.forEach(k => { cheiGata.current.add(k); incercariCheie.current.delete(k); });
+                setCheiEsuate(prev => (reusite.some(k => prev.has(k)) ? new Set([...prev].filter(x => !reusite.includes(x))) : prev));
                 setData(prev => {
                     const next: any = { ...prev };
                     reusite.forEach(k => { next[k] = rezultat[k] || (prev as any)[k]; });
@@ -499,7 +528,14 @@ export const useDataProvider = () => {
                 setCheiIncarcate(new Set(cheiGata.current));
             }
             if (erori.length > 0) avertizeazaDatePartiale(erori);
-        }).catch(err => console.error('Incarcare la cerere esuata:', err?.message ?? err));
+        }).catch(err => {
+            console.error('Incarcare la cerere esuata:', err?.message ?? err);
+            // W4: exceptie neasteptata => cheile ruland devin "esuate" (cu Reincearca), nu raman in skeleton la nesfarsit
+            if (curent.length > 0) {
+                curent.forEach(k => cheiCerute.current.delete(k));
+                setCheiEsuate(prev => new Set([...prev, ...curent]));
+            }
+        });
     }, []);
 
     // Idempotent; sigur de apelat inainte sa se deschida poarta MFA (cheile asteapta in coada).
@@ -508,7 +544,13 @@ export const useDataProvider = () => {
         for (const k of chei) {
             if (k === 'plati') setPlatiCerute(true);
             else if (k === 'antrenamenteIstoricComplet') setPrezentaCompleta(true);
-            else if (!cheiCerute.current.has(k)) { cheiCerute.current.add(k); nou = true; }
+            else if (timereReincercare.current.has(k)) continue; // reincercare deja programata: nu resetam contorul si nu dublam cererea
+            else if (!cheiCerute.current.has(k) && !cheiGata.current.has(k)) {
+                // vizita noua dupa un esec definitiv reia cheia de la zero
+                incercariCheie.current.delete(k);
+                setCheiEsuate(prev => (prev.has(k) ? new Set([...prev].filter(x => x !== k)) : prev));
+                cheiCerute.current.add(k); nou = true;
+            }
         }
         if (nou) proceseazaCereri();
     }, [proceseazaCereri]);
@@ -525,6 +567,10 @@ export const useDataProvider = () => {
         if (contextAnterior.current !== null && contextAnterior.current !== id) {
             cheiCerute.current.clear();
             cheiGata.current.clear();
+            incercariCheie.current.clear();
+            timereReincercare.current.forEach(clearTimeout);
+            timereReincercare.current.clear();
+            setCheiEsuate(new Set());
             setCheiIncarcate(new Set());
             setPlatiCerute(false);
             setPrezentaCompleta(false);
@@ -533,6 +579,14 @@ export const useDataProvider = () => {
     }, [activeRoleContext?.id]);
 
     const platiIncarcate = platiCerute && platiData !== undefined;
+    // CR-A: 'plati' vine din react-query, nu din coada la cerere; daca esueaza, trebuie sa iasa din "se incarca" (altfel skeleton infinit)
+    const platiEsuate = platiCerute && !!platiError && platiData === undefined;
+    const cheiEsuateExpuse = useMemo<ReadonlySet<CheieLaCerere>>(() => {
+        if (!platiEsuate) return cheiEsuate;
+        const s = new Set<CheieLaCerere>(cheiEsuate);
+        s.add('plati');
+        return s;
+    }, [cheiEsuate, platiEsuate]);
     const prezentaCompletaIncarcata = prezentaCompleta && attendanceData.filtreIncarcate === 'null';
     const cheiIncarcateExpuse = useMemo<ReadonlySet<CheieLaCerere>>(() => {
         const s = new Set<CheieLaCerere>(cheiIncarcate);
@@ -639,6 +693,7 @@ export const useDataProvider = () => {
         attendanceError: attendanceData.error,
         incarcaLaCerere,
         cheiIncarcate: cheiIncarcateExpuse,
+        cheiEsuate: cheiEsuateExpuse,
         allowedClubs,
         loading, 
         error: combinedError, 

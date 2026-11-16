@@ -36,6 +36,10 @@ test('rejected -> cheia lipseste din data, in erori', () => {
   const r = processSettledQueries([respins(new Error('x'))], ['k']);
   egal('k' in r.data, false, 'k in data'); egal(r.erori, ['k'], 'erori');
 });
+test('fulfilled fara valoare -> eroare, NU rls, nu goleste (WR-05)', () => {
+  const r = processSettledQueries([{ status: 'fulfilled' } as any], ['k']);
+  egal('k' in r.data, false, 'k in data'); egal(r.erori, ['k'], 'erori'); egal(r.rlsErrors, [], 'rls');
+});
 test('lot mixt: rezultate independente per cheie', () => {
   const r = processSettledQueries(
     [ok({ data: [1], error: null }), ok({ data: null, error: { code: '42501' } }), ok({ data: null, error: { code: '57014' } }), respins('r')],

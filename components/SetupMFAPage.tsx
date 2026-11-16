@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigation } from '../contexts/NavigationContext';
-import { trimiteCodMfaEmail, verificaCodMfaEmail, inregistreazaDispozitivIncredere, citestePreferintaRamaneConectat, ZILE_DISPOZITIV_INCREDERE } from '../services/emailMfaService';
+import { trimiteCodMfaEmail, verificaCodMfaEmail, inregistreazaDispozitivIncredere, stareMfa, citestePreferintaRamaneConectat, ZILE_DISPOZITIV_INCREDERE } from '../services/emailMfaService';
 import { Button, Card } from './ui';
 
 type Step = 'loading' | 'cod-trimis';
@@ -35,6 +35,16 @@ export function SetupMFAPage() {
                     return;
                 }
                 setEmail(emailCont);
+                // WR-C: dupa un reload pe setup-mfa (view persistat) MFA poate fi deja valid: nu mai trimitem cod, mergem pe dashboard
+                if (sesiune.session?.user?.id) {
+                    const stare = await stareMfa(sesiune.session.user.id);
+                    if (stare === 'valid') { navigateTo('dashboard'); return; }
+                    if (stare === 'eroare') { // W3: nu trimitem cod pe un blip de retea
+                        setError('Nu s-a putut verifica starea MFA. Reîncarcă pagina și încearcă din nou.');
+                        initPornit.current = false;
+                        return;
+                    }
+                }
                 const { error: sendErr } = await trimiteCodMfaEmail(emailCont);
                 if (sendErr) { setError(sendErr.message); initPornit.current = false; return; }
                 setRetrimisLa(Date.now());

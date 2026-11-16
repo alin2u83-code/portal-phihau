@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { Antrenament, AnuntPrezenta } from '../types';
 import { useError } from '../components/ErrorProvider';
@@ -28,6 +28,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
     // Setul de filtre al ultimei incarcari reusite (null pana la prima reusita); 38-04 il foloseste ca sa stie cand a sosit istoricul complet.
     const [filtreIncarcate, setFiltreIncarcate] = useState<string | null>(null);
     const { showError, showSuccess } = useError();
+    const generatieRef = useRef(0);
 
     const getTodayString = () => new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
@@ -36,6 +37,8 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
         // Nu face fetch dacă nu există sesiune activă (evită 401 la pagina de login)
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) { setLoading(false); return; }
+        // CR-03: doar ultima cerere are voie sa scrie starea; un raspuns intarziat (fereastra) nu suprascrie istoricul complet
+        const generatie = ++generatieRef.current;
         setLoading(true);
         setError(null);
         try {
@@ -115,6 +118,7 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
                 prezenta: enrichPrezenta(prezentaByAntrenament[t.id] || [], statusById),
             }));
 
+            if (generatie !== generatieRef.current) return;
             setAntrenamente(allTrainings);
             setFiltreIncarcate(JSON.stringify(filters ?? null));
             setAnunturiPrezenta(anunturiRes.data || []);
@@ -126,11 +130,12 @@ export const useAttendanceData = (clubId?: string | null, skipFetch = false, fil
             setTodaysTrainings(todayFiltered);
 
         } catch (err: any) {
+            if (generatie !== generatieRef.current) return;
             console.error("Error fetching attendance data:", err);
             setError(err.message);
             showError("Eroare încărcare date", err.message || "Nu s-au putut prelua datele de prezență.");
         } finally {
-            setLoading(false);
+            if (generatie === generatieRef.current) setLoading(false);
         }
     }, [clubId, showError, skipFetch, JSON.stringify(filters)]);
 

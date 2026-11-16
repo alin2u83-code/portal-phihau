@@ -10,14 +10,14 @@ export function extrageCompetitieId(pathname: string): string | null {
     return m[1].toLowerCase();
 }
 
-export type TipEroareOtp = 'ok' | 'fara_cont' | 'limita' | 'alta';
+// Faza 43: login extern cu parola; mesaj unic pentru orice esec de credentiale, ca sa nu se dezvaluie existenta contului (Pitfall 5); 'limita' separat (Pitfall 1).
+export type TipEroareAuth = 'ok' | 'credentiale' | 'limita' | 'alta';
 
-/** Regula din 36-AUDIT-LIVE DEC-8: email fără cont => 422 'otp_disabled'; limită => 429 / over_*_rate_limit. */
-export function clasificaEroareOtp(error: { status?: number; code?: string; message?: string } | null | undefined): TipEroareOtp {
+export function clasificaEroareAuth(error: { status?: number; code?: string; message?: string; name?: string } | null | undefined): TipEroareAuth {
     if (!error) return 'ok';
     const mesaj = (error.message ?? '').toLowerCase();
     if (error.status === 429 || error.code === 'over_email_send_rate_limit' || error.code === 'over_request_rate_limit' || mesaj.includes('rate limit')) return 'limita';
-    if (error.code === 'otp_disabled' || error.status === 422 || mesaj.includes('signups not allowed')) return 'fara_cont';
+    if (error.code === 'invalid_credentials' || error.code === 'user_banned' || error.code === 'email_not_confirmed' || error.status === 400 || mesaj.includes('invalid login credentials')) return 'credentiale';
     return 'alta';
 }
 

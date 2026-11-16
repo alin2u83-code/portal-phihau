@@ -2,7 +2,7 @@
  * Test colocat pentru utils/accesExtern.ts (fără framework, ca utils/parola.test.ts).
  * Rulare: `node --import tsx utils/accesExtern.test.ts`
  */
-import { extrageCompetitieId, clasificaEroareOtp, construiesteContexte, construiestePermisiuniExtern, clasificaCompetitiiClub, esteZonaCompetitie, esteListaZona } from './accesExtern';
+import { extrageCompetitieId, clasificaEroareAuth, construiesteContexte, construiestePermisiuniExtern, clasificaCompetitiiClub, esteZonaCompetitie, esteListaZona } from './accesExtern';
 
 function assert(condition: boolean, message: string): void {
     if (!condition) throw new Error(`FAIL: ${message}`);
@@ -20,13 +20,17 @@ assert(extrageCompetitieId(`/competitie/${U}/altceva`) === null, 'segment suplim
 assert(extrageCompetitieId('/') === null, 'radacina');
 assert(extrageCompetitieId('/competitie/3f2b8c1e-1111-4222-8333-44445555zzzz') === null, 'litere non-hex');
 
-assert(clasificaEroareOtp(null) === 'ok', 'fara eroare -> ok');
-assert(clasificaEroareOtp({ status: 429 }) === 'limita', '429 -> limita');
-assert(clasificaEroareOtp({ code: 'over_email_send_rate_limit' }) === 'limita', 'cod rate limit');
-assert(clasificaEroareOtp({ message: 'email rate limit exceeded' }) === 'limita', 'mesaj rate limit');
-assert(clasificaEroareOtp({ status: 422, code: 'otp_disabled', message: 'Signups not allowed for otp' }) === 'fara_cont', 'DEC-8 -> fara_cont');
-assert(clasificaEroareOtp({ message: 'Signups not allowed for otp' }) === 'fara_cont', 'doar mesaj -> fara_cont');
-assert(clasificaEroareOtp({ status: 500, message: 'boom' }) === 'alta', 'alta');
+assert(clasificaEroareAuth(null) === 'ok', 'fara eroare -> ok');
+assert(clasificaEroareAuth({ status: 429 }) === 'limita', '429 -> limita');
+assert(clasificaEroareAuth({ code: 'over_email_send_rate_limit' }) === 'limita', 'cod over_email_send_rate_limit');
+assert(clasificaEroareAuth({ code: 'over_request_rate_limit' }) === 'limita', 'cod over_request_rate_limit');
+assert(clasificaEroareAuth({ message: 'email rate limit exceeded' }) === 'limita', 'mesaj rate limit');
+assert(clasificaEroareAuth({ status: 400, code: 'invalid_credentials' }) === 'credentiale', 'invalid_credentials');
+assert(clasificaEroareAuth({ status: 400, code: 'user_banned' }) === 'credentiale', 'user_banned');
+assert(clasificaEroareAuth({ code: 'email_not_confirmed' }) === 'credentiale', 'email_not_confirmed');
+assert(clasificaEroareAuth({ message: 'Invalid login credentials' }) === 'credentiale', 'mesaj invalid login credentials');
+assert(clasificaEroareAuth({ status: 500, message: 'boom' }) === 'alta', '500 -> alta');
+assert(clasificaEroareAuth({ status: 0, name: 'AuthRetryableFetchError' }) === 'alta', 'retryable fetch -> alta');
 
 assert(esteZonaCompetitie('/competitie') && esteZonaCompetitie('/competitie/') && esteZonaCompetitie(`/competitie/${U}`) && esteZonaCompetitie('/competitie/abc'), 'esteZonaCompetitie: /competitie, slash, uuid, id invalid');
 assert(!esteZonaCompetitie('/competitii') && !esteZonaCompetitie('/'), 'esteZonaCompetitie: /competitii si / nu sunt zona');

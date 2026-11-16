@@ -1,12 +1,11 @@
 import { supabase } from '../supabaseClient';
-import { inregistreazaEmailAuth } from './authEmailAuditService';
-import { clasificaEroareOtp, construiesteContexte, clasificaCompetitiiClub, type TipEroareOtp } from '../utils/accesExtern';
+import { notificaIncercareLogin } from './alertaSecuritateService';
+import { clasificaEroareAuth, construiesteContexte, clasificaCompetitiiClub, type TipEroareAuth } from '../utils/accesExtern';
 import type { CompetitiePublica, ContextAccesExtern, CodEroareCerereAcces, Competitie, CompetitiiClubClasificate, ContCompetitieClub } from '../types';
 
 // Aceeași cheie și același format ca portalul principal (hooks/useAppLogic.ts) — supabaseClient.ts o citește
 // și trimite headerul active-role-context-id în toate requesturile (RLS).
 const CHEIE_CONTEXT = 'phi-hau-active-role-context-id';
-const DURATA_MFA_ORE = 12;
 
 const CODURI_CERERE: CodEroareCerereAcces[] = ['date_invalide', 'competitie_indisponibila', 'club_invalid', 'prea_multe_cereri'];
 
@@ -17,27 +16,19 @@ export async function incarcaCompetitiePublica(id: string): Promise<{ data: Comp
     return { data: error ? null : ((data as CompetitiePublica | null) ?? null), error };
 }
 
-/** Emailul conține DOAR un cod (D-04), nu link de acțiune. */
-export async function trimiteCodAcces(email: string): Promise<{ tip: TipEroareOtp; error: any }> {
-    if (!supabase) return { tip: 'alta', error: 'Supabase neinițializat' };
-    const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
-        options: { shouldCreateUser: false },
-    });
-    inregistreazaEmailAuth('cod_mfa', !error);
-    return { tip: clasificaEroareOtp(error), error };
-}
-
-export async function verificaCodAcces(email: string, cod: string): Promise<{ user: any | null; error: any }> {
-    if (!supabase) return { user: null, error: 'Supabase neinițializat' };
-    const { data, error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: cod, type: 'email' });
-    if (error || !data.user) return { user: null, error: error ?? new Error('Cod invalid') };
-    // Best-effort: păstrează coerența ferestrei MFA a portalului principal (ADMIN_CLUB); un cont extern poate fi respins de RLS.
+/** Login extern cu parola (Faza 43). Nu marcheaza verificarea MFA pe email: parola nu dovedeste MFA. */
+export async function loginParolaAcces(email: string, parola: string): Promise<{ user: any | null; tip: TipEroareAuth }> {
+    if (!supabase) return { user: null, tip: 'alta' };
     try {
-        const verificatPana = new Date(Date.now() + DURATA_MFA_ORE * 60 * 60 * 1000).toISOString();
-        await supabase.from('mfa_email_verificari').upsert({ user_id: data.user.id, verificat_pana: verificatPana }, { onConflict: 'user_id' });
-    } catch { /* ignorat intenționat */ }
-    return { user: data.user, error: null };
+        const adresa = email.trim().toLowerCase();
+        const { data, error } = await supabase.auth.signInWithPassword({ email: adresa, password: parola });
+        // acelasi control anti brute-force ca login-ul de management (cont de club partajat)
+        notificaIncercareLogin(adresa, !error, data?.user?.id, data?.session?.access_token);
+        if (error || !data?.user) return { user: null, tip: error ? clasificaEroareAuth(error) : 'alta' };
+        return { user: data.user, tip: 'ok' };
+    } catch {
+        return { user: null, tip: 'alta' };
+    }
 }
 
 /** Listă goală = emailul nu are acces (D-02). Accesul real e dat de RLS, nu de această listă. */

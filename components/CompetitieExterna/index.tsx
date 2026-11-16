@@ -12,7 +12,7 @@ import { extrageCompetitieId, esteListaZona, construiestePermisiuniExtern } from
 import { incarcaCompetitiePublica, incarcaContexteEligibile, seteazaContextActiv, deconecteaza } from '../../services/accesExternService';
 import { sesiuneActorCurenta, inchideSesiuneActor } from '../../services/autorModificariService';
 import { AlegeActorModal } from './AlegeActorModal';
-import { LoginOtp } from './LoginOtp';
+import { LoginParola } from './LoginParola';
 import { SolicitaContForm } from './SolicitaContForm';
 import { ShellExtern } from './ShellExtern';
 import { ZonaTestManagement } from './ZonaTestManagement';
@@ -247,7 +247,7 @@ const CompetitieExternaPage: React.FC = () => {
             continut = (
                 <Centrat>
                     {publica}
-                    <LoginOtp
+                    <LoginParola
                         onAutentificat={finalizeaza}
                         onSolicita={email => setStare({ t: 'solicita', email })}
                     />

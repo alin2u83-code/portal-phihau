@@ -5,7 +5,7 @@
 // Prefix `_` = nu devine funcție Vercel. Rulează cu service role: autorizarea se face
 // în handler ÎNAINTE de a apela proceseazaCerereAcces.
 // Nu trimite niciun email (memoria feedback_email_fara_linkuri_actiune): utilizatorul
-// se autentifică ulterior cu OTP pe pagina competiției.
+// se autentifică ulterior cu email + parolă pe pagina competiției (prima dată își setează parola cu un cod pe email, Faza 43).
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { creeazaContClub } from './_contCompetitieClub.js';

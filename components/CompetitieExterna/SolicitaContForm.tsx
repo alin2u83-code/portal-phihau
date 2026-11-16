@@ -49,7 +49,7 @@ export const SolicitaContForm: React.FC<SolicitaContFormProps> = ({ competitieId
         return (
             <Card className="max-w-md mx-auto space-y-4">
                 <p className="text-sm text-[var(--t-text)]">
-                    Cererea a fost trimisă federației. După aprobare poți intra cu adresa ta de email (primești un cod pe email).
+                    Cererea a fost trimisă federației. După aprobare intri cu adresa ta de email și o parolă: la prima autentificare îți setezi parola cu un cod primit pe email.
                 </p>
                 <Button variant="secondary" onClick={onInapoi}>Înapoi la autentificare</Button>
             </Card>

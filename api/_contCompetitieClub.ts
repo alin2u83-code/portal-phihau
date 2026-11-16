@@ -2,7 +2,7 @@
 // Faza 39 (D-01, D-13, D-14, D-15): cont unic de competiție per club, creat doar de proprietarul aplicației.
 // Prefix `_` = nu devine funcție Vercel. Rulează cu service role: autorizarea
 // (esteProprietarApelant) se face în handler ÎNAINTE de orice scriere.
-// Contul are doar cod OTP pe email (fără parolă, fără link de acțiune).
+// Contul se creează fără parolă; la prima autentificare reprezentantul își setează parola cu un cod pe email (Faza 43, fără link de acțiune).
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 

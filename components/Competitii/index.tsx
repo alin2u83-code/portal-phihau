@@ -66,7 +66,7 @@ interface CompetitieDetailProps {
   onBack?: () => void;
   onUpdated?: (c: Competitie) => void;
   onViewSportiv?: (s: Sportiv) => void;
-  /** zona externa (link + OTP): doar Inscrieri/Categorii/Taxe/Detalii, date filtrate pe clubul din context */
+  /** zona externa (link + parolă): doar Inscrieri/Categorii/Taxe/Detalii, date filtrate pe clubul din context */
   mode?: 'extern';
   /** rol context extern: 'ADMIN_CLUB' | 'INSTRUCTOR' | 'REPREZENTANT_COMPETITIE' */
   externRol?: string;

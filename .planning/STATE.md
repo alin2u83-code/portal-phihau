@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 42-05-PLAN.md
-last_updated: "2026-11-15T20:29:47.778Z"
-last_activity: 2026-11-15 -- Phase 42 execution started
+status: executing
+stopped_at: Completed 43-01-PLAN.md
+last_updated: "2026-11-16T18:56:02.341Z"
+last_activity: 2026-11-16 -- Phase 43 execution started
 progress:
   total_phases: 35
-  completed_phases: 21
-  total_plans: 154
-  completed_plans: 147
-  percent: 60
+  completed_phases: 22
+  total_plans: 171
+  completed_plans: 159
+  percent: 63
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 42 — competitie-editare
+**Current focus:** Phase 43 — auth-management-user-parola-cod-doar-dispozitiv-nou-fara-del
 
 ## Current Position
 
-Phase: 42 (competitie-editare) — EXECUTING
-Plan: 9 of 9
-Status: Phase complete — ready for verification
-Last activity: 2026-11-15 -- Phase 42 execution started
+Phase: 43 (auth-management-user-parola-cod-doar-dispozitiv-nou-fara-del) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-11-16 -- Phase 43 execution started
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -94,6 +94,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 42 P08 | 10min | 2 tasks | 3 files |
 | Phase 42 P04 | 25min | 3 tasks | 2 files |
 | Phase 42 P09 | 30min | 3 tasks | 7 files |
+| Phase 43 P01 | 10min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,7 @@ Recent decisions affecting current work:
 - [Phase 36]: 36-03: canEditArme false pentru externRol INSTRUCTOR (aliniere RLS Faza 35), de confirmat
 - [Phase ?]: [Phase 39-01]: helperii acces_extern_* rescrisi pe conturi_competitie_club; proprietari_aplicatie fara FORCE RLS
 - [Phase 39]: 39-02: cont de club = identitate auth dedicata fara parola; aprobare cerere = creare cont club doar proprietar; schimbare email = mutare user_id + ban vechi
+- [Phase 43]: Q1: fara delogare la inactivitate peste tot; risc rezidual sesiune deschisa acceptat
 
 ### Pending Todos
 
@@ -263,8 +265,8 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-11-15T20:29:47.764Z
-Stopped at: Completed 42-05-PLAN.md
+Last session: 2026-11-16T18:56:02.328Z
+Stopped at: Completed 43-01-PLAN.md
 Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md
 
 - Phase 41 added: Administrare categorii competitie (super admin)

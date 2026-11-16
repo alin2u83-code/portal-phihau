@@ -135,19 +135,6 @@ export async function inregistreazaDispozitivIncredere(userId: string): Promise<
     return true;
 }
 
-/** Adevărat dacă dispozitivul curent e de încredere pentru utilizator (și reînnoiește fereastra MFA de 12h). */
-export async function esteDispozitivDeIncredere(userId: string): Promise<boolean> {
-    const salvat = citesteDispozitiv();
-    if (!salvat || salvat.userId !== userId) return false;
-    const { data, error } = await supabase!.rpc('verifica_dispozitiv_incredere', { p_token: salvat.token });
-    if (error) return false;
-    if (data !== true) {
-        try { localStorage.removeItem(CHEIE_DISPOZITIV); } catch {}
-        return false;
-    }
-    return true;
-}
-
 /** Stare MFA cu 3 valori: 'eroare' = nu s-a putut verifica (retea/DB), distinct de 'invalid' (verificat, nu e valid). */
 export async function stareMfa(userId: string): Promise<'valid' | 'invalid' | 'eroare'> {
     const { data, error } = await supabase!

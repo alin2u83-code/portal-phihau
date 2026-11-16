@@ -2,6 +2,41 @@ import { supabase } from '../supabaseClient';
 import { getAuthErrorMessage } from '../utils/error';
 import { PHI_HAU_IASI_CLUB_ID, DEBUTANT_GRAD_ID } from '../constants';
 import { inregistreazaEmailAuth } from './authEmailAuditService';
+import { revocaDispozitiveIncredere } from './emailMfaService';
+
+// Faza 43: reset parola prin cod pe email (DEC-COD), folosit de LoginPage si de zona externa; prima setare a parolei = acelasi flux.
+export const trimiteCodResetParola = async (email: string): Promise<{ error: any }> => {
+    try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
+        inregistreazaEmailAuth('reset_parola', !error);
+        return { error };
+    } catch (e) {
+        inregistreazaEmailAuth('reset_parola', false);
+        return { error: e };
+    }
+};
+
+export const reseteazaParolaCuCod = async (
+    email: string,
+    cod: string,
+    parolaNoua: string,
+): Promise<{ user: any | null; error: any; etapa: 'cod' | 'parola' | null }> => {
+    const { data: verif, error: verifyError } = await supabase.auth.verifyOtp({
+        email: email.trim().toLowerCase(),
+        token: cod.trim(),
+        type: 'recovery',
+    });
+    if (verifyError || !verif?.user) return { user: null, error: verifyError, etapa: 'cod' };
+
+    const { data, error: updateError } = await supabase.auth.updateUser({ password: parolaNoua });
+    if (updateError) {
+        await supabase.auth.signOut({ scope: 'local' }); // nu lasa sesiune de recovery fara parola
+        return { user: null, error: updateError, etapa: 'parola' };
+    }
+
+    await revocaDispozitiveIncredere(); // parola schimbata => dispozitivele de incredere nu mai sunt valide
+    return { user: data.user, error: null, etapa: null };
+};
 
 export interface CreateAccountParams {
     email: string;

@@ -5,12 +5,12 @@ import { useAuthForm } from '../hooks/useAuthForm';
 import { Button, Card, Input } from './ui';
 import { LogIn, Mail, Lock, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import { inregistreazaEmailAuth } from '../services/authEmailAuditService';
+import { trimiteCodResetParola, reseteazaParolaCuCod } from '../services/authService';
 import { checkLeakedPassword } from '../utils/checkLeakedPassword';
 import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../utils/parola';
 
 import { QwanKiDoLogo } from './Logo';
-import { revocaDispozitiveIncredere, citestePreferintaRamaneConectat, seteazaRamaneConectat, retineRamaneInAsteptare, anuleazaRamaneInAsteptare } from '../services/emailMfaService';
+import { citestePreferintaRamaneConectat, seteazaRamaneConectat, retineRamaneInAsteptare, anuleazaRamaneInAsteptare } from '../services/emailMfaService';
 
 export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
@@ -87,12 +87,7 @@ export const LoginPage: React.FC = () => {
         if (!forgotEmail.trim()) return;
         setForgotLoading(true);
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim());
-            inregistreazaEmailAuth('reset_parola', !error);
-            setForgotMessage('Cod trimis dacă adresa există în sistem. Verifică și folderul Spam.');
-            setResetStep('cod');
-        } catch {
-            inregistreazaEmailAuth('reset_parola', false);
+            await trimiteCodResetParola(forgotEmail); // mesaj neutru indiferent de rezultat
             setForgotMessage('Cod trimis dacă adresa există în sistem. Verifică și folderul Spam.');
             setResetStep('cod');
         } finally {
@@ -120,25 +115,13 @@ export const LoginPage: React.FC = () => {
                 return;
             }
 
-            const { error: verifyError } = await supabase.auth.verifyOtp({
-                email: forgotEmail.trim(),
-                token: resetCod.trim(),
-                type: 'recovery',
-            });
-            if (verifyError) {
-                setResetEroare('Cod invalid sau expirat. Cere unul nou.');
+            const { error: resetError, etapa } = await reseteazaParolaCuCod(forgotEmail, resetCod, resetParolaNoua);
+            if (resetError || etapa) {
+                setResetEroare(etapa === 'parola' ? resetError?.message : 'Cod invalid sau expirat. Cere unul nou.');
                 setForgotLoading(false);
                 return;
             }
 
-            const { error: updateError } = await supabase.auth.updateUser({ password: resetParolaNoua });
-            if (updateError) {
-                setResetEroare(updateError.message);
-                setForgotLoading(false);
-                return;
-            }
-
-            await revocaDispozitiveIncredere(); // parola schimbată => dispozitivele de încredere nu mai sunt valide
             await supabase.auth.signOut();
             setForgotMessage('Parola a fost resetată cu succes. Intră în cont cu noua parolă.');
             setResetStep('email');

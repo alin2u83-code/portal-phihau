@@ -1,6 +1,6 @@
 -- Faza 38 / Plan 38-08 (migrarea d) — scoate jobul pg_cron care pica la fiecare 10 minute
 --
--- NEAPLICATA - se aplica in 38-09 doar dupa OK explicit.
+-- APLICATA LIVE 2026-11-16 (38-09, dupa OK explicit).
 -- Sursa: starea LIVE din 38-01-LIVE.md (L6), nu migrarile din repo.
 --
 -- MOTIV (masurat live, 38-01, 16.11.2026):

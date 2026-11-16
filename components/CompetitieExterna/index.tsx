@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
@@ -8,8 +8,9 @@ import { CompetitieDetail } from '../Competitii';
 import { fmtDate, TipuriLabelsContext } from '../Competitii/constants';
 import { useTipuriCompetitie } from '../../hooks/useTipuriCompetitie';
 import { applyTheme, DEFAULT_THEME } from '../../lib/themes';
-import { extrageCompetitieId, esteListaZona, construiestePermisiuniExtern } from '../../utils/accesExtern';
+import { extrageCompetitieId, esteListaZona, construiestePermisiuniExtern, separaContexteDupaMfa } from '../../utils/accesExtern';
 import { incarcaCompetitiePublica, incarcaContexteEligibile, seteazaContextActiv, deconecteaza } from '../../services/accesExternService';
+import { stareMfa } from '../../services/emailMfaService';
 import { sesiuneActorCurenta, inchideSesiuneActor } from '../../services/autorModificariService';
 import { AlegeActorModal } from './AlegeActorModal';
 import { LoginParola } from './LoginParola';
@@ -31,6 +32,7 @@ type Stare =
     | { t: 'solicita'; email: string }
     | { t: 'cerere_trimisa' }
     | { t: 'fara_acces'; email: string }
+    | { t: 'mfa_portal'; ascunse: ContextAccesExtern[] }
     | { t: 'alege_context'; contexte: ContextAccesExtern[]; user: any }
     | { t: 'lista'; ctx: ContextAccesExtern; contexte: ContextAccesExtern[]; user: any; mesaj?: string }
     | { t: 'confirma'; sursa: 'link' | 'lista'; ctx: ContextAccesExtern; contexte: ContextAccesExtern[]; user: any; competitie: Competitie }
@@ -171,6 +173,7 @@ const CompetitieExternaPage: React.FC = () => {
     const [lista] = useState(() => esteListaZona(window.location.pathname));
     const [stare, setStare] = useState<Stare>({ t: id || lista ? 'incarcare' : 'link_invalid' });
     const [teaser, setTeaser] = useState<CompetitiePublica | null>(null);
+    const ascunseRef = useRef<ContextAccesExtern[]>([]);
     const { labels } = useTipuriCompetitie();
 
     // D-09: după login se ajunge MEREU în listă; linkul direct (D-10) doar deschide dialogul de confirmare, niciodată competiția.
@@ -196,6 +199,15 @@ const CompetitieExternaPage: React.FC = () => {
         }
         if (error) { setStare({ t: 'eroare', mesaj: 'Nu am putut verifica accesul. Încearcă din nou.' }); return; }
         if (contexte.length === 0) { setStare({ t: 'fara_acces', email: user.email ?? '' }); return; }
+        // Q2: contextele privilegiate cer MFA valid; orice eroare/exceptie => ascunse (fail-closed). Cererea se face doar daca exista contexte privilegiate.
+        let mfaValid = !contexte.some(c => c.rol !== 'REPREZENTANT_COMPETITIE');
+        if (!mfaValid) {
+            try { mfaValid = (await stareMfa(user.id)) === 'valid'; } catch { mfaValid = false; }
+        }
+        const { vizibile, ascunse } = separaContexteDupaMfa(contexte, mfaValid);
+        ascunseRef.current = ascunse;
+        if (vizibile.length === 0) { setStare({ t: 'mfa_portal', ascunse }); return; }
+        contexte = vizibile;
         if (contexte.length === 1) { await intraInZona(contexte[0], contexte, user); return; }
         let salvat: string | null = null;
         try { salvat = JSON.parse(localStorage.getItem(CHEIE_CONTEXT) ?? 'null'); } catch { /* valoare invalidă */ }
@@ -227,7 +239,8 @@ const CompetitieExternaPage: React.FC = () => {
 
     // D-05: cu acces acordat (rol ADMIN_CLUB/INSTRUCTOR pe același club) -> managementul real; altfel zona de test cu date fictive.
     const deschideManagement = (ctx: ContextAccesExtern, contexte: ContextAccesExtern[], user: any) => {
-        const ctxMgmt = contexte.find(c => (c.rol === 'ADMIN_CLUB' || c.rol === 'INSTRUCTOR') && c.clubId === ctx.clubId);
+        // Q2: contextele ascunse se deschid doar prin portal (poarta MFA)
+        const ctxMgmt = [...contexte, ...ascunseRef.current].find(c => (c.rol === 'ADMIN_CLUB' || c.rol === 'INSTRUCTOR') && c.clubId === ctx.clubId);
         if (ctxMgmt) { seteazaContextActiv(ctxMgmt.roleRowId); window.location.assign('/'); return; }
         setStare({ t: 'demo', ctx, contexte, user });
     };
@@ -292,6 +305,22 @@ const CompetitieExternaPage: React.FC = () => {
                 </Centrat>
             );
             break;
+        case 'mfa_portal': {
+            const { ascunse } = stare;
+            continut = (
+                <Centrat>
+                    {publica}
+                    <Card className="space-y-3 text-center">
+                        <p>Contul tău are rol de administrator sau instructor de club. Din motive de securitate, aceste roluri se deschid din portalul principal, unde un dispozitiv nou primește un cod pe email.</p>
+                        <div className="flex gap-2 justify-center">
+                            <Button onClick={() => { seteazaContextActiv(ascunse[0].roleRowId); window.location.assign('/'); }}>Mergi la portal</Button>
+                            <Button variant="secondary" onClick={() => { void deconecteaza(); }}>Deconectare</Button>
+                        </div>
+                    </Card>
+                </Centrat>
+            );
+            break;
+        }
         case 'alege_context': {
             const { contexte, user } = stare;
             continut = (

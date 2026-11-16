@@ -134,7 +134,7 @@ test('2. anonim: teaser + login + Solicita acces, fara sidebar si fara cereri de
     await nuAscuns(page);
     await expect(page.getByText(`${PREFIX}C1_${RUN}`)).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('#acx-email')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Trimite codul' })).toBeVisible();
+    await expect(page.locator('#acx-parola')).toBeVisible();
     await expect(page.getByRole('button', { name: /Solicită acces/ })).toBeVisible();
     expect(await page.locator('[data-tutorial="sidebar"]').count()).toBe(0);
     expect(cereriDeDate, 'anonimul nu trebuie sa citeasca sportivi/inscrieri').toEqual([]);

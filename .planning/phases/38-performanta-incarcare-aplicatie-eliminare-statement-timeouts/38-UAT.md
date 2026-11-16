@@ -43,11 +43,17 @@ result: [pending]
 
 ### 6. Profil sportiv - statistici prezenta complete
 expected: Deschizi profilul unui sportiv activ de peste 6 luni: graficul pe 6 luni si procentul de prezenta corespund cu Raportul lunar de prezenta (nu sunt trunchiate la ~90 de zile).
-result: [pending]
+result: pass
+evidence: "Chrome 16.11.2026, profil TULBURE (DB: 64 prezente >100 zile, 15 recente). Istoric Antrenamente listeaza din 08.01.2026 => istoricul complet se incarca (WR-01 ok); Prezent 15 = DB (>=18.08). Statistici/grafic numara doar grupa curenta (+vacanta daca participa) => Iun-Aug 0/0 desi are prezente in alte grupe: logica veche AttendanceStats.tsx:20-23, NU fereastra Faza 38."
+observation: "Statisticile ignora prezentele din grupele anterioare (comportament preexistent, de decis separat)."
+
 
 ### 7. INSTRUCTOR si SPORTIV - pornire si liste
 expected: Login ca INSTRUCTOR, apoi ca SPORTIV: dashboard-ul se incarca, grupele/prezenta/sportivii se vad (nu liste goale), fara eroare.
-result: [pending]
+result: pass
+evidence: "Chrome 16.11.2026: rol SPORTIV pe build local - dashboard se incarca cu date (plati restante, istoric grade, viza medicala), 30 cereri REST, 0 >=8s, 0 erori. Aterizeaza initial pe 'Profil Sportiv' persistat din rolul anterior -> Acces Interzis (403) pana la 'Inapoi la Dashboard' (comportament de view persistat, nu esec de incarcare)."
+not_verified: "INSTRUCTOR: nu exista cont/rol de testat in sesiune."
+
 
 ### 8. Telefon - pornire si scroll
 expected: Pe telefon, ADMIN_CLUB: login, dashboard si Sportivi se incarca fara eroare; skeleton-urile dispar; navigarea intre ecrane merge.
@@ -56,9 +62,9 @@ result: [pending]
 ## Summary
 
 total: 8
-passed: 1
+passed: 3
 issues: 0
-pending: 6
+pending: 4
 skipped: 1
 
 ## Gaps

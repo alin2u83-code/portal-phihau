@@ -574,17 +574,17 @@ Plans:
 
 Plans:
 
-- [ ] 38-01-PLAN.md — Wave 0: masuratori live L1-L11, EXPLAIN E0-E6 (rollback), L10 eroarea SUPER_ADMIN, baseline browser (orchestrator)
-- [ ] 38-02-PLAN.md — contracte pure: limitator, retry fara timeout, fereastra prezenta, bucati .in(), processSettledQueries fara [] la eroare
-- [ ] 38-03-PLAN.md — hook-uri: enabled guards, count doar cu paginare, prezenta pe bucati; eliminare 3 instante duble useDataProvider()
-- [ ] 38-04-PLAN.md — useDataProvider: poarta MFA (D-02), attendance scos din loading/error, pornire limitata, incarcare la cerere (D-01), fereastra (D-03)
-- [ ] 38-05-PLAN.md — harta view -> date grele + AppRouter cere datele ecranului (D-01)
-- [ ] 38-06-PLAN.md — rapoarte/activitati/calendar/program cer istoricul complet de prezenta (D-03)
-- [ ] 38-07-PLAN.md — verificare pe vite build+preview vs baseline (SUPER_ADMIN, ADMIN_CLUB, MFA, lazy, timeout simulat)
-- [ ] 38-08-PLAN.md — migrari Wave 2 (count pre-agregat, @> + GIN, indexuri, unschedule cron) + script amprenta RLS
-- [ ] 38-09-PLAN.md — [BLOCKING] dovada amprenta + OK + aplicare live Wave 2 + regresie RLS
-- [ ] 38-10-PLAN.md — [BLOCKING] decizie Wave 3 pe cifre + migrare RLS (select fn()) / helperi set-based (doar la go)
-- [ ] 38-11-PLAN.md — [BLOCKING] dovada matrice + OK + aplicare Wave 3 + regresie completa (doar la go)
+- [x] 38-01-PLAN.md — Wave 0: masuratori live L1-L11, EXPLAIN E0-E6 (rollback), L10 eroarea SUPER_ADMIN, baseline browser (orchestrator)
+- [x] 38-02-PLAN.md — contracte pure: limitator, retry fara timeout, fereastra prezenta, bucati .in(), processSettledQueries fara [] la eroare
+- [x] 38-03-PLAN.md — hook-uri: enabled guards, count doar cu paginare, prezenta pe bucati; eliminare 3 instante duble useDataProvider()
+- [x] 38-04-PLAN.md — useDataProvider: poarta MFA (D-02), attendance scos din loading/error, pornire limitata, incarcare la cerere (D-01), fereastra (D-03)
+- [x] 38-05-PLAN.md — harta view -> date grele + AppRouter cere datele ecranului (D-01)
+- [x] 38-06-PLAN.md — rapoarte/activitati/calendar/program cer istoricul complet de prezenta (D-03)
+- [~] 38-07-PLAN.md — verificare pe vite build+preview vs baseline (SUPER_ADMIN, ADMIN_CLUB, MFA, lazy, timeout simulat) — PARTIAL: 3a/3b trec; 3c (MFA dispozitiv necunoscut) + 3d (timeout simulat) de facut de utilizator; vezi 38-07-MASURATORI.md
+- [x] 38-08-PLAN.md — migrari Wave 2 (count pre-agregat, @> + GIN, indexuri, unschedule cron) + script amprenta RLS
+- [x] 38-09-PLAN.md — [BLOCKING] dovada amprenta + OK + aplicare live Wave 2 + regresie RLS
+- [x] 38-10-PLAN.md — [BLOCKING] decizie Wave 3 pe cifre + migrare RLS (select fn()) / helperi set-based (doar la go) — NO-GO (decizie utilizator 16.11.2026)
+- [x] 38-11-PLAN.md — [BLOCKING] dovada matrice + OK + aplicare Wave 3 + regresie completa (doar la go) — SARIT (38-10 no-go)
 
 ### Phase 39: Cont unic de competitie per club: zona competitionala implicita, lista competitii + istoric, autor modificari declarativ, buton management cu zona de test
 

@@ -270,3 +270,4 @@ Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMA
 - Phase 41 added: Administrare categorii competitie (super admin)
 - Phase 42 added: Competitie: editare echipe/quyen, FRAM an calendaristic, arme dupa grad
 - Phase 43 added: Auth management dispozitiv nou + acces extern email/parola/reset
+- Phase 38 (16.11.2026): cod finalizat + commit 95b21b19 (fix review: poarta MFA fail-closed, notificari sub MFA, retry/esec la cerere); 38-10 no-go, 38-11 sarit. Ramas: 3c/3d de facut de utilizator (38-07-MASURATORI.md), WR-E (profil-sportiv/examene pe toate cheile, deliberat), /gsd-verify-work 38. Neverificat in browser dupa fix; nepush (main ahead).

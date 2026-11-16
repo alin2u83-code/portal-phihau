@@ -9,8 +9,8 @@ updated: 2026-11-16T14:00:00Z
 ## Current Test
 <!-- OVERWRITE each test - shows where we are -->
 
-number: 3
-name: SUPER_ADMIN - pornire repetata fara erori
+number: 2
+name: Dupa codul MFA - dashboard fara "Eroare de Sistem"
 expected: |
   5 reload-uri consecutive ca SUPER_ADMIN_FEDERATIE (dispozitiv de incredere).
   Niciun "Eroare de Sistem"; dashboard-ul se incarca de fiecare data.
@@ -29,7 +29,9 @@ result: [pending]
 
 ### 3. SUPER_ADMIN - pornire repetata fara erori
 expected: 5 reload-uri consecutive ca SUPER_ADMIN_FEDERATIE (dispozitiv de incredere): niciun "Eroare de Sistem", dashboard-ul se incarca de fiecare data.
-result: [pending]
+result: pass
+evidence: "Chrome MCP 16.11.2026, SUPER_ADMIN pe build local: 5/5 reload-uri, 0 'Eroare de Sistem', 0 skeleton ramas, 33-38 cereri REST, 0 >=8s, max 3394 ms; 0 x 57014/25P02 in DB de la 12:00 UTC. View pornit: Analiza Prezente (view persistat), nu dashboard-ul."
+
 
 ### 4. Simulare timeout pe program antrenamente (3d)
 expected: DevTools > Network > Block request URL pe vedere_cluburi_program_antrenamente, reload ca ADMIN_CLUB: shell-ul se deschide, apare o singura notificare de date partiale, Sportivi si Grupe functioneaza.
@@ -54,9 +56,9 @@ result: [pending]
 ## Summary
 
 total: 8
-passed: 0
+passed: 1
 issues: 0
-pending: 7
+pending: 6
 skipped: 1
 
 ## Gaps

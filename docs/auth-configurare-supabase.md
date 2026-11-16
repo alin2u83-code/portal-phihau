@@ -129,14 +129,14 @@ Rezultat așteptat: `422` cu `weak_password` (parola de mai sus are 14 caractere
 |---|---|---|
 | JWT expiry | `3600` secunde (redu dacă e setat mai mare) | Toate planurile |
 | Refresh token reuse detection | ON, interval `10` secunde | Toate planurile |
-| Time-box user sessions | `720` ore (30 zile) | **Doar planuri plătite** |
-| Inactivity timeout | `168` ore (7 zile) | **Doar planuri plătite** |
+| Time-box user sessions | dezactivat (0) sau >= `720` ore — niciodată sub 30 zile (dispozitivul de încredere e 30 zile glisante) | **Doar planuri plătite** |
+| Inactivity timeout | **dezactivat (0)** — Faza 43: fără delogare la inactivitate | **Doar planuri plătite** |
 
 Aceste setări sunt **globale** (nu per rol) — de aceea, pentru rolurile privilegiate (`ADMIN_CLUB`, `SUPER_ADMIN_FEDERATIE`), Faza 32 adaugă în plus:
-- **Delogare automată după 60 min de inactivitate** aplicată client-side, doar acestor roluri (32-04, `hooks/useExpirareInactivitate.ts`) — funcționează indiferent de planul Supabase.
+- **Faza 43 (16.11.2026):** delogarea după 60 min fără activitate a fost eliminată (decizie utilizator). Protecția rămâne: cod pe email pe dispozitiv nou (`useMFAGuard` + dispozitiv de încredere 30 zile) și sesiune temporară până la închiderea browserului când bifa „Dispozitiv personal” e debifată.
 - **Re-verificare MFA la 12 ore** (deja live din Faza 17, `services/emailMfaService.ts` → `DURATA_VALABILITATE_ORE`).
 
-**Pe plan Free**: time-box și inactivity timeout indiferent nu sunt disponibile — consemnează acest fapt ca risc rezidual acceptat (atenuat parțial de delogarea la 60min per rol și de re-verificarea MFA la 12h).
+**Pe plan Free**: time-box și inactivity timeout indiferent nu sunt disponibile — consemnează acest fapt ca risc rezidual acceptat (atenuat de dispozitivul de încredere 30 zile și de re-verificarea MFA la 12h).
 
 ## 5. Praguri monitorizare (D-06)
 
@@ -187,6 +187,6 @@ Checklist automat (rulat de agent, secțiunea "Porți finale" din `32-08-SUMMARY
 - [ ] Testul `PUT /auth/v1/user` cu parolă slabă → `422 weak_password`.
 - [ ] Endpoint-urile `/api/reset-parola-sportiv`, `/api/account`, `/api/genereaza-magic-link` refuză cereri fără `Authorization: Bearer` (401).
 - [ ] Cardul "Emailuri Auth (SMTP)" din Jurnal Audit arată pragurile setate și crește după teste.
-- [ ] Delogare automată la 60min inactivitate funcțională pentru ADMIN_CLUB/SUPER_ADMIN_FEDERATIE, fără efect pe SPORTIV/INSTRUCTOR.
+- [ ] Fără delogare la inactivitate (Faza 43): Inactivity timeout dezactivat în Dashboard; time-box dezactivat sau >= 720 ore.
 
 Detalii complete în `.planning/phases/32-audit-complet-auth-smtp-custom-pt-emailuri-reset-parola-conf/32-08-SUMMARY.md`.

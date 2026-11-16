@@ -35,7 +35,11 @@ export const reseteazaParolaCuCod = async (
     }
 
     // parola schimbata => dispozitivele de incredere nu mai sunt valide; apelantul avertizeaza daca revocarea a esuat
-    const dispozitiveRevocate = await revocaDispozitiveIncredere();
+    const revocate = await revocaDispozitiveIncredere();
+    // parola schimbata => inchide si sesiunile deschise pe alte dispozitive (sesiunea curenta ramane)
+    let altele = false;
+    try { altele = !(await supabase.auth.signOut({ scope: 'others' })).error; } catch { altele = false; }
+    const dispozitiveRevocate = revocate && altele;
     return { user: data.user, error: null, etapa: null, dispozitiveRevocate };
 };
 

@@ -652,12 +652,12 @@ Plans:
 **Goal:** Managementul intra cu email/username + parola si primeste cod pe email doar pe dispozitiv nou (dispozitiv de incredere 30 zile), fara nicio delogare la inactivitate (pe dispozitiv nepersonal sesiunea ramane temporara pana la inchiderea browserului); reprezentantii de club intra in zona externa cu email + parola, isi seteaza parola la prima autentificare si o reseteaza prin cod pe email (fara link), in locul OTP-ului la fiecare login; contextele ADMIN_CLUB/INSTRUCTOR din zona externa raman ascunse pana la MFA valid.
 **Requirements**: DEC-MGMT, DEC-EXT, DEC-COD, Q1, Q2, Q3 (43-DECISIONS.md)
 **Depends on:** Phase 42
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 
 Plans:
 
 - [x] 43-01-PLAN.md — sterge delogarea la inactivitate (useExpirareInactivitate, utils/inactivitate, toast) + runbook Supabase/32-08 fara inactivity timeout (Q1)
-- [ ] 43-02-PLAN.md — serviciu comun reset parola prin cod (authService), LoginPage pe serviciu, baterie live tests/auth_extern_parola_faza43.ts
+- [x] 43-02-PLAN.md — serviciu comun reset parola prin cod (authService), LoginPage pe serviciu, baterie live tests/auth_extern_parola_faza43.ts
 - [ ] 43-03-PLAN.md — zona externa: LoginParola (email+parola, prima autentificare/reset prin cod, bifa dispozitiv personal) inlocuieste LoginOtp; clasificaEroareAuth, loginParolaAcces
 - [ ] 43-04-PLAN.md — Q2: contexte ADMIN_CLUB/INSTRUCTOR ascunse fara MFA valid, ecran "Mergi la portal", Management prin portal
 - [ ] 43-05-PLAN.md — Playwright pe build (tests/ui_acces_extern_faza43.spec.ts), aliniere spec Faza 36, docs fluxuri/roluri

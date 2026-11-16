@@ -115,15 +115,15 @@ export const LoginPage: React.FC = () => {
                 return;
             }
 
-            const { error: resetError, etapa } = await reseteazaParolaCuCod(forgotEmail, resetCod, resetParolaNoua);
+            const { error: resetError, etapa, dispozitiveRevocate } = await reseteazaParolaCuCod(forgotEmail, resetCod, resetParolaNoua);
             if (resetError || etapa) {
-                setResetEroare(etapa === 'parola' ? resetError?.message : 'Cod invalid sau expirat. Cere unul nou.');
+                setResetEroare(etapa === 'parola' ? 'Parola nu a putut fi setată (poate fi identică cu cea veche). Alege alta și cere un cod nou.' : 'Cod invalid sau expirat. Cere unul nou.');
                 setForgotLoading(false);
                 return;
             }
 
             await supabase.auth.signOut();
-            setForgotMessage('Parola a fost resetată cu succes. Intră în cont cu noua parolă.');
+            setForgotMessage('Parola a fost resetată cu succes. Intră în cont cu noua parolă.' + (dispozitiveRevocate === false ? ' Atenție: dispozitivele de încredere nu au putut fi deconectate; dacă ai pierdut un dispozitiv, anunță administratorul.' : ''));
             setResetStep('email');
             setResetCod('');
             setResetParolaNoua('');

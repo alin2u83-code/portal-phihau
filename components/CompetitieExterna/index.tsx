@@ -311,7 +311,7 @@ const CompetitieExternaPage: React.FC = () => {
                 <Centrat>
                     {publica}
                     <Card className="space-y-3 text-center">
-                        <p>Contul tău are rol de administrator sau instructor de club. Din motive de securitate, aceste roluri se deschid din portalul principal, unde un dispozitiv nou primește un cod pe email.</p>
+                        <p>Contul tău are rol de administrator sau instructor de club. Din motive de securitate, aceste roluri se deschid din portalul principal, unde se poate cere un cod pe email (doar pe dispozitiv nou).</p>
                         <div className="flex gap-2 justify-center">
                             <Button onClick={() => { seteazaContextActiv(ascunse[0].roleRowId); window.location.assign('/'); }}>Mergi la portal</Button>
                             <Button variant="secondary" onClick={() => { void deconecteaza(); }}>Deconectare</Button>

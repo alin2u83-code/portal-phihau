@@ -156,7 +156,12 @@ export async function stareMfa(userId: string): Promise<'valid' | 'invalid' | 'e
 }
 
 /** Revocă toate dispozitivele de încredere (ex. după schimbarea parolei) și uită tokenul local. */
-export async function revocaDispozitiveIncredere(): Promise<void> {
+export async function revocaDispozitiveIncredere(): Promise<boolean> {
     try { localStorage.removeItem(CHEIE_DISPOZITIV); } catch {}
-    await supabase!.rpc('revoca_dispozitive_incredere');
+    try {
+        const { error } = await supabase!.rpc('revoca_dispozitive_incredere');
+        return !error;
+    } catch {
+        return false;
+    }
 }

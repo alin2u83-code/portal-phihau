@@ -17,7 +17,7 @@ export function clasificaEroareAuth(error: { status?: number; code?: string; mes
     if (!error) return 'ok';
     const mesaj = (error.message ?? '').toLowerCase();
     if (error.status === 429 || error.code === 'over_email_send_rate_limit' || error.code === 'over_request_rate_limit' || mesaj.includes('rate limit')) return 'limita';
-    if (error.code === 'invalid_credentials' || error.code === 'user_banned' || error.code === 'email_not_confirmed' || error.status === 400 || mesaj.includes('invalid login credentials')) return 'credentiale';
+    if (error.code === 'invalid_credentials' || error.code === 'user_banned' || error.code === 'email_not_confirmed' || (error.status === 400 && !error.code) || mesaj.includes('invalid login credentials')) return 'credentiale';
     return 'alta';
 }
 

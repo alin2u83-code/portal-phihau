@@ -4,6 +4,7 @@ import { loginParolaAcces } from '../../services/accesExternService';
 import { trimiteCodResetParola, reseteazaParolaCuCod } from '../../services/authService';
 import { citestePreferintaRamaneConectat, seteazaRamaneConectat } from '../../services/emailMfaService';
 import { clasificaEroareAuth } from '../../utils/accesExtern';
+import toast from 'react-hot-toast';
 import { valideazaParola, MESAJ_CERINTE_PAROLA } from '../../utils/parola';
 import { checkLeakedPassword } from '../../utils/checkLeakedPassword';
 
@@ -75,9 +76,12 @@ export const LoginParola: React.FC<LoginParolaProps> = ({ onAutentificat, onSoli
             setEroare(`Această parolă a apărut în ${scurgere.count} breșe de securitate cunoscute. Alege alta.`);
             return;
         }
-        const { user, error, etapa } = await reseteazaParolaCuCod(email.trim(), cod, parolaNoua);
+        const { user, error, etapa, dispozitiveRevocate } = await reseteazaParolaCuCod(email.trim(), cod, parolaNoua);
         setLoading(false);
-        if (!error && user) { seteazaRamaneConectat(bifa); onAutentificat(user); return; }
+        if (!error && user) {
+            if (dispozitiveRevocate === false) toast.error('Parola a fost setată, dar dispozitivele de încredere nu au putut fi deconectate. Dacă ai pierdut un dispozitiv, anunță administratorul.', { duration: 8000 });
+            seteazaRamaneConectat(bifa); onAutentificat(user); return;
+        }
         if (etapa === 'parola') setEroare('Parola nu a putut fi setată (poate fi identică cu cea veche). Alege alta și cere un cod nou.');
         else setEroare('Cod incorect sau expirat. Cere un cod nou.');
     };

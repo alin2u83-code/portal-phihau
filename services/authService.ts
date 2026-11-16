@@ -20,7 +20,7 @@ export const reseteazaParolaCuCod = async (
     email: string,
     cod: string,
     parolaNoua: string,
-): Promise<{ user: any | null; error: any; etapa: 'cod' | 'parola' | null }> => {
+): Promise<{ user: any | null; error: any; etapa: 'cod' | 'parola' | null; dispozitiveRevocate?: boolean }> => {
     const { data: verif, error: verifyError } = await supabase.auth.verifyOtp({
         email: email.trim().toLowerCase(),
         token: cod.trim(),
@@ -34,8 +34,9 @@ export const reseteazaParolaCuCod = async (
         return { user: null, error: updateError, etapa: 'parola' };
     }
 
-    await revocaDispozitiveIncredere(); // parola schimbata => dispozitivele de incredere nu mai sunt valide
-    return { user: data.user, error: null, etapa: null };
+    // parola schimbata => dispozitivele de incredere nu mai sunt valide; apelantul avertizeaza daca revocarea a esuat
+    const dispozitiveRevocate = await revocaDispozitiveIncredere();
+    return { user: data.user, error: null, etapa: null, dispozitiveRevocate };
 };
 
 export interface CreateAccountParams {

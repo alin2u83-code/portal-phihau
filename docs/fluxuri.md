@@ -141,9 +141,10 @@ Reprezentantul deschide linkul (index.tsx montează o aplicație izolată, făr�
     ↓
 Teaser public (RPC get_competitie_publica): denumire, perioadă, probe. Link invalid / draft / necunoscut → același mesaj generic
     ↓
-Login email + cod OTP (signInWithOtp, fără parolă, fără link de acțiune în email)
+Login email + parolă (signInWithPassword). Prima autentificare / parolă uitată: cod de 8 cifre pe email (resetPasswordForEmail + verifyOtp recovery, fără link), apoi parolă nouă (min 12, mare/mică/cifră, HIBP) și intrare directă (Faza 43). Bifa «Dispozitiv personal» (implicit bifată; debifată = sesiune până la închiderea browserului)
     ↓
-Context eligibil (ADMIN_CLUB/INSTRUCTOR la un club sau grant REPREZENTANT_COMPETITIE) → alegere context dacă sunt mai multe
+Context eligibil (ADMIN_CLUB/INSTRUCTOR la un club sau grant REPREZENTANT_COMPETITIE) → alegere context dacă sunt mai multe.
+    ADMIN_CLUB/INSTRUCTOR apar doar cu MFA valid (fereastră 12h sau dispozitiv de încredere); altfel ecranul «Mergi la portal», unde dispozitivul nou primește cod (Faza 43, Q2)
     ↓
 Shell extern: doar filele Înscrieri / Categorii / Taxe (read-only) / Detalii; înscriere prin wizard (inter-club dezactivat, D-14)
 ```
@@ -158,11 +159,12 @@ Federația: tab „Acces extern" → Aprobă / Respinge  (POST /api/aproba-cerer
 Aprobare: cont creat fără parolă (sau rol adăugat la cont existent, cu avertisment `cont_existent_cu_alte_roluri`),
           rând REPREZENTANT_COMPETITIE + grant activ. Fără email de notificare: federația anunță separat.
     ↓
-Reprezentantul se loghează cu OTP pe același link
+Reprezentantul intră pe același link cu emailul și își setează parola la prima autentificare (cod pe email)
 ```
 
 - Revocarea = `activ = false` pe grant (reversibilă). Reaprobarea unei cereri procesate întoarce 409.
 - Dezactivat în zona externă: coechipier din alt club, echipe inter-club, orice funcție cross-club (D-14).
 - Portalul principal rămâne neschimbat pentru rolurile existente (D-16); un cont doar-extern care deschide `/` vede „Acces limitat".
 - Context activ: aceeași cheie localStorage (`phi-hau-active-role-context-id`) ca în portal; pe același browser, loginul extern suprascrie contextul portalului.
-- Prerechizit de lansare: SMTP custom (planul 32-08), altfel emailurile OTP sunt limitate de Supabase.
+- Prerechizit de lansare: SMTP custom (planul 32-08), altfel codurile de setare/resetare a parolei (prima autentificare a fiecărui club) sunt limitate de Supabase fără SMTP custom.
+- Faza 43: canalul OTP rămâne activ în backend-ul Supabase (signInWithOtp); înlocuirea e la nivel de UI. Zona externă nu mai marchează MFA la login.

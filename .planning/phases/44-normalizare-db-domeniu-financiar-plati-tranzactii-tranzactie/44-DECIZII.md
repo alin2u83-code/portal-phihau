@@ -54,3 +54,14 @@ NOT NULL pe plati.club_id: AMANAT. Motive verificate 18.11.2026:
 4. `familii` fără club și `sportivi` fără club: 0 live, deci backfill-ul e complet pentru rândurile existente.
 Pentru a aplica NOT NULL mai târziu: verificat/forțat club_id la cele 6 căi de mai sus + decizie user.
 NEAPLICATA_PE_DECIZIE: 20261118c_faza44_plati_club_id_not_null.sql (nescrisă)
+
+## 44-10 cod (pregatire 18.11.2026, nimic aplicat live)
+Referinte re-verificate live (functii/view-uri/constrangeri/edge) + grep repo:
+- `tranzactii.plata_ids`: cod = doar camp derivat in memorie (normalizeazaTranzactie); DB = delete_exam_registration, proceseaza_plata_factura, seteaza_scutire_taxa, view_istoric_plati_detaliat (fallback), vedere_cluburi_tranzactii, on_tranzactie_change (orfana). Toate rescrise/sterse in migrarea f.
+- `tranzactii.suma_totala/suma_incasata`: doar vedere_cluburi_tranzactii; 0 randuri nenule.
+- `plati.tip_plata`: constanta 'Abonament'; folosit doar de rbv_plati_club, vedere_cluburi_plati, vedere_cluburi_financiar (categorie_detaliu), view_plata_sportiv. UI nu le citeste (soldService/facturiSportiv ocolesc view_plata_sportiv). Efect: categorie_detaliu si tip_plata din view_plata_sportiv devin plati.tip (valori reale in loc de constanta).
+- `plati.tip_abonament_id`: toate NULL; doar view-urile de mai sus.
+- **`plati.tip_plata_id`: COLOANA REALA, ramane.** Scrisa de comenziService.ts:536, produseService.ts:221, VanzareModal.tsx:132, PredareModal.tsx:59 (vanzari echipamente). Abatere de la SC-01 "Y" (care o includea in drop); decizie utilizator necesara.
+- Edge functions (sms-callback, sms-parse-bank, sms-process-queue, sms-schedule-reminders): nu ating nicio coloana eliminata. NOTA separata: sms-parse-bank face `plati.update({status:'achitat'})` si filtreaza `status='pending'`, valori inexistente in model ('Achitat'/'Neachitat'); bug preexistent, in afara fazei.
+- Functii orfane in model paralel: generate_monthly_fees (scrie obligatii_plata), update_transaction_status (suma_incasata/suma_totala fara trigger) -> update_transaction_status si on_tranzactie_change sterse in f; generate_monthly_fees ramane pentru 44-11 (model paralel). fn_actualizeaza_restanta*, vw_fisa_financiara_detaliata: 44-11.
+Fisiere: supabase/migrations/20261118f_faza44_drop_plata_ids_coloane_moarte.sql (NEAPLICATA), rollback/44-10-before.sql.

@@ -21,3 +21,10 @@ C0 0, C1 5 (toate orfane), C2 110, C3 283, C4 2, flag M 1, O 0. Cele 2 C4 listat
 - Comportamentul lui `trg_plata_sms`/`audit_plati` la inserturile de test (rulate ca rol postgres, fără RLS) — rollback-ate.
 - Politicile RLS pe `plati` nu au fost exersate cu un apelant `authenticated` (WITH CHECK după trigger).
 - Dacă cele 5 orfane sunt încasări reale pentru facturi șterse: întrebare pentru user.
+
+## Revizie după review (18.11.2026, aprobată de user: fix-uri 1-3 la B)
+1. B fără `begin`/`commit`: suspendare trigger + alocări + reactivare într-un singur bloc `DO` (atomic indiferent de wrapper).
+2. B creează `backup_faza44` dacă lipsește (+ revoke); logurile `faza44_b_inserate` și `faza44_b_nealocat` în același bloc.
+3. Alocare corectată: doar id-uri existente, plafon pe fiecare (inclusiv ultimul), rest logat. Testat sintetic cu rollback forțat (R0b): 4 cazuri OK, trigger 'O' după, nimic persistat.
+Neaplicate din review (opționale, fără OK): A:70-76 (transferuri în istoric), imprecizie rollback A, efect latent SMS (documentat în antetul B), C1 cu suma<=0.
+Notă: verify-ul automat din 44-03-PLAN (`^begin;` / `commit;`) nu mai se potrivește cu B v2 (intenționat).

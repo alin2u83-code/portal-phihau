@@ -45,3 +45,15 @@ Observație: în ambele cazuri `tranzactie_plata` are 1 rând, array-ul are 2 fa
 ### Observații suplimentare
 - `tranzactii.suma_totala/suma_incasata`: 0 rânduri nenule (44-VERIFICARE).
 - Tabelul R0 NU conține nume sau descrieri.
+
+## R0b. Test sintetic migrarea B v2 (18.11.2026, rollback forțat, baza reală)
+Rulat după review: B rescrisă într-un singur bloc `DO` (fără begin/commit), schema `backup_faza44` creată dacă lipsește, alocare doar pe facturi existente, cu plafon (fără „ultimul primește restul”), rest nealocat logat în `backup_faza44.faza44_b_nealocat`.
+Cazuri (rânduri sintetice, anulate prin rollback):
+| caz | așteptat | observat |
+|---|---|---|
+| T1: [P1(100), orfan, P2(50)], suma 120 | P1 100, P2 20, nealocat 0 | P1 100, P2 20, nealocat null (0) |
+| T2: [P3(30), orfan], suma 100 | P3 30 (ultimul existent, plafonat), nealocat 70 | P3 30, nealocat 70 |
+| T3: [orfan], suma 40 | 0 inserări, nealocat 0 | 0, 0 |
+| T4: [P4(200, deja alocat 150)], suma 100 | P4 50 (plafon), nealocat 50 | P4 50, nealocat 50; total alocat pe P4 = 200 (nedepășit) |
+Trigger `tranzactie_plata_change_trigger` după bloc: tgenabled 'O'. Log: 4 rânduri inserate. După rollback: plati 978, tranzactii 400, tranzactie_plata 412, 0 rânduri test, 0 tabele log, trigger 'O'.
+Netestat: a doua rulare consecutivă (idempotență) — logica e filtrul `not exists tranzactie_plata`; rularea efectivă dublă nu a fost exersată.

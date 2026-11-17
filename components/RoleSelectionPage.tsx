@@ -19,6 +19,8 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        // Guard demontare: frame fantoma dupa login nu trebuie sa faca auto-select + reload
+        let anulat = false;
         const fetchProfiles = async () => {
             if (user) {
                 setIsLoading(true);
@@ -33,6 +35,8 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
                     `)
                     .eq('user_id', user.id);
 
+                if (anulat) return;
+
                 if (error) {
                     console.error('Error fetching profiles:', error.message);
                 } else {
@@ -43,7 +47,7 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
                     
                     // Auto-Select: Dacă utilizatorul are un singur rol, loghează-l direct
                     if (profilesData.length === 1) {
-                        handleRoleSelection(profilesData[0]);
+                        handleRoleSelection(profilesData[0], () => anulat);
                     }
                 }
                 setIsLoading(false);
@@ -51,9 +55,10 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
         };
 
         fetchProfiles();
-    }, [user]);
+        return () => { anulat = true; };
+    }, [user?.id]);
 
-    const handleRoleSelection = async (role: any) => {
+    const handleRoleSelection = async (role: any, esteAnulat: () => boolean = () => false) => {
         if (navigator.vibrate) {
             navigator.vibrate(100);
         }
@@ -64,7 +69,8 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
             .from('utilizator_roluri_multicont')
             .update({ is_primary: true })
             .eq('id', role.id);
-            
+
+        if (esteAnulat()) return;
         onSelect(role);
     };
 

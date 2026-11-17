@@ -663,6 +663,27 @@ Plans:
 - [x] 43-05-PLAN.md — Playwright pe build (tests/ui_acces_extern_faza43.spec.ts), aliniere spec Faza 36, docs fluxuri/roluri
 - [ ] 43-06-PLAN.md — [CHECKPOINT] setari Supabase Dashboard (sabloane {{ .Token }}, OTP 8, sesiuni fara inactivity, rate limit/SMTP) + porti finale + checklist uman (dispozitiv nou, fara delogare, extern, Q2)
 
+### Phase 44: Normalizare DB domeniu financiar (plati, tranzactii, tranzactie_plata)
+
+**Goal:** Domeniul financiar are un singur model canonic (plati + tranzactii + tranzactie_plata) in 3NF cu exceptii justificate scris: fara modele paralele, fara duplicat tranzactii.plata_ids, plati.club_id completat si NOT NULL, tipuri/coloane moarte curatate, rest de plata reconciliat doar pe grupele validate de user; date reale (7 cluburi) protejate prin backup, migrari cu rollback scris, dry-run pe date reale si aplicare live doar cu OK explicit.
+**Requirements**: D-01, D-02, D-03, D-04 (decizii LOCKED 44-CONTEXT.md); SC-01 tipuri plati, SC-02 insert-uri plati unificate + bug StagiiCompetitii, SC-03 duplicare calcul sold FE vs DB (scope 44-CONTEXT.md)
+**Depends on:** Phase 43
+**Plans:** 11 plans in 8 waves
+
+Plans:
+
+- [ ] 44-01-PLAN.md — [W1] verificare live read-only (RPC, functii, triggere, views, politici, FK/CHECK, edge functions, cod) + verdict D-01..D-03, SC-01, SC-02 + candidati cluburi reale -> 44-VERIFICARE.md
+- [ ] 44-02-PLAN.md — [W2, CHECKPOINT] backup_faza44 (8 tabele + definitii, blocat pentru API) + protocol dry-run/aplicare/rollback + alegerea "clonei" (dry-run cu rollback fortat, canary)
+- [ ] 44-03-PLAN.md — [W3] migrari scrise + dry-run pe date reale: A (plati.club_id backfill din sportiv + trigger BEFORE INSERT, exceptie 3NF scrisa) si B (alocari tranzactie_plata din plata_ids, trigger suspendat) + raport R0 clasificare tranzactii
+- [ ] 44-04-PLAN.md — [W3] creeazaPlata (insert-uri plati unificate, 7 locuri) + CalendarView cu club_id + rezolvare bug StagiiCompetitii eveniment_id dupa verdictul live
+- [ ] 44-05-PLAN.md — [W4, CHECKPOINT] aplicare live A+B dupa OK, verificari live (trigger-e, checksum), test efemer tests/plati_club_id_faza44.ts, ACL ratchet
+- [ ] 44-06-PLAN.md — [W5] citiri mutate pe tranzactie_plata: select cu alocari + plata_ids derivat in memorie, incasariPeTip (testat) in FinancialDashboard; precondiție 44-05 B aplicat (6 fisiere)
+- [ ] 44-07-PLAN.md — [W5, CHECKPOINT] rapoarte R1-R5 (6 plati fara club, suma_ramasa pe club/grup real vs test, tipuri, sold vs rest) + decizii user (per rand / per grup / tipuri Y-X)
+- [ ] 44-08-PLAN.md — [W6] scriitori plata_ids eliminati (UserProfile, JurnalIncasari avans, facturaService garda + test) + 5 locuri de fetch tranzactii (mutate din 44-06)
+- [ ] 44-09-PLAN.md — [W6, CHECKPOINT] migrari din decizii: C (club_id NOT NULL dupa decizia celor 6), D (suma_ramasa doar grupe aprobate, fara schimbare status), E (tip_plata_id doar daca X), H (backfill_istoric G1, doar cu OK separat) + aplicare cu OK + raport inainte/dupa
+- [ ] 44-10-PLAN.md — [W7, CHECKPOINT] drop tranzactii.plata_ids + coloane moarte (suma_totala, suma_incasata, tip_plata, tip_abonament_id[, tip_plata_id]) dupa deploy cod si OK; functii/view rescrise din definitii live; snapshot + rollback
+- [ ] 44-11-PLAN.md — [W8, CHECKPOINT] ULTIMUL: arhivare + drop modele paralele (obligatii_plata, incasari_efective, alocari_plati, plata, catalog_pret) dupa re-verificare live si OK; docs/baza-de-date.md
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

@@ -15,3 +15,28 @@ Triggere toate O (inclusiv tranzactie_plata_change_trigger); C1 efectiv 0; tranz
 Id-uri inserate (rollback key): niciunul.
 
 MIGRARE_B: APLICATA LIVE; C1_dupa=0
+
+## 44-07 Decizii
+Data: 18.11.2026 (răspunsuri user în AskUserQuestion). Nimic nu a fost modificat în DB de acest plan.
+
+### D-03: plati fara club
+Nu e nimic de decis: R1 = 0 rânduri fără club după migrarea A (au fost 96, backfill 90 sportivi + 6 familii).
+
+### D-04: grupe suma_ramasa
+Răspuns user: **lasa toate**.
+| club_id | grup | actiune |
+|---|---|---|
+| 83e7f771-46cf-4c4e-b70f-356d7b0bff06 | G1 | lasa |
+| cbb0b228-b3e0-4735-9658-70999eb256c6 | G1 | lasa |
+| cbb0b228-b3e0-4735-9658-70999eb256c6 | G4 | lasa |
+| toate celelalte cluburi | G1-G4 | lasa (G2 = G3 = 0; un club TEST are 1 factură G1) |
+backfill_istoric nu a fost ales pentru nicio combinație.
+
+### SC-01: tipuri
+Răspuns user: **Y** (plati.tip rămâne; drop `tip_plata`, `tip_plata_id`, `tip_abonament_id` în 44-10).
+
+### Cluburi reale confirmate
+Răspuns user: **doar cele 2 candidate**: cbb0b228-b3e0-4735-9658-70999eb256c6 (C.S. Phi Hau), 83e7f771-46cf-4c4e-b70f-356d7b0bff06 (Kim Long Dao Falticeni). Restul tratate ca TEST/neconfirmate.
+
+### SC-03: sold vs rest
+Răspuns user: "Investighează întâi cele 5". Investigația (R4b) a explicat cele 5: facturi Achitat cu suma ≠ alocări. **Propunere, neconfirmată de utilizator**: ambele numere rămân; soldService = sold net per entitate inclusiv avansuri, suma_ramasa = rest per factură; frontendul nu recalculează restul per factură. Se confirmă la întrebarea următoare.

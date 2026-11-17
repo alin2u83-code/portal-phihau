@@ -93,3 +93,6 @@ Concluzie, **propunere SC-03, neconfirmată de utilizator**: ambele numere răm�
 
 ## R5. luna/an față de dată (informativ, audit #7)
 1 factură cu luna/anul diferite de data; 4 facturi de tip Abonament fără luna/an. Nicio acțiune propusă în această fază.
+
+### R4b. Cele 5 entități neexplicate de la cbb0b228 (investigat 18.11.2026, read-only)
+Toate 5 (3 sportivi, 2 familii) au facturi **Achitat a căror sumă ≠ suma alocărilor** (grup nou, "G5", nedefinit în plan): facturi cu suma 0 dar alocări 100/200/220 (6 rânduri la 4 entități), o factură 330 cu doar 250 alocat, trei facturi la o familie (0->300, 300->330, 330->300). Nicio nepotrivire de atribuire tranzacție/factură (entitate diferită) și o singură alocare pe factură Anulat (100 RON). Diferența de sold vs suma_ramasa = Σsuma(Achitat) − încasat, deci apare exact când o factură Achitat are suma modificată după plată (reduceri, scutiri, convenția 20261023). Ids și sume exacte pe cerere. Nu se modifică nimic; G5 nu are acțiune în planul curent.

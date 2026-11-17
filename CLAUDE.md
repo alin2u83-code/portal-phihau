@@ -15,6 +15,8 @@ Portal web pentru **Federația QwanKiDo România** și cluburile afiliate. Gesti
 - **Permisiuni**: `usePermissions(activeRoleContext)` + RLS Supabase — nu duplica logica
 - **Supabase client**: `supabaseClient.ts` injectează `active-role-context-id` header în toate requesturile
 
+- **Normalizare DB**: orice modificare în baza de date (tabele, coloane, migrări, RPC, views) respectă 3NF; denormalizarea doar ca excepție justificată scris în migrare/PLAN (ex: istoric imuabil, performanță). Fără coloane derivate stocate sau date duplicate fără motiv. Refactorizarea schemei existente se face în valuri (audit întâi), cu backup + migrări reversibile + test pe clonă, aplicată live doar cu OK-ul userului.
+
 ## Roluri
 
 `SUPER_ADMIN_FEDERATIE` > `ADMIN_CLUB` > `INSTRUCTOR` > `SPORTIV`

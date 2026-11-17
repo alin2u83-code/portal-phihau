@@ -18,3 +18,7 @@ Verdict 44-VERIFICARE: `plati.eveniment_id` NU există live. Bug REAL. Scos din 
 - Niciun test în UI (human-check din plan: înscriere la stagiu/competiție, factură manuală, încasare cu factură nouă, examen) — de făcut la sfârșitul fazei.
 - `services/facturaService.test.ts` nerulat.
 - Triggerul `plati_completeaza_club_id_trg` NU e încă aplicat live; codul nu depinde de el.
+
+## Revizie după review (18.11.2026, aprobată de user: fix 1)
+`creeazaPlata`: dacă `!error && !data` întoarce `Error('Insert în plati fără rând returnat ...')`. Efect: StagiiCompetitii face compensating delete pe `rezultate`, CalendarView lot aruncă (semantica veche `.single()`); apelanții de `genereazaFacturaAbonament` (GestiuneFacturi, LuniLipsaWizard, înscriere) citesc `error.message`, deci compatibili. tsc: 0 erori.
+Neaplicate din review (decizii de scope, fără OK): punctul 2 (legătura taxă–eveniment la Stagii: `eveniment_id` inexistent), punctul 3 (inserturi directe rămase: PlatiScadente x2, ManagementInscrieri x2, ImportSportiviExamen, comenziService, produseService), punctul 4 (triggerul neaplicat), opționale (CalendarView `currentUser.club_id`, RLS insert ca SPORTIV, `PlataNoua` nu prinde `undefined`).

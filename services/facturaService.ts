@@ -17,6 +17,11 @@ export async function creeazaPlata(
 ): Promise<{ data: Plata | null; error: any }> {
     const { data, error } = await client.from('plati').insert(payload).select().maybeSingle();
     if (error) console.error('[creeazaPlata] eroare insert:', error);
+    // maybeSingle întoarce null fără eroare dacă RLS SELECT ascunde rândul inserat: tratat ca eroare,
+    // ca apelanții (rollback la Stagii, throw la CalendarView lot) să păstreze semantica vechiului .single()
+    if (!error && !data) {
+        return { data: null, error: new Error('Insert în plati fără rând returnat (RLS sau eroare).') };
+    }
     return { data: data as Plata | null, error: error ?? null };
 }
 

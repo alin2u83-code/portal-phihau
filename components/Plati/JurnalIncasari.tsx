@@ -5,6 +5,7 @@ import { getPretValabil, getPretProdus } from '../../utils/pricing';
 import { ArrowLeftIcon, PlusIcon, TrashIcon, ChevronDownIcon, EditIcon } from '../icons';
 import { EditIncasareModal } from './EditIncasareModal';
 import { supabase } from '../../supabaseClient';
+import { creeazaPlata } from '../../services/facturaService';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useData } from '../../contexts/DataContext';
@@ -425,7 +426,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     throw new Error("Nu s-a putut identifica clubul sportivului. Asigurați-vă că sportivul este alocat unui club.");
                 }
 
-                const { data: newPlata, error: plataError } = await supabase.from('plati').insert({ 
+                const { data: newPlata, error: plataError } = await creeazaPlata({ 
                     sportiv_id: formState.sportiv_id, 
                     familie_id: sportiv?.familie_id, 
                     club_id: clubId,
@@ -440,7 +441,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                     descriere: formState.descriere, 
                     tip: formState.tip, 
                     observatii: formState.observatii 
-                }).select().maybeSingle();
+                });
                 
                 if (plataError) throw new Error(`Eroare la crearea facturii: ${plataError.message}`);
                 if (!newPlata) throw new Error("Factura nu a putut fi creată.");

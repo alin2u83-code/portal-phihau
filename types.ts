@@ -176,7 +176,7 @@ export interface Plata {
   observatii: string;
   // Coloane de normalizare (Varianta B — FK dedicate)
   sesiune_id?: string | null;   // FK → sesiuni_examene.id (pentru 'Taxa Examen')
-  eveniment_id?: string | null; // FK → evenimente.id (pentru 'Taxa Stagiu' și 'Taxa Competitie')
+  eveniment_id?: string | null; // coloană INEXISTENTĂ în plati (verificat live, 44-VERIFICARE); nu se trimite la insert; citit doar de StagiiCompetitii (rămâne mereu undefined)
   luna?: number | null;         // 1–12 (pentru 'Abonament')
   an?: number | null;           // 2020–2100 (pentru 'Abonament' și 'Taxa Anuala')
   // Câmpuri din rbv_plati_club (JOIN cu sportivi) — prezente când sportivul e din alt club

@@ -10,6 +10,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useData } from '../../contexts/DataContext';
+import { creeazaPlata, type PlataNoua } from '../../services/facturaService';
 
 const formatDateRange = (start: string) => {
     return new Date(start).toLocaleDateString('ro-RO');
@@ -305,7 +306,7 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
             if (error) throw error;
 
             if (suma != null && suma > 0) {
-                const newPlata: Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null; eveniment_id?: string | null } = {
+                const newPlata: PlataNoua = {
                     sportiv_id: sportiv.id,
                     familie_id: sportiv.familie_id,
                     club_id: sportiv.club_id,
@@ -315,15 +316,15 @@ const EvenimentDetail: React.FC<EvenimentDetailProps> = ({ eveniment }) => {
                     descriere: `Taxa ${eveniment.tip}: ${eveniment.denumire}${categorieText ? ` (${categorieText})` : ''}`,
                     tip: eveniment.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie',
                     observatii: 'Generat automat la înscriere.',
-                    eveniment_id: eveniment.id,
+                    // eveniment_id NU se trimite: coloana nu există în `plati` (verificat live, 44-VERIFICARE) -> PGRST204
                 };
-                const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().single();
+                const { data: plataData, error: plataError } = await creeazaPlata(newPlata);
                 if (plataError) {
                     // Compensating delete — menține consistența DB
                     await supabase.from('rezultate').delete().eq('id', data.id);
                     throw plataError;
                 }
-                setPlati(prev => [...prev, plataData as Plata]);
+                if (plataData) setPlati(prev => [...prev, plataData]);
             }
             // Actualizăm state local doar după ce ambele scrieri DB au reușit
             setRezultate(prev => [...prev, data as Rezultat]);

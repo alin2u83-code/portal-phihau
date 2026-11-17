@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { supabase } from '../../supabaseClient';
+import { creeazaPlata } from '../../services/facturaService';
 import { Button, Card, Modal } from '../ui';
 import { useError } from '../ErrorProvider';
 import { useExamenRegistration } from '../../hooks/useExamenRegistration';
@@ -49,8 +50,9 @@ export const ExamenRegistrationPreview: React.FC<ExamenRegistrationPreviewProps>
                     .eq('id', sportiv_id)
                     .single();
 
-                const { error: insertError } = await supabase.from('plati').insert({
+                const { error: insertError } = await creeazaPlata({
                     sportiv_id,
+                    familie_id: null,
                     sesiune_id,
                     suma: data.taxa_suma,
                     status: isCash ? 'Achitat' : 'Neachitat',

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Eveniment, View, Sportiv, Rezultat, Plata, Permissions, Antrenament, Grupa } from '../types';
+import { creeazaPlata, type PlataNoua } from '../services/facturaService';
 import { Button, Modal, Input } from './ui';
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from './icons';
 import { useError } from './ErrorProvider';
@@ -209,8 +210,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
             if (rData) setRezultate(prev => [...prev, rData as Rezultat]);
 
             if (taxaConfig) {
-                const newPlata: Omit<Plata, 'id'> = { sportiv_id: currentUser.id, familie_id: currentUser.familie_id, suma: taxaConfig.suma, data: event.data, status: 'Neachitat', descriere: `Taxa ${event.tip}: ${event.denumire}`, tip: event.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere.' };
-                const { data: pData, error: pError } = await supabase.from('plati').insert(newPlata).select().maybeSingle();
+                const newPlata: PlataNoua = { sportiv_id: currentUser.id, familie_id: currentUser.familie_id, suma: taxaConfig.suma, data: event.data, status: 'Neachitat', descriere: `Taxa ${event.tip}: ${event.denumire}`, tip: event.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere.', club_id: currentUser.club_id ?? null };
+                const { data: pData, error: pError } = await creeazaPlata(newPlata);
                 if (pError) throw pError;
                 if (pData) setPlati(prev => [...prev, pData as Plata]);
             }
@@ -239,10 +240,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onBack, onNavigate, 
                 newRezultate.push(rData as Rezultat);
 
                 if (taxaConfig) {
-                    const newPlata: Omit<Plata, 'id'> = { sportiv_id: sportiv.id, familie_id: sportiv.familie_id, suma: taxaConfig.suma, data: modalEvent.data, status: 'Neachitat', descriere: `Taxa ${modalEvent.tip}: ${modalEvent.denumire}`, tip: modalEvent.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere lot.' };
-                    const { data: pData, error: pError } = await supabase.from('plati').insert(newPlata).select().single();
+                    const newPlata: PlataNoua = { sportiv_id: sportiv.id, familie_id: sportiv.familie_id, suma: taxaConfig.suma, data: modalEvent.data, status: 'Neachitat', descriere: `Taxa ${modalEvent.tip}: ${modalEvent.denumire}`, tip: modalEvent.tip === 'Stagiu' ? 'Taxa Stagiu' : 'Taxa Competitie', observatii: 'Generat automat la înscriere lot.', club_id: sportiv.club_id ?? null };
+                    const { data: pData, error: pError } = await creeazaPlata(newPlata);
                     if (pError) throw pError;
-                    newPlati.push(pData as Plata);
+                    if (pData) newPlati.push(pData);
                 }
             } catch (err) {
                 console.error('DETALII EROARE:', JSON.stringify(err, null, 2));

@@ -10,7 +10,7 @@ import { useData } from '../../contexts/DataContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { getPretValabil, getPretProdus } from '../../utils/pricing';
 import { formatNume } from '../../utils/formatareSportiv';
-import { genereazaFacturaAbonament } from '../../services/facturaService';
+import { genereazaFacturaAbonament, creeazaPlata } from '../../services/facturaService';
 import { formatLuna } from '../../utils/luniLipsa';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat, restDePlata, sumaIncasataFactura } from '../../utils/paymentStatus';
 import { PeriodFilterBar } from './PeriodFilterBar';
@@ -254,7 +254,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 observatii: formState.isDirectPayment ? 'Încasat direct la emitere' : 'Generat manual de admin'
             };
 
-            const { data: plataData, error: plataError } = await supabase.from('plati').insert(newPlata).select().maybeSingle();
+            const { data: plataData, error: plataError } = await creeazaPlata(newPlata);
             
             if (plataError) throw plataError;
             if (!plataData) throw new Error("Nu s-a putut crea factura.");

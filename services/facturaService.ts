@@ -4,6 +4,22 @@ import type { Plata, Sportiv, TipAbonament } from '../types';
 import { filtreazaTipuriSezon, gasesteTipDupaId } from '../utils/abonamente';
 import { formatLuna } from '../utils/luniLipsa';
 
+/** Payload pentru o factură nouă; o cheie care nu e coloană în `Plata` pică la tsc. */
+export type PlataNoua = Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null };
+
+/**
+ * Punct unic de INSERT în `plati` (Faza 44, D-03).
+ * Dacă `club_id` lipsește, îl completează triggerul DB `plati_completeaza_club_id_trg`.
+ */
+export async function creeazaPlata(
+    payload: PlataNoua,
+    client: SupabaseClient = supabase,
+): Promise<{ data: Plata | null; error: any }> {
+    const { data, error } = await client.from('plati').insert(payload).select().maybeSingle();
+    if (error) console.error('[creeazaPlata] eroare insert:', error);
+    return { data: data as Plata | null, error: error ?? null };
+}
+
 /**
  * Parametrii pentru generarea unei facturi de Abonament
  */
@@ -109,18 +125,14 @@ export async function genereazaFacturaAbonament(
     };
 
     // ── Insert în DB ──
-    const { data, error } = await supabase
-        .from('plati')
-        .insert(newPlata)
-        .select()
-        .maybeSingle();
+    const { data, error } = await creeazaPlata(newPlata);
 
     if (error) {
         console.error('[genereazaFacturaAbonament] eroare insert:', error);
         return { data: null, error };
     }
 
-    return { data: data as Plata | null, error: null };
+    return { data, error: null };
 }
 
 /**

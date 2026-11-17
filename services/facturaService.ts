@@ -332,14 +332,14 @@ export async function anuleazaAbonamenteNeachitateSportiv(
  * Șterge definitiv (hard delete) o factură de Abonament.
  *
  * Replică lanțul de guard-uri din `components/Plati/GestiuneFacturi.tsx` (handleDelete)
- * și adaugă un guard nou, absent azi acolo: verificarea `tranzactii.plata_ids` (Threat
+ * și adaugă un guard nou, absent azi acolo: verificarea alocărilor din `tranzactie_plata` (D-02, Threat
  * T-ERG-06) — o factură cu încasări înregistrate în tranzacții nu poate fi ștearsă
  * fără să lase bani „orfani" în tranzacție.
  *
  * Ordine guard-uri:
  * 1. re-citește statusul din DB — refuză dacă 'Achitat'
  * 2. verifică `inscrieri_examene.plata_id` — refuză dacă există înscrieri
- * 3. verifică `tranzactii.plata_ids` (contains) — refuză dacă există încasări
+ * 3. verifică `tranzactie_plata.plata_id` — refuză dacă există încasări
  * 4. abia apoi DELETE
  *
  * @param plataId - UUID plată
@@ -384,9 +384,9 @@ export async function stergeFacturaAbonament(
     }
 
     const { data: tranzactiiAsociate, error: tranzactiiError } = await client
-        .from('tranzactii')
-        .select('id')
-        .contains('plata_ids', [plataId])
+        .from('tranzactie_plata')
+        .select('tranzactie_id')
+        .eq('plata_id', plataId)
         .limit(1);
     if (tranzactiiError) {
         console.error('[stergeFacturaAbonament] eroare verificare tranzacții:', tranzactiiError);

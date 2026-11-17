@@ -234,7 +234,6 @@ async function main() {
             const { data: tranzactie, error: trzErr } = await testClient
                 .from('tranzactii')
                 .insert({
-                    plata_ids: [p.id],
                     sportiv_id: sportivTest.id,
                     familie_id: null,
                     club_id: sportivTest.club_id,
@@ -244,19 +243,24 @@ async function main() {
                 })
                 .select()
                 .single();
-            if (!trzErr && tranzactie) {
+            const { error: alocErr } = tranzactie
+                ? await testClient.from('tranzactie_plata').insert({ tranzactie_id: tranzactie.id, plata_id: p.id, suma_alocata: 10 })
+                : { error: null };
+            if (!trzErr && tranzactie && !alocErr) {
                 const { error } = await stergeFacturaAbonament(p.id, testClient);
                 assert(
-                    'stergeFacturaAbonament inclusă în tranzactii.plata_ids → refuzată explicit',
+                    'stergeFacturaAbonament cu alocare în tranzactie_plata → refuzată explicit',
                     !!error?.message && error.message.toLowerCase().includes('tranzac'),
                     JSON.stringify(error)
                 );
+                await testClient.from('tranzactie_plata').delete().eq('tranzactie_id', tranzactie.id);
                 await testClient.from('tranzactii').delete().eq('id', tranzactie.id);
             } else {
+                if (tranzactie) await testClient.from('tranzactii').delete().eq('id', tranzactie.id);
                 assert(
-                    'stergeFacturaAbonament inclusă în tranzactii.plata_ids (SKIP — insert setup eșuat)',
+                    'stergeFacturaAbonament cu alocare în tranzactie_plata (SKIP — insert setup eșuat)',
                     true,
-                    trzErr?.message
+                    trzErr?.message ?? alocErr?.message
                 );
             }
             await cleanupPlata(p.id);

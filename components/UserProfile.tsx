@@ -41,6 +41,7 @@ import { TaxeAnualeIstoric } from './UserProfile/TaxeAnualeIstoric';
 
 const getGrad = (gradId: string | null, allGrades: Grad[]) => gradId ? allGrades.find(g => g.id === gradId) : null;
 import { getAge } from '../utils/date';
+import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactie } from '../services/tranzactiiService';
 const parseDurationToMonths = (durationStr: string): number => { const parts = durationStr.split(' '); if (parts.length < 2) return 0; const value = parseInt(parts[0], 10); const unit = parts[1].toLowerCase(); if (unit.startsWith('lun')) return value; if (unit.startsWith('an')) return value * 12; return 0; };
 
 interface UserProfileProps {
@@ -419,13 +420,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
     const handleSaveTranzactieEdit = async (editedTrz: Tranzactie) => {
         if (!supabase) return;
         setIsSaving(true);
-        const { id, ...updates } = editedTrz;
-        const { data, error } = await supabase.from('tranzactii').update(updates).eq('id', id).select().maybeSingle();
+        // plata_ids si alocari sunt campuri derivate in memorie (D-02): nu se trimit la update
+        const { id, plata_ids, alocari, ...updates } = editedTrz;
+        const { data, error } = await supabase.from('tranzactii').update(updates).eq('id', id).select(SELECT_TRANZACTIE_CU_ALOCARI).maybeSingle();
         setIsSaving(false);
         if (error) {
             showError("Eroare la Salvare", error.message || error);
         } else if (data) {
-            setTranzactii(prev => prev.map(t => t.id === id ? data : t));
+            setTranzactii(prev => prev.map(t => t.id === id ? normalizeazaTranzactie(data) : t));
             showSuccess("Succes", "Încasarea a fost actualizată.");
         }
     };
@@ -463,27 +465,26 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
         const newPlata = plati.find(p => p.id === newPlataId);
         if (!tranzactie || !newPlata) return;
 
-        const newPlataIds = tranzactie.plata_ids.map(pid => pid === oldPlataId ? newPlataId : pid);
-        const sumaIncasata = tranzactie.suma;
-        const newStatus: Plata['status'] = sumaIncasata >= newPlata.suma ? 'Achitat' : sumaIncasata > 0 ? 'Achitat Parțial' : 'Neachitat';
-
-        const [trzRes, oldRes, newRes] = await Promise.all([
-            supabase.from('tranzactii').update({ plata_ids: newPlataIds }).eq('id', tranzactieId),
-            supabase.from('plati').update({ status: 'Neachitat' }).eq('id', oldPlataId),
-            supabase.from('plati').update({ status: newStatus }).eq('id', newPlataId),
-        ]);
-
-        if (trzRes.error || oldRes.error || newRes.error) {
-            showError("Eroare", (trzRes.error || oldRes.error || newRes.error)?.message ?? 'Eroare necunoscută');
+        // D-02: legatura tranzactie <-> factura e in tranzactie_plata; triggerul DB recalculeaza
+        // si factura veche si cea noua (statusul si suma_ramasa), deci nu se mai scrie status manual.
+        const { error: mutaError } = await supabase.from('tranzactie_plata')
+            .update({ plata_id: newPlataId })
+            .eq('tranzactie_id', tranzactieId)
+            .eq('plata_id', oldPlataId);
+        if (mutaError) {
+            showError("Eroare", mutaError.message ?? 'Eroare necunoscută');
             return;
         }
-        setTranzactii(prev => prev.map(t => t.id === tranzactieId ? { ...t, plata_ids: newPlataIds } : t));
-        setPlati(prev => prev.map(p =>
-            p.id === oldPlataId ? { ...p, status: 'Neachitat' } :
-            p.id === newPlataId ? { ...p, status: newStatus } : p
-        ));
+        const { data: platiProaspete } = await supabase.from('plati').select('*').in('id', [oldPlataId, newPlataId]);
+        setTranzactii(prev => prev.map(t => t.id === tranzactieId ? {
+            ...t,
+            plata_ids: (t.plata_ids || []).map(pid => pid === oldPlataId ? newPlataId : pid),
+            alocari: (t.alocari || []).map(a => a.plata_id === oldPlataId ? { ...a, plata_id: newPlataId } : a),
+        } : t));
+        if (platiProaspete) setPlati(prev => prev.map(p => (platiProaspete as Plata[]).find(f => f.id === p.id) ?? p));
+        const statusNou = (platiProaspete as Plata[] | null)?.find(f => f.id === newPlataId)?.status;
         setPlataToEdit(null);
-        showSuccess('Plată mutată', `Încasarea a fost transferată. Factura nouă: ${newStatus}.`);
+        showSuccess('Plată mutată', `Încasarea a fost transferată.${statusNou ? ` Factura nouă: ${statusNou}.` : ''}`);
     };
 
     const confirmDeletePlata = async (id: string) => {
@@ -529,21 +530,18 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
             return;
         }
 
-        // Dezleagă tranzacțiile asociate înainte de ștergere
-        const { data: tranzactiiData } = await supabase.from('tranzactii').select('id, plata_ids').contains('plata_ids', [id]);
-        if (tranzactiiData && tranzactiiData.length > 0) {
-            await Promise.all(tranzactiiData.map(async (t) => {
-                const newIds = t.plata_ids.filter((pid: string) => pid !== id);
-                await supabase.from('tranzactii').update({ plata_ids: newIds }).eq('id', t.id);
-                setTranzactii(prev => prev.map(tr => tr.id === t.id ? { ...tr, plata_ids: newIds } : tr));
-            }));
-        }
         const { error } = await supabase.from('plati').delete().eq('id', id);
         setIsDeleting(false);
         if (error) {
             showError("Eroare la Ștergere", error.message ?? error);
         } else {
             setPlati(prev => prev.filter(p => p.id !== id));
+            // legatura din tranzactie_plata dispare prin ON DELETE CASCADE; aliniem starea locala
+            setTranzactii(prev => prev.map(tr => ({
+                ...tr,
+                plata_ids: (tr.plata_ids || []).filter(pid => pid !== id),
+                alocari: (tr.alocari || []).filter(a => a.plata_id !== id),
+            })));
             setPlataToDelete(null);
             showSuccess("Succes", "Factura a fost ștearsă.");
         }

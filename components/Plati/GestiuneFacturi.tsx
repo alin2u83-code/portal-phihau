@@ -17,6 +17,7 @@ import { PeriodFilterBar } from './PeriodFilterBar';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
 import { filtreazaTipuriSezon, gasesteTipDupaId } from '../../utils/abonamente';
 import { useSezonActiv } from '../../hooks/useSezoane';
+import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactie } from '../../services/tranzactiiService';
 
 interface GestiuneFacturiProps {
     onBack: () => void;
@@ -481,9 +482,9 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 // Update local tranzactii state if setter is provided
                 if (setTranzactii && result.tranzactie_id) {
                     // We need to fetch the full transaction or construct it
-                    const { data: newTranzactie } = await supabase.from('tranzactii').select('*').eq('id', result.tranzactie_id).maybeSingle();
+                    const { data: newTranzactie } = await supabase.from('tranzactii').select(SELECT_TRANZACTIE_CU_ALOCARI).eq('id', result.tranzactie_id).maybeSingle();
                     if (newTranzactie) {
-                        setTranzactii(prev => [newTranzactie, ...prev]);
+                        setTranzactii(prev => [normalizeazaTranzactie(newTranzactie), ...prev]);
                     }
                 }
 

@@ -15,6 +15,7 @@ import { PeriodFilterBar } from './PeriodFilterBar';
 import { filtreazaTipuriSezon, gasesteTipDupaId } from '../../utils/abonamente';
 import { restDePlata } from '../../utils/paymentStatus';
 import { useSezonActiv } from '../../hooks/useSezoane';
+import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactie } from '../../services/tranzactiiService';
 
 const QuickAddTipPlataModal: React.FC<{ 
   isOpen: boolean; 
@@ -124,8 +125,7 @@ const AdaugaAvans: React.FC<{
         const clubId = sportivInFamilie?.club_id;
 
         setLoading(true);
-        const newTranzactie: Omit<Tranzactie, 'id' | 'club_id'> & { club_id?: string | null } = {
-            plata_ids: [],
+        const newTranzactie: Omit<Tranzactie, 'id' | 'club_id' | 'plata_ids' | 'alocari'> & { club_id?: string | null } = {
             sportiv_id: null,
             familie_id: familieId,
             suma: +suma,
@@ -134,14 +134,14 @@ const AdaugaAvans: React.FC<{
             club_id: clubId
         };
 
-        const { data, error } = await supabase.from('tranzactii').insert(newTranzactie).select().maybeSingle();
+        const { data, error } = await supabase.from('tranzactii').insert(newTranzactie).select(SELECT_TRANZACTIE_CU_ALOCARI).maybeSingle();
         setLoading(false);
 
         if (error) {
             console.error('DETALII EROARE:', JSON.stringify(error, null, 2));
             showError("Eroare la Salvare", error);
         } else if (data) {
-            setTranzactii(prev => [...prev, data as Tranzactie]);
+            setTranzactii(prev => [...prev, normalizeazaTranzactie(data)]);
             showSuccess("Succes!", "Plata în avans a fost înregistrată.");
             setFamilieId('');
             setSuma('');
@@ -378,9 +378,9 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                         if (txError) throw new Error(`Eroare la salvarea tranzacției: ${txError.message}`);
                         
                         // Fetch the created transaction
-                        const { data: tx, error: fetchError } = await supabase.from('tranzactii').select('*').eq('id', txId).maybeSingle();
+                        const { data: tx, error: fetchError } = await supabase.from('tranzactii').select(SELECT_TRANZACTIE_CU_ALOCARI).eq('id', txId).maybeSingle();
                         if (fetchError) throw fetchError;
-                        if (tx) processedTransactions.push(tx);
+                        if (tx) processedTransactions.push(normalizeazaTranzactie(tx));
 
                         remainingPayment -= amountForThisInvoice;
                     }
@@ -467,7 +467,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 }
                 
                 // Fetch the created transaction
-                const { data: tx, error: fetchError } = await supabase.from('tranzactii').select('*').eq('id', txId).maybeSingle();
+                const { data: tx, error: fetchError } = await supabase.from('tranzactii').select(SELECT_TRANZACTIE_CU_ALOCARI).eq('id', txId).maybeSingle();
                 if (fetchError) {
                      await supabase.from('plati').delete().eq('id', newPlataId);
                      throw fetchError;
@@ -483,7 +483,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 const { data: updatedPlata } = await supabase.from('plati').select('*').eq('id', newPlataId).maybeSingle();
                 
                 setPlati(prev => [...prev, (updatedPlata || newPlata) as Plata]);
-                setTranzactii(prev => [tx as Tranzactie, ...prev]);
+                setTranzactii(prev => [normalizeazaTranzactie(tx), ...prev]);
 
                 // Send notification to sportiv
                 if (sportiv?.user_id) {

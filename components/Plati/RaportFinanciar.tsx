@@ -20,6 +20,7 @@ import { calculeazaLuniLipsa, formatLuna } from '../../utils/luniLipsa';
 import { useDataStartFacturareAll } from '../../hooks/useDataStartFacturareAll';
 import { LuniLipsaWizard } from './LuniLipsaWizard';
 import { useStareVizualizare } from '../../hooks/useStareVizualizare';
+import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactie } from '../../services/tranzactiiService';
 
 interface RaportFinanciarProps {
     istoricPlatiDetaliat: IstoricPlataDetaliat[];
@@ -112,8 +113,8 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
             const { data: txId, error: txError } = await supabase.rpc('proceseaza_incasare_normalizata', { p_tranzactie, p_plati });
             if (txError) throw new Error(txError.message);
 
-            const { data: tx } = await supabase.from('tranzactii').select('*').eq('id', txId).maybeSingle();
-            if (tx) setTranzactii(prev => [tx as Tranzactie, ...prev]);
+            const { data: tx } = await supabase.from('tranzactii').select(SELECT_TRANZACTIE_CU_ALOCARI).eq('id', txId).maybeSingle();
+            if (tx) setTranzactii(prev => [normalizeazaTranzactie(tx), ...prev]);
 
             const { data: updatedPlata } = await supabase.from('plati').select('*').eq('id', plataToIncaseze.plata_id).maybeSingle();
             if (updatedPlata) setPlati(prev => prev.map(p => p.id === updatedPlata.id ? updatedPlata as Plata : p));

@@ -19,6 +19,7 @@ import {
   type AlocareTranzactie,
 } from '../../utils/facturaDetaliu';
 import type { Plata } from '../../types';
+import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactie } from '../../services/tranzactiiService';
 
 export interface FacturaDetaliuProps {
   plataId: string | null;
@@ -126,9 +127,9 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
       setPlati(prev => prev.map(p => (p.id === plata.id ? { ...p, ...proaspata } : p)));
     }
     if (tranzactieId) {
-      const { data: t } = await supabase.from('tranzactii').select('*').eq('id', tranzactieId).maybeSingle();
+      const { data: t } = await supabase.from('tranzactii').select(SELECT_TRANZACTIE_CU_ALOCARI).eq('id', tranzactieId).maybeSingle();
       if (t) {
-        setTranzactii(prev => [t as any, ...prev.filter(x => x.id !== (t as any).id)]);
+        setTranzactii(prev => [normalizeazaTranzactie(t), ...prev.filter(x => x.id !== (t as any).id)]);
       }
     }
     queryClient.invalidateQueries({ queryKey: ['plati'] });

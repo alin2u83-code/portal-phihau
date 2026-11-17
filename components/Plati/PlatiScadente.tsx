@@ -23,6 +23,7 @@ import { useNavigation } from '../../contexts/NavigationContext';
 import { decideGratieReinnoire, primaZiLunaCurenta } from '../../utils/perioadaGratie';
 import { numaraReinnoiriConsecutive, calculeazaBonusLoialitate } from '../../utils/loialitateReinnoiri';
 import { getPoliticiLoialitate } from '../../services/loialitateService';
+import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactii } from '../../services/tranzactiiService';
 
 interface PlatiScadenteProps {
     onIncaseazaMultiple: (plati: Plata[]) => void;
@@ -143,7 +144,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             // Bug 5 Fix: Refetch date proaspete din DB înainte de calculul soldului,
             // pentru a evita erori cauzate de tranzacții recente din alte sesiuni care nu sunt în state.
             const [{ data: tranzactiiProaspete, error: errTranz }, { data: platiProaspete, error: errPlati }] = await Promise.all([
-                supabase.from('tranzactii').select('*').eq('club_id', clubId),
+                supabase.from('tranzactii').select(SELECT_TRANZACTIE_CU_ALOCARI).eq('club_id', clubId),
                 supabase.from('plati').select('*').eq('club_id', clubId),
             ]);
             if (errTranz) throw errTranz;
@@ -159,7 +160,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             // Calculează solduri proaspete folosind datele din DB, nu state-ul React
             const { perFamilie: famBalancesFresh, perSportiv: indivBalancesFresh } = calculeazaSolduri(
                 platiProaspete as any[],
-                tranzactiiProaspete as any[],
+                normalizeazaTranzactii(tranzactiiProaspete) as any[],
                 { sportivIds: (sportivi || []).map(s => s.id), familieIds: (familii || []).map(f => f.id) }
             );
 

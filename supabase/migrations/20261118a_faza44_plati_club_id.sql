@@ -1,5 +1,5 @@
 -- Faza 44 (44-03): plati.club_id
--- NEAPLICATA, se aplica in 44-05 dupa OK explicit; supabase/ e in .gitignore, deci git add -f.
+-- APLICATA LIVE 18.11.2026 (44-05, dupa OK explicit). supabase/ e in .gitignore, deci git add -f.
 --
 -- D-03: backfill plati.club_id din sportivi.club_id (rand cu sportiv) si din familii.club_id
 -- (rand doar-familie, decizie user 17.11.2026); trigger BEFORE INSERT care completeaza club_id

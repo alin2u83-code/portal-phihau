@@ -1,5 +1,5 @@
 -- Faza 44 (44-03): tranzactie_plata devine sursa unica
--- NEAPLICATA, se aplica in 44-05 dupa OK explicit; supabase/ e in .gitignore, deci git add -f.
+-- APLICATA LIVE 18.11.2026 (44-05, dupa OK explicit); 0 randuri inserate (C1 efectiv = 0). supabase/ e in .gitignore, deci git add -f.
 --
 -- D-02: tranzactie_plata e singura sursa pentru legatura tranzactie <-> factura; tranzactii.plata_ids
 -- se elimina mai tarziu (44-10) si ramane in backup_faza44.
@@ -104,3 +104,4 @@ end $$;
 --   end $$;
 --   -- dupa rollback: tgenabled trebuie sa fie 'O' pentru tranzactie_plata_change_trigger.
 --   -- Lista exacta de id-uri e scrisa in 44-05 in acest antet ("Id-uri inserate la aplicare <data>: ...").
+-- Id-uri inserate la aplicare 18.11.2026: (niciunul, 0 randuri)

@@ -17,3 +17,8 @@ Precondiție: `MIGRARE_B: APLICATA LIVE; C1_dupa=0` în 44-DECIZII.md. `tranzact
 - `facturaService.test.ts` (neîncercat).
 - JurnalIncasari ~519-524 (ștergere încasare) încă setează `status='Neachitat'` pe `plata_ids`, acum derivat din alocări (include și tranzacțiile vechi cu coloana goală); comportament preexistent, nemodificat (vezi review 44-06).
 - Fără push: codul trebuie în producție înaintea drop-ului din 44-10 (decide userul).
+
+## Revizie după review (18.11.2026, aprobată de user: ambele Required)
+1. `UserProfile.handleMutaPlata`: refuz dacă încasarea are deja alocare pe factura nouă (nu există UNIQUE pe (tranzactie_id, plata_id)); UPDATE cu `.select('tranzactie_id')`, eroare dacă 0 rânduri (alocare lipsă sau ascunsă de RLS) în loc de "Plată mutată" fals.
+2. `JurnalIncasari.handleDeleteTranzactie`: scos `update plati set status='Neachitat'` manual; DELETE pe tranzactii șterge alocările (CASCADE, 44-VERIFICARE:37), triggerul recalculează, codul reîncarcă facturile.
+tsc 0 erori. Neverificat în UI. Neaplicate (opționale): garda la ștergerea facturii Achitat Parțial, avertisment la surplus, verificarea manuală OLD+NEW a triggerului pe DB live.

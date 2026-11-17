@@ -520,10 +520,8 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
             // Facturile afectate din fluxul normalizat (tranzactie_plata) — plata_ids e gol la ~30% din tranzacții.
             const { data: alocari } = await supabase.from('tranzactie_plata').select('plata_id').eq('tranzactie_id', tranzactieId);
             const idsAfectate = [...new Set([...(plata_ids || []), ...((alocari || []).map(a => a.plata_id))])];
-            if (plata_ids && plata_ids.length > 0) {
-                const { error: updateError } = await supabase.from('plati').update({ status: 'Neachitat' }).in('id', plata_ids);
-                if (updateError) throw updateError;
-            }
+            // Fara update manual de status: DELETE pe tranzactii sterge alocarile (CASCADE), iar triggerul
+            // recalculeaza fiecare factura (un update manual 'Neachitat' s-ar bate cu el si ar putea trimite SMS).
             const { error: deleteError } = await supabase.from('tranzactii').delete().eq('id', tranzactieId);
             if (deleteError) throw deleteError;
 

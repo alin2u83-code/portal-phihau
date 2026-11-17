@@ -467,12 +467,30 @@ export const UserProfile: React.FC<UserProfileProps> = ({ sportiv, onBack, onNav
 
         // D-02: legatura tranzactie <-> factura e in tranzactie_plata; triggerul DB recalculeaza
         // si factura veche si cea noua (statusul si suma_ramasa), deci nu se mai scrie status manual.
-        const { error: mutaError } = await supabase.from('tranzactie_plata')
+        // tranzactie_plata nu are UNIQUE pe (tranzactie_id, plata_id): refuzam mutarea pe o factura
+        // care are deja o alocare din aceeasi incasare (ar crea doua randuri pe aceeasi pereche)
+        const { data: existenta, error: existentaError } = await supabase.from('tranzactie_plata')
+            .select('tranzactie_id').eq('tranzactie_id', tranzactieId).eq('plata_id', newPlataId).limit(1);
+        if (existentaError) {
+            showError("Eroare", existentaError.message ?? 'Eroare necunoscută');
+            return;
+        }
+        if (existenta && existenta.length > 0) {
+            showError("Mutare imposibilă", "Această încasare are deja o alocare pe factura selectată.");
+            return;
+        }
+        // .select(): un UPDATE care nu potriveste niciun rand (alocare lipsa sau ascunsa de RLS) nu da eroare
+        const { data: mutate, error: mutaError } = await supabase.from('tranzactie_plata')
             .update({ plata_id: newPlataId })
             .eq('tranzactie_id', tranzactieId)
-            .eq('plata_id', oldPlataId);
+            .eq('plata_id', oldPlataId)
+            .select('tranzactie_id');
         if (mutaError) {
             showError("Eroare", mutaError.message ?? 'Eroare necunoscută');
+            return;
+        }
+        if (!mutate || mutate.length === 0) {
+            showError("Mutare eșuată", "Nu există nicio alocare a acestei încasări pe factura inițială (sau nu ai acces la ea).");
             return;
         }
         const { data: platiProaspete } = await supabase.from('plati').select('*').in('id', [oldPlataId, newPlataId]);

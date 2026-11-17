@@ -57,3 +57,39 @@ Cazuri (rânduri sintetice, anulate prin rollback):
 | T4: [P4(200, deja alocat 150)], suma 100 | P4 50 (plafon), nealocat 50 | P4 50, nealocat 50; total alocat pe P4 = 200 (nedepășit) |
 Trigger `tranzactie_plata_change_trigger` după bloc: tgenabled 'O'. Log: 4 rânduri inserate. După rollback: plati 978, tranzactii 400, tranzactie_plata 412, 0 rânduri test, 0 tabele log, trigger 'O'.
 Netestat: a doua rulare consecutivă (idempotență) — logica e filtrul `not exists tranzactie_plata`; rularea efectivă dublă nu a fost exersată.
+
+## R1. Plăți fără club după migrarea A (decizie D-03)
+18.11.2026, read-only. **0 rânduri** cu `club_id IS NULL` (erau 96; backfill A: 90 din sportivi + 6 din familii, user 17.11). Nu e nimic de decis la D-03; trigger-ul completează clubul la insert-uri noi. Rămâne de rezolvat în 44-09 doar dacă `NOT NULL` se pune: cazul "fără sportiv/familie/club" reușește încă cu NULL (testat în 44-05).
+
+## R2. suma_ramasa per club și grup
+Convenție: suma = total, suma_ramasa = rest. Așteptat: Achitat -> 0, Anulat -> 0, altfel max(suma - alocări, 0). Cluburi marcate după lista candidat din 44-VERIFICARE (neconfirmată de user). Doar id-uri/sume.
+
+| club (prefix id) | tip | grup | facturi | suma facturi | diferență abs. | exemple (prefix id) |
+|---|---|---|---|---|---|---|
+| 83e7f771 | CANDIDAT_REAL | G1 | 69 | 7390 | - | 9eddc7aa, 174bbf34, a46e7d23, cf938015, 33670cdb |
+| cbb0b228 | CANDIDAT_REAL | G1 | 7 | 1250 | - | 785be34f, bd28a48c, 3a58466f, c7db2305, 6aa3dfc7 |
+| cbb0b228 | CANDIDAT_REAL | G4 | 5 | 1320 | 1320 | 26e66a3f, e0a18b55, 31bb0d6f, 9a14ae19, 16e1d4c9 |
+| 99aaa7ed | de confirmat/TEST | G1 | 1 | 220 | - | ddda681d |
+
+Totaluri: **G1 77 facturi / 8860 RON** (76 pe sportiv = 8640, 1 pe familie = 220; 69 entități distincte); **G2 0; G3 0; G4 5** (Anulat cu suma_ramasa nenulă, 1320 RON, toate Phi Hau). Cluburile TEST nu au alte grupe.
+- Efect vizibil în UI: G2 = 0 deci nimic vizibil din suma_ramasa; G1 nu schimbă ce văd userii (statusul Achitat e autoritar în `restDePlata`) dar ar schimba soldul la `backfill_istoric`; G4 invizibil în UI (Anulat -> 0).
+- Efect `backfill_istoric` pe sold: crește cu exact suma facturilor G1 pe entitate (8860 RON total, 69 entități; clubul 83e7f771: 7390, cbb0b228: 1250, 99aaa7ed: 220).
+- Bani nealocați (avans) existenți: cbb0b228 3 tranzacții / 670 RON; 83e7f771 3 tranzacții / 510 RON. Pot acoperi doar parțial G1 (8860).
+- G2 primit alocări în migrarea B: 0 (B nu a inserat nimic).
+- **Față de audit (96 desincronizate, 93 Achitat fără alocare):** G2=G3=0 acum, G1=77. NU am verificat de ce diferă: G1 de aici cere suma > 0.01 (exclude facturile cu sumă 0), iar G2 exclude rândurile Achitat și compară cu restul așteptat; nu am reprodus definiția exactă din audit și nu am investigat dacă migrările 20261023a/b au reconciliat între timp. Dacă vrei, o aliniez înainte de decizie.
+
+## R3. Tipuri de plată
+`plati.tip`: Abonament 527, Taxa Examen 206, FRQKD 201, FRAM 37, Taxa Stagiu 7. `tipuri_plati`: Abonament, Taxa Examen, Taxa Stagiu, Taxa Competitie, Echipament, Taxa FRQKD, Taxa FRAM.
+Mapare propusă tip -> tipuri_plati: Abonament -> Abonament; Taxa Examen -> Taxa Examen; Taxa Stagiu -> Taxa Stagiu; FRQKD -> Taxa FRQKD; FRAM -> Taxa FRAM (5/5 au corespondent, 978 rânduri); Taxa Competitie și Echipament nu au rânduri în plati.
+Coloane moarte: `tip_plata` constantă 'Abonament' pe toate 978 rândurile; `tip_plata_id` și `tip_abonament_id` 0 rânduri nenule.
+Opțiuni: **Y** = `plati.tip` rămâne singura coloană de tip; drop `tip_plata`, `tip_abonament_id`, `tip_plata_id` în 44-10 (fără schimbări UI, fără redundanță nouă). **X** = populez `tip_plata_id` din mapare, `tip` copie tranzitorie sincronizată prin trigger (excepție 3NF scrisă) până la refactorul UI. Recomandare: **Y** acum, X într-o fază viitoare cu refactorul UI.
+
+## R4. Sold (frontend) versus rest (DB)
+Script `tests/sold_vs_rest_faza44.ts` (read-only), pe toate cluburile; datoria implicită de sold = max(-sold, 0) vs suma suma_ramasa a facturilor neanulate ale entității.
+- 83e7f771 (CANDIDAT_REAL): 128 entități, 58 diferă (G1 57, avans 1, alte 0).
+- cbb0b228 (CANDIDAT_REAL): 105 entități, 10 diferă (G1 5, avans 0, **alte 5, neexplicate**).
+- Toate cluburile TEST: 0 diferențe.
+Concluzie, **propunere SC-03, neconfirmată de utilizator**: ambele numere rămân; `soldService` = sold net per entitate inclusiv avansuri, `suma_ramasa` = rest per factură; frontendul nu recalculează restul per factură (`restDePlata` citește cache-ul). Diferențele observate sunt explicate de facturile G1 (Achitat fără încasare, numărate ca datorie de sold) și de avans (1 entitate); cele 5 "alte" de la cbb0b228 nu sunt investigate (posibil legate de cele 5 facturi G4 Anulat sau de familii) și rămân neexplicate.
+
+## R5. luna/an față de dată (informativ, audit #7)
+1 factură cu luna/anul diferite de data; 4 facturi de tip Abonament fără luna/an. Nicio acțiune propusă în această fază.

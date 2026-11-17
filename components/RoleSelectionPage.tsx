@@ -14,6 +14,27 @@ interface RoleSelectionPageProps {
     onLogout: () => void;
 }
 
+const AUTO_SELECT_KEY = 'reload_auto_select';
+const AUTO_SELECT_FEREASTRA_MS = 30000;
+
+const autoSelectRecent = (): boolean => {
+    try {
+        const t = Number(sessionStorage.getItem(AUTO_SELECT_KEY));
+        const d = Date.now() - t;
+        return t > 0 && d >= 0 && d < AUTO_SELECT_FEREASTRA_MS;
+    } catch {
+        return false;
+    }
+};
+
+const marcheazaAutoSelect = () => {
+    try {
+        sessionStorage.setItem(AUTO_SELECT_KEY, String(Date.now()));
+    } catch {
+        /* sessionStorage indisponibil: fara limita */
+    }
+};
+
 export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSelect, loading, onLogout }) => {
     const [profiles, setProfiles] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -46,8 +67,9 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
                     setProfiles(profilesData);
                     
                     // Auto-Select: Dacă utilizatorul are un singur rol, loghează-l direct
-                    if (profilesData.length === 1) {
-                        handleRoleSelection(profilesData[0], () => anulat);
+                    // Limita anti-bucla: nu repeta auto-select+reload daca s-a facut deja in ultimele 10s
+                    if (profilesData.length === 1 && !autoSelectRecent()) {
+                        handleRoleSelection(profilesData[0], () => anulat, true);
                     }
                 }
                 setIsLoading(false);
@@ -58,7 +80,7 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
         return () => { anulat = true; };
     }, [user?.id]);
 
-    const handleRoleSelection = async (role: any, esteAnulat: () => boolean = () => false) => {
+    const handleRoleSelection = async (role: any, esteAnulat: () => boolean = () => false, auto = false) => {
         if (navigator.vibrate) {
             navigator.vibrate(100);
         }
@@ -71,6 +93,7 @@ export const RoleSelectionPage: React.FC<RoleSelectionPageProps> = ({ user, onSe
             .eq('id', role.id);
 
         if (esteAnulat()) return;
+        if (auto) marcheazaAutoSelect(); // marcajul = "am declansat reload", nu "am pornit auto-select"
         onSelect(role);
     };
 

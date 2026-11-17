@@ -1,6 +1,21 @@
 import { supabase } from '../supabaseClient';
 import { Plata, Tranzactie } from '../types';
 
+// D-02 (Faza 44): tranzactie_plata e singura sursa pentru legatura tranzactie <-> factura.
+// plata_ids exista doar in memorie, derivat din alocari; nu se citeste din coloana tranzactii.plata_ids
+// si nu se trimite inapoi la insert/update (writerii il elimina in planul 44-08).
+export const SELECT_TRANZACTIE_CU_ALOCARI = '*, alocari:tranzactie_plata(plata_id, suma_alocata)';
+
+export function normalizeazaTranzactie(row: any): Tranzactie {
+    const alocari = (row?.alocari ?? []).map((a: any) => ({ plata_id: a.plata_id, suma_alocata: Number(a.suma_alocata) }));
+    // plata_ids dupa spread: suprascrie valoarea coloanei, cat timp coloana mai exista
+    return { ...row, alocari, plata_ids: alocari.map((a: any) => a.plata_id) } as Tranzactie;
+}
+
+export function normalizeazaTranzactii(rows: any[] | null | undefined): Tranzactie[] {
+    return (rows ?? []).map(normalizeazaTranzactie);
+}
+
 // Editare încasare existentă. Suma se schimbă doar pe alocarea (tranzactie_plata)
 // legată de plataId — trigger-ul DB `on_tranzactie_plata_change` recalculează
 // automat plati.suma/status. tranzactii.suma se resincronizează după, ca sumă
@@ -30,7 +45,7 @@ export async function editeazaIncasare(
     .from('tranzactii')
     .update({ suma: sumaTotala, data_platii: updates.data_platii, metoda_plata: updates.metoda_plata })
     .eq('id', tranzactieId)
-    .select()
+    .select(SELECT_TRANZACTIE_CU_ALOCARI)
     .maybeSingle();
   if (txError) throw txError;
   if (!tranzactieActualizata) throw new Error('Tranzacția nu a putut fi actualizată.');
@@ -43,5 +58,5 @@ export async function editeazaIncasare(
   if (plataFetchError) throw plataFetchError;
   if (!plataActualizata) throw new Error('Factura asociată nu a putut fi găsită.');
 
-  return { tranzactie: tranzactieActualizata as Tranzactie, plata: plataActualizata as Plata };
+  return { tranzactie: normalizeazaTranzactie(tranzactieActualizata), plata: plataActualizata as Plata };
 }

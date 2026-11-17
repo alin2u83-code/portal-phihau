@@ -22,6 +22,7 @@ import { useGrupe } from './useGrupe';
 import { usePermissions } from './usePermissions';
 import { useFetchAllowedClubs } from './useClubAccess';
 import { SELECT_VIZE_CU_PLATA } from '../services/taxeAnualeService';
+import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactii } from '../services/tranzactiiService';
 import { getCachedData, setCachedData } from '../utils/cache';
 import { useAppStore } from '../src/store/useAppStore';
 
@@ -89,7 +90,7 @@ const construiesteCereriLaCerere = (ctx: any): Cereri => {
     const cereri: Cereri = {
         reduceri: () => db.from('reduceri').select('*'),
         rezultate: () => db.from('rezultate').select('*'),
-        tranzactii: () => db.from('tranzactii').select('*'),
+        tranzactii: () => db.from('tranzactii').select(SELECT_TRANZACTIE_CU_ALOCARI).then((r: any) => ({ ...r, data: r.data ? normalizeazaTranzactii(r.data) : r.data })),
         istoricPlatiDetaliat: () => db.from('view_istoric_plati_detaliat').select('*'),
         deconturiFederatie: () => db.from('deconturi_federatie').select('*'),
         vizeSportivi: () => db.from('vize_sportivi').select(SELECT_VIZE_CU_PLATA),

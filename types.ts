@@ -147,7 +147,10 @@ export interface Familie {
 // --- Domain: Financiar ---
 export interface Tranzactie {
   id: string;
+  // DERIVAT in memorie din alocari (tranzactie_plata); nu e citit din coloana tranzactii.plata_ids,
+  // care se elimina in Faza 44 (D-02); nu se trimite la insert/update
   plata_ids: string[];
+  alocari?: { plata_id: string; suma_alocata: number }[];
   sportiv_id: string | null;
   familie_id: string | null;
   club_id?: string | null;

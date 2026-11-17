@@ -3,6 +3,7 @@ import { Plata, Tranzactie, Sportiv, Familie } from '../../types';
 import { Card, Button, Select, Input } from '../ui';
 import { ArrowLeftIcon, BanknotesIcon, UsersIcon, ExclamationTriangleIcon } from '../icons';
 import { restDePlata } from '../../utils/paymentStatus';
+import { incasariPeTip } from '../../utils/incasariPeTip';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 interface FinancialDashboardProps {
@@ -86,15 +87,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
             return dataPlatii >= startDate && dataPlatii <= endDate;
         });
 
-        const revenueByType: { [key: string]: number } = {};
-        filteredTranzactii.forEach(t => {
-            let tip = 'Avans / Neclasificat';
-            if (t.plata_ids?.length > 0) {
-                const primaPlata = plati.find(p => p.id === t.plata_ids[0]);
-                if (primaPlata) tip = primaPlata.tip;
-            }
-            revenueByType[tip] = (revenueByType[tip] || 0) + t.suma;
-        });
+        const revenueByType = incasariPeTip(filteredTranzactii, plati);
 
         return Object.entries(revenueByType)
             .map(([name, value]) => ({ name, value }))

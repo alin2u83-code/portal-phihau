@@ -40,3 +40,17 @@ Răspuns user: **doar cele 2 candidate**: cbb0b228-b3e0-4735-9658-70999eb256c6 (
 
 ### SC-03: sold vs rest
 confirmat de utilizator 18.11.2026 (după investigarea R4b): ambele rămân: soldService = sold net per entitate (inclusiv avansuri), suma_ramasa = rest per factură; frontendul nu recalculează restul per factură.
+
+## 44-09
+Data: 18.11.2026. **Nicio migrare scrisă sau aplicată.** Nu s-a modificat nimic în DB.
+- Migrarea c (D-03): tabelul D-03 nu are rânduri (R1 = 0), deci nu există ASSIGN/DELETE. Rămâne doar `SET NOT NULL` pe `plati.club_id`, **amânat**: planul îl interzice dacă o cale poate ajunge la NULL, iar verificarea per cale nu e completă (vezi mai jos).
+- Migrarea d (D-04): "nimic de aplicat (D-04: toate grupele = lasa)".
+- Migrarea e (SC-01): opțiunea Y, nu se scrie.
+- Migrarea h (backfill_istoric): nealeasă de user.
+NOT NULL pe plati.club_id: AMANAT. Motive verificate 18.11.2026:
+1. 2 plăți existente nu au nici sportiv_id, nici familie_id (au club_id explicit) -> triggerul nu le-ar putea deriva la inserturi similare.
+2. Inserturi directe fără club_id garantat: `PlatiScadente.tsx` (club_id poate fi undefined la familie fără membri activi, review 44-04), `ManagementInscrieri.tsx` (2), `comenziService.ts:533` și `produseService.ts:218` (`input.club_id` nevalidat). Doar `ImportSportiviExamen` și funcțiile DB `factureaza_viza_taxa`, `generare_factura_examen` trimit club_id explicit.
+3. Triggerul e SECURITY INVOKER: dacă RLS ascunde sportivul de cel care inserează, club_id rămâne NULL și cu NOT NULL insertul ar pica cu 23502. Testul 44-05 caz 6: INSTRUCTOR e deja refuzat de RLS (42501).
+4. `familii` fără club și `sportivi` fără club: 0 live, deci backfill-ul e complet pentru rândurile existente.
+Pentru a aplica NOT NULL mai târziu: verificat/forțat club_id la cele 6 căi de mai sus + decizie user.
+NEAPLICATA_PE_DECIZIE: 20261118c_faza44_plati_club_id_not_null.sql (nescrisă)

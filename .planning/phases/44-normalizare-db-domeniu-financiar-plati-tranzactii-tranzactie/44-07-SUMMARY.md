@@ -7,5 +7,5 @@ Tot ce face acest plan e read-only pe DB.
 - Cele 5 entități neexplicate = facturi Achitat cu suma ≠ alocări (grup nou, "G5", fără acțiune în fază).
 
 ## Nerezolvat
-- SC-03: propunerea e scrisă ca "neconfirmată de utilizator" până răspunde.
+- SC-03: confirmat de utilizator 18.11.2026.
 - Nu am reprodus numerele din audit (96 desincronizate; 93 Achitat fără alocare): G2=G3=0, G1=77 cu definiția din plan.

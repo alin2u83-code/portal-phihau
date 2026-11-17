@@ -39,4 +39,4 @@ Răspuns user: **Y** (plati.tip rămâne; drop `tip_plata`, `tip_plata_id`, `tip
 Răspuns user: **doar cele 2 candidate**: cbb0b228-b3e0-4735-9658-70999eb256c6 (C.S. Phi Hau), 83e7f771-46cf-4c4e-b70f-356d7b0bff06 (Kim Long Dao Falticeni). Restul tratate ca TEST/neconfirmate.
 
 ### SC-03: sold vs rest
-Răspuns user: "Investighează întâi cele 5". Investigația (R4b) a explicat cele 5: facturi Achitat cu suma ≠ alocări. **Propunere, neconfirmată de utilizator**: ambele numere rămân; soldService = sold net per entitate inclusiv avansuri, suma_ramasa = rest per factură; frontendul nu recalculează restul per factură. Se confirmă la întrebarea următoare.
+confirmat de utilizator 18.11.2026 (după investigarea R4b): ambele rămân: soldService = sold net per entitate (inclusiv avansuri), suma_ramasa = rest per factură; frontendul nu recalculează restul per factură.

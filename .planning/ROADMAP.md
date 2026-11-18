@@ -683,6 +683,17 @@ Plans:
 - [ ] 44-10-PLAN.md — [W7, CHECKPOINT] drop tranzactii.plata_ids + coloane moarte (suma_totala, suma_incasata, tip_plata, tip_abonament_id[, tip_plata_id]) dupa deploy cod si OK; functii/view rescrise din definitii live; snapshot + rollback
 - [ ] 44-11-PLAN.md — [W8, CHECKPOINT] ULTIMUL: arhivare + drop modele paralele (obligatii_plata, incasari_efective, alocari_plati, plata, catalog_pret) dupa re-verificare live si OK; docs/baza-de-date.md
 
+### Phase 45: Clonare competitie (super admin): asistent cu bife pentru setari, categorii si probe + template per tip competitie
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 44
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 45 to break down)
+
 ---
 
 ## Archive — Milestone v1.0 (complete)

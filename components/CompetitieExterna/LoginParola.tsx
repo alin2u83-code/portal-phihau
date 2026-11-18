@@ -113,7 +113,7 @@ export const LoginParola: React.FC<LoginParolaProps> = ({ onAutentificat, onSoli
         </>
     );
     const inapoi = (
-        <button type="button" className="text-sm text-slate-400 hover:text-[var(--t-text)]" onClick={() => mergiLa('login')}>Înapoi la autentificare</button>
+        <Button variant="secondary" className="w-full" disabled={loading} onClick={() => mergiLa('login')}>Înapoi la autentificare</Button>
     );
 
     return (
@@ -156,8 +156,8 @@ export const LoginParola: React.FC<LoginParolaProps> = ({ onAutentificat, onSoli
                     {campBifa}
                     {mesajeStare}
                     <Button className="w-full" isLoading={loading} disabled={cod.length !== 8 || !parolaNoua} onClick={seteazaParola}>Setează parola și intră</Button>
-                    <div className="flex items-center justify-between">
-                        {inapoi}
+                    {inapoi}
+                    <div className="text-center">
                         <button type="button" className="text-sm text-[var(--t-text)] disabled:text-slate-500" disabled={asteptare > 0 || loading} onClick={trimiteCod}>
                             {asteptare > 0 ? `Retrimite codul (${asteptare}s)` : 'Retrimite codul'}
                         </button>

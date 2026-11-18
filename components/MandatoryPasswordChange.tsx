@@ -23,6 +23,20 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
     const [showConfirm, setShowConfirm] = useState(false);
     const { showError, showSuccess } = useError();
 
+    // Iesire din ecranul blocant: aceeasi curatare ca handleLogout din useAppLogic (ecranul e returnat devreme din AppRouter, fara acces la handler).
+    const handleIesire = async () => {
+        try {
+            localStorage.removeItem('phi-hau-active-role-context-id');
+            localStorage.removeItem('phi-hau-active-view');
+            localStorage.removeItem('activeRole');
+            if (supabase) await supabase.auth.signOut();
+        } catch (err) {
+            console.error('Logout error:', err);
+        } finally {
+            window.location.href = '/';
+        }
+    };
+
     const validatePassword = () => {
         const validare = valideazaParola(newPassword);
         if (!validare.valid) {
@@ -145,6 +159,9 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
 
                         <Button type="submit" className="w-full !mt-6" size="md" disabled={loading} variant="primary">
                             {loading ? 'Se salvează...' : 'Salvează Parola Nouă'}
+                        </Button>
+                        <Button type="button" className="w-full" size="md" variant="secondary" onClick={handleIesire} disabled={loading}>
+                            Ieșire
                         </Button>
                     </form>
                 </Card>

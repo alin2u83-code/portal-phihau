@@ -411,23 +411,23 @@ export function avertismenteTip(sursaTip: string, tinta: string, probe: ProbaCom
 | A7 | Triggerele `audit_competitii` pe `competitii` nu blocheaza INSERT-ul (necunoscut daca exista) | Pitfall 5 | Ar aparea la primul test live; fara impact de design |
 | A8 | Valori implicite taxe cand "setari" e debifat = cele din `CompetitieForm` (80/80/120/150/80, `taxa_individual=80`, `taxa_echipa=120`) | Pitfall 4 | Daca userul prefera 0 sau blocarea ("bifa setari obligatorie") se schimba o ramura |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Tipul tinta in asistent**
+1. **Tipul tinta in asistent** — RESOLVED: Select editabil (plan A1, confirmat user 19.11.2026)
    - What we know: D-11 permite clonare intre tipuri; D-14 nu listeaza campul "tip" printre campurile asistentului. `competitii.tip` e NOT NULL.
    - What's unclear: tipul tinta e preluat din sursa sau editabil?
    - Recommendation: `Select` editabil, implicit tipul sursei, doar cele 3 tipuri permise; avertismentele cross-tip apar cand difera. (Fara aceasta, D-11 nu poate fi folosit.)
-2. **"Setari" debifat**
+2. **"Setari" debifat** — RESOLVED: implicite CompetitieForm (plan A2, confirmat user 19.11.2026)
    - What we know: D-10 acopera doar cazul bifat.
    - What's unclear: ce valori primesc taxele/FRAM/locatie/organizator.
    - Recommendation: Pitfall 4 (valori implicite din `CompetitieForm`, FRAM false, locatie/organizator NULL), afisat in previzualizare. Alternativ: bifa "setari" nedezactivabila. Cere confirmare scurta.
-3. **Fuzionari legacy (informare, nu decizie noua)**
+3. **Fuzionari legacy** — RESOLVED: avertisment in previzualizare (plan 45-02/04)
    - What we know: cele 2 fuzionari reale sunt "in loc"; fallback D-08 se aplica automat.
    - What's unclear: userul vrea sa stie ca "sursa" fuzionata (nr. 1 si 10) NU intra in clona?
    - Recommendation: mesaj explicit in previzualizare ("Categoria 9 provine din fuzionare veche; se copiaza forma fuzionata; sursa 1 omisa").
-4. **Prag de drift**
+4. **Prag de drift** — RESOLVED: omis (minim)
    - Sursa e de regula finalizata si stabila; verificarea `p_asteptat` (ca in Faza 41) e optionala. Recomandare: omisa (minim); se poate adauga `p_asteptat integer` daca planner-ul vrea paritate cu 41.
-5. **Ce NU se cloneaza si exista pe competitie**
+5. **Ce NU se cloneaza** — RESOLVED: linie in previzualizare (plan A12)
    - `program_competitie` (program pe categorie), `personal_competitie`, `competitie_sportiv_arme`, `acces_competitie_extern`, `cereri_*`, `rezultate_competitie` au `competitie_id`/`categorie_id`. Per D-01 nu intra; recomandare: o linie in previzualizare "Programul si personalul NU se copiaza".
 
 ## Environment Availability

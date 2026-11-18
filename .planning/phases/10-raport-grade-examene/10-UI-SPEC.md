@@ -43,8 +43,9 @@ Declared values (multiples of 4), aliniate cu clasele Tailwind deja folosite în
 | 2xl | 48px | Padding vertical `EmptyState` (`py-12`) |
 | 3xl | 64px | nefolosit în această fază |
 
-Exceptions:
-- Tab bar copiat din `RaportFinanciar` păstrează `px-3 py-1.5` / `gap-1.5` (12px / 6px) pentru consistență vizuală între rapoarte. Singura excepție de la multipli de 4; nu se extinde în afara tab bar-ului.
+Fără excepții de la multipli de 4: butoanele din tab bar folosesc `px-4 py-2` și `gap-2` (nu `px-3 py-1.5` / `gap-1.5` din `RaportFinanciar`), grid-ul `StatCard` folosește `gap-4`, tooltip-ul chart `px-4 py-2`.
+
+Note de dimensionare:
 - Înălțime BarChart: 280px desktop / 220px mobil (`<640px`) — valoare de container, nu spațiere.
 - Rând tabel clicabil (GRD-03): zonă de atingere minimă 44px înălțime pe mobil (card-uri, vezi Layout).
 
@@ -59,7 +60,7 @@ Exact 4 dimensiuni, 2 greutăți (valorile din Tailwind deja folosite în rapoar
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 |
 | Label | 12px (`text-xs`) | 600 (semibold) | 1.4 — antete tabel `uppercase tracking-wider`, etichete KPI, ticks chart (11px echivalent → folosește 12) |
 | Heading | 20px (`text-xl`) | 600 (semibold) | 1.2 — titlu card dashboard, titlu secțiune „Istoric examene” |
-| Display | 30px (`text-3xl`) | 600 (semibold) | 1.2 — doar titlul paginii „Analiză Grade” (același stil ca „Rapoarte”) și valoarea KPI (`text-2xl`=24px din `StatCard` e acceptată ca excepție a componentei existente) |
+| Display | 30px (`text-3xl`) | 600 (semibold) | 1.2 — doar titlul paginii „Analiză Grade” (același stil ca „Rapoarte”) și valoarea KPI din `StatCard` (suprascrie clasa valorii din `StatCard` la `text-3xl font-semibold`; 24px / `text-2xl` NU se folosește). Dacă `StatCard` nu permite suprascrierea, randează KPI-ul cu `Card` + Heading 20px (`text-xl`) |
 
 Notă: `font-bold` (700) din codul existent NU se folosește în componentele noi; folosește `font-semibold` (600). Antetele de tabel: `text-xs font-semibold uppercase tracking-wider`.
 
@@ -81,13 +82,13 @@ Se folosesc exclusiv variabilele de temă (suportă teme luminoase/întunecate f
 
 Accent reserved for:
 1. Barele din BarChart GRD-01 (culoare uniformă `var(--t-primary)`, conform CONTEXT specifics)
-2. Tab-ul activ din tab bar (fundal accent, ca în RaportFinanciar; se acceptă `bg-indigo-600` existent SAU `bg-[var(--t-primary)]` — preferat tokenul)
+2. Tab-ul activ din tab bar (fundal `bg-[var(--t-primary)]` obligatoriu; `bg-indigo-600` NU se folosește)
 3. Iconul din cardul „Analiză Grade” și bordura de hover a cardului (`hover:border-brand-primary`, ca celelalte carduri)
 4. Focus ring pe rânduri clicabile (`--t-input-focus-ring`)
 
 Nu se folosește accent pe: antete tabel, text de rând, butoane secundare, badge-uri.
 
-Reguli chart (Recharts): `fill="var(--t-primary)"` pe `<Bar>`; `CartesianGrid stroke="var(--t-border)" strokeDasharray="3 3" vertical={false}`; ticks `fill: 'var(--t-text-muted)'`, `fontSize: 12`; `Tooltip cursor={{ fill: 'var(--t-surface-2)' }}`, conținut tooltip în `Card`-style (`bg-[var(--t-surface)] border border-[var(--t-border)] rounded-lg px-3 py-2 text-sm`). Deviază intenționat de la `RevenueBarChart` (care are hex hardcodat `#334155`, `#64748b` și arată greșit pe teme luminoase). Fallback dacă `var()` nu se rezolvă în atributul SVG: `style={{ fill: 'var(--t-primary)' }}`.
+Reguli chart (Recharts): `fill="var(--t-primary)"` pe `<Bar>`; `CartesianGrid stroke="var(--t-border)" strokeDasharray="3 3" vertical={false}`; ticks `fill: 'var(--t-text-muted)'`, `fontSize: 12`; `Tooltip cursor={{ fill: 'var(--t-surface-2)' }}`, conținut tooltip în `Card`-style (`bg-[var(--t-surface)] border border-[var(--t-border)] rounded-lg px-4 py-2 text-sm`). Deviază intenționat de la `RevenueBarChart` (care are hex hardcodat `#334155`, `#64748b` și arată greșit pe teme luminoase). Fallback dacă `var()` nu se rezolvă în atributul SVG: `style={{ fill: 'var(--t-primary)' }}`.
 
 Praguri % promovabilitate (default asumat, ajustabil de planner): >= 75% `Badge variant="green"`, 50–74% `variant="amber"`, < 50% `variant="red"`, fără prezenți `—` (slate).
 
@@ -101,16 +102,18 @@ Praguri % promovabilitate (default asumat, ajustabil de planner): >= 75% `Badge 
 
 ### Pagina `RaportGradeExamene`
 - Container `space-y-4`. Titlu `h1` Display „Analiză Grade” + buton „Înapoi” dacă `RapoarteExamen`/`RaportFinanciar` au unul (reutilizează același pattern `onBack`; nu inventa nou).
-- Tab bar identic cu `RaportFinanciar` (`flex bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl p-1 gap-1 overflow-x-auto`), 3 taburi în ordinea: `Distribuție` · `Promovabilitate` · `Eligibili`. Eticheta text vizibilă și pe mobil (3 taburi încap) — nu `hidden sm:inline`. Stare tab: `useState<'distributie' | 'promovabilitate' | 'eligibili'>('distributie')` (CONTEXT); opțional `useStareVizualizare` pentru persistență (consistent cu RaportFinanciar).
+- Tab bar identic cu `RaportFinanciar` (`flex bg-[var(--t-bg)] border border-[var(--t-border)] rounded-xl p-1 gap-2 overflow-x-auto`; butoane `px-4 py-2 gap-2`), 3 taburi în ordinea: `Distribuție` · `Promovabilitate` · `Eligibili`. Eticheta text vizibilă și pe mobil (3 taburi încap) — nu `hidden sm:inline`. Stare tab: `useState<'distributie' | 'promovabilitate' | 'eligibili'>('distributie')` (CONTEXT); opțional `useStareVizualizare` pentru persistență (consistent cu RaportFinanciar).
 - Taburi: `<button role="tab" aria-selected>` în `role="tablist"`.
 
 ### Tab 1 — Distribuție (GRD-01)
-- Deasupra: 2 `StatCard` pe un grid `grid-cols-2 gap-3` — „Total sportivi cu grad” și „Grade fără sportivi” (numărul gradelor cu 0).
+- Focal point: BarChart (primul element dominant vizual; StatCard-urile sunt secundare).
+- Deasupra: 2 `StatCard` pe un grid `grid-cols-2 gap-4` — „Total sportivi cu grad” și „Grade fără sportivi” (numărul gradelor cu 0).
 - `Card` cu BarChart vertical: titlu Heading „Distribuție grade”, subtitlu Label „Număr sportivi per grad actual”. Axa X = nume grad (ordine `Grad.ordine` asc, toate gradele inclusiv 0); axa Y = număr întreg (`allowDecimals={false}`), `width={32}`. Ticks X: pe mobil `angle={-45}` `textAnchor="end"` `interval={0}` și `height={64}`. Bare `radius={[4,4,0,0]}` `maxBarSize={48}`. Tooltip: „{Grad}: {n} sportivi” (singular „1 sportiv”).
 - Sub chart: tabel „Grad | Sportivi” cu aceleași grade (GRD-01 cere grafic + tabel), rânduri cu 0 afișate cu text `--t-text-muted`. Ultimul rând „Total”. Pe mobil tabelul rămâne (2 coloane, încape).
 - Sportivii fără `grad_actual_id`: rând „Fără grad (începători)” la sfârșit în tabel; nu apare în chart.
 
 ### Tab 2 — Promovabilitate (GRD-02)
+- Focal point: coloana „% Promovabilitate” (Badge colorat, singura coloană cu culoare de stare).
 - Tabel (desktop `hidden md:block`, mobil listă de carduri `md:hidden`, ca în RaportFinanciar), sortat cronologic descrescător (cea mai recentă sesiune sus).
 - Coloane: Sesiune (denumire + data, `formatDate` ro-RO) | Înscriși | Prezenți | Promovați | % Promovabilitate (Badge conform praguri).
 - Definiții: Prezenți = rezultat != „Neprezentat”; Promovați = rezultat = „Admis”; % = Promovați / Prezenți, rotunjit la întreg; fără prezenți: „—”. Cifre aliniate dreapta (`text-right`).
@@ -118,6 +121,7 @@ Praguri % promovabilitate (default asumat, ajustabil de planner): >= 75% `Badge 
 - Fără sortare/filtru interactiv în MVP (filtrare pe interval = deferred).
 
 ### Tab 3 — Eligibili (GRD-03)
+- Focal point: coloanele Sportiv (nume) și „Timp La Grad” (sortarea descrescătoare duce cei mai așteptați sus).
 - Rezumat: text Body „{n} sportivi eligibili pentru următorul grad” deasupra tabelului.
 - Coloane (D-06): Sportiv | Grad Curent | Timp La Grad | Grad Următor; sortat descrescător după timp la grad (`differenceInMonths`). `Timp La Grad` formatat: `< 12 luni` → „{n} luni” (1 → „1 lună”), `>= 12` → „{a} an/ani {l} luni” (ex. „1 an 2 luni”, „2 ani”); 0 → „sub 1 lună”.
 - Sportiv = `formatNume(sportiv)`, text normal; întregul rând clicabil -> `onViewSportiv(sportiv)` (D-07). Afordanță: `cursor-pointer`, `hover:bg-[var(--t-table-row-hover)]`, `tabIndex={0}`, `role="button"` + Enter/Space, `focus-visible:ring-2 ring-[var(--t-input-focus-ring)]`, chevron `ChevronRightIcon` discret (`--t-text-muted`) în ultima coloană (afordanță vizuală de navigare).

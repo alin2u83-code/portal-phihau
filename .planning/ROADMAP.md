@@ -661,7 +661,7 @@ Plans:
 - [x] 43-03-PLAN.md — zona externa: LoginParola (email+parola, prima autentificare/reset prin cod, bifa dispozitiv personal) inlocuieste LoginOtp; clasificaEroareAuth, loginParolaAcces
 - [x] 43-04-PLAN.md — Q2: contexte ADMIN_CLUB/INSTRUCTOR ascunse fara MFA valid, ecran "Mergi la portal", Management prin portal
 - [x] 43-05-PLAN.md — Playwright pe build (tests/ui_acces_extern_faza43.spec.ts), aliniere spec Faza 36, docs fluxuri/roluri
-- [ ] 43-06-PLAN.md — [CHECKPOINT] setari Supabase Dashboard (sabloane {{ .Token }}, OTP 8, sesiuni fara inactivity, rate limit/SMTP) + porti finale + checklist uman (dispozitiv nou, fara delogare, extern, Q2)
+- [x] 43-06-PLAN.md — [CHECKPOINT] setari Supabase Dashboard (sabloane {{ .Token }}, OTP 8, sesiuni fara inactivity, rate limit/SMTP) + porti finale + checklist uman (dispozitiv nou, fara delogare, extern, Q2)
 
 ### Phase 44: Normalizare DB domeniu financiar (plati, tranzactii, tranzactie_plata)
 

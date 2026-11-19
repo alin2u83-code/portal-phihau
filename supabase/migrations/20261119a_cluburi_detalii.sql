@@ -1,5 +1,5 @@
 -- Quick 261119-ihl, VAL 1 (aditiv): detalii club vizibile doar pentru super admin si admin club.
--- STARE: NEAPLICAT pe live (dry-run cu rollback facut 19.11.2026; aplicare doar cu OK utilizator).
+-- STARE: APLICAT pe live 19.11.2026 (dry-run cu rollback + review separat inainte).
 -- 3NF: setarile/CIF-ul clubului intr-un tabel 1:1 cu cluburi; nicio coloana derivata/duplicata
 -- (coloanele vechi din cluburi raman PANA la Val 3, dupa ce frontend-ul citeste din cluburi_detalii).
 -- ROLLBACK: DROP FUNCTION public.factura_automata_activa(uuid); DROP TABLE public.cluburi_detalii;

@@ -212,7 +212,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
 
             // Faza 30 Feature 1: perioada de gratie la reinnoire abonament.
             // Citit din cluburi_detalii (doar admin club / super admin); fara acces => implicit, ca inainte
-            const pragGratie = (await getDetaliiClub(clubId)).data?.perioada_gratie_zile ?? PERIOADA_GRATIE_IMPLICITA;
+            const { data: detaliiClub, error: errDetaliiClub } = await getDetaliiClub(clubId);
+            if (errDetaliiClub) throw new Error(`Nu s-a putut citi perioada de grație a clubului: ${errDetaliiClub}`);
+            const pragGratie = detaliiClub?.perioada_gratie_zile ?? PERIOADA_GRATIE_IMPLICITA;
 
             // Harta ultima luna FACTURATA (nu doar achitata) per sportiv — data_start_facturare
             // descrie continuitatea facturarii, nu a incasarii, deci contorizam orice factura

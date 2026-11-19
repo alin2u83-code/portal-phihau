@@ -46,7 +46,8 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
     useEffect(() => {
         if (!activeClubId) return;
         let cancelled = false;
-        getDetaliiClub(activeClubId).then(({ data }) => { if (!cancelled) setCifIncarcat(data?.cif ?? ''); });
+        // La eroare ramane null: formularul nu trimite CIF si nu poate sterge valoarea existenta
+        getDetaliiClub(activeClubId).then(({ data, error }) => { if (!cancelled && !error) setCifIncarcat(data?.cif ?? ''); });
         return () => { cancelled = true; };
     }, [activeClubId]);
 
@@ -98,8 +99,10 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
 
             if (error) throw error;
 
-            const { error: errDetalii } = await salveazaDetaliiClub(activeClub.id, { cif: formData.cif.trim() || null });
-            if (errDetalii) throw new Error(errDetalii);
+            if (cifIncarcat !== null) {
+                const { error: errDetalii } = await salveazaDetaliiClub(activeClub.id, { cif: formData.cif.trim() || null });
+                if (errDetalii) throw new Error(errDetalii);
+            }
 
             setClubs(prev => prev.map(c => c.id === activeClub.id ? data : c));
             showSuccess("Setări Actualizate", "Informațiile clubului au fost salvate cu succes.");
@@ -141,7 +144,7 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
                     <div className="space-y-4">
                         <Input label="Nume Club" name="nume" value={formData.nume} onChange={handleChange} />
                         <Input label="Oraș" name="oras" value={formData.oras} onChange={handleChange} />
-                        <Input label="CIF / Cod Fiscal" name="cif" value={formData.cif} onChange={handleChange} />
+                        <Input label="CIF / Cod Fiscal" name="cif" value={formData.cif} onChange={handleChange} disabled={cifIncarcat === null} />
                     </div>
                 </Card>
 

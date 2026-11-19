@@ -25,6 +25,7 @@ export async function salveazaDetaliiClub(
     campuri: Partial<Omit<ClubDetalii, 'club_id'>>
 ): Promise<{ error: string | null; cod?: string }> {
     const { error } = await supabase.from('cluburi_detalii').upsert({ club_id: clubId, ...campuri }, { onConflict: 'club_id' });
+    if (error?.code === '23505') return { error: 'Există deja un alt club înregistrat cu acest CIF/CUI.', cod: error.code };
     return { error: error?.message ?? null, cod: error?.code };
 }
 

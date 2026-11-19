@@ -29,8 +29,16 @@ CREATE TRIGGER trg_cluburi_detalii_la_club_nou
 AFTER INSERT ON public.cluburi
 FOR EACH ROW EXECUTE FUNCTION public.cluburi_detalii_la_club_nou();
 
+-- Un club commit-at intre backfill si CREATE TRIGGER ar ramane fara rand: repeta backfill-ul (idempotent)
+INSERT INTO public.cluburi_detalii (club_id, cif, perioada_gratie_zile, factura_automata_inscriere)
+SELECT id, cif, perioada_gratie_zile, COALESCE(factura_automata_inscriere, false)
+FROM public.cluburi
+ON CONFLICT (club_id) DO NOTHING;
+
 ALTER TABLE public.cluburi_detalii ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.cluburi_detalii FROM anon;
+-- RLS nu acopera TRUNCATE; default privileges Supabase l-ar da lui authenticated
+REVOKE TRUNCATE, REFERENCES, TRIGGER ON public.cluburi_detalii FROM authenticated;
 
 -- Doar super admin (orice club) si ADMIN_CLUB (clubul lui); acelasi helper ca la taxe, bazat pe header-ul de context activ
 CREATE POLICY cluburi_detalii_admin ON public.cluburi_detalii

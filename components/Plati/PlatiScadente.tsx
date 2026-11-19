@@ -1,4 +1,5 @@
 ﻿import React, { useState, useMemo } from 'react';
+import { getDetaliiClub, PERIOADA_GRATIE_IMPLICITA } from '../../services/cluburiDetaliiService';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plata, Sportiv, Permissions, Club } from '../../types';
 import { Button, Input, Select, Card, Modal, SearchInput, ClubSelect, SearchableSelect } from '../ui';
@@ -210,7 +211,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             const lunaCurenta = today.getMonth() + 1; // 1–12
 
             // Faza 30 Feature 1: perioada de gratie la reinnoire abonament.
-            const pragGratie = (clubs || []).find(c => c.id === clubId)?.perioada_gratie_zile ?? 30;
+            // Citit din cluburi_detalii (doar admin club / super admin); fara acces => implicit, ca inainte
+            const pragGratie = (await getDetaliiClub(clubId)).data?.perioada_gratie_zile ?? PERIOADA_GRATIE_IMPLICITA;
 
             // Harta ultima luna FACTURATA (nu doar achitata) per sportiv — data_start_facturare
             // descrie continuitatea facturarii, nu a incasarii, deci contorizam orice factura

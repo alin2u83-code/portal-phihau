@@ -51,15 +51,20 @@ export interface NomCategorieCompetitie {
 export interface Club {
   id: string;
   nume: string;
-  cif?: string | null;
   oras?: string | null;
   federatie_id?: string | null;
   theme_config?: Record<string, string> | null;
   tema_config?: ThemeConfig | null;
+}
+
+/** Detalii club vizibile doar pentru super admin si admin club (tabel `cluburi_detalii`, 1:1 cu `cluburi`). */
+export interface ClubDetalii {
+  club_id: string;
+  cif: string | null;
   /** Faza 30: prag in zile pentru perioada de gratie la reinnoire abonament (vezi utils/perioadaGratie.ts). */
-  perioada_gratie_zile?: number | null;
+  perioada_gratie_zile: number;
   /** Daca true, la inscrierea unui sportiv nou se genereaza automat factura de abonament a lunii curente. */
-  factura_automata_inscriere?: boolean | null;
+  factura_automata_inscriere: boolean;
 }
 
 export interface ClubStats {

@@ -397,7 +397,7 @@ export const useDataProvider = () => {
             // Setul de pornire: doar tabele mici de referinta/config (sportivi si grupe vin din hook-urile lor).
             // Seturile mari (plati, istoric grade, examene etc.) se incarca la cerere — vezi construiesteCereriLaCerere.
             const criticalQueries: Cereri = {
-                clubs: () => cleanedSupabase.from('cluburi').select('id, nume, cif, oras, theme_config, tema_config'),
+                clubs: () => cleanedSupabase.from('cluburi').select('id, nume, oras, theme_config, tema_config'),
                 allRoles: () => cleanedSupabase.from('roluri').select('id, nume'),
                 grade: () => cleanedSupabase.from('grade').select('*'),
                 tipuriPlati: () => cleanedSupabase.from('tipuri_plati').select('id, nume'),

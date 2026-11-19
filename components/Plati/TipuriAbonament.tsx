@@ -7,6 +7,7 @@ import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useSezonActiv } from '../../hooks/useSezoane';
+import { getDetaliiClub, salveazaDetaliiClub, PERIOADA_GRATIE_IMPLICITA } from '../../services/cluburiDetaliiService';
 
 interface TipuriAbonamentManagementProps {
     tipuriAbonament: TipAbonament[];
@@ -45,24 +46,19 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
     const effectiveClubId = activeRoleContext?.club_id || activeRoleContext?.club?.id || currentUser?.club_id;
     const { sezoane, sezonActiv, sezonActivId } = useSezonActiv(effectiveClubId ?? null);
 
-    // Faza 30 Feature 1: perioadă de grație la reînnoire abonament (cluburi.perioada_gratie_zile)
+    // Faza 30 Feature 1: perioadă de grație la reînnoire abonament (cluburi_detalii.perioada_gratie_zile)
     const clubTintaGratie = isFederationAdmin ? (newClubId || clubs[0]?.id || '') : (effectiveClubId ?? '');
     const [pragGratie, setPragGratie] = useState<number | string>(30);
     const [savingGratie, setSavingGratie] = useState(false);
     useEffect(() => {
         if (!clubTintaGratie) return;
-        const clubLocal = clubs.find(c => c.id === clubTintaGratie);
-        if (clubLocal && clubLocal.perioada_gratie_zile != null) {
-            setPragGratie(clubLocal.perioada_gratie_zile);
-            return;
-        }
         let cancelled = false;
         (async () => {
-            const { data } = await supabase.from('cluburi').select('perioada_gratie_zile').eq('id', clubTintaGratie).maybeSingle();
-            if (!cancelled) setPragGratie(data?.perioada_gratie_zile ?? 30);
+            const { data } = await getDetaliiClub(clubTintaGratie);
+            if (!cancelled) setPragGratie(data?.perioada_gratie_zile ?? PERIOADA_GRATIE_IMPLICITA);
         })();
         return () => { cancelled = true; };
-    }, [clubTintaGratie, clubs]);
+    }, [clubTintaGratie]);
 
     const handleSaveGratie = async () => {
         const valoare = Number(pragGratie);
@@ -72,22 +68,22 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
         }
         if (!clubTintaGratie) return;
         setSavingGratie(true);
-        const { error } = await supabase.from('cluburi').update({ perioada_gratie_zile: valoare }).eq('id', clubTintaGratie);
+        const { error } = await salveazaDetaliiClub(clubTintaGratie, { perioada_gratie_zile: valoare });
         setSavingGratie(false);
         if (error) {
-            showError('Eroare la salvare', error.message);
+            showError('Eroare la salvare', error);
         } else {
             showSuccess('Salvat', 'Perioada de grație a fost actualizată.');
         }
     };
 
-    // Factura automata la inscriere (cluburi.factura_automata_inscriere), per club
+    // Factura automata la inscriere (cluburi_detalii.factura_automata_inscriere), per club
     const [facturaAuto, setFacturaAuto] = useState(false);
     useEffect(() => {
         if (!clubTintaGratie) return;
         let cancelled = false;
         (async () => {
-            const { data } = await supabase.from('cluburi').select('factura_automata_inscriere').eq('id', clubTintaGratie).maybeSingle();
+            const { data } = await getDetaliiClub(clubTintaGratie);
             if (!cancelled) setFacturaAuto(!!data?.factura_automata_inscriere);
         })();
         return () => { cancelled = true; };
@@ -95,8 +91,8 @@ export const TipuriAbonamentManagement: React.FC<TipuriAbonamentManagementProps>
 
     const handleToggleFacturaAuto = async (valoare: boolean) => {
         if (!clubTintaGratie) return;
-        const { error } = await supabase.from('cluburi').update({ factura_automata_inscriere: valoare }).eq('id', clubTintaGratie);
-        if (error) { showError('Eroare la salvare', error.message); return; }
+        const { error } = await salveazaDetaliiClub(clubTintaGratie, { factura_automata_inscriere: valoare });
+        if (error) { showError('Eroare la salvare', error); return; }
         setFacturaAuto(valoare);
         showSuccess('Salvat', valoare ? 'Factura se generează automat la înscriere.' : 'Factura automată la înscriere e dezactivată.');
     };

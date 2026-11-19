@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Club, User, Permissions, Rol } from '../types';
 import { Button, Modal, Input, Card, CredentialeContModal } from './ui';
 import { PlusIcon, EditIcon, TrashIcon, UsersIcon, BuildingOfficeIcon, UserPlusIcon, AlertCircleIcon } from './icons';
@@ -10,14 +10,15 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { clearCache } from '../utils/cache';
 import { useRoleAssignment } from '../hooks/useRoleAssignment';
 import { genereazaParolaTemporara } from '../utils/parola';
+import { listaDetalii, salveazaDetaliiClub, cifFolositDeAltClub } from '../services/cluburiDetaliiService';
 
-type ClubSaveData = Partial<Club> & { numeAdmin?: string; prenumeAdmin?: string; emailAdmin?: string };
+type ClubSaveData = Partial<Club> & { cif?: string | null; numeAdmin?: string; prenumeAdmin?: string; emailAdmin?: string };
 
 interface ClubFormModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (clubData: ClubSaveData) => Promise<boolean>;
-    clubToEdit: Club | null;
+    clubToEdit: (Club & { cif?: string | null }) | null;
     adminError: string | null;
     clubCreatNume: string | null;
     onRetryAdmin: () => void;
@@ -148,6 +149,13 @@ interface CluburiManagementProps {
 export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, setClubs, onBack, currentUser, permissions, allRoles }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [clubToEdit, setClubToEdit] = useState<Club | null>(null);
+    // CIF-urile sunt in cluburi_detalii (RLS: super admin toate, admin club clubul lui)
+    const [cifuri, setCifuri] = useState<Record<string, string | null>>({});
+    const incarcaCifuri = React.useCallback(async () => {
+        const { data } = await listaDetalii();
+        setCifuri(Object.fromEntries(data.map(d => [d.club_id, d.cif])));
+    }, []);
+    useEffect(() => { incarcaCifuri(); }, [incarcaCifuri, clubs?.length]);
     const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const { showError, showSuccess } = useError();
@@ -246,24 +254,19 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
 
         try {
             if (clubToEdit) {
-                const { id, numeAdmin, prenumeAdmin, emailAdmin, ...updates } = clubData;
-                // Curăță CIF gol — evită conflict pe unique constraint cu string gol
-                if (updates.cif === '') updates.cif = null as any;
+                const { id, numeAdmin, prenumeAdmin, emailAdmin, cif: cifBrut, ...updates } = clubData;
+                // Curăță CIF gol (stocat NULL, nu string gol)
+                const cif = cifBrut?.trim() || null;
                 // Verificare duplicat CIF la editare (alt club cu același CIF)
-                if (updates.cif) {
-                    const { data: existing } = await supabase
-                        .from('cluburi')
-                        .select('id')
-                        .eq('cif', updates.cif)
-                        .neq('id', id!)
-                        .maybeSingle();
-                    if (existing) {
-                        showError("CIF Duplicat", "Există deja un alt club înregistrat cu acest CIF/CUI.");
-                        return false;
-                    }
+                if (cif && await cifFolositDeAltClub(cif, id!)) {
+                    showError("CIF Duplicat", "Există deja un alt club înregistrat cu acest CIF/CUI.");
+                    return false;
                 }
                 const { data, error } = await supabase.from('cluburi').update(updates).eq('id', id!).select().single();
                 if (error) throw error;
+                const { error: errDetalii } = await salveazaDetaliiClub(id!, { cif });
+                if (errDetalii) throw new Error(errDetalii);
+                setCifuri(prev => ({ ...prev, [id!]: cif }));
                 if (data) {
                     clearCache('cache_clubs'); // Invalidează cache-ul local — modificarea trebuie să persiste la re-fetch
                     setClubs(prev => prev.map(c => c.id === id ? data : c));
@@ -271,24 +274,23 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                 }
                 return true;
             } else {
-                const { id, numeAdmin, prenumeAdmin, emailAdmin, ...insertData } = clubData;
-                // Curăță CIF gol — evită conflict pe unique constraint cu string gol
-                if (insertData.cif === '') insertData.cif = null as any;
+                const { id, numeAdmin, prenumeAdmin, emailAdmin, cif: cifBrut, ...insertData } = clubData;
+                // Curăță CIF gol (stocat NULL, nu string gol)
+                const cif = cifBrut?.trim() || null;
                 // Verificare duplicat CIF la creare
-                if (insertData.cif) {
-                    const { data: existing } = await supabase
-                        .from('cluburi')
-                        .select('id')
-                        .eq('cif', insertData.cif)
-                        .maybeSingle();
-                    if (existing) {
-                        showError("CIF Duplicat", "Există deja un club înregistrat cu acest CIF/CUI. Verificați datele sau lăsați câmpul gol.");
-                        return false;
-                    }
+                if (cif && await cifFolositDeAltClub(cif)) {
+                    showError("CIF Duplicat", "Există deja un club înregistrat cu acest CIF/CUI. Verificați datele sau lăsați câmpul gol.");
+                    return false;
                 }
                 const { data, error } = await supabase.from('cluburi').insert([insertData]).select().single();
                 if (error) throw error;
                 if (!data) return true;
+                // Trigger-ul a creat deja rândul de detalii; CIF-ul se scrie separat (clubul exista deja, nu facem rollback)
+                if (cif) {
+                    const { error: errDetalii } = await salveazaDetaliiClub(data.id, { cif });
+                    if (errDetalii) showError("CIF nesalvat", `Clubul a fost creat, dar CIF-ul nu a putut fi salvat: ${errDetalii}. Îl puteți completa din editare.`);
+                    else setCifuri(prev => ({ ...prev, [data.id]: cif }));
+                }
 
                 clearCache('cache_clubs'); // Invalidează cache-ul local — clubul nou trebuie să apară la re-fetch
                 setClubs(prev => [...prev, data]);
@@ -378,7 +380,7 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                                         <tr key={club.id} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
                                             <td className="p-4 font-medium text-white">{club.id === FEDERATIE_ID ? FEDERATIE_NAME : club.nume}</td>
                                             <td className="p-4 text-slate-300">{club.oras || '-'}</td>
-                                            <td className="p-4 text-slate-300 font-mono text-sm">{club.cif || '-'}</td>
+                                            <td className="p-4 text-slate-300 font-mono text-sm">{cifuri[club.id] || '-'}</td>
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end space-x-2">
                                                     <Button
@@ -430,8 +432,8 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                                             {club.id === FEDERATIE_ID ? FEDERATIE_NAME : club.nume}
                                         </p>
                                         <p className="text-sm text-slate-400">{club.oras || 'Oraș necunoscut'}</p>
-                                        {club.cif && (
-                                            <p className="text-xs text-slate-500 font-mono mt-0.5">CIF: {club.cif}</p>
+                                        {cifuri[club.id] && (
+                                            <p className="text-xs text-slate-500 font-mono mt-0.5">CIF: {cifuri[club.id]}</p>
                                         )}
                                     </div>
                                 </div>
@@ -476,7 +478,7 @@ export const CluburiManagement: React.FC<CluburiManagementProps> = ({ clubs, set
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 onSave={handleSave}
-                clubToEdit={clubToEdit}
+                clubToEdit={clubToEdit ? { ...clubToEdit, cif: cifuri[clubToEdit.id] ?? null } : null}
                 adminError={adminError}
                 clubCreatNume={pendingAdmin?.clubNume ?? null}
                 onRetryAdmin={handleRetryAdmin}

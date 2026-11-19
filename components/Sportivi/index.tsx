@@ -36,6 +36,7 @@ import { genereazaMagicLinkSportiv } from '../../services/magicLinkService';
 import { asteapta, DELAY_PREVENTIV_MS } from '../../utils/retryBackoff';
 import { genereazaParolaTemporara } from '../../utils/parola';
 import { useRegisterRefresh } from '../../contexts/RefreshContext';
+import { facturaAutomataActiva } from '../../services/cluburiDetaliiService';
 
 
 
@@ -470,13 +471,13 @@ export const Sportivi: React.FC<{
         }
     };
 
-    // Setare per club (cluburi.factura_automata_inscriere): factura lunii curente la inscriere.
+    // Setare per club (cluburi_detalii.factura_automata_inscriere): factura lunii curente la inscriere.
     // O eroare aici nu strica inscrierea — sportivul e deja salvat.
     const facturaLaInscriere = async (sportiv: Sportiv) => {
         if (!sportiv.club_id) return;
         // Citire directa din DB: lista de cluburi din cache poate fi invechita dupa schimbarea setarii
-        const { data: club } = await supabase.from('cluburi').select('factura_automata_inscriere').eq('id', sportiv.club_id).maybeSingle();
-        if (!club?.factura_automata_inscriere) return;
+        // Functie garduita: instructorul nu are acces la detaliile clubului, primeste doar da/nu
+        if (!(await facturaAutomataActiva(sportiv.club_id))) return;
         const { data, error, omis } = await genereazaFacturaLaInscriere(sportiv, tipuriAbonament, sezonActivId);
         if (error) { showError('Factura automată nu a fost generată', error); return; }
         if (omis) { showError('Factura automată omisă', omis); return; }

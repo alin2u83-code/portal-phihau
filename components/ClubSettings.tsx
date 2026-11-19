@@ -4,6 +4,7 @@ import { ArrowLeftIcon, SaveIcon, BuildingOfficeIcon, PaintBrushIcon } from './i
 import { Club, User } from '../types';
 import { supabase } from '../supabaseClient';
 import { useError } from './ErrorProvider';
+import { getDetaliiClub, salveazaDetaliiClub } from '../services/cluburiDetaliiService';
 
 interface ClubSettingsProps {
     onBack: () => void;
@@ -40,13 +41,22 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
         secondary_color: '#1e293b'
     });
 
+    // CIF-ul e in cluburi_detalii (doar super admin / admin club), nu in lista de cluburi
+    const [cifIncarcat, setCifIncarcat] = useState<string | null>(null);
+    useEffect(() => {
+        if (!activeClubId) return;
+        let cancelled = false;
+        getDetaliiClub(activeClubId).then(({ data }) => { if (!cancelled) setCifIncarcat(data?.cif ?? ''); });
+        return () => { cancelled = true; };
+    }, [activeClubId]);
+
     useEffect(() => {
         if (activeClub) {
             const config = activeClub.theme_config || {};
             setFormData({
                 nume: activeClub.nume || '',
                 oras: activeClub.oras || '',
-                cif: activeClub.cif || '',
+                cif: cifIncarcat ?? '',
                 email_contact: config.email_contact || '',
                 telefon_contact: config.telefon_contact || '',
                 adresa_contact: config.adresa_contact || '',
@@ -54,7 +64,7 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
                 secondary_color: config.secondary_color || '#1e293b'
             });
         }
-    }, [activeClub]);
+    }, [activeClub, cifIncarcat]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -80,7 +90,6 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
                 .update({
                     nume: formData.nume,
                     oras: formData.oras,
-                    cif: formData.cif,
                     theme_config: theme_config
                 })
                 .eq('id', activeClub.id)
@@ -88,6 +97,9 @@ export const ClubSettings: React.FC<ClubSettingsProps> = ({ onBack, currentUser,
                 .maybeSingle();
 
             if (error) throw error;
+
+            const { error: errDetalii } = await salveazaDetaliiClub(activeClub.id, { cif: formData.cif.trim() || null });
+            if (errDetalii) throw new Error(errDetalii);
 
             setClubs(prev => prev.map(c => c.id === activeClub.id ? data : c));
             showSuccess("Setări Actualizate", "Informațiile clubului au fost salvate cu succes.");

@@ -1227,6 +1227,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
         sursa={cloneSursa}
         numeExistente={competitii.map(c => c.denumire)}
         onClose={() => setCloneSursa(null)}
+        onReincarcaLista={fetchCompetitii}
         onCloned={(nou) => {
           setCloneSursa(null);
           setCompetitii(prev => [nou, ...prev]);

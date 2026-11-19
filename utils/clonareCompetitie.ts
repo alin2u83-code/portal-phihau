@@ -30,7 +30,8 @@ export function structuraInitiala(cats: CategorieCompetitie[]): { ids: string[];
         avertizeaza(c, 'Împărțire fără categorii rezultate identificabile; se copiază variantele active.');
       }
     } else if (c.este_fuzionata) {
-      const veche = surse.length === 0 || surse.includes(c.id) || surse.some(id => !existente.has(id));
+      // Formatul vechi = lista goală sau autoreferință; o sursă ștearsă nu e semnal de format vechi.
+      const veche = surse.length === 0 || surse.includes(c.id);
       if (veche) {
         surse.filter(id => id !== c.id && existente.has(id)).forEach(id => excluse.add(id));
         avertizeaza(c, 'Fuziune veche: definiția inițială nu se poate reconstrui; se copiază varianta fuzionată.');

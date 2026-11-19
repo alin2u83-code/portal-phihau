@@ -68,13 +68,13 @@ test('fuziune veche (autoreferinta): categoria pastrata inclusa cu avertisment, 
   egal(r.avertismente[0].numar, 7, 'numar');
 });
 
-test('fuziune cu sursa lipsa din lista: se pastreaza K2, avertisment, sursele existente excluse', () => {
+test('fuziune Faza 41 cu o sursa stearsa: rezultatul iese, sursa ramasa se pastreaza, fara avertisment fals', () => {
   const r = structuraInitiala([
     cat('S', 1, { status_categorie: 'fuzionata' }),
     cat('K2', 2, { este_fuzionata: true, categorii_fuzionate_din: ['X-lipsa', 'S'] }),
   ]);
-  egal(r.ids, ['K2'], 'ids');
-  egal(r.avertismente.length, 1, 'avertismente');
+  egal(r.ids, ['S'], 'ids');
+  egal(r.avertismente.length, 0, 'avertismente');
 });
 
 test('rezultat de fuziune cu array gol / NULL: pastrat, avertisment', () => {

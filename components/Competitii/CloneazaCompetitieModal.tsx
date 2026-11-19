@@ -14,12 +14,13 @@ export interface CloneazaCompetitieModalProps {
   sursa: Competitie | null;
   numeExistente: string[];
   onClose: () => void;
+  onReincarcaLista?: () => void;
   onCloned: (c: Competitie) => void;
 }
 
 const checkLabel = 'flex items-center gap-2 min-h-10 touch-manipulation';
 
-export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = ({ sursa, numeExistente, onClose, onCloned }) => {
+export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = ({ sursa, numeExistente, onClose, onCloned, onReincarcaLista }) => {
   const tipuriLabelsCtx = React.useContext(TipuriLabelsContext);
   const { showError } = useError();
   const [denumire, setDenumire] = useState('');
@@ -36,13 +37,14 @@ export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = (
   const [loading, setLoading] = useState(false);
   const [eroareSursa, setEroareSursa] = useState<string | null>(null);
   const [reincearca, setReincearca] = useState(0);
+  const [inclAnulate, setInclAnulate] = useState(false);
 
   useEffect(() => {
     if (!sursa) return;
     setDenumire(numeImplicit(sursa.denumire));
     setTip(TIPURI_CLONARE.includes(sursa.tip) ? sursa.tip : 'tehnica');
     setDataInceput(''); setDataSfarsit(''); setDeadline('');
-    setSetari(true); setProbe(true); setCategorii(true);
+    setSetari(true); setProbe(true); setCategorii(true); setInclAnulate(false);
     setProbeSursa([]); setCategoriiSursa([]); setIncarcat(false); setEroareSursa(null);
     let anulat = false;
     (async () => {
@@ -61,9 +63,15 @@ export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = (
   }, [sursa?.id, reincearca]);
 
   const st = useMemo(() => structuraInitiala(categoriiSursa), [categoriiSursa]);
+  // Categoriile anulate din sursa se copiaza doar la cerere (devin 'activa' in clona).
+  const idsFinale = useMemo(() => {
+    if (inclAnulate) return st.ids;
+    const anulate = new Set(categoriiSursa.filter(c => c.status_categorie === 'anulata').map(c => c.id));
+    return st.ids.filter(id => !anulate.has(id));
+  }, [st, categoriiSursa, inclAnulate]);
   const tipAv = useMemo(
-    () => sursa ? avertismenteTip(sursa.tip, tip, probeSursa, categoriiSursa, st.ids) : { probe: [], categorii: 0 },
-    [sursa, tip, probeSursa, categoriiSursa, st]
+    () => sursa ? avertismenteTip(sursa.tip, tip, probeSursa, categoriiSursa, idsFinale) : { probe: [], categorii: 0 },
+    [sursa, tip, probeSursa, categoriiSursa, idsFinale]
   );
   const erori = valideazaClonare({ denumire, tip, dataInceput, dataSfarsit, deadline }, numeExistente);
 
@@ -77,7 +85,7 @@ export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = (
     try {
       const { data, error } = await cloneazaCompetitie({
         sursaId: sursa.id, denumire: denumire.trim(), tip, dataInceput, dataSfarsit, deadline,
-        setari, probe: probe || categorii, categorii: categorii ? st.ids : [],
+        setari, probe: probe || categorii, categorii: categorii ? idsFinale : [],
       });
       if (error || !data) {
         showError('Clonare eșuată', error?.message ?? String(error));
@@ -86,6 +94,7 @@ export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = (
       const { data: nou, error: errNou } = await supabase.from('competitii').select().eq('id', data.id).single();
       if (errNou || !nou) {
         showError('Eroare', errNou?.message ?? 'Competiția a fost creată, dar nu a putut fi deschisă.');
+        onReincarcaLista?.(); // clona există deja în DB: lista trebuie să o arate
         onClose();
         return;
       }
@@ -130,8 +139,14 @@ export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = (
           </label>
           <label className={`${checkLabel} cursor-pointer`}>
             <input type="checkbox" className="w-4 h-4 rounded" checked={categorii} onChange={e => setCategorii(e.target.checked)} />
-            <span className="text-sm text-slate-300">Categorii ({st.ids.length})</span>
+            <span className="text-sm text-slate-300">Categorii ({idsFinale.length})</span>
           </label>
+          {categorii && st.anulate > 0 && (
+            <label className={`${checkLabel} cursor-pointer pl-6`}>
+              <input type="checkbox" className="w-4 h-4 rounded" checked={inclAnulate} onChange={e => setInclAnulate(e.target.checked)} />
+              <span className="text-sm text-slate-300">Include și cele {st.anulate} categorii anulate (devin active)</span>
+            </label>
+          )}
         </div>
 
         <div className="border border-slate-700 rounded p-3 space-y-1 text-sm text-slate-300">
@@ -140,8 +155,8 @@ export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = (
           <p>{probe || categorii ? `${probeSursa.length} probe` : 'fără probe'}</p>
           {categorii && (
             <>
-              <p>{st.ids.length} categorii (numerotate 1..{st.ids.length})</p>
-              {st.anulate > 0 && <p>{st.anulate} anulate incluse, devin active</p>}
+              <p>{idsFinale.length} categorii (numerotate 1..{idsFinale.length})</p>
+              {st.anulate > 0 && <p>{inclAnulate ? `${st.anulate} anulate incluse, devin active` : `${st.anulate} categorii anulate omise`}</p>}
               {st.excluse.length > 0 && <p>{st.excluse.length} categorii rezultate din fuziuni/împărțiri omise (se copiază structura inițială)</p>}
             </>
           )}

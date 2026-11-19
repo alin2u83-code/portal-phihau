@@ -544,7 +544,7 @@ Doar **SUPER_ADMIN_FEDERATIE** administrează categoriile unei competiții, din 
 
 **Cine / unde:** doar `SUPER_ADMIN_FEDERATIE` (garda reală: `is_super_admin()` în RPC); buton „Clonează" pe rândul competiției, care e sursa. Asistent într-un singur ecran (`CloneazaCompetitieModal.tsx`) cu casete Setări / Probe / Categorii (categoriile cer probele), denumire unică obligatorie, tip țintă, date și deadline, previzualizare cu numărul de categorii și toate avertismentele.
 
-**Se copiază:** setările ca atare (locație, organizator, taxe, regula FRAM), probele, categoriile în structura inițială (rezultatele fuziunilor/împărțirilor omise, anulatele incluse ca active, fuziunile vechi „în loc” copiate în forma fuzionată cu avertisment, numerotare 1..N).
+**Se copiază:** setările ca atare (locație, organizator, taxe, regula FRAM), probele, categoriile în structura inițială (rezultatele fuziunilor/împărțirilor omise, anulatele omise implicit, la cerere incluse ca active (bifă în asistent; modificare față de D-07 la review 19.11.2026), fuziunile vechi „în loc” copiate în forma fuzionată cu avertisment, numerotare 1..N).
 **Nu se copiază:** înscrieri, echipe, program, personal, acces extern, rezultate, `legacy_eveniment_id`, `club_id`.
 
 Competiția nouă e în status `draft` (Schiță), cu observații „Clonată din …". Clonarea între tipuri e permisă, cu avertismente pentru probe/categorii incompatibile după `DEFAULT_PROBE_PER_TIP`. Operația e atomică: RPC `public.competitie_cloneaza(p_sursa, p_denumire, p_tip, p_data_inceput, p_data_sfarsit, p_deadline, p_setari, p_probe, p_categorii)`. `categorii_template` rămâne sursa globală pentru crearea de la zero (D-02: fără template per tip).

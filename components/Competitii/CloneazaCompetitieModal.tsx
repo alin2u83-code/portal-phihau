@@ -34,6 +34,8 @@ export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = (
   const [categoriiSursa, setCategoriiSursa] = useState<CategorieCompetitie[]>([]);
   const [incarcat, setIncarcat] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [eroareSursa, setEroareSursa] = useState<string | null>(null);
+  const [reincearca, setReincearca] = useState(0);
 
   useEffect(() => {
     if (!sursa) return;
@@ -41,7 +43,7 @@ export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = (
     setTip(TIPURI_CLONARE.includes(sursa.tip) ? sursa.tip : 'tehnica');
     setDataInceput(''); setDataSfarsit(''); setDeadline('');
     setSetari(true); setProbe(true); setCategorii(true);
-    setProbeSursa([]); setCategoriiSursa([]); setIncarcat(false);
+    setProbeSursa([]); setCategoriiSursa([]); setIncarcat(false); setEroareSursa(null);
     let anulat = false;
     (async () => {
       const [p, c] = await Promise.all([
@@ -50,13 +52,13 @@ export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = (
       ]);
       if (anulat) return;
       const err = p.error || c.error;
-      if (err) { showError('Eroare', err.message); return; }
+      if (err) { setEroareSursa(err.message); showError('Eroare', err.message); return; }
       setProbeSursa((p.data ?? []) as ProbaCompetitie[]);
       setCategoriiSursa((c.data ?? []) as CategorieCompetitie[]);
       setIncarcat(true);
     })();
     return () => { anulat = true; };
-  }, [sursa?.id]);
+  }, [sursa?.id, reincearca]);
 
   const st = useMemo(() => structuraInitiala(categoriiSursa), [categoriiSursa]);
   const tipAv = useMemo(
@@ -99,6 +101,12 @@ export const CloneazaCompetitieModal: React.FC<CloneazaCompetitieModalProps> = (
         <p className="text-sm text-slate-400">
           Sursă: {sursa.denumire} ({statusLabel[sursa.status]?.label ?? sursa.status}, {fmtDate(sursa.data_inceput)})
         </p>
+        {eroareSursa && (
+          <div className="flex items-center justify-between gap-3 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
+            <span>Nu s-au putut încărca probele/categoriile sursei: {eroareSursa}</span>
+            <Button type="button" variant="secondary" size="sm" onClick={() => setReincearca(n => n + 1)}>Reîncearcă</Button>
+          </div>
+        )}
         <Input label="Denumire" value={denumire} onChange={e => setDenumire(e.target.value)} required />
         <Select label="Tip competiție" value={tip} onChange={e => setTip(e.target.value as TipCompetitie)}>
           {TIPURI_CLONARE.map(t => <option key={t} value={t}>{eticheta(t)}</option>)}

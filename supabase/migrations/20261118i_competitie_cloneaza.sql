@@ -1,0 +1,35 @@
+-- Faza 45 (45-01): RPC competitie_cloneaza
+-- NEAPLICATA, se aplica in 45-03 dupa OK explicit; supabase/ e in .gitignore, deci git add -f.
+-- Decizii: D-01 (competitia noua e mereu draft, club_id NULL, legacy_eveniment_id NULL), D-03 (probele se copiaza separat; categoriile doar impreuna cu probele),
+--   D-04 (un singur apel atomic, o tranzactie, fara clona partiala), D-05 (doar SUPER_ADMIN_FEDERATIE, garda reala in DB: is_super_admin()),
+--   D-06 + D-07 (categoriile = lista EXACTA de id-uri calculata client-side; copiate ca activa, anulatele nu se transforma in ceva ascuns),
+--   D-09 (numar_categorie si ordine_afisare renumerotate 1..N, proba_id remapat pe probele noi), D-10 (taxe si FRAM copiate ca atare cand bifa e activa),
+--   D-16 (observatii = sursa clonata: denumire, id, data).
+-- Ipoteze: A1 tipul tinta e parametru (tehnica/giao_dau/cvd); A2 bifa setari debifata => locatie/organizator NULL, taxe implicite CompetitieForm, fram false;
+--   A3 categorii nenule fara probe = refuz 22023; A4 search_path = pg_catalog, public (ordinea din hardening-ul SEC-41-03, 20261115a);
+--   A5 statusul nou e 'draft' (eticheta UI "Schita"; 'schita' ar incalca CHECK-ul); A6 reconstructia structurii initiale e doar in TypeScript (45-02), RPC doar valideaza apartenenta;
+--   A7 unicitate denumire case-insensitive, sub advisory lock; A8 observatii noi = doar nota de clonare.
+-- Functia NU sterge si NU modifica nimic existent: doar INSERT in competitii, probe_competitie, categorii_competitie.
+--
+-- Verificat live 18.11.2026:
+-- (executor FARA Supabase MCP in aceasta sesiune: doar PostgREST cu service_role = OpenAPI + numaratori de date; catalogul pg_* NU a putut fi citit.
+--  Acelasi tipar ca in 20261114a. Punctele marcate NEVERIFICAT se verifica la 45-03, INAINTE de apply, prin Supabase MCP.)
+--   competitii: coloane obligatorii = id, denumire, tip, data_inceput, data_sfarsit, status (default 'draft'), deadline_inscrieri, fram_obligatoriu (default false);
+--     facultative: locatie, organizator, club_id, taxa_individual (default 0), taxa_echipa (default 0), observatii, legacy_eveniment_id, config_taxe jsonb, created_at/updated_at (default now()).
+--   probe_competitie: obligatorii competitie_id, tip_proba, denumire; ordine_afisare default 0. Nicio alta coloana.
+--   categorii_competitie: obligatorii competitie_id, varsta_min, gen, tip_participare (default 'individual'), doua_quyenuri (default false);
+--     coloane: proba_id, numar_categorie, denumire, varsta_max, grad_min_ordine, grad_max_ordine, arma, sportivi_per_echipa_min/max, rezerve_max, max_echipe_per_club,
+--     min_participanti_start, ordine_afisare, max_membri_echipa, min_membri_start, este_fuzionata, categorii_fuzionate_din uuid[], status_categorie. Fara timestamps.
+--     => nicio coloana NOT NULL fara default nu e acoperita de lista din plan; nicio coloana noua fata de cercetare.
+--   competitie_cloneaza lipseste live (PGRST202 la apel; nu apare in OpenAPI /rpc). is_super_admin() exista live (folosita de 20261114a / 20261115b).
+--   Forma datelor (numaratori, fara date personale): 5 competitii = tehnica/finalizata 2, tehnica/inscrieri_deschise 1, cvd/finalizata 1, cvd/inscrieri_deschise 1;
+--     1 denumire duplicata (lower/btrim) deja in competitii => nu exista UNIQUE live pe denumire, verificarea din functie e doar pentru clonele noi.
+--     2 competitii "Juniori 1, Seniori, Veterani": una cu 74 categorii (toate activa, 0 fuzionate), 4 probe; alta cu 84 categorii (68 activa, 2 fuzionata, 9 anulata, 5 impartita),
+--     2 cu este_fuzionata = true, 2 cu id in categorii_fuzionate_din (autoreferinta legacy, Pitfall 1 => functia seteaza explicit NULL), 4 probe;
+--     0 categorii cu proba_id dintr-o alta competitie.
+--   Regasit in migrari (netestat live): trg_competitii_fram_imutabil BEFORE INSERT (20261115b: fram_obligatoriu = true cere is_super_admin(), trece, garda e prima),
+--     audit_categorii_competitie AFTER INSERT (un rand audit_log per categorie, asteptat).
+--   NEVERIFICAT live (de reverificat la 45-03): rolbypassrls al lui postgres (in 20261114a verificat true), FORCE RLS pe cele 3 tabele (20261114a: da),
+--     lista pg_policies (fantoma), pg_trigger (alt BEFORE INSERT in afara de trg_competitii_fram_imutabil), CHECK pe competitii.tip / status / competitii_deadline_inainte_de_start,
+--     UNIQUE pe categorii_competitie (competitie_id, numar_categorie) (asteptat: niciuna), corpul is_super_admin() si search_path-ul lui, event trigger-e (functia nu creeaza tabele).
+--     Conditiile STOP (a)-(c) din plan NU au putut fi evaluate din catalog; (d) evaluata mai sus: neatinsa.

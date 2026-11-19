@@ -540,6 +540,15 @@ Doar **SUPER_ADMIN_FEDERATIE** administrează categoriile unei competiții, din 
 
 **Arme după grad (D-11..D-15).** În Thao Lo, Pas Arme și Giao Dau se oferă doar armele eligibile pe gradul efectiv al sportivului la data competiției (D-11/D-12). Nicio armă nu e obligatorie (D-13). Înscrierile vechi cu armă neeligibilă rămân și apar în «De rezolvat» (D-14); sportivii fără nicio armă primesc un avertisment, nu un blocaj (D-15). Song Luyen rămâne neschimbat (amânat).
 
+### 7.11 Clonare competiție (Faza 45)
+
+**Cine / unde:** doar `SUPER_ADMIN_FEDERATIE` (garda reală: `is_super_admin()` în RPC); buton „Clonează" pe rândul competiției, care e sursa. Asistent într-un singur ecran (`CloneazaCompetitieModal.tsx`) cu casete Setări / Probe / Categorii (categoriile cer probele), denumire unică obligatorie, tip țintă, date și deadline, previzualizare cu numărul de categorii și toate avertismentele.
+
+**Se copiază:** setările ca atare (locație, organizator, taxe, regula FRAM), probele, categoriile în structura inițială (rezultatele fuziunilor/împărțirilor omise, anulatele incluse ca active, fuziunile vechi „în loc” copiate în forma fuzionată cu avertisment, numerotare 1..N).
+**Nu se copiază:** înscrieri, echipe, program, personal, acces extern, rezultate, `legacy_eveniment_id`, `club_id`.
+
+Competiția nouă e în status `draft` (Schiță), cu observații „Clonată din …". Clonarea între tipuri e permisă, cu avertismente pentru probe/categorii incompatibile după `DEFAULT_PROBE_PER_TIP`. Operația e atomică: RPC `public.competitie_cloneaza(p_sursa, p_denumire, p_tip, p_data_inceput, p_data_sfarsit, p_deadline, p_setari, p_probe, p_categorii)`. `categorii_template` rămâne sursa globală pentru crearea de la zero (D-02: fără template per tip).
+
 ---
 
 ## 8. PLAN DE IMPLEMENTARE PE FAZE

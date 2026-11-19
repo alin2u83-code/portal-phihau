@@ -66,6 +66,8 @@
 | `inlantuiri_grade` | Care înlănțuiri sunt permise per grad + probă |
 | `categorii_template` | Template-uri reutilizabile de categorii |
 
+RPC `competitie_cloneaza` (Faza 45): creează atomic o competiție draft din alta; fără tabele/coloane noi.
+
 ### Alte
 | Tabel | Descriere |
 |-------|-----------|

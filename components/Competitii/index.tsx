@@ -4,7 +4,7 @@ import { Permissions, Competitie, ProbaCompetitie, CategorieCompetitie, Inscrier
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
 import { Button, Card, Badge, ConfirmModal } from '../ui';
-import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon } from '../icons';
+import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, CopyIcon } from '../icons';
 import { useError } from '../ErrorProvider';
 import { TIP_PROBA_LABELS, TIP_COMPETITIE_LABELS } from '../../utils/competitiiTemplates';
 import { useTipuriCompetitie } from '../../hooks/useTipuriCompetitie';
@@ -33,6 +33,7 @@ import { FaraCategoriePanel } from './FaraCategoriePanel';
 import { participanti } from '../../utils/categoriiAdmin';
 import { gradEfectivLaData } from '../../utils/eligibilitateCompetitie';
 import { CompetitieForm } from './CompetitieForm';
+import { CloneazaCompetitieModal } from './CloneazaCompetitieModal';
 import { RaportInscrieri } from './RaportInscrieri';
 import { FinanciarView } from './FinanciarView';
 import { PlatiClubExtern } from './PlatiClubExtern';
@@ -972,6 +973,7 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
   const [selectedComp, setSelectedComp] = useState<Competitie | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editComp, setEditComp] = useState<Competitie | null>(null);
+  const [cloneSursa, setCloneSursa] = useState<Competitie | null>(null);
   const [search, setSearch] = useState('');
   const [migrareEv, setMigrareEv] = useState<EvenimentLegacy | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info'; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
@@ -1139,6 +1141,12 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
                 </div>
                 {isAdmin && (
                   <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                    {permissions.isSuperAdmin && (
+                      <Button size="sm" variant="secondary" className="!p-2" title="Clonează" aria-label="Clonează competiția"
+                        onClick={() => setCloneSursa(comp)}>
+                        <CopyIcon className="w-3 h-3" />
+                      </Button>
+                    )}
                     <Button size="sm" variant="secondary" className="!p-2"
                       onClick={() => { setEditComp(comp); setFormOpen(true); }}>
                       <EditIcon className="w-3 h-3" />
@@ -1211,6 +1219,22 @@ export const CompetitiiManagement: React.FC<CompetitiiProps> = ({ permissions, o
           } else {
             setCompetitii(prev => [comp, ...prev]);
           }
+        }}
+      />
+
+      {/* Clonare competitie (super admin, Faza 45) */}
+      <CloneazaCompetitieModal
+        sursa={cloneSursa}
+        numeExistente={competitii.map(c => c.denumire)}
+        onClose={() => setCloneSursa(null)}
+        onCloned={(nou) => {
+          setCloneSursa(null);
+          setCompetitii(prev => [nou, ...prev]);
+          savedScrollRef.current = window.scrollY;
+          setSelectedComp(nou);
+          ssDel(SS_KEY_TAB);
+          ssSet(SS_KEY_COMP_ID, nou.id);
+          setView('detail');
         }}
       />
 

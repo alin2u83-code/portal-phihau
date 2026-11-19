@@ -68,6 +68,7 @@ Componente cheie:
 - `FisaCompetitie.tsx` — fișa completă a unei competiții
 - `ManagementInscrieri.tsx` — gestionare înscrieri sportivi
 - Wizard în `Competitii/` — creare competiție în pași
+- `CloneazaCompetitieModal.tsx` — clonare competiție (super admin, Faza 45), vezi ARHITECTURA_COMPETITII §7.11
 
 Tipuri: `tehnica` | `giao_dau` | `cvd`
 Detalii complete: [docs/ARHITECTURA_COMPETITII.md](ARHITECTURA_COMPETITII.md)

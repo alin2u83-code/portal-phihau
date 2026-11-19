@@ -2,7 +2,7 @@
  * Test colocat pentru utils/accesExtern.ts (fără framework, ca utils/parola.test.ts).
  * Rulare: `node --import tsx utils/accesExtern.test.ts`
  */
-import { extrageCompetitieId, clasificaEroareAuth, construiesteContexte, separaContexteDupaMfa,construiestePermisiuniExtern, clasificaCompetitiiClub, esteZonaCompetitie, esteListaZona } from './accesExtern';
+import { extrageCompetitieId, clasificaEroareAuth, construiesteContexte, separaContexteDupaMfa,construiestePermisiuniExtern, clasificaCompetitiiClub, esteZonaCompetitie, esteListaZona, cheieContextPentruCale, CHEIE_CONTEXT_EXTERN, CHEIE_CONTEXT_PORTAL } from './accesExtern';
 
 function assert(condition: boolean, message: string): void {
     if (!condition) throw new Error(`FAIL: ${message}`);
@@ -34,6 +34,8 @@ assert(clasificaEroareAuth({ status: 0, name: 'AuthRetryableFetchError' }) === '
 
 assert(esteZonaCompetitie('/competitie') && esteZonaCompetitie('/competitie/') && esteZonaCompetitie(`/competitie/${U}`) && esteZonaCompetitie('/competitie/abc'), 'esteZonaCompetitie: /competitie, slash, uuid, id invalid');
 assert(!esteZonaCompetitie('/competitii') && !esteZonaCompetitie('/'), 'esteZonaCompetitie: /competitii si / nu sunt zona');
+assert(cheieContextPentruCale('/competitie') === CHEIE_CONTEXT_EXTERN && cheieContextPentruCale(`/competitie/${U}`) === CHEIE_CONTEXT_EXTERN, 'zona externa: cheie proprie');
+assert(cheieContextPentruCale('/') === CHEIE_CONTEXT_PORTAL && cheieContextPentruCale('/competitiex') === CHEIE_CONTEXT_PORTAL, 'portal: cheia portalului');
 assert(esteListaZona('/competitie') && esteListaZona('/competitie/') && !esteListaZona(`/competitie/${U}`), 'esteListaZona: doar fara id');
 
 const A = 'club-a', B = 'club-b';

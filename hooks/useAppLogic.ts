@@ -30,6 +30,7 @@ export const useAppLogic = () => {
         try {
             await logAuditEvent({ operatie: 'LOGOUT', userId: currentUser?.user_id ?? session?.user?.id ?? null });
             localStorage.removeItem('phi-hau-active-role-context-id');
+            localStorage.removeItem('phi-hau-extern-context-id');
             localStorage.removeItem('phi-hau-active-view');
             localStorage.removeItem('activeRole');
             if (supabase) await supabase.auth.signOut();

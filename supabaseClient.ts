@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { cheieContextPentruCale } from './utils/accesExtern';
 
 // Fallback pe process.env: import.meta.env.VITE_* există doar sub Vite (browser/build).
 // Scripturile Node/tsx (ex. services/facturaService.test.ts) nu au context Vite, deci
@@ -17,7 +18,7 @@ if (supabaseUrl && supabaseAnonKey) {
   const customFetch = async (url: RequestInfo | URL, options: RequestInit = {}) => {
     const headers = new Headers(options.headers || {});
     const activeRoleContextId = typeof localStorage !== 'undefined'
-      ? localStorage.getItem('phi-hau-active-role-context-id')?.replace(/"/g, '')
+      ? localStorage.getItem(cheieContextPentruCale(typeof location !== 'undefined' ? location.pathname : '/'))?.replace(/"/g, '')
       : undefined;
     const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (activeRoleContextId && UUID_REGEX.test(activeRoleContextId)) {

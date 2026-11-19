@@ -26,6 +26,13 @@ export function esteZonaCompetitie(pathname: string): boolean {
     return pathname === '/competitie' || pathname.startsWith('/competitie/');
 }
 
+/** Chei localStorage separate: contextul activ din zona externa nu mai suprascrie contextul portalului (si invers). */
+export const CHEIE_CONTEXT_PORTAL = 'phi-hau-active-role-context-id';
+export const CHEIE_CONTEXT_EXTERN = 'phi-hau-extern-context-id';
+export function cheieContextPentruCale(pathname: string): string {
+    return esteZonaCompetitie(pathname) ? CHEIE_CONTEXT_EXTERN : CHEIE_CONTEXT_PORTAL;
+}
+
 export function esteListaZona(pathname: string): boolean {
     return /^\/competitie\/?$/.test(pathname);
 }

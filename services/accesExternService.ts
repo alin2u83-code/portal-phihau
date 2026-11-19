@@ -1,11 +1,10 @@
 import { supabase } from '../supabaseClient';
 import { notificaIncercareLogin } from './alertaSecuritateService';
-import { clasificaEroareAuth, construiesteContexte, clasificaCompetitiiClub, type TipEroareAuth } from '../utils/accesExtern';
+import { clasificaEroareAuth, construiesteContexte, clasificaCompetitiiClub, CHEIE_CONTEXT_EXTERN, CHEIE_CONTEXT_PORTAL, type TipEroareAuth } from '../utils/accesExtern';
 import type { CompetitiePublica, ContextAccesExtern, CodEroareCerereAcces, Competitie, CompetitiiClubClasificate, ContCompetitieClub } from '../types';
 
-// Aceeași cheie și același format ca portalul principal (hooks/useAppLogic.ts) — supabaseClient.ts o citește
-// și trimite headerul active-role-context-id în toate requesturile (RLS).
-const CHEIE_CONTEXT = 'phi-hau-active-role-context-id';
+// Zona externă are cheie proprie (CHEIE_CONTEXT_EXTERN); supabaseClient.ts o alege după cale și trimite
+// headerul active-role-context-id în toate requesturile (RLS). Portalul rămâne pe CHEIE_CONTEXT_PORTAL.
 
 const CODURI_CERERE: CodEroareCerereAcces[] = ['date_invalide', 'competitie_indisponibila', 'club_invalid', 'prea_multe_cereri'];
 
@@ -43,9 +42,10 @@ export async function incarcaContexteEligibile(userId: string): Promise<{ data: 
     return { data: construiesteContexte((roluri.data ?? []) as any, (cont.data ?? null) as any), error: null };
 }
 
-/** Atenție: suprascrie contextul activ al portalului principal pe același browser (aceeași cheie localStorage). */
-export function seteazaContextActiv(roleRowId: string): void {
-    try { localStorage.setItem(CHEIE_CONTEXT, JSON.stringify(roleRowId)); } catch { /* storage blocat */ }
+/** Implicit setează contextul zonei externe. 'portal' doar când utilizatorul trece intenționat în portal (suprascrie contextul portalului). */
+export function seteazaContextActiv(roleRowId: string, pentru: 'extern' | 'portal' = 'extern'): void {
+    const cheie = pentru === 'portal' ? CHEIE_CONTEXT_PORTAL : CHEIE_CONTEXT_EXTERN;
+    try { localStorage.setItem(cheie, JSON.stringify(roleRowId)); } catch { /* storage blocat */ }
 }
 
 export async function trimiteCerereAcces(p: { competitieId: string; email: string; nume: string; clubId: string; mesaj?: string }):
@@ -73,7 +73,7 @@ export async function incarcaCluburiPublice(): Promise<{ data: { id: string; num
 /** Rămâne pe linkul competiției (NU redirect la '/'). */
 export async function deconecteaza(): Promise<void> {
     try { await supabase?.auth.signOut(); } catch { /* continuăm cu curățarea locală */ }
-    try { localStorage.removeItem(CHEIE_CONTEXT); } catch { /* storage blocat */ }
+    try { localStorage.removeItem(CHEIE_CONTEXT_EXTERN); } catch { /* storage blocat */ }
     window.location.assign(window.location.pathname);
 }
 

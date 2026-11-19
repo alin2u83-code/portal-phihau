@@ -17,7 +17,7 @@ const EMAIL_CERERE = `zztest_faza36ui_${RUN}_cerere@example.test`;
 const SCREENS = '.planning/phases/36-acces-extern-competitie-prin-link-login-email-otp-doar-zona-/screens';
 const REF = URL_SB ? new URL(URL_SB).hostname.split('.')[0] : '';
 const CHEIE_SESIUNE = `sb-${REF}-auth-token`;
-const CHEIE_CONTEXT = 'phi-hau-active-role-context-id';
+const CHEIE_CONTEXT = 'phi-hau-extern-context-id';
 
 const admin = SERVICE && URL_SB ? createClient(URL_SB, SERVICE) : (null as any);
 let C1 = '';

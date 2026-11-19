@@ -8,7 +8,7 @@ import { CompetitieDetail } from '../Competitii';
 import { fmtDate, TipuriLabelsContext } from '../Competitii/constants';
 import { useTipuriCompetitie } from '../../hooks/useTipuriCompetitie';
 import { applyTheme, DEFAULT_THEME } from '../../lib/themes';
-import { extrageCompetitieId, esteListaZona, construiestePermisiuniExtern, separaContexteDupaMfa } from '../../utils/accesExtern';
+import { extrageCompetitieId, esteListaZona, construiestePermisiuniExtern, separaContexteDupaMfa, CHEIE_CONTEXT_EXTERN } from '../../utils/accesExtern';
 import { incarcaCompetitiePublica, incarcaContexteEligibile, seteazaContextActiv, deconecteaza } from '../../services/accesExternService';
 import { stareMfa } from '../../services/emailMfaService';
 import { sesiuneActorCurenta, inchideSesiuneActor } from '../../services/autorModificariService';
@@ -21,7 +21,6 @@ import { ExternDataProvider } from './ExternDataProvider';
 import { ListaCompetitiiClub } from './ListaCompetitiiClub';
 import type { Competitie, CompetitiePublica, ContextAccesExtern, SesiuneActor } from '../../types';
 
-const CHEIE_CONTEXT = 'phi-hau-active-role-context-id';
 const CALE_LISTA = '/competitie';
 const MSG_LINK_INVALID = 'Link invalid sau competiție indisponibilă.';
 
@@ -210,7 +209,7 @@ const CompetitieExternaPage: React.FC = () => {
         contexte = vizibile;
         if (contexte.length === 1) { await intraInZona(contexte[0], contexte, user); return; }
         let salvat: string | null = null;
-        try { salvat = JSON.parse(localStorage.getItem(CHEIE_CONTEXT) ?? 'null'); } catch { /* valoare invalidă */ }
+        try { salvat = JSON.parse(localStorage.getItem(CHEIE_CONTEXT_EXTERN) ?? 'null'); } catch { /* valoare invalidă */ }
         const potrivit = contexte.find(c => c.roleRowId === salvat);
         if (potrivit) await intraInZona(potrivit, contexte, user);
         else setStare({ t: 'alege_context', contexte, user });
@@ -241,7 +240,7 @@ const CompetitieExternaPage: React.FC = () => {
     const deschideManagement = (ctx: ContextAccesExtern, contexte: ContextAccesExtern[], user: any) => {
         // Q2: contextele ascunse se deschid doar prin portal (poarta MFA)
         const ctxMgmt = [...contexte, ...ascunseRef.current].find(c => (c.rol === 'ADMIN_CLUB' || c.rol === 'INSTRUCTOR') && c.clubId === ctx.clubId);
-        if (ctxMgmt) { seteazaContextActiv(ctxMgmt.roleRowId); window.location.assign('/'); return; }
+        if (ctxMgmt) { seteazaContextActiv(ctxMgmt.roleRowId, 'portal'); window.location.assign('/'); return; }
         setStare({ t: 'demo', ctx, contexte, user });
     };
 
@@ -313,7 +312,7 @@ const CompetitieExternaPage: React.FC = () => {
                     <Card className="space-y-3 text-center">
                         <p>Contul tău are rol de administrator sau instructor de club. Din motive de securitate, aceste roluri se deschid din portalul principal, unde se poate cere un cod pe email (doar pe dispozitiv nou).</p>
                         <div className="flex gap-2 justify-center">
-                            <Button onClick={() => { seteazaContextActiv(ascunse[0].roleRowId); window.location.assign('/'); }}>Mergi la portal</Button>
+                            <Button onClick={() => { seteazaContextActiv(ascunse[0].roleRowId, 'portal'); window.location.assign('/'); }}>Mergi la portal</Button>
                             <Button variant="secondary" onClick={() => { void deconecteaza(); }}>Deconectare</Button>
                         </div>
                     </Card>

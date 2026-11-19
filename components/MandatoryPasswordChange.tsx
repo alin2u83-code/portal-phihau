@@ -27,6 +27,7 @@ export const MandatoryPasswordChange: React.FC<MandatoryPasswordChangeProps> = (
     const handleIesire = async () => {
         try {
             localStorage.removeItem('phi-hau-active-role-context-id');
+            localStorage.removeItem('phi-hau-extern-context-id');
             localStorage.removeItem('phi-hau-active-view');
             localStorage.removeItem('activeRole');
             if (supabase) await supabase.auth.signOut();

@@ -1,5 +1,5 @@
 {
-  "nota": "Baseline = starea expusa la momentul 37-01 (inainte de REVOKE). Ratchet: se micsoreaza manual in 37-03/37-05 conform 37-TRIAJ.md. scoala_ioncreanga_* = aplicatie separata, exceptie documentata (decizie 5.11.2026), nu se modifica. | 37-03 aplicat: anon = D (4), authenticated = baseline minus C (25) minus SERVICE_ONLY (10). | 39-01: +3 functii cont club | 39-08: +3 functii actor | 39-13: +3 management | 40-01: +4 functii schimbare grad | 41-01: +1 functie categorii_aplica_operatie | 45-01: +1 functie competitie_cloneaza",
+  "nota": "Baseline = starea expusa la momentul 37-01 (inainte de REVOKE). Ratchet: se micsoreaza manual in 37-03/37-05 conform 37-TRIAJ.md. scoala_ioncreanga_* = aplicatie separata, exceptie documentata (decizie 5.11.2026), nu se modifica. | 37-03 aplicat: anon = D (4), authenticated = baseline minus C (25) minus SERVICE_ONLY (10). | 39-01: +3 functii cont club | 39-08: +3 functii actor | 39-13: +3 management | 40-01: +4 functii schimbare grad | 41-01: +1 functie categorii_aplica_operatie | 45-01: +1 functie competitie_cloneaza | 261117-kiq: +1 helper RLS get_my_grupa_id (doar grupa proprie, 1 politica)",
   "exceptii_prefix": {
     "anon": [
       "scoala_ioncreanga_"
@@ -61,6 +61,7 @@
     "get_familie_id_sportiv_curent()",
     "get_my_active_clubs()",
     "get_my_clubs()",
+    "get_my_grupa_id()",
     "get_my_sportiv_id()",
     "get_next_eligible_grade(uuid,date)",
     "get_own_sportiv_id()",

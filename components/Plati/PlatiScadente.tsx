@@ -1116,8 +1116,8 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between mt-2">
-                                            <div className="flex items-center gap-2">
+                                        <div className="flex flex-col gap-2 mt-2">
+                                            <div className="flex flex-wrap items-center gap-2">
                                                 <span className="text-xs text-[var(--t-text-muted)]">
                                                     {new Date((p.data || '').toString().slice(0, 10)).toLocaleDateString('ro-RO')}
                                                 </span>
@@ -1142,7 +1142,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                                                     </span>
                                                 )}
                                             </div>
-                                            <div className="flex gap-1.5">
+                                            <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-[var(--t-border)]">
                                                 {esteDeIncasat(p) && (
                                                     <Button size="sm" variant="success" onClick={() => { setPlataForPayment(p); setPaymentAmount(restDePlata(p).toString()); }} title="Încasează">
                                                         <WalletIcon className="w-3.5 h-3.5" />

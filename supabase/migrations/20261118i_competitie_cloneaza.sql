@@ -1,5 +1,5 @@
 -- Faza 45 (45-01): RPC competitie_cloneaza
--- NEAPLICATA, se aplica in 45-03 dupa OK explicit; supabase/ e in .gitignore, deci git add -f.
+-- APLICATA LIVE 19.11.2026 (45-03, dupa OK explicit); supabase/ e in .gitignore, deci git add -f.
 -- Decizii: D-01 (competitia noua e mereu draft, club_id NULL, legacy_eveniment_id NULL), D-03 (probele se copiaza separat; categoriile doar impreuna cu probele),
 --   D-04 (un singur apel atomic, o tranzactie, fara clona partiala), D-05 (doar SUPER_ADMIN_FEDERATIE, garda reala in DB: is_super_admin()),
 --   D-06 + D-07 (categoriile = lista EXACTA de id-uri calculata client-side; copiate ca activa, anulatele nu se transforma in ceva ascuns),

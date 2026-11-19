@@ -1021,6 +1021,20 @@ export interface RezultatOperatieCategorii {
   taxe_achitate_anulate: number;
 }
 
+/** Faza 45: categorie care nu poate fi reconstruită fidel la clonare (se ia varianta activă). */
+export interface AvertismentClonare {
+  categorieId: string;
+  numar: number | null;
+  mesaj: string;
+}
+
+/** Faza 45: răspunsul RPC competitie_cloneaza. */
+export interface RezultatClonareCompetitie {
+  id: string;
+  probe: number;
+  categorii: number;
+}
+
 export interface SolicitareEchipaIncompleta {
   id: string;
   competitie_id: string;

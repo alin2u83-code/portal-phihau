@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Randuri cu scroll orizontal fara bara vizibila (folosit la tab-urile Competitii) */
+@layer utilities {
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+}
+
 * {
   color-scheme: dark;
 }

@@ -1,5 +1,5 @@
 ---
-status: testing
+status: complete
 phase: 36-acces-extern-competitie-prin-link-login-email-otp-doar-zona-
 source: [36-VERIFICATION.md, 36-VERIFICARE.md, 36-SECURITY.md]
 started: 2026-11-19T10:58:20Z
@@ -7,14 +7,8 @@ updated: 2026-11-19T10:58:20Z
 ---
 
 ## Current Test
-<!-- OVERWRITE each test - shows where we are -->
 
-number: 8
-name: Parinte SPORTIV vede prezentele fratilor
-expected: |
-  Cu un cont de parinte care are frati inscrisi, deschizi Dashboard, apoi widgetul Familie, apoi detaliul unui frate.
-  Vezi numarul de prezente al fratelui, nu 0 daca el are prezente.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -54,15 +48,16 @@ reason: "Verificat partial in Chrome 19.11.2026: in /competitie exista simultan 
 
 ### 8. Parinte SPORTIV vede prezentele fratilor
 expected: Cont parinte cu frati: Dashboard => widget Familie => detaliu frate arata numarul de prezente (nu 0 daca are prezente).
-result: [pending]
+result: skipped
+reason: "User 19.11.2026: nu exista un cont de parinte la indemana; politica prezenta_familie_sel verificata doar live in DB, netestata cu cont real"
 
 ## Summary
 
 total: 8
 passed: 4
 issues: 1
-pending: 1
-skipped: 2
+pending: 0
+skipped: 3
 
 ## Gaps
 
@@ -71,5 +66,6 @@ skipped: 2
   reason: "User reported: exista o bara de scroll la zona de inscrieri, categorii, taxe, detalii, pentru ca sunt prea multe si late"
   severity: minor
   test: 6
-  artifacts: []
-  missing: []
+  root_cause: "Clasa scrollbar-hide e folosita la components/Competitii/index.tsx:325 (si CategoriiTemplateManager.tsx) dar nu e definita nicaieri (nici tailwind.config.js, nici CSS, nici plugin), deci bara de scroll orizontal ramane vizibila pe randul de tab-uri."
+  artifacts: [components/Competitii/index.tsx:325, components/Competitii/CategoriiTemplateManager.tsx]
+  missing: ["definitie scrollbar-hide (scrollbar-width:none + ::-webkit-scrollbar{display:none}) in tailwind.config.js sau index.css"]

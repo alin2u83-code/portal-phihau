@@ -28,7 +28,7 @@ export type DecizieGratie = 'pastreaza' | 'reseteaza';
  *   ({luna: 1-12, an}), sau null daca sportivul nu are niciun istoric de
  *   facturare (caz in care nu atingem nimic — 'pastreaza')
  * @param azi - data curenta
- * @param pragZile - pragul de gratie configurat pe club (cluburi.perioada_gratie_zile);
+ * @param pragZile - pragul de gratie configurat pe club (cluburi_detalii.perioada_gratie_zile);
  *   valorile negative sau NaN sunt tratate ca 30 (valoarea implicita a coloanei)
  * @returns 'pastreaza' daca gap-ul de zile de la sfarsitul lunii acoperite pana azi
  *   e <= prag, altfel 'reseteaza'

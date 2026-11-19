@@ -1,5 +1,5 @@
 -- Quick 261119-ihl, VAL 3 (destructiv): cif / perioada_gratie_zile / factura_automata_inscriere pleaca din `cluburi`.
--- STARE: NEAPLICAT (aplicare dupa deploy-ul Val 2 READY + verificare drift detalii vs cluburi).
+-- STARE: APLICAT pe live 19.11.2026 (deploy Val 2 READY, 0 diferente detalii vs cluburi inainte).
 -- Datele raman in `cluburi_detalii` (backfill facut in 20261119a). Dupa asta `cluburi` public contine doar nume/oras/tema/logo/slug/federatie.
 -- ROLLBACK date: ALTER TABLE cluburi ADD COLUMN cif text UNIQUE, ADD COLUMN perioada_gratie_zile integer NOT NULL DEFAULT 30,
 --   ADD COLUMN factura_automata_inscriere boolean NOT NULL DEFAULT false; apoi UPDATE ... FROM cluburi_detalii.

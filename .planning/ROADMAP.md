@@ -688,11 +688,11 @@ Plans:
 **Goal:** Super adminul federatiei cloneaza orice competitie (buton pe rand) intr-o competitie noua in schita, printr-un asistent pe un singur ecran: bife setari/probe/categorii (categoriile cer probele), nume unic obligatoriu, tip, date si deadline, previzualizare cu structura initiala a categoriilor (rezultatele fuziunilor/impartirilor omise, anulatele incluse ca active, fuziunile vechi copiate cu avertisment, renumerotare 1..N) si avertismente la clonare intre tipuri; totul atomic prin RPC competitie_cloneaza (is_super_admin), fara inscrieri/echipe, fara tabel/coloana noua; "template per tip" inlocuit de clonare.
 **Requirements**: D-01..D-16 (45-CONTEXT.md)
 **Depends on:** Phase 44 (fara dependenta tehnica; RPC si UI nu ating domeniul financiar)
-**Plans:** 4 plans in 2 waves
+**Plans:** 1/4 plans executed
 
 Plans:
 
-- [ ] 45-01-PLAN.md — [W1] verificare live read-only (MCP) + migrare 20261118i: RPC competitie_cloneaza (garda, lock, ids validate, probe remapate, categorii activa 1..N, taxe as-is, observatii) + allowlist ACL
+- [x] 45-01-PLAN.md — [W1] verificare live read-only (MCP) + migrare 20261118i: RPC competitie_cloneaza (garda, lock, ids validate, probe remapate, categorii activa 1..N, taxe as-is, observatii) + allowlist ACL
 - [ ] 45-02-PLAN.md — [W1] types + serviciu clonareCompetitieService + utils/clonareCompetitie (structuraInitiala, avertismenteTip, numeImplicit, valideazaClonare) + teste pe forme reale (72 categorii J1SV)
 - [ ] 45-03-PLAN.md — [W2, CHECKPOINT] aplicare live dupa OK + baterie tests/competitie_cloneaza_faza45.ts (16 verificari, inclusiv clona temporara J1SV) + ACL
 - [ ] 45-04-PLAN.md — [W2] CloneazaCompetitieModal (un ecran, previzualizare) + buton Cloneaza pe rand (doar super admin) + deschidere draft + docs 7.11 + verificari umane la final

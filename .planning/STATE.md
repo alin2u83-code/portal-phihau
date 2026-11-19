@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 43-06-PLAN.md (SMTP core7.spatiul.ro live, porti verzi; urmeaza verificare faza + checklist uman)
-last_updated: "2026-11-16T19:07:53.634Z"
-last_activity: 2026-11-16 -- Phase 43 execution started
+stopped_at: Phase 10 UI-SPEC approved
+last_updated: "2026-11-19T08:43:40.918Z"
+last_activity: 2026-11-19 -- Phase 45 execution started
 progress:
-  total_phases: 35
-  completed_phases: 22
-  total_plans: 171
-  completed_plans: 163
-  percent: 63
+  total_phases: 37
+  completed_phases: 23
+  total_plans: 189
+  completed_plans: 174
+  percent: 62
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** Fiecare admin de club poate vedea dintr-un singur loc situația financiară (cine datorează ce și de când) și situația gradelor (cine e eligibil pentru examen, cât de bine promovează), cu export pentru contabilitate și raportare federație.
-**Current focus:** Phase 43 — auth-management-user-parola-cod-doar-dispozitiv-nou-fara-del
+**Current focus:** Phase 45 — clonare-competitie
 
 ## Current Position
 
-Phase: 43 (auth-management-user-parola-cod-doar-dispozitiv-nou-fara-del) — EXECUTING
-Plan: 6 of 6
-Status: Plans complete, awaiting phase verification (/gsd-verify-work 43)
-Last activity: 2026-11-16 -- Phase 43 execution started
+Phase: 45 (clonare-competitie) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-11-19 -- Phase 45 execution started
 
 ```
 Progress: [██████████] 100% (7/7 phases milestone v1.1)
@@ -99,6 +99,7 @@ Progress: [██████████] 100% (7/7 phases milestone v1.1)
 | Phase 43 P03 | 20min | 3 tasks | 10 files |
 | Phase 43 P04 | 10min | 2 tasks | 3 files |
 | Phase 43 P05 | 15min | 2 tasks | 4 files |
+| Phase 45 P01 | 20min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -160,6 +161,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 39-01]: helperii acces_extern_* rescrisi pe conturi_competitie_club; proprietari_aplicatie fara FORCE RLS
 - [Phase 39]: 39-02: cont de club = identitate auth dedicata fara parola; aprobare cerere = creare cont club doar proprietar; schimbare email = mutare user_id + ban vechi
 - [Phase 43]: Q1: fara delogare la inactivitate peste tot; risc rezidual sesiune deschisa acceptat
+- [Phase 45]: [45-01] search_path = pg_catalog, public in competitie_cloneaza; status nou draft; verificare live partiala fara MCP, catalog pg_* de reverificat la 45-03
 
 ### Pending Todos
 
@@ -216,6 +218,8 @@ Recent decisions affecting current work:
 
 ### Roadmap Evolution
 
+- Phase 45 added: Clonare competitie (super admin): asistent cu bife setari/categorii/probe + template per tip competitie (decizii in 45-DECISIONS.md)
+
 - Phase 37 added: Hardening securitate DB (RPC SECURITY DEFINER, garzi bani/date, citire sportivi cross-club). V1+V2 inainte de invitatii externe, V3 dupa.
 - Phase 37 stare 6.11.2026: 37-01..05 + fix-uri (transfer doar ADMIN_CLUB, process_exam_row_v4 stearsa) comise; mutare sportiv ramane doar ADMIN_CLUB/super admin (migr. 20261107h). FAZA 37 FINALIZATA 6.11.2026, push. 37-06 SARIT (fara conturi externe), 37-07..09 AMANATE (regula imprumut Giao Dau FRAM cere design; vezi memory project_faza37_decizie_fara_externi_20261106).
 - Phase 38 added: Performanta incarcare aplicatie (statement timeouts 57014 la pornire; RLS mari, planning ~271ms/interogare, view-uri vedere_*). Neplanificata.
@@ -270,9 +274,9 @@ at roadmap creation. De verificat înainte de Phase 9:
 
 ## Session Continuity
 
-Last session: 2026-11-16T19:07:53.618Z
-Stopped at: Completed 43-05-PLAN.md
-Resume file: .planning/quick/260929-0hf-alerte-securitate-admin/260929-0hf-SUMMARY.md
+Last session: 2026-11-19T08:43:36.357Z
+Stopped at: Phase 10 UI-SPEC approved
+Resume file: .planning/phases/10-raport-grade-examene/10-UI-SPEC.md
 
 - Phase 41 added: Administrare categorii competitie (super admin)
 - Phase 42 added: Competitie: editare echipe/quyen, FRAM an calendaristic, arme dupa grad

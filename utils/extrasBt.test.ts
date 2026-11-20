@@ -200,6 +200,12 @@ assert(l2.dupaLuna && l2.facturi.map(f => f.id).join() === 'x3', 'T14 octombrie:
 assert(!facturiDeAlocat(fac, 'plata abonament').dupaLuna && facturiDeAlocat(fac, 'plata abonament').facturi.length === 3, 'T14 fara luna: toate facturile');
 assert(!facturiDeAlocat(fac, 'luna martie').dupaLuna && facturiDeAlocat(fac, 'luna martie').facturi.length === 3, 'T14 luna fara factura: fallback toate');
 assert(facturiDeAlocat(fac, null).facturi.length === 3, 'T14 detalii null');
+// an: comparat cu anul incasarii (sau cel din detalii); „mai” = luna
+const fm = [fl('m25', 'Abonament mai 2025', '2025-05-06'), fl('m26', 'Abonament mai 2026', '2026-05-06'), fl('s26', 'Abonament septembrie', '2026-09-09')];
+assert(facturiDeAlocat(fm, 'cotizatie mai', '2026-05-20').facturi.map(f => f.id).join() === 'm26', 'T14 mai = luna, anul incasarii 2026 -> nu factura din 2025');
+assert(facturiDeAlocat(fm, 'cotizatie mai 2025', '2026-05-20').facturi.map(f => f.id).join() === 'm25', 'T14 anul din detalii bate anul incasarii');
+assert(facturiDeAlocat(fm, 'luna septembrie', '2026-10-28').facturi.map(f => f.id).join() === 's26', 'T14 an din f.data cand descrierea nu are an');
+assert(!facturiDeAlocat(fm, 'luna mai', '2027-05-01').dupaLuna, 'T14 nicio factura din anul incasarii -> fallback toate');
 
 const inainte = JSON.stringify([r4, ctxP([t1])]);
 construiestePrevizualizare(r4, ctxP([t1]));

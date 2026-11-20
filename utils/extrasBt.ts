@@ -134,11 +134,19 @@ const LUNI_RO = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', '
 
 /** Dacă detaliile numesc o lună, alocarea merge DOAR pe facturile din acea lună (după „descriere”); restul sumei nu se aplică nicăieri.
  *  Fără lună în detalii sau fără factură din luna respectivă: toate facturile (cea mai veche întâi), ca înainte. */
-export function facturiDeAlocat(facturi: Plata[], detalii: string | null): { facturi: Plata[]; dupaLuna: boolean } {
+export function facturiDeAlocat(facturi: Plata[], detalii: string | null, dataIncasare?: string | null): { facturi: Plata[]; dupaLuna: boolean } {
   const d = norm(detalii ?? '');
   const luni = LUNI_RO.filter(l => new RegExp(`\\b${l}\\b`).test(d));
   if (luni.length === 0) return { facturi, dupaLuna: false };
-  const doarLuna = facturi.filter(f => { const t = norm((f as any).descriere ?? ''); return luni.some(l => new RegExp(`\\b${l}\\b`).test(t)); });
+  // Anul țintă: cel scris în detalii, altfel anul încasării. „mai” rămâne lună (decizia userului).
+  const anTinta = d.match(/\b(20\d\d)\b/)?.[1] ?? (dataIncasare ? String(dataIncasare).slice(0, 4) : null);
+  const doarLuna = facturi.filter(f => {
+    const t = norm((f as any).descriere ?? '');
+    if (!luni.some(l => new RegExp(`\\b${l}\\b`).test(t))) return false;
+    if (!anTinta) return true;
+    const anFactura = t.match(/\b(20\d\d)\b/)?.[1] ?? String(f.data ?? '').slice(0, 4);
+    return anFactura === anTinta;
+  });
   return doarLuna.length > 0 ? { facturi: doarLuna, dupaLuna: true } : { facturi, dupaLuna: false };
 }
 

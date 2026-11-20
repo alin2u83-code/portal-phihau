@@ -424,7 +424,7 @@ const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, ale
     const valoareTinta = tinta ? `${tinta.tip}:${tinta.id}` : '';
     const etichetaTinta = (tip: 'sportiv' | 'familie', id: string) => (tip === 'sportiv' ? numeSportiv.get(id) : numeFamilie.get(id)) ?? '';
 
-    const { facturi, dupaLuna } = useMemo(() => (tintaTip && tintaId ? facturiDeAlocat(facturiDeschisePentru(tintaTip, tintaId, sportivi, plati), rand.detalii) : { facturi: [] as Plata[], dupaLuna: false }), [tintaTip, tintaId, sportivi, plati, rand.detalii]);
+    const { facturi, dupaLuna } = useMemo(() => (tintaTip && tintaId ? facturiDeAlocat(facturiDeschisePentru(tintaTip, tintaId, sportivi, plati), rand.detalii, rand.data_tranzactie) : { facturi: [] as Plata[], dupaLuna: false }), [tintaTip, tintaId, sportivi, plati, rand.detalii, rand.data_tranzactie]);
     const alocare = useMemo(() => distribuieSumaPeFacturi(facturi, rand.suma), [facturi, rand.suma]);
     const totalAlocat = alocare.reduce((s, a) => s + a.suma_alocata, 0);
     const motive = candidati.find(c => c.tip === tintaTip && c.id === tintaId)?.motive ?? [];
@@ -556,7 +556,7 @@ const ModalPotrivire: React.FC<ModalPotrivireProps> = ({ tb, sportivi, familii, 
     const alege = (tip: 'sportiv' | 'familie', id: string) => {
         setTinta({ tip, id });
         // propunere inițială: cele mai vechi facturi întâi (adminul poate redistribui manual)
-        const f = facturiDeAlocat(facturiDeschisePentru(tip, id, sportivi, plati), tb.detalii).facturi;
+        const f = facturiDeAlocat(facturiDeschisePentru(tip, id, sportivi, plati), tb.detalii, tb.data_tranzactie).facturi;
         const init: Record<string, string> = {};
         for (const a of distribuieSumaPeFacturi(f, tb.suma)) init[a.plata_id] = a.suma_alocata.toFixed(2);
         setAlocari(init);

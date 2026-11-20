@@ -57,7 +57,7 @@ const MENIURI: Record<string, MenuItem[]> = { adminMenu, adminClubMenu, instruct
         if (comp && viewuriItem(comp).has('stagii')) erori.push(`${nume}: Competitii acopera inca 'stagii'`);
     }
     if (COMPETITII_HUB.tabs.some(t => t.view === 'stagii')) erori.push("COMPETITII_HUB contine inca tab 'stagii'");
-    const sectiuniView = Object.values(SECTIUNI_PE_TAB).flat().filter(s => s !== 'sumar-incasari');
+    const sectiuniView = Object.values(SECTIUNI_PE_TAB).flat().filter(s => s !== 'sumar-incasari' && s !== 'extras-bancar');
     for (const nume of ['adminMenu', 'adminClubMenu']) {
         const plati = MENIURI[nume].find(i => i.view === 'plati-hub');
         if (!plati) { erori.push(`${nume}: lipseste intrarea de nivel 1 'plati-hub'`); continue; }

@@ -65,6 +65,8 @@ export interface ClubDetalii {
   perioada_gratie_zile: number;
   /** Daca true, la inscrierea unui sportiv nou se genereaza automat factura de abonament a lunii curente. */
   factura_automata_inscriere: boolean;
+  /** IBAN-ul clubului (extras bancar). Opțional: NU e în cluburiDetaliiService.COLOANE (partajat), se citește separat. */
+  iban?: string | null;
 }
 
 export interface ClubStats {
@@ -162,6 +164,54 @@ export interface Tranzactie {
   suma: number;
   data_platii: string;
   metoda_plata: 'Cash' | 'Transfer Bancar' | 'Revolut';
+}
+
+// --- Domain: Extras bancar (import CSV BT; quick 261120-d77) ---
+export type SursaTranzactieBancara = 'extras' | 'sms' | 'api';
+// 'potrivita' e in domeniu dar UI-ul nu o scrie: candidatii se calculeaza live
+export type StareTranzactieBancara = 'noua' | 'potrivita' | 'confirmata' | 'ignorata';
+
+export interface TranzactieBancara {
+  id: string;
+  club_id: string;
+  sursa: SursaTranzactieBancara;
+  ref_banca: string;
+  data_tranzactie: string;
+  suma: number;
+  platitor_nume: string | null;
+  platitor_iban: string | null;
+  detalii: string | null;
+  stare: StareTranzactieBancara;
+  motiv_ignorare: string | null;
+  tranzactie_id: string | null;
+  created_at: string;
+}
+
+export type TipProbabilCredit = 'cotizatie_probabila' | 'numerar' | 'pos' | 'firma' | 'altele';
+
+export interface RandExtrasBt {
+  ref_banca: string;
+  data_tranzactie: string; // YYYY-MM-DD
+  suma: number;
+  platitor_nume: string | null;
+  platitor_iban: string | null;
+  detalii: string;
+  tip_probabil: TipProbabilCredit;
+}
+
+export interface ExtrasBtParsat {
+  iban_cont: string | null;
+  randuri: RandExtrasBt[];
+  debite_ignorate: number;
+  erori: string[];
+}
+
+/** Ultima confirmare per (club, IBAN platitor) — view tranzactii_bancare_memorie_iban. */
+export interface MemorieIban {
+  club_id: string;
+  platitor_iban: string;
+  sportiv_id: string | null;
+  familie_id: string | null;
 }
 
 export interface Plata {

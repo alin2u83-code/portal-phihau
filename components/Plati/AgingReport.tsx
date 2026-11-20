@@ -7,6 +7,7 @@ import React, { useMemo } from 'react';
 import { Plata, Sportiv, Familie } from '../../types';
 import { formatNume } from '../../utils/formatareSportiv';
 import { esteDeIncasat, restDePlata } from '../../utils/paymentStatus';
+import { useDenumireFactura } from '../../hooks/useDenumireFactura';
 
 interface Props {
     plati: Plata[];
@@ -83,6 +84,7 @@ const fmt = (n: number) =>
     n.toLocaleString('ro-RO', { minimumFractionDigits: 0 }) + ' RON';
 
 export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
+    const denumireFactura = useDenumireFactura();
     const { buckets, detailRows, grandTotal, grandCount } = useMemo(() => {
         const neachitate = (plati || []).filter(p => esteDeIncasat(p));
 
@@ -216,7 +218,7 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
                                 {detailRows.map(row => (
                                     <tr key={row.id} className="hover:bg-[var(--t-table-row-hover)] transition-colors">
                                         <td className="px-4 py-2.5 text-white font-medium">{row.numePlatitor}</td>
-                                        <td className="px-4 py-2.5 text-slate-300 max-w-[200px] truncate">{row.descriere}</td>
+                                        <td className="px-4 py-2.5 text-slate-300 max-w-[200px] truncate">{denumireFactura(row)}</td>
                                         <td className="px-4 py-2.5 text-slate-400 whitespace-nowrap">
                                             {new Date(row.data.toString().slice(0, 10)).toLocaleDateString('ro-RO')}
                                         </td>
@@ -245,7 +247,7 @@ export const AgingReport: React.FC<Props> = ({ plati, sportivi, familii }) => {
                             <div key={row.id} className="px-4 py-3 flex items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <p className="text-white font-medium text-sm truncate">{row.numePlatitor}</p>
-                                    <p className="text-slate-500 text-xs mt-0.5 truncate">{row.descriere}</p>
+                                    <p className="text-slate-500 text-xs mt-0.5 truncate">{denumireFactura(row)}</p>
                                     <div className="flex items-center gap-2 mt-1.5">
                                         <span className="text-xs text-slate-600">
                                             {new Date(row.data.toString().slice(0, 10)).toLocaleDateString('ro-RO')}

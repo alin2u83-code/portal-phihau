@@ -14,6 +14,7 @@ import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { PeriodFilterBar } from './PeriodFilterBar';
 import { filtreazaTipuriSezon, gasesteTipDupaId } from '../../utils/abonamente';
 import { restDePlata, distribuieSumaPeFacturi } from '../../utils/paymentStatus';
+import { denumireFactura } from '../../utils/denumireFactura';
 import { useSezonActiv } from '../../hooks/useSezoane';
 import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactie } from '../../services/tranzactiiService';
 
@@ -187,7 +188,8 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     const [tranzactieToEdit, setTranzactieToEdit] = useState<Tranzactie | null>(null);
     const [avansExpanded, setAvansExpanded] = useState(false);
     const [periodFilter, setPeriodFilter] = useState({ startDate: '', endDate: '' });
-    const { activeRoleContext } = useData();
+    const { activeRoleContext, filteredData, grade } = useData();
+    const inscrieriExamene = filteredData.inscrieriExamene;
     const { sezonActivId } = useSezonActiv(activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
 
     const isMultiple = platiInitiale.length > 1;
@@ -201,7 +203,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
         if (platiInitiale.length > 0) {
             // suma = total facturat; de încasat e restul (facturi parțiale)
             const totalSuma = platiInitiale.reduce((acc, p) => acc + restDePlata(p), 0);
-            const commonDesc = isMultiple ? `Încasare multiplă (${platiInitiale.length} elemente)` : platiInitiale[0].descriere;
+            const commonDesc = isMultiple ? `Încasare multiplă (${platiInitiale.length} elemente)` : denumireFactura(platiInitiale[0], inscrieriExamene, grade);
             
             setFormState({
                 ...emptyIncasareState,
@@ -215,6 +217,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
         } else {
             setFormState(emptyIncasareState);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fără inscrieriExamene/grade: un refetch nu trebuie să reseteze formularul
     }, [platiInitiale, isMultiple]);
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -557,8 +560,9 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
         const safePlataIds = tranzactie.plata_ids || [];
         if (safePlataIds.length === 0) return 'Încasare fără factură';
         const primaPlata = plati?.find(p => p.id === safePlataIds[0]);
-        if (safePlataIds.length > 1) { return `${primaPlata?.descriere || 'Plată'} (+${safePlataIds.length - 1} altele)`; }
-        return primaPlata?.descriere || 'Plată fără descriere';
+        const denumirePrima = primaPlata ? denumireFactura(primaPlata, inscrieriExamene, grade) : '';
+        if (safePlataIds.length > 1) { return `${denumirePrima || 'Plată'} (+${safePlataIds.length - 1} altele)`; }
+        return denumirePrima || 'Plată fără descriere';
     };
 
     const sortedTranzactii = useMemo(() => {
@@ -682,7 +686,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                         </Select>
                         <Select label="Metodă Plată" name="metoda_plata" value={formState.metoda_plata!} onChange={handleFormChange}><option value="Cash">Cash</option><option value="Transfer Bancar">Transfer Bancar</option><option value="Revolut">Revolut</option></Select>
                     </div>
-                    {isMultiple && (<div className="p-3 bg-slate-700/50 rounded-md border border-[var(--border-color)]"><p className="text-sm font-semibold mb-2">Facturi selectate pentru stingere:</p><ul className="text-xs space-y-1 text-slate-300">{platiInitiale.map(p => <li key={p.id}>• {p.descriere} - <strong>{p.suma.toFixed(2)} RON</strong></li>)}</ul></div>)}
+                    {isMultiple && (<div className="p-3 bg-slate-700/50 rounded-md border border-[var(--border-color)]"><p className="text-sm font-semibold mb-2">Facturi selectate pentru stingere:</p><ul className="text-xs space-y-1 text-slate-300">{platiInitiale.map(p => <li key={p.id}>• {denumireFactura(p, inscrieriExamene, grade)} - <strong>{p.suma.toFixed(2)} RON</strong></li>)}</ul></div>)}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div className="flex gap-1 items-end">
                             <Select label="Categorie" name="tip" value={formState.tip} onChange={handleFormChange} disabled={platiInitiale.length > 0}>

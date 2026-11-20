@@ -4,6 +4,7 @@ import type { ExtrasBtParsat, Familie, Permissions, Plata, Sportiv, TipProbabilC
 import { Badge, Button, Card, EmptyState, Input, Modal, Select } from '../ui';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { useData } from '../../contexts/DataContext';
+import { useDenumireFactura } from '../../hooks/useDenumireFactura';
 import { useDateLaCerere } from '../../hooks/useDateLaCerere';
 import { fetchSportiviData } from '../../hooks/useSportivi';
 import { useError } from '../ErrorProvider';
@@ -417,6 +418,7 @@ const TitluZona: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, alegere, manual, sportivi, familii, plati, numeSportiv, numeFamilie, stareImportText, seIncarcaIncasari, esuatIncasari, aprobat, onAproba, onAlege, onManual }) => {
     const { rand, candidati, importat, incasariSimilare } = r;
+    const denumireFactura = useDenumireFactura();
     const poateAproba = (r.stare === 'nou' || r.stare === 'posibil_duplicat') && alegere !== 'ignorat';
     const ref = rand.ref_banca;
     const tinta = tintaEfectiva(r, alegere);
@@ -510,7 +512,7 @@ const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, ale
                                 {facturi.length === 0 && <p className="text-slate-400">Nicio factură deschisă: toată suma ar rămâne avans.</p>}
                                 {alocare.map(a => {
                                     const f = facturi.find(x => x.id === a.plata_id);
-                                    return f && <p key={a.plata_id}>{(f as any).descriere ?? 'Factură'} · rest {lei(restDePlata(f))} · alocă {lei(a.suma_alocata)}</p>;
+                                    return f && <p key={a.plata_id}>{denumireFactura(f) ?? 'Factură'} · rest {lei(restDePlata(f))} · alocă {lei(a.suma_alocata)}</p>;
                                 })}
                                 {facturi.length > 0 && rand.suma - totalAlocat > 0.005 && (dupaLuna
                                     ? <p className="text-amber-300">Alocat doar pe luna din detalii. Rest {lei(rand.suma - totalAlocat)} rămâne neaplicat (neimportat în facturi).</p>
@@ -545,6 +547,7 @@ const ModalPotrivire: React.FC<ModalPotrivireProps> = ({ tb, sportivi, familii, 
     const [alocari, setAlocari] = useState<Record<string, string>>({});
     const [motiv, setMotiv] = useState('');
     const [busy, setBusy] = useState(false);
+    const denumireFactura = useDenumireFactura();
 
     const candidati = useMemo(() => gasesteCandidati(tb, { sportivi, familii, plati, memorie }), [tb, sportivi, familii, plati, memorie]);
     const numeSportiv = useMemo(() => new Map(sportivi.map((s: any) => [s.id, `${s.nume} ${s.prenume}`])), [sportivi]);
@@ -642,7 +645,7 @@ const ModalPotrivire: React.FC<ModalPotrivireProps> = ({ tb, sportivi, familii, 
                         {facturi.map(f => (
                             <div key={f.id} className="flex flex-col sm:flex-row sm:items-end gap-2 rounded-xl border border-[var(--t-border)] p-3">
                                 <div className="flex-1 text-sm text-[var(--t-text)]">
-                                    <p>{(f as any).descriere ?? 'Factură'}</p>
+                                    <p>{denumireFactura(f) ?? 'Factură'}</p>
                                     <p className="text-xs text-slate-400">
                                         {String(f.data ?? '').slice(0, 10)}{f.sportiv_id && tinta.tip === 'familie' ? ` · ${numeSportiv.get(f.sportiv_id) ?? ''}` : ''} · rest {lei(restDePlata(f))}
                                     </p>

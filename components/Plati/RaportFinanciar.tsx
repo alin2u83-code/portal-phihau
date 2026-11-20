@@ -12,6 +12,7 @@ import { exportIncasariCSV, exportIncasariPDF, exportRestanteCSV, exportRestante
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { supabase } from '../../supabaseClient';
 import { useData } from '../../contexts/DataContext';
+import { useDenumireFactura } from '../../hooks/useDenumireFactura';
 import { useError } from '../ErrorProvider';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat, restDePlata, sumaIncasataFactura } from '../../utils/paymentStatus';
 import { FacturaChitantaModal } from './FacturaChitantaModal';
@@ -55,6 +56,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
     istoricPlatiDetaliat, sportivi, familii, plati, setPlati, setTranzactii, onBack, onViewSportiv
 }) => {
     const { currentUser, activeRoleContext, clubs } = useData();
+    const denumireFactura = useDenumireFactura();
     const { showError, showSuccess } = useError();
     const [filters, setFilters] = useLocalStorage('phi-hau-raport-financiar-filters', initialFilters);
     const [activeTab, setActiveTab] = useStareVizualizare<'incasari' | 'lunar' | 'taxe_anuale' | 'abonamente' | 'grafice' | 'familii' | 'restante' | 'luni_lipsa' | 'plati_incasari'>('raport-financiar-tab', 'incasari');
@@ -1521,7 +1523,7 @@ export const RaportFinanciar: React.FC<RaportFinanciarProps> = ({
                         <div className="px-5 pt-5 pb-4 border-b border-[var(--t-border)]">
                             <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Înregistrare Încasare</p>
                             <p className="text-white font-bold text-base">{plataToIncaseze.nume_complet_sportiv || '—'}</p>
-                            <p className="text-slate-400 text-sm mt-0.5">{plataToIncaseze.descriere}</p>
+                            <p className="text-slate-400 text-sm mt-0.5">{denumireFactura({ id: plataToIncaseze.plata_id, tip: 'Taxa Examen', descriere: plataToIncaseze.descriere })}</p>
                             <div className="flex items-center gap-3 mt-2">
                                 <span className="text-xs text-slate-500">De plată:</span>
                                 <span className="text-rose-400 font-bold text-sm">{formatSum(plataToIncaseze.rest_de_plata ?? plataToIncaseze.suma_datorata)}</span>

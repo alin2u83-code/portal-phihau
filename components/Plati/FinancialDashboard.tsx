@@ -101,8 +101,11 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ plati, t
     }, [plati, showUnpaidOnly]);
     
     const getEntityName = (plata: Plata) => {
+        // Abonamentele rămân pe familie; restul pe sportiv.
+        const sportivFactura = plata.sportiv_id && !(plata.tip === 'Abonament' && plata.familie_id) ? sportivi.find(sp => sp.id === plata.sportiv_id) : null;
+        if (sportivFactura) return `${sportivFactura.nume} ${sportivFactura.prenume}`;
         if (plata.familie_id) return `Familia ${familii.find(f => f.id === plata.familie_id)?.nume || 'N/A'}`;
-        if (plata.sportiv_id) { const s = sportivi.find(sp => sp.id === plata.sportiv_id); return s ? `${s.nume} ${s.prenume}` : 'N/A'; }
+        if (plata.sportiv_id) return 'N/A';
         return 'N/A';
     };
 

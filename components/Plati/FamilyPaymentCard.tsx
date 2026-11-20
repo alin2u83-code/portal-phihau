@@ -9,6 +9,7 @@ import React from 'react';
 import { Familie, Sportiv, Plata } from '../../types';
 import { getDisplayStatus, STATUS_DISPLAY_CONFIG, esteDeIncasat } from '../../utils/paymentStatus';
 import { UsersIcon, CheckCircleIcon, ExclamationTriangleIcon } from '../icons';
+import { useDenumireFactura } from '../../hooks/useDenumireFactura';
 
 interface Props {
     familie: Familie;
@@ -23,6 +24,7 @@ const fmt = (n: number) =>
 export const FamilyPaymentCard: React.FC<Props> = ({
     familie, sportivi, plati, onViewSportiv,
 }) => {
+    const denumireFactura = useDenumireFactura();
     const membrii = sportivi.filter(s => s.familie_id === familie.id);
     const memberIds = new Set(membrii.map(s => s.id));
 
@@ -112,7 +114,7 @@ export const FamilyPaymentCard: React.FC<Props> = ({
                         return (
                             <div key={p.id} className="flex items-center justify-between px-4 py-2.5 gap-3">
                                 <div className="min-w-0">
-                                    <p className="text-sm text-white truncate">{p.descriere}</p>
+                                    <p className="text-sm text-white truncate">{denumireFactura(p)}</p>
                                     <p className="text-xs text-slate-500 mt-0.5">
                                         {new Date(p.data.toString().slice(0, 10)).toLocaleDateString('ro-RO')}
                                     </p>

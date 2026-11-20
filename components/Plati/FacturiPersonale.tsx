@@ -3,6 +3,7 @@ import { User, Plata, IstoricPlataDetaliat } from '../../types';
 import { Button, Card } from '../ui';
 import { ArrowLeftIcon, DownloadIcon } from '../icons';
 import { construiesteFacturi, facturiAleSportivului, totalDeAchitat } from '../../utils/facturiSportiv';
+import { useDenumireFactura } from '../../hooks/useDenumireFactura';
 
 interface IstoricPlatiProps {
     viewedUser: User;
@@ -15,6 +16,7 @@ interface IstoricPlatiProps {
 }
 
 export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, istoric, onBack, hideBackButton }) => {
+    const denumireFactura = useDenumireFactura();
     // Aceeași sursă ca tab-ul Financiar din profil (utils/facturiSportiv): facturi + încasat per factură.
     const facturi = useMemo(() => {
         const numeComplet = `${viewedUser.nume} ${viewedUser.prenume}`;
@@ -26,7 +28,7 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, i
     // Un rând per factură, în forma folosită de listă.
     const userPlati = useMemo(() => facturi.map(f => ({
         plata_id: f.detalii.plata_id,
-        descriere: f.detalii.descriere,
+        descriere: denumireFactura({ id: f.detalii.plata_id, tip: 'Taxa Examen', descriere: f.detalii.descriere }),
         data_emitere: f.detalii.data_emitere,
         nume_complet_sportiv: f.detalii.nume_complet,
         suma_datorata: f.detalii.suma_initiala,
@@ -36,7 +38,7 @@ export const IstoricPlati: React.FC<IstoricPlatiProps> = ({ viewedUser, plati, i
         data_plata_string: f.detalii.data_plata,
         suma_incasata: f.detalii.suma_incasata,
         metoda_plata: f.detalii.metoda_plata,
-    })), [facturi]);
+    })), [facturi, denumireFactura]);
 
     const formatDescription = (desc: string) => {
         let formatted = desc;

@@ -47,7 +47,7 @@ const HARTA: Partial<Record<View, CheieLaCerere[]>> = {
   'calendar': ['rezultate', 'preturiConfig'],
   'competitii': ['vizeSportivi'],
   'fisa-competitie': ['inscrieriExamene'],
-  'istoric-plati': ['plati', 'istoricPlatiDetaliat'],
+  'istoric-plati': ['plati', 'istoricPlatiDetaliat', 'inscrieriExamene'],
   'audit-grade': ['istoricGrade'],
   // ecrane administrative fara seturi grele
   'legitimatii': FARA_DATE,

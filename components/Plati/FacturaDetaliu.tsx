@@ -73,6 +73,19 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
     },
   });
 
+  // Taxa de examen: denumirea afișată include gradul din înscriere (ca în lista de încasări).
+  const { data: gradExamen = null } = useQuery({
+    queryKey: ['grad-examen-factura', plata?.id],
+    enabled: !!plata?.id && plata?.tip === 'Taxa Examen',
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('inscrieri_examene').select('grade:grad_sustinut_id(nume)').eq('plata_id', plata!.id).maybeSingle();
+      if (error) return null;
+      return ((data as any)?.grade?.nume as string) ?? null;
+    },
+  });
+  const denumireFactura = gradExamen ? `Taxă Examen - ${gradExamen}` : plata?.descriere;
+
   const istoric = useMemo(
     () => (plata ? construiesteIstoricTranzactii(plata.id, filteredData.tranzactii || [], alocari) : []),
     [plata, filteredData.tranzactii, alocari]
@@ -223,7 +236,7 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
   const valoareIncasare = parseFloat(String(sumaIncasare).replace(',', '.'));
 
   return (
-    <Modal isOpen={!!plataId} onClose={onClose} title={`Detalii factură — ${plata.descriere}`}>
+    <Modal isOpen={!!plataId} onClose={onClose} title={`Detalii factură — ${denumireFactura}`}>
       <div className="space-y-5">
 
         {/* Context */}
@@ -239,7 +252,7 @@ export const FacturaDetaliu: React.FC<FacturaDetaliuProps> = ({ plataId, onClose
               <span className="text-slate-500">Status: </span>
               <span className={`inline-block px-2 py-0.5 rounded-lg border text-xs font-semibold ${statusConfig.cls}`}>{statusConfig.label}</span>
             </div>
-            <div className="sm:col-span-2"><span className="text-slate-500">Descriere: </span><span className="text-white font-medium">{plata.descriere}</span></div>
+            <div className="sm:col-span-2"><span className="text-slate-500">Descriere: </span><span className="text-white font-medium">{denumireFactura}</span></div>
             {reducere && (
               <div className="sm:col-span-2"><span className="text-slate-500">Reducere: </span><span className="text-white font-medium">{reducere}</span></div>
             )}

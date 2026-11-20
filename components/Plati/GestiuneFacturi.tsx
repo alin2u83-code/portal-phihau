@@ -7,6 +7,7 @@ import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { useData } from '../../contexts/DataContext';
+import { useDenumireFactura } from '../../hooks/useDenumireFactura';
 import { usePermissions } from '../../hooks/usePermissions';
 import { getPretValabil, getPretProdus } from '../../utils/pricing';
 import { formatNume } from '../../utils/formatareSportiv';
@@ -50,6 +51,7 @@ const initialFormState = {
 export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, currentUser, sportivi, plati, setPlati, setTranzactii, tipuriPlati, familii, onViewSportiv, initialSportivId, hideBackButton, onDeschideDetalii }) => {
     const { showError, showSuccess } = useError();
     const { preturiConfig, tipuriAbonament, reduceri, activeRoleContext } = useData();
+    const denumireFactura = useDenumireFactura();
     const permissions = usePermissions(activeRoleContext);
     const { sezonActivId } = useSezonActiv(activeRoleContext?.club_id ?? null);
     const [formState, setFormState] = useState(() =>
@@ -174,6 +176,9 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
     }, [formState.sportiv_id, formState.tip, formState.data, selectedMarimeId, sportivi, preturiConfig, tipuriAbonament, reduceri, sezonActivId]);
 
     const getEntityName = (plata: Plata) => {
+        // Abonamentele rămân pe familie; restul facturilor apar pe sportiv chiar dacă se încasează pe familie.
+        const sportivFactura = plata.sportiv_id && !(plata.tip === 'Abonament' && plata.familie_id) ? sportivi.find(sp => sp.id === plata.sportiv_id) : null;
+        if (sportivFactura) return formatNume(sportivFactura);
         if (plata.familie_id) {
             const familie = (familii || []).find(f => f.id === plata.familie_id);
             return `Familia ${familie?.nume || 'N/A'}`;
@@ -525,7 +530,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
         {
             key: 'descriere',
             label: 'Descriere',
-            render: (p) => <span className="text-slate-400">{p.descriere}</span>
+            render: (p) => <span className="text-slate-400">{denumireFactura(p)}</span>
         },
         {
             key: 'suma',
@@ -631,7 +636,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             </div>
             
             <div className="mt-2 grid grid-cols-2 gap-2">
-                <p className="text-sm text-slate-300"><span className="text-slate-500">Descriere:</span> {p.descriere}</p>
+                <p className="text-sm text-slate-300"><span className="text-slate-500">Descriere:</span> {denumireFactura(p)}</p>
                 <p className="text-sm font-bold text-white text-right"><span className="text-slate-500 font-normal">Rest:</span> {restDePlata(p).toFixed(2)} lei</p>
                 <p className="text-sm text-slate-300"><span className="text-slate-500">Tip:</span> {p.tip}</p>
                 <p className="text-sm font-bold text-emerald-400 text-right"><span className="text-slate-500 font-normal">Încasat:</span> {sumaIncasataFactura(p).toFixed(2)} lei</p>
@@ -820,7 +825,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 <Modal isOpen={!!plataForPayment} onClose={() => setPlataForPayment(null)} title="Procesează Plată Factură">
                     <div className="space-y-4">
                         <div className="p-3 bg-slate-800 rounded-lg border border-slate-700">
-                            <p className="text-sm text-slate-400">Factură: <span className="text-white font-medium">{plataForPayment.descriere}</span></p>
+                            <p className="text-sm text-slate-400">Factură: <span className="text-white font-medium">{denumireFactura(plataForPayment)}</span></p>
                             <p className="text-sm text-slate-400">Rest de plată: <span className="text-white font-bold">{restDePlata(plataForPayment).toFixed(2)} RON</span></p>
                         </div>
 

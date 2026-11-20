@@ -8,6 +8,7 @@
  * Se poate extinde cu export PDF via jspdf + jspdf-autotable.
  */
 import React, { useRef } from 'react';
+import { useDenumireFactura } from '../../hooks/useDenumireFactura';
 import { Plata, IstoricPlataDetaliat, Sportiv, Familie } from '../../types';
 import { XIcon, PrinterIcon, CheckCircleIcon, ExclamationTriangleIcon, FileTextIcon } from '../icons';
 import { formatNume } from '../../utils/formatareSportiv';
@@ -40,6 +41,7 @@ export const FacturaChitantaModal: React.FC<FacturaChitantaModalProps> = ({
     mode, plata, sportiv, familie, onClose,
 }) => {
     const printRef = useRef<HTMLDivElement>(null);
+    const denumireFactura = useDenumireFactura();
 
     const isChitanta = mode === 'chitanta';
     const displayStatus = getDisplayStatus({ status: plata.status, data: plata.data_emitere });
@@ -167,7 +169,7 @@ export const FacturaChitantaModal: React.FC<FacturaChitantaModalProps> = ({
                             </thead>
                             <tbody>
                                 <tr className="border-b border-[var(--t-border)]">
-                                    <td className="py-3 text-white">{plata.descriere || '—'}</td>
+                                    <td className="py-3 text-white">{denumireFactura({ id: plata.plata_id, tip: 'Taxa Examen', descriere: plata.descriere }) || '—'}</td>
                                     <td className="py-3 text-right text-white font-medium whitespace-nowrap">
                                         {fmt(plata.suma_datorata)} RON
                                     </td>

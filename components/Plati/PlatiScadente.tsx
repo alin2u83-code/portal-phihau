@@ -18,6 +18,7 @@ import { usePrezenteLuna } from '../../hooks/usePrezenteLuna';
 import { usePrezenteLunare, cheiePrezenta } from '../../hooks/usePrezenteLunare';
 import { anuleazaFacturaAbonament, reactiveazaFacturaAbonament } from '../../services/facturaService';
 import { formatLuna } from '../../utils/luniLipsa';
+import { denumireFactura } from '../../utils/denumireFactura';
 import { filtreazaTipuriSezon, gasesteTipDupaId, esteTipDinSezonArhivat } from '../../utils/abonamente';
 import { useSezonActiv } from '../../hooks/useSezoane';
 import { useNavigation } from '../../contexts/NavigationContext';
@@ -652,17 +653,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     const platiCuDetalii = useMemo(() => {
         if (!filteredPlati) return [];
         return filteredPlati.map(plata => {
-            let descriereDetaliata = plata.descriere;
+            const descriereDetaliata = denumireFactura(plata, inscrieriExamene, grade);
             let reducereDetalii = null;
 
-            if (plata.tip === 'Taxa Examen') {
-                const inscriere = (inscrieriExamene || []).find(i => i.plata_id === plata.id);
-                const grad = inscriere ? (grade || []).find(g => g.id === inscriere.grad_sustinut_id) : null;
-                if (grad) {
-                    descriereDetaliata = `Taxă Examen - ${grad.nume}`;
-                }
-            }
-            
             if (plata.reducere_id && plata.suma_initiala && plata.suma_initiala > plata.suma) {
                 const reducere = (reduceri || []).find(r => r.id === plata.reducere_id);
                 if (reducere) {
@@ -765,6 +758,9 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
     };
 
     const getEntityName = (plata: Plata) => {
+        // Abonamentele rămân pe familie; restul facturilor apar pe sportiv chiar dacă se încasează pe familie.
+        const sportivFactura = plata.sportiv_id && !(plata.tip === 'Abonament' && plata.familie_id) ? (sportivi || []).find(sp => sp.id === plata.sportiv_id) : null;
+        if (sportivFactura) return `${sportivFactura.nume} ${sportivFactura.prenume}`;
         if (plata.familie_id) {
             const familie = (familii || []).find(f => f.id === plata.familie_id);
             return `Familia ${familie?.nume || 'N/A'}`;
@@ -1200,7 +1196,7 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                 <Modal isOpen={!!plataForPayment} onClose={() => setPlataForPayment(null)} title="Procesează Plată Factură">
                     <div className="space-y-4">
                         <div className="p-3 bg-[var(--t-surface)] rounded-lg border border-[var(--t-border)]">
-                            <p className="text-sm text-slate-400">Factură: <span className="text-white font-medium">{plataForPayment.descriere}</span></p>
+                            <p className="text-sm text-slate-400">Factură: <span className="text-white font-medium">{platiCuDetalii.find(x => x.id === plataForPayment.id)?.descriereDetaliata ?? plataForPayment.descriere}</span></p>
                             <p className="text-sm text-slate-400">Rest de plată: <span className="text-white font-bold">{restDePlata(plataForPayment).toFixed(2)} RON</span></p>
                         </div>
 

@@ -136,8 +136,8 @@ test('calendar cere rezultate + preturiConfig; raport-interval-examen cere istor
   egal(cheiPentruView('raport-interval-examen', 'INSTRUCTOR'), ['istoricGrade'], 'raport-interval-examen');
 });
 
-test('istoric-plati personal cere plati + istoricPlatiDetaliat', () => {
-  egal(cheiPentruView('istoric-plati', 'SPORTIV'), ['plati', 'istoricPlatiDetaliat'], 'istoric-plati');
+test('istoric-plati personal cere plati + istoricPlatiDetaliat + inscrieriExamene (denumire taxa examen)', () => {
+  egal(cheiPentruView('istoric-plati', 'SPORTIV'), ['plati', 'istoricPlatiDetaliat', 'inscrieriExamene'], 'istoric-plati');
 });
 
 test('ecranele administrative fara date grele nu cer nimic; audit-grade cere istoricGrade', () => {

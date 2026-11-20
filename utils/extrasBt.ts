@@ -301,6 +301,20 @@ export function inFiltru(r: RandPrevizualizare, alegere: AlegereRand | undefined
   return tintaEfectiva(r, alegere) === null;
 }
 
+/** Rândurile care se importă: aprobate, neignorate, nici deja importate, nici neverificate. Aprobarea nu alege ținta; confirmarea ca încasare e separată. */
+export function randuriDeImportat(rows: RandPrevizualizare[], aprobate: Set<string>, alegeri: Record<string, AlegereRand>): RandExtrasBt[] {
+  return rows
+    .filter(r => aprobate.has(r.rand.ref_banca) && alegeri[r.rand.ref_banca] !== 'ignorat' && (r.stare === 'nou' || r.stare === 'posibil_duplicat'))
+    .map(r => r.rand);
+}
+
+/** ref_banca ale cotizațiilor noi (verificate, neignorate): scurtătura „Aprobă cotizațiile noi”. Duplicatele și numerarul/POS/firma nu se aprobă singure. */
+export function aprobaCotizatiiNoi(rows: RandPrevizualizare[], alegeri: Record<string, AlegereRand>): string[] {
+  return rows
+    .filter(r => r.stare === 'nou' && r.rand.tip_probabil === 'cotizatie_probabila' && alegeri[r.rand.ref_banca] !== 'ignorat')
+    .map(r => r.rand.ref_banca);
+}
+
 const bani = (x: number) => Math.round(x * 100) / 100;
 
 export function sumarPrevizualizare(rows: RandPrevizualizare[], alegeri: Record<string, AlegereRand>) {

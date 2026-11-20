@@ -5,7 +5,8 @@
 import { readFileSync } from 'fs';
 import Papa from 'papaparse';
 import { parseazaExtrasBt, parseazaDescriereBt, parseSumaBt, clasificaCredit, gasesteCandidati,
-  construiestePrevizualizare, eroareTabelLipsa, sumarPrevizualizare, tintaEfectiva, inFiltru, TOLERANTA_ZILE_DUPLICAT } from './extrasBt';
+  construiestePrevizualizare, eroareTabelLipsa, sumarPrevizualizare, tintaEfectiva, inFiltru, TOLERANTA_ZILE_DUPLICAT,
+  randuriDeImportat, aprobaCotizatiiNoi } from './extrasBt';
 import { distribuieSumaPeFacturi, restDePlata } from './paymentStatus';
 
 function assert(condition: boolean, message: string): void {
@@ -174,6 +175,20 @@ const s10b = sumarPrevizualizare(p10, { ...al, B: { tip: 'sportiv', id: 's3' } }
 assert(s10b.fara_potrivire === 0 && near(s10b.sumaDeAplicat, 170), 'T10 alegere manuala pe randul fara candidat');
 assert(tintaEfectiva(p10[0], undefined)?.id === 's1' && tintaEfectiva(p10[0], 'ignorat') === null, 'tintaEfectiva: propunere / ignorat');
 assert(inFiltru(p10[3], 'ignorat', 'ignorate') && !inFiltru(p10[3], 'ignorat', 'noi') && inFiltru(p10[3], 'ignorat', 'toate'), 'inFiltru ignorate');
+
+// T13: aprobare per rand (doar ce e bifat, verificat si neignorat se importa)
+const rc = (ref: string, tip: string, suma = 100) => ({ ...rb(ref, suma, '2026-10-20', 'x'), tip_probabil: tip });
+const rowsA = construiestePrevizualizare([rc('N1', 'cotizatie_probabila'), rc('N2', 'numerar'), rc('N3', 'cotizatie_probabila'), rc('IMP', 'cotizatie_probabila')], ctxP([], [{ sursa: 'extras', ref_banca: 'IMP', stare: 'noua', tranzactie_id: null } as any]));
+assert(rowsA.map(r => r.stare).join() === 'nou,nou,nou,deja_importat', 'T13 stari de baza');
+assert(aprobaCotizatiiNoi(rowsA, {}).join() === 'N1,N3', 'T13 scurtatura: doar cotizatii noi (fara numerar, fara deja importat)');
+assert(aprobaCotizatiiNoi(rowsA, { N1: 'ignorat' }).join() === 'N3', 'T13 scurtatura: ignorat exclus');
+assert(randuriDeImportat(rowsA, new Set(['N1', 'N2', 'IMP']), {}).map(r => r.ref_banca).join() === 'N1,N2', 'T13 deja importat nu se importa chiar daca e aprobat');
+assert(randuriDeImportat(rowsA, new Set(['N1', 'N3']), { N3: 'ignorat' }).map(r => r.ref_banca).join() === 'N1', 'T13 aprobat + ignorat -> exclus');
+assert(randuriDeImportat(rowsA, new Set(), {}).length === 0, 'T13 nimic aprobat -> nimic de importat');
+const rowsNec = construiestePrevizualizare([rc('K', 'cotizatie_probabila')], { ...ctxP([]), verificareIndisponibila: true });
+assert(randuriDeImportat(rowsNec, new Set(['K']), {}).length === 0 && aprobaCotizatiiNoi(rowsNec, {}).length === 0, 'T13 necunoscut nu se importa si nu se aproba singur');
+const rowsDup = construiestePrevizualizare([rowIoana], ctxP([t1]));
+assert(randuriDeImportat(rowsDup, new Set(['PV1']), {}).length === 1 && aprobaCotizatiiNoi(rowsDup, {}).length === 0, 'T13 posibil duplicat: se poate aproba manual, nu prin scurtatura');
 
 const inainte = JSON.stringify([r4, ctxP([t1])]);
 construiestePrevizualizare(r4, ctxP([t1]));

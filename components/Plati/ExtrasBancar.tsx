@@ -11,6 +11,7 @@ import { parseCSVWithEncoding } from '../../utils/csv';
 import {
     parseazaExtrasBt, gasesteCandidati, facturiDeschisePentru, clasificaCredit,
     eroareTabelLipsa, construiestePrevizualizare, sumarPrevizualizare, inFiltru, tintaEfectiva,
+    randuriDeImportat, aprobaCotizatiiNoi,
 } from '../../utils/extrasBt';
 import type { AlegereRand, FiltruPrevizualizare, RandPrevizualizare } from '../../utils/extrasBt';
 import { distribuieSumaPeFacturi, restDePlata } from '../../utils/paymentStatus';
@@ -113,9 +114,18 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
     const [alegeri, setAlegeri] = useState<Record<string, AlegereRand>>({});
     const [filtruPrev, setFiltruPrev] = useState<FiltruPrevizualizare>('toate');
     const [manualRef, setManualRef] = useState<string | null>(null);
-    const onAlege = useCallback((ref: string, alegere: AlegereRand | undefined) => setAlegeri(prev => {
-        const n = { ...prev };
-        if (alegere) n[ref] = alegere; else delete n[ref];
+    const [aprobate, setAprobate] = useState<Set<string>>(new Set());
+    const onAlege = useCallback((ref: string, alegere: AlegereRand | undefined) => {
+        setAlegeri(prev => {
+            const n = { ...prev };
+            if (alegere) n[ref] = alegere; else delete n[ref];
+            return n;
+        });
+        if (alegere === 'ignorat') setAprobate(prev => { if (!prev.has(ref)) return prev; const n = new Set(prev); n.delete(ref); return n; });
+    }, []);
+    const onAproba = useCallback((ref: string, aprobat: boolean) => setAprobate(prev => {
+        const n = new Set(prev);
+        if (aprobat) n.add(ref); else n.delete(ref);
         return n;
     }), []);
     const onManual = useCallback((ref: string | null) => setManualRef(ref), []);
@@ -125,6 +135,8 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
         () => (previzualizare ? construiestePrevizualizare(previzualizare.randuri, { sportivi: sportiviClub, familii: familiiClub, plati: platiClub, memorie: memorieData, tranzactii: tranzactiiClub, importate, verificareIndisponibila }) : GOL_PREV),
         [previzualizare, sportiviClub, familiiClub, platiClub, memorieData, tranzactiiClub, importate, verificareIndisponibila]);
     const sumar = useMemo(() => sumarPrevizualizare(randuriPrev, alegeri), [randuriPrev, alegeri]);
+    const deImportat = useMemo(() => randuriDeImportat(randuriPrev, aprobate, alegeri), [randuriPrev, aprobate, alegeri]);
+    const cotizatiiNoi = useMemo(() => aprobaCotizatiiNoi(randuriPrev, alegeri), [randuriPrev, alegeri]);
     const vizibilePrev = useMemo(() => randuriPrev.filter(r => inFiltru(r, alegeri[r.rand.ref_banca], filtruPrev)), [randuriPrev, alegeri, filtruPrev]);
     const numeSportiv = useMemo(() => new Map(sportiviClub.map(s => [s.id, `${s.nume} ${s.prenume}`])), [sportiviClub]);
     const numeFamilie = useMemo(() => new Map(familiiClub.map(f => [f.id, `Familia ${f.nume}`])), [familiiClub]);
@@ -146,23 +158,24 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
         e.target.value = '';
         if (!file) return;
         setConfirmClub(false);
-        setAlegeri({}); setFiltruPrev('toate'); setManualRef(null);
+        setAlegeri({}); setFiltruPrev('toate'); setManualRef(null); setAprobate(new Set());
         parseCSVWithEncoding(file, { header: false, skipEmptyLines: true }, r => setPrevizualizare(parseazaExtrasBt(r.data as string[][])), () => showError('Fișier ilizibil', 'Nu am putut citi fișierul CSV.'));
     };
 
     const ibanClub = normIban(ibanQ.data?.data);
     const ibanCont = normIban(previzualizare?.iban_cont);
     const ibanOk = !!ibanClub && !!ibanCont && ibanClub === ibanCont;
-    const poateImporta = !!previzualizare && previzualizare.randuri.length > 0 && !busy && !verificareInCurs && (ibanOk || confirmClub);
+    const poateImporta = !!previzualizare && deImportat.length > 0 && !busy && !verificareInCurs && (ibanOk || confirmClub);
 
     const importa = async () => {
         if (!previzualizare || !clubId) return;
         setBusy(true);
-        const { data, error } = await importaRanduri(clubId, previzualizare.randuri);
+        const { data, error } = await importaRanduri(clubId, deImportat);
         setBusy(false);
         if (error || !data) { showError('Import eșuat', error ?? 'Eroare necunoscută.'); return; }
         showSuccess('Import extras', `${data.inserate} noi, ${data.duplicate} deja importate`);
         setPrevizualizare(null);
+        setAprobate(new Set());
         refetchLista();
     };
 
@@ -243,10 +256,21 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
                                         </Button>
                                     ))}
                                 </div>
+                                <div className="flex gap-2 flex-wrap items-center">
+                                    <Button size="sm" variant="secondary" className="min-h-10" disabled={cotizatiiNoi.length === 0 || verificareInCurs}
+                                        onClick={() => setAprobate(prev => new Set([...prev, ...cotizatiiNoi]))}>
+                                        Aprobă cotizațiile noi ({verificareInCurs ? '...' : cotizatiiNoi.length})
+                                    </Button>
+                                    <Button size="sm" variant="secondary" className="min-h-10" disabled={aprobate.size === 0} onClick={() => setAprobate(new Set())}>
+                                        Șterge aprobările
+                                    </Button>
+                                    <span className="text-sm text-[var(--t-text)]">{deImportat.length} aprobate pentru import</span>
+                                </div>
                                 <div className="space-y-3">
                                     {vizibilePrev.map(r => (
                                         <RandPrevizualizareCard
                                             key={r.rand.ref_banca} r={r} alegere={alegeri[r.rand.ref_banca]} manual={manualRef === r.rand.ref_banca}
+                                            aprobat={aprobate.has(r.rand.ref_banca)} onAproba={onAproba}
                                             sportivi={sportiviClub} familii={familiiClub} plati={platiClub} numeSportiv={numeSportiv} numeFamilie={numeFamilie}
                                             stareImportText={stareImportText} seIncarcaIncasari={seIncarcaIncasari} esuatIncasari={esuatIncasari} onAlege={onAlege} onManual={onManual}
                                         />
@@ -272,9 +296,10 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
                                     </div>
                                 )}
                                 <div className="flex gap-2 flex-wrap">
-                                    <Button variant="success" className="min-h-10" disabled={!poateImporta || tabelLipsa} isLoading={busy} onClick={importa}>Importă</Button>
-                                    <Button variant="secondary" className="min-h-10" onClick={() => { setPrevizualizare(null); setAlegeri({}); setFiltruPrev('toate'); setManualRef(null); }}>Renunță</Button>
+                                    <Button variant="success" className="min-h-10" disabled={!poateImporta || tabelLipsa} isLoading={busy} onClick={importa}>Importă {deImportat.length} aprobate</Button>
+                                    <Button variant="secondary" className="min-h-10" onClick={() => { setPrevizualizare(null); setAlegeri({}); setFiltruPrev('toate'); setManualRef(null); setAprobate(new Set()); }}>Renunță</Button>
                                 </div>
+                                <p className="text-xs text-slate-400">Importă duce în tabel doar rândurile bifate; confirmarea ca încasare se face apoi, la „Potrivește”.</p>
                                 {tabelLipsa && (
                                     <p className="text-sm text-amber-300">Import dezactivat: tabelul tranzactii_bancare nu există încă (migrarea 20261120a neaplicată). Previzualizarea funcționează fără salvare.</p>
                                 )}
@@ -373,6 +398,8 @@ interface RandPrevizualizareCardProps {
     stareImportText: string;
     seIncarcaIncasari: boolean;
     esuatIncasari: boolean;
+    aprobat: boolean;
+    onAproba: (ref: string, aprobat: boolean) => void;
     onAlege: (ref: string, alegere: AlegereRand | undefined) => void;
     onManual: (ref: string | null) => void;
 }
@@ -381,8 +408,9 @@ const TitluZona: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <h3 className="text-xs font-bold uppercase tracking-wide text-slate-300 mb-1">{children}</h3>
 );
 
-const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, alegere, manual, sportivi, familii, plati, numeSportiv, numeFamilie, stareImportText, seIncarcaIncasari, esuatIncasari, onAlege, onManual }) => {
+const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, alegere, manual, sportivi, familii, plati, numeSportiv, numeFamilie, stareImportText, seIncarcaIncasari, esuatIncasari, aprobat, onAproba, onAlege, onManual }) => {
     const { rand, candidati, importat, incasariSimilare } = r;
+    const poateAproba = (r.stare === 'nou' || r.stare === 'posibil_duplicat') && alegere !== 'ignorat';
     const ref = rand.ref_banca;
     const tinta = tintaEfectiva(r, alegere);
     const tintaTip = tinta?.tip, tintaId = tinta?.id;
@@ -409,6 +437,10 @@ const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, ale
                 <p className="text-sm text-[var(--t-text)]">{rand.platitor_nume ?? '—'}</p>
                 <p className="text-xs text-slate-400 line-clamp-2">{rand.detalii}</p>
                 <div className="mt-1"><Badge variant="slate">{ETICHETA_TIP[rand.tip_probabil]}</Badge></div>
+                <label className={`mt-2 flex items-center gap-2 text-sm min-h-10 ${poateAproba ? 'cursor-pointer text-[var(--t-text)]' : 'cursor-not-allowed text-slate-500'}`}>
+                    <input type="checkbox" className="h-5 w-5" checked={aprobat && poateAproba} disabled={!poateAproba} onChange={e => onAproba(ref, e.target.checked)} />
+                    <span>Aprob la import</span>
+                </label>
             </div>
 
             <div className="space-y-1">

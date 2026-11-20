@@ -146,6 +146,18 @@ assert(p8[0].importat === null && p8[0].stare === 'posibil_duplicat', 'T8 import
 assert(eroareTabelLipsa('42P01: relation "public.tranzactii_bancare" does not exist') === true, 'T9 42P01');
 assert(eroareTabelLipsa("Could not find the table 'public.tranzactii_bancare' in the schema cache") === true, 'T9 PGRST205');
 assert(eroareTabelLipsa('permission denied for table tranzactii_bancare') === false && eroareTabelLipsa('') === false && eroareTabelLipsa(null) === false, 'T9 alte erori -> false');
+assert(eroareTabelLipsa('column "iban" does not exist') === false && eroareTabelLipsa('function public.x() does not exist') === false, 'T9 coloana/functie lipsa != tabel lipsa');
+
+// T12: verificare indisponibila (importuri/Jurnal in incarcare sau esuate) -> 'necunoscut', nu 'nou'
+const ctxNec = { ...ctxP([t1Far]), verificareIndisponibila: true };
+const pNec = construiestePrevizualizare([rowIoana], ctxNec);
+assert(pNec[0].stare === 'necunoscut', 'T12 fara duplicat gasit + verificare indisponibila -> necunoscut');
+assert(construiestePrevizualizare([rowIoana], { ...ctxP([t1]), verificareIndisponibila: true })[0].stare === 'posibil_duplicat', 'T12 duplicat gasit ramane duplicat');
+assert(construiestePrevizualizare([rowIoana], { ...ctxP([t1], [imp]), verificareIndisponibila: true })[0].stare === 'deja_importat', 'T12 deja importat ramane deja importat');
+const sNec = sumarPrevizualizare(pNec, {});
+assert(sNec.noi === 0 && sNec.duplicate === 0 && sNec.necunoscute === 1 && near(sNec.sumaDeAplicat, 0), 'T12 necunoscut nu intra in Noi / Duplicate / de aplicat');
+assert(inFiltru(pNec[0], undefined, 'toate') && !inFiltru(pNec[0], undefined, 'noi') && !inFiltru(pNec[0], undefined, 'duplicate'), 'T12 filtre: necunoscut doar in Toate');
+assert(sumarPrevizualizare(pNec, { PV1: 'ignorat' }).necunoscute === 0, 'T12 necunoscut ignorat nu se numara');
 
 const r4 = [
   rb('A', 100, '2026-10-01', 'Abonament Ioana Popescu'), // nou, candidat s1

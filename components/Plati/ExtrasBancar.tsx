@@ -99,7 +99,11 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
         : eroareCitire ? 'Verificare import indisponibilă (eroare la citire)' : '';
     const vizibile = useMemo(() => randuri.filter(r => filtruStare === 'toate' || r.stare === filtruStare || (filtruStare === 'noua' && r.stare === 'potrivita')), [randuri, filtruStare]);
 
-    const { seIncarca: seIncarcaIncasari } = useDateLaCerere(['plati', 'tranzactii']);
+    const { seIncarca: seIncarcaIncasari, esuat: esuatIncasari } = useDateLaCerere(['plati', 'tranzactii']);
+    // Dacă importurile sau Jurnalul nu s-au putut citi (încă/deloc), rândurile sunt „necunoscut”, nu „Nou”.
+    const verificareIndisponibila = (importate === null && !tabelLipsa) || seIncarcaIncasari || esuatIncasari;
+    const verificareInCurs = lista.isLoading || seIncarcaIncasari;
+    const cifra = (x: number) => (verificareInCurs ? '...' : x);
     const tranzactiiClub = useMemo(() => {
         const sp = new Set(sportiviClub.map(s => s.id));
         const fm = new Set(familiiClub.map(f => f.id));
@@ -118,8 +122,8 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
 
     // Nu depinde de `alegeri`: potrivirea nu se recalculează la fiecare click.
     const randuriPrev = useMemo(
-        () => (previzualizare ? construiestePrevizualizare(previzualizare.randuri, { sportivi: sportiviClub, familii: familiiClub, plati: platiClub, memorie: memorieData, tranzactii: tranzactiiClub, importate }) : GOL_PREV),
-        [previzualizare, sportiviClub, familiiClub, platiClub, memorieData, tranzactiiClub, importate]);
+        () => (previzualizare ? construiestePrevizualizare(previzualizare.randuri, { sportivi: sportiviClub, familii: familiiClub, plati: platiClub, memorie: memorieData, tranzactii: tranzactiiClub, importate, verificareIndisponibila }) : GOL_PREV),
+        [previzualizare, sportiviClub, familiiClub, platiClub, memorieData, tranzactiiClub, importate, verificareIndisponibila]);
     const sumar = useMemo(() => sumarPrevizualizare(randuriPrev, alegeri), [randuriPrev, alegeri]);
     const vizibilePrev = useMemo(() => randuriPrev.filter(r => inFiltru(r, alegeri[r.rand.ref_banca], filtruPrev)), [randuriPrev, alegeri, filtruPrev]);
     const numeSportiv = useMemo(() => new Map(sportiviClub.map(s => [s.id, `${s.nume} ${s.prenume}`])), [sportiviClub]);
@@ -149,7 +153,7 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
     const ibanClub = normIban(ibanQ.data?.data);
     const ibanCont = normIban(previzualizare?.iban_cont);
     const ibanOk = !!ibanClub && !!ibanCont && ibanClub === ibanCont;
-    const poateImporta = !!previzualizare && previzualizare.randuri.length > 0 && !busy && (ibanOk || confirmClub);
+    const poateImporta = !!previzualizare && previzualizare.randuri.length > 0 && !busy && !verificareInCurs && (ibanOk || confirmClub);
 
     const importa = async () => {
         if (!previzualizare || !clubId) return;
@@ -230,12 +234,12 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
                         {previzualizare && (
                             <div className="space-y-3 border-t border-[var(--t-border)] pt-3">
                                 <p className="text-sm text-[var(--t-text)]">
-                                    {sumar.noi} noi · {sumar.duplicate} duplicate · total {lei(sumar.sumaTotala)} · de aplicat {lei(sumar.sumaDeAplicat)} · {previzualizare.debite_ignorate} debite ignorate
+                                    {cifra(sumar.noi)} noi · {cifra(sumar.duplicate)} duplicate{!verificareInCurs && sumar.necunoscute > 0 ? ` · ${sumar.necunoscute} neverificate` : ''} · total {lei(sumar.sumaTotala)} · de aplicat {verificareInCurs ? '...' : lei(sumar.sumaDeAplicat)} · {previzualizare.debite_ignorate} debite ignorate
                                 </p>
                                 <div className="flex gap-2 flex-wrap">
                                     {FILTRE_PREV.map(([f, eticheta]) => (
                                         <Button key={f} size="sm" className="min-h-10" variant={filtruPrev === f ? 'primary' : 'secondary'} onClick={() => setFiltruPrev(f)}>
-                                            {eticheta} ({sumar[f]})
+                                            {eticheta} ({f === 'noi' || f === 'duplicate' ? cifra(sumar[f]) : sumar[f]})
                                         </Button>
                                     ))}
                                 </div>
@@ -244,7 +248,7 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
                                         <RandPrevizualizareCard
                                             key={r.rand.ref_banca} r={r} alegere={alegeri[r.rand.ref_banca]} manual={manualRef === r.rand.ref_banca}
                                             sportivi={sportiviClub} familii={familiiClub} plati={platiClub} numeSportiv={numeSportiv} numeFamilie={numeFamilie}
-                                            stareImportText={stareImportText} seIncarcaIncasari={seIncarcaIncasari} onAlege={onAlege} onManual={onManual}
+                                            stareImportText={stareImportText} seIncarcaIncasari={seIncarcaIncasari} esuatIncasari={esuatIncasari} onAlege={onAlege} onManual={onManual}
                                         />
                                     ))}
                                 </div>
@@ -368,6 +372,7 @@ interface RandPrevizualizareCardProps {
     numeFamilie: Map<string, string>;
     stareImportText: string;
     seIncarcaIncasari: boolean;
+    esuatIncasari: boolean;
     onAlege: (ref: string, alegere: AlegereRand | undefined) => void;
     onManual: (ref: string | null) => void;
 }
@@ -376,7 +381,7 @@ const TitluZona: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <h3 className="text-xs font-bold uppercase tracking-wide text-slate-300 mb-1">{children}</h3>
 );
 
-const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, alegere, manual, sportivi, familii, plati, numeSportiv, numeFamilie, stareImportText, seIncarcaIncasari, onAlege, onManual }) => {
+const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, alegere, manual, sportivi, familii, plati, numeSportiv, numeFamilie, stareImportText, seIncarcaIncasari, esuatIncasari, onAlege, onManual }) => {
     const { rand, candidati, importat, incasariSimilare } = r;
     const ref = rand.ref_banca;
     const tinta = tintaEfectiva(r, alegere);
@@ -415,6 +420,7 @@ const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, ale
                     </div>
                 ) : stareImportText && <p className="text-xs text-slate-400">{stareImportText}</p>}
                 {seIncarcaIncasari && <p className="text-xs text-slate-400">Se încarcă încasările din Jurnal…</p>}
+                {esuatIncasari && !seIncarcaIncasari && <p className="text-xs text-amber-300">Verificare duplicate indisponibilă (încasările din Jurnal nu s-au încărcat).</p>}
                 {incasariSimilare.length > 0 ? (
                     <div className="space-y-1">
                         <Badge variant="amber">Posibil duplicat</Badge>
@@ -425,7 +431,8 @@ const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, ale
                         ))}
                         <p className="text-xs text-amber-300">Pare introdusă deja manual în Jurnal — dacă o imporți și o confirmi, banii se numără de două ori.</p>
                     </div>
-                ) : !importat && !seIncarcaIncasari && <Badge variant="green">Nou</Badge>}
+                ) : r.stare === 'nou' ? <Badge variant="green">Nou</Badge>
+                  : r.stare === 'necunoscut' && <Badge variant="slate">Neverificat</Badge>}
             </div>
 
             <div className="space-y-2">

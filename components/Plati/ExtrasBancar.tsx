@@ -5,13 +5,14 @@ import { Badge, Button, Card, EmptyState, Input, Modal, Select } from '../ui';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { useData } from '../../contexts/DataContext';
 import { useDateLaCerere } from '../../hooks/useDateLaCerere';
+import { fetchSportiviData } from '../../hooks/useSportivi';
 import { useError } from '../ErrorProvider';
 import { supabase } from '../../supabaseClient';
 import { parseCSVWithEncoding } from '../../utils/csv';
 import {
     parseazaExtrasBt, gasesteCandidati, facturiDeschisePentru, clasificaCredit,
     eroareTabelLipsa, construiestePrevizualizare, sumarPrevizualizare, inFiltru, tintaEfectiva,
-    randuriDeImportat, aprobaCotizatiiNoi,
+    randuriDeImportat, aprobaCotizatiiNoi, facturiDeAlocat,
 } from '../../utils/extrasBt';
 import type { AlegereRand, FiltruPrevizualizare, RandPrevizualizare } from '../../utils/extrasBt';
 import { distribuieSumaPeFacturi, restDePlata } from '../../utils/paymentStatus';
@@ -80,7 +81,13 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
     const memorie = useQuery({ queryKey: ['memorie-iban', clubId], enabled: !!clubId, queryFn: () => listaMemorieIban(clubId) });
     const ibanQ = useQuery({ queryKey: ['iban-club', clubId], enabled: !!clubId, queryFn: () => getIbanClub(clubId) });
 
-    const sportiviClub = useMemo(() => (filteredData.sportivi || []).filter(s => s.club_id === clubId), [filteredData.sportivi, clubId]);
+    // Super adminul primește în DataContext sportivii tuturor cluburilor, tăiați la 1000 de rânduri (alfabetic): cei de la coada alfabetului lipsesc.
+    // De aceea sportivii clubului ales se citesc separat (un singur club, sub limita de 1000).
+    const sportiviQ = useQuery({ queryKey: ['sportivi-extras-bancar', clubId], enabled: !!clubId, staleTime: 5 * 60_000, queryFn: () => fetchSportiviData({ clubId }) });
+    const sportiviClub = useMemo(() => {
+        const complet = sportiviQ.data?.data;
+        return (complet ?? filteredData.sportivi ?? []).filter(s => s.club_id === clubId);
+    }, [sportiviQ.data, filteredData.sportivi, clubId]);
     const familiiClub = useMemo(() => (filteredData.familii || []).filter(f => !f.club_id || f.club_id === clubId), [filteredData.familii, clubId]);
     const platiClub = useMemo(() => {
         const sp = new Set(sportiviClub.map(s => s.id));
@@ -417,7 +424,7 @@ const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, ale
     const valoareTinta = tinta ? `${tinta.tip}:${tinta.id}` : '';
     const etichetaTinta = (tip: 'sportiv' | 'familie', id: string) => (tip === 'sportiv' ? numeSportiv.get(id) : numeFamilie.get(id)) ?? '';
 
-    const facturi = useMemo(() => (tintaTip && tintaId ? facturiDeschisePentru(tintaTip, tintaId, sportivi, plati) : []), [tintaTip, tintaId, sportivi, plati]);
+    const { facturi, dupaLuna } = useMemo(() => (tintaTip && tintaId ? facturiDeAlocat(facturiDeschisePentru(tintaTip, tintaId, sportivi, plati), rand.detalii) : { facturi: [] as Plata[], dupaLuna: false }), [tintaTip, tintaId, sportivi, plati, rand.detalii]);
     const alocare = useMemo(() => distribuieSumaPeFacturi(facturi, rand.suma), [facturi, rand.suma]);
     const totalAlocat = alocare.reduce((s, a) => s + a.suma_alocata, 0);
     const motive = candidati.find(c => c.tip === tintaTip && c.id === tintaId)?.motive ?? [];
@@ -505,7 +512,9 @@ const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, ale
                                     const f = facturi.find(x => x.id === a.plata_id);
                                     return f && <p key={a.plata_id}>{(f as any).descriere ?? 'Factură'} · rest {lei(restDePlata(f))} · alocă {lei(a.suma_alocata)}</p>;
                                 })}
-                                {facturi.length > 0 && rand.suma - totalAlocat > 0.005 && <p className="text-slate-400">rest {lei(rand.suma - totalAlocat)} → avans</p>}
+                                {facturi.length > 0 && rand.suma - totalAlocat > 0.005 && (dupaLuna
+                                    ? <p className="text-amber-300">Alocat doar pe luna din detalii. Rest {lei(rand.suma - totalAlocat)} rămâne neaplicat (neimportat în facturi).</p>
+                                    : <p className="text-slate-400">rest {lei(rand.suma - totalAlocat)} → avans</p>)}
                             </div>
                         )}
                         <Button size="sm" variant="secondary" className="min-h-10" onClick={() => onAlege(ref, 'ignorat')}>Ignoră</Button>
@@ -547,7 +556,7 @@ const ModalPotrivire: React.FC<ModalPotrivireProps> = ({ tb, sportivi, familii, 
     const alege = (tip: 'sportiv' | 'familie', id: string) => {
         setTinta({ tip, id });
         // propunere inițială: cele mai vechi facturi întâi (adminul poate redistribui manual)
-        const f = facturiDeschisePentru(tip, id, sportivi, plati);
+        const f = facturiDeAlocat(facturiDeschisePentru(tip, id, sportivi, plati), tb.detalii).facturi;
         const init: Record<string, string> = {};
         for (const a of distribuieSumaPeFacturi(f, tb.suma)) init[a.plata_id] = a.suma_alocata.toFixed(2);
         setAlocari(init);

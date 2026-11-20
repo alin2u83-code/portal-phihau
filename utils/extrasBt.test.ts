@@ -6,7 +6,7 @@ import { readFileSync } from 'fs';
 import Papa from 'papaparse';
 import { parseazaExtrasBt, parseazaDescriereBt, parseSumaBt, clasificaCredit, gasesteCandidati,
   construiestePrevizualizare, eroareTabelLipsa, sumarPrevizualizare, tintaEfectiva, inFiltru, TOLERANTA_ZILE_DUPLICAT,
-  randuriDeImportat, aprobaCotizatiiNoi } from './extrasBt';
+  randuriDeImportat, aprobaCotizatiiNoi, facturiDeAlocat } from './extrasBt';
 import { distribuieSumaPeFacturi, restDePlata } from './paymentStatus';
 
 function assert(condition: boolean, message: string): void {
@@ -189,6 +189,17 @@ const rowsNec = construiestePrevizualizare([rc('K', 'cotizatie_probabila')], { .
 assert(randuriDeImportat(rowsNec, new Set(['K']), {}).length === 0 && aprobaCotizatiiNoi(rowsNec, {}).length === 0, 'T13 necunoscut nu se importa si nu se aproba singur');
 const rowsDup = construiestePrevizualizare([rowIoana], ctxP([t1]));
 assert(randuriDeImportat(rowsDup, new Set(['PV1']), {}).length === 1 && aprobaCotizatiiNoi(rowsDup, {}).length === 0, 'T13 posibil duplicat: se poate aproba manual, nu prin scurtatura');
+
+// T14: luna din detalii are prioritate la alocare; restul nu se aplica
+const fl = (id: string, descriere: string, data: string) => ({ id, descriere, data, suma: 100, suma_ramasa: 100, status: 'Neachitat' } as any);
+const fac = [fl('x1', 'Taxa examen Grad X', '2026-06-10'), fl('x2', 'Abonament septembrie 2026', '2026-09-09'), fl('x3', 'Abonament Familie octombrie 2026', '2026-10-02')];
+const l1 = facturiDeAlocat(fac, 'plata antrenament luna septembrie 2026 pentru Ionescu');
+assert(l1.dupaLuna && l1.facturi.map(f => f.id).join() === 'x2', 'T14 luna din detalii: doar factura din septembrie');
+const l2 = facturiDeAlocat(fac, 'total octombrie fam Test');
+assert(l2.dupaLuna && l2.facturi.map(f => f.id).join() === 'x3', 'T14 octombrie: doar factura din octombrie (fara taxe vechi)');
+assert(!facturiDeAlocat(fac, 'plata abonament').dupaLuna && facturiDeAlocat(fac, 'plata abonament').facturi.length === 3, 'T14 fara luna: toate facturile');
+assert(!facturiDeAlocat(fac, 'luna martie').dupaLuna && facturiDeAlocat(fac, 'luna martie').facturi.length === 3, 'T14 luna fara factura: fallback toate');
+assert(facturiDeAlocat(fac, null).facturi.length === 3, 'T14 detalii null');
 
 const inainte = JSON.stringify([r4, ctxP([t1])]);
 construiestePrevizualizare(r4, ctxP([t1]));

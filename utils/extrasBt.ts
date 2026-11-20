@@ -130,6 +130,18 @@ export function facturiDeschisePentru(tip: 'sportiv' | 'familie', id: string, sp
     .sort((a, b) => (a.data || '').toString().slice(0, 10).localeCompare((b.data || '').toString().slice(0, 10)));
 }
 
+const LUNI_RO = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
+
+/** Dacă detaliile numesc o lună, alocarea merge DOAR pe facturile din acea lună (după „descriere”); restul sumei nu se aplică nicăieri.
+ *  Fără lună în detalii sau fără factură din luna respectivă: toate facturile (cea mai veche întâi), ca înainte. */
+export function facturiDeAlocat(facturi: Plata[], detalii: string | null): { facturi: Plata[]; dupaLuna: boolean } {
+  const d = norm(detalii ?? '');
+  const luni = LUNI_RO.filter(l => new RegExp(`\\b${l}\\b`).test(d));
+  if (luni.length === 0) return { facturi, dupaLuna: false };
+  const doarLuna = facturi.filter(f => { const t = norm((f as any).descriere ?? ''); return luni.some(l => new RegExp(`\\b${l}\\b`).test(t)); });
+  return doarLuna.length > 0 ? { facturi: doarLuna, dupaLuna: true } : { facturi, dupaLuna: false };
+}
+
 export function gasesteCandidati(
   tb: { suma: number; platitor_nume: string | null; platitor_iban: string | null; detalii: string | null },
   ctx: { sportivi: Sportiv[]; familii: Familie[]; plati: Plata[]; memorie: MemorieIban[] }

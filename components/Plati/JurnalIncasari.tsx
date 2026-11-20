@@ -13,7 +13,7 @@ import { sendNotification } from '../../utils/notifications';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { PeriodFilterBar } from './PeriodFilterBar';
 import { filtreazaTipuriSezon, gasesteTipDupaId } from '../../utils/abonamente';
-import { restDePlata } from '../../utils/paymentStatus';
+import { restDePlata, distribuieSumaPeFacturi } from '../../utils/paymentStatus';
 import { useSezonActiv } from '../../hooks/useSezoane';
 import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactie } from '../../services/tranzactiiService';
 
@@ -353,16 +353,14 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                 }
 
                 // Distribute the payment amount across invoices
-                let remainingPayment = sumaNum;
-                const sortedInvoices = [...platiInitiale].sort((a, b) => new Date((a.data || '').toString().slice(0, 10)).getTime() - new Date((b.data || '').toString().slice(0, 10)).getTime());
+                const alocari = distribuieSumaPeFacturi(platiInitiale, sumaNum, f => restProaspat.get(f.id) ?? restDePlata(f));
+                const facturaPeId = new Map(platiInitiale.map(p => [p.id, p]));
                 const processedTransactions = [];
 
-                for (const invoice of sortedInvoices) {
-                    if (remainingPayment <= 0.001) break;
+                for (const { plata_id, suma_alocata: amountForThisInvoice } of alocari) {
+                    const invoice = facturaPeId.get(plata_id)!;
 
-                    const amountForThisInvoice = Math.min(restProaspat.get(invoice.id) ?? restDePlata(invoice), remainingPayment);
-                    
-                    if (amountForThisInvoice > 0) {
+                    {
                         const p_tranzactie = {
                             sportiv_id: formState.sportiv_id || invoice.sportiv_id,
                             familie_id: formState.familie_id || invoice.familie_id,
@@ -382,7 +380,6 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
                         if (fetchError) throw fetchError;
                         if (tx) processedTransactions.push(normalizeazaTranzactie(tx));
 
-                        remainingPayment -= amountForThisInvoice;
                     }
                 }
                 

@@ -104,6 +104,32 @@ export function restDePlata(p: { status: string; suma: number; suma_ramasa?: num
   return Number(p.suma_ramasa ?? p.suma) || 0;
 }
 
+/**
+ * Împarte o sumă pe facturi: cele mai vechi (după `data`) întâi, `min(rest, ramas)` pe fiecare,
+ * facturile cu rest 0 sunt sărite, oprire când nu mai rămâne nimic. Alocările sunt rotunjite la bani.
+ * Folosită de Jurnal Încasări și de propunerea inițială din Extras bancar.
+ */
+export function distribuieSumaPeFacturi<T extends { id: string; data?: any; status: string; suma: number; suma_ramasa?: number | null }>(
+  facturi: T[],
+  suma: number,
+  rest: (f: T) => number = restDePlata
+): { plata_id: string; suma_alocata: number }[] {
+  const rotunjeste = (x: number) => Math.round(x * 100) / 100;
+  const sortate = [...facturi].sort((a, b) =>
+    new Date((a.data || '').toString().slice(0, 10)).getTime() - new Date((b.data || '').toString().slice(0, 10)).getTime());
+  const out: { plata_id: string; suma_alocata: number }[] = [];
+  let ramas = suma;
+  for (const f of sortate) {
+    if (ramas <= 0.001) break;
+    const x = rotunjeste(Math.min(rest(f), ramas));
+    if (x > 0) {
+      out.push({ plata_id: f.id, suma_alocata: x });
+      ramas -= x;
+    }
+  }
+  return out;
+}
+
 /** Sumă încasată = total facturat − rest. */
 export function sumaIncasataFactura(p: { status: string; suma: number; suma_ramasa?: number | null }): number {
   if (p.status === 'Anulat') return 0;

@@ -1,4 +1,4 @@
-import type { ExtrasBtParsat, Familie, MemorieIban, Plata, RandExtrasBt, Sportiv, TipProbabilCredit } from '../types';
+import type { ExtrasBtParsat, Familie, MemorieIban, Plata, RandExtrasBt, Sportiv, TipProbabilCredit, Tranzactie, TranzactieBancara } from '../types';
 import { isSimilar } from './csv';
 import { restDePlata } from './paymentStatus';
 
@@ -193,4 +193,127 @@ export function gasesteCandidati(
     rezultat.push({ tip: c.tip, id: c.id, eticheta: c.eticheta, motive: [...c.motive.keys()], scor, facturiDeschise: facturi, restTotal, sumaEgala });
   }
   return rezultat.sort((a, b) => b.scor - a.scor || a.eticheta.localeCompare(b.eticheta)).slice(0, 8);
+}
+
+// ─── Previzualizare (fără salvare) ────────────────────────────────────────────
+// Funcții pure: ce există deja în aplicație pentru fiecare credit din fișier. Nu scriu nimic nicăieri.
+
+/** Toleranță (zile) între data din extras și data încasării din Jurnal pentru „posibil duplicat”. */
+export const TOLERANTA_ZILE_DUPLICAT = 3;
+
+/** Serviciul întoarce doar mesajul erorii (fără cod), deci tabelul lipsă se detectează pe text. */
+export function eroareTabelLipsa(msg: string | null | undefined): boolean {
+  return /42P01|PGRST205|does not exist|could not find the table/i.test(msg ?? '');
+}
+
+export type StarePrevizualizare = 'nou' | 'deja_importat' | 'posibil_duplicat';
+
+export interface RandPrevizualizare {
+  rand: RandExtrasBt;
+  candidati: CandidatPotrivire[];
+  importat: TranzactieBancara | null;
+  incasariSimilare: Tranzactie[];
+  stare: StarePrevizualizare;
+}
+
+const ZI_MS = 86400000;
+const ziUtc = (s: string | null | undefined): number => {
+  const m = (s ?? '').slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : NaN;
+};
+
+// shortcut: o încasare manuală poate fi raportată la mai multe rânduri bancare (fără pereche 1:1); acceptabil pentru un avertisment.
+export function incasariSimilare(
+  rand: { suma: number; data_tranzactie: string },
+  candidati: CandidatPotrivire[],
+  sportivi: Sportiv[],
+  tranzactii: Tranzactie[],
+  excluse: Set<string>,
+  tolerantaZile: number = TOLERANTA_ZILE_DUPLICAT,
+): Tranzactie[] {
+  if (candidati.length === 0) return [];
+  const S = new Set<string>(), F = new Set<string>();
+  for (const c of candidati) {
+    if (c.tip === 'sportiv') {
+      S.add(c.id);
+      const fid = sportivi.find(s => s.id === c.id)?.familie_id;
+      if (fid) F.add(fid);
+    } else {
+      F.add(c.id);
+      for (const s of sportivi) if (s.familie_id === c.id) S.add(s.id);
+    }
+  }
+  const dRand = ziUtc(rand.data_tranzactie);
+  return tranzactii
+    .map(t => ({ t, zile: Math.abs(ziUtc(t.data_platii) - dRand) / ZI_MS }))
+    .filter(({ t, zile }) =>
+      !excluse.has(t.id) && Math.abs(t.suma - rand.suma) < 0.005 && zile <= tolerantaZile
+      && ((!!t.sportiv_id && S.has(t.sportiv_id)) || (!!t.familie_id && F.has(t.familie_id))))
+    .sort((a, b) => a.zile - b.zile)
+    .map(x => x.t);
+}
+
+export function construiestePrevizualizare(
+  randuri: RandExtrasBt[],
+  ctx: { sportivi: Sportiv[]; familii: Familie[]; plati: Plata[]; memorie: MemorieIban[]; tranzactii: Tranzactie[]; importate: TranzactieBancara[] | null },
+  tolerantaZile: number = TOLERANTA_ZILE_DUPLICAT,
+): RandPrevizualizare[] {
+  const peRef = new Map<string, TranzactieBancara>();
+  const excluse = new Set<string>();
+  for (const i of ctx.importate ?? []) {
+    if (i.sursa === 'extras') peRef.set(i.ref_banca, i);
+    if (i.tranzactie_id) excluse.add(i.tranzactie_id); // create din confirmări bancare, nu introduse manual
+  }
+  const peSuma = new Map<number, Tranzactie[]>();
+  for (const t of ctx.tranzactii) {
+    const k = Math.round(t.suma * 100);
+    const b = peSuma.get(k);
+    if (b) b.push(t); else peSuma.set(k, [t]);
+  }
+  return randuri.map(rand => {
+    const candidati = gasesteCandidati(rand, ctx);
+    const importat = peRef.get(rand.ref_banca) ?? null;
+    const similare = incasariSimilare(rand, candidati, ctx.sportivi, peSuma.get(Math.round(rand.suma * 100)) ?? [], excluse, tolerantaZile);
+    return { rand, candidati, importat, incasariSimilare: similare, stare: importat ? 'deja_importat' : similare.length ? 'posibil_duplicat' : 'nou' };
+  });
+}
+
+export type AlegereRand = { tip: 'sportiv' | 'familie'; id: string } | 'ignorat';
+
+export function tintaEfectiva(r: RandPrevizualizare, alegere?: AlegereRand): { tip: 'sportiv' | 'familie'; id: string } | null {
+  if (alegere === 'ignorat') return null;
+  if (alegere) return alegere;
+  const c = r.candidati[0];
+  return c ? { tip: c.tip, id: c.id } : null;
+}
+
+export type FiltruPrevizualizare = 'toate' | 'noi' | 'duplicate' | 'fara_potrivire' | 'ignorate';
+
+export function inFiltru(r: RandPrevizualizare, alegere: AlegereRand | undefined, filtru: FiltruPrevizualizare): boolean {
+  const ignorat = alegere === 'ignorat';
+  if (filtru === 'toate') return true;
+  if (filtru === 'ignorate') return ignorat;
+  if (ignorat) return false;
+  if (filtru === 'noi') return r.stare === 'nou';
+  if (filtru === 'duplicate') return r.stare !== 'nou';
+  return tintaEfectiva(r, alegere) === null;
+}
+
+const bani = (x: number) => Math.round(x * 100) / 100;
+
+export function sumarPrevizualizare(rows: RandPrevizualizare[], alegeri: Record<string, AlegereRand>) {
+  const o = { toate: 0, noi: 0, duplicate: 0, fara_potrivire: 0, ignorate: 0, sumaTotala: 0, sumaDeAplicat: 0 };
+  for (const r of rows) {
+    const al = alegeri[r.rand.ref_banca];
+    o.toate++;
+    o.sumaTotala += r.rand.suma;
+    if (inFiltru(r, al, 'noi')) o.noi++;
+    if (inFiltru(r, al, 'duplicate')) o.duplicate++;
+    if (inFiltru(r, al, 'fara_potrivire')) o.fara_potrivire++;
+    if (inFiltru(r, al, 'ignorate')) o.ignorate++;
+    if (al !== 'ignorat' && r.stare === 'nou' && tintaEfectiva(r, al)) o.sumaDeAplicat += r.rand.suma;
+  }
+  o.sumaTotala = bani(o.sumaTotala);
+  o.sumaDeAplicat = bani(o.sumaDeAplicat);
+  return o;
 }

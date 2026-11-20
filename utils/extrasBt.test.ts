@@ -4,7 +4,8 @@
  */
 import { readFileSync } from 'fs';
 import Papa from 'papaparse';
-import { parseazaExtrasBt, parseazaDescriereBt, parseSumaBt, clasificaCredit, gasesteCandidati } from './extrasBt';
+import { parseazaExtrasBt, parseazaDescriereBt, parseSumaBt, clasificaCredit, gasesteCandidati,
+  construiestePrevizualizare, eroareTabelLipsa, sumarPrevizualizare, tintaEfectiva, inFiltru, TOLERANTA_ZILE_DUPLICAT } from './extrasBt';
 import { distribuieSumaPeFacturi, restDePlata } from './paymentStatus';
 
 function assert(condition: boolean, message: string): void {
@@ -104,5 +105,66 @@ assert(!distribuieSumaPeFacturi(F, 9999).some(x => x.plata_id === 'z'), 'facturi
 assert(near(distribuieSumaPeFacturi(F, 9999).reduce((s, x) => s + x.suma_alocata, 0), 230), 'suma > total rest -> total alocat = total rest');
 const rot = distribuieSumaPeFacturi(F, 33.334);
 assert(rot.every(x => Math.abs(x.suma_alocata * 100 - Math.round(x.suma_alocata * 100)) < 1e-9), 'alocari rotunjite la bani');
+
+// --- previzualizare (fara salvare): date INVENTATE
+const rb = (ref: string, suma: number, data: string, detalii: string) =>
+  ({ ref_banca: ref, data_tranzactie: data, suma, platitor_nume: null, platitor_iban: null, detalii, tip_probabil: 'altele' } as any);
+const tx = (id: string, sportiv_id: string | null, familie_id: string | null, suma: number, data: string) =>
+  ({ id, sportiv_id, familie_id, suma, data_platii: data, metoda_plata: 'Transfer Bancar', plata_ids: [] } as any);
+const ctxP = (tranzactii: any[], importate: any[] | null = []) => ({ sportivi, familii, plati, memorie: [], tranzactii, importate });
+const rowIoana = rb('PV1', 150, '2026-10-10', 'Abonament Ioana Popescu');
+const t1 = tx('t1', 's1', null, 150, '2026-10-12');
+
+const p1 = construiestePrevizualizare([rowIoana], ctxP([t1]));
+assert(p1[0].stare === 'posibil_duplicat' && p1[0].incasariSimilare.length === 1 && p1[0].incasariSimilare[0].id === 't1', 'T1 posibil duplicat: incasare similara (+2 zile)');
+assert(TOLERANTA_ZILE_DUPLICAT === 3, 'toleranta implicita 3 zile');
+
+const t1Far = tx('t1', 's1', null, 150, '2026-10-14');
+assert(construiestePrevizualizare([rowIoana], ctxP([t1Far]))[0].stare === 'nou', 'T2 +4 zile -> nou');
+assert(construiestePrevizualizare([rowIoana], ctxP([t1Far]), 5)[0].stare === 'posibil_duplicat', 'T2 toleranta 5 -> posibil duplicat');
+
+assert(construiestePrevizualizare([rowIoana], ctxP([tx('t9', 's3', null, 150, '2026-10-10')]))[0].stare === 'nou', 'T3 alt sportiv (necandidat) -> nou');
+assert(construiestePrevizualizare([rowIoana], ctxP([tx('t9', 's1', null, 200, '2026-10-10')]))[0].stare === 'nou', 'T4 suma diferita -> nou');
+
+const rowFam = rb('PV2', 150, '2026-10-10', 'Abonament Mihai Georgescu');
+const pFam = construiestePrevizualizare([rowFam], ctxP([tx('t5', null, 'f1', 150, '2026-10-10')]));
+assert(pFam[0].candidati.some(c => c.id === 's4') && pFam[0].stare === 'posibil_duplicat', 'T5 candidat sportiv f1 + tranzactie pe familie f1 -> duplicat');
+const rowFam2 = rb('PV3', 150, '2026-10-10', 'Familia Georgescu abonament');
+const pFam2 = construiestePrevizualizare([rowFam2], ctxP([tx('t6', 's5', null, 150, '2026-10-11')]));
+assert(pFam2[0].candidati.some(c => c.tip === 'familie' && c.id === 'f1') && pFam2[0].stare === 'posibil_duplicat', 'T5 candidat familie f1 + tranzactie pe membru -> duplicat');
+
+const imp = { sursa: 'extras', ref_banca: 'PV1', stare: 'noua', tranzactie_id: null } as any;
+const p6 = construiestePrevizualizare([rowIoana], ctxP([t1], [imp]));
+assert(p6[0].stare === 'deja_importat' && p6[0].importat === imp, 'T6 deja importat are prioritate peste similar');
+
+const impLegat = { sursa: 'extras', ref_banca: 'ALTUL', stare: 'confirmata', tranzactie_id: 't1' } as any;
+assert(construiestePrevizualizare([rowIoana], ctxP([t1], [impLegat]))[0].stare === 'nou', 'T7 tranzactie creata din import nu e duplicat manual');
+
+const p8 = construiestePrevizualizare([rowIoana], ctxP([t1], null));
+assert(p8[0].importat === null && p8[0].stare === 'posibil_duplicat', 'T8 importate null: stare doar din (b), fara aruncare');
+
+assert(eroareTabelLipsa('42P01: relation "public.tranzactii_bancare" does not exist') === true, 'T9 42P01');
+assert(eroareTabelLipsa("Could not find the table 'public.tranzactii_bancare' in the schema cache") === true, 'T9 PGRST205');
+assert(eroareTabelLipsa('permission denied for table tranzactii_bancare') === false && eroareTabelLipsa('') === false && eroareTabelLipsa(null) === false, 'T9 alte erori -> false');
+
+const r4 = [
+  rb('A', 100, '2026-10-01', 'Abonament Ioana Popescu'), // nou, candidat s1
+  rb('B', 70, '2026-10-02', 'ceva fara nume'),            // nou, fara candidat
+  rb('C', 150, '2026-10-10', 'Abonament Ioana Popescu'),  // posibil duplicat
+  rb('D', 30, '2026-10-03', 'Abonament Ioana Popescu'),   // nou, ignorat
+];
+const p10 = construiestePrevizualizare(r4, ctxP([t1]));
+const al: Record<string, any> = { D: 'ignorat' };
+const s10 = sumarPrevizualizare(p10, al);
+assert(s10.toate === 4 && s10.noi === 2 && s10.duplicate === 1 && s10.fara_potrivire === 1 && s10.ignorate === 1, 'T10 contoare');
+assert(near(s10.sumaTotala, 350) && near(s10.sumaDeAplicat, 100), 'T10 suma totala / de aplicat');
+const s10b = sumarPrevizualizare(p10, { ...al, B: { tip: 'sportiv', id: 's3' } });
+assert(s10b.fara_potrivire === 0 && near(s10b.sumaDeAplicat, 170), 'T10 alegere manuala pe randul fara candidat');
+assert(tintaEfectiva(p10[0], undefined)?.id === 's1' && tintaEfectiva(p10[0], 'ignorat') === null, 'tintaEfectiva: propunere / ignorat');
+assert(inFiltru(p10[3], 'ignorat', 'ignorate') && !inFiltru(p10[3], 'ignorat', 'noi') && inFiltru(p10[3], 'ignorat', 'toate'), 'inFiltru ignorate');
+
+const inainte = JSON.stringify([r4, ctxP([t1])]);
+construiestePrevizualizare(r4, ctxP([t1]));
+assert(JSON.stringify([r4, ctxP([t1])]) === inainte, 'T11 puritate: intrarile nu se modifica');
 
 console.log('Toate testele extrasBt au trecut.');

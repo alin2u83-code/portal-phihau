@@ -1,13 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ExtrasBtParsat, Permissions, Plata, TipProbabilCredit, TranzactieBancara, User } from '../../types';
+import type { ExtrasBtParsat, Familie, Permissions, Plata, Sportiv, TipProbabilCredit, TranzactieBancara, User } from '../../types';
 import { Badge, Button, Card, EmptyState, Input, Modal, Select } from '../ui';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { useData } from '../../contexts/DataContext';
+import { useDateLaCerere } from '../../hooks/useDateLaCerere';
 import { useError } from '../ErrorProvider';
 import { supabase } from '../../supabaseClient';
 import { parseCSVWithEncoding } from '../../utils/csv';
-import { parseazaExtrasBt, gasesteCandidati, facturiDeschisePentru, clasificaCredit } from '../../utils/extrasBt';
+import {
+    parseazaExtrasBt, gasesteCandidati, facturiDeschisePentru, clasificaCredit,
+    eroareTabelLipsa, construiestePrevizualizare, sumarPrevizualizare, inFiltru, tintaEfectiva,
+} from '../../utils/extrasBt';
+import type { AlegereRand, FiltruPrevizualizare, RandPrevizualizare } from '../../utils/extrasBt';
 import { distribuieSumaPeFacturi, restDePlata } from '../../utils/paymentStatus';
 import { calculeazaSold } from '../../services/soldService';
 import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactie } from '../../services/tranzactiiService';
@@ -44,6 +49,11 @@ function traduEroare(msg: string): string {
     return msg;
 }
 
+const GOL: never[] = [];
+const GOL_PREV: RandPrevizualizare[] = [];
+const FILTRE_PREV: [FiltruPrevizualizare, string][] = [['toate', 'Toate'], ['noi', 'Noi'], ['duplicate', 'Duplicate'], ['fara_potrivire', 'Fără potrivire'], ['ignorate', 'Ignorate']];
+const STARE_IMPORT_RO: Record<string, string> = { noua: 'Nouă', potrivita: 'Potrivită', confirmata: 'Confirmată', ignorata: 'Ignorată' };
+
 const BadgeTip: React.FC<{ tb: TranzactieBancara }> = ({ tb }) => {
     const tip = clasificaCredit(tb);
     return <Badge variant={tip === 'cotizatie_probabila' ? 'green' : 'slate'}>{ETICHETA_TIP[tip]}</Badge>;
@@ -77,10 +87,43 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
         return (filteredData.plati || []).filter(p => p.club_id === clubId || (!!p.sportiv_id && sp.has(p.sportiv_id)) || (!!p.familie_id && fm.has(p.familie_id)));
     }, [filteredData.plati, sportiviClub, familiiClub, clubId]);
 
-    const randuri = lista.data?.data ?? [];
-    const memorieData = memorie.data?.data ?? [];
+    const randuri = lista.data?.data ?? GOL;
+    const memorieData = memorie.data?.data ?? GOL;
     const eroareCitire = lista.data?.error || memorie.data?.error || lista.error?.message || null;
+    // Fără migrarea 20261120a tabelul lipsește: partea (a) a previzualizării e indisponibilă, restul merge.
+    const tabelLipsa = eroareTabelLipsa(lista.data?.error ?? lista.error?.message);
+    const importate = tabelLipsa || lista.isLoading || !!eroareCitire ? null : randuri;
+    const stareImportText = tabelLipsa
+        ? 'Verificare import: indisponibilă până la aplicarea migrării 20261120a'
+        : lista.isLoading ? 'Se verifică importurile…'
+        : eroareCitire ? 'Verificare import indisponibilă (eroare la citire)' : '';
     const vizibile = useMemo(() => randuri.filter(r => filtruStare === 'toate' || r.stare === filtruStare || (filtruStare === 'noua' && r.stare === 'potrivita')), [randuri, filtruStare]);
+
+    const { seIncarca: seIncarcaIncasari } = useDateLaCerere(['plati', 'tranzactii']);
+    const tranzactiiClub = useMemo(() => {
+        const sp = new Set(sportiviClub.map(s => s.id));
+        const fm = new Set(familiiClub.map(f => f.id));
+        return (filteredData.tranzactii || []).filter(t => t.club_id === clubId || (!!t.sportiv_id && sp.has(t.sportiv_id)) || (!!t.familie_id && fm.has(t.familie_id)));
+    }, [filteredData.tranzactii, sportiviClub, familiiClub, clubId]);
+
+    const [alegeri, setAlegeri] = useState<Record<string, AlegereRand>>({});
+    const [filtruPrev, setFiltruPrev] = useState<FiltruPrevizualizare>('toate');
+    const [manualRef, setManualRef] = useState<string | null>(null);
+    const onAlege = useCallback((ref: string, alegere: AlegereRand | undefined) => setAlegeri(prev => {
+        const n = { ...prev };
+        if (alegere) n[ref] = alegere; else delete n[ref];
+        return n;
+    }), []);
+    const onManual = useCallback((ref: string | null) => setManualRef(ref), []);
+
+    // Nu depinde de `alegeri`: potrivirea nu se recalculează la fiecare click.
+    const randuriPrev = useMemo(
+        () => (previzualizare ? construiestePrevizualizare(previzualizare.randuri, { sportivi: sportiviClub, familii: familiiClub, plati: platiClub, memorie: memorieData, tranzactii: tranzactiiClub, importate }) : GOL_PREV),
+        [previzualizare, sportiviClub, familiiClub, platiClub, memorieData, tranzactiiClub, importate]);
+    const sumar = useMemo(() => sumarPrevizualizare(randuriPrev, alegeri), [randuriPrev, alegeri]);
+    const vizibilePrev = useMemo(() => randuriPrev.filter(r => inFiltru(r, alegeri[r.rand.ref_banca], filtruPrev)), [randuriPrev, alegeri, filtruPrev]);
+    const numeSportiv = useMemo(() => new Map(sportiviClub.map(s => [s.id, `${s.nume} ${s.prenume}`])), [sportiviClub]);
+    const numeFamilie = useMemo(() => new Map(familiiClub.map(f => [f.id, `Familia ${f.nume}`])), [familiiClub]);
 
     const nrCandidati = useMemo(() => {
         const m = new Map<string, number>();
@@ -99,13 +142,13 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
         e.target.value = '';
         if (!file) return;
         setConfirmClub(false);
+        setAlegeri({}); setFiltruPrev('toate'); setManualRef(null);
         parseCSVWithEncoding(file, { header: false, skipEmptyLines: true }, r => setPrevizualizare(parseazaExtrasBt(r.data as string[][])), () => showError('Fișier ilizibil', 'Nu am putut citi fișierul CSV.'));
     };
 
     const ibanClub = normIban(ibanQ.data?.data);
     const ibanCont = normIban(previzualizare?.iban_cont);
     const ibanOk = !!ibanClub && !!ibanCont && ibanClub === ibanCont;
-    const totalCredite = previzualizare?.randuri.reduce((s, r) => s + r.suma, 0) ?? 0;
     const poateImporta = !!previzualizare && previzualizare.randuri.length > 0 && !busy && (ibanOk || confirmClub);
 
     const importa = async () => {
@@ -187,8 +230,24 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
                         {previzualizare && (
                             <div className="space-y-3 border-t border-[var(--t-border)] pt-3">
                                 <p className="text-sm text-[var(--t-text)]">
-                                    {previzualizare.randuri.length} credite, total {lei(totalCredite)} · {previzualizare.debite_ignorate} debite ignorate
+                                    {sumar.noi} noi · {sumar.duplicate} duplicate · total {lei(sumar.sumaTotala)} · de aplicat {lei(sumar.sumaDeAplicat)} · {previzualizare.debite_ignorate} debite ignorate
                                 </p>
+                                <div className="flex gap-2 flex-wrap">
+                                    {FILTRE_PREV.map(([f, eticheta]) => (
+                                        <Button key={f} size="sm" className="min-h-10" variant={filtruPrev === f ? 'primary' : 'secondary'} onClick={() => setFiltruPrev(f)}>
+                                            {eticheta} ({sumar[f]})
+                                        </Button>
+                                    ))}
+                                </div>
+                                <div className="space-y-3">
+                                    {vizibilePrev.map(r => (
+                                        <RandPrevizualizareCard
+                                            key={r.rand.ref_banca} r={r} alegere={alegeri[r.rand.ref_banca]} manual={manualRef === r.rand.ref_banca}
+                                            sportivi={sportiviClub} familii={familiiClub} plati={platiClub} numeSportiv={numeSportiv} numeFamilie={numeFamilie}
+                                            stareImportText={stareImportText} seIncarcaIncasari={seIncarcaIncasari} onAlege={onAlege} onManual={onManual}
+                                        />
+                                    ))}
+                                </div>
                                 {previzualizare.erori.map((er, i) => <p key={i} className="text-sm text-rose-400">{er}</p>)}
                                 {previzualizare.randuri.length > 0 && !ibanOk && (
                                     <div className="rounded-xl border border-amber-500/50 bg-amber-500/10 p-3 space-y-2">
@@ -209,15 +268,20 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
                                     </div>
                                 )}
                                 <div className="flex gap-2 flex-wrap">
-                                    <Button variant="success" className="min-h-10" disabled={!poateImporta} isLoading={busy} onClick={importa}>Importă</Button>
-                                    <Button variant="secondary" className="min-h-10" onClick={() => setPrevizualizare(null)}>Renunță</Button>
+                                    <Button variant="success" className="min-h-10" disabled={!poateImporta || tabelLipsa} isLoading={busy} onClick={importa}>Importă</Button>
+                                    <Button variant="secondary" className="min-h-10" onClick={() => { setPrevizualizare(null); setAlegeri({}); setFiltruPrev('toate'); setManualRef(null); }}>Renunță</Button>
                                 </div>
+                                {tabelLipsa && (
+                                    <p className="text-sm text-amber-300">Import dezactivat: tabelul tranzactii_bancare nu există încă (migrarea 20261120a neaplicată). Previzualizarea funcționează fără salvare.</p>
+                                )}
+                                <p className="text-xs text-slate-400">Alegerile din previzualizare nu se salvează. Importă salvează doar rândurile din extras; potrivirea se confirmă apoi din lista de mai jos.</p>
                             </div>
                         )}
                     </Card>
 
-                    {eroareCitire && <p className="text-sm text-rose-400">Nu am putut citi extrasele bancare: {eroareCitire}</p>}
+                    {eroareCitire && !tabelLipsa && <p className="text-sm text-rose-400">Nu am putut citi extrasele bancare: {eroareCitire}</p>}
 
+                    {!tabelLipsa && (<>
                     <div className="max-w-xs">
                         <Select label="Stare" value={filtruStare} onChange={e => setFiltruStare(e.target.value as typeof filtruStare)}>
                             <option value="noua">Noi</option>
@@ -250,6 +314,7 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
                             )}
                         />
                     )}
+                    </>)}
                 </>
             )}
 
@@ -289,6 +354,128 @@ export const ExtrasBancar: React.FC<ExtrasBancarProps> = ({ permissions }) => {
         </div>
     );
 };
+
+// ─── Card previzualizare (3 zone, fără scrieri în DB) ─────────────────────────
+
+interface RandPrevizualizareCardProps {
+    r: RandPrevizualizare;
+    alegere: AlegereRand | undefined;
+    manual: boolean;
+    sportivi: Sportiv[];
+    familii: Familie[];
+    plati: Plata[];
+    numeSportiv: Map<string, string>;
+    numeFamilie: Map<string, string>;
+    stareImportText: string;
+    seIncarcaIncasari: boolean;
+    onAlege: (ref: string, alegere: AlegereRand | undefined) => void;
+    onManual: (ref: string | null) => void;
+}
+
+const TitluZona: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-300 mb-1">{children}</h3>
+);
+
+const RandPrevizualizareCard = React.memo<RandPrevizualizareCardProps>(({ r, alegere, manual, sportivi, familii, plati, numeSportiv, numeFamilie, stareImportText, seIncarcaIncasari, onAlege, onManual }) => {
+    const { rand, candidati, importat, incasariSimilare } = r;
+    const ref = rand.ref_banca;
+    const tinta = tintaEfectiva(r, alegere);
+    const tintaTip = tinta?.tip, tintaId = tinta?.id;
+    const valoareTinta = tinta ? `${tinta.tip}:${tinta.id}` : '';
+    const etichetaTinta = (tip: 'sportiv' | 'familie', id: string) => (tip === 'sportiv' ? numeSportiv.get(id) : numeFamilie.get(id)) ?? '';
+
+    const facturi = useMemo(() => (tintaTip && tintaId ? facturiDeschisePentru(tintaTip, tintaId, sportivi, plati) : []), [tintaTip, tintaId, sportivi, plati]);
+    const alocare = useMemo(() => distribuieSumaPeFacturi(facturi, rand.suma), [facturi, rand.suma]);
+    const totalAlocat = alocare.reduce((s, a) => s + a.suma_alocata, 0);
+    const motive = candidati.find(c => c.tip === tintaTip && c.id === tintaId)?.motive ?? [];
+    const dinCandidati = candidati.some(c => c.tip === tintaTip && c.id === tintaId);
+
+    const onSelect = (v: string) => {
+        if (v === '__alt') { onManual(ref); return; }
+        const [t, id] = v.split(':');
+        if (id) onAlege(ref, { tip: t as 'sportiv' | 'familie', id });
+    };
+
+    return (
+        <div className="rounded-xl border border-[var(--t-border)] p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+                <TitluZona>Din fișier</TitluZona>
+                <p className="text-sm text-[var(--t-text)]"><span className="font-bold">{lei(rand.suma)}</span> · {rand.data_tranzactie}</p>
+                <p className="text-sm text-[var(--t-text)]">{rand.platitor_nume ?? '—'}</p>
+                <p className="text-xs text-slate-400 line-clamp-2">{rand.detalii}</p>
+                <div className="mt-1"><Badge variant="slate">{ETICHETA_TIP[rand.tip_probabil]}</Badge></div>
+            </div>
+
+            <div className="space-y-1">
+                <TitluZona>Deja în aplicație</TitluZona>
+                {importat ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="amber">Deja importat</Badge>
+                        <span className="text-xs text-slate-400">{STARE_IMPORT_RO[importat.stare] ?? importat.stare}</span>
+                    </div>
+                ) : stareImportText && <p className="text-xs text-slate-400">{stareImportText}</p>}
+                {seIncarcaIncasari && <p className="text-xs text-slate-400">Se încarcă încasările din Jurnal…</p>}
+                {incasariSimilare.length > 0 ? (
+                    <div className="space-y-1">
+                        <Badge variant="amber">Posibil duplicat</Badge>
+                        {incasariSimilare.slice(0, 3).map(t => (
+                            <p key={t.id} className="text-xs text-[var(--t-text)]">
+                                {String(t.data_platii).slice(0, 10)} · {lei(t.suma)} · {(t.sportiv_id ? numeSportiv.get(t.sportiv_id) : t.familie_id ? numeFamilie.get(t.familie_id) : '') || '—'} · {t.metoda_plata}
+                            </p>
+                        ))}
+                        <p className="text-xs text-amber-300">Pare introdusă deja manual în Jurnal — dacă o imporți și o confirmi, banii se numără de două ori.</p>
+                    </div>
+                ) : !importat && !seIncarcaIncasari && <Badge variant="green">Nou</Badge>}
+            </div>
+
+            <div className="space-y-2">
+                <TitluZona>Se aplică la</TitluZona>
+                {alegere === 'ignorat' ? (
+                    <div className="space-y-2">
+                        <p className="text-sm text-slate-400">Ignorat (doar în previzualizare)</p>
+                        <Button size="sm" variant="secondary" className="min-h-10" onClick={() => onAlege(ref, undefined)}>Anulează</Button>
+                    </div>
+                ) : (
+                    <>
+                        <Select label="Sportiv / familie" value={valoareTinta} onChange={e => onSelect(e.target.value)}>
+                            {!tinta && <option value="">— Fără potrivire —</option>}
+                            {candidati.map(c => (
+                                <option key={`${c.tip}:${c.id}`} value={`${c.tip}:${c.id}`}>
+                                    {c.eticheta}{c.tip === 'familie' ? ' (familie)' : ''}{c.sumaEgala ? ' · sumă egală' : ''}
+                                </option>
+                            ))}
+                            {tinta && !dinCandidati && <option value={valoareTinta}>{etichetaTinta(tinta.tip, tinta.id)}</option>}
+                            <option value="__alt">Alt sportiv / familie…</option>
+                        </Select>
+                        {manual && (
+                            <Select label="Alege manual" value="" onChange={e => { onSelect(e.target.value); onManual(null); }}>
+                                <option value="">Alege...</option>
+                                <optgroup label="Sportivi">
+                                    {sportivi.map(s => <option key={s.id} value={`sportiv:${s.id}`}>{s.nume} {s.prenume}</option>)}
+                                </optgroup>
+                                <optgroup label="Familii">
+                                    {familii.map(f => <option key={f.id} value={`familie:${f.id}`}>Familia {f.nume}</option>)}
+                                </optgroup>
+                            </Select>
+                        )}
+                        {motive.length > 0 && <div className="flex flex-wrap gap-1">{motive.map(m => <Badge key={m} variant="slate">{MOTIVE_RO[m] ?? m}</Badge>)}</div>}
+                        {tinta && (
+                            <div className="text-xs text-[var(--t-text)] space-y-1">
+                                {facturi.length === 0 && <p className="text-slate-400">Nicio factură deschisă: toată suma ar rămâne avans.</p>}
+                                {alocare.map(a => {
+                                    const f = facturi.find(x => x.id === a.plata_id);
+                                    return f && <p key={a.plata_id}>{(f as any).descriere ?? 'Factură'} · rest {lei(restDePlata(f))} · alocă {lei(a.suma_alocata)}</p>;
+                                })}
+                                {facturi.length > 0 && rand.suma - totalAlocat > 0.005 && <p className="text-slate-400">rest {lei(rand.suma - totalAlocat)} → avans</p>}
+                            </div>
+                        )}
+                        <Button size="sm" variant="secondary" className="min-h-10" onClick={() => onAlege(ref, 'ignorat')}>Ignoră</Button>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+});
 
 // ─── Modal potrivire ─────────────────────────────────────────────────────────
 

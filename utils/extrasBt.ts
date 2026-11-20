@@ -122,6 +122,14 @@ const norm = (s: string | null | undefined) =>
   (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const tokeni = (s: string | null | undefined) => norm(s).split(' ').filter(Boolean);
 
+/** Facturile cu rest > 0 ale unui sportiv sau ale unei familii (inclusiv ale membrilor ei), cele mai vechi primele. */
+export function facturiDeschisePentru(tip: 'sportiv' | 'familie', id: string, sportivi: Sportiv[], plati: Plata[]): Plata[] {
+  const membri = tip === 'familie' ? new Set(sportivi.filter(s => s.familie_id === id).map(s => s.id)) : null;
+  return plati
+    .filter(p => restDePlata(p) > 0.001 && (tip === 'sportiv' ? p.sportiv_id === id : p.familie_id === id || (!!p.sportiv_id && membri!.has(p.sportiv_id))))
+    .sort((a, b) => (a.data || '').toString().slice(0, 10).localeCompare((b.data || '').toString().slice(0, 10)));
+}
+
 export function gasesteCandidati(
   tb: { suma: number; platitor_nume: string | null; platitor_iban: string | null; detalii: string | null },
   ctx: { sportivi: Sportiv[]; familii: Familie[]; plati: Plata[]; memorie: MemorieIban[] }
@@ -175,13 +183,9 @@ export function gasesteCandidati(
     }
   }
 
-  const deschise = ctx.plati.filter(p => restDePlata(p) > 0.001);
   const rezultat: CandidatPotrivire[] = [];
   for (const c of acc.values()) {
-    const membri = c.tip === 'familie' ? new Set(ctx.sportivi.filter(s => s.familie_id === c.id).map(s => s.id)) : null;
-    const facturi = deschise
-      .filter(p => (c.tip === 'sportiv' ? p.sportiv_id === c.id : p.familie_id === c.id || (!!p.sportiv_id && membri!.has(p.sportiv_id))))
-      .sort((a, b) => (a.data || '').toString().slice(0, 10).localeCompare((b.data || '').toString().slice(0, 10)));
+    const facturi = facturiDeschisePentru(c.tip, c.id, ctx.sportivi, ctx.plati);
     const restTotal = facturi.reduce((s, p) => s + restDePlata(p), 0);
     const sumaEgala = Math.abs(restTotal - tb.suma) < 0.005 || facturi.some(p => Math.abs(restDePlata(p) - tb.suma) < 0.005);
     const scoruri = [...c.motive.values()];

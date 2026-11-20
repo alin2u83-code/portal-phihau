@@ -8,7 +8,7 @@ import type { PlatiHubTabProps } from './platiHubConfig';
 /**
  * Tab-ul "Facturi & Încasări" al hub-ului Plăți & Facturi (D-01 + D-02 unificate): grupează
  * `plati-scadente`, `gestiune-facturi`, `facturi-fara-prezenta`, `jurnal-incasari` și
- * `sumar-incasari` sub aceeași identitate de tab, cu props
+ * `sumar-incasari`, `extras-bancar` sub aceeași identitate de tab, cu props
  * IDENTICE celor transmise azi de `AppRouter.tsx` (harta verificată în 31-01). Montează
  * suplimentar `FacturaDetaliu` (31-03) pentru butonul „Detalii” (D-08) expus de
  * PlatiScadente/GestiuneFacturi via `onDeschideDetalii`.
@@ -99,6 +99,7 @@ export const TabFacturi: React.FC<TabFacturiProps> = ({
         />
       )}
       {sectiune === 'sumar-incasari' && <Lazy.SumarIncasari permissions={permissions} />}
+      {sectiune === 'extras-bancar' && <Lazy.ExtrasBancar permissions={permissions} currentUser={currentUser} />}
       <FacturaDetaliu plataId={plataDetaliuId} onClose={() => setPlataDetaliuId(null)} />
     </>
   );

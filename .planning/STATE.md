@@ -218,6 +218,7 @@ Recent decisions affecting current work:
 | - | Fix bug NotificariRestantieriModal: butoanele "Copiaza mesaj"/"Copiaza toate" nu arata confirmarea "Copiat!" — copiazaText astepta clipboard.writeText() inainte de setState (muta update-ul in microtask dupa await); aliniat la pattern fire-and-forget deja folosit in CreateAccountModal.tsx | 2026-09-26 | 4270166 | Playwright: root cauza confirmata prin inspectie React fiber, fix verificat functional (200ms dupa click, "Copiat!" apare corect) | - |
 | 260929-0hf | Alerte securitate admin: email automat (SMTP Hostinger, handler Vercel + nodemailer) la 5+ login-uri esuate/15min sau login admin de pe IP+browser nou; 3 tabele noi RLS + card Jurnal Audit; WhatsApp exclus din scop (necesita API platit) | 2026-09-29 | 3afa2b7,a74c83e,1e81f43 | Blocked (SMTP auth 535) | [260929-0hf-alerte-securitate-admin](./quick/260929-0hf-alerte-securitate-admin/) |
 | 261014-qa1 | Feedback WhatsApp 10.08: incasari alocate pe facturi (RPC+backfill), buton Restante, pastrare scroll/pagina, MFA dispozitiv incredere 7 zile, autocomplete login, modal Adauga Sportivi mai mare | 2026-10-14 | 0e6259f | Needs Review (scroll mobil + login de testat pe dispozitiv) | [261014-qa1-incasari-alocate-restante-scroll-mfa-device](./quick/261014-qa1-incasari-alocate-restante-scroll-mfa-device/) |
+| 261122-gb6 | Reduceri permanente per sportiv (reduceri_sportiv, RPC atomic, UI profil+Plati) | 2026-11-22 | 3cd39a0e | Complete (nepush) | [261122-gb6](./quick/261122-gb6-reduceri-la-abonamente-reducere-permanen/) |
 
 ### Roadmap Evolution
 

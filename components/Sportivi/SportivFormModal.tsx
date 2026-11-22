@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sportiv, Grupa, Grad, Familie, TipAbonament, Club, User, Rol } from '../../types';
-import { Modal, Button, ConfirmModal } from '../ui';
+import { Modal, Button, ConfirmModal, Select } from '../ui';
+import { useData } from '../../contexts/DataContext';
+import { useReduceriSportiv } from '../../hooks/useReduceriSportiv';
 import { useError } from '../ErrorProvider';
 import { useSportivForm } from '../../hooks/useSportivForm';
 import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
@@ -20,7 +22,8 @@ const initialFormState: Partial<Sportiv> = {
 export const SportivFormModal: React.FC<{
     isOpen: boolean;
     onClose: (savedSportiv?: Sportiv) => void;
-    onSave: (formData: Partial<Sportiv>) => Promise<{ success: boolean; error?: any; data?: Sportiv }>;
+    // reducereId: undefined = neschimbată, null = scoasă, uuid = atribuită (salvată de părinte înainte de factura la înscriere)
+    onSave: (formData: Partial<Sportiv>, reducereId?: string | null) => Promise<{ success: boolean; error?: any; data?: Sportiv }>;
     sportivToEdit: Partial<Sportiv> | null;
     grupe: Grupa[];
     setGrupe: React.Dispatch<React.SetStateAction<Grupa[]>>;
@@ -47,6 +50,16 @@ export const SportivFormModal: React.FC<{
     const openConfirm = (message: string, onConfirm: () => void, opts?: { title?: string; confirmLabel?: string; variant?: 'danger' | 'warning' | 'info' }) => setConfirmDialog({ open: true, message, onConfirm, ...opts });
 
     const { handleCreateFamily } = useFamilyManager(familii, setFamilii, [], () => {});
+
+    // Reducere permanentă de abonament (reduceri_sportiv): se salvează după salvarea sportivului.
+    const { reduceri } = useData();
+    const { reduceriPeSportiv } = useReduceriSportiv(activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
+    // Lista e filtrată pe clubul sportivului (super adminul vede reduceri din toate cluburile); RLS refuză oricum altă combinație.
+    const clubSportiv = formData.club_id || sportivToEdit?.club_id || activeRoleContext?.club_id || currentUser?.club_id || null;
+    const reducereInitiala = (sportivToEdit?.id && reduceriPeSportiv.get(sportivToEdit.id)?.id) || '';
+    const [reducereAleasa, setReducereAleasa] = useState<string | null>(null); // null = needitat
+    useEffect(() => { if (isOpen) setReducereAleasa(null); }, [isOpen, sportivToEdit?.id]);
+    const reducereCurenta = reducereAleasa ?? reducereInitiala;
 
     useEffect(() => {
         if (isOpen) {
@@ -117,7 +130,7 @@ export const SportivFormModal: React.FC<{
             if (numeParinte && numeParinte !== sportivToEdit?.consimtamant_parinte_nume) {
                 payload = { ...formData, consimtamant_parinte_data: new Date().toISOString() };
             }
-            const result = await onSave(payload);
+            const result = await onSave(payload, reducereCurenta !== reducereInitiala ? (reducereCurenta || null) : undefined);
             if (result.success) {
                 setIsDirty(false);
                 onClose(result.data);
@@ -163,6 +176,19 @@ export const SportivFormModal: React.FC<{
                         onQuickAddFamilie={() => setIsFamilieModalOpen(true)}
                         allRoles={allRoles}
                     />
+                    <div className="mt-4">
+                        <Select
+                            label="Reducere abonament (permanentă)"
+                            value={reducereCurenta}
+                            onChange={e => { setReducereAleasa(e.target.value); setIsDirty(true); }}
+                            disabled={loading}
+                        >
+                            <option value="">Fără reducere</option>
+                            {reduceri.filter(r => (r.este_activa || r.id === reducereInitiala) && (!clubSportiv || (r as any).club_id === clubSportiv)).map(r => (
+                                <option key={r.id} value={r.id}>{r.nume} ({r.tip === 'procent' ? `${r.valoare}%` : `${r.valoare} RON`})</option>
+                            ))}
+                        </Select>
+                    </div>
                     {/* Footer: stivuit pe mobil, aliniat dreapta pe desktop */}
                     <div className="flex flex-col-reverse sm:flex-row sm:justify-end pt-4 mt-4 gap-2 border-t border-slate-700">
                         <Button

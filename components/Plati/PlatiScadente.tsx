@@ -25,6 +25,8 @@ import { useNavigation } from '../../contexts/NavigationContext';
 import { decideGratieReinnoire, primaZiLunaCurenta } from '../../utils/perioadaGratie';
 import { numaraReinnoiriConsecutive, calculeazaBonusLoialitate } from '../../utils/loialitateReinnoiri';
 import { getPoliticiLoialitate } from '../../services/loialitateService';
+import { getReduceriSportiv } from '../../services/reduceriSportivService';
+import { reduceriFactura } from '../../utils/reducereSportiv';
 import { SELECT_TRANZACTIE_CU_ALOCARI, normalizeazaTranzactii } from '../../services/tranzactiiService';
 
 interface PlatiScadenteProps {
@@ -159,6 +161,13 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
             if (errPolitici) console.error('Eroare la incarcarea politicilor de loialitate:', errPolitici);
             const politici = politiciLoialitate ?? [];
 
+            // Reduceri atribuite sportivilor (reduceri_sportiv). Soft-fail ca la loialitate: nu blocheaza facturarea.
+            const { data: reduceriPeSportiv, error: errReduceriSportiv } = await getReduceriSportiv(clubId);
+            if (errReduceriSportiv) console.error('Eroare la incarcarea reducerilor pe sportiv:', errReduceriSportiv);
+            // Reducerea (aplicabila la Abonament) a membrilor dati; valoarea e plafonata la ce a ramas de platit dupa bonus.
+            const reducereAbonament = (pretLista: number, dejaScazut: number, membriIds: string[]) =>
+                reduceriFactura(pretLista, dejaScazut, membriIds.map(id => reduceriPeSportiv.get(id)), 'Abonament');
+
             // Calculează solduri proaspete folosind datele din DB, nu state-ul React
             const { perFamilie: famBalancesFresh, perSportiv: indivBalancesFresh } = calculeazaSolduri(
                 platiProaspete as any[],
@@ -278,11 +287,14 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     const reinnoiriFamilie = numaraReinnoiriConsecutive(platiFamilie as Plata[], today);
                     const bonusFamilie = calculeazaBonusLoialitate(politici, reinnoiriFamilie, abonamentConfig.pret);
 
-                    let sumaDeFacturat = abonamentConfig.pret - bonusFamilie.sumaBonus;
+                    const redFamilie = reducereAbonament(abonamentConfig.pret, bonusFamilie.sumaBonus, membriActiviInFamilie.map(m => m.id));
+                    let sumaDeFacturat = abonamentConfig.pret - bonusFamilie.sumaBonus - redFamilie.valoare;
                     let status: Plata['status'] = 'Neachitat';
                     let observatii = `Abonament pt: ${membriActiviInFamilie.map(m => m.prenume).join(', ')}.`;
                     if (bonusFamilie.sumaBonus > 0) observatii += ` ${bonusFamilie.detalii}.`;
-                    if (creditFamilie >= sumaDeFacturat) { status = 'Achitat'; observatii += ` Stins automat din credit.`; }
+                    if (redFamilie.valoare > 0) observatii += ` Reducere: ${redFamilie.detalii}.`;
+                    if (redFamilie.valoare > 0 && sumaDeFacturat <= 0) { status = 'Achitat'; observatii += ` Reducere integrală.`; }
+                    else if (creditFamilie >= sumaDeFacturat) { status = 'Achitat'; observatii += ` Stins automat din credit.`; }
                     else if (creditFamilie > 0) { sumaDeFacturat -= creditFamilie; observatii += ` Parțial stins din credit.`; }
 
                     platiToInsert.push({
@@ -292,7 +304,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                         descriere: `Abonament Familie ${lunaText}`, tip: 'Abonament',
                         observatii, club_id: membriActiviInFamilie[0]?.club_id,
                         suma_initiala: abonamentConfig.pret,
-                        ...(bonusFamilie.sumaBonus > 0 ? { reducereDetalii: bonusFamilie.detalii } : {}),
+                        ...((bonusFamilie.sumaBonus > 0 || redFamilie.valoare > 0)
+                            ? { reducereDetalii: [bonusFamilie.sumaBonus > 0 ? bonusFamilie.detalii : '', redFamilie.valoare > 0 ? redFamilie.detalii : ''].filter(Boolean).join(' + ') }
+                            : {}),
+                        ...(redFamilie.valoare > 0 ? { reducere_id: redFamilie.reducereId, valoare_reducere: redFamilie.valoare } : {}),
                     } as any);
                     if (bonusFamilie.sumaBonus > 0 && bonusFamilie.politica) {
                         bonusuriPeFamilie.set(familie.id, { politicaId: bonusFamilie.politica.id, sumaBonus: bonusFamilie.sumaBonus });
@@ -318,12 +333,15 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                     const reinnoiriSportiv = numaraReinnoiriConsecutive(platiSportivIstoric as Plata[], today);
                     const bonusSportiv = calculeazaBonusLoialitate(politici, reinnoiriSportiv, abonamentConfig.pret);
 
-                    let sumaDeFacturat = abonamentConfig.pret - bonusSportiv.sumaBonus;
+                    const redSportiv = reducereAbonament(abonamentConfig.pret, bonusSportiv.sumaBonus, [sportiv.id]);
+                    let sumaDeFacturat = abonamentConfig.pret - bonusSportiv.sumaBonus - redSportiv.valoare;
                     let status: Plata['status'] = 'Neachitat';
                     let observatii = 'Generat automat.';
                     if (bonusSportiv.sumaBonus > 0) observatii += ` ${bonusSportiv.detalii}.`;
+                    if (redSportiv.valoare > 0) observatii += ` Reducere: ${redSportiv.detalii}.`;
                     if (sportiviCuGratie.has(sportiv.id)) observatii += ` Perioadă de grație aplicată (pauză peste ${pragGratie} zile) — lunile anterioare nu mai sunt datorate.`;
-                    if (creditSportiv >= sumaDeFacturat) { status = 'Achitat'; observatii += ' Stins automat din credit.'; }
+                    if (redSportiv.valoare > 0 && sumaDeFacturat <= 0) { status = 'Achitat'; observatii += ' Reducere integrală.'; }
+                    else if (creditSportiv >= sumaDeFacturat) { status = 'Achitat'; observatii += ' Stins automat din credit.'; }
                     else if (creditSportiv > 0) { sumaDeFacturat -= creditSportiv; observatii += ' Parțial stins din credit.'; }
                     platiToInsert.push({
                         sportiv_id: sportiv.id, familie_id: null,
@@ -332,7 +350,10 @@ export const PlatiScadente: React.FC<PlatiScadenteProps> = ({ onIncaseazaMultipl
                         descriere: `Abonament ${lunaText}`, tip: 'Abonament',
                         observatii, club_id: sportiv.club_id,
                         suma_initiala: abonamentConfig.pret,
-                        ...(bonusSportiv.sumaBonus > 0 ? { reducereDetalii: bonusSportiv.detalii } : {}),
+                        ...((bonusSportiv.sumaBonus > 0 || redSportiv.valoare > 0)
+                            ? { reducereDetalii: [bonusSportiv.sumaBonus > 0 ? bonusSportiv.detalii : '', redSportiv.valoare > 0 ? redSportiv.detalii : ''].filter(Boolean).join(' + ') }
+                            : {}),
+                        ...(redSportiv.valoare > 0 ? { reducere_id: redSportiv.reducereId, valoare_reducere: redSportiv.valoare } : {}),
                     } as any);
                     if (bonusSportiv.sumaBonus > 0 && bonusSportiv.politica) {
                         bonusuriPeSportiv.set(sportiv.id, { politicaId: bonusSportiv.politica.id, sumaBonus: bonusSportiv.sumaBonus });

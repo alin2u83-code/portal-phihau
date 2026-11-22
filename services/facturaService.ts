@@ -3,6 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Plata, Sportiv, TipAbonament } from '../types';
 import { filtreazaTipuriSezon, gasesteTipDupaId } from '../utils/abonamente';
 import { formatLuna } from '../utils/luniLipsa';
+import { reduceriFactura } from '../utils/reducereSportiv';
+import { getReducereSportiv } from './reduceriSportivService';
 
 /** Payload pentru o factură nouă; o cheie care nu e coloană în `Plata` pică la tsc. */
 export type PlataNoua = Omit<Plata, 'id' | 'club_id'> & { club_id?: string | null };
@@ -158,13 +160,25 @@ export async function genereazaFacturaLaInscriere(
     const tip = gasesteTipDupaId(tipuriAbonament, sportiv.tip_abonament_id)
         || filtreazaTipuriSezon(tipuriAbonament, sezonActivId).find(t => t.numar_membri === 1 && (!t.club_id || t.club_id === sportiv.club_id));
     if (!tip) return { data: null, error: null, omis: 'Nu exista tip de abonament Individual pentru sezonul activ.' };
+    // Reducerea permanentă a sportivului (reduceri_sportiv) — salvată înainte de acest apel, ca factura să iasă redusă.
+    const red = reduceriFactura(tip.pret, 0, [await getReducereSportiv(sportiv.id)], 'Abonament');
+    const suma = tip.pret - red.valoare;
     const azi = new Date();
     const res = await genereazaFacturaAbonament({
-        sportiv, luna: azi.getMonth() + 1, an: azi.getFullYear(), suma: tip.pret,
-        observatii: 'Generat automat la inscriere.',
+        sportiv, luna: azi.getMonth() + 1, an: azi.getFullYear(), suma,
+        observatii: red.valoare > 0 ? `Generat automat la inscriere. Reducere: ${red.detalii}.` : 'Generat automat la inscriere.',
     });
     if (res.data) {
-        await supabase.from('plati').update({ suma_initiala: tip.pret } as any).eq('id', res.data.id);
+        await supabase.from('plati').update({
+            suma_initiala: tip.pret,
+            ...(red.valoare > 0 ? {
+                reducere_id: red.reducereId,
+                valoare_reducere: red.valoare,
+                reducereDetalii: red.detalii,
+                // Reducere integrală: nimic de plătit (DB aduce suma_ramasa la 0 la status Achitat).
+                ...(suma <= 0 ? { status: 'Achitat' } : {}),
+            } : {}),
+        } as any).eq('id', res.data.id);
     }
     return res;
 }

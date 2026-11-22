@@ -8,6 +8,7 @@ import { PlusIcon, UploadCloudIcon, ArrowLeftIcon } from '../icons';
 import { ProgramEditor } from '../Grupe/ProgramEditor';
 import { adaugaSportiv, actualizeazaSportiv } from '../../services/sportivService';
 import { genereazaFacturaLaInscriere } from '../../services/facturaService';
+import { seteazaReducereSportiv } from '../../services/reduceriSportivService';
 import { useError } from '../ErrorProvider';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useSortConfig, applySortConfig } from '../../hooks/useSortConfig';
@@ -608,7 +609,15 @@ export const Sportivi: React.FC<{
 
     const { createAccountAndAssignRole, updateRoles } = useRoleAssignment(currentUser, allRoles);
 
-    const handleSave = async (formData: Partial<Sportiv>): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
+    // `reducereId`: undefined = neschimbată; null = scoasă; uuid = atribuită. Se salvează ÎNAINTE de factura automată
+    // de la înscriere, ca prima factură să iasă deja redusă. Eroarea nu strică salvarea sportivului.
+    const handleSave = async (formData: Partial<Sportiv>, reducereId?: string | null): Promise<{ success: boolean; error?: any; data?: Sportiv; }> => {
+        const salveazaReducere = async (sportivId: string) => {
+            if (reducereId === undefined) return;
+            const { error } = await seteazaReducereSportiv(sportivId, reducereId);
+            if (error) showError('Sportiv salvat, reducerea nu', error.message || 'Reducerea nu a putut fi salvată. Setează-o din Plăți → Configurare → Reduceri.');
+            else queryClient.invalidateQueries({ queryKey: ['reduceri-sportiv'] });
+        };
         try {
             if (sportivToEdit) {
                 const result = await actualizeazaSportiv(sportivToEdit.id, formData);
@@ -629,6 +638,7 @@ export const Sportivi: React.FC<{
     
                 const updatedSportiv = { ...result.data!, roluri: finalRoles };
     
+                await salveazaReducere(sportivToEdit.id);
                 setSportivi(prev => prev.map(s => s.id === sportivToEdit.id ? updatedSportiv : s));
                 queryClient.invalidateQueries({ queryKey: ['sportivi'] });
                 showSuccess('Succes', 'Sportiv actualizat!');
@@ -647,6 +657,7 @@ export const Sportivi: React.FC<{
 
                     setSportivi(prev => [...prev, resultFaraCont.data!]);
                     queryClient.invalidateQueries({ queryKey: ['sportivi'] });
+                    await salveazaReducere(resultFaraCont.data!.id);
                     await facturaLaInscriere(resultFaraCont.data!);
                     handleCloseFormModal();
                     showSuccess('Succes', 'Sportiv adăugat! Poți activa un cont de login oricând mai târziu.');
@@ -735,6 +746,7 @@ export const Sportivi: React.FC<{
                     }
                 }
 
+                await salveazaReducere(sportivCreat.id);
                 await facturaLaInscriere(sportivCreat);
                 setSportivi(prev => [...prev, sportivCreat]);
                 queryClient.invalidateQueries({ queryKey: ['sportivi'] });

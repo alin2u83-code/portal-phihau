@@ -9,6 +9,8 @@ import { creeazaPlata } from '../../services/facturaService';
 import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { useData } from '../../contexts/DataContext';
+import { useReduceriSportiv } from '../../hooks/useReduceriSportiv';
+import { reduceriFactura } from '../../utils/reducereSportiv';
 import { sendNotification } from '../../utils/notifications';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { PeriodFilterBar } from './PeriodFilterBar';
@@ -189,6 +191,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
     const [avansExpanded, setAvansExpanded] = useState(false);
     const [periodFilter, setPeriodFilter] = useState({ startDate: '', endDate: '' });
     const { activeRoleContext, filteredData, grade } = useData();
+    const { reduceriPeSportiv } = useReduceriSportiv(activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
     const inscrieriExamene = filteredData.inscrieriExamene;
     const { sezonActivId } = useSezonActiv(activeRoleContext?.club_id ?? currentUser?.club_id ?? null);
 
@@ -285,16 +288,14 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
         let appliedDiscount: Reducere | null = null;
         let finalPrice = calculatedPrice;
 
-        const activeDiscounts = reduceri.filter(r => r.este_activa && (r.categorie_aplicabila === formState.tip || r.categorie_aplicabila === 'Toate'));
-        if (activeDiscounts.length > 0) {
-            appliedDiscount = activeDiscounts[0]; 
-            if (appliedDiscount.tip === 'procent') {
-                finalPrice = calculatedPrice * (1 - appliedDiscount.valoare / 100);
-            } else { 
-                finalPrice = Math.max(0, calculatedPrice - appliedDiscount.valoare);
-            }
-        }
-        
+        // Reducerea atribuită sportivului (reduceri_sportiv); la abonament de familie, a membrilor activi.
+        const idsMembri = formState.tip === 'Abonament' && sportiv.familie_id
+            ? sportivi.filter(s => s.familie_id === sportiv.familie_id && s.status === 'Activ').map(s => s.id)
+            : [sportiv.id];
+        const red = reduceriFactura(calculatedPrice, 0, idsMembri.map(id => reduceriPeSportiv.get(id)), formState.tip as string);
+        finalPrice = calculatedPrice - red.valoare;
+        if (red.reducereId) appliedDiscount = reduceri.find(r => r.id === red.reducereId) ?? null;
+
         setFormState(prev => ({ 
             ...prev, 
             suma: finalPrice, 
@@ -303,7 +304,7 @@ export const JurnalIncasari: React.FC<JurnalIncasariProps> = ({ currentUser, per
             descriere: description,
         }));
 
-    }, [formState.sportiv_id, formState.tip, selectedMarimeId, formState.data_platii, sportivi, preturiConfig, tipuriAbonament, platiInitiale, reduceri, sezonActivId]);
+    }, [formState.sportiv_id, formState.tip, selectedMarimeId, formState.data_platii, sportivi, preturiConfig, tipuriAbonament, platiInitiale, reduceri, reduceriPeSportiv, sezonActivId]);
 
     const handleSaveIncasare = async (e: React.FormEvent) => {
         e.preventDefault();

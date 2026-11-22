@@ -7,6 +7,8 @@ import { useError } from '../ErrorProvider';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModal';
 import { ResponsiveTable, Column } from '../ResponsiveTable';
 import { useData } from '../../contexts/DataContext';
+import { useReduceriSportiv } from '../../hooks/useReduceriSportiv';
+import { reduceriFactura } from '../../utils/reducereSportiv';
 import { useDenumireFactura } from '../../hooks/useDenumireFactura';
 import { usePermissions } from '../../hooks/usePermissions';
 import { getPretValabil, getPretProdus } from '../../utils/pricing';
@@ -51,6 +53,7 @@ const initialFormState = {
 export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, currentUser, sportivi, plati, setPlati, setTranzactii, tipuriPlati, familii, onViewSportiv, initialSportivId, hideBackButton, onDeschideDetalii }) => {
     const { showError, showSuccess } = useError();
     const { preturiConfig, tipuriAbonament, reduceri, activeRoleContext } = useData();
+    const { reduceriPeSportiv } = useReduceriSportiv(activeRoleContext?.club_id ?? null);
     const denumireFactura = useDenumireFactura();
     const permissions = usePermissions(activeRoleContext);
     const { sezonActivId } = useSezonActiv(activeRoleContext?.club_id ?? null);
@@ -148,20 +151,13 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             description = config?.denumire_serviciu || '';
         }
 
-        // Apply automatic discount if available
-        const activeDiscounts = reduceri.filter(r => r.este_activa && (r.categorie_aplicabila === formState.tip || r.categorie_aplicabila === 'Toate'));
-        let finalPrice = calculatedPrice;
-        let reducereId = '';
-
-        if (activeDiscounts.length > 0) {
-            const discount = activeDiscounts[0];
-            reducereId = discount.id;
-            if (discount.tip === 'procent') {
-                finalPrice = calculatedPrice * (1 - discount.valoare / 100);
-            } else {
-                finalPrice = Math.max(0, calculatedPrice - discount.valoare);
-            }
-        }
+        // Reducerea atribuită sportivului (reduceri_sportiv); la abonament de familie, a membrilor activi.
+        const idsMembri = formState.tip === 'Abonament' && sportiv.familie_id
+            ? sportivi.filter(s => s.familie_id === sportiv.familie_id && s.status === 'Activ').map(s => s.id)
+            : [sportiv.id];
+        const red = reduceriFactura(calculatedPrice, 0, idsMembri.map(id => reduceriPeSportiv.get(id)), formState.tip);
+        const finalPrice = calculatedPrice - red.valoare;
+        const reducereId = red.reducereId ?? '';
 
         setFormState(prev => sumeEditateManual.current
             ? { ...prev, descriere: prev.descriere || description }
@@ -173,7 +169,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 descriere: prev.descriere || description
             });
 
-    }, [formState.sportiv_id, formState.tip, formState.data, selectedMarimeId, sportivi, preturiConfig, tipuriAbonament, reduceri, sezonActivId]);
+    }, [formState.sportiv_id, formState.tip, formState.data, selectedMarimeId, sportivi, preturiConfig, tipuriAbonament, reduceri, reduceriPeSportiv, sezonActivId]);
 
     const getEntityName = (plata: Plata) => {
         // Abonamentele rămân pe familie; restul facturilor apar pe sportiv chiar dacă se încasează pe familie.
@@ -253,8 +249,9 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
                 // PGRST204 "Could not find the 'reducere_detalii' column of 'plati'".
                 reducereDetalii: reducere?.nume || null,
                 data: formState.data,
-                // Mereu Neachitat la insert; statusul 'Achitat' îl setează DB după RPC-ul de încasare.
-                status: 'Neachitat',
+                // Neachitat la insert; 'Achitat' îl setează DB după RPC-ul de încasare. Excepție: factură de 0 lei
+                // (reducere integrală) — nu are ce încasa, deci se emite direct Achitat (ca la generarea în masă).
+                status: sumaNum === 0 ? 'Achitat' : 'Neachitat',
                 descriere: formState.descriere,
                 tip: formState.tip,
                 observatii: formState.isDirectPayment ? 'Încasat direct la emitere' : 'Generat manual de admin'
@@ -265,7 +262,7 @@ export const GestiuneFacturi: React.FC<GestiuneFacturiProps> = ({ onBack, curren
             if (plataError) throw plataError;
             if (!plataData) throw new Error("Nu s-a putut crea factura.");
 
-            if (formState.isDirectPayment && plataData) {
+            if (formState.isDirectPayment && plataData && sumaNum > 0) {
                 // Create transaction as well
                 // NOTA: tabela 'tranzactii' NU are coloana 'descriere' (verificat live,
                 // 2026-09-12) — inserarea acestui camp arunca eroare Postgres 42703

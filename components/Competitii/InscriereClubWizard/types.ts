@@ -132,6 +132,8 @@ export interface Pas2ArmeProps {
 
 export interface PasArmeProps {
   bannerLipsuri?: ItemDeRezolvat[];
+  /** sportivul de evidentiat/derulat la intrare sau la click pe "Mergi la Arme" */
+  focus?: { id: string | null; n: number } | null;
   competitie: Competitie;
   sportivi: Sportiv[];
   grade: Grad[];

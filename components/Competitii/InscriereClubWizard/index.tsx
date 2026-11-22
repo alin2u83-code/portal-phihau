@@ -243,6 +243,9 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
   const [pas2Vizitat, setPas2Vizitat] = useState(false);
   useEffect(() => { if (step === 2) setPas2Vizitat(true); }, [step]);
 
+  // sportivul spre care sare "Mergi la Arme" (n = declansator, ca click repetat pe acelasi sportiv sa re-deruleze)
+  const [armeFocus, setArmeFocus] = useState<{ id: string | null; n: number } | null>(null);
+
   // CVD: lipsurile (nesetat) cu buton de salt direct la zona de rezolvare
   const bannerLipsuri = useMemo<ItemDeRezolvat[]>(() => {
     if (competitie.tip !== 'cvd' || !arme || arme.loading) return [];
@@ -274,7 +277,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
     });
     return lipsuri.map(l => {
       const baza = { id: l.id, text: l.text };
-      if (l.tip === 'fara-arma' || l.tip === 'fara-categorie' || l.tip === 'arma-neeligibila') return { ...baza, actiune: 'Mergi la Arme', onClick: () => setStep('arme') };
+      if (l.tip === 'fara-arma' || l.tip === 'fara-categorie' || l.tip === 'arma-neeligibila') return { ...baza, actiune: 'Mergi la Arme', onClick: () => { setArmeFocus({ id: l.sportivId ?? null, n: Date.now() }); setStep('arme'); } };
       if (l.tip === 'fara-forma') {
         // nu se adauga niciodata un sportiv in selectie: Pas2 doar pentru cei deja selectati, altfel Pas1
         const sel = !!probaLo && !!l.sportivId && selectatiLo.has(l.sportivId);
@@ -405,6 +408,7 @@ const InscriereClubWizardInner: React.FC<InscriereClubWizardProps> = ({
         onContinua={() => setStep('hub')}
         onBack={() => setStep('hub')}
         bannerLipsuri={bannerLipsuri}
+        focus={armeFocus}
       />
     );
   }

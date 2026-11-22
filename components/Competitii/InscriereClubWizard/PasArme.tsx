@@ -18,7 +18,7 @@ const GOL = new Set<string>();
 const egale = (a: Set<string>, b: Set<string>) => a.size === b.size && [...a].every(x => b.has(x));
 
 const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> = ({
-  competitie, sportivi, grade, categorii, inscrieri, armeAlese, onChange, canEdit, onInscrieriRefresh, onContinua, onBack, arme, bannerLipsuri,
+  competitie, sportivi, grade, categorii, inscrieri, armeAlese, onChange, canEdit, onInscrieriRefresh, onContinua, onBack, arme, bannerLipsuri, focus,
 }) => {
   const { showError } = useError();
   const [draft, setDraft] = useState<ArmeAlese>(armeAlese);
@@ -46,6 +46,17 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
     incarcaCerinteStagii().then(({ data }) => { if (!anulat && data) setCerinte(data); });
     return () => { anulat = true; };
   }, []);
+
+  // "Mergi la Arme": scoate filtrele (altfel randul poate fi ascuns), deruleaza la sportiv si il evidentiaza
+  const [evidentiatId, setEvidentiatId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!focus?.id) return;
+    setFNume(''); setFGrad(''); setFVarstaMin(''); setFVarstaMax('');
+    setEvidentiatId(focus.id);
+    const t = setTimeout(() => document.getElementById(`arme-sportiv-${focus.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+    const t2 = setTimeout(() => setEvidentiatId(null), 3000);
+    return () => { clearTimeout(t); clearTimeout(t2); };
+  }, [focus?.n]);
 
   const armePeId = useMemo(() => new Map(arme.arme.map(a => [a.id, a])), [arme.arme]);
 
@@ -259,7 +270,7 @@ const PasArme: React.FC<PasArmeProps & { arme: ReturnType<typeof useArmeCvd> }> 
           };
           const stalePeArme = [...stale].map(id => armePeId.get(id)).filter((a): a is NonNullable<typeof a> => !!a);
           return (
-            <div key={s.id} className="rounded-xl border border-slate-600 bg-slate-800/40 p-3 space-y-2">
+            <div key={s.id} id={`arme-sportiv-${s.id}`} className={`rounded-xl border bg-slate-800/40 p-3 space-y-2 transition-shadow ${evidentiatId === s.id ? 'border-amber-400 ring-2 ring-amber-400' : 'border-slate-600'}`}>
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <p className="text-sm font-semibold text-white">
                   {formatNume(s)} <span className="text-xs font-normal text-slate-400">{grad?.nume ?? 'fără grad'}{doarCitire ? ' · inactiv (doar citire)' : ''}</span>
